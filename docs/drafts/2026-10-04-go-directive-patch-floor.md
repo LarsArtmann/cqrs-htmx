@@ -58,4 +58,5 @@ migration); cqrs-htmx itself is unaffected — 1.27.0 is within its own
 supported range.
 
 ---
+
 💘 Generated with Crush

@@ -77,40 +77,40 @@ The docs surface went from "3-report tail with a zero-strike report that would f
 ## f) Up to 50 things to get done next (impact-sorted; most pre-existing + this session's deltas; sources: TODO_LIST P1–P3, the live W0–W3 report §f, this session's b/e)
 
 **P1-class (unblocks value or honesty):**
-~~1. Finish the erraudit `context_loss` program — 25 sites: oauth2 ×5 (rawIDToken trio = suppress-with-reason after owner confirm), identity-model authz ×3, dashboardui ×10+ → scoped erraudit 0 → gate turns green. *(TODO P2; published code → next train.)*~~ done 2026-10-01 evening (0 criticals ×28 modules)
-2. Verify the `//nolint:<analyzer>` name erraudit honors — empirically, before the suppressions above rely on it; document in AGENTS. *(W0–W3 §f1.)*
-3. Re-derive the 61-vs-54 site-count discrepancy in the working-note extractor before the final verdict. *(W0–W3 §b.)*
-~~4. e2e Playwright suite + bench-spike in a verified-quiet window (load < 6 twice) — the battery's last slice; proves the snapshot sentinel change. *(TODO P2.)*~~ e2e DONE (70/70); bench-spike routed TODO P2 (quiet window)
+~~1. Finish the erraudit `context_loss` program — 25 sites: oauth2 ×5 (rawIDToken trio = suppress-with-reason after owner confirm), identity-model authz ×3, dashboardui ×10+ → scoped erraudit 0 → gate turns green. _(TODO P2; published code → next train.)_~~ done 2026-10-01 evening (0 criticals ×28 modules)
+2. Verify the `//nolint:<analyzer>` name erraudit honors — empirically, before the suppressions above rely on it; document in AGENTS. _(W0–W3 §f1.)_
+3. Re-derive the 61-vs-54 site-count discrepancy in the working-note extractor before the final verdict. _(W0–W3 §b.)_
+~~4. e2e Playwright suite + bench-spike in a verified-quiet window (load < 6 twice) — the battery's last slice; proves the snapshot sentinel change. _(TODO P2.)_~~ e2e DONE (70/70); bench-spike routed TODO P2 (quiet window)
 5. Re-run `check-modules` (25 stages) in that same quiet window — converts this session's b1 into green.
-6. Bundle the erraudit code changes with the next tag train (published modules — verify-tag choreography per release-playbook §3a). *(TODO P2.)*
-~~7. Draft + file the 5 fleet upstream asks (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci TMPDIR lock, BuildFlow go-work-sync union-graph guard with `373209a7` as case study, a-h/templ parser) — verify-before-filing discipline. *(TODO P2.)*~~ done 2026-10-01 evening (3 filed / 2 retired with evidence)
-~~8. Owner: rebuild the system cqrs-lint binary → `--strict --verbose .` root walk shows zero C040 → retire gotcha-13's caveat. *(TODO P2.)*~~ local half done 2026-10-01 evening; fleet swap owner-pending (D4)
-~~9. CHANGELOG + AGENTS entries once the analyzer name lands (2). *(W0–W3 §f1 tail.)*~~ done (analyzer semantics source-verified + documented in AGENTS gotcha 8; CHANGELOG receipts added same evening)
-~~10. Watch CI on the current ranges; record run ids in the next report. *(W0–W3 §f2 pattern.)*~~ done (superseded — first fully-green run 36839790817; later runs in the round-15 reports)
+6. Bundle the erraudit code changes with the next tag train (published modules — verify-tag choreography per release-playbook §3a). _(TODO P2.)_
+~~7. Draft + file the 5 fleet upstream asks (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci TMPDIR lock, BuildFlow go-work-sync union-graph guard with `373209a7` as case study, a-h/templ parser) — verify-before-filing discipline. _(TODO P2.)_~~ done 2026-10-01 evening (3 filed / 2 retired with evidence)
+~~8. Owner: rebuild the system cqrs-lint binary → `--strict --verbose .` root walk shows zero C040 → retire gotcha-13's caveat. _(TODO P2.)_~~ local half done 2026-10-01 evening; fleet swap owner-pending (D4)
+~~9. CHANGELOG + AGENTS entries once the analyzer name lands (2). _(W0–W3 §f1 tail.)_~~ done (analyzer semantics source-verified + documented in AGENTS gotcha 8; CHANGELOG receipts added same evening)
+~~10. Watch CI on the current ranges; record run ids in the next report. _(W0–W3 §f2 pattern.)_~~ done (superseded — first fully-green run 36839790817; later runs in the round-15 reports)
 
 **Tooling & gates (P2/P3):**
 ~~11. Build the **owner-decisions index** (e4): a standing TODO_LIST section or ROADMAP table that HARVEST feeds with every §g — the gate-policy, rawIDToken, and archive-bar questions are its founding entries.~~ done 2026-10-01 evening (TODO_LIST D1–D11)
 ~~12. Build the **tail-budget gate** (warn `docs/status/*.md` > 3) + a fixture asserting `docs/status/README.md`'s stated counts against reality — both sides of the d4 class, full atomic-gate checklist.~~ done 2026-10-01 (scripts/check-docs-tail-budget.sh + self-test; advisory by design)
-~~13. Repo-own the status-row PARTIAL normalizer (checker exists; the round-13 /tmp fixer is throwaway). *(TODO P3 k.)*~~ done 2026-10-01 (scripts/normalize-status-rows.py + self-test; fixer/checker agreement proven on the real archive)
+~~13. Repo-own the status-row PARTIAL normalizer (checker exists; the round-13 /tmp fixer is throwaway). _(TODO P3 k.)_~~ done 2026-10-01 (scripts/normalize-status-rows.py + self-test; fixer/checker agreement proven on the real archive)
 14. Codify the coverage-stamp convention (e3) as a docs-freshness rule + fixture.
-15. bump-dep.sh: `--commit` mode + per-module `go mod verify` + the single-line-require regex fix with self-test fixtures (`9b3c2e18` proved the gap live). *(TODO P3 a.)*
-16. Wire `--fail-on-stale-suppressions` into the flake gate. *(TODO P3 b.)*
-17. `cqrs-lint rules` old-vs-new diff ritual for binary updates. *(TODO P3 c.)*
-18. Audit `run.go:` values across all 16 `.golangci.yml` (1.26.7 vs the 1.27.1 floor). *(TODO P3 d.)*
-19. Raise dependabot's 20-module cap (28 modules today). *(TODO P3 e.)*
-20. Fix lychee's real 404s + deepwiki 429 backoff. *(TODO P3 f.)*
-21. Feedback-inbox checker. *(TODO P3 g.)*
-22. Scoped-format flake app (`.#fmt <paths>`). *(TODO P3 h.)*
-23. e2e pin: `ExtraMiddleware` composes under `RunWithAppkit`. *(TODO P3 i.)*
-24. Per-module race tests for the 8 e2e/examples modules (or a `#test-all` app). *(TODO P3 j.)*
-25. BuildFlow noise-policy batch: vulnix dead NVD feed disposition, "9 tools unavailable" class, jscpd config dupes. *(TODO P3 m.)*
-26. cqrs-lint residual triage incl. the new `sentinel_concrete_type` ×51 class. *(TODO P3 f-item.)*
-27. Add a `check-cqrs-lint` CI path once a Go-installable distribution exists (the annotated draft's publish step). *(TODO P2/P3 + planning draft.)*
+15. bump-dep.sh: `--commit` mode + per-module `go mod verify` + the single-line-require regex fix with self-test fixtures (`9b3c2e18` proved the gap live). _(TODO P3 a.)_
+16. Wire `--fail-on-stale-suppressions` into the flake gate. _(TODO P3 b.)_
+17. `cqrs-lint rules` old-vs-new diff ritual for binary updates. _(TODO P3 c.)_
+18. Audit `run.go:` values across all 16 `.golangci.yml` (1.26.7 vs the 1.27.1 floor). _(TODO P3 d.)_
+19. Raise dependabot's 20-module cap (28 modules today). _(TODO P3 e.)_
+20. Fix lychee's real 404s + deepwiki 429 backoff. _(TODO P3 f.)_
+21. Feedback-inbox checker. _(TODO P3 g.)_
+22. Scoped-format flake app (`.#fmt <paths>`). _(TODO P3 h.)_
+23. e2e pin: `ExtraMiddleware` composes under `RunWithAppkit`. _(TODO P3 i.)_
+24. Per-module race tests for the 8 e2e/examples modules (or a `#test-all` app). _(TODO P3 j.)_
+25. BuildFlow noise-policy batch: vulnix dead NVD feed disposition, "9 tools unavailable" class, jscpd config dupes. _(TODO P3 m.)_
+26. cqrs-lint residual triage incl. the new `sentinel_concrete_type` ×51 class. _(TODO P3 f-item.)_
+27. Add a `check-cqrs-lint` CI path once a Go-installable distribution exists (the annotated draft's publish step). _(TODO P2/P3 + planning draft.)_
 
 **Docs & memory (P3):**
-28. agents-notes narratives: the cqrs-lint three-pass arc; the three-tools-vs-nixpkgs-Go story. *(TODO P3 docs a.)*
-29. AGENTS gotcha 4 note: formatter-clean ≠ lint-clean. *(TODO P3 docs b.)*
-30. Runbook note: never chain bump-dep invocations without committing between. *(TODO P3 docs c.)*
+28. agents-notes narratives: the cqrs-lint three-pass arc; the three-tools-vs-nixpkgs-Go story. _(TODO P3 docs a.)_
+29. AGENTS gotcha 4 note: formatter-clean ≠ lint-clean. _(TODO P3 docs b.)_
+30. Runbook note: never chain bump-dep invocations without committing between. _(TODO P3 docs c.)_
 31. Record the research/benchmarks/proposals LEAVE verdict in `docs/research/README.md` (this session's b4).
 32. Annotate the W0–W3 report at the NEXT docs-health pass (it is the live tail today — absence of annotation is correct NOW, stale NEXT time).
 33. The round-14 sweep receipt in `docs/status/README.md` should gain the gate counts when the next pass runs (keep the sweep list append-only).
@@ -119,10 +119,10 @@ The docs surface went from "3-report tail with a zero-strike report that would f
 34. Gate policy during the erraudit program (see g1).
 35. rawIDToken suppress-with-reason confirm (see g2).
 36. Archive-bar ratification + tail budget (see g3).
-37. OQ27: go.work fleet-local replaces — tracked-with-gate-filter vs untracked GOWORK overlay. *(ROADMAP, NEW.)*
-38. OQ26: fleet go-directive policy (1.27.1 patch pin vs 1.27). *(ROADMAP.)*
-39. OQ23/24: PapDashboard architectural go/no-go. *(ROADMAP.)*
-40. PapDashboard reply packet — the v4.13.0 prerequisite is LIVE; say where #67/#68 land. *(TODO P3, NEW this session.)*
+37. OQ27: go.work fleet-local replaces — tracked-with-gate-filter vs untracked GOWORK overlay. _(ROADMAP, NEW.)_
+38. OQ26: fleet go-directive policy (1.27.1 patch pin vs 1.27). _(ROADMAP.)_
+39. OQ23/24: PapDashboard architectural go/no-go. _(ROADMAP.)_
+40. PapDashboard reply packet — the v4.13.0 prerequisite is LIVE; say where #67/#68 land. _(TODO P3, NEW this session.)_
 41. loginpage templ-components adoption (OQ21) — zero-dep posture vs design-system consistency.
 42. `examples/datastar-demo` rebrand-or-remove — recommendation stands at KEEP AS-IS.
 43. /mnt/buildcache reclaim decision (rust/ 155G + sccache/ 20G — not this repo's to delete).
@@ -130,10 +130,10 @@ The docs surface went from "3-report tail with a zero-strike report that would f
 45. OQ16: bench-spike automate-or-retire posture (the quiet-window rerun in item 4 feeds it).
 
 **Small sharp ones:**
-46. dashboardui snapshot-detail "store errored" vs "store empty" distinct state. *(W0–W3/02-59 §f32.)*
-47. Document the Load contract (nil,nil vs ErrSnapshotNotFound) upstream in go-cqrs-lite store docs. *(02-59 §f33.)*
-48. `nix flake check --all-systems` scheduled job (darwin arms unchecked). *(02-59 §f40.)*
-49. Preflight-tree-check as a habit-gate before every full BuildFlow run. *(02-59 §f43.)*
+46. dashboardui snapshot-detail "store errored" vs "store empty" distinct state. _(W0–W3/02-59 §f32.)_
+47. Document the Load contract (nil,nil vs ErrSnapshotNotFound) upstream in go-cqrs-lite store docs. _(02-59 §f33.)_
+48. `nix flake check --all-systems` scheduled job (darwin arms unchecked). _(02-59 §f40.)_
+49. Preflight-tree-check as a habit-gate before every full BuildFlow run. _(02-59 §f43.)_
 50. Vocabulary: keep the round numbering monotonic (13 → 14 → …) across reports, README sweep list, and plan names — this session found "round-13" and "W0–W3" coexisting happily, but a third naming scheme would fork the history.
 
 ## g) Questions I can NOT figure out myself (max 3)

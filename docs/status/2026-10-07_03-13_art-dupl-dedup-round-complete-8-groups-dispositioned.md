@@ -8,32 +8,38 @@
 ## a) FULLY DONE
 
 ### Group #4 — usermgmt marshal/rewrap twins (3 sites) ✅
+
 - `marshalViewJSON` (usermgmt/sql_view_marshal.go) now returns `(string, *errorfamily.Error)`; the three Handle sites (membership / tenant / bot in `sql_readmodel_extra.go`) consume `marshalErr` and attach `WithContextAny("agg_id", aggID)` — the double-Infrastructure-wrap stacking is gone.
 - Verified: build/vet rc=0, full usermgmt suite `-race` rc=0, golangci-lint 0 issues, erraudit scoped clean, `erraudit-inventory` TOTAL=0.
 - The typed-nil-interface trap was hit and fixed live (a nil `*Error` returned as `error` is non-nil); `deleteViewOnTombstone` deliberately stayed `(bool, error)`.
 - Committed (entangled in daemon heuristic commit `4e16a0e3` — not amendable, accepted).
 
 ### Group #2 — adminui/dashboardui asset-handler twins (~120 lines) ✅
+
 - New root API `asset_serve.go`: `ServeAsset(name, contentType, data)` (immutable posture: FNV-1a content ETag, 1-year immutable Cache-Control, nosniff, zero modtime, stdlib ServeContent conditional/range), `AssetETag(name, data)`, and (second pass) `AssetFromFS(fsys, name)` — the read half with Infrastructure-family errors.
 - Both modules reduced to their irreducible `embed.FS` decl + a 3-line wrapper (read → errConfig wrap → ServeAsset). `dashboardui/layout.go serveConstAsset` is a 1-line delegate; the const-asset route gained nosniff it lacked.
 - Tests: root `asset_serve_test.go` (headers, If-None-Match round-trip contract reuse, ETag derivation, AssetFromFS success/missing) + both modules' suites green `-race`.
 - ETag format changed (documented in all three CHANGELOGs): `"<name>-<unpadded-hex>"` replaces module-prefixed `%016x`; consumers get one revalidation, no action.
 
 ### Group #1 — dashboardui vanilla test prologue (5 flagged sites) ✅
+
 - New `dashboardui/testsetup_test.go`: `newTestDashboardMux(t)` owns store+New+Mount(`/dashboard/`).
 - Converted exactly the 5 art-dupl-flagged sites: a11y_test (via `a11yOverview`), assets_test 304 test, errors_test 404 shape, handlers_coverage toast-bridge + global-error tests. handlers_coverage_test.go no longer imports memorystorage at all.
 - Full dashboardui suite green `-race` after the conversion.
 
 ### Accept dispositions, all with written rationale ✅
+
 - **Group #8** (commands/queries twin handlers, ~85 lines): prose rationale (divergent journal interfaces `ReadFrom`/`ReadQueriesFrom`, persisted types, exporters, ID parsers — a template would need ~6 callbacks + generics over unrelated types) + `//nolint:cyclop,dupl` on both handlers. Discovered en route: dashboardui's `dupl` linter was firing on this pair at HEAD (pre-existing red) and is now silenced the right way.
 - **Groups #3/#5/#7** (page-skeleton/section idioms): rationale comments on `emptyStatePanel` (dashboardui/components.templ), `listNote` (adminui/components.templ), `definitionList` (dashboardui/components.templ). Regenerated via the canonical `nix run .#gen`; `check-codegen` green for adminui + loginpage.
 - **Group #6** (detector self-overlap, single component): no action needed — confirmed artifact.
 
 ### Session recovery (situational, but real work) ✅
+
 - The uncommitted Group #2 work was swallowed by a concurrent session's **Git Town stash** ("Git Town WIP") together with 35 foreign in-flight files. Popped the stash, restored the tree faithfully, re-verified everything, and separated my 8 files from theirs before any commit.
 - A later concurrent-session tree operation silently **reverted my comma-list nolint fix** on handlers_audit.go back to the first-attempt form (re-introducing 2 dupl + 2 nolintlint findings); detected on the final lint sweep and re-applied.
 
 ### Verification & receipts ✅
+
 - Final battery on my surfaces: build=vet=test=lint green for root + adminui; dashboardui green except 5 findings **all in files I never touched** (handlers_events.go cyclop, systembridge/telemetry.go exhaustruct ×2, accent_color.go gochecknoglobals + mnd — none authored by this session).
 - `nix run .#erraudit-inventory` TOTAL=0; status-doc gates (check-status-rows.py, check-status-annotations.sh) rc=0.
 - CHANGELOG receipts written + amended: root (`ServeAsset`/`AssetETag`/`AssetFromFS`), adminui + dashboardui (delegation, ETag format change, nosniff gain, error-family note). TODO_LIST P2 chore entry for the follow-up sweep.
@@ -81,9 +87,10 @@
 
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT
 
-*Prioritized; items 1–12 are this round's direct follow-ups, 13–20 are adjacent quality debt observed this session, 21+ are repo-level ideas noted in passing (do NOT treat as scheduled work).*
+_Prioritized; items 1–12 are this round's direct follow-ups, 13–20 are adjacent quality debt observed this session, 21+ are repo-level ideas noted in passing (do NOT treat as scheduled work)._
 
 **Dedup-round follow-ups**
+
 1. Land the pending CHANGELOG/TODO_LIST amendments (daemon, or one scoped commit).
 2. After the telemetry session lands: regenerate dashboardui (`nix run .#gen`) so check-codegen goes green again.
 3. Same trigger: triage the 2 telemetry.templ clone groups (aggregates vs telemetry cell glue; telemetry self-overlap).
@@ -115,7 +122,7 @@
 25. `handlers_coverage_test.go` still mixes `mustTestDashboardWithConfig` + `mustTestDashboard` + now `newTestDashboardMux` — three helper names; consolidate the doc map in testsetup_test.go.
 26. stale `//nolint` audit: run the cqrs-lint/`--fail-on-stale-suppressions` equivalent for golangci nolintlint repo-wide (it caught my 2 unused directives; a repo sweep may find more).
 
-*(Stopping at 26 — the remaining ideas belong to the other session's hardening plan, not this round.)*
+_(Stopping at 26 — the remaining ideas belong to the other session's hardening plan, not this round.)_
 
 ---
 

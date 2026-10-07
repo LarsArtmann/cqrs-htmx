@@ -29,10 +29,10 @@ authz, audit log) that `system.New` auto-wires onto its projection host.
 
 ### Deployment presets
 
-| Preset | Shape | Use |
-| --- | --- | --- |
-| `RecommendedMemoryDeployment()` | one memory engine, every role | dev, tests |
-| `RecommendedSQLiteDeployment(dsn)` | one WAL SQLite file, every role | single-binary persistence |
+| Preset                                                        | Shape                                     | Use                                                    |
+| ------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------ |
+| `RecommendedMemoryDeployment()`                               | one memory engine, every role             | dev, tests                                             |
+| `RecommendedSQLiteDeployment(dsn)`                            | one WAL SQLite file, every role           | single-binary persistence                              |
 | `RecommendedSplitSQLiteDeployment(eventsDSN, projectionsDSN)` | journal and projections on separate files | production — replays never contend with the write path |
 
 Each returns a plain `system.DeploymentConfig` — inspect, tweak, or pass

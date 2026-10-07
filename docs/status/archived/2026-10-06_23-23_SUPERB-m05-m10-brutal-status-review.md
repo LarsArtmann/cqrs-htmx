@@ -5,6 +5,7 @@
 **Verdict up front:** the code work is solid, verified, and receipted. But my "lane done" declaration had a real hole — plan fine-task **F22 was never executed nor dispositioned**, and the verification battery I chose (build+vet+tests+gofmt) omitted lint/format/coverage gates and two `-race` runs. None of it is lies; some of it was scoping I chose not to re-audit.
 
 > **ANNOTATED 2026-10-06 (docs-health round 18)** — the honest gaps are now TRACKED, not entombed: F22 (adttest cross-engine pagination conformance), the GCL gate-compliance debt (lint/cqrs-lint/format/coverage + full metaengine `-race`), and the stale `sort_paginate.go` doc comment harvested into TODO_LIST as one P2 row; the flightrecorder v0.2.1 train + push and M16–M27 stand in TODO_LIST. Struck below: §f30/§f31. STILL OPEN (bare below): §f1–9 (the Pareto head, routed), §f10–29/32–50 (ideas/watches), §g1–3 (owner: push authorization incl. GCL's 2 straggler commits, F22 timing, daemon-commit history readability).
+
 ---
 
 ## Self-review (brutal)
@@ -39,15 +40,15 @@ Strong where I aimed: tie-heavy pagination at 3 levels with exactness+order+once
 
 ## a) FULLY DONE (this session; all tested, committed, receipted)
 
-| Item | Evidence |
-| --- | --- |
+| Item                                                                                                                                                                                                                                                                                                                                          | Evidence                                                                                |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | **M06 core** — `SortKeyCursor{Sort,Key}` compound cursor filter in `SortPaginate` (F20); discovery + delegation of the SIX inlined tie-lossy engine filters (memory, sqlite, pg, mysql, duckdb, dgraph) to the one shared core; legacy semantics pinned as documented-lossy (F21: unit limits 1–30, memory `MapScan`, sqliteengine `MapScan`) | daemon commits `7584b7a84`+`8a7a1f19a`+`1c36bb6dc`; CHANGELOG receipt; api_surface 7556 |
-| **M07** — `fail(err)` teardown on all 15 post-engine-creation error paths; bus registered as closer BEFORE `buildPublisher`; goleak-bait tests ×2 (F23/F24/F25) | `77076688b` + receipt `1336857e8`; system suite green |
-| **M08** — `Close` stops timers; `stopTimers` actually waits (WaitGroup; split `stopTimersLocked` for Close's critical section); doc comments made honest; lifecycle test (F26/F27/F28) | `9ce1367c4`/`143cbd589` + receipt `9477b865e` |
-| **M10** — `ErrUnknownInstanceRole` (typo'd roles were silently ignored); `sot.implicit_memory` ADVISORY; `ErrUnknownEngine` lists configured engines + registered drivers (F32/F33/F34); 4 tests | clean authored commit `5688d848f`; api_surface 7557 |
-| **On-sight fix** — `metaengine.RegisteredDrivers()` sorted; my M07 tests exposed `Explain()` map-order nondeterminism failing `TestSystem_WiringDeterministic` under `-race` | race suite green after |
-| **Final battery (as scoped)** — GCL: metaengine/system/sqliteengine/systemtest `-count=1` (system also `-race`), 8 engine modules build+vet. CH: `preflight-tree-check` OK; workspace build; tests green on root, systemadapter, dashboardui, setup, **integration_test** (local GCL replaces active) | logs in `/tmp/gcl-*`, `/tmp/ch-final-*` |
-| **Docs** — GCL CHANGELOG receipts ×4; GCL TODO_LIST issuance entry; CH TODO_LIST progress note; completion report 23-20 | committed |
+| **M07** — `fail(err)` teardown on all 15 post-engine-creation error paths; bus registered as closer BEFORE `buildPublisher`; goleak-bait tests ×2 (F23/F24/F25)                                                                                                                                                                               | `77076688b` + receipt `1336857e8`; system suite green                                   |
+| **M08** — `Close` stops timers; `stopTimers` actually waits (WaitGroup; split `stopTimersLocked` for Close's critical section); doc comments made honest; lifecycle test (F26/F27/F28)                                                                                                                                                        | `9ce1367c4`/`143cbd589` + receipt `9477b865e`                                           |
+| **M10** — `ErrUnknownInstanceRole` (typo'd roles were silently ignored); `sot.implicit_memory` ADVISORY; `ErrUnknownEngine` lists configured engines + registered drivers (F32/F33/F34); 4 tests                                                                                                                                              | clean authored commit `5688d848f`; api_surface 7557                                     |
+| **On-sight fix** — `metaengine.RegisteredDrivers()` sorted; my M07 tests exposed `Explain()` map-order nondeterminism failing `TestSystem_WiringDeterministic` under `-race`                                                                                                                                                                  | race suite green after                                                                  |
+| **Final battery (as scoped)** — GCL: metaengine/system/sqliteengine/systemtest `-count=1` (system also `-race`), 8 engine modules build+vet. CH: `preflight-tree-check` OK; workspace build; tests green on root, systemadapter, dashboardui, setup, **integration_test** (local GCL replaces active)                                         | logs in `/tmp/gcl-*`, `/tmp/ch-final-*`                                                 |
+| **Docs** — GCL CHANGELOG receipts ×4; GCL TODO_LIST issuance entry; CH TODO_LIST progress note; completion report 23-20                                                                                                                                                                                                                       | committed                                                                               |
 
 ## b) PARTIALLY DONE
 
@@ -113,27 +114,27 @@ Strong where I aimed: tie-heavy pagination at 3 levels with exactness+order+once
 27. Check whether dashboardui's pagination surfaces use `ScanPage` cursors — if yes, ties affect users today; verify + maybe adopt compound cursors post-issuance.
 28. GCL hermetic pin refresh wave for the engine modules (claiming/record/dedup/id drift, item c3).
 29. Re-run CH `nix run .#check-modules` once the foreign session's uncommitted dashboardui files settle (`wait-tree-quiet` first).
-~~30. Verify the foreign dashboardui edits (`handlers_events.go`, `handlers_audit.go`, `error_honesty_test.go`) get committed and tested — do not let them rot dirty.~~ done — tree is clean; the M14-session files were committed + receipted (`7d3eabb6`) and dashboardui suites green in the 23:20 battery
-~~31. Annotate the 23-20 completion report with the F22 gap correction (docs-health ANNOTATE, inline, dated).~~ done — the 23:20 report carries the round-18 ANNOTATED blockquote (2026-10-06)
-32. CH `docs/agents-notes.md`: append this session's daemon-race + gate-scope lessons (the AGENTS gotchas already carry the class; add the 117s-hook-vs-daemon datapoint).
-33. Add `TestSystem_WiringDeterministic`-style determinism test for `RegisteredDrivers()` itself (sorted-order pin).
-34. Consider a WARN-once on legacy value-cursor tie-drop (deprecation runway toward compound-only in v5).
-35. Review whether `Publish`-target validation should also run for dedicated-role instances (currently only source-of-truth instances publish — confirm intentional).
-36. `stopTimers` deadlock audit: document that scheduler `Start` implementations must not call back into `System` methods that take `s.mu` (the WaitGroup wait now happens under Close's lock).
-37. Projection-instance with zero engines: currently silently no projStore — consider a diagnostic (sibling of F33).
-38. Sweep GCL for other inlined copies of sort+cursor-filter logic I may have missed (the M06 pattern — grep `sortFunc(` / `<= 0` across all modules).
-39. Update the 2026-10-06 research study's outcome notes (docs-health VERIFY: mark ideas 115/187/210/211/242 etc. as acted on, with hashes).
-40. Re-pin/refresh any dashboardui CSS bundles if the foreign session's templ edits touched classes (check-css-bundle-classes gate when tree quiets).
-41. Examples: add a pagination-with-ties example to GCL examples once issuance lands (docs-as-code).
-42. Consider exporting a `ValidInstanceRoles()` helper (currently private `validInstanceRoles()` for error text) if consumers parse config errors.
-43. TODO_LIST hygiene: strike the wave item when M16–M27 land; keep the F22 completion note attached to it.
-44. Check whether `integration_test` should gain a role-typo negative case (M10 contract at the HTTP boundary).
-45. Review load impact: engine-module test sweeps under load 19–292 were slow — consider `#test` scoping guidance in GCL AGENTS if it has one (docs-only).
-46. GCL: verify the daemon's committed formatting of my files matches canonical form (item 3 covers the check; this is the fix follow-through).
-47. Post-push: confirm `go get` from a clean consumer resolves the new GCL tags (release discipline).
-48. Consider a CHANGELOG "Known limit" cross-link in the M06 entry to the TODO_LIST issuance item (one-line edit, keeps the contract visible).
-49. If issuance ships: re-pin `docs/benchmarks` baseline only if bench paths changed (they will if ScanPage changes) — same-change rule.
-50. Owner decision bundle: fold questions 1–3 below into the standing owner-decision table (TODO_LIST M11-M15-style receipt trail).
+    ~~30. Verify the foreign dashboardui edits (`handlers_events.go`, `handlers_audit.go`, `error_honesty_test.go`) get committed and tested — do not let them rot dirty.~~ done — tree is clean; the M14-session files were committed + receipted (`7d3eabb6`) and dashboardui suites green in the 23:20 battery
+    ~~31. Annotate the 23-20 completion report with the F22 gap correction (docs-health ANNOTATE, inline, dated).~~ done — the 23:20 report carries the round-18 ANNOTATED blockquote (2026-10-06)
+30. CH `docs/agents-notes.md`: append this session's daemon-race + gate-scope lessons (the AGENTS gotchas already carry the class; add the 117s-hook-vs-daemon datapoint).
+31. Add `TestSystem_WiringDeterministic`-style determinism test for `RegisteredDrivers()` itself (sorted-order pin).
+32. Consider a WARN-once on legacy value-cursor tie-drop (deprecation runway toward compound-only in v5).
+33. Review whether `Publish`-target validation should also run for dedicated-role instances (currently only source-of-truth instances publish — confirm intentional).
+34. `stopTimers` deadlock audit: document that scheduler `Start` implementations must not call back into `System` methods that take `s.mu` (the WaitGroup wait now happens under Close's lock).
+35. Projection-instance with zero engines: currently silently no projStore — consider a diagnostic (sibling of F33).
+36. Sweep GCL for other inlined copies of sort+cursor-filter logic I may have missed (the M06 pattern — grep `sortFunc(` / `<= 0` across all modules).
+37. Update the 2026-10-06 research study's outcome notes (docs-health VERIFY: mark ideas 115/187/210/211/242 etc. as acted on, with hashes).
+38. Re-pin/refresh any dashboardui CSS bundles if the foreign session's templ edits touched classes (check-css-bundle-classes gate when tree quiets).
+39. Examples: add a pagination-with-ties example to GCL examples once issuance lands (docs-as-code).
+40. Consider exporting a `ValidInstanceRoles()` helper (currently private `validInstanceRoles()` for error text) if consumers parse config errors.
+41. TODO_LIST hygiene: strike the wave item when M16–M27 land; keep the F22 completion note attached to it.
+42. Check whether `integration_test` should gain a role-typo negative case (M10 contract at the HTTP boundary).
+43. Review load impact: engine-module test sweeps under load 19–292 were slow — consider `#test` scoping guidance in GCL AGENTS if it has one (docs-only).
+44. GCL: verify the daemon's committed formatting of my files matches canonical form (item 3 covers the check; this is the fix follow-through).
+45. Post-push: confirm `go get` from a clean consumer resolves the new GCL tags (release discipline).
+46. Consider a CHANGELOG "Known limit" cross-link in the M06 entry to the TODO_LIST issuance item (one-line edit, keeps the contract visible).
+47. If issuance ships: re-pin `docs/benchmarks` baseline only if bench paths changed (they will if ScanPage changes) — same-change rule.
+48. Owner decision bundle: fold questions 1–3 below into the standing owner-decision table (TODO_LIST M11-M15-style receipt trail).
 
 ## g) Questions I can NOT figure out myself
 

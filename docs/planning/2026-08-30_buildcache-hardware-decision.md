@@ -1,8 +1,9 @@
 # Decision: `/mnt/buildcache` (sda1) — replace or retire
 
 **Status:** PREPARED, awaiting user decision (hardware spend). **Update 2026-09-22 (docs-health): DORMANT** — the mount was repaired and has been healthy + build-verified since 2026-09-15 (see AGENTS.md "Go caches" row); the decision is only live again if the failure history recurs (watch item: TODO_LIST P3 hardware watch).
+
 > **ANNOTATED 2026-10-01 (~15:45, T26 watch):** the fill-drain cycle struck AGAIN same-day — `df -h` now reads **203G used / 5.5G free (98%)**, vs 58% this morning (round-14 session). The /tmp fallback layout (`go-cache-env.sh`) is the expected next step if gates start failing uniformly; the reclaim candidates (rust/ 155G + sccache/ 20G) remain a human decision.
->
+
 **Prepared:** 2026-08-30.
 
 ## Facts (verified)

@@ -72,33 +72,33 @@ Nothing shipped broken — every gate was green before each push. But the sessio
 
 ## f) Next tasks (session-adjacent, ranked)
 
-| #  | Task                                                                                                                                  | Impact | Effort | Category      |
-| -- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1  | Run `go test -count=1 -race ./...` in e2e/server + the 6 swept examples; fix anything red                                             | High   | S      | Quality       |
-| 2  | Check CI result for pushed range `c35cc7a1..d1c1bf01` (`gh run list`)                                                                 | High   | S      | Verification  |
-| 3  | `go mod verify` across the 13 swept modules                                                                                           | Medium | S      | Quality       |
-| 4  | `git log -S` CHANGELOG convention for dep sweeps; backfill entries for v1.19.4 + v0.4.1 if conventional                               | Medium | S      | Documentation |
-| 5  | Make `.githooks/pre-commit` (via template) devShell-independent: source go-cache-env.sh / GOTOOLCHAIN alignment for BuildFlow steps   | High   | M      | Tooling       |
-| 6  | Teach auto-commit daemon to ignore `buildflow-fsprobe-*`                                                                              | High   | S      | Tooling       |
-| 7  | Extend bump-dep.sh: `go mod verify` per module + optional `--test` flag                                                               | Medium | S      | Tooling       |
-| 8  | Decide fleet go-directive policy: `go 1.27.1` patch form here vs the patch-floor-poisoning class go-health v0.4.1 just fixed          | High   | M      | Decision      |
-| 9  | BuildFlow doctor: 19 modules flagged needing `go mod tidy` (gomod-freshness) — run `nix run .#deps` in a quiet window                 | Medium | S      | Quality       |
-| 10 | Stale `vendorHash` FOD (flake.nix:107) — `buildflow -s nix-hash-fix --fix`                                                            | Medium | S      | Quality       |
-| 11 | go-line flipflop warning: `go` directive changed 20× in 20 commits — align go-version-auto-configure vs go-mod-update dispositions    | High   | M      | Quality       |
-| 12 | go-work-paths warning: 13 `use` paths lack the `/v4` suffix their go.mod module names carry — confirm deliberate, then silence or fix | Medium | S      | Cleanup       |
-| ~~13~~ | ~~datastar-demo SA1019s: migrate to `go-datastar/broadcast` constructors (deprecated aliases die in v5)~~ done 2026-10-01 (BuildFlow recovery session; direct `broadcast.NewBroadcaster` require)                                                                                                                           | ~~Low~~    | ~~S~~      | ~~Cleanup~~       |
-| 14 | samber-linter fails 80% of runs — exclude from BuildFlow or fix root cause                                                            | Low    | S      | Tooling       |
-| 15 | vulnix: 65 nix-infra CVE findings in pre-commit output — triage real vs noise                                                         | Medium | L      | Security      |
-| 16 | flake.nix missing `mainProgram` (flake-meta-checker)                                                                                  | Low    | S      | Cleanup       |
-| ~~17~~ | ~~HARVEST this report's (f) into TODO_LIST/ROADMAP via docs-health~~ done 2026-10-01 (round-13: survivors → TODO_LIST P3 micro-batch; go-directive → OQ26)                                                                  | ~~Medium~~ | ~~S~~      | ~~Documentation~~ |
-| 18 | Orphan `adminui/styles.css` + `dashboardui/styles.css` buildflow outputs (gotcha 9): ignore or delete                                 | Low    | S      | Cleanup       |
-| 19 | Consumer-level golden for PolledRegion interval rendering (library golden re-baselined in v1.19.4; dashboardui polls)                 | Low    | M      | Quality       |
-| 20 | Root-cause the `.config/metadata.yaml` `importance` field removal (foreign change, provenance unknown)                                | Low    | S      | Cleanup       |
-| 21 | Consider a sanctioned daemon-pause (or session marker) for multi-step sweeps                                                          | Medium | M      | Tooling       |
-| 22 | Document the --no-verify justification template for env-class failures in the runbook (it lives only in gotcha 8 prose today)         | Low    | S      | Documentation |
-| 23 | BuildFlow binary stale vs HEAD (`e881e96` vs `c9f7094`) — rebuild/reinstall                                                           | Low    | S      | Tooling       |
-| 24 | Examples with tests but no gate (catalog-demo, dashboard-demo, …) — fold into task 5's coverage decision                              | Medium | S      | Quality       |
-| 25 | Skipped-then-committed `d2c9ad1f`/`13252d77` foreign diffs: confirm with the owning session that daemon-committing them was intended  | Low    | S      | Process       |
+| #      | Task                                                                                                                                                                                              | Impact     | Effort | Category          |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ | ----------------- |
+| 1      | Run `go test -count=1 -race ./...` in e2e/server + the 6 swept examples; fix anything red                                                                                                         | High       | S      | Quality           |
+| 2      | Check CI result for pushed range `c35cc7a1..d1c1bf01` (`gh run list`)                                                                                                                             | High       | S      | Verification      |
+| 3      | `go mod verify` across the 13 swept modules                                                                                                                                                       | Medium     | S      | Quality           |
+| 4      | `git log -S` CHANGELOG convention for dep sweeps; backfill entries for v1.19.4 + v0.4.1 if conventional                                                                                           | Medium     | S      | Documentation     |
+| 5      | Make `.githooks/pre-commit` (via template) devShell-independent: source go-cache-env.sh / GOTOOLCHAIN alignment for BuildFlow steps                                                               | High       | M      | Tooling           |
+| 6      | Teach auto-commit daemon to ignore `buildflow-fsprobe-*`                                                                                                                                          | High       | S      | Tooling           |
+| 7      | Extend bump-dep.sh: `go mod verify` per module + optional `--test` flag                                                                                                                           | Medium     | S      | Tooling           |
+| 8      | Decide fleet go-directive policy: `go 1.27.1` patch form here vs the patch-floor-poisoning class go-health v0.4.1 just fixed                                                                      | High       | M      | Decision          |
+| 9      | BuildFlow doctor: 19 modules flagged needing `go mod tidy` (gomod-freshness) — run `nix run .#deps` in a quiet window                                                                             | Medium     | S      | Quality           |
+| 10     | Stale `vendorHash` FOD (flake.nix:107) — `buildflow -s nix-hash-fix --fix`                                                                                                                        | Medium     | S      | Quality           |
+| 11     | go-line flipflop warning: `go` directive changed 20× in 20 commits — align go-version-auto-configure vs go-mod-update dispositions                                                                | High       | M      | Quality           |
+| 12     | go-work-paths warning: 13 `use` paths lack the `/v4` suffix their go.mod module names carry — confirm deliberate, then silence or fix                                                             | Medium     | S      | Cleanup           |
+| ~~13~~ | ~~datastar-demo SA1019s: migrate to `go-datastar/broadcast` constructors (deprecated aliases die in v5)~~ done 2026-10-01 (BuildFlow recovery session; direct `broadcast.NewBroadcaster` require) | ~~Low~~    | ~~S~~  | ~~Cleanup~~       |
+| 14     | samber-linter fails 80% of runs — exclude from BuildFlow or fix root cause                                                                                                                        | Low        | S      | Tooling           |
+| 15     | vulnix: 65 nix-infra CVE findings in pre-commit output — triage real vs noise                                                                                                                     | Medium     | L      | Security          |
+| 16     | flake.nix missing `mainProgram` (flake-meta-checker)                                                                                                                                              | Low        | S      | Cleanup           |
+| ~~17~~ | ~~HARVEST this report's (f) into TODO_LIST/ROADMAP via docs-health~~ done 2026-10-01 (round-13: survivors → TODO_LIST P3 micro-batch; go-directive → OQ26)                                        | ~~Medium~~ | ~~S~~  | ~~Documentation~~ |
+| 18     | Orphan `adminui/styles.css` + `dashboardui/styles.css` buildflow outputs (gotcha 9): ignore or delete                                                                                             | Low        | S      | Cleanup           |
+| 19     | Consumer-level golden for PolledRegion interval rendering (library golden re-baselined in v1.19.4; dashboardui polls)                                                                             | Low        | M      | Quality           |
+| 20     | Root-cause the `.config/metadata.yaml` `importance` field removal (foreign change, provenance unknown)                                                                                            | Low        | S      | Cleanup           |
+| 21     | Consider a sanctioned daemon-pause (or session marker) for multi-step sweeps                                                                                                                      | Medium     | M      | Tooling           |
+| 22     | Document the --no-verify justification template for env-class failures in the runbook (it lives only in gotcha 8 prose today)                                                                     | Low        | S      | Documentation     |
+| 23     | BuildFlow binary stale vs HEAD (`e881e96` vs `c9f7094`) — rebuild/reinstall                                                                                                                       | Low        | S      | Tooling           |
+| 24     | Examples with tests but no gate (catalog-demo, dashboard-demo, …) — fold into task 5's coverage decision                                                                                          | Medium     | S      | Quality           |
+| 25     | Skipped-then-committed `d2c9ad1f`/`13252d77` foreign diffs: confirm with the owning session that daemon-committing them was intended                                                              | Low        | S      | Process           |
 
 ## g) Questions I cannot answer myself
 

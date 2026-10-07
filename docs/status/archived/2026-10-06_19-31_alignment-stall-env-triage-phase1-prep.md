@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-10-06 (docs-health round 18)** — the plan executed the same evening across three sibling sessions: the alignment pass COMPLETED (22:34 report §a1), **M01–M15 all DONE** (22:34 lane M01–M03 + M04/M05/M09; 23:20 lane M05–M10; 21:35 lane M13–M15), verified + receipted both repos. Struck below: §b1/§b3, §c M01–M12 rows, §f1–5, §f9–29 (M01–M15 rows), §f46. STILL OPEN: §f6–8 release-train strict + push — **blocked on the flightrecorder v0.2.1 lag train (16 requires)**, now the standing push-blocker (TODO_LIST); M16–M27 unscheduled (§f30–38); §b2 superseded by the current 35-commit-ahead state; §d2 go-cache-env GOTOOLCHAIN gap + §f47/48 env fixes unverified; §f49 sweep-vs-surgical runbook note (fold into R20); bench-spike (§f50) still owed.
+
 ## a) FULLY DONE (this session)
 
 1. **Skills + plan context reloaded.** cqrs-htmx SKILL.md, buildflow SKILL.md, status-report SKILL.md; full re-read of the 353-line Pareto plan (`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`) incl. all 27 M-tasks, 104 F-tasks, phase graph, gates, risk register.
@@ -29,9 +30,9 @@
 ## c) NOT STARTED
 
 - Hermetic verification battery for the pin change; `git push`.
-~~- M01 (SSE XSS textContent rebuild + Stream Type column + count reset + parse-error warn + injection smoke test).~~ done — 22:34 session (M01)
+  ~~- M01 (SSE XSS textContent rebuild + Stream Type column + count reset + parse-error warn + injection smoke test).~~ done — 22:34 session (M01)
 - M02 (AccentColor strict validator + breakout test table). M03 (CSV `=+-@` neutralizer in `writeCSV` + hostile-bytes test).
-~~- M04–M12 (go-cqrs-lite lane: metaengine injection surface, memory-engine races, keyset ties, system New-leak, timers, publish fan-out, role validation, cache ordering, reifyTo panic). M13–M27 (Phase 3–4).~~ done — M04/M05/M09 (22:34) + M05–M08/M10–M12 (23:20 + 23:23 reports)
+  ~~- M04–M12 (go-cqrs-lite lane: metaengine injection surface, memory-engine races, keyset ties, system New-leak, timers, publish fan-out, role validation, cache ordering, reifyTo panic). M13–M27 (Phase 3–4).~~ done — M04/M05/M09 (22:34) + M05–M08/M10–M12 (23:20 + 23:23 reports)
 - CHANGELOG receipts, TODO_LIST annotations (golden item done; push item once pushed), bench-spike retry, full `check-modules`/`test`/`lint`/`coverage-gate` battery.
 
 ## d) TOTALLY FUCKED UP (honest)
@@ -107,4 +108,5 @@
 3. **Concurrency:** a foreign session has staged usermgmt work right now. Tree-wide batteries (`nix run .#test`) will interleave their in-flight state. Proceed with tree-wide verification anyway (gates are per-module and their staged files only affect usermgmt), or hold the battery until their work lands?
 
 ---
-*Point-in-time snapshot; annotate, never rewrite. Auto-commit daemon will file this report.*
+
+_Point-in-time snapshot; annotate, never rewrite. Auto-commit daemon will file this report._

@@ -118,7 +118,6 @@
 1. **The push-unblock call (R1):** upstream templ-components v1.20.0 is unconsumable and there is no announced repair. Do you want the branch pushed via `--no-verify` with the recorded justification, held until upstream re-releases, or shielded with a replace pin (the 373209a7-class pattern we retired for being load-bearing)? I can execute any of the three; the risk appetite (shared-history rewrite tolerance vs upstream relationship vsCI red on master) is yours to set.
 2. **OQ11 v5 timeline:** is there any target window (even a quarter) for the v5 cut? It gates the V007 migration branch, whether the runbook grows from skeleton to execution plan, and how much codemod (A11) vs goldens (A12) work should be prioritized now.
 3. **Module renames (inventory class 5):** at v5, do we adopt `identityadmin`/`esdashboard` (one-time discovery fix, one cycle of doc shims) or keep `adminui`/`dashboardui` permanently (the cross-linked docs mitigation becomes the final answer)? I cannot make the naming-identity call.
-
 ---
 
-*Point-in-time snapshot. Annotate non-destructively (docs-health ANNOTATE), never rewrite. Section (f) is HARVEST fuel — items not routed into TODO_LIST/ROADMAP die in this file.*
+_Point-in-time snapshot. Annotate non-destructively (docs-health ANNOTATE), never rewrite. Section (f) is HARVEST fuel — items not routed into TODO_LIST/ROADMAP die in this file._

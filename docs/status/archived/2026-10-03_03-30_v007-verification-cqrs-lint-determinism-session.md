@@ -84,7 +84,7 @@ same detector run outside rule-config gating.
 
 3. **BuildFlow hook failure triage.** My cqrs-htmx docs commit failed the
    pre-commit hook with "3 step(s) failed"; I used the documented
-   `--no-verify` fallback citing the *class* (bare-shell environment noise,
+   `--no-verify` fallback citing the _class_ (bare-shell environment noise,
    gotcha 8) but never captured the three step NAMES — the gotcha's protocol
    asks for step names in the message. Blocker: the failure output had
    already scrolled; re-triggering the hook costs a throwaway commit. Effort:
@@ -108,7 +108,7 @@ same detector run outside rule-config gating.
    commands) — grep showed only `scorecard` consumes `Evidence`, and summary
    lines were spot-checked identical, but a complete command-output diff was
    not run.
-~~5. **docs-health ARCHIVE pass** for the 7 over-budget status reports the~~ done — round-17 pass (2026-10-04): the whole 13-report tail annotated + archived
+   ~~5. **docs-health ARCHIVE pass** for the 7 over-budget status reports the~~ done — round-17 pass (2026-10-04): the whole 13-report tail annotated + archived
    tail-budget advisory gate flagged (pre-existing debt, noticed mid-session,
    separate workflow).
 
@@ -165,27 +165,27 @@ honest failures are process ones:
 
 ## f) Next tasks (ranked; feeds docs-health HARVEST)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Rebuild/install the system cqrs-lint binary from post-`788cd7350` source (home-manager/NixOS activation) so scorecard determinism reaches the fleet | High | S | Cleanup |
-| 2 | Run `golangci-lint` + `-race` on `cmd/cqrs-lint` in go-cqrs-lite (close the item-42-class gap on the 49 new lines) | Medium | S | Quality |
-| 3 | After the binary rebuild: re-run `cqrs-lint version` + `rules` diff ritual (AGENTS gotcha 23) and `nix run .#check-cqrs-lint` here | Medium | S | Quality |
-| 4 | Owner decision: v5 timeline — unlocks the V007 migration branch (ROADMAP OQ11, TODO P3 item 38) | Critical (owner) | — | Planning |
-| 5 | Upstream (go-cqrs-lite): ship a `system.New` durable-checkpoint option — unblocks ADR-0051 cluster 1 | High | L | Feature |
-| 6 | Upstream: declarative `Hydrator` equivalent (second half of the cluster-1 AND-gate) | High | L | Feature |
-| 7 | Owner approval + write go-cqrs-lite CHANGELOG/AGENTS entries for the determinism fix (TODO item 42 gate) | Low | S | Documentation |
-| 8 | Diagnose go-cqrs-lite pre-commit "Doc-only" misclassification on Go diffs; record in that repo's gotchas | Medium | S | Bug |
-| 9 | Decide evidence policy: smallest path (module root, current fix) vs most-specific subpackage — product taste call | Low | S | Decision |
-| 10 | Add an upstream determinism self-test (double-run byte-identical output) for scorecard/doctor | Medium | M | Quality |
-| 11 | Check cqrs-htmx CHANGELOG convention for docs-only commits; add receipt for `671cb808` if warranted | Low | S | Documentation |
-~~| 12 | docs-health ARCHIVE pass for the 7 over-budget status reports | Medium | M | Cleanup |~~ done — round-17 pass (2026-10-04)
-| 13 | Re-trigger and capture the 3 failing BuildFlow pre-commit step names; append them to the `671cb808` justification trail (follow-up commit or agents-note) | Low | S | Process |
-| 14 | File/land the pending E005 cross-module proposal (owner approval pending, pre-existing) | Medium | S | Documentation |
-| 15 | Examine A012×4 (decided v5-window in the 2026-10-01 triage; never inspected this session) | Low | S | Quality |
-| 16 | Strict cqrs-lint CI gate — still blocked on the go-cqrs-lite nested-module tag decision (TODO item 41, pre-existing) | Medium | M | Quality |
-| 17 | Investigate the pasted session's environment symptoms: starship `go` timeout + 41s→10s scorecard variance (cold package cache vs box load) | Low | S | Investigation |
-| 18 | Consider sweeping all upstream scorecard consumers for evidence-text assumptions (goldens) — grep here said none, formalize upstream | Low | S | Quality |
-| 19 | Clean /tmp session artifacts (`/tmp/v007probe/`, `/tmp/v007-findings.txt`, `/tmp/cqrs-lint-fixed`) if the box's /tmp hygiene matters | Trivial | S | Cleanup |
+| #  | Task                                                                                                                                                      | Impact                                                        | Effort | Category      |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ | ------------- |
+| 1  | Rebuild/install the system cqrs-lint binary from post-`788cd7350` source (home-manager/NixOS activation) so scorecard determinism reaches the fleet       | High                                                          | S      | Cleanup       |
+| 2  | Run `golangci-lint` + `-race` on `cmd/cqrs-lint` in go-cqrs-lite (close the item-42-class gap on the 49 new lines)                                        | Medium                                                        | S      | Quality       |
+| 3  | After the binary rebuild: re-run `cqrs-lint version` + `rules` diff ritual (AGENTS gotcha 23) and `nix run .#check-cqrs-lint` here                        | Medium                                                        | S      | Quality       |
+| 4  | Owner decision: v5 timeline — unlocks the V007 migration branch (ROADMAP OQ11, TODO P3 item 38)                                                           | Critical (owner)                                              | —      | Planning      |
+| 5  | Upstream (go-cqrs-lite): ship a `system.New` durable-checkpoint option — unblocks ADR-0051 cluster 1                                                      | High                                                          | L      | Feature       |
+| 6  | Upstream: declarative `Hydrator` equivalent (second half of the cluster-1 AND-gate)                                                                       | High                                                          | L      | Feature       |
+| 7  | Owner approval + write go-cqrs-lite CHANGELOG/AGENTS entries for the determinism fix (TODO item 42 gate)                                                  | Low                                                           | S      | Documentation |
+| 8  | Diagnose go-cqrs-lite pre-commit "Doc-only" misclassification on Go diffs; record in that repo's gotchas                                                  | Medium                                                        | S      | Bug           |
+| 9  | Decide evidence policy: smallest path (module root, current fix) vs most-specific subpackage — product taste call                                         | Low                                                           | S      | Decision      |
+| 10 | Add an upstream determinism self-test (double-run byte-identical output) for scorecard/doctor                                                             | Medium                                                        | M      | Quality       |
+| 11 | Check cqrs-htmx CHANGELOG convention for docs-only commits; add receipt for `671cb808` if warranted                                                       | Low                                                           | S      | Documentation |
+| ~~ | 12                                                                                                                                                        | docs-health ARCHIVE pass for the 7 over-budget status reports | Medium | M             |
+| 13 | Re-trigger and capture the 3 failing BuildFlow pre-commit step names; append them to the `671cb808` justification trail (follow-up commit or agents-note) | Low                                                           | S      | Process       |
+| 14 | File/land the pending E005 cross-module proposal (owner approval pending, pre-existing)                                                                   | Medium                                                        | S      | Documentation |
+| 15 | Examine A012×4 (decided v5-window in the 2026-10-01 triage; never inspected this session)                                                                 | Low                                                           | S      | Quality       |
+| 16 | Strict cqrs-lint CI gate — still blocked on the go-cqrs-lite nested-module tag decision (TODO item 41, pre-existing)                                      | Medium                                                        | M      | Quality       |
+| 17 | Investigate the pasted session's environment symptoms: starship `go` timeout + 41s→10s scorecard variance (cold package cache vs box load)                | Low                                                           | S      | Investigation |
+| 18 | Consider sweeping all upstream scorecard consumers for evidence-text assumptions (goldens) — grep here said none, formalize upstream                      | Low                                                           | S      | Quality       |
+| 19 | Clean /tmp session artifacts (`/tmp/v007probe/`, `/tmp/v007-findings.txt`, `/tmp/cqrs-lint-fixed`) if the box's /tmp hygiene matters                      | Trivial                                                       | S      | Cleanup       |
 
 ---
 
@@ -208,5 +208,5 @@ honest failures are process ones:
 
 ---
 
-*Point-in-time snapshot per `docs/status/README.md`. Open items above are
-harvest candidates; the living trackers are TODO_LIST.md / ROADMAP.md.*
+_Point-in-time snapshot per `docs/status/README.md`. Open items above are
+harvest candidates; the living trackers are TODO_LIST.md / ROADMAP.md._

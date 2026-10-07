@@ -38,12 +38,12 @@ interfaces you wired and shows only relevant panels.
 The panel meets your app at whatever depth you want — from "give me a URL" to
 "render inside my chrome" to "I'll build the UI myself":
 
-| Mode                          | You own                          | The dashboard owns            | Seam                                             |
-| ----------------------------- | -------------------------------- | ----------------------------- | ------------------------------------------------ |
-| **Destination** (default)     | A mount path + auth middleware   | The whole page, top to bottom | `New` + `Mount`                                  |
-| **Embedded**                  | The app shell (nav, CSS, theme)  | Panel content only            | `Config.Layout`                                  |
-| **From a go-cqrs-lite system**| The DeploymentConfig             | Everything the system exposes | `FromSystem(sys)`                                |
-| **Headless data**             | The entire UI                    | Introspection queries         | the `core` sub-package (next section)            |
+| Mode                           | You own                         | The dashboard owns            | Seam                                  |
+| ------------------------------ | ------------------------------- | ----------------------------- | ------------------------------------- |
+| **Destination** (default)      | A mount path + auth middleware  | The whole page, top to bottom | `New` + `Mount`                       |
+| **Embedded**                   | The app shell (nav, CSS, theme) | Panel content only            | `Config.Layout`                       |
+| **From a go-cqrs-lite system** | The DeploymentConfig            | Everything the system exposes | `FromSystem(sys)`                     |
+| **Headless data**              | The entire UI                   | Introspection queries         | the `core` sub-package (next section) |
 
 ### Destination (zero-config)
 
@@ -408,11 +408,11 @@ package importing the system packages).
 
 Three unauthenticated endpoints for load balancers and Kubernetes probes:
 
-| Endpoint      | Purpose         | 200 Response                             | 503 Response                                |
-| ------------- | --------------- | ---------------------------------------- | ------------------------------------------- |
-| `/-/healthz`  | Liveness probe  | `{"status":"ok"}`                        | `{"status":"shutting_down"}`                |
-| `/-/readyz`   | Readiness probe | `{"status":"ready","ready":true}`        | `{"status":"no_data_source","ready":false}` |
-| `/-/versionz` | Build metadata  | Module, version, Go version, VCS stamp, capabilities, config | —                              |
+| Endpoint      | Purpose         | 200 Response                                                 | 503 Response                                |
+| ------------- | --------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| `/-/healthz`  | Liveness probe  | `{"status":"ok"}`                                            | `{"status":"shutting_down"}`                |
+| `/-/readyz`   | Readiness probe | `{"status":"ready","ready":true}`                            | `{"status":"no_data_source","ready":false}` |
+| `/-/versionz` | Build metadata  | Module, version, Go version, VCS stamp, capabilities, config | —                                           |
 
 All return `application/json` with `Cache-Control: no-store`.
 

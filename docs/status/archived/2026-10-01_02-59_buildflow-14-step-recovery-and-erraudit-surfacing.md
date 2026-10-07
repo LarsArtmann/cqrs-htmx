@@ -9,8 +9,8 @@
 ## Executive verdict
 
 - **All 14 originally-failed steps: individually green.**
-- **Final full BuildFlow run: 601/601 steps success, 0 failed, 0 skipped** — first fully-green *pipeline* in a recorded run.
-- **Exit code is still non-zero, by design:** the findings gate (`fail_on: critical`) now trips on the **erraudit layer (57 criticals)** — a step that had *never completed* inside a full run before this session (it was skip-blocked behind the original failures). That layer is triaged and queued, not fixed. That is the honest state: red gate, green pipeline.
+- **Final full BuildFlow run: 601/601 steps success, 0 failed, 0 skipped** — first fully-green _pipeline_ in a recorded run.
+- **Exit code is still non-zero, by design:** the findings gate (`fail_on: critical`) now trips on the **erraudit layer (57 criticals)** — a step that had _never completed_ inside a full run before this session (it was skip-blocked behind the original failures). That layer is triaged and queued, not fixed. That is the honest state: red gate, green pipeline.
 - **One latent workspace breakage was found and repaired** that the 08:09 run itself introduced as a "repair": go-work-sync dropped a load-bearing `go.work` pin.
 
 ---
@@ -50,7 +50,7 @@
 
 ## d) TOTALLY FUCKED UP
 
-1. **My own go.work churn window.** I first restored the go-etag shield as a **local-dir** replace; the auto-commit daemon committed that form (d7cd621d) before I identified and swapped to the canonical **v0.6.0 proxy pin** (the pre-breakage form from the Sep 28 release-wave commit). The diff-vs-HEAD then briefly looked like "another session repaired it" — a provenance misattribution that cost one extra investigation cycle. End state is correct (v0.6.0 pin), but the intermediate form should never have been left for the daemon to grab. Lesson: on this box, *any* working-tree edit is a commit within minutes — finalize form BEFORE walking away from the tree.
+1. **My own go.work churn window.** I first restored the go-etag shield as a **local-dir** replace; the auto-commit daemon committed that form (d7cd621d) before I identified and swapped to the canonical **v0.6.0 proxy pin** (the pre-breakage form from the Sep 28 release-wave commit). The diff-vs-HEAD then briefly looked like "another session repaired it" — a provenance misattribution that cost one extra investigation cycle. End state is correct (v0.6.0 pin), but the intermediate form should never have been left for the daemon to grab. Lesson: on this box, _any_ working-tree edit is a commit within minutes — finalize form BEFORE walking away from the tree.
 2. **Missing baseline before mutation.** I pruned 20 go.work replaces without first establishing that a plain workspace `go build ./...` was green pre-prune. The build then failed and I initially attributed it to my prune; the failure pre-dated it (go-work-sync at 08:09/373209a7). Cost: ~2 misdirected debug cycles and one unnecessary revert/redo. Lesson: **always snapshot the failing command's baseline before touching the thing under suspicion.**
 3. **Rule slip:** one `rm -rf` on my own throwaway /tmp worktree dirs despite the fleet `trash` rule. Zero damage (my own temp dirs), but the rule exists precisely so the reflex never fires near real data.
 4. **Not actually fucked up (verified non-events):** the vendorHash "stale" alarm (false positive, proven), the gopls stale go.mod diagnostic (disproven by CLI), and the "concurrent go.work repair" (was my own daemon-committed edit). Worth recording because each briefly pointed the investigation the wrong way.
@@ -65,11 +65,11 @@
 6. **go-work-sync needs a union-graph guard** (or an exclude-list) — it dropped a pin its own heuristic could not see was load-bearing. File the BuildFlow ask with commit 373209a7 as the case study.
 7. **Repro-env discipline on a shared box:** load 55 with 47 users; contention failures masquerade as deterministic (0/N retries recovered). Record load at run start in verification notes; treat "identical failures across retries" under load>20 as suspect-contended rather than deterministic.
 8. **Grep hygiene with module graphs:** `go mod graph` edges are `module@version` — three grep cycles were burned on space-separated patterns. Pattern-test against one known-good line before bulk grepping.
-9. **Daemon-interaction awareness:** working trees here are committed within minutes. That is a feature (gotcha 4) but demands finalize-before-idle discipline and preflight-tree-check before *every* verification phase, not just tree-mutating ones.
+9. **Daemon-interaction awareness:** working trees here are committed within minutes. That is a feature (gotcha 4) but demands finalize-before-idle discipline and preflight-tree-check before _every_ verification phase, not just tree-mutating ones.
 
 ## f) NEXT 50 (brainstorm, sorted by impact — ROADMAP/TODO fuel per docs-health routing)
 
-1. ~~Add `check-workspace-build` gate (plain `go build ./...` at root, workspace mode) to check-modules + CI. *(Catches the 373209a7 class same-day.)*~~ done at `c85d802f` (T07: checker + fixture + flake apps + stages + CI + AGENTS row; consumer-view hardening `eed53317` after the gate's first CI run caught the machine-local-replace class)
+1. ~~Add `check-workspace-build` gate (plain `go build ./...` at root, workspace mode) to check-modules + CI. _(Catches the 373209a7 class same-day.)_~~ done at `c85d802f` (T07: checker + fixture + flake apps + stages + CI + AGENTS row; consumer-view hardening `eed53317` after the gate's first CI run caught the machine-local-replace class)
 2. Run `nix run .#e2e` (Playwright) to prove the snapshot sentinel change end-to-end.
 3. ~~Run `nix run .#check-modules` post-flake/go.work changes.~~ done (25/25 stages green incl. workspace-build; W0–W3)
 4. ~~Run `nix run .#test` (workspace tests) post-go.work change.~~ done (T03: rc=0 ×28 modules, load 5.9)
@@ -128,7 +128,7 @@
 
 ---
 
-*Point-in-time snapshot — 2026-10-01 02:59 CEST. Living state lives in `FEATURES.md` / `TODO_LIST.md` / `AGENTS.md`. Open items above are routed: items 1–6, 11–12, 25–27 → TODO_LIST candidates; 19–24 → upstream asks; the rest → ROADMAP/decisions. Per the status convention, later sessions should ANNOTATE, never rewrite, this file.*
+_Point-in-time snapshot — 2026-10-01 02:59 CEST. Living state lives in `FEATURES.md` / `TODO_LIST.md` / `AGENTS.md`. Open items above are routed: items 1–6, 11–12, 25–27 → TODO_LIST candidates; 19–24 → upstream asks; the rest → ROADMAP/decisions. Per the status convention, later sessions should ANNOTATE, never rewrite, this file._
 
 > ANNOTATED 2026-10-01 (docs-health round 13 — same-day follow-through): §c7 DONE (the CHANGELOG [Unreleased] Fixed entry for this session's fixes landed in the round-13 pass, together with the backfilled 09-27/09-30 dependency-sweep entries); §f1 (`check-workspace-build` gate), §f9–22 (upstream asks bundle), §f12–13 (cqrs-lint residual/noise triage), §f45 (erraudit entry split) are ROUTED — TODO_LIST P2 now carries them verbatim with evidence; §f39 DONE (`docs/status/README.md` counts refreshed in this pass — this file is now the 1-report tail); §f46 resolved (the 21-report tail was annotated + archived 2026-10-01); §c2/c3/c5/c6 verification debt is queued as the TODO_LIST P2 battery item (check-modules was re-running at annotation time; load 194 window). §g1's gate-policy question stands; §g2's context-policy question is the erraudit program's first decision.
 >

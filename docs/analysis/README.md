@@ -6,10 +6,10 @@ only on **NEW** findings.
 
 ## Files
 
-| File | Purpose |
-|---|---|
+| File                                                               | Purpose                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`branching-flow-baseline.sarif`](./branching-flow-baseline.sarif) | Minified SARIF, one entry per frozen finding (666 at 2026-10-07 — re-pinned from 659 accepting 9 SUPERB-plan findings under existing verdicts (see the amendment log): 501 phantom, 76 strong-id, 51 mixins, 18 duplicate-types, 8 large-struct, 5 do, 2 flag-param, 3 iface-complete, 1 bool-blind, 1 base-naming). |
-| [`triage-decisions.md`](./triage-decisions.md) | The verdict ledger: every analyzer class, its count, its reject/fix verdict, and the reason. Read this before "fixing" a baseline finding. |
+| [`triage-decisions.md`](./triage-decisions.md)                     | The verdict ledger: every analyzer class, its count, its reject/fix verdict, and the reason. Read this before "fixing" a baseline finding.                                                                                                                                                                           |
 
 ## The gate
 

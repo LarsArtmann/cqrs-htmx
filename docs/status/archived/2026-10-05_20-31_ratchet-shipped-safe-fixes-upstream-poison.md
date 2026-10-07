@@ -11,6 +11,7 @@
 The branching-flow ratchet gate is **shipped, wired, and proven** (green on clean tree, red on synthetic new findings — then it immediately caught my own T5 refactor adding 2 findings); T3 and T4 landed (T4 honestly rescoped to a doc contract — the typed key is a breaking published-API change); T5 is functionally green but carries **1 open exhaustruct_v5 lint finding + the baseline refresh it triggered**; HARVEST, annotations, and the upstream issue remain.
 
 ---
+
 > **ANNOTATED 2026-10-06 (docs-health round 18)** — superseded in part by the 21:19 continuation report; every loose end closed: T5 exhaustruct fixed via the `.golangci.yml` ignore-pattern, baseline ratcheted 663→659 + ledger amended, R7 KEEP rationale recorded, R14/T12 HARVEST executed (`471c0933`), T13/R16 annotations done, **templ-components#27 filed**, CHANGELOG receipts written (`3af81157`), and Q1 resolved end-to-end (v1.20.1 healed → family sweep → bundles rebuilt → strict gates green → **push `e2f6be27`**, CI green). Struck below: §b (all three), §c (all six), §f1–12, §f18, §g2/§g3. STILL OPEN (routed): R2/R18/R19 (§f13–15 → TODO_LIST/ROADMAP), T6 strong-id high rows (§f11 → ROADMAP R10), credential memo (§f12 → TODO R11 + ROADMAP OQ28), T15–T25 ROADMAP-fuel rows (§f16–24), finding-format false-red upstream report (§f22/§e6).
 
 ## a) FULLY DONE
@@ -37,10 +38,11 @@ Evidence = this session's command output; SHAs local.
 ## b) PARTIALLY DONE
 
 ~~- **T5/R6 plainBodyWriter options struct** — refactor complete and green (build + vet + full root suite `-race`; `plainBodyOptions` named-fields struct; app.go call site builds it once from config), **but two loose ends**:~~ done 2026-10-05 — `plainBodyOptions` joined the exhaustruct_v5 ignore-patterns; root lint 0 issues (21:19 session)
-  1. **1 open exhaustruct_v5 finding** at `errors.go:236`: treefmt/golines reflowed my trailing `//nolint` onto the closing paren line, so it no longer covers the literal. Fix = place the directive on its own line above the statement (gotcha-7 form).
-  2. **The ratchet gate went red on it (+2 added / -2 removed)** — first real catch, working as designed: my change REMOVED the `FLAG_PARAM` finding (the fix!) but the new 2-bool struct ADDS ~2 phantom-class findings, plus mass line-shifts (~589 modified, harmless). Needs: baseline refresh + a `triage-decisions.md` amendment row for `plainBodyOptions` (phantom-on-bools is already a frozen rejected class).
-~~- **R7 (12 dep commits)** — effectively decided **KEEP** (they are already pushed to `origin/master`, individually verified green; reverting would need a force-push or pointless churn commits), but the explicit rationale note is not yet written anywhere.~~ done — KEEP rationale recorded in the round-2 plan + 21:19 report
-~~- **Ratchet CI posture** — wired, but runner behavior (self-skip) is untested until the next push builds CI.~~ done — 20/20 self-tests green under the CI=true runner posture (03-04 alignment sweep §a13)
+
+1. **1 open exhaustruct_v5 finding** at `errors.go:236`: treefmt/golines reflowed my trailing `//nolint` onto the closing paren line, so it no longer covers the literal. Fix = place the directive on its own line above the statement (gotcha-7 form).
+2. **The ratchet gate went red on it (+2 added / -2 removed)** — first real catch, working as designed: my change REMOVED the `FLAG_PARAM` finding (the fix!) but the new 2-bool struct ADDS ~2 phantom-class findings, plus mass line-shifts (~589 modified, harmless). Needs: baseline refresh + a `triage-decisions.md` amendment row for `plainBodyOptions` (phantom-on-bools is already a frozen rejected class).
+   ~~- **R7 (12 dep commits)** — effectively decided **KEEP** (they are already pushed to `origin/master`, individually verified green; reverting would need a force-push or pointless churn commits), but the explicit rationale note is not yet written anywhere.~~ done — KEEP rationale recorded in the round-2 plan + 21:19 report
+   ~~- **Ratchet CI posture** — wired, but runner behavior (self-skip) is untested until the next push builds CI.~~ done — 20/20 self-tests green under the CI=true runner posture (03-04 alignment sweep §a13)
 
 ## c) NOT STARTED
 
@@ -100,7 +102,7 @@ Ranked honestly:
 ## g) Questions I cannot answer myself (Top 3)
 
 1. **Q2 (carried, unanswered):** Is the 4× credential-shape duplication an intentional boundary set (domain core / adapter view / provider DTO / service DTO) or sprawl to consolidate? This gates T7/T18 (memo only, no code without your call).
-~~2. **Baseline policy on net-even changes:** my T5 removed the flag-param finding but added ~2 phantom-on-bool findings — refresh the baseline now and amend the ledger (my recommendation: phantom-on-bools is already a frozen rejected class), or resolve the 2 additions in code first?~~ resolved — ratchet-down chosen and executed (663→659; phantom-on-bools already a frozen rejected class)
-~~3. **Upstream communication ownership (R17/Q4):** a concurrent session just recorded a templ#1449 closure row — is templ-components upstream communication already handled elsewhere, or do I file the v1.20.0 broken-release issue as planned?~~ resolved — #27 filed by the 21:19 session (nobody had filed; the concurrent templ#1449 work is a different repo)
+   ~~2. **Baseline policy on net-even changes:** my T5 removed the flag-param finding but added ~2 phantom-on-bool findings — refresh the baseline now and amend the ledger (my recommendation: phantom-on-bools is already a frozen rejected class), or resolve the 2 additions in code first?~~ resolved — ratchet-down chosen and executed (663→659; phantom-on-bools already a frozen rejected class)
+   ~~3. **Upstream communication ownership (R17/Q4):** a concurrent session just recorded a templ#1449 closure row — is templ-components upstream communication already handled elsewhere, or do I file the v1.20.0 broken-release issue as planned?~~ resolved — #27 filed by the 21:19 session (nobody had filed; the concurrent templ#1449 work is a different repo)
 
 **Status:** WAITING FOR INSTRUCTIONS.

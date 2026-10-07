@@ -8,6 +8,7 @@
 ## a) FULLY DONE (verified green + daemon-landed)
 
 **M20 — Autodetect variadic + probe table (F68–F71)** ✅
+
 - `Autodetect(sources ...any)` — backward-compatible variadic; first-wins
   merge across sources (primary store first, auxiliaries after); conflicts
   never error. `fieldProbe[T]` generic probe over `readProbes`/`optionalProbes`
@@ -20,6 +21,7 @@
   dashboardui tests rc=0; lint clean of new findings; CHANGELOG receipt.
 
 **M21 — Routes() manifest + single-source route table (F72–F74)** ✅
+
 - `Routes() []Route{Method,Pattern,Panel,Write}` manifest generated from ONE
   `routeSpec` table that also drives mux registration — `routes()`'s
   eleven-block if-chain and its cyclop nolint are DELETED. Guard modes
@@ -32,6 +34,7 @@
   example) + CHANGELOG receipt. Full suite green; lint clean.
 
 **M22 — systemadapter DomainConfig options (F75–F78)** ✅
+
 - `DomainConfig(opts ...DomainOption)` with `WithCheckpointStore` (→
   system.DomainConfig.CheckpointStore; nil = system's ADR-0142 engine-backed
   default), `WithDeadLetterStore` (replaces in-memory DLQ default), and
@@ -48,6 +51,7 @@
   rc=0 AND lint rc=0 (zero findings).
 
 **M23 — Deployment presets (F79–F83)** ✅
+
 - `RecommendedMemoryDeployment()` / `RecommendedSQLiteDeployment(dsn)` /
   `RecommendedSplitSQLiteDeployment(eventsDSN, projectionsDSN)` (WAL pragmas;
   engine/driver name constants after goconst; per-call pragma slices after
@@ -60,6 +64,7 @@
   deduped onto presets. Tests rc=0, lint rc=0.
 
 **M24 — docs truth pass (F84–F89)** ✅
+
 - metaengine guide: ADR-0051 deprecation banner; Quick Start rewritten
   declarative-first (steps 4-5 ProjectionLayer steps deleted; preset + typed
   query helpers); export table updated; Advanced section rewritten to the
@@ -78,6 +83,7 @@
   check note added to the header.
 
 **M25 — FromSystem duck-typed bridge (F90–F94)** ✅
+
 - `dashboardui.System` — a STRUCTURAL accessor interface (EventStore/Bus/
   ProjectionHost/SnapshotStore/CommandStore/QueryStore) satisfied by
   `*system.System` and any forwarding wrapper, WITHOUT importing the system
@@ -95,6 +101,7 @@
   section; CHANGELOG receipt.
 
 **M26 — Telemetry phase 1 (F95–F99)** ✅
+
 - `core/telemetry.go`: dashboard-owned view structs (TopologyView,
   EngineHealthView, PlacementView, EngineStatsView) + provider types — no
   system/metaengine types in the rendering layer.
@@ -121,6 +128,7 @@
 - README § Telemetry + CHANGELOG receipts (dashboardui).
 
 **Session housekeeping** ✅
+
 - Post-daemon compile checks after every noticed daemon commit (the M19
   incident's lesson) — every one green.
 - Defaults applied to the previous report's §g questions: (1) push/train
@@ -131,13 +139,14 @@
 ## b) PARTIALLY DONE
 
 **M27 — verification battery (F100–F102)** 🟡
+
 - F102 (CHANGELOG receipts): DONE continuously — dashboardui (M20, M21, M25,
   M26) + systemadapter (M22, M23; the M26 telemetry receipt was REMOVED when
   the adapter moved to systembridge).
 - F100: preflight ✅ → wait-tree-quiet ✅ → `.#check-modules` ❌ → diagnosed
-  + fixed MY half → scoped re-verification ✅ → **full battery re-run NOT
-  done** (interrupted by foreign-session breakage, then by this report).
-  - check-modules failed: systemadapter hermetic (GOWORK=off) build —
+  - fixed MY half → scoped re-verification ✅ → **full battery re-run NOT
+    done** (interrupted by foreign-session breakage, then by this report).
+  * check-modules failed: systemadapter hermetic (GOWORK=off) build —
     systemadapter required dashboardui/v4 v4.13.1 whose PUBLISHED tag lacks
     the new APIs. FIXED PROPERLY: the adapter moved from systemadapter into
     a NEW `dashboardui/systembridge` sub-package (system + metaengine are
@@ -146,7 +155,7 @@
     dropped); systemadapter hermetic rc=0. integration_test (never tagged)
     got a documented `replace dashboardui/v4 => ../dashboardui` (hermetic
     rc=0; remove after the family train publishes the tags).
-  - Remaining battery redness is NOT mine: dashboardui hermetic fails on
+  * Remaining battery redness is NOT mine: dashboardui hermetic fails on
     `cqrshtmx.ServeAsset`/`AssetETag` — the FOREIGN session's new
     unpublished root APIs (their assets refactor across root + adminui +
     dashboardui); `.#test` failed in adminui on the same class. After their

@@ -15,13 +15,13 @@ this session and their state is unknown here (not researched, per instruction).
 
 ## a) Fully done
 
-| Item | Evidence |
-|------|----------|
-| ~~**M11/F35 — cache ordering (GCL): invalidate-before-write + generation guard**~~ done (this session, GCL `system/cache.go` + `cache_test.go`, absorbed by daemon auto-commit ~19:05, CHANGELOG receipt authored `7d77afa33`) | ~~`Save`/`AppendBatch` invalidate before AND after the store write; `Load` repopulates only when the per-stream write generation is unchanged across its store read. Generation entries deliberately never pruned (absent must mean "never written" — pruning reintroduced the captured-0 ambiguity, caught live by the race test mid-session).~~ |
-| ~~**M11/F36 — race test**~~ done (`TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot`, `slowLoadStore` fixture; writer asserts post-Save read contract while 4 readers straddle commits) | ~~Proven failing-first against the old code (`served pre-save snapshot: got 1 events, want 2`), green ×5 under `-race` after the fix. Full `system` suite + vet green.~~ |
-| ~~**M12/F37 — reifyTo returns structured error**~~ done (GCL `system/evolutions.go` + `metaengine/store_folds.go`, absorbed by daemon ~19:17–19:30) | ~~`reifyTo(src, dst) error`; explicit-fold closure panics with `errorfamily` **Corruption** (`system.evolution.reify_failed`); metaengine's `applyFold` recover now wraps error-valued panics with `%w` so the family/code chain survives into poison + DLQ. Non-error panics keep the legacy message shape.~~ |
-| ~~**M12/F38 — poison-event test**~~ done (`system/evolution_poison_test.go`: `poisonPrevEngine` test driver registered via `metaengine.RegisterDriver`, journal-seeded 3-event scenario, `WithDeadLetterStore`) | ~~Pins: DLQ entry for `poison.renamed` with `ErrorFamily=corruption` + `ErrorCode=system.evolution.reify_failed`, `IsPoisoned("poison_views")`, no `WorkerFailed`, healthy collection still projects and reads post-poison.~~ |
-| ~~**M12/F39 — regression: normal evolutions unaffected**~~ done (`system/evolutions_internal_test.go` direct-assign/JSON-round-trip/nil unit tests + full existing `TestSystem_Evolution_*` suite green; full `system` + `metaengine` suites green standalone rc=0) | ~~—~~ |
+| Item                                                                                                                                                                                                                                                                | Evidence                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~**M11/F35 — cache ordering (GCL): invalidate-before-write + generation guard**~~ done (this session, GCL `system/cache.go` + `cache_test.go`, absorbed by daemon auto-commit ~19:05, CHANGELOG receipt authored `7d77afa33`)                                      | ~~`Save`/`AppendBatch` invalidate before AND after the store write; `Load` repopulates only when the per-stream write generation is unchanged across its store read. Generation entries deliberately never pruned (absent must mean "never written" — pruning reintroduced the captured-0 ambiguity, caught live by the race test mid-session).~~ |
+| ~~**M11/F36 — race test**~~ done (`TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot`, `slowLoadStore` fixture; writer asserts post-Save read contract while 4 readers straddle commits)                                                            | ~~Proven failing-first against the old code (`served pre-save snapshot: got 1 events, want 2`), green ×5 under `-race` after the fix. Full `system` suite + vet green.~~                                                                                                                                                                          |
+| ~~**M12/F37 — reifyTo returns structured error**~~ done (GCL `system/evolutions.go` + `metaengine/store_folds.go`, absorbed by daemon ~19:17–19:30)                                                                                                                 | ~~`reifyTo(src, dst) error`; explicit-fold closure panics with `errorfamily` **Corruption** (`system.evolution.reify_failed`); metaengine's `applyFold` recover now wraps error-valued panics with `%w` so the family/code chain survives into poison + DLQ. Non-error panics keep the legacy message shape.~~                                    |
+| ~~**M12/F38 — poison-event test**~~ done (`system/evolution_poison_test.go`: `poisonPrevEngine` test driver registered via `metaengine.RegisterDriver`, journal-seeded 3-event scenario, `WithDeadLetterStore`)                                                     | ~~Pins: DLQ entry for `poison.renamed` with `ErrorFamily=corruption` + `ErrorCode=system.evolution.reify_failed`, `IsPoisoned("poison_views")`, no `WorkerFailed`, healthy collection still projects and reads post-poison.~~                                                                                                                     |
+| ~~**M12/F39 — regression: normal evolutions unaffected**~~ done (`system/evolutions_internal_test.go` direct-assign/JSON-round-trip/nil unit tests + full existing `TestSystem_Evolution_*` suite green; full `system` + `metaengine` suites green standalone rc=0) | ~~—~~                                                                                                                                                                                                                                                                                                                                             |
 
 GCL verification actually run this session: `system` full suite + `-race` (green),
 `metaengine` full suite standalone (green, ~98s), `go vet` both modules, gofmt clean.
@@ -31,9 +31,10 @@ concurrently — re-ran standalone, rc=0.
 ## b) Partially done
 
 ~~- **M12 CHANGELOG receipt (GCL):** the code+tests are committed, but the~~ done — receipt `a938279f8` (21:35 session)
-  planned `[Unreleased] → Fixed` entry for the reify/DLQ fix has NOT been added
-  (the commit carrying it raced the daemon twice; only M11's receipt landed).
-  Content is ready to re-add.
+planned `[Unreleased] → Fixed` entry for the reify/DLQ fix has NOT been added
+(the commit carrying it raced the daemon twice; only M11's receipt landed).
+Content is ready to re-add.
+
 - **M11 authored commit message:** the fix landed inside a daemon
   `chore: auto-commit` (my authored commit lost the HEAD-lock race twice);
   the CHANGELOG receipt carries the description instead. Amending during
@@ -41,11 +42,11 @@ concurrently — re-ran standalone, rc=0.
 
 ## c) Not started (assigned to this session)
 
-| Item | What remains |
-|------|--------------|
-~~| **M13/F40–F45 — escaping sweep (CH dashboardui)** | `url.QueryEscape` in `core.EventFilter.ExtraParams`, `sortState.extraParams`, `core.PaginationQuery`, `pageSizeOptionsFor`; invalid `?after=` cursor → 400+log (`handlers_events.go:40`, `handlers_audit.go:47,120`); fallback truncation/hasNext on parsed pageSize (`handlers_audit.go:134-136` — also note the early-truncate makes fallback hasNext always false); hostile-param round-trip test suite |~~ done — `44bc4d48` (21:35 session)
-~~| **M14/F46–F50 — error honesty (CH dashboardui)** | errorfamily kind → 404 vs 500 in event/command/query detail handlers; `ListStreamsPaged` error propagation + error panel instead of empty table; `writeJSON` marshal-before-WriteHeader; audit failure logs at Error with detail (`handlers_dlq.go`, `handlers_snapshots.go`); tests |~~ done — `7d3eabb6` (21:35 session)
-~~| **M15/F51–F53 — sorted-view notice (CH dashboardui)** | truncation chip in `events.templ`; disable next (and prev) pagination in sorted mode; README note that sorted mode is windowed (idea 9 full fix out of scope) |~~ done — `99be51de` (21:35 session)
+| Item | What remains                                          |
+| ---- | ----------------------------------------------------- |
+| ~~   | **M13/F40–F45 — escaping sweep (CH dashboardui)**     |
+| ~~   | **M14/F46–F50 — error honesty (CH dashboardui)**      |
+| ~~   | **M15/F51–F53 — sorted-view notice (CH dashboardui)** |
 
 ## d) Totally fucked up
 
@@ -93,12 +94,12 @@ concurrently — re-ran standalone, rc=0.
 16. Regenerate `events_templ.go` via `nix run .#gen` (module-dir canonical form) after F51.
 17. Run dashboardui test suite + `nix run .#lint` scoped + affected gates (`check-css-bundle-classes` only if any class changes).
 18. Commit per milestone (M13, M14, M15) with CHANGELOG receipts (consumer-visible changes).
-9–50. The remaining plan items beyond this session's assignment: M16–M26 per the
-Pareto plan's own ordering (M16 asset caching → M17 versionz → M18 authorizer
-actor → M19 Config.Validate → M20 variadic Autodetect → M21 Routes() → M22
-systemadapter checkpoints/DLQ → M23 RecommendedDeployment → M24 docs truth pass
-→ M25 FromSystem bridge → M26 telemetry phase 1 → M27 full battery + dual-repo
-release trains, which must also carry M11/M12's GCL tags wave-ordered).
+    9–50. The remaining plan items beyond this session's assignment: M16–M26 per the
+    Pareto plan's own ordering (M16 asset caching → M17 versionz → M18 authorizer
+    actor → M19 Config.Validate → M20 variadic Autodetect → M21 Routes() → M22
+    systemadapter checkpoints/DLQ → M23 RecommendedDeployment → M24 docs truth pass
+    → M25 FromSystem bridge → M26 telemetry phase 1 → M27 full battery + dual-repo
+    release trains, which must also carry M11/M12's GCL tags wave-ordered).
 
 ## g) Up to 3 questions
 
@@ -109,6 +110,6 @@ release trains, which must also carry M11/M12's GCL tags wave-ordered).
    (breaking for direct `dashboardui/core` importers). OK to ship as a
    CHANGELOG-Changed breaking change, or prefer a new `ListStreamsPagedE`-style
    twin to keep the old signature stable until v5?
-3. **Sorted-mode prev-link (F52):** plan says disable *next*; I intend to also
-   disable *prev* (sorted mode ignores cursors entirely, so prev is equally a
+3. **Sorted-mode prev-link (F52):** plan says disable _next_; I intend to also
+   disable _prev_ (sorted mode ignores cursors entirely, so prev is equally a
    lie) — confirm or keep prev enabled?

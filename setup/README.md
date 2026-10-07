@@ -43,25 +43,25 @@ func main() {
 
 ## What you get (default routes)
 
-| Route          | Panel           | Access                                                             |
-| -------------- | --------------- | ------------------------------------------------------------------ |
+| Route          | Panel           | Access                                                                       |
+| -------------- | --------------- | ---------------------------------------------------------------------------- |
 | `/auth/*`      | Auth API        | mixed — see the route table below (ceremonies gated, subset session-wrapped) |
-| `/admin/*`     | Admin panel     | session + CSRF (401 without)                                       |
-| `/dashboard/*` | CQRS dashboard  | session-gated (401 without)                                        |
-| `/sse`         | Shared SSE feed | session-gated (opt-in)                                             |
-| `/health`      | Readiness check | public (503 while draining)                                        |
-| `/`            | Login page      | public                                                             |
+| `/admin/*`     | Admin panel     | session + CSRF (401 without)                                                 |
+| `/dashboard/*` | CQRS dashboard  | session-gated (401 without)                                                  |
+| `/sse`         | Shared SSE feed | session-gated (opt-in)                                                       |
+| `/health`      | Readiness check | public (503 while draining)                                                  |
+| `/`            | Login page      | public                                                                       |
 
 ### Auth route posture
 
 The `/auth/*` surface is mixed, and the library enforces it:
 
-| Route group                          | Posture                                                                       |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| `POST /auth/register`                | public — sets the session cookie (first-user bootstrap)                       |
-| WebAuthn **login** ceremonies        | public — unauthenticated by nature                                            |
-| WebAuthn **enrollment** ceremonies   | **owner-session-gated**: 401 without a session, 403 when the target `user_id` is not the session user |
-| `GET /auth/me`, credentials, TOTP, email-verify/send, import/export, OAuth2 unlink | session required (401 without; self-wrapped with an enrich-only session pass) |
+| Route group                                                                        | Posture                                                                                               |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `POST /auth/register`                                                              | public — sets the session cookie (first-user bootstrap)                                               |
+| WebAuthn **login** ceremonies                                                      | public — unauthenticated by nature                                                                    |
+| WebAuthn **enrollment** ceremonies                                                 | **owner-session-gated**: 401 without a session, 403 when the target `user_id` is not the session user |
+| `GET /auth/me`, credentials, TOTP, email-verify/send, import/export, OAuth2 unlink | session required (401 without; self-wrapped with an enrich-only session pass)                         |
 
 The enrollment gate is why `POST /auth/register` issues the session cookie
 before any ceremony: the login page's register → begin → finish flow rides
@@ -170,7 +170,7 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `DashboardReadOnly`                                       | `*bool`                             | `true`                                  | Set `false` at your own risk (enables reset/DLQ replay)                                                                                                                                                                                                                                                             |
 | `DashboardPageSize`                                       | `int`                               | 50                                      | Rows per dashboard table page (max 200)                                                                                                                                                                                                                                                                             |
 | `LoginNoRegistration`                                     | `bool`                              | `false`                                 | Hide the registration section                                                                                                                                                                                                                                                                                       |
-| `LoginCSSPath`                                            | `string`                            | `"/app.css"`                            | URL of the compiled Tailwind stylesheet the login page loads — the consumer MUST compile one scanning the loginpage package (see [Styling](#styling)); the admin/dashboard panels need nothing (self-contained bundles)                                                                                               |
+| `LoginCSSPath`                                            | `string`                            | `"/app.css"`                            | URL of the compiled Tailwind stylesheet the login page loads — the consumer MUST compile one scanning the loginpage package (see [Styling](#styling)); the admin/dashboard panels need nothing (self-contained bundles)                                                                                             |
 | `DisableAdmin` / `DisableDashboard` / `DisableLogin`      | `bool`                              | `false`                                 | Feature flags to shrink the route surface                                                                                                                                                                                                                                                                           |
 | `DisableAuth`                                             | `bool`                              | `false`                                 | Build no auth handler: `Bundle.Auth` is nil, no `/auth/*` routes mount, the service and panels stay (own-login-endpoint mode). Rejects `DisableLogin=false` and `AuthHandlerConfig` at `New` (ADR-0054)                                                                                                             |
 | `DisableService`                                          | `bool`                              | `false`                                 | The identity-external shell (ADR-0054): no usermgmt.Service, no auth, no panels; `Stores` from `EventStore`/`EventBus` (memory + watermill defaults). Session-gated surfaces (feeds, machine endpoints) are rejected at `New` — their gate would dereference the missing service; health = your `HealthChecks` only |

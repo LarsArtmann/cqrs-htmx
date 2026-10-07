@@ -150,4 +150,4 @@ Background shell 008 ran `nix run .#lint` in GCL; reaped without output, and the
 
 ---
 
-*Reported honestly, warts included. Tree state at writing: dashboardui module tests green, touched files lint-clean, M19 fixes + CHANGELOG receipt in worktree (daemon will land them). Waiting for instructions.*
+_Reported honestly, warts included. Tree state at writing: dashboardui module tests green, touched files lint-clean, M19 fixes + CHANGELOG receipt in worktree (daemon will land them). Waiting for instructions._

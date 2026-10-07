@@ -939,27 +939,27 @@ Finish endpoints read `user_id` from the URL query param (`?user_id=...`), since
 
 ### Service Methods
 
-| Method                                                                   | Description                                                    |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| `Register(ctx, RegisterRequest)` → `(*RegisterResponse, error)`          | Create user (email only), assign default roles, create session |
-| `BeginRegistration(ctx, userID)` → `(*BeginRegistrationResponse, error)` | Start WebAuthn credential registration                         |
-| `FinishRegistration(ctx, userID, r, credentialName)` → `error`           | Complete credential registration                               |
-| `BeginLogin(ctx, email)` → `(*BeginLoginResponse, error)`                | Start WebAuthn login ceremony                                  |
-| `FinishLogin(ctx, userID, r)` → `(*FinishLoginResponse, error)`          | Complete login, create session                                 |
-| `Logout(ctx, token)` → `error`                                           | Delete session                                                 |
-| `Authenticate(ctx, token)` → `(*User, error)`                            | Validate session, return user                                  |
-| `Authorize(ctx, sub, dom, obj, act)` → `error`                           | Check RBAC policy                                              |
-| `GetUser(ctx, id)` → `(*User, error)`                                    | Find user by ID                                                |
+| Method                                                                   | Description                                                                    |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `Register(ctx, RegisterRequest)` → `(*RegisterResponse, error)`          | Create user (email only), assign default roles, create session                 |
+| `BeginRegistration(ctx, userID)` → `(*BeginRegistrationResponse, error)` | Start WebAuthn credential registration                                         |
+| `FinishRegistration(ctx, userID, r, credentialName)` → `error`           | Complete credential registration                                               |
+| `BeginLogin(ctx, email)` → `(*BeginLoginResponse, error)`                | Start WebAuthn login ceremony                                                  |
+| `FinishLogin(ctx, userID, r)` → `(*FinishLoginResponse, error)`          | Complete login, create session                                                 |
+| `Logout(ctx, token)` → `error`                                           | Delete session                                                                 |
+| `Authenticate(ctx, token)` → `(*User, error)`                            | Validate session, return user                                                  |
+| `Authorize(ctx, sub, dom, obj, act)` → `error`                           | Check RBAC policy                                                              |
+| `GetUser(ctx, id)` → `(*User, error)`                                    | Find user by ID                                                                |
 | `DisplayName(ctx, userID string)` → `string`                             | Render label: display name → email → ""; accepts bare and `user:`-prefixed ids |
-| `UpdateRoles(ctx, userID, roles, domain)` → `error`                      | Atomically update user's roles                                 |
-| `ChangeEmail(ctx, userID, newEmail)` → `error`                           | Change user's email                                            |
-| `ChangeDisplayName(ctx, userID, newName)` → `error`                      | Change user's display name                                     |
-| `DeleteUser(ctx, userID, reason)` → `error`                              | Soft-delete user (tombstone), revoke sessions                  |
-| `AddCredential(ctx, userID, cred)` → `error`                             | Add WebAuthn credential                                        |
-| `RemoveCredential(ctx, userID, credID)` → `error`                        | Remove WebAuthn credential                                     |
-| `Authz()` → `*Authz`                                                     | Access underlying RBAC engine                                  |
-| `ReadModel()` → `*UserReadModel`                                         | Access read model directly                                     |
-| `Stop()`                                                                 | Gracefully shutdown background resources                       |
+| `UpdateRoles(ctx, userID, roles, domain)` → `error`                      | Atomically update user's roles                                                 |
+| `ChangeEmail(ctx, userID, newEmail)` → `error`                           | Change user's email                                                            |
+| `ChangeDisplayName(ctx, userID, newName)` → `error`                      | Change user's display name                                                     |
+| `DeleteUser(ctx, userID, reason)` → `error`                              | Soft-delete user (tombstone), revoke sessions                                  |
+| `AddCredential(ctx, userID, cred)` → `error`                             | Add WebAuthn credential                                                        |
+| `RemoveCredential(ctx, userID, credID)` → `error`                        | Remove WebAuthn credential                                                     |
+| `Authz()` → `*Authz`                                                     | Access underlying RBAC engine                                                  |
+| `ReadModel()` → `*UserReadModel`                                         | Access read model directly                                                     |
+| `Stop()`                                                                 | Gracefully shutdown background resources                                       |
 
 ### Input Validation
 

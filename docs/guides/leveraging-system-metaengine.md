@@ -18,14 +18,14 @@ go-cqrs-lite provides two powerful modules that cqrs-htmx consumers can benefit 
 
 The **`systemadapter/`** submodule bridges cqrs-htmx's identity-model domain (4 aggregates, 20 commands, 21 events) into the `system.New()` API with three exports:
 
-| Export                    | Purpose                                                                                            |
-| ------------------------- | -------------------------------------------------------------------------------------------------- |
-| `DomainConfig()`          | Pre-wires all deciders + commands + TypeDecoder into a `system.DomainConfig`                       |
-| `EventTypeDecoder()`      | Maps all 21 event types to their payload structs for `projectionadapter`                           |
-| `DomainConfig(opts...)` | Pre-wires deciders + commands + TypeDecoder + declarative projections; options carry checkpoint/DLQ/host tuning |
-| `Recommended*Deployment()` | Memory / SQLite / split-SQLite deployment presets |
-| `EventTypeDecoder()` | Maps all 21 event types to their payload structs for `projectionadapter` |
-| `NewProjectionLayer(sys)` | **Deprecated** (pre-declarative): read models, Casbin authz, audit log on a dedicated host |
+| Export                     | Purpose                                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `DomainConfig()`           | Pre-wires all deciders + commands + TypeDecoder into a `system.DomainConfig`                                    |
+| `EventTypeDecoder()`       | Maps all 21 event types to their payload structs for `projectionadapter`                                        |
+| `DomainConfig(opts...)`    | Pre-wires deciders + commands + TypeDecoder + declarative projections; options carry checkpoint/DLQ/host tuning |
+| `Recommended*Deployment()` | Memory / SQLite / split-SQLite deployment presets                                                               |
+| `EventTypeDecoder()`       | Maps all 21 event types to their payload structs for `projectionadapter`                                        |
+| `NewProjectionLayer(sys)`  | **Deprecated** (pre-declarative): read models, Casbin authz, audit log on a dedicated host                      |
 
 ## Quick Start
 

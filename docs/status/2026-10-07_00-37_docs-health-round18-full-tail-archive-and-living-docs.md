@@ -56,6 +56,7 @@
 ## f) Up to 50 things we should get done next (impact-ordered; the head is the Pareto)
 
 **Release path (owner lane unless noted):**
+
 1. Run the **flightrecorder v0.2.1 lag train** (16 requires, `bump-dep.sh`) → strict gates → push (master now synced; the next wave re-accumulates) — TODO P2.
 2. Decide **D12**: ship the gotcha-25 grep-guard as a blocking check-modules stage (atomic checklist) or advisory-only.
 3. Decide **D13**: `ParseUserID` prefix-strip generic-vs-whitelist + fuzz/fixture pins.
@@ -127,4 +128,4 @@
 
 ---
 
-*Point-in-time snapshot per `docs/status/README.md`; append-only; annotate, never rewrite. `.md` at the operator's explicit path demand (standing repo override of the HTML default, flagged per skill contract). Waiting for instructions.*
+_Point-in-time snapshot per `docs/status/README.md`; append-only; annotate, never rewrite. `.md` at the operator's explicit path demand (standing repo override of the HTML default, flagged per skill contract). Waiting for instructions._

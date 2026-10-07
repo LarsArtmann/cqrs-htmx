@@ -6,6 +6,7 @@
 **Format note:** The `status-report` skill's canonical output is HTML; the operator explicitly requested `.md` at `docs/status/<YYYY-MM-DD_HH-MM_WELL-NAMED>.md`. Override honored and recorded (recurring divergence, see §e-8).
 
 > **ANNOTATED 2026-10-06 (docs-health round 18)** — UNBLOCKED: templ-components shipped the consumable **v1.20.1** (heals the zero-pseudo go.mod poison, per the 21-19 session's #27 fix recipe); the family moved to v1.20.1 across all six submodules in the 2026-10-05/06 sweep train, both Tailwind bundles rebuilt, strict release-train green, and **the push landed** (`e2f6be27`, CI all 7 jobs green 37392674249). The plan executed 2026-10-05 evening (ratchet `94a92e6f`, safe fixes `84b7fe3a`/`9f25f526`/`05213817`, harvest `471c0933`, issue **templ-components#27** filed through all verify-before-filing gates). Struck below: §b1–b4, §c1–c4/c7, §f1–4/9–11/13–16/21/46, §g1–3. STILL OPEN (routed): §f5/§f6 (R18 bump-dep pre-flight + R2 consumability gate — TODO_LIST), §f7 (R19 expiring allowlist — ROADMAP), §f8 broken-release episode narrative (covered by R2/R18 rows + #27 receipt), §f25–28 runbook notes (R20 — TODO_LIST), remaining speculative rows bare below (ROADMAP fuel).
+
 ---
 
 ## Session outcome in one line
@@ -53,8 +54,9 @@ Evidence = command output in this session; SHAs are local.
 ~~- **HARVEST** of plan items into `TODO_LIST.md`/`ROADMAP.md` (mandated by both `pareto-planning` and `status-report`; deliberately deferred).~~ done — `471c0933` (R2/R18/R11/R20/R15/R12 + OQ28 + residual ROADMAP block)
 ~~- **All 25 comprehensive plan tasks** (T1–T25) — including the ratchet foundation (T1), the three safe fixes (T3–T5), and the credential decision memo (T7).~~ done 2026-10-05 evening — T1/T9 ratchet shipped, T3–T5 landed (T4 rescoped), T2/T11/T23 docs done; remainder routed
 ~~- **templ-components CSS-bundle rebuilds** (`.#build-adminui-css`/`.#build-dashboardui-css`) — only relevant if/when the family becomes consumable.~~ done — both bundles rebuilt (`a34d664d` + sweep-train rebuilds), class-set gates green
+
 - **`nix fmt` on the new planning `.md`** — not run.
-~~- **The `--no-verify` push decision** — deferred to owner.~~ moot — the push landed normally after upstream healed
+  ~~- **The `--no-verify` push decision** — deferred to owner.~~ moot — the push landed normally after upstream healed
 
 ---
 
@@ -74,10 +76,11 @@ Nothing in the repo is broken; no working code was damaged; tree is clean.
 ## e) WHAT WE SHOULD IMPROVE!
 
 **Process (this session):**
+
 1. **Read the tool's own contract before invoking it.** The `$`-anchor rule was in `bump-dep.sh`'s header; skipping it cost a failed attempt. Rule: if a script documents a flag/trap, read it before the first call.
 2. **Never capture rc through a pipe.** Capture `cmd > file 2>&1; rc=$?`, always — even on "quick" re-checks.
-3. **Detect the moving target and stop.** Lag went 36 → 64 between two `--refresh-cache` runs. When the number *grows* despite fixes, the correct move is to stop and find out *why the upstream published*, not to sweep again.
-4. **Check consumability before aligning to a version.** A gate says "newer version published"; it does not say "newer version is consumable". Validate a candidate's `go.mod` for placeholder pseudo-versions (`-00010101000000`) *before* a family sweep.
+3. **Detect the moving target and stop.** Lag went 36 → 64 between two `--refresh-cache` runs. When the number _grows_ despite fixes, the correct move is to stop and find out _why the upstream published_, not to sweep again.
+4. **Check consumability before aligning to a version.** A gate says "newer version published"; it does not say "newer version is consumable". Validate a candidate's `go.mod` for placeholder pseudo-versions (`-00010101000000`) _before_ a family sweep.
 
 **Tooling/design (repo + upstream worth filing):**
 5. **`bump-dep.sh` should pre-flight the target release.** Detect `-00010101000000-000000000000` placeholder pseudo-versions in a candidate family's `go.mod` and refuse with "upstream release is broken" instead of the misleading downstream `unknown revision …/<sub>/go.mod` error.
@@ -87,7 +90,7 @@ Nothing in the repo is broken; no working code was damaged; tree is clean.
 
 **Self-critique (asked explicitly):**
 9. **What did I forget?** — (i) read `bump-dep.sh`'s contract first; (ii) capture rc directly; (iii) validate release consumability before sweeping; (iv) stop when lag grew; (v) `nix fmt` the new plan; (vi) record the pre-existing unpushable state (origin had not moved → the repo has been unpushable for a while, a signal I read late).
-10. **What could I have done better?** — Ordered the work as *diagnose-then-act*: before touching pins, run one cheap probe (`git ls-remote` + fetch the candidate `go.mod`) to prove the target is consumable. That single check would have prevented items d1–d3.
+10. **What could I have done better?** — Ordered the work as _diagnose-then-act_: before touching pins, run one cheap probe (`git ls-remote` + fetch the candidate `go.mod`) to prove the target is consumable. That single check would have prevented items d1–d3.
 11. **What could I still improve?** — Turn d1–d4 into a **pre-flight script** (`scripts/checks/check-family-release-consumable.sh`) so the next agent gets a one-line verdict instead of rediscovering the placeholder trap.
 
 ---
@@ -95,24 +98,28 @@ Nothing in the repo is broken; no working code was damaged; tree is clean.
 ## f) Top next tasks (up to 50; ranked; later items are ROADMAP fuel)
 
 ### Push unblock (highest priority)
+
 ~~1. File the templ-components upstream issue: root `v1.20.0` go.mod contains workspace placeholder pseudo-versions → unconsumable — **High / S / Bug-report**~~ done — templ-components#27 (2026-10-05)
 ~~2. Decide push path (wait for re-release vs `--no-verify`) — **High / S / Decision**~~ resolved — upstream re-released (v1.20.1); normal push, no `--no-verify`
 ~~3. When upstream re-releases, re-run the templ sweep + CSS bundles + gate + push — **High / M / Release**~~ done — family on v1.20.1, CSS bundles rebuilt, gates green, pushed `e2f6be27`
 ~~4. Re-verify go-output/go-health/samber-do-auditlog alignments survive any rebase — **Medium / S / Release**~~ done — all on origin, carried through the trains, release-train 0/0 at push
 
 ### Guard against the whole class
+
 5. Add consumability pre-flight to `bump-dep.sh` (placeholder-version detection) — **High / M / Tooling**
 6. Add `scripts/checks/check-family-release-consumable.sh` — **High / M / Tooling**
 7. Propose an "upstream-broken" expiring allowlist to `check-release-train` — **Medium / M / Tooling**
 8. Record the broken-release episode in `docs/agents-notes.md` (gotcha-24 family) — **Medium / S / Documentation**
 
 ### Harvest + loop-closing
+
 ~~9. HARVEST plan T1–T14 into `TODO_LIST.md` — **High / S / Documentation**~~ done — `471c0933`
 ~~10. HARVEST plan T15–T25 into `ROADMAP.md` — **Medium / S / Documentation**~~ done — `471c0933` (ROADMAP residual block)
 ~~11. Annotate the branching-flow report + plan with done-markers — **Low / S / Documentation**~~ done — 14-59 report + both plans annotated 2026-10-05; this report annotated 2026-10-06 (round 18)
 12. `nix fmt` the planning `.md` — **Low / S / Quality**
 
 ### The plan's own 1% / 4% (executable now, independent of push)
+
 ~~13. T1 — SARIF baseline + `.#check-branching-flow` gate — **High / L / Tooling**~~ done — `94a92e6f`
 ~~14. T3 — `commandOptionApplier` drift guard — **High / S / Quality**~~ done — `84b7fe3a`
 ~~15. T4 — `pendingTOTPStore` typed key (+ gotcha-25 display-form check) — **High / M / Quality**~~ done-rescoped — `9f25f526` (typed key breaks the published seam; key contract documented, v5 candidate)
@@ -127,12 +134,14 @@ Nothing in the repo is broken; no working code was damaged; tree is clean.
 24. T23 — memory note (tool + commands) — **Low / S / Documentation**
 
 ### Process hardening (from §e)
+
 25. Add a "validate consumability before aligning" note to the dependency runbook — **Medium / S / Documentation**
 26. Add rc-capture guidance to the shell-reference runbook — **Low / S / Documentation**
 27. Add a "moving-target lag" stop-rule to the release-train runbook — **Low / S / Documentation**
 28. Draft the `--no-verify` justification convention (gotcha 6) as a copy-paste block — **Low / S / Convention**
 
 ### Speculative / ROADMAP
+
 29. T10 — JSON/SARIF nightly digest — **Low / M / Tooling**
 30. T15 — navItem dup comment — **Low / S / Cleanup**
 31. T16 — `Capabilities` `Has*()` helpers — **Low / M / Quality**
@@ -160,8 +169,8 @@ Nothing in the repo is broken; no working code was damaged; tree is clean.
 
 ## g) Questions I cannot answer myself (Top 3)
 
-1. **Push path:** Wait for a fixed `templ-components` re-release, or push now with `--no-verify` (accepting red CI on an upstream-caused gate)? I can't decide policy — the repo's own TODO marks pushes as "owner — your call". *(unblocks items 2/3/4)*
-2. **Upstream filing:** Should I file the templ-components issue (and does it go to that repo's tracker under my usual voice)? I tried to answer it by inspecting the tag/go.mod evidence — the release is definitely broken — but whether/when to file, and where, is yours. *(unblocks item 1)*
-3. **The 12 dep commits:** Keep them as-is (they will need rebasing if upstream re-releases differently), or revert them so the tree only carries the docs commits until the family wave is handled centrally? I can't judge whether your release process wants consumer-side alignment scattered across commits. *(unblocks items 4/9)*
+1. **Push path:** Wait for a fixed `templ-components` re-release, or push now with `--no-verify` (accepting red CI on an upstream-caused gate)? I can't decide policy — the repo's own TODO marks pushes as "owner — your call". _(unblocks items 2/3/4)_
+2. **Upstream filing:** Should I file the templ-components issue (and does it go to that repo's tracker under my usual voice)? I tried to answer it by inspecting the tag/go.mod evidence — the release is definitely broken — but whether/when to file, and where, is yours. _(unblocks item 1)_
+3. **The 12 dep commits:** Keep them as-is (they will need rebasing if upstream re-releases differently), or revert them so the tree only carries the docs commits until the family wave is handled centrally? I can't judge whether your release process wants consumer-side alignment scattered across commits. _(unblocks items 4/9)_
 
 **Status:** WAITING FOR INSTRUCTIONS.

@@ -24,7 +24,7 @@ E005's collector analyzes per-module (the gate runs each module with `GOWORK=off
 Teach the E005 collector a cross-module fail-open, in ONE of these shapes (best first):
 
 1. **Workspace-aware registration scan.** When analysis runs under a go.work (or with a `--cross-module` flag), resolve `Register*`/`RegisterTyped` calls across ALL workspace members before deciding "unregistered". A command type with zero registration calls across the UNION graph is a true positive; otherwise suppress.
-2. **Domain-purity exemption.** A module that DEFINES command types but imports no dispatcher/decider interfaces (import-graph fact, cheap to compute) is a *domain definition module*; E005 should not fire there — the owning composition root is where the check belongs. This generalizes: the same module-classification kills other definition-vs-usage FPs.
+2. **Domain-purity exemption.** A module that DEFINES command types but imports no dispatcher/decider interfaces (import-graph fact, cheap to compute) is a _domain definition module_; E005 should not fire there — the owning composition root is where the check belongs. This generalizes: the same module-classification kills other definition-vs-usage FPs.
 3. **Directive escape hatch** (`//cqrs-lint:ignore(E005) registered in usermgmt/systemadapter`) — works today but costs 16 comment lines and rots silently; listed for completeness, NOT recommended.
 
 Shape 2 is the cheapest correct one; shape 1 is the most precise. The C040 fix (const/var-alias resolution, landed 2026-09-30 in this same collector family) is the template for how collector-side resolution beats consumer-side suppression.

@@ -58,9 +58,9 @@ See `docs/adr/0011-event-signing-encryption.md` for the full decision record.
 auth posture themselves — no external middleware required:
 
 - **Public:** `POST /auth/register` (sets the session cookie), the WebAuthn
-  *login* ceremonies, `POST /auth/email/verify` (token is the credential),
+  _login_ ceremonies, `POST /auth/email/verify` (token is the credential),
   OAuth2 begin/callback, and logout.
-- **Owner-session-gated:** the WebAuthn *enrollment* ceremonies answer 401
+- **Owner-session-gated:** the WebAuthn _enrollment_ ceremonies answer 401
   without a session and 403 when the target `user_id` is not the session user.
 - **Session-required, self-wrapped:** `/auth/me`, credentials, TOTP,
   email-verify/send, import/export, and OAuth2 unlink run behind an enrich-only

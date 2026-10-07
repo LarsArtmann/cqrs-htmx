@@ -19,7 +19,7 @@ The repo-local tail of the round-13 plan is largely **shipped with fixture cover
 ## Scores (health-report format)
 
 - **Accuracy 82/100** — every claim I make is backed by a command I ran this session (per-file commit hashes, self-test outputs, gate rc). −18: I wrote a **stage count (27) that was stale within the hour** (a concurrent session added `erraudit-inventory-self-test` → 28) and I could not re-verify the composite, so the "check-modules ✅" class is trust, not proof (see §d3).
-- **Fitness 85/100** — the tools are exactly the mechanizations the round-13/14 reports asked for (normalizer, tail-budget, scoped fmt, bump-dep daemon-race fix). −15: the advisory tail-budget gate is **already firing** (4 reports in the tail > budget 3) partly *because of this very report*, and I left the deferred feedback-inbox item and two docs items unfinished.
+- **Fitness 85/100** — the tools are exactly the mechanizations the round-13/14 reports asked for (normalizer, tail-budget, scoped fmt, bump-dep daemon-race fix). −15: the advisory tail-budget gate is **already firing** (4 reports in the tail > budget 3) partly _because of this very report_, and I left the deferred feedback-inbox item and two docs items unfinished.
 
 ---
 
@@ -35,12 +35,12 @@ The repo-local tail of the round-13 plan is largely **shipped with fixture cover
 6. **T18(l) — docs-status tail-budget advisory gate.** `scripts/check-docs-tail-budget.sh` warns (exit 0) when the live `docs/status/*.md` tail (excluding README) exceeds 3; `--strict` exits 1. Portable (no `find -printf`). Files at `16732e40`. Evidence: `scripts/test-check-docs-tail-budget.sh` **5/5 green**; on today's tree → **warns "4 reports exceed budget 3"** (see §d3). Flake apps + CI self-test step + README.
 7. **T21 — scoped-format flake app.** `nix run .#fmt -- <paths>` forwards paths to the treefmt wrapper (`config.treefmt.build.wrapper`, config + tree-root baked in), ending the bare-`treefmt <paths>` failure. Evidence: verified it traversed **only the 2 named files**, not the tree; also used it to format my own scripts (shfmt + shellcheck).
 8. **T22(j) — `#test-all` app.** `nix run .#test-all` runs race tests over **every** workspace module incl. the 8 e2e/examples modules `#test`/`#test-race` exclude. Evidence: `nix eval …test-all.meta.description` resolves; app builds.
-9. **T19(b)(c) + T16(c) — docs/memory.** AGENTS **gotcha 10** gained the *formatter-clean ≠ lint-clean* bar + the scoped-`.#fmt` rule; **gotcha 23** (new) records the `run.go` pin, the `cqrs-lint rules` before/after-rebuild diff ritual, the `--fail-on-stale-suppressions` block, and the new tooling surface; `docs/runbooks/dependency-train-bump.md` gained the never-chain-bump-dep / MVS-carries-siblings note + `--commit`/`--verify`/`BUMP_DEP_ROOT`. Files at `20e81d9f` / `519dd929`.
+9. **T19(b)(c) + T16(c) — docs/memory.** AGENTS **gotcha 10** gained the _formatter-clean ≠ lint-clean_ bar + the scoped-`.#fmt` rule; **gotcha 23** (new) records the `run.go` pin, the `cqrs-lint rules` before/after-rebuild diff ritual, the `--fail-on-stale-suppressions` block, and the new tooling surface; `docs/runbooks/dependency-train-bump.md` gained the never-chain-bump-dep / MVS-carries-siblings note + `--commit`/`--verify`/`BUMP_DEP_ROOT`. Files at `20e81d9f` / `519dd929`.
 10. **Bookkeeping.** `TODO_LIST.md` tooling item rewritten to done/closed/remaining; header + battery count restamped; `CHANGELOG.md` [Unreleased] Added (tooling round) + Changed (`run.go`, 404s, dependabot) entries; the round-13 plan got a dated **OUTCOME** blockquote (ANNOTATE, non-destructive).
 
 ## b) PARTIALLY DONE
 
-~~1. **The heavy-gate verification (the honest big one).** All *offline* gates pass: `check-docs-links.sh` (315 OK), `check-status-rows.py` (0 PARTIAL/437), `check-status-annotations.sh` (72/72), `check-docs-freshness.sh` (PASS), and 5 self-tests. **Not run:** `nix run .#test`, `.#coverage-gate`, `.#lint`, and the `check-modules` composite — refused under load 20–51 per the repo's own rule. My changes are docs/config/scripts only (zero `.go` edits) so build-regression risk is near-zero, but the composite is **unproven**. Effort to finish: **S** (one quiet-window run).~~ done 2026-10-01 evening/overnight — .#test 15/15 + .#test-all 28/28 race rc=0, lint 0, coverage 15/15, check-modules 27/27 composite (round-15 reports)
+~~1. **The heavy-gate verification (the honest big one).** All _offline_ gates pass: `check-docs-links.sh` (315 OK), `check-status-rows.py` (0 PARTIAL/437), `check-status-annotations.sh` (72/72), `check-docs-freshness.sh` (PASS), and 5 self-tests. **Not run:** `nix run .#test`, `.#coverage-gate`, `.#lint`, and the `check-modules` composite — refused under load 20–51 per the repo's own rule. My changes are docs/config/scripts only (zero `.go` edits) so build-regression risk is near-zero, but the composite is **unproven**. Effort to finish: **S** (one quiet-window run).~~ done 2026-10-01 evening/overnight — .#test 15/15 + .#test-all 28/28 race rc=0, lint 0, coverage 15/15, check-modules 27/27 composite (round-15 reports)
 ~~2. **The check-modules stage count is a moving target.** I added 2 stages (25→27) and wrote "27" into TODO/CHANGELOG/AGENTS; a concurrent session then added `erraudit-inventory-self-test` → **28**. My numbers are already stale (shared tree). Effort to reconcile: **S**, but the class recurs (see §e1).~~ superseded — the suite is 28 stages today; the check-docs-counts mechanical gate remains unbuilt (TODO)
 ~~3. **`#test-all` is built but never executed end-to-end.** The app evaluates and builds, but I did not run it (examples bind ports; load high). So "the 8 excluded modules now have a race path" is a capability claim, not a result. Effort: **S–M** (one run).~~ done 2026-10-01/02 — executed 28/28 modules rc=0
 ~~4. **T19(a) agents-notes narratives** — not written (prose assembly of already-recorded facts). Deliberately low priority.~~ done 2026-10-01 (two narratives in docs/agents-notes.md)
@@ -60,53 +60,53 @@ The repo-local tail of the round-13 plan is largely **shipped with fixture cover
 
 ## d) TOTALLY FUCKED UP (radical honesty — nothing shipped broken this session; all my gates are green)
 
-1. **I published a number that was stale within the hour.** I wrote "check-modules 25→27" into TODO/CHANGELOG/AGENTS; a concurrent session added a stage → 28 before I finished the report. Severity: low (no runtime impact) but it is **exactly the round-14 d4 class ("count-claims drift on arrival")** recurring under my own hands — the tail-budget gate I just built does not cover *stage* counts. Mitigation: the report and TODO now say "28" or "moving target".
+1. **I published a number that was stale within the hour.** I wrote "check-modules 25→27" into TODO/CHANGELOG/AGENTS; a concurrent session added a stage → 28 before I finished the report. Severity: low (no runtime impact) but it is **exactly the round-14 d4 class ("count-claims drift on arrival")** recurring under my own hands — the tail-budget gate I just built does not cover _stage_ counts. Mitigation: the report and TODO now say "28" or "moving target".
 2. **No composite/heavy verification.** I cannot say "the gates are green" without the qualifier "the offline ones". Severity: low-risk (no Go code touched) but it means my integration claim is trust-based. Mitigation: a single quiet-window `nix run .#check-modules -- --report` closes it.
-3. **My tail-budget gate is already firing — because of the shared tree, and partly because of THIS report.** At write time the live tail is 4 (`10:30`, `12:30`, `15:55`, `17:01` + this = 5), over the budget of 3. Severity: advisory by design (exit 0) — but it means a docs-health ARCHIVE pass is owed, and I am *adding* to the pile by writing a report into a non-empty tail. That is the gate working as intended, not a bug — but it is a live signal.
+3. **My tail-budget gate is already firing — because of the shared tree, and partly because of THIS report.** At write time the live tail is 4 (`10:30`, `12:30`, `15:55`, `17:01` + this = 5), over the budget of 3. Severity: advisory by design (exit 0) — but it means a docs-health ARCHIVE pass is owed, and I am _adding_ to the pile by writing a report into a non-empty tail. That is the gate working as intended, not a bug — but it is a live signal.
 4. **I did not resolve the stray `docs/feedback/sec-consumer-feedback.md`** (should be in `new/` or `processed/` per gotcha 20). Severity: low hygiene. Mitigation: documented in TODO + this report; needs a disposition.
 5. **Two "fuck-ups" that turned out to be non-events (verified):** the `find -printf` non-portability in my tail-budget script (fixed before commit → `find | sed`); and my initial `run.go: 1.27` (caught by `config verify` before commit → `1.27.1`).
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. **Counts in living-doc headers drift every time the suite grows.** The stage count, coverage %, and "N/25" claims are hand-maintained and go stale on any concurrent change (this session proved it twice). *Fix:* have `flake.nix` expose a `.#stage-counts`/`check-docs-counts` app that asserts header numbers against reality (the round-14 report already proposed a README-count fixture for the tail side — extend it to stages). Impact: kills the d4 class permanently.
-2. **Shared-tree sessions must re-verify counts/claims immediately before writing them**, not only compute-then-write (my "27" was true when computed, false when written). *Fix:* a "re-read the number at write time" habit + `nix run .#preflight-tree-check` before doc-writing phases.
-3. **Advisory gates need an explicit "who runs me" line.** My tail-budget gate is advisory and unwired by design, which means nothing runs it in CI except its self-test. *Fix:* either wire the advisory check (exit 0) into the `checks` CI job so it *prints* each run, or accept that it is a local sweep tool and say so in the README.
+1. **Counts in living-doc headers drift every time the suite grows.** The stage count, coverage %, and "N/25" claims are hand-maintained and go stale on any concurrent change (this session proved it twice). _Fix:_ have `flake.nix` expose a `.#stage-counts`/`check-docs-counts` app that asserts header numbers against reality (the round-14 report already proposed a README-count fixture for the tail side — extend it to stages). Impact: kills the d4 class permanently.
+2. **Shared-tree sessions must re-verify counts/claims immediately before writing them**, not only compute-then-write (my "27" was true when computed, false when written). _Fix:_ a "re-read the number at write time" habit + `nix run .#preflight-tree-check` before doc-writing phases.
+3. **Advisory gates need an explicit "who runs me" line.** My tail-budget gate is advisory and unwired by design, which means nothing runs it in CI except its self-test. _Fix:_ either wire the advisory check (exit 0) into the `checks` CI job so it _prints_ each run, or accept that it is a local sweep tool and say so in the README.
 4. **`#test-all` (and the examples' race path) should be exercised at least once** so the capability is proven, not just declared.
 5. **`bump-dep --commit` deserves a real-world proof run** (one harmless sweep) before it is trusted in a train — I did not run one (correctly: no sweep was needed, and the runbook forbids chaining).
 
 ## f) Up to 50 things to get done next (impact-sorted; the top ~15 are this session's harvest)
 
 **P1 — unblocks value/honesty:**
-~~1. Rebuild the system `cqrs-lint` binary from the fixed `~/projects/go-cqrs-lite` source; verify `cqrs-lint --strict --verbose .` shows 0 C040. *(TODO P2; owner.)*~~ local half done 2026-10-01 evening; fleet swap owner-pending (D4)
-~~2. Quiet-window `nix run .#check-modules -- --report` (now 28 stages) + `#test` race suite + `#coverage-gate` — convert my "offline-green" into composite-green. *(this report §b1.)*~~ done 2026-10-01 ~15:50 (27/27 under load 80+ — the 15-55 report §a W10)
-~~3. Reconcile the check-modules stage count everywhere it is written (28), or replace the hand-count with a derived `check-docs-counts` gate. *(§e1.)*~~ superseded — 28 stages today; the mechanical check-docs-counts gate remains unbuilt (TODO)
-~~4. Run `nix run .#test-all` once (prove the 8 e2e/examples modules' race path). *(§b3.)*~~ done — 28/28 modules rc=0 (2026-10-01/02)
-~~5. Run the e2e Playwright suite in a quiet window (the snapshot-sentinel proof still owed from W0–W3). *(TODO P2 battery.)*~~ stale on arrival — the 70/70 run landed 2026-10-01 ~15:00 (see the 17-01 report §a T04)
-6. Re-run `bench-spike` after the 09-30/10-01 dep bumps (quiet window; OQ16). *(TODO P2 battery.)*
-~~7. **HARVEST this report's §f into TODO_LIST/ROADMAP** (docs-health HARVEST) — otherwise these die in a timestamped file. *(skill requirement.)*~~ done (round-15 HARVEST + the round-17 archive pass)
+~~1. Rebuild the system `cqrs-lint` binary from the fixed `~/projects/go-cqrs-lite` source; verify `cqrs-lint --strict --verbose .` shows 0 C040. _(TODO P2; owner.)_~~ local half done 2026-10-01 evening; fleet swap owner-pending (D4)
+~~2. Quiet-window `nix run .#check-modules -- --report` (now 28 stages) + `#test` race suite + `#coverage-gate` — convert my "offline-green" into composite-green. _(this report §b1.)_~~ done 2026-10-01 ~15:50 (27/27 under load 80+ — the 15-55 report §a W10)
+~~3. Reconcile the check-modules stage count everywhere it is written (28), or replace the hand-count with a derived `check-docs-counts` gate. _(§e1.)_~~ superseded — 28 stages today; the mechanical check-docs-counts gate remains unbuilt (TODO)
+~~4. Run `nix run .#test-all` once (prove the 8 e2e/examples modules' race path). _(§b3.)_~~ done — 28/28 modules rc=0 (2026-10-01/02)
+~~5. Run the e2e Playwright suite in a quiet window (the snapshot-sentinel proof still owed from W0–W3). _(TODO P2 battery.)_~~ stale on arrival — the 70/70 run landed 2026-10-01 ~15:00 (see the 17-01 report §a T04)
+6. Re-run `bench-spike` after the 09-30/10-01 dep bumps (quiet window; OQ16). _(TODO P2 battery.)_
+~~7. **HARVEST this report's §f into TODO_LIST/ROADMAP** (docs-health HARVEST) — otherwise these die in a timestamped file. _(skill requirement.)_~~ done (round-15 HARVEST + the round-17 archive pass)
 8. Owner: decide the feedback-inbox convention (epoch for the `> **PROCESSED**` marker + disposition of the stray root file) so the checker (item 12) can be built unambiguously.
-~~9. File the 5 fleet upstream asks (filing authorization needed). *(TODO P2.)*~~ done 2026-10-01 evening (3 filed / 2 retired)
-10. Bundle the erraudit remainder with the next train (published-module code). *(TODO P2.)*
-~~11. Wire `--fail-on-stale-suppressions` into the `check-cqrs-lint` flake app **after** T08 lands; add the stale-suppression fixture. *(T16.)*~~ done 2026-10-01 evening — wired EARLY (the flag predates the C040 fix; caught a real stale B024 at usermgmt/es_setup.go:221)
-12. Build `scripts/check-feedback-inbox.sh` (after item 8): `new/` empty at train time + `processed/` files carry an outcome marker (epoch-exempt for legacy). *(T18 half.)*
-~~13. Run an ARCHIVE pass on the `docs/status` tail (now 5, over budget 3) before the tail drifts further. *(§d3.)*~~ done — this pass (round 17, 2026-10-04): the full 13-report tail annotated + archived
-~~14. Add AGENTS/runbook notes for the new gates' *who-runs-me* status (advisory vs blocking). *(§e3.)*~~ done (docs/status/README.md documents the advisory tail-budget; the blocking gates are named in AGENTS quick-ref)
-15. Add a `check-docs-counts` app asserting `docs/status/README.md`'s stated counts (tail/archived/gated) against reality. *(round-14 f12.)*
+~~9. File the 5 fleet upstream asks (filing authorization needed). _(TODO P2.)_~~ done 2026-10-01 evening (3 filed / 2 retired)
+10. Bundle the erraudit remainder with the next train (published-module code). _(TODO P2.)_
+~~11. Wire `--fail-on-stale-suppressions` into the `check-cqrs-lint` flake app **after** T08 lands; add the stale-suppression fixture. _(T16.)_~~ done 2026-10-01 evening — wired EARLY (the flag predates the C040 fix; caught a real stale B024 at usermgmt/es_setup.go:221)
+12. Build `scripts/check-feedback-inbox.sh` (after item 8): `new/` empty at train time + `processed/` files carry an outcome marker (epoch-exempt for legacy). _(T18 half.)_
+~~13. Run an ARCHIVE pass on the `docs/status` tail (now 5, over budget 3) before the tail drifts further. _(§d3.)_~~ done — this pass (round 17, 2026-10-04): the full 13-report tail annotated + archived
+~~14. Add AGENTS/runbook notes for the new gates' _who-runs-me_ status (advisory vs blocking). _(§e3.)_~~ done (docs/status/README.md documents the advisory tail-budget; the blocking gates are named in AGENTS quick-ref)
+15. Add a `check-docs-counts` app asserting `docs/status/README.md`'s stated counts (tail/archived/gated) against reality. _(round-14 f12.)_
 
 **Tooling & gates (P2/P3):**
-16. Real-world proof of `bump-dep --commit` on one harmless sweep (rides the next train). *(§e5.)*
-17. `cqrs-lint rules` diff ritual → make it a script (`scripts/cqrs-lint-rules-diff.sh`) instead of prose. *(T16(c) follow-up.)*
+16. Real-world proof of `bump-dep --commit` on one harmless sweep (rides the next train). _(§e5.)_
+17. `cqrs-lint rules` diff ritual → make it a script (`scripts/cqrs-lint-rules-diff.sh`) instead of prose. _(T16(c) follow-up.)_
 18. Coverage-stamp convention rule (round-14 f14): a docs-freshness greppable rule that forbids a percentage adjacent to a re-run date without a measured date.
 19. Owner-decisions index (round-14 f11): a standing TODO/ROADMAP table HARVEST feeds (the gate-policy, rawIDToken, archive-bar questions are its founding entries).
-20. Raise dependabot coverage ONLY if a real third-party-drift incident appears (currently superseded — keep as a documented decision, not a task). *(T15(e).)*
+20. Raise dependabot coverage ONLY if a real third-party-drift incident appears (currently superseded — keep as a documented decision, not a task). _(T15(e).)_
 21. Audit the remaining `docs/feedback/` root-file convention (why `sec-consumer-feedback.md` is not in `new/`).
-22. `check-css-bundle-classes.sh` on the concurrent session's screenshot/style changes (they touched dashboard assets). *(shared-tree hygiene.)*
-23. Confirm the concurrent session's `flake.lock` `systems`-input removal still leaves `nix flake check` green on all systems. *(shared-tree hygiene.)*
+22. `check-css-bundle-classes.sh` on the concurrent session's screenshot/style changes (they touched dashboard assets). _(shared-tree hygiene.)_
+23. Confirm the concurrent session's `flake.lock` `systems`-input removal still leaves `nix flake check` green on all systems. _(shared-tree hygiene.)_
 24. Wire `#test-all` into a scheduled (not per-push) CI job so the examples' race path runs without blocking.
 25. Add a fixture for `normalize-status-rows.py` covering a table with a `|` inside a code span (current fixture avoids it).
 
 **Docs & memory (P3):**
-26. T19(a) agents-notes narratives (cqrs-lint three-pass arc; three-tools-vs-nixpkgs-Go). *(TODO P3.)*
+26. T19(a) agents-notes narratives (cqrs-lint three-pass arc; three-tools-vs-nixpkgs-Go). _(TODO P3.)_
 27. De-duplicate the "atomic-gate checklist" prose now that it appears in AGENTS gotcha 19, the round-13 report, and CHANGELOG — one canonical location + links.
 28. Record the "shared-tree concurrent session" mechanics (my session's reality) as an agents-notes narrative.
 
@@ -138,7 +138,7 @@ The repo-local tail of the round-13 plan is largely **shipped with fixture cover
 
 ## g) Questions I can NOT figure out myself (max 3)
 
-~~1. **Concurrent-session authority over "my" numbers and files.** A concurrent session edited the same tree for the whole session (it did T06 erraudit, T22(i), added an `erraudit-inventory` gate/plan/reports, and struck (i) inside *my* TODO line). When our claims collide (e.g., the stage count, or whether T22(i) is "mine to close"), **whose framing wins?** I default to "merge on evidence, never revert theirs", but I need to know if you want the two sessions' reports reconciled now, or left as independent snapshots.~~ routed — ROADMAP OQ18 (push/sync policy under concurrent sessions) already carries the owner question
+~~1. **Concurrent-session authority over "my" numbers and files.** A concurrent session edited the same tree for the whole session (it did T06 erraudit, T22(i), added an `erraudit-inventory` gate/plan/reports, and struck (i) inside _my_ TODO line). When our claims collide (e.g., the stage count, or whether T22(i) is "mine to close"), **whose framing wins?** I default to "merge on evidence, never revert theirs", but I need to know if you want the two sessions' reports reconciled now, or left as independent snapshots.~~ routed — ROADMAP OQ18 (push/sync policy under concurrent sessions) already carries the owner question
 ~~2. **The feedback-inbox convention (blocking T18's second half).** Do you want (a) an epoch-exempt checker that accepts any top-of-file resolution marker (`PROCESSED`/`RESOLVED`/`ANNOTATED`) and permits the 7 legacy files, **plus** a one-time `git mv` of `docs/feedback/sec-consumer-feedback.md` into `new/` (making `new/` non-empty until processed), or (b) a stricter rule that first normalizes all legacy markers — and if (b), may I write dispositions for those 7 old files without your per-item review?~~ routed — TODO D7 (epoch 2026-08-01 + SEC move ratified in the packet; checker builds after the tick)
 ~~3. **Heavy-gate policy under sustained fleet load.** Load sat at 20–51 for the entire session, so I refused every heavy gate (per the runbook's "load > 20 = noise" rule). If you want composite proof on my config/docs/script-only change despite the load, say so and I'll run it and annotate load-suspect results — otherwise I'll continue defaulting to "offline-green only, composite owed at the next quiet window". Which do you prefer?~~ resolved in practice + recorded as the round-15 e2 recommendation (correctness gates load-insensitive, measurement gates not); the runbook line is still owed (TODO)
 

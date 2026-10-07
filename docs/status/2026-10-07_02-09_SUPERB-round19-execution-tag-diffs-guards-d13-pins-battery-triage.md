@@ -13,12 +13,12 @@ Executed the round-19 plan's unowned lanes: **M5** (the gotcha-24 tag-diff debt 
 
 All four diffs audited from tag-range clones in /tmp (evidence-grade, not changelog-level):
 
-| Bump | Verdict |
-|---|---|
-| go-codec v0.3.0→v0.3.1 | **0 Go source files changed** — docs/flake/go.mod housekeeping only (`go 1.27` directive, error-family v0.11.0, gomega v1.44.0). The gotcha-24 encoding mechanism did NOT occur. |
-| go-webauthn v0.18.1→v0.18.2 | Semantic but **default-safe**: new `validateSessionChallenge` backstop (rejects short/invalid stored challenges — ours are library-generated 64-byte raw-base64url; only an error-path constructs `SessionData{}`), opt-in `WithLoginAuthorizeUVInitialization`, UV-flag advance now RP-authorized with the default path byte-identical to v0.18.1, ML-DSA additive. No API breaks (compile+tests green). |
-| templ-components v1.19.4→v1.20.1 | v1.20.1 = 1-line version heal. v1.20.0 added utils/wire (+628 new pkg), button/input token changes, ARIA feedback roles, PolledRegion `Now`, and the `Pad`→`NoPad` API swap (no cqrs-htmx consumer used `Pad`). Class tokens captured by the CSS class-set gate. |
-| go-flightrecorder v0.2.0→v0.2.1 | Internal-only: `captureOnce` dedup + `atomic.Pointer[sync.Once]` (Reset re-arm under in-flight async capture). No exported changes. |
+| Bump                             | Verdict                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| go-codec v0.3.0→v0.3.1           | **0 Go source files changed** — docs/flake/go.mod housekeeping only (`go 1.27` directive, error-family v0.11.0, gomega v1.44.0). The gotcha-24 encoding mechanism did NOT occur.                                                                                                                                                                                                                          |
+| go-webauthn v0.18.1→v0.18.2      | Semantic but **default-safe**: new `validateSessionChallenge` backstop (rejects short/invalid stored challenges — ours are library-generated 64-byte raw-base64url; only an error-path constructs `SessionData{}`), opt-in `WithLoginAuthorizeUVInitialization`, UV-flag advance now RP-authorized with the default path byte-identical to v0.18.1, ML-DSA additive. No API breaks (compile+tests green). |
+| templ-components v1.19.4→v1.20.1 | v1.20.1 = 1-line version heal. v1.20.0 added utils/wire (+628 new pkg), button/input token changes, ARIA feedback roles, PolledRegion `Now`, and the `Pad`→`NoPad` API swap (no cqrs-htmx consumer used `Pad`). Class tokens captured by the CSS class-set gate.                                                                                                                                          |
+| go-flightrecorder v0.2.0→v0.2.1  | Internal-only: `captureOnce` dedup + `atomic.Pointer[sync.Once]` (Reset re-arm under in-flight async capture). No exported changes.                                                                                                                                                                                                                                                                       |
 
 **No upstream filings** — zero surprises of the gotcha-24 class. TODO row struck with the full verdicts.
 
@@ -52,13 +52,13 @@ All four diffs audited from tag-range clones in /tmp (evidence-grade, not change
 
 ### M2 — post-wave battery (blocked by foreign mid-rename, not by my lanes)
 
-| Leg | State |
-|---|---|
-| erraudit-inventory --gate | **GREEN: TOTAL=0** over all 28 modules |
-| test-all | rc=1 at **adminui**: `undefined: cqrshtmx.ServeAsset` — the concurrent session's root asset API is mid-rename (`asset_serve.go` currently holds a garbage `func n(...)`) and adminui/dashboardui consumers still call the old name. Root module tests: green. Their own 01:08 report documents this exact daemon-captured-intermediate class. |
-| check-cqrs-lint | rc=1: findings in **dashboardui + systemadapter** — their in-flight files (new code awaiting suppressions/finish). All other 13 gate modules green. |
-| coverage-gate | rc=1 as a cascade of the adminui/dashboardui build breakage; every PRINTED threshold passed (root 94.8/90, identity-model 77.1/70, usermgmt 85.3/74, totp 88.2/80, webauthn 89.2/80, oauth2 89.2/80). No re-pin warranted on this evidence. |
-| parity battery | stage 1 green (see M19); stages 2+ interrupted by an edit-while-running self-inflicted syntax error, re-queued. |
+| Leg                       | State                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| erraudit-inventory --gate | **GREEN: TOTAL=0** over all 28 modules                                                                                                                                                                                                                                                                                                        |
+| test-all                  | rc=1 at **adminui**: `undefined: cqrshtmx.ServeAsset` — the concurrent session's root asset API is mid-rename (`asset_serve.go` currently holds a garbage `func n(...)`) and adminui/dashboardui consumers still call the old name. Root module tests: green. Their own 01:08 report documents this exact daemon-captured-intermediate class. |
+| check-cqrs-lint           | rc=1: findings in **dashboardui + systemadapter** — their in-flight files (new code awaiting suppressions/finish). All other 13 gate modules green.                                                                                                                                                                                           |
+| coverage-gate             | rc=1 as a cascade of the adminui/dashboardui build breakage; every PRINTED threshold passed (root 94.8/90, identity-model 77.1/70, usermgmt 85.3/74, totp 88.2/80, webauthn 89.2/80, oauth2 89.2/80). No re-pin warranted on this evidence.                                                                                                   |
+| parity battery            | stage 1 green (see M19); stages 2+ interrupted by an edit-while-running self-inflicted syntax error, re-queued.                                                                                                                                                                                                                               |
 
 **Owed:** full battery re-run at a quiet tree (the foreign session's rename lands).
 

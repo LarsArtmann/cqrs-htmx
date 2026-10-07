@@ -9,31 +9,31 @@ Cross-module study of three codebases — **note the scope split: 139 of the 308
 
 **308 ideas, globally numbered** so they are referenceable (`idea 217`). Evidence cites `file:line` where the finding is location-specific. Prior art consulted: `2026-09-17_templ-components-dashboardui-deep-dive.html` (UI only), `storage-first-principles-analysis.md`, ADR-0149 (durable checkpoints shipped upstream). Not duplicated: dashboardui `IMPROVEMENT_IDEAS.md`/`ROADMAP.md` open items (noted as stale where CHANGELOG contradicts them).
 
-| Part | Scope | Ideas |
-|------|-------|-------|
-| A | dashboardui — security, perf, pagination, features, a11y/i18n, SSE, testing, theming | 1–82 |
-| B | metaengine — API, planner/cost model, engine duplication, correctness, vector/temporal/graph/SSE | 83–175 |
-| C | system — config, validation, defaults, lifecycle, health, bus/cache/snapshots, observability | 176–262 |
-| D | Integration seams — telemetry panels, systemadapter, missing bridges, docs drift | 263–308 |
-| — | Priority shortlist (Top 30, impact × urgency, effort-sized) | end |
+| Part | Scope                                                                                            | Ideas   |
+| ---- | ------------------------------------------------------------------------------------------------ | ------- |
+| A    | dashboardui — security, perf, pagination, features, a11y/i18n, SSE, testing, theming             | 1–82    |
+| B    | metaengine — API, planner/cost model, engine duplication, correctness, vector/temporal/graph/SSE | 83–175  |
+| C    | system — config, validation, defaults, lifecycle, health, bus/cache/snapshots, observability     | 176–262 |
+| D    | Integration seams — telemetry panels, systemadapter, missing bridges, docs drift                 | 263–308 |
+| —    | Priority shortlist (Top 30, impact × urgency, effort-sized)                                      | end     |
 
 ## Verification status
 
 Findings were produced by four parallel deep-dive sub-agents; the headline claims were then spot-verified directly against source (2026-10-06) — all passed:
 
-| Idea | Claim | Verified at |
-|------|-------|-------------|
-| 1 | SSE rows built via `innerHTML` without escaping | `dashboardui/layout.go:379-381` |
-| 2 | Accent injected via `templ.Raw("<style>…")` with only HTML-escaping | `dashboardui/layout.templ:76-78` |
-| 6 | Hardcoded ETag `dashboardui-v4.9.0` (module is v4.13.x) | `dashboardui/assets.go:43` |
-| 9 | Active sort resets cursor, loads `filterScanLimit` (500) | `dashboardui/handlers_events.go:48-51` |
-| 114 | Vector ops delegate straight to the index, bypassing `m.mu` | `metaengine/memory_engine.go:248-256` |
-| 123 | `WithFilter` appends `FilterSpec` without validating `op` | `metaengine/scan_options.go:31-35` |
-| 175 | `Doctor(ctx) string` is text-only | `metaengine/explain.go:255` |
-| 187 | Error returns after the engine-creation loop never close engines | `system/constructor.go:128-136` (1 of 12+ paths) |
-| 210 | `stopTimers` has exactly one call site (GracefulClose), none in `Close` | `system/timers.go:77-78`, `system/system.go:310` |
-| 230 | Fan-out built only when `len(inst.Publish) > 1` | `system/bus.go:69` |
-| 288 | systemadapter compiles against deprecated `usermgmt.*` re-exports | live gopls: 65 deprecation hints in `domain_config.go`/`projections.go` |
+| Idea | Claim                                                                   | Verified at                                                             |
+| ---- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 1    | SSE rows built via `innerHTML` without escaping                         | `dashboardui/layout.go:379-381`                                         |
+| 2    | Accent injected via `templ.Raw("<style>…")` with only HTML-escaping     | `dashboardui/layout.templ:76-78`                                        |
+| 6    | Hardcoded ETag `dashboardui-v4.9.0` (module is v4.13.x)                 | `dashboardui/assets.go:43`                                              |
+| 9    | Active sort resets cursor, loads `filterScanLimit` (500)                | `dashboardui/handlers_events.go:48-51`                                  |
+| 114  | Vector ops delegate straight to the index, bypassing `m.mu`             | `metaengine/memory_engine.go:248-256`                                   |
+| 123  | `WithFilter` appends `FilterSpec` without validating `op`               | `metaengine/scan_options.go:31-35`                                      |
+| 175  | `Doctor(ctx) string` is text-only                                       | `metaengine/explain.go:255`                                             |
+| 187  | Error returns after the engine-creation loop never close engines        | `system/constructor.go:128-136` (1 of 12+ paths)                        |
+| 210  | `stopTimers` has exactly one call site (GracefulClose), none in `Close` | `system/timers.go:77-78`, `system/system.go:310`                        |
+| 230  | Fan-out built only when `len(inst.Publish) > 1`                         | `system/bus.go:69`                                                      |
+| 288  | systemadapter compiles against deprecated `usermgmt.*` re-exports       | live gopls: 65 deprecation hints in `domain_config.go`/`projections.go` |
 
 Everything else is agent-sourced: re-verify at the cited `file:line` before acting on it, and treat unverified line numbers as approximate.
 
@@ -493,40 +493,40 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 
 Effort: **S** ≈ hours (same-day), **M** ≈ one to two days, **L** ≈ multi-day or needs design/ADR. The S rows form a same-day quick-win batch.
 
-| # | Idea | Effort | Why first |
-|---|------|--------|-----------|
-| 1 | **1** XSS in SSE row injection | S | Exploitable, trivial fix |
-| 2 | **123/124** metaengine FilterOp/jsonPath SQL-injection surface | S | Unvalidated enum → SQL interpolation |
-| 3 | **114** Memory-engine data race (vector/spatial bypass mutex) | M | Correctness + race detector |
-| 4 | **2** AccentColor CSS injection | S | Trivial validation fix |
-| 5 | **24** Unescaped query params in pagination links | M | Correctness bug, corrupts navigation |
-| 6 | **9** Sorting silently kills pagination | M | Core UX of the events panel |
-| 7 | **17/18** Infra errors rendered as 404/empty tables | M | Ops trust: failure looks like absence |
-| 8 | **187** `system.New` leaks engines on error paths | M | Resource leak on every failed boot |
-| 9 | **210** `Close()` never stops timers | S | Leak + doc lie |
-| 10 | **230** Single `publish: [x]` silently ignored | S | Most common bus config is the broken one |
-| 11 | **197/179** Silent memory fallback on typo'd role | S | Volatile store by accident |
-| 12 | **115** Keyset pagination drops tie rows | M | Silent data loss in scans |
-| 13 | **146** No VectorDelete anywhere | L | Stale embeddings forever |
-| 14 | **263–273** dashboard↔metaengine telemetry panels | L | The dashboard misses its own domain's richest data |
-| 15 | **303–305** Stale/deprecated guide content | S | Consumers following docs into deprecated paths |
-| 16 | **294** `dashboardui.FromSystem` bridge | M | Kills the consumer assertion dance permanently |
-| 17 | **102/103/105** Cross-engine twin extraction + debt lint | L | 3–5k lines of institutionalized copy-paste |
-| 18 | **281/301** systemadapter wires checkpoints/DLQ | M | ADR-0149 shipped; adapter ignores it |
-| 19 | **233** Cache invalidate-after-write race | S | Serves stale-forever snapshots |
-| 20 | **6** Content-hash ETags for embedded assets | S | Recurring stale-asset incident class |
-| 21 | **4** CSV formula injection | S | One-line neutralization |
-| 22 | **251** `reifyTo` panic on poison event | M | Panics a worker mid-replay |
-| 23 | **222** Liveness/readiness split | M | Bad pod restarts during rebuild |
-| 24 | **135** `metaengine-calibrate` CLI | L | Unblocks honest cost model everywhere |
-| 25 | **156** SSE unbounded replay default | S | Dangerous default inverted |
-| 26 | **295** Watcher→broadcaster bridge | M | Live read-model panels become possible |
-| 27 | **68, 26** Generic journalIndex + reusable sort spec | M | Deletes duplication + unlocks features |
-| 28 | **113** ANN vector path | L | Vector search is brute-force everywhere |
-| 29 | **298** Aggregate healthz composition | M | One endpoint telling the truth |
-| 30 | **41/42** Config.Validate + variadic Autodetect | M | Consumer DX at the two hottest seams |
+| #  | Idea                                                           | Effort | Why first                                          |
+| -- | -------------------------------------------------------------- | ------ | -------------------------------------------------- |
+| 1  | **1** XSS in SSE row injection                                 | S      | Exploitable, trivial fix                           |
+| 2  | **123/124** metaengine FilterOp/jsonPath SQL-injection surface | S      | Unvalidated enum → SQL interpolation               |
+| 3  | **114** Memory-engine data race (vector/spatial bypass mutex)  | M      | Correctness + race detector                        |
+| 4  | **2** AccentColor CSS injection                                | S      | Trivial validation fix                             |
+| 5  | **24** Unescaped query params in pagination links              | M      | Correctness bug, corrupts navigation               |
+| 6  | **9** Sorting silently kills pagination                        | M      | Core UX of the events panel                        |
+| 7  | **17/18** Infra errors rendered as 404/empty tables            | M      | Ops trust: failure looks like absence              |
+| 8  | **187** `system.New` leaks engines on error paths              | M      | Resource leak on every failed boot                 |
+| 9  | **210** `Close()` never stops timers                           | S      | Leak + doc lie                                     |
+| 10 | **230** Single `publish: [x]` silently ignored                 | S      | Most common bus config is the broken one           |
+| 11 | **197/179** Silent memory fallback on typo'd role              | S      | Volatile store by accident                         |
+| 12 | **115** Keyset pagination drops tie rows                       | M      | Silent data loss in scans                          |
+| 13 | **146** No VectorDelete anywhere                               | L      | Stale embeddings forever                           |
+| 14 | **263–273** dashboard↔metaengine telemetry panels              | L      | The dashboard misses its own domain's richest data |
+| 15 | **303–305** Stale/deprecated guide content                     | S      | Consumers following docs into deprecated paths     |
+| 16 | **294** `dashboardui.FromSystem` bridge                        | M      | Kills the consumer assertion dance permanently     |
+| 17 | **102/103/105** Cross-engine twin extraction + debt lint       | L      | 3–5k lines of institutionalized copy-paste         |
+| 18 | **281/301** systemadapter wires checkpoints/DLQ                | M      | ADR-0149 shipped; adapter ignores it               |
+| 19 | **233** Cache invalidate-after-write race                      | S      | Serves stale-forever snapshots                     |
+| 20 | **6** Content-hash ETags for embedded assets                   | S      | Recurring stale-asset incident class               |
+| 21 | **4** CSV formula injection                                    | S      | One-line neutralization                            |
+| 22 | **251** `reifyTo` panic on poison event                        | M      | Panics a worker mid-replay                         |
+| 23 | **222** Liveness/readiness split                               | M      | Bad pod restarts during rebuild                    |
+| 24 | **135** `metaengine-calibrate` CLI                             | L      | Unblocks honest cost model everywhere              |
+| 25 | **156** SSE unbounded replay default                           | S      | Dangerous default inverted                         |
+| 26 | **295** Watcher→broadcaster bridge                             | M      | Live read-model panels become possible             |
+| 27 | **68, 26** Generic journalIndex + reusable sort spec           | M      | Deletes duplication + unlocks features             |
+| 28 | **113** ANN vector path                                        | L      | Vector search is brute-force everywhere            |
+| 29 | **298** Aggregate healthz composition                          | M      | One endpoint telling the truth                     |
+| 30 | **41/42** Config.Validate + variadic Autodetect                | M      | Consumer DX at the two hottest seams               |
 
-*(Full list above: 308 ideas. Counts by module: dashboardui 82, metaengine 93, system 87, integration 46.)*
+_(Full list above: 308 ideas. Counts by module: dashboardui 82, metaengine 93, system 87, integration 46.)_
 
 ---
 
@@ -534,12 +534,12 @@ Effort: **S** ≈ hours (same-day), **M** ≈ one to two days, **L** ≈ multi-d
 
 Recorded 2026-10-06 so the judgment travels with the document, not just the chat it was voiced in. The "100 to 1000" framing manufactured volume; the honest distribution:
 
-| Tier | Share | Representative ideas |
-|------|-------|----------------------|
-| **Load-bearing — act on these** | ~60 (20%) | 1, 2, 114, 115, 123/124, 187, 197, 210, 230, 233, 251, 263–273, 294, 303–305 |
-| **Solid hygiene — do opportunistically** | ~200 (65%) | testing matrices (59–64, 136–140), docs fixes (141–145, 245–248), twin extraction (102–107), DX error messages (191–196) |
-| **Debatable — needs a product decision first** | ~30 (10%) | 37, 47, 71, 81, 82 |
-| **Veto — strategy questions disguised as ideas** | ~15 (5%) | 171 and parts of the 167–175 "serious planner gaps" range |
+| Tier                                             | Share      | Representative ideas                                                                                                     |
+| ------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Load-bearing — act on these**                  | ~60 (20%)  | 1, 2, 114, 115, 123/124, 187, 197, 210, 230, 233, 251, 263–273, 294, 303–305                                             |
+| **Solid hygiene — do opportunistically**         | ~200 (65%) | testing matrices (59–64, 136–140), docs fixes (141–145, 245–248), twin extraction (102–107), DX error messages (191–196) |
+| **Debatable — needs a product decision first**   | ~30 (10%)  | 37, 47, 71, 81, 82                                                                                                       |
+| **Veto — strategy questions disguised as ideas** | ~15 (5%)   | 171 and parts of the 167–175 "serious planner gaps" range                                                                |
 
 ### Ideas to push back on (veto or demote)
 
@@ -553,4 +553,4 @@ Recorded 2026-10-06 so the judgment travels with the document, not just the chat
 
 1 (SSE XSS), 123/124 (injection surface), 2 (accent CSS), 114 (memory-engine race), 230 (single publish target), 210 (timers on Close), 187 (engine leak), 251 (reifyTo panic), 303–305 (docs telling the truth), 294 (`FromSystem` bridge). Everything else survives a release cycle of waiting.
 
-*Append-only addition per the research-dir convention — no findings above were altered.*
+_Append-only addition per the research-dir convention — no findings above were altered._

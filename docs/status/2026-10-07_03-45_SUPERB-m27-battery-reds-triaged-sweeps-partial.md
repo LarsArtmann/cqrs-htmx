@@ -161,33 +161,33 @@ series convention are markdown; flagged per skill).
 
 ## f) Top next tasks
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Re-run sweep 1+2 with FULL logs (`tee`), identify the failing module | Critical | S | Bug |
-| 2 | Commit/resolve dirty dashboardui `go.mod`+`go.sum` | Critical | S | Cleanup |
-| 3 | Run remaining 4 alignment sweeps (decider, projectionadapter, metaengine, watermill) with proper rc capture | Critical | M | Quality |
-| 4 | `check-release-train --refresh-cache --strict-lag 0` → lag 0 | Critical | S | Quality |
-| 5 | Re-run `check-modules --report`; expected residual red: module-isolation (foreign) only | Critical | M | Quality |
-| 6 | `nix run .#test` full workspace battery | Critical | L | Quality |
-| 7 | `nix run .#lint` | High | M | Quality |
-| 8 | `nix run .#coverage-gate` (+ threshold bumps in flake.nix if new files lowered ratios) | High | M | Quality |
-| 9 | `nix run .#check-templates` + `.#check-codegen` | High | S | Quality |
-| 10 | `.#check-cqrs-lint` (dashboardui — new systembridge package) | High | S | Quality |
-| 11 | `.#erraudit-inventory --gate` over new code (systembridge/telemetry, routes) | High | S | Quality |
-| 12 | Root CHANGELOG receipt: consumable-gate sweep mode (CI-behavior gate change) | Medium | S | Documentation |
-| 13 | TODO_LIST HARVEST (this §f + the 02:57 report's 35) | Medium | M | Documentation |
-| 14 | AGENTS.md memory notes: systembridge rationale, integration_test replace, sweep/tail lessons, vcs junk class | Medium | S | Documentation |
-| 15 | Annotate research ideas 42/38/281/301/293/294/308/274/275/263/265/75–78 as consumed | Medium | S | Documentation |
-| 16 | Annotate the 02:57 report §g with the applied defaults | Low | S | Documentation |
-| 17 | **Owner:** open/keep HOLD on push+train window (CH ~70+ commits, GCL ~40+ unpushed) | Critical | S | Decision |
-| 18 | **Owner/train:** root tags FIRST now (foreign assets APIs) → dashboardui → systemadapter → integration_test re-pin + replace removal | High | M | Release |
-| 19 | GCL: fix 11 lint findings (gci ×10, gocognit ×1) before any GCL train (foreign sessions own) | High | S | Quality |
-| 20 | Investigate `httputil/server_timing@v1.0.1` proxy checksum anomaly in BuildFlow's env (poisoned proxy vs env cache) | Medium | M | Bug |
-| 21 | Foreign dashboardui lint debt: handlers_events cyclop refactor, accent_color mnd/global | Medium | S | Quality |
-| 22 | vcs-cache gate: junk-vs-corruption classification | Low | S | Quality |
-| 23 | branching-flow ratchet-down: dedupe examples/basic `item` (removes 1 baseline finding) | Low | S | Cleanup |
-| 24 | Post-train verification: adminui/dashboardui/integration_test hermetic green after root tag | High | S | Release |
-| 25 | bench-spike: N/A this cycle (no bench paths touched) — skip unless contested | Low | — | — |
+| #  | Task                                                                                                                                 | Impact   | Effort | Category      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------------- |
+| 1  | Re-run sweep 1+2 with FULL logs (`tee`), identify the failing module                                                                 | Critical | S      | Bug           |
+| 2  | Commit/resolve dirty dashboardui `go.mod`+`go.sum`                                                                                   | Critical | S      | Cleanup       |
+| 3  | Run remaining 4 alignment sweeps (decider, projectionadapter, metaengine, watermill) with proper rc capture                          | Critical | M      | Quality       |
+| 4  | `check-release-train --refresh-cache --strict-lag 0` → lag 0                                                                         | Critical | S      | Quality       |
+| 5  | Re-run `check-modules --report`; expected residual red: module-isolation (foreign) only                                              | Critical | M      | Quality       |
+| 6  | `nix run .#test` full workspace battery                                                                                              | Critical | L      | Quality       |
+| 7  | `nix run .#lint`                                                                                                                     | High     | M      | Quality       |
+| 8  | `nix run .#coverage-gate` (+ threshold bumps in flake.nix if new files lowered ratios)                                               | High     | M      | Quality       |
+| 9  | `nix run .#check-templates` + `.#check-codegen`                                                                                      | High     | S      | Quality       |
+| 10 | `.#check-cqrs-lint` (dashboardui — new systembridge package)                                                                         | High     | S      | Quality       |
+| 11 | `.#erraudit-inventory --gate` over new code (systembridge/telemetry, routes)                                                         | High     | S      | Quality       |
+| 12 | Root CHANGELOG receipt: consumable-gate sweep mode (CI-behavior gate change)                                                         | Medium   | S      | Documentation |
+| 13 | TODO_LIST HARVEST (this §f + the 02:57 report's 35)                                                                                  | Medium   | M      | Documentation |
+| 14 | AGENTS.md memory notes: systembridge rationale, integration_test replace, sweep/tail lessons, vcs junk class                         | Medium   | S      | Documentation |
+| 15 | Annotate research ideas 42/38/281/301/293/294/308/274/275/263/265/75–78 as consumed                                                  | Medium   | S      | Documentation |
+| 16 | Annotate the 02:57 report §g with the applied defaults                                                                               | Low      | S      | Documentation |
+| 17 | **Owner:** open/keep HOLD on push+train window (CH ~70+ commits, GCL ~40+ unpushed)                                                  | Critical | S      | Decision      |
+| 18 | **Owner/train:** root tags FIRST now (foreign assets APIs) → dashboardui → systemadapter → integration_test re-pin + replace removal | High     | M      | Release       |
+| 19 | GCL: fix 11 lint findings (gci ×10, gocognit ×1) before any GCL train (foreign sessions own)                                         | High     | S      | Quality       |
+| 20 | Investigate `httputil/server_timing@v1.0.1` proxy checksum anomaly in BuildFlow's env (poisoned proxy vs env cache)                  | Medium   | M      | Bug           |
+| 21 | Foreign dashboardui lint debt: handlers_events cyclop refactor, accent_color mnd/global                                              | Medium   | S      | Quality       |
+| 22 | vcs-cache gate: junk-vs-corruption classification                                                                                    | Low      | S      | Quality       |
+| 23 | branching-flow ratchet-down: dedupe examples/basic `item` (removes 1 baseline finding)                                               | Low      | S      | Cleanup       |
+| 24 | Post-train verification: adminui/dashboardui/integration_test hermetic green after root tag                                          | High     | S      | Release       |
+| 25 | bench-spike: N/A this cycle (no bench paths touched) — skip unless contested                                                         | Low      | —      | —             |
 
 ## g) Top question
 
@@ -208,7 +208,7 @@ finish the battery + bookkeeping and stop there.
 
 ---
 
-*Point-in-time snapshot. Annotations per `docs/status/README.md` conventions
+_Point-in-time snapshot. Annotations per `docs/status/README.md` conventions
 (`> ANNOTATED YYYY-MM-DD` blockquote; PARTIAL rows may normalize via
 `.#normalize-status-rows`). HARVEST of §f into TODO_LIST/ROADMAP pending
-instruction.*
+instruction._

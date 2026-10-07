@@ -66,7 +66,7 @@ user, because nothing ever parses the session cookie on that path.
 So the credential-management UI a consumer ships (or the bundle's admin panel, if it
 links there) is dead-on-arrival unless the host independently knows to wrap
 `/auth/credentials*` in session middleware. Our `CredentialsGate` covers this prefix
-too — half of its reason for existing is making these routes *work*, not just closing
+too — half of its reason for existing is making these routes _work_, not just closing
 the item-1 hole. The bundle already owns the service and cookie name; applying
 `SessionMiddleware` to its own credential routes at mount time (or documenting the
 requirement loudly in `RegisterRoutes`' doc comment) would remove the trap.
@@ -122,13 +122,13 @@ For completeness, the responsibilities that are host-shaped and should stay:
 
 ## Summary table
 
-| # | Item | Layer it belongs in | Severity |
-|---|------|---------------------|----------|
-| 1 | Session-bind WebAuthn register ceremonies (arbitrary `user_id` from body/query) | usermgmt handlers / setup mount | Security |
-| 2 | Apply SessionMiddleware to `/auth/credentials*` at mount | usermgmt `RegisterRoutes` | UX trap (dead routes) |
-| 3 | `RequireSessionRedirect` helper | setup Bundle | Boilerplate |
-| 4 | `DisplayName` resolver with explicit id-shape contract | usermgmt service/read model | Boilerplate + correctness |
-| 5 | Rate-limit key = IP, not RemoteAddr:port | httputil/usermgmt | Latent weakness |
+| # | Item                                                                            | Layer it belongs in             | Severity                  |
+| - | ------------------------------------------------------------------------------- | ------------------------------- | ------------------------- |
+| 1 | Session-bind WebAuthn register ceremonies (arbitrary `user_id` from body/query) | usermgmt handlers / setup mount | Security                  |
+| 2 | Apply SessionMiddleware to `/auth/credentials*` at mount                        | usermgmt `RegisterRoutes`       | UX trap (dead routes)     |
+| 3 | `RequireSessionRedirect` helper                                                 | setup Bundle                    | Boilerplate               |
+| 4 | `DisplayName` resolver with explicit id-shape contract                          | usermgmt service/read model     | Boilerplate + correctness |
+| 5 | Rate-limit key = IP, not RemoteAddr:port                                        | httputil/usermgmt               | Latent weakness           |
 
 Items 1 and 2 would let the CRM's `CredentialsGate` shrink to nothing — that is the
 acceptance test from our side: "delete the gate on the next bump and nothing reddens."

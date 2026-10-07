@@ -76,16 +76,17 @@ The docs surface went from "22 unarchived reports, 4-day-stale TODO header, 4 mi
 ## f) Up to 50 things to get done next (session-derived; impact-sorted; most already tracked in TODO_LIST — listed here as the harvest receipt)
 
 **Release / P1:**
+
 1. ~~Cut the family train, wave-ordered: usermgmt re-tag (codec migration — PapDashboard's adoption prerequisite; setup v4.13.x already live), then root + consumers for the Unreleased set.~~ done (W0–W3 §a: 9 tags — usermgmt v4.13.0/v4.13.1, root v4.13.0, setup v4.13.2, five consumer rides v4.12.1)
 2. ~~Post-re-tag absence sweep: `rg 'codec/v4' -g go.mod` expecting zero.~~ done (W1 consumer sweeps: all codec/v4 indirects dropped, absence sweep zero)
 3. ~~Push the backlog + watch CI to green on the new ranges.~~ done (CI fully green — run 36839790817, first green master after the lint-drift rounds `b66b26f0`/`a56241bf` fixed)
-**erraudit program (P2):**
+   **erraudit program (P2):**
 4. ~~Fix the trivial pair first: `examples/samber-do-demo/container.go:61` panic; `e2e/playwright.config.ts:20` bug-marker comment.~~ done at `3d9ce553` (T05; scoped erraudit re-runs 1→0 both)
 5. Verify the `//nolint:<analyzer>` name erraudit honors; document in AGENTS once known.
 6. The 55-site `context_loss` program, per-finding (go-error-modernization flow); bundle with the P1 train.
 7. Decide §g1 of the 10-01 report: gate stays honestly red vs temporary documented demotion while the program runs.
 8. Decide the intended error-context policy for read-model decode errors (§g2) — fixes the program's shape (fix sweep vs suppression sweep).
-**Gates/tooling (P2):**
+   **Gates/tooling (P2):**
 9. ~~`check-workspace-build` gate (plain workspace `go build ./...`) — full atomic checklist.~~ done at `c85d802f`/`eed53317` (T07)
 10. ~~`nix run .#test` post go.work/dep changes (quiet window).~~ done (T03: rc=0 ×28 modules, load 5.9)
 11. ~~`nix run .#coverage-gate` post the 09-30 sweeps + 10-01 changes.~~ done (T03: 15/15 PASSED post-train)
@@ -110,7 +111,7 @@ The docs surface went from "22 unarchived reports, 4-day-stale TODO header, 4 mi
 30. Scoped-format flake app (`.#fmt <paths>`).
 31. e2e pin: ExtraMiddleware composes under RunWithAppkit.
 32. Per-module race tests for the 8 e2e/examples modules (or a `#test-all` app; ROADMAP decision).
-**Cross-repo / docs (P3):**
+    **Cross-repo / docs (P3):**
 33. go-cqrs-lite: CHANGELOG/AGENTS/TODO entries for the linter fix (owner-gated).
 34. go-cqrs-lite: `cmd/cqrs-lint` vet + golangci-lint + `-race`.
 35. go-cqrs-lite: RULES.md C040 metadata-coverage touch.
@@ -121,7 +122,7 @@ The docs surface went from "22 unarchived reports, 4-day-stale TODO header, 4 mi
 40. ~~Triage the six 2026-08-30 planning .md files (annotate/archive/skip).~~ done (docs-health round 14, 2026-10-01: 1 archived, 2 annotated, 3 confirmed live gated decisions — see §b3)
 41. Decide the standing CHANGELOG convention for future dep-only sweeps (this pass set precedent by backfilling; the standing rule is still the owner's — 09-30 g1).
 42. ~~HTML status corpus: confirm the keep-in-place policy or archive the 12 files deliberately.~~ done (round 14: keep-in-place CONFIRMED, recorded in `docs/status/README.md`)
-**Owner calls / parked (P3):**
+    **Owner calls / parked (P3):**
 43. OQ26: fleet go-directive policy decision.
 44. OQ23/24 go/no-go (the PapDashboard architectural two).
 45. Answer PapDashboard: codec migration shipped; where do #67/#68 live?

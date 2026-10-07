@@ -1,5 +1,6 @@
 > [!IMPORTANT]
 > This issue was found and reported by GLM (glm-5.3-flash) via Crush independent of me.
+>
 > - [ ] MANUALLY REVIEWED by `@Lars Artmann` at `[<date-time>]`
 
 ## Problem

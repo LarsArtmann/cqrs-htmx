@@ -58,27 +58,27 @@ clean. **PUSH BLOCKED** by the pre-push strict release-train gate.
 ## b) PARTIALLY DONE
 
 ~~1. **`git push` — BLOCKED, not done.** Pre-push release-train gate rc=3;~~ done 2026-10-04 morning — the broadcast v0.6.2 alignment executed and the push landed (606d6186..caeba8e0, strict pre-push gates green; see the 05-51 report §a)
-   manual re-run with `--refresh-cache --strict-lag 0` confirms it is REAL
-   (not the fresh-tag cache artifact): **36 internal requires lag** — the
-   go-output family sits at v0.38.2 while v0.38.3 is published (required by
-   integration_test et al.). The gate printed the exact fix recipe (12
-   `scripts/bump-dep.sh '<anchor>$' v0.38.3` sweeps, commit per sweep, gate
-   re-run). Not executed: tree-mutating version surgery + the user's status
-   interrupt arrived first.
+manual re-run with `--refresh-cache --strict-lag 0` confirms it is REAL
+(not the fresh-tag cache artifact): **36 internal requires lag** — the
+go-output family sits at v0.38.2 while v0.38.3 is published (required by
+integration_test et al.). The gate printed the exact fix recipe (12
+`scripts/bump-dep.sh '<anchor>$' v0.38.3` sweeps, commit per sweep, gate
+re-run). Not executed: tree-mutating version surgery + the user's status
+interrupt arrived first.
 2. **Commit history is split across daemon absorbs (third occurrence this
-   session):** plan content spans `c766226d` (partial) + `9dbdc6c5` (authored
-   amend). Tree content is correct and verified (links/fmt green); only the
-   history aesthetics suffer.
+session):** plan content spans `c766226d` (partial) + `9dbdc6c5` (authored
+amend). Tree content is correct and verified (links/fmt green); only the
+history aesthetics suffer.
 3. **go-cqrs-lite push deliberately deferred:** ahead 11 (my `788cd7350` +
-   10 foreign daemon commits) — left to that repo's own train rules per the
-   cross-repo caution (TODO item 42 class).
+10 foreign daemon commits) — left to that repo's own train rules per the
+cross-repo caution (TODO item 42 class).
 
 ## c) NOT STARTED
 
 ~~1. **The go-output v0.38.3 family alignment pass** (the push unblocker).~~ done 2026-10-04 morning (broadcast v0.6.2 alignment, sweep PASS)
 2. **Execution of the round-16 plan itself** (M1–M28): decision sheet, fleet
-   cqrs-lint swap, E005 filing, ARCHIVE pass, v5 runbook, codemod MVP,
-   journal goldens — all planned, none started.
+cqrs-lint swap, E005 filing, ARCHIVE pass, v5 runbook, codemod MVP,
+journal goldens — all planned, none started.
 ~~3. **devShell re-verification of systemadapter lint** (see d2).~~ superseded — CI lint job green at HEAD (run 37178906141); the loginpage lint findings were fixed by the episode-4 session
 
 ## d) TOTALLY FUCKED UP
@@ -113,33 +113,33 @@ clean. **PUSH BLOCKED** by the pre-push strict release-train gate.
 
 ## f) Next tasks (ranked)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-~~| 1 | go-output family alignment pass: 12 bump-dep sweeps per the gate recipe, commit per sweep, re-run strict gate | Critical (unblocks push) | M | Dependency |~~ done 2026-10-04 morning (see the 05-51 report §a1–a3)
-~~| 2 | Re-run `git push` once gate is green | Critical | S | Git |~~ done — push landed 2026-10-04
-~~| 3 | devShell `nix run .#lint` (or scoped systemadapter run) — verify the 5 pre-commit lint failures are env-only | High | S | Quality |~~ superseded — CI lint green at HEAD; loginpage lint fixed
-| 4 | Plan M1: consolidated owner-decision sheet (D1–D11 + OQ11) | High | S | Planning |
-| 5 | Plan M28: v4-journal Track B goldens (fully independent — can start now) | High | M | Feature |
-| 6 | Plan M15: v5 cut runbook skeleton | High | M | Documentation |
-| 7 | Plan M2–M3: fleet cqrs-lint swap + battery (after D4) | High | M | Tooling |
-| 8 | Plan M7: go-cqrs-lite hook "Doc-only" classifier fix | Medium | S | Bug |
-| 9 | Plan M11: status-report ARCHIVE pass (7 reports) | Medium | M | Cleanup |
-| 10 | go-cqrs-lite push decision (ahead 11) | Medium | S | Git |
-| 11 | Plan M26: codemod MVP rules R1–R3 + R9–R10 | High | L | Feature |
-| 12 | Plan M4/M5/M8: E005 filing, cross-repo records, strict CI gate (after owner OK) | Medium | M | Tooling |
+| #  | Task                                                                            | Impact                                                                                                        | Effort                   | Category      |
+| -- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------- |
+| ~~ | 1                                                                               | go-output family alignment pass: 12 bump-dep sweeps per the gate recipe, commit per sweep, re-run strict gate | Critical (unblocks push) | M             |
+| ~~ | 2                                                                               | Re-run `git push` once gate is green                                                                          | Critical                 | S             |
+| ~~ | 3                                                                               | devShell `nix run .#lint` (or scoped systemadapter run) — verify the 5 pre-commit lint failures are env-only  | High                     | S             |
+| 4  | Plan M1: consolidated owner-decision sheet (D1–D11 + OQ11)                      | High                                                                                                          | S                        | Planning      |
+| 5  | Plan M28: v4-journal Track B goldens (fully independent — can start now)        | High                                                                                                          | M                        | Feature       |
+| 6  | Plan M15: v5 cut runbook skeleton                                               | High                                                                                                          | M                        | Documentation |
+| 7  | Plan M2–M3: fleet cqrs-lint swap + battery (after D4)                           | High                                                                                                          | M                        | Tooling       |
+| 8  | Plan M7: go-cqrs-lite hook "Doc-only" classifier fix                            | Medium                                                                                                        | S                        | Bug           |
+| 9  | Plan M11: status-report ARCHIVE pass (7 reports)                                | Medium                                                                                                        | M                        | Cleanup       |
+| 10 | go-cqrs-lite push decision (ahead 11)                                           | Medium                                                                                                        | S                        | Git           |
+| 11 | Plan M26: codemod MVP rules R1–R3 + R9–R10                                      | High                                                                                                          | L                        | Feature       |
+| 12 | Plan M4/M5/M8: E005 filing, cross-repo records, strict CI gate (after owner OK) | Medium                                                                                                        | M                        | Tooling       |
 
 ## g) Questions I cannot answer myself
 
 ~~1. **Run the go-output v0.38.3 alignment pass + push now?** The recipe is~~ answered by reality — executed 2026-10-04 morning
-   mechanical (the gate prints it), but it is tree-mutating version surgery
-   across the workspace and you interrupted mid-flow — your call on timing.
+mechanical (the gate prints it), but it is tree-mutating version surgery
+across the workspace and you interrupted mid-flow — your call on timing.
 2. **Push go-cqrs-lite too?** It is ahead 11 (my determinism fix + 10 daemon
-   commits from other sessions); its own pre-push gates will vet it, but
-   pushing another repo's master wasn't explicitly in scope.
+commits from other sessions); its own pre-push gates will vet it, but
+pushing another repo's master wasn't explicitly in scope.
 3. **Wire the golangci-lint cache fallback into the pre-commit hook now**
-   (kills the recurring env-noise class), or keep handling it per-instance
-   with `--no-verify` + named steps?
+(kills the recurring env-noise class), or keep handling it per-instance
+with `--no-verify` + named steps?
 
 ---
 
-*Waiting for instructions.*
+_Waiting for instructions._

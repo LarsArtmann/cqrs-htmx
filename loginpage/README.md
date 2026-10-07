@@ -69,23 +69,23 @@ mux.Use(httputil.CSRFMiddleware(httputil.CSRFConfig{}))
 
 ## Configuration
 
-| Field            | Type                | Default      | Description                                       |
-| ---------------- | ------------------- | ------------ | ------------------------------------------------- |
-| `Service`        | `*usermgmt.Service` | **required** | Provides auth-method detection                    |
-| `Title`          | `string`            | `"Sign in"`  | Page `<title>` and heading                        |
-| `Brand`          | `string`            | = Title      | App name shown above the form                     |
-| `Redirect`       | `string`            | `"/"`        | Post-login redirect (root-relative)               |
-| `AccentColor`    | `string`            | `"#4f46e5"`  | Accent used only for the SVG favicon (any CSS color) |
-| `CSSPath`        | `string`            | `"/app.css"` | URL of the consumer's compiled Tailwind stylesheet |
-| `Theme`          | `string`            | `""`         | Force `"light"`/`"dark"` (empty = prefers-color-scheme) |
-| `ThemeFromRequest` | `func(*http.Request) string` | `nil` | Per-request theme hook (e.g. cookie); wins over `Theme` |
-| `NonceFromRequest` | `func(*http.Request) string` | `nil` | CSP nonce for the inline scripts (base64url, sanitized) |
-| `NoRegistration` | `bool`              | `false`      | Hide the registration section                     |
-| `RegisterFirst`  | `bool`              | `false`      | Render the registration section on load (e.g. a `/register` route) |
-| `AuthPrefix`     | `string`            | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`) |
-| `OAuth2Buttons`  | `[]OAuth2Button`    | **auto**     | OAuth2 provider buttons (auto-detected if empty)  |
-| `NoOAuth2`       | `bool`              | `false`      | Force-hide every OAuth2 button, including auto-detected ones; mutually exclusive with `OAuth2Buttons` (rejected at `New`) |
-| `CredentialName` | `string`            | `"Passkey"`  | Label for newly registered credentials            |
+| Field              | Type                         | Default      | Description                                                                                                               |
+| ------------------ | ---------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `Service`          | `*usermgmt.Service`          | **required** | Provides auth-method detection                                                                                            |
+| `Title`            | `string`                     | `"Sign in"`  | Page `<title>` and heading                                                                                                |
+| `Brand`            | `string`                     | = Title      | App name shown above the form                                                                                             |
+| `Redirect`         | `string`                     | `"/"`        | Post-login redirect (root-relative)                                                                                       |
+| `AccentColor`      | `string`                     | `"#4f46e5"`  | Accent used only for the SVG favicon (any CSS color)                                                                      |
+| `CSSPath`          | `string`                     | `"/app.css"` | URL of the consumer's compiled Tailwind stylesheet                                                                        |
+| `Theme`            | `string`                     | `""`         | Force `"light"`/`"dark"` (empty = prefers-color-scheme)                                                                   |
+| `ThemeFromRequest` | `func(*http.Request) string` | `nil`        | Per-request theme hook (e.g. cookie); wins over `Theme`                                                                   |
+| `NonceFromRequest` | `func(*http.Request) string` | `nil`        | CSP nonce for the inline scripts (base64url, sanitized)                                                                   |
+| `NoRegistration`   | `bool`                       | `false`      | Hide the registration section                                                                                             |
+| `RegisterFirst`    | `bool`                       | `false`      | Render the registration section on load (e.g. a `/register` route)                                                        |
+| `AuthPrefix`       | `string`                     | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`)                                                                         |
+| `OAuth2Buttons`    | `[]OAuth2Button`             | **auto**     | OAuth2 provider buttons (auto-detected if empty)                                                                          |
+| `NoOAuth2`         | `bool`                       | `false`      | Force-hide every OAuth2 button, including auto-detected ones; mutually exclusive with `OAuth2Buttons` (rejected at `New`) |
+| `CredentialName`   | `string`                     | `"Passkey"`  | Label for newly registered credentials                                                                                    |
 
 ## OAuth2 buttons
 
