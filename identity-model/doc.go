@@ -8,4 +8,10 @@
 // The module is designed to be imported by implementation packages (like
 // usermgmt) which provide the infrastructure: SQL event stores, HTTP handlers,
 // Casbin authorization, read-model projections, etc.
+//
+// # Fold aliasing invariant
+//
+// Fold payload slices alias the raw event bytes. Folded state must never
+// retain a payload slice directly: every slice taken from a payload is
+// defensively copied at the fold site (slices.Clone).
 package identitymodel

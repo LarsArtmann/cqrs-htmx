@@ -9,10 +9,6 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// copySlice returns a defensive copy of src. Fold payloads alias event
-// bytes, so folded state must never retain payload slices directly.
-func copySlice[T any](src []T) []T { return slices.Clone(src) }
-
 // UserState is the aggregate state for the User, reconstructed by folding events.
 type UserState struct {
 	Email            string

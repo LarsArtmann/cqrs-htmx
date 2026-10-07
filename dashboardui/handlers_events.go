@@ -14,23 +14,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	sortBy := parseSort(r)
 
 	if format := parseFormat(r); format != formatHTML {
-		events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
-		if err != nil {
-			d.renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
-
-			return
-		}
-
-		sortEvents(events, sortBy)
-
-		switch format {
-		case formatCSV:
-			exportEventsCSV(w, events)
-		case formatJSON:
-			exportEventsJSON(w, events)
-		case formatHTML:
-			// handled below
-		}
+		d.exportEvents(w, r, format, filters, sortBy)
 
 		return
 	}
@@ -105,6 +89,29 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderPage(w, r, eventsPage(p, events, state, filters, sortBy))
+}
+
+// exportEvents writes the filtered event journal in a non-HTML export format
+// (CSV or JSON). The window is the most recent exportLimit events; HTML is
+// routed to the paginated index view by the caller instead.
+func (d *Dashboard) exportEvents(w http.ResponseWriter, r *http.Request, format responseFormat, filters eventFilter, sortBy sortState) {
+	events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
+	if err != nil {
+		d.renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
+
+		return
+	}
+
+	sortEvents(events, sortBy)
+
+	switch format {
+	case formatCSV:
+		exportEventsCSV(w, events)
+	case formatJSON:
+		exportEventsJSON(w, events)
+	case formatHTML:
+		// unreachable: callers guard on format != formatHTML
+	}
 }
 
 func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {

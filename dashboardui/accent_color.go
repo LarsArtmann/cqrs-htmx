@@ -7,47 +7,60 @@ import "strings"
 // characters ("lightgoldenrodyellow").
 const maxAccentColorLen = 32
 
-// cssNamedColors is the closed set of named CSS color keywords accepted for
-// Config.AccentColor, plus "transparent". "currentcolor" is deliberately
-// absent: it is a computed reference, not a literal color.
-var cssNamedColors = map[string]struct{}{
-	"aliceblue": {}, "antiquewhite": {}, "aqua": {}, "aquamarine": {},
-	"azure": {}, "beige": {}, "bisque": {}, "black": {}, "blanchedalmond": {},
-	"blue": {}, "blueviolet": {}, "brown": {}, "burlywood": {}, "cadetblue": {},
-	"chartreuse": {}, "chocolate": {}, "coral": {}, "cornflowerblue": {},
-	"cornsilk": {}, "crimson": {}, "cyan": {}, "darkblue": {}, "darkcyan": {},
-	"darkgoldenrod": {}, "darkgray": {}, "darkgreen": {}, "darkgrey": {},
-	"darkkhaki": {}, "darkmagenta": {}, "darkolivegreen": {}, "darkorange": {},
-	"darkorchid": {}, "darkred": {}, "darksalmon": {}, "darkseagreen": {},
-	"darkslateblue": {}, "darkslategray": {}, "darkslategrey": {},
-	"darkturquoise": {}, "darkviolet": {}, "deeppink": {}, "deepskyblue": {},
-	"dimgray": {}, "dimgrey": {}, "dodgerblue": {}, "firebrick": {},
-	"floralwhite": {}, "forestgreen": {}, "fuchsia": {}, "gainsboro": {},
-	"ghostwhite": {}, "gold": {}, "goldenrod": {}, "gray": {}, "green": {},
-	"greenyellow": {}, "grey": {}, "honeydew": {}, "hotpink": {},
-	"indianred": {}, "indigo": {}, "ivory": {}, "khaki": {}, "lavender": {},
-	"lavenderblush": {}, "lawngreen": {}, "lemonchiffon": {}, "lightblue": {},
-	"lightcoral": {}, "lightcyan": {}, "lightgoldenrodyellow": {},
-	"lightgray": {}, "lightgreen": {}, "lightgrey": {}, "lightpink": {},
-	"lightsalmon": {}, "lightseagreen": {}, "lightskyblue": {},
-	"lightslategray": {}, "lightslategrey": {}, "lightsteelblue": {},
-	"lightyellow": {}, "lime": {}, "limegreen": {}, "linen": {}, "magenta": {},
-	"maroon": {}, "mediumaquamarine": {}, "mediumblue": {},
-	"mediumorchid": {}, "mediumpurple": {}, "mediumseagreen": {},
-	"mediumslateblue": {}, "mediumspringgreen": {}, "mediumturquoise": {},
-	"mediumvioletred": {}, "midnightblue": {}, "mintcream": {}, "mistyrose": {},
-	"moccasin": {}, "navajowhite": {}, "navy": {}, "oldlace": {}, "olive": {},
-	"olivedrab": {}, "orange": {}, "orangered": {}, "orchid": {},
-	"palegoldenrod": {}, "palegreen": {}, "paleturquoise": {},
-	"palevioletred": {}, "papayawhip": {}, "peachpuff": {}, "peru": {},
-	"pink": {}, "plum": {}, "powderblue": {}, "purple": {},
-	"rebeccapurple": {}, "red": {}, "rosybrown": {}, "royalblue": {},
-	"saddlebrown": {}, "salmon": {}, "sandybrown": {}, "seagreen": {},
-	"seashell": {}, "sienna": {}, "silver": {}, "skyblue": {}, "slateblue": {},
-	"slategray": {}, "slategrey": {}, "snow": {}, "springgreen": {},
-	"steelblue": {}, "tan": {}, "teal": {}, "thistle": {}, "tomato": {},
-	"transparent": {}, "turquoise": {}, "violet": {}, "wheat": {}, "white": {},
-	"whitesmoke": {}, "yellow": {}, "yellowgreen": {},
+// Hex color literal lengths: #RGB, #RGBA, #RRGGBB, #RRGGBBAA.
+const (
+	hexRGBLen      = 3
+	hexRGBALen     = 4
+	hexRRGGBBLen   = 6
+	hexRRGGBBAALen = 8
+)
+
+// cssNamedColors returns the closed set of named CSS color keywords accepted
+// for Config.AccentColor, plus "transparent". "currentcolor" is deliberately
+// absent: it is a computed reference, not a literal color. Go has no const
+// maps, and a package-level mutable set is a global (gochecknoglobals); the
+// set is rebuilt per call instead, which is free in practice — validation
+// runs once per Dashboard construction.
+func cssNamedColors() map[string]struct{} {
+	return map[string]struct{}{
+		"aliceblue": {}, "antiquewhite": {}, "aqua": {}, "aquamarine": {},
+		"azure": {}, "beige": {}, "bisque": {}, "black": {}, "blanchedalmond": {},
+		"blue": {}, "blueviolet": {}, "brown": {}, "burlywood": {}, "cadetblue": {},
+		"chartreuse": {}, "chocolate": {}, "coral": {}, "cornflowerblue": {},
+		"cornsilk": {}, "crimson": {}, "cyan": {}, "darkblue": {}, "darkcyan": {},
+		"darkgoldenrod": {}, "darkgray": {}, "darkgreen": {}, "darkgrey": {},
+		"darkkhaki": {}, "darkmagenta": {}, "darkolivegreen": {}, "darkorange": {},
+		"darkorchid": {}, "darkred": {}, "darksalmon": {}, "darkseagreen": {},
+		"darkslateblue": {}, "darkslategray": {}, "darkslategrey": {},
+		"darkturquoise": {}, "darkviolet": {}, "deeppink": {}, "deepskyblue": {},
+		"dimgray": {}, "dimgrey": {}, "dodgerblue": {}, "firebrick": {},
+		"floralwhite": {}, "forestgreen": {}, "fuchsia": {}, "gainsboro": {},
+		"ghostwhite": {}, "gold": {}, "goldenrod": {}, "gray": {}, "green": {},
+		"greenyellow": {}, "grey": {}, "honeydew": {}, "hotpink": {},
+		"indianred": {}, "indigo": {}, "ivory": {}, "khaki": {}, "lavender": {},
+		"lavenderblush": {}, "lawngreen": {}, "lemonchiffon": {}, "lightblue": {},
+		"lightcoral": {}, "lightcyan": {}, "lightgoldenrodyellow": {},
+		"lightgray": {}, "lightgreen": {}, "lightgrey": {}, "lightpink": {},
+		"lightsalmon": {}, "lightseagreen": {}, "lightskyblue": {},
+		"lightslategray": {}, "lightslategrey": {}, "lightsteelblue": {},
+		"lightyellow": {}, "lime": {}, "limegreen": {}, "linen": {}, "magenta": {},
+		"maroon": {}, "mediumaquamarine": {}, "mediumblue": {},
+		"mediumorchid": {}, "mediumpurple": {}, "mediumseagreen": {},
+		"mediumslateblue": {}, "mediumspringgreen": {}, "mediumturquoise": {},
+		"mediumvioletred": {}, "midnightblue": {}, "mintcream": {}, "mistyrose": {},
+		"moccasin": {}, "navajowhite": {}, "navy": {}, "oldlace": {}, "olive": {},
+		"olivedrab": {}, "orange": {}, "orangered": {}, "orchid": {},
+		"palegoldenrod": {}, "palegreen": {}, "paleturquoise": {},
+		"palevioletred": {}, "papayawhip": {}, "peachpuff": {}, "peru": {},
+		"pink": {}, "plum": {}, "powderblue": {}, "purple": {},
+		"rebeccapurple": {}, "red": {}, "rosybrown": {}, "royalblue": {},
+		"saddlebrown": {}, "salmon": {}, "sandybrown": {}, "seagreen": {},
+		"seashell": {}, "sienna": {}, "silver": {}, "skyblue": {}, "slateblue": {},
+		"slategray": {}, "slategrey": {}, "snow": {}, "springgreen": {},
+		"steelblue": {}, "tan": {}, "teal": {}, "thistle": {}, "tomato": {},
+		"transparent": {}, "turquoise": {}, "violet": {}, "wheat": {}, "white": {},
+		"whitesmoke": {}, "yellow": {}, "yellowgreen": {},
+	}
 }
 
 // isValidAccentColor reports whether color is a CSS color literal the
@@ -71,7 +84,7 @@ func isValidAccentColor(color string) bool {
 		digits := color[1:]
 
 		switch len(digits) {
-		case 3, 4, 6, 8:
+		case hexRGBLen, hexRGBALen, hexRRGGBBLen, hexRRGGBBAALen:
 			return isHexDigits(digits)
 		default:
 			return false
@@ -89,7 +102,7 @@ func isValidAccentColor(color string) bool {
 		}
 	}
 
-	_, ok := cssNamedColors[lower]
+	_, ok := cssNamedColors()[lower]
 
 	return ok
 }
