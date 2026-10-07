@@ -16,18 +16,14 @@ var assetsFS embed.FS
 // it via the root module's immutable-asset posture ([cqrshtmx.ServeAsset]:
 // content-derived ETag, 1-year immutable caching, nosniff). The read happens
 // at construction time so a missing asset surfaces as an error from [New]
-// instead of a panic at first request. The asset-serving logic itself lives
-// in the root module so adminui and dashboardui cannot drift apart (the
-// stale-version-ETag incident class is now guarded in exactly one place).
+// instead of a panic at first request. The read ([cqrshtmx.AssetFromFS]) and
+// serving logic live in the root module so adminui and dashboardui cannot
+// drift apart (the stale-version-ETag incident class is guarded in exactly
+// one place); only the embed declaration and error presentation stay local.
 func newAssetHandler(fsys fs.FS, name, contentType string) (http.Handler, error) {
-	sub, err := fs.Sub(fsys, "assets")
+	data, err := cqrshtmx.AssetFromFS(fsys, name)
 	if err != nil {
-		return nil, errConfig(fmt.Sprintf("asset subtree %q: %v", "assets", err))
-	}
-
-	data, err := fs.ReadFile(sub, name)
-	if err != nil {
-		return nil, errConfig(fmt.Sprintf("missing embedded asset %q: %v", name, err))
+		return nil, errConfig(fmt.Sprintf("embedded asset %q: %v", name, err))
 	}
 
 	return cqrshtmx.ServeAsset(name, contentType, data), nil

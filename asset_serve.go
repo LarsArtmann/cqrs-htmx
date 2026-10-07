@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"bytes"
+	"io/fs"
 	"net/http"
 	"time"
 )
@@ -43,4 +44,20 @@ func ServeAsset(name, contentType string, data []byte) http.Handler {
 		w.Header().Set("ETag", tag)
 		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
 	})
+}
+
+// AssetFromFS reads name from the "assets" subtree of fsys — the read half
+// of the embed-asset recipe shared by every UI module (each module must
+// declare its own embed.FS, but the subtree + ReadFile plumbing lives here
+// so the modules cannot drift). Raw fs errors are returned unwrapped; the
+// caller owns error presentation (each module wraps in its own config-error
+// family). Read eagerly so a missing asset surfaces at construction time
+// instead of a panic at first request.
+func AssetFromFS(fsys fs.FS, name string) ([]byte, error) {
+	sub, err := fs.Sub(fsys, "assets")
+	if err != nil {
+		return nil, err
+	}
+
+	return fs.ReadFile(sub, name)
 }
