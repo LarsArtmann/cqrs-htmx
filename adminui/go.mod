@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/adminui/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/a-h/templ v0.3.1070

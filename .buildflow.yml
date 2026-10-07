@@ -26,10 +26,54 @@ todo_min_severity: warning
 # script linting is enforced by treefmt + CI. HTML/min.js are generated or
 # vendored artifacts that must not be reformatted.
 #
-# A user `exclude:` list ADDS to BuildFlow's built-in defaults (merge
-# semantics since BuildFlow b27f4f05b, 2026-09-30) — vendor/testdata/*_templ.go/
-# lock files stay protected without restating them.
+# GOTCHA (verified 2026-09-20 via `buildflow config view`): a user `exclude:`
+# list REPLACES BuildFlow's built-in defaults — it does NOT merge. Listing only
+# the three repo-specific patterns silently dropped every default (vendor,
+# testdata, *_templ.go, lock files, ...), so formatters lost their protection
+# against generated/vendored trees. The list below therefore mirrors
+# DefaultExcludePatterns() (BuildFlow domain/file/ignore_dirs.go) explicitly,
+# then adds this repo's patterns. Keep both halves in sync when bumping
+# BuildFlow.
 exclude:
+  # --- BuildFlow defaults (do not drop; see gotcha above) ---
+  - "vendor"
+  - ".git"
+  - "node_modules"
+  - ".next"
+  - ".turbo"
+  - ".nuxt"
+  - ".svelte-kit"
+  - ".direnv"
+  - "dist"
+  - "target"
+  - "testdata"
+  - ".golden"
+  - "generated.go"
+  - "*.pb.go"
+  - "*.gen.go"
+  - "*_templ.go"
+  - "__snapshots__"
+  - "__pycache__"
+  - ".pytest_cache"
+  - ".mypy_cache"
+  - ".tox"
+  - ".venv"
+  - "venv"
+  - ".cache"
+  - "reports/"
+  - "flake.lock"
+  - "package-lock.json"
+  - "yarn.lock"
+  - "pnpm-lock.yaml"
+  - "Cargo.lock"
+  - "composer.lock"
+  - "poetry.lock"
+  - "Gemfile.lock"
+  - "mix.lock"
+  # --- Repo-specific ---
+  - "*.html"
+  - "*.min.js"
+  - "*.sh"
   # Committed Tailwind bundles + buildflow's orphan styles.css outputs are
   # NEVER buildflow's business: the canonical minified bundles are built by
   # the flake apps (nix run .#build-adminui-css / .#build-dashboardui-css)
@@ -40,12 +84,78 @@ exclude:
   - "*-tw.css"
   - "styles.css"
 
-# fail_on: critical — findings gate restored 2026-09-18 after the always-red
-# causes were fixed (suppression file was misnamed .yml vs auto-discovered
-# .yaml; stale buildflow binary flagged root-package-files x50).
+# Skip templ-generate: BuildFlow's bundled templ binary regenerates _templ.go
+# files with directory-prefixed FileName: fields, conflicting with the
+# nix-pinned templ version. Committed files are verified by `nix run
+# .#check-codegen` instead.
+# jest/vitest/pnpm-audit: Go library, no JS test framework or lockfile.
+# deadnix: not installed. eslint: biome handles JS formatting/linting.
+# dprint-format: dprint.json here scopes dprint to markdown only; markdown
+# formatting waits for a one-time normalization pass (257 files).
+#
+# go-version-auto-configure: DESTRUCTIVE here — SKIPPED 2026-09-20 after it
+# corrupted the tree in commit 27057e5c. Two independent failures, both
+# confirmed by reading the vendored SDK (go-version-auto-configure):
+#   1. Its policy is hardcoded to major.minor go directives, so it rewrote this
+#      repo's DELIBERATE `go 1.27.1` floor to `go 1.27` in go.work + 4 module
+#      go.mods (24 modules agree on 1.27.1 — see the AGENTS.md toolchain row;
+#      the patch floor is a repo decision, not drift).
+#   2. Its fixer runs `go mod tidy` after every `go mod edit` (pkg/fix
+#      ensureTidyStable). The verify-tag fixtures under scripts/testdata/ are
+#      go.mod-only modules (no .go files), so tidy deleted EVERY require line,
+#      silently disabling scripts/selftests/test-verify-tag.sh's 12-case guard (it then
+#      passed; the rejects had nothing left to reject). The SDK walker skips
+#      only vendor/node_modules/.git/result — NOT testdata, unlike BuildFlow's
+#      own DefaultExcludePatterns.
+# Re-enable only when BOTH are fixed upstream: testdata (and other fixture
+# trees) pruned from the walk, AND either a policy knob or repo alignment to
+# major.minor go directives. See the AGENTS.md gotcha + TODO_LIST item.
+# tailwind-build: skipped — its only output here is the gitignored orphan
+# adminui/styles.css + dashboardui/styles.css (never served, never consumed —
+# AGENTS gotcha 9), and the step class was the 2026-09-23 pretty-bundle
+# producer (TODO P2). Canonical minified bundles come from the flake apps
+# (nix run .#build-adminui-css / .#build-dashboardui-css) and are gated by
+# scripts/checks/check-css-bundles.sh. Re-enable only if a buildflow-native build
+# can target per-module outputs with --minify AND honor the exclude list.
+# license-check: skipped 2026-10-05 — permanently unpassable by design, not a
+# health signal. go-licenses only recognizes KNOWN OPEN SOURCE licenses, and
+# this repo's dependency graph is dominated by PROPRIETARY LarsArtmann
+# modules (go-cqrs-lite/*, templ-components, httputil, go-sse, ...) relicensed
+# 2026-09-25; additionally go-licenses #128 rejects stdlib packages ("does not
+# have module info"). Every module's license-check therefore fails on the same
+# E1005/F1001 class regardless of tree health (verified: all 29 module steps
+# red with identical errors on a fully-green tree, 2026-10-05). Licensing is
+# enforced by the repos' own LICENSE files + license-sync, not by go-licenses.
+skip_steps:
+  - templ-generate
+  - tailwind-build
+  - jest-test
+  - vitest-test
+  - pnpm-audit
+  - deadnix
+  - dprint-format
+  - go-version-auto-configure
+  - license-check
+
+# fail_on: critical — findings gate RESTORED (2026-09-18, task M8 verification).
+# History: demoted 2026-09-17 (task M3) because the gate was always-red on
+# pre-existing findings. TWO root causes were found and fixed 2026-09-18:
+#   1. The suppression config was authored as `.go-structure-linter.yml` but
+#      the linter auto-discovers `.go-structure-linter.yaml` — the file was
+#      NEVER read by any session. Renamed; suppressions now apply.
+#   2. The buildflow binary was stale (built at 42fd89b, repo at 7d3d967).
+#      Rebuilt from BuildFlow HEAD into ~/go/bin (shadows the nix profile;
+#      ~/go/bin precedes ~/.nix-profile/bin on PATH). The old binary's rule
+#      set flagged root-package-files ×50; the current one does not.
+#   Additionally the gomod-checker vendor-consistency ×25 resolved naturally
+#   (examples/middleware-showcase/vendor/ was trashed).
 # Suppressions that keep the gate honest live in .go-structure-linter.yaml
 # (root-package-files, go-version, go-sum fixture ID) — each with a reason
-# and a removal condition (TODO_LIST P2 toolchain decision).
+# and, for go-version, an explicit removal condition (TODO_LIST P2 toolchain
+# decision). CAVEAT: a go-structure-linter build from the v0.10.0 TAG does
+# not carry the suppression feature; machines running only tagged builds
+# would see the raw findings. Current verification: 5 findings (2 warnings
+# + 3 infos, 0 errors) with BUILDFLOW_NO_RESULT_CACHE=1.
 # GOTCHA: buildflow's result cache keys on matched FILES — config/binary
 # changes do NOT invalidate it; use BUILDFLOW_NO_RESULT_CACHE=1 when a
 # finding replays after its cause was fixed.

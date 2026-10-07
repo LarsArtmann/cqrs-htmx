@@ -132,7 +132,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var4 templ.SafeURL
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/projections/" + proj.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 46, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 46, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -145,7 +145,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(proj.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 46, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 46, Col: 89}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -166,7 +166,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(proj.Lag)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 48, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 48, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -179,7 +179,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(proj.Processed, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 49, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 49, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -192,7 +192,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(proj.Errors, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 50, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 50, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -205,7 +205,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(proj.Restarts))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 51, Col: 36}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 51, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(proj.Checkpoint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 52, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 52, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 			if templ_7745c5c3_Err != nil {
@@ -231,7 +231,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(proj.Checkpoint, listIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 52, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 52, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -249,7 +249,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(proj.LastError, errorDisplayWidth))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 54, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 54, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -320,7 +320,7 @@ func projectionResetForm(p pageData, name string) templ.Component {
 		var templ_7745c5c3_Var14 templ.SafeURL
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/projections/" + name + "/reset")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 75, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 75, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -333,7 +333,7 @@ func projectionResetForm(p pageData, name string) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("Reset projection %s? This will re-process all events from the beginning.", name))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 77, Col: 110}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 77, Col: 110}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {
@@ -346,7 +346,7 @@ func projectionResetForm(p pageData, name string) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("Reset projection %s", name))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 78, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 78, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 		if templ_7745c5c3_Err != nil {
@@ -511,7 +511,7 @@ func projectionDetailContent(p pageData, proj projectionStat) templ.Component {
 			var templ_7745c5c3_Var20 templ.SafeURL
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/projections/" + proj.Name + "/reset")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 119, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 119, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -524,7 +524,7 @@ func projectionDetailContent(p pageData, proj projectionStat) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("Reset projection %s? This will re-process all events from the beginning.", proj.Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/projections.templ`, Line: 121, Col: 117}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 121, Col: 117}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 			if templ_7745c5c3_Err != nil {
