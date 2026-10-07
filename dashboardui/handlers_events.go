@@ -94,7 +94,13 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 // exportEvents writes the filtered event journal in a non-HTML export format
 // (CSV or JSON). The window is the most recent exportLimit events; HTML is
 // routed to the paginated index view by the caller instead.
-func (d *Dashboard) exportEvents(w http.ResponseWriter, r *http.Request, format responseFormat, filters eventFilter, sortBy sortState) {
+func (d *Dashboard) exportEvents(
+	w http.ResponseWriter,
+	r *http.Request,
+	format responseFormat,
+	filters eventFilter,
+	sortBy sortState,
+) {
 	events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
 	if err != nil {
 		d.renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
