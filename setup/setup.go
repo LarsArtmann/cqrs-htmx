@@ -1,6 +1,8 @@
 package setup
 
 import (
+	"log/slog"
+
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
