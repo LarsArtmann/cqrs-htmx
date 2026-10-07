@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.3
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.1
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.1
@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.7.1
@@ -60,7 +60,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.8 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
