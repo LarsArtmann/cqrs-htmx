@@ -5,6 +5,21 @@
 > asset-dedup train — see its own 04-03/04-08 reports). This report covers MY session's
 > work only; attribution per-commit is noted where it matters.
 
+> **ANNOTATED 2026-10-07 ~07:05 (round 2 — CI repair):** the three open questions and the
+> unwatched-CI item are all resolved. (1) The parallel session was STILL ACTIVE at 06:13
+> (three live buildflow processes; later landed gotchas 28–33 + the pre-commit-zero entry)
+> but did not touch my repair surface; `preflight-tree-check` + `wait-tree-quiet` gated
+> every tree-mutating step. (2) The patch train (identity-model v4.12.2 / dashboardui
+> v4.13.2 / setup v4.14.2 for the untagged debt) is DEFERRED and scheduled as a P1
+> TODO_LIST row — nothing requires the debt yet (strict 0/0/0 at `eda06ff1`). (3) CI was
+> babysat: run 37569591700 on `eda06ff1` was RED on two fresh classes — mod-tidy EXTRA
+> cbor v2.9.4 go.sum residue in 5 modules (fix: hermetic `GOWORK=off go mod tidy` per
+> module, gotcha 27d) and the StreamID overview pin 2→1 after the overview dedup
+> (gotcha 25) — both fixed, plus two verify-tag fixtures a tidy sweep had flattened
+> restored (gotcha 34); repair push `eda06ff1..b660d534` landed through strict pre-push
+> gates and CI run 37574144312 is FULLY GREEN. Receipts: CHANGELOG [Unreleased]→Changed;
+> rows in TODO_LIST; gotchas 25/27d/34 in AGENTS.md.
+
 ## Headline
 
 **The blocked push is UNBLOCKED and LANDED.** `git push` went from rc=3 (release-train
