@@ -100,7 +100,11 @@ skip_steps:
   - deadnix
   - dprint-format
   - go-version-auto-configure
-  - license-check
+  # license-check skip removed 2026-10-07: BuildFlow now auto-defers the
+  # go-licenses stdlib failure class (ZC1, "not in std" signature renders as
+  # deferred no-op + INFO finding). The proprietary-relicensing concern below
+  # is documented for history; if E1005/F1001 unknown-license failures ever
+  # surface as REAL failures again, restore this skip.
 
 # fail_on: critical — findings gate RESTORED (2026-09-18, task M8 verification).
 # History: demoted 2026-09-17 (task M3) because the gate was always-red on
