@@ -94,8 +94,6 @@ github.com/failsafe-go/failsafe-go v0.9.8 h1:NzahTEc+vg6FqCJV0Sy9mgwcaCemB81c8iS
 github.com/failsafe-go/failsafe-go v0.9.8/go.mod h1:wMKUFRbxxjWwvwhJttSiim9BaQssrlZV4lk0IwPkwUc=
 github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=
 github.com/felixge/httpsnoop v1.1.0/go.mod h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=
-github.com/fxamacker/cbor/v2 v2.9.4 h1:xwjVlxEMR3S605oUlgBjKLTTeGFciYPGYCtF/35LKGo=
-github.com/fxamacker/cbor/v2 v2.9.4/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/fxamacker/cbor/v2 v2.9.6 h1:NHZPxuUjJXQjX9itA785y/5NKSlI4HQ+S7noZsmI7hs=
 github.com/fxamacker/cbor/v2 v2.9.6/go.mod h1:4EaZp6ClVunETjQ4GHmGNzysDK91Lr+r6Yz6tJqzVCw=
 github.com/gkampitakis/ciinfo v0.3.4 h1:5eBSibVuSMbb/H6Elc0IIEFbkzCJi3lm94n0+U7Z0KY=
@@ -172,12 +170,10 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1 h1:x0swyz037FIfZYVnXV
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1/go.mod h1:5BBVKuIRSdWNC9B75fxXmmoZ/zZ09cfxmqyUwiFCr6E=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0 h1:yVGRCgucaBc31B4DQ+SE55HuDD5x9bu5CHO+QvNNoF4=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0/go.mod h1:a+3ZIS0mBxFmzknq2JG50mSi1wcG4Y8Tkz4piAtQwtg=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1 h1:tzTvWzcogZfP0Mu2XzfkTddBSeU7hwhv2E23+gPlQMA=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1/go.mod h1:oXPNJjiSiyLBVTjRdbyQaf4UXMWvRculCIbN/dqJS54=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2 h1:7wECrh53UU33C1Qc+94oV/laSfZw1dQth7RxN08ODlI=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2/go.mod h1:tw0ky5Mk2zQcSwOVjFU8v98D9gbLeOPLNpEM+J4Gh2I=
-github.com/larsartmann/cqrs-htmx/v4 v4.13.1 h1:MLC0h34ba2D91oK9YhER8LktatubFPSwdlp254XYsU0=
-github.com/larsartmann/cqrs-htmx/v4 v4.13.1/go.mod h1:qbzS/EMoS8hVMA4i4G+4YT8YGSvT81cJysvXV9/xUIQ=
+github.com/larsartmann/cqrs-htmx/v4 v4.13.2 h1:MmTccNgH91ODjiC3Yz5SOr9Jg7nvaAiZuKcbu5MmicQ=
+github.com/larsartmann/cqrs-htmx/v4 v4.13.2/go.mod h1:CuK14LadxSj5+pHCFMg7A5RbOlr2mP/VCs7lChqp3Rw=
 github.com/larsartmann/go-atomic-write v0.6.0 h1:+f7NE8pEe4Fqb6u+2sCtB9dOWWfgwjdTn24o3hMjY5o=
 github.com/larsartmann/go-atomic-write v0.6.0/go.mod h1:2Mj3sw25Lx5dN3WjOC6O/p9nGxcU/jjn977CanerqcU=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=
