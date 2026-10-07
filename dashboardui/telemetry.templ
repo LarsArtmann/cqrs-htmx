@@ -1,0 +1,137 @@
+package dashboardui
+
+import (
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
+)
+
+// ===== Telemetry (read-only) =====
+templ telemetryPage(p pageData, data telemetryData) {
+	@layout(p, telemetryContent(p, data))
+}
+
+templ telemetryContent(p pageData, data telemetryData) {
+	if !data.HasTopology && !data.HasPlacement && len(data.Stats) == 0 {
+		@emptyStatePanel(icons.Signal, "No telemetry providers configured", "")
+	}
+	if data.HasTopology {
+		<h2>Topology</h2>
+		if data.TopologyErr != nil {
+			<p class="muted" role="alert">{ "topology unavailable: " + data.TopologyErr.Error() }</p>
+		} else {
+			@rawDataTable(
+				plainHeaders("Instance", "Role", "Engine", "Driver", "Durability", "Health", "Collections"),
+				"",
+				topologyInstanceRows(data.Topology),
+			)
+			if len(data.Topology.Buses) > 0 {
+				<h3>Buses</h3>
+				@rawDataTable(
+					plainHeaders("Name", "Driver", "Mode"),
+					"",
+					topologyBusRows(data.Topology),
+				)
+			}
+			if data.Topology.ProjectionHost != nil {
+				<p class="muted">
+					Projection host:
+					{ strconv.Itoa(data.Topology.ProjectionHost.Workers) }
+					workers,
+					if data.Topology.ProjectionHost.Started {
+						<strong>started</strong>
+					} else {
+						<strong>stopped</strong>
+					}
+				</p>
+			}
+		}
+	}
+	if data.HasPlacement {
+		<h2>Query Placements</h2>
+		if data.PlacementErr != nil {
+			<p class="muted" role="alert">{ "placements unavailable: " + data.PlacementErr.Error() }</p>
+		} else if len(data.Placements) == 0 {
+			@emptyStatePanel(icons.Cube, "No queries planned", "")
+		} else {
+			@rawDataTable(
+				plainHeaders("Query", "Engine", "ADT", "Volume", "Est. Latency"),
+				"",
+				placementRows(data.Placements),
+			)
+		}
+	}
+	if len(data.Stats) > 0 {
+		<h2>Engine Latency</h2>
+		@display.Grid(display.GridProps{
+			BaseProps:   utils.BaseProps{Class: "mb-6"},
+			Cols:        display.GridColsAutoFit,
+			MinColWidth: "190px",
+			Gap:         display.GridGapMD,
+		}) {
+			for _, stat := range data.Stats {
+				@statCard(engineStatCardID(stat), engineRTTValue(stat), stat.Name, engineStatTone(stat))
+			}
+		}
+		@rawDataTable(
+			plainHeaders("Engine", "Samples", "RTT EWMA", "P95", "Last Sample", "Freshness"),
+			"",
+			engineStatsRows(data.Stats),
+		)
+	}
+}
+
+templ topologyInstanceRows(topology topologyView) {
+	for _, instance := range topology.Instances {
+		<tr>
+			<td class="cell-emph">{ instance.Name }</td>
+			<td>{ instance.Role }</td>
+			<td class="mono">{ instance.EngineName }</td>
+			<td>{ instance.DriverName }</td>
+			<td>{ instance.Durability }</td>
+			<td>@badge(instance.HealthStatus, instanceHealthBadgeType(instance.HealthStatus))
+</td>
+			<td class="mono">{ strings.Join(instance.Collections, ", ") }</td>
+		</tr>
+	}
+}
+
+templ topologyBusRows(topology topologyView) {
+	for _, bus := range topology.Buses {
+		<tr>
+			<td class="cell-emph">{ bus.Name }</td>
+			<td>{ bus.Driver }</td>
+			<td>{ bus.Mode }</td>
+		</tr>
+	}
+}
+
+templ placementRows(placements []placementView) {
+	for _, placement := range placements {
+		<tr>
+			<td class="cell-emph">{ placement.Query }</td>
+			<td class="mono">{ placement.Engine }</td>
+			<td>{ placement.ADT }</td>
+			<td>{ strconv.FormatInt(placement.Volume, 10) }</td>
+			<td class="mono">{ formatEstLatencyMs(placement.EstLatencyMs) }</td>
+		</tr>
+	}
+}
+
+templ engineStatsRows(stats []engineStatsView) {
+	for _, stat := range stats {
+		<tr>
+			<td class="cell-emph">{ stat.Name }</td>
+			<td>{ strconv.Itoa(stat.Samples) }</td>
+			<td class="mono">{ stat.EWMA.Round(time.Microsecond).String() }</td>
+			<td class="mono">{ stat.P95.Round(time.Microsecond).String() }</td>
+			<td>{ formatLastSample(stat.LastSample) }</td>
+			<td>@badge(engineFreshnessLabel(stat), engineFreshnessBadgeType(stat))
+</td>
+		</tr>
+	}
+}

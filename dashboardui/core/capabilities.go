@@ -7,8 +7,9 @@
 // without pulling in the dashboard's rendering layer.
 //
 // The standalone [Dashboard] in the parent package is built on top of core:
-// it fetches data via core functions and renders it via fmt.Fprintf-based
-// handlers. Future consumers can use core directly with their own rendering.
+// it fetches data via core functions and renders it through templ
+// components. Future consumers can use core directly with their own
+// rendering.
 // cqrs-lint:ignore(E014) drain/read-your-writes is owned by the enclosing usermgmt.Service consumers, not this pure data layer
 package core
 
@@ -54,6 +55,11 @@ type Config struct {
 	EventBus        event.Bus
 	PageSize        int
 	PayloadRenderer PayloadRenderer
+
+	Topology      TopologyProvider
+	EngineHealths EngineHealthProvider
+	Placements    PlacementsProvider
+	EngineStats   EngineStatsProvider
 }
 
 // Capabilities describes which panels are available based on the
@@ -70,6 +76,7 @@ type Capabilities struct {
 	QueryJournal    bool
 	SnapshotStore   bool
 	EventBus        bool
+	Telemetry       bool
 }
 
 // DetectCapabilities inspects the Config and returns which panels can
@@ -87,6 +94,8 @@ func DetectCapabilities(cfg Config) Capabilities {
 		QueryJournal:    cfg.QueryJournal != nil,
 		SnapshotStore:   cfg.SnapshotStore != nil,
 		EventBus:        cfg.EventBus != nil,
+		Telemetry: cfg.Topology != nil || cfg.EngineHealths != nil ||
+			cfg.Placements != nil || cfg.EngineStats != nil,
 	}
 }
 

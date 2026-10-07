@@ -1,0 +1,123 @@
+# Status: art-dupl Deduplication Session (8 actionable clone groups, threshold 4)
+
+**Date:** 2026-10-07 02:11 CEST · **Session scope:** triage + deduplicate the art-dupl report (279 detected / 271 suppressed / 8 shown) in cqrs-htmx · **Concurrent session:** ACTIVE in this tree (systemadapter + dashboardui StreamReader work + scripts/ci/flake) — its in-flight state directly blocks one verification step below.
+
+---
+
+## a) FULLY DONE
+
+| # | Item | Evidence |
+|---|------|----------|
+| 1 | All 8 clone groups read at source and triaged (extract / accept / exclude) with recorded rationale | Group verdicts in section (c) + below |
+| 2 | **Group #4 — usermgmt marshal+rewrap duplication (3 sites: membership/tenant/bot Handle)** — `marshalViewJSON` now returns the concrete `*errorfamily.Error`; every Handle attaches context via `marshalErr.WithContextAny("agg_id", aggID)` instead of re-wrapping with a duplicated errCode (the old code stacked two Infrastructure layers carrying the same code) | `usermgmt/sql_view_marshal.go`, `usermgmt/sql_readmodel_extra.go` |
+| 3 | Group #4 verification: build rc=0 · vet rc=0 · **full usermgmt test suite `-race` rc=0** · golangci-lint 0 issues · scoped erraudit: 0 findings in touched files · workspace-wide `erraudit-inventory` TOTAL=0 criticals · treefmt clean (0 changed) | `/tmp` gate logs this session; files now in HEAD via daemon commit |
+| 4 | **Group #2 code — adminui/dashboardui twin asset handlers (~50 lines each) collapsed into one root-owned implementation**: new `cqrshtmx.ServeAsset(name, contentType, data)` + `cqrshtmx.AssetETag(name, data)` in `asset_serve.go` (immutable posture: content-derived FNV-1a ETag, 1-year Cache-Control, nosniff, ServeContent 304/ranges); both modules' `newAssetHandler` are now thin fs-readers delegating to it; both `contentETag` copies deleted; `dashboardui serveConstAsset` is now a 1-line delegate (its const-asset routes GAIN the nosniff header — deliberate alignment) | `asset_serve.go` (new), `asset_serve_test.go` (new), `adminui/assets.go`, `dashboardui/assets.go`, `dashboardui/layout.go`, both `assets_test.go` |
+| 5 | Group #2 verification (workspace mode, the CI module-gate mode): root/adminui/dashboardui builds rc=0 ×3 · vet rc=0 ×3 · root targeted tests (new asset tests + reused `runConditionalGetSpec` If-None-Match contract + htmx/sync specs) rc=0 · **adminui FULL test suite rc=0** · dashboardui **asset-surface** tests rc=0 | gate logs this session |
+| 6 | Red herring isolated honestly: dashboardui `TestFromSystem_MapsEveryCapability` failure ("StreamReader should be wired") proven NOT mine — the test file is untracked work of the concurrent session and does not exist at HEAD (verified in an isolated `git worktree` at HEAD, since removed) | worktree run rc="no tests to run" at HEAD |
+| 7 | erraudit rc=69 anomaly root-caused: ad-hoc `buildflow -s 'erraudit@usermgmt'` trips its findings gate on 18 severity≥error findings that are PRE-EXISTING blank-identifier warnings in files this session never touched, while the CI-wired `erraudit-inventory` gate (criticals) reports 0 — consistent with the closed gotcha-8 class; ad-hoc gate severity semantics ≠ wired gate semantics | `/tmp/ea.log` vs `nix run .#erraudit-inventory` output |
+
+## b) PARTIALLY DONE
+
+| # | Item | Remaining |
+|---|------|-----------|
+| 1 | Group #2 (asset handler dedup) — code complete and verified as above | golangci-lint not yet run on root/adminui/dashboardui for this phase; treefmt not yet run on the new/edited files; CHANGELOG receipts (root API addition + ETag format change + nosniff alignment) not yet written; my own scoped phase commit not made |
+| 2 | dashboardui FULL test suite for Phase B | Blocked ONLY by the concurrent session's mid-flight `from_system_test.go`/`system_bridge.go`/`autodetect.go`/`core/capabilities.go` work; my asset-surface subset passes; must re-run full suite once their work lands |
+| 3 | Session hygiene | Phase A landed via the auto-commit daemon as mixed heuristic commits (my usermgmt files entangled with the foreign session's systemadapter/ci/flake files in `471d8661`, `d2a58555`, `4e16a0e3`) — content is verified and in HEAD, but attribution is polluted and unfixable without rewriting shared history |
+| 4 | Hermetic `GOWORK=off` builds for adminui/dashboardui | Expected mid-train failure: the proxy's published root (v4.13.x) does not contain `ServeAsset` yet; resolves at the next release train (root tag → consumer requires-bump). Workspace mode (what CI's workspace-build gate uses) is green. State is documented, not broken |
+
+## c) NOT STARTED
+
+| # | Item | Decision already made |
+|---|------|----------------------|
+| 1 | **Group #1 — dashboardui test-setup extraction**: `newTestDashboard(t)` / `newTestDashboardMux(t)` helpers in a new `testsetup_test.go`; convert the 5 flagged sites + the ~18 exact-vanilla-config sites | Scope measured: 65 total `NewMemoryStore` sites, ~21 deviate with extra config fields (StreamReader/EventBus/ReadOnly/...) and stay custom |
+| 2 | Group #8 — `handlers_audit.go` commandsIndex/queriesIndex twins (~85 parallel lines) | **ACCEPT** — a unification needs ~6 callbacks (different journal interfaces `ReadFrom` vs `ReadQueriesFrom`, separate exporters, separate ID parsers, separate renderers); parallel-by-design. One-line rationale comment pending |
+| 3 | Groups #3/#5/#6/#7 — templ glue clones (list empty/table/pagination; adminui table+note+pager; overview statCard self-overlap; dlq/snapshots h3+dl+pre detail glue) | **ACCEPT** all four — each site already composes extracted components; a children-slot `listSection` would take ~8 params for ~6 lines of declarative glue; `events.templ` proves the family diverges (filters, sort badges, format links); Group #6 is a detector self-overlap of ONE component (nothing duplicated). Rationale comments pending; `.templ` comment edits require `templ generate` from the module dir + `.#check-codegen` |
+| 4 | art-dupl re-run (`--sort total-tokens -t 4`) to verify the flagged groups are gone and no new clones were introduced | — |
+| 5 | Full verification battery: `nix run .#build` / `.#test` / `.#lint` / `check-modules` / `erraudit-inventory --gate` / `check-cqrs-lint` | — |
+| 6 | TODO_LIST.md entry (broader test-helper sweep + HARVEST of section f) | — |
+
+## d) TOTALLY FUCKED UP
+
+Nothing shipped is broken — but three self-inflicted incidents happened and were caught by the gates:
+
+1. **Typed-nil interface bug (introduced, then reverted by me, caught by tests).** My first fix changed `deleteViewOnTombstone` to return `*errorfamily.Error`; that made `return err` in the Handle methods return a non-nil `error` interface wrapping a nil pointer — 3 tombstone tests failed with literally `<nil>`. Reverted to the signature-stable shape (rename to `marshalErr` at the reuse site). Lesson recorded in the helper comment.
+2. **Self-inflicted syntax break in `dashboardui/assets_test.go`** — a block-replace swallowed a `func` keyword and commented out a test declaration; caught by the package build, fixed in one edit.
+3. **Attribution pollution (process, not code):** I verified Phase A but did not commit it at the phase boundary — the daemon shredded it into 3 mixed heuristic commits entangled with the concurrent session's files. This is gotcha 4's exact failure mode, hit live.
+
+Also: one rc-masked-by-pipe repeat (gotcha 3 — `go build | head; echo $?`), and stale gopls diagnostics phantom-flagging the already-fixed code (gotcha 14 — resolved via the compiler, as prescribed).
+
+## e) WHAT WE SHOULD IMPROVE
+
+**What did I forget?**
+
+- `preflight-tree-check` immediately before Phase A's first edit (only ran it at session start; the concurrent session arrived in between).
+- Loading the BuildFlow skill before the first verification phase instead of mid-session.
+- Re-checking `git status`/file ownership per-file before editing `dashboardui/layout.go` (the foreign session was already in that package — got lucky).
+- That a scoped self-commit AFTER verification — not "after the whole phase set" — is the only thing that beats the daemon.
+
+**What could I have done better?**
+
+- Treat "`:=` err-reuse + typed-nil" as a first-class hazard the moment a helper's error return type changes; run the three tombstone tests BEFORE the full suite (the full suite found it, 19s of noise that one targeted run would have found in 1s).
+- State the Group #1 scope decision (flagged-5 vs class-of-65) in the todo list from step 0 instead of discovering the 65 during implementation.
+- Verify what a `-run` pattern actually matched (the dashboardui targeted run printed `ok` — I should have asserted the test count, not just rc).
+
+**What could I still improve (opportunities seen, not done)?**
+
+- The ad-hoc `buildflow -s 'erraudit@<module>'` gate (fails on 18 severity≥error pre-existing warnings) vs the wired `erraudit-inventory` gate (0 criticals) is a severity split-brain worth one AGENTS.md sentence — an agent following gotcha 8's scoped-step primitive will hit rc=69 and lose time.
+- root's `serveJS` (405-gating, writeAll, version-ETag) vs the new `ServeAsset` (ServeContent, content-ETag) are two postures of one concept — a deliberate divergence today; worth either a comment or a follow-up consolidation decision.
+- A repo sentence documenting that mid-train cross-module API additions make hermetic `GOWORK=off` consumer builds red BY DESIGN (workspace gate is the truth until the train) would save the next agent the 10 minutes I spent re-deriving it.
+
+## f) TOP NEXT (up to 50, impact-ordered; first ~15 finish this task)
+
+| # | Task | Impact |
+|---|------|--------|
+| 1 | Coordinate/wait for the concurrent session's dashboardui StreamReader work to land, then re-run the FULL dashboardui suite (my asset subset already green) | HIGH — unblocks Phase B sign-off |
+| 2 | treefmt the Phase B files (`asset_serve*.go`, `adminui/assets*`, `dashboardui/assets*`, `dashboardui/layout.go`) | HIGH |
+| 3 | golangci-lint on root + adminui + dashboardui | HIGH |
+| 4 | Scoped erraudit on root/adminui/dashboardui (errConfig paths touched) | MED |
+| 5 | Full root test suite (not just the targeted asset/htmx/sync subset) | HIGH |
+| 6 | Write CHANGELOG receipts: root (new `ServeAsset`/`AssetETag` API), adminui + dashboardui (ETag format change = one-time consumer revalidation; const-asset routes gain nosniff) — consumer-visible per gotcha 20 | HIGH |
+| 7 | Commit Phase B myself (scoped staging, message notes the next-train bump requirement) at the verified boundary | HIGH |
+| 8 | Group #1: create `dashboardui/testsetup_test.go` helpers; convert the 5 flagged sites | HIGH |
+| 9 | Group #1: mechanically convert the ~18 exact-vanilla-config sites; leave deviating fixtures with a one-liner | MED |
+| 10 | Group #8: add the ACCEPT rationale comment on the audit handler pair | LOW |
+| 11 | Groups #3/#5/#7: ACCEPT rationale comments in `dashboardui/components.templ` + `adminui/components.templ`; Group #6 needs none | LOW |
+| 12 | `templ generate` from module dir + `nix run .#check-codegen` after (11) | MED |
+| 13 | Re-run art-dupl with the same flags; confirm the 8 groups are gone; triage anything new | HIGH |
+| 14 | Full battery: `nix run .#build`, `.#test`, `.#lint`, `check-modules`, `erraudit-inventory --gate`, `check-cqrs-lint` | HIGH |
+| 15 | TODO_LIST.md: add the broader 65-site test-helper sweep chore + HARVEST this report's section f | MED |
+| 16 | Next release train: root tag first, then adminui/dashboardui requires-bump (unblocks the hermetic builds) | HIGH (train) |
+| 17 | Decide: consolidate root `serveJS` into `ServeAsset` (or document the deliberate divergence) | MED |
+| 18 | AGENTS.md: one sentence on the ad-hoc erraudit gate vs wired inventory severity split-brain | MED |
+| 19 | AGENTS.md: one sentence on mid-train hermetic-build reds being expected for cross-module API additions | MED |
+| 20 | Verify the foreign session's dashboardui changes (routes.go, autodetect.go, system_bridge.go) after landing — package-level interaction with my asset changes | MED |
+| 21 | Confirm dashboardui golden tests still green (my changes touch no templ output) | MED |
+| 22 | Confirm `check-css-bundles`/`check-css-bundle-classes` unaffected (no CSS touched) | LOW |
+| 23 | Check repo root for stray `buildflow-fsprobe-*` binaries (gotcha 8) | LOW |
+| 24 | FEATURES.md: add `ServeAsset`/`AssetETag` to the root module inventory if the table lists handler APIs | LOW |
+| 25 | Root README handler catalogue: add ServeAsset row if such a list exists | LOW |
+| 26 | Re-run `preflight-tree-check` before EVERY remaining tree-mutating step (currently red from foreign work) | MED |
+| 27 | Consider `references/lessons.md` entry (crush-config, by commit): typed-nil-on-error-signature-refactor as a cross-project Go lesson | LOW |
+| 28 | Sweep: do adminui tests deserve the same setup-helper treatment (not flagged by art-dupl; check site count) | LOW |
+| 29 | Re-check `git log` attribution after the daemon's next sweep; amend nothing shared | LOW |
+| 30 | Decide Group #1 helper naming/placement review against `cspDashboard`/`fmtDashboard` per-file helpers (delegate or retire them) | MED |
+| 31 | Run `check-docs-tail-budget` (advisory) since this report adds a docs tail file | LOW |
+| 32 | After train: re-pin `docs/benchmarks` NOT needed (no bench-path edits) — confirm gate skips | LOW |
+| 33 | Double-check `check-streamid-identity` unaffected (no StreamID usage changed) | LOW |
+| 34 | Sweep docs cross-links that mention "contentETag" or the old ETag format | LOW |
+| 35 | Consider `ServeAsset` doc-example alignment with root README §Serving htmx.js | LOW |
+| 36 | Verify LSP stale-diagnostics didn't leave phantom findings in files I touched (golangci-lint is the bar — task 3) | MED |
+| 37 | Post-train: `go mod tidy -diff` per module + workspace tidy for the bump commit (gotcha 27a class) | MED (train) |
+| 38 | Post-train: tag-level `GOWORK=off` integration_test run (gotcha 27b) | MED (train) |
+| 39 | Consider an `erraudit`-style allowlist note for the 18 pre-existing usermgmt warnings (or fix them in a separate chore — NOT this session's scope) | LOW |
+| 40 | Close the loop: annotate this report via docs-health ANNOTATE once items land | LOW |
+
+## g) TOP QUESTIONS I CANNOT FIGURE OUT MYSELF
+
+1. **Coordination with the concurrent session:** its in-flight dashboardui work (`from_system_test.go` expects StreamReader wiring that `system_bridge.go`/`autodetect.go` don't fully provide yet) blocks the full-package dashboardui suite AND `preflight-tree-check` is red from its dirty systemadapter/docs files. Should I (a) wait for it to land before running the full suite and committing Phase B, or (b) stage-commit my disjoint Phase B files now? I cannot see the other session's plan or ETA.
+2. **ETag format change:** the dedup changes adminui/dashboardui ETag values from `"adminui-<name>-<016xhash>"` to `"<name>-<hexhash>"` (opaque to clients; one-time revalidation; all tests derive tags dynamically). Acceptable with a CHANGELOG note, or do you require byte-identical ETags (I would then thread the module prefix through `ServeAsset`)?
+3. **Group #1 sweep width:** convert only the 5 art-dupl-flagged sites now (small diff, report-driven), or all ~18 exact-vanilla-config sites in this session (bigger mechanical diff, kills the class), with the ~40 deviating fixtures left custom + a TODO_LIST chore?
+
+---
+
+*Point-in-time snapshot — annotate, never rewrite (docs/status/README.md). Generated 2026-10-07 02:11 CEST.*

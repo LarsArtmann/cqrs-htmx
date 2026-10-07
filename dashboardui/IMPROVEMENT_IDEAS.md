@@ -1,28 +1,29 @@
 # DashboardUI Improvement Ideas
 
-> **Pruned:** 2026-08-05 — The original 883-line file contained 350+ items, ~80% already resolved. This rewrite keeps only genuinely open work, cross-referenced against the current codebase.
+> **Pruned:** 2026-08-05 — original 883-line file, 350+ items, ~80% resolved.
+> **Pruned again:** 2026-10-07 — every open T-item was re-verified against
+> CHANGELOG + code; shipped ones are struck inline. Stale-item check: before
+> adding work here, grep `CHANGELOG.md` and the README for the T-number —
+> an item listed as open here while the CHANGELOG receipts it is the exact
+> split-brain this file exists to prevent.
 
 ---
 
 ## Open Work (by priority)
 
-### Architecture
-
-- ~~**Templ migration evaluation**~~ **DONE 2026-09-22** — the decision document (`docs/planning/templ-migration-evaluation.md`) deferred it with a ~5,000-line revisit threshold; the threshold was hit and the full templ migration executed (9 `.templ` files, zero strings.Builder HTML left, all tests/gates green).
-- **Separate data loading from rendering** — Handlers mix data loading (journal/store calls) with HTML rendering. Splitting into `loadX(ctx) (data, error)` + `renderX(data) string` would improve testability.
-
 ### UX Polish
 
-- **Sortable columns** — All tables are static order. Add clickable headers with `?sort=col&dir=asc`. See T12.
-- **Page-size selector** — `?limit=` works but there's no dropdown UI. See T13.
-- **Keyboard navigation for time-travel** — Arrow left/right to scrub versions on the slider. See T17.
-- **Command/query status badge** — Show success/failure + duration if available from persisted metadata. See T18.
+- **Command/query status badge** — Show success/failure + duration if available from persisted metadata. See T18. (Verified still open 2026-10-07: no status/duration column in `audit.templ`.)
 
-### Advanced Features
+### Shipped while listed as open (struck 2026-10-07)
 
-- **CSV export** — Export events/commands/DLQ tables as CSV. See T21.
-- **JSON API mode** — `?format=json` returns JSON instead of HTML for programmatic access. See T22.
-- **Demo with seeded data** — A runnable demo with events, projections, DLQ entries, commands. See T24.
+- ~~**Separate data loading from rendering**~~ **DONE** — the `core/` pure-data package owns every fetch; handlers render templ components on top.
+- ~~**Sortable columns** (T12)~~ **DONE** — sortable headers via `?sort=`/`?dir=` (README § Sorting).
+- ~~**Page-size selector** (T13)~~ **DONE** — dropdown UI over `pageSizeOptions`.
+- ~~**Keyboard navigation for time-travel** (T17)~~ **DONE** — slider scrubs with the arrow keys.
+- ~~**CSV export** (T21)~~ **DONE** — README § CSV and JSON Export.
+- ~~**JSON API mode** (T22)~~ **DONE** — same section.
+- ~~**Demo with seeded data** (T24)~~ **DONE** — `examples/dashboard-demo/` (8 users, orders, projections, 5s live-event publisher).
 
 ### Resolved (not listed)
 

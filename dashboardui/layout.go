@@ -1,11 +1,10 @@
 package dashboardui
 
 import (
-	"bytes"
 	"net/http"
 	"strings"
-	"time"
 
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -42,6 +41,8 @@ func mapNavIconName(name string) icons.Name {
 		return icons.Clock
 	case "archive":
 		return icons.ArchiveBox
+	case "signal":
+		return icons.Signal
 	default:
 		return icons.Question
 	}
@@ -70,20 +71,12 @@ func (d *Dashboard) serveJS() http.HandlerFunc {
 	return serveConstAsset("dashboard.js", "text/javascript; charset=utf-8", dashboardJS)
 }
 
-// serveConstAsset serves an in-source constant asset with the same
-// content-hash ETag and immutable caching as the embedded assets
-// ([newAssetHandler]) — one caching rule for every dashboard-served asset.
+// serveConstAsset serves an in-source constant asset through the root
+// module's immutable-asset posture — one caching rule for every
+// dashboard-served asset ([newAssetHandler] rides the same
+// [cqrshtmx.ServeAsset]).
 func serveConstAsset(name, contentType, body string) http.HandlerFunc {
-	data := []byte(body)
-	tag := contentETag(name, data)
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", contentType)
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		w.Header().Set("ETag", tag)
-		// Zero modtime disables Last-Modified; the ETag drives 304 responses.
-		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
-	}
+	return cqrshtmx.ServeAsset(name, contentType, []byte(body)).ServeHTTP
 }
 
 const dashboardCSS = `

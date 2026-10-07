@@ -1,6 +1,7 @@
 package dashboardui
 
 const (
-	jsonKeyStatus = "status"
-	jsonKeyReady  = "ready"
+	jsonKeyStatus  = "status"
+	jsonKeyReady   = "ready"
+	jsonKeyEngines = "engines"
 )

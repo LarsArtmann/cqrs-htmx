@@ -99,6 +99,15 @@ func Autodetect(sources ...any) (Config, error) {
 	var config Config
 
 	for _, source := range sources {
+		// A System source carries its own accessor-shaped capabilities —
+		// map them through the bridge instead of the leaf probes (which a
+		// System implements none of).
+		if sys, ok := source.(System); ok {
+			applySystem(&config, sys)
+
+			continue
+		}
+
 		for _, p := range readProbes {
 			p.probe(&config, source)
 		}

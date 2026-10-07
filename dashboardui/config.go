@@ -63,6 +63,25 @@ type Config struct {
 	// EventBus enables SSE live updates (event tail, projection changes).
 	EventBus event.Bus
 
+	// Topology enables the read-only telemetry panel's topology section:
+	// deployed instances, buses, and the projection host shape. Providers
+	// return dashboard-owned views (core.TopologyView) — an adapter maps a
+	// go-cqrs-lite *system.System onto them (see systemadapter).
+	Topology core.TopologyProvider
+
+	// EngineHealths composes per-engine health into /-/healthz and /-/readyz:
+	// unhealthy engines are listed on healthz and fail readyz.
+	EngineHealths core.EngineHealthProvider
+
+	// Placements enables the query-placement table: which engine and ADT the
+	// metaengine planner assigned to each query, at what volume and latency
+	// estimate.
+	Placements core.PlacementsProvider
+
+	// EngineStats enables the engine stat cards: live RTT EWMA/percentiles
+	// and sample counts per engine.
+	EngineStats core.EngineStatsProvider
+
 	// SSEHeartbeatInterval controls how often connected SSE clients receive
 	// keep-alive comment frames. A non-positive value disables heartbeats.
 	// Default: 15 seconds.
@@ -239,6 +258,10 @@ func buildNav(caps Capabilities) []navItem {
 
 	if caps.SnapshotStore {
 		add("/snapshots", "Snapshots", "archive")
+	}
+
+	if caps.Telemetry {
+		add("/telemetry", "Telemetry", "signal")
 	}
 
 	return items

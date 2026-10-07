@@ -25,8 +25,9 @@ cd "$REPO_ROOT" || exit 1
 
 LOG_TAG="$$-$(date +%s)" # fixed per-run tag: no per-invocation word splitting
 
-stage_wanted() { # <name> — true unless PARITY_SKIP lists it or args restrict
+stage_wanted() { # <name> [restricting-names...] — true unless PARITY_SKIP
   local name="$1"
+  shift
   if [ "${PARITY_SKIP:-}" != "" ]; then
     case ",${PARITY_SKIP:-}," in
     *",$name,"*) return 1 ;;
@@ -69,6 +70,11 @@ if stage_wanted tidy "$@"; then
   tidy_fail=0
   while IFS= read -r gomod; do
     dir="$(dirname "$gomod")"
+    # Fixture go.mods (scripts/testdata/*) are deliberate non-buildable
+    # fixtures — bump-dep excludes them; so does this loop.
+    case "$dir" in
+    */testdata/*) continue ;;
+    esac
     if ! (cd "$dir" && GOWORK=off GOEXPERIMENT=jsonv2 go mod tidy -diff >/dev/null 2>&1); then
       echo "  TIDY DRIFT: $gomod"
       tidy_fail=1

@@ -3,22 +3,23 @@
 //
 // This module lets consumers use system.New() as their infrastructure backbone
 // while still getting all 20 identity-model commands and 21 event types wired
-// automatically. The consumer provides a DeploymentConfig (engines, buses) and
-// calls system.New() with the DomainConfig from this package.
+// automatically: DomainConfig supplies the domain, a Recommended* preset
+// supplies the infrastructure shape, and system.New composes them.
 //
 // Example:
 //
-//	domain := systemadapter.DomainConfig()
-//	deployment := system.DeploymentConfig{
-//		Engines: map[string]system.EngineConfig{
-//			"primary": {Driver: "memory"},
-//		},
-//		Instances: []system.InstanceConfig{
-//			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
-//			{Role: system.RoleProjections, Engines: []string{"primary"}},
-//		},
-//	}
+//	domain := systemadapter.DomainConfig()          // 4 deciders, 20 commands,
+//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 21 events, projections
 //	sys, err := system.New(ctx, domain, deployment)
+//
+// Projection-side knobs ride the same call: WithCheckpointStore supplies the
+// durable checkpoint store, WithDeadLetterStore replaces the in-memory DLQ
+// default, and WithHostOptions appends projectionhost options after
+// systemadapter's curated defaults.
+//
+// Runnable proof: examples/system-demo/. Declarative projections are the
+// canonical path (NewProjectionLayer is the deprecated pre-declarative
+// equivalent); see docs/guides/declarative-projections.md.
 package systemadapter
 
 import (

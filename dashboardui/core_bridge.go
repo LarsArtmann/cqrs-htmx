@@ -127,6 +127,10 @@ func (config Config) coreConfig() core.Config {
 		EventBus:        config.EventBus,
 		PageSize:        config.PageSize,
 		PayloadRenderer: config.PayloadRenderer,
+		Topology:        config.Topology,
+		EngineHealths:   config.EngineHealths,
+		Placements:      config.Placements,
+		EngineStats:     config.EngineStats,
 	}
 }
 

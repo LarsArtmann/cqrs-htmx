@@ -42,6 +42,7 @@ The panel meets your app at whatever depth you want — from "give me a URL" to
 | ----------------------------- | -------------------------------- | ----------------------------- | ------------------------------------------------ |
 | **Destination** (default)     | A mount path + auth middleware   | The whole page, top to bottom | `New` + `Mount`                                  |
 | **Embedded**                  | The app shell (nav, CSS, theme)  | Panel content only            | `Config.Layout`                                  |
+| **From a go-cqrs-lite system**| The DeploymentConfig             | Everything the system exposes | `FromSystem(sys)`                                |
 | **Headless data**             | The entire UI                    | Introspection queries         | the `core` sub-package (next section)            |
 
 ### Destination (zero-config)
@@ -74,6 +75,30 @@ At least one source must implement a read interface (`event.EventSource`,
 Explicit `Config` field assignment still works (and `New` still enforces the
 same "at least one read interface" rule) — `Autodetect` only removes the
 plumbing, it does not change the contract.
+
+### From a go-cqrs-lite system
+
+If you compose with `system.New()` (the `systemadapter` bridge), `FromSystem`
+maps the system's event store, bus, projection host, snapshot store, and
+command/query stores onto a ready Config — no manual assertion dance, no
+dashboardui dependency on the system package (the seam is a duck-typed
+accessor interface any system wrapper also satisfies):
+
+```go
+sys, _ := system.New(ctx, systemadapter.DomainConfig(),
+    systemadapter.RecommendedSQLiteDeployment("file:app.db"))
+_ = sys.Start(ctx)
+
+cfg := dashboardui.FromSystem(sys) // panels light up per capability
+cfg.Title = "MyApp CQRS"
+dash := dashboardui.MustNew(cfg)
+dash.Mount(mux, "/cqrs/")
+```
+
+`Autodetect` recognizes system values in its source list too, so stores and
+systems merge with the usual first-wins rule. Engines without a native stream
+reader get a journal-derived one, so the aggregates panel lights up
+everywhere. Guide: `docs/guides/leveraging-system-metaengine.md`.
 
 ### Embedded (your app shell, our panels)
 
@@ -359,6 +384,25 @@ The time-travel detail page includes a version slider with keyboard navigation:
 - **Live value display**: The version number updates as the slider moves
 - **Version links**: For streams with <= 20 versions, individual version numbers are clickable
 
+## Telemetry (read-only)
+
+Four optional Config providers light up a `/telemetry` panel and probe
+composition — dashboard-owned view structs, so no system/metaengine types leak
+into the rendering layer:
+
+- `Topology` — instances, buses, and the projection-host shape as a table.
+- `EngineHealths` — per-engine health rides on `/-/healthz` (`engines` key)
+  and gates `/-/readyz` (an unhealthy engine is a 503: keep the pod out of
+  rotation until it recovers or is quarantined).
+- `Placements` — the metaengine planner's query→engine/ADT assignments with
+  volume and latency estimates.
+- `EngineStats` — live RTT cards (EWMA, P95, samples) with a freshness badge
+  (samples older than 5 minutes render stale).
+
+Each section renders independently — a failing provider shows its inline
+error without blanking the others. `systemadapter.WireDashboardTelemetry`
+maps a go-cqrs-lite `*system.System` onto all four in one call.
+
 ## Observability Endpoints
 
 Three unauthenticated endpoints for load balancers and Kubernetes probes:
@@ -407,14 +451,6 @@ The dashboard is fully responsive:
 - **Table scroll**: Data tables scroll horizontally within a wrapper on narrow screens
 - **Filter bar stacking**: Filter controls stack vertically on mobile
 - **Stat cards**: `display.Grid` auto-fit (`minmax(190px, 1fr)`) — cards reflow to the container width (roughly 2 columns on phones, 4+ on desktop)
-
-## Copy-to-Clipboard
-
-Identifiers (event IDs, stream IDs, correlation IDs, etc.) are click-to-copy:
-
-- Click any element with the copy cursor to copy its value to the clipboard
-- A toast notification confirms the copy
-- The `data-copyable` attribute on any HTML element enables this behavior
 
 ## Accessibility
 

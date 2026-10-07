@@ -8,19 +8,26 @@ import (
 )
 
 // healthzHandler is a liveness probe. Always returns 200 if the process
-// is running and the dashboard has not been closed.
-func (d *Dashboard) healthzHandler(w http.ResponseWriter, _ *http.Request) {
+// is running and the dashboard has not been closed. With an EngineHealths
+// provider configured, per-engine health rides along — liveness itself
+// never depends on it (a sick engine is not a dead process).
+func (d *Dashboard) healthzHandler(w http.ResponseWriter, r *http.Request) {
 	select {
 	case <-d.done:
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{jsonKeyStatus: "shutting_down"})
 	default:
-		writeJSON(w, http.StatusOK, map[string]any{jsonKeyStatus: "ok"})
+		payload := map[string]any{jsonKeyStatus: "ok"}
+		if engines := d.engineHealthPayload(r); engines != nil {
+			payload[jsonKeyEngines] = engines
+		}
+
+		writeJSON(w, http.StatusOK, payload)
 	}
 }
 
 // readyzHandler is a readiness probe. Returns 200 when the dashboard has
 // at least one data source configured and has not been closed.
-func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
+func (d *Dashboard) readyzHandler(w http.ResponseWriter, r *http.Request) {
 	select {
 	case <-d.done:
 		writeJSON(
@@ -42,7 +49,33 @@ func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	// Engine health gates readiness: a quarantined or erroring engine means
+	// the system cannot serve queries yet, so the orchestrator must keep this
+	// pod out of rotation.
+	engines := d.engineHealthPayload(r)
+	for _, engine := range engines {
+		if !engine.Healthy {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+				jsonKeyStatus:  "engine_unhealthy",
+				jsonKeyReady:   false,
+				jsonKeyEngines: engines,
+			})
+
+			return
+		}
+	}
+
 	writeJSON(w, http.StatusOK, map[string]any{jsonKeyStatus: "ready", jsonKeyReady: true})
+}
+
+// engineHealthPayload collects the provider's view; nil when no provider is
+// configured (the v4 zero-config default — probes stay as they were).
+func (d *Dashboard) engineHealthPayload(r *http.Request) []engineHealthView {
+	if d.config.EngineHealths == nil {
+		return nil
+	}
+
+	return d.config.EngineHealths(r.Context())
 }
 
 // versionzHandler returns build and configuration metadata. The module and

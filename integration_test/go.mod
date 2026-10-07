@@ -10,6 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1
@@ -23,6 +24,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.4
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.2
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-health v0.5.0
@@ -57,6 +59,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.21.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.8 // indirect
+	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
@@ -73,15 +76,23 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
+	github.com/knadh/koanf/maps v0.1.3 // indirect
+	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
+	github.com/knadh/koanf/providers/env v1.1.0 // indirect
+	github.com/knadh/koanf/providers/file v1.2.1 // indirect
+	github.com/knadh/koanf/v2 v2.3.7 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
@@ -127,6 +138,8 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.30 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
+	github.com/mitchellh/copystructure v1.2.0 // indirect
+	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 func TestNewAssetHandlerMissingAssetReturnsError(t *testing.T) {
@@ -30,7 +32,7 @@ func TestNewAssetHandlerServesEmbeddedAsset(t *testing.T) {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
 
-	wantTag := contentETag("admin-tw.css", rec.Body.Bytes())
+	wantTag := cqrshtmx.AssetETag("admin-tw.css", rec.Body.Bytes())
 	if got := rec.Header().Get("ETag"); got != wantTag {
 		t.Errorf("ETag = %q, want content-derived %q", got, wantTag)
 	}

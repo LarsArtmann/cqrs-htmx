@@ -27,6 +27,63 @@ func TestUserID_ParseInvalid(t *testing.T) {
 	}
 }
 
+// D13 pins: the brand-prefix strip policy (eba45c80) is GENERIC — anything
+// before the FIRST colon is dropped, whatever the brand says. These fixtures
+// pin the current semantics so the owner's D13 call (generic vs whitelist)
+// is a deliberate, test-visible flip, never a silent drift.
+func TestUserID_ParseBrandPrefix_Policy(t *testing.T) {
+	uid := GenerateUserID()
+	bare := uid.Get().String()
+
+	t.Run("known brand prefix is stripped and parses", func(t *testing.T) {
+		parsed, err := ParseUserID("StreamMarker:" + bare)
+		if err != nil {
+			t.Fatalf("StreamMarker-prefixed id must parse: %v", err)
+		}
+		if parsed.Get() != uid.Get() {
+			t.Errorf("prefix strip changed identity: got %q, want %q", parsed.Get(), bare)
+		}
+	})
+
+	t.Run("unknown brand prefix is also stripped (generic policy)", func(t *testing.T) {
+		parsed, err := ParseUserID("SomeOtherBrand:" + bare)
+		if err != nil {
+			t.Fatalf("generic policy must strip ANY brand: %v", err)
+		}
+		if parsed.Get() != uid.Get() {
+			t.Errorf("prefix strip changed identity: got %q, want %q", parsed.Get(), bare)
+		}
+	})
+
+	t.Run("multi-colon input is rejected (first-colon strip leaves non-ULID)", func(t *testing.T) {
+		if _, err := ParseUserID("a:b:" + bare); err == nil {
+			t.Fatal("multi-colon input must be rejected, not double-stripped")
+		}
+	})
+
+	t.Run("non-ULID tail is rejected", func(t *testing.T) {
+		if _, err := ParseUserID("StreamMarker:not-a-ulid"); err == nil {
+			t.Fatal("non-ULID tail must be rejected")
+		}
+	})
+
+	t.Run("brand-only string is rejected", func(t *testing.T) {
+		if _, err := ParseUserID("StreamMarker:"); err == nil {
+			t.Fatal("brand-only string must be rejected")
+		}
+	})
+
+	t.Run("empty brand (leading colon) is accepted — documented quirk", func(t *testing.T) {
+		parsed, err := ParseUserID(":" + bare)
+		if err != nil {
+			t.Fatalf("leading-colon form must parse under the generic policy: %v", err)
+		}
+		if parsed.Get() != uid.Get() {
+			t.Errorf("leading-colon strip changed identity: got %q, want %q", parsed.Get(), bare)
+		}
+	})
+}
+
 func TestMustParseUserID_Panics(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {

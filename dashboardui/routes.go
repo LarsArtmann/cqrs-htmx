@@ -20,6 +20,7 @@ const (
 	panelQueries       = "Queries"
 	panelTimeTravel    = "Time travel"
 	panelSnapshots     = "Snapshots"
+	panelTelemetry     = "Telemetry"
 )
 
 // Route describes one HTTP route a [Dashboard] serves — the manifest entry
@@ -91,7 +92,9 @@ func serveHTMXScript() http.HandlerFunc {
 // the unconditional rows first, then the capability-gated ones. Capabilities
 // gate the conditional rows; write rows additionally require !ReadOnly.
 func (d *Dashboard) routeTable() []routeSpec {
-	return append(d.unconditionalRoutes(), d.capabilityRoutes()...)
+	routes := append(d.unconditionalRoutes(), d.capabilityRoutes()...)
+
+	return append(routes, d.inspectionRoutes()...)
 }
 
 // unconditionalRoutes are always registered, whatever the store provides.
@@ -301,7 +304,13 @@ func (d *Dashboard) capabilityRoutes() []routeSpec {
 			handler: d.queryDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.QueryJournal }),
 		},
+	}
+}
 
+// inspectionRoutes cover the introspection panels: time-travel, read-only
+// telemetry, and snapshots.
+func (d *Dashboard) inspectionRoutes() []routeSpec {
+	return []routeSpec{
 		// Time-Travel.
 		{
 			method:  http.MethodGet,
@@ -316,6 +325,15 @@ func (d *Dashboard) capabilityRoutes() []routeSpec {
 			panel:   panelTimeTravel,
 			handler: d.timeTravelDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.EventSource }),
+		},
+
+		// Telemetry (read-only): topology, query placements, engine stats.
+		{
+			method:  http.MethodGet,
+			pattern: "/telemetry",
+			panel:   panelTelemetry,
+			handler: d.telemetryHandler,
+			when:    whenCaps(func(caps Capabilities) bool { return caps.Telemetry }),
 		},
 
 		// Snapshot Inspector.

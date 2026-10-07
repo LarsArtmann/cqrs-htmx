@@ -17,14 +17,7 @@ import (
 func setupDeclarativeSystem(t *testing.T) *system.System {
 	t.Helper()
 
-	return setupDeclarativeSystemDeployment(t, system.DeploymentConfig{
-		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "memory"},
-		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
-		},
-	})
+	return setupDeclarativeSystemDeployment(t, systemadapter.RecommendedMemoryDeployment())
 }
 
 // startDeclarativeSystem boots the memory-backed declarative system for a

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
@@ -47,7 +48,7 @@ func TestDashboard_TailwindCSSRoute(t *testing.T) {
 
 	// The ETag is content-derived (FNV-1a over the served bytes), not a
 	// hand-bumped version constant.
-	if want := contentETag("dashboard-tw.css", rec.Body.Bytes()); rec.Header().Get("ETag") != want {
+	if want := cqrshtmx.AssetETag("dashboard-tw.css", rec.Body.Bytes()); rec.Header().Get("ETag") != want {
 		t.Errorf("ETag = %q, want content-derived %q", rec.Header().Get("ETag"), want)
 	}
 
@@ -108,7 +109,7 @@ func TestDashboard_304OnETag(t *testing.T) {
 
 	// A stale ETag must re-serve the full body, not 304.
 	stale := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard-tw.css", nil)
-	stale.Header.Set("If-None-Match", `"dashboardui-dashboard-tw.css-deadbeefdeadbeef"`)
+	stale.Header.Set("If-None-Match", `"dashboard-tw.css-deadbeefdeadbeef"`)
 
 	recStale := httptest.NewRecorder()
 	mux.ServeHTTP(recStale, stale)
@@ -150,7 +151,7 @@ func TestDashboard_JSAssetImmutableAnd304(t *testing.T) {
 		t.Errorf("Cache-Control = %q, want immutable long-lived caching", got)
 	}
 
-	if want := contentETag("dashboard.js", first.Body.Bytes()); first.Header().Get("ETag") != want {
+	if want := cqrshtmx.AssetETag("dashboard.js", first.Body.Bytes()); first.Header().Get("ETag") != want {
 		t.Errorf("ETag = %q, want content-derived %q", first.Header().Get("ETag"), want)
 	}
 
@@ -162,25 +163,6 @@ func TestDashboard_JSAssetImmutableAnd304(t *testing.T) {
 
 	if rec.Code != http.StatusNotModified {
 		t.Fatalf("status = %d, want 304 on matching ETag", rec.Code)
-	}
-}
-
-// TestContentETagChangesWithContent pins the hash property the caching rule
-// relies on: same bytes → same tag, different bytes → different tag.
-func TestContentETagChangesWithContent(t *testing.T) {
-	t.Parallel()
-
-	a := contentETag("asset.css", []byte("body{}"))
-	if a != contentETag("asset.css", []byte("body{}")) {
-		t.Error("contentETag is not deterministic for identical input")
-	}
-
-	if a == contentETag("asset.css", []byte("body{color:red}")) {
-		t.Error("contentETag did not change when the content changed")
-	}
-
-	if a == contentETag("other.css", []byte("body{}")) {
-		t.Error("contentETag did not change when the asset name changed")
 	}
 }
 
