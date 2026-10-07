@@ -18,15 +18,7 @@ import (
 func a11yOverview(t *testing.T) string {
 	t.Helper()
 
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{EventSource: store, Journal: store})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/", nil))

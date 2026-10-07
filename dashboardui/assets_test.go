@@ -75,18 +75,7 @@ func TestDashboard_TailwindCSSRoute(t *testing.T) {
 }
 
 func TestDashboard_304OnETag(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	// Round-trip: take the ETag the server actually served, not a constant.
 	first := httptest.NewRecorder()

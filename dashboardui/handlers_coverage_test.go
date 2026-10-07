@@ -11,7 +11,6 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/icons"
 )
@@ -764,15 +763,7 @@ func TestEmptyStateIcon_PerPage(t *testing.T) {
 // script) and dashboardJS bridges the "dashboardui:toast" HX-Trigger event to
 // it. The legacy #toast-container host and showToast listener must stay gone.
 func TestLayout_ToastBridge(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{EventSource: store, Journal: store})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/", nil))
@@ -810,15 +801,7 @@ func TestLayout_ToastBridge(t *testing.T) {
 // library htmx.GlobalErrorHandling (retry + announcer + session-expiry
 // redirect) alongside the toast bridge.
 func TestLayout_GlobalErrorHandling(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{EventSource: store, Journal: store})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/", nil))

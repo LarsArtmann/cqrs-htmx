@@ -123,18 +123,7 @@ func TestRenderError_NilRequestStillWrites(t *testing.T) {
 }
 
 func TestNotFound404_LibraryComponentShape(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/definitely-not-a-page", nil))
