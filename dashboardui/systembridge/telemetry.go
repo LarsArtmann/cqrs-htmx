@@ -53,9 +53,18 @@ func WireTelemetry(cfg *dashboardui.Config, sys *system.System) {
 }
 
 func topologyViewFrom(topology *system.Topology) core.TopologyView {
+	var projectionHost *core.ProjectionHostView
+	if topology.ProjectionHost != nil {
+		projectionHost = &core.ProjectionHostView{
+			Started: topology.ProjectionHost.Started,
+			Workers: topology.ProjectionHost.Workers,
+		}
+	}
+
 	view := core.TopologyView{
-		Instances: make([]core.InstanceView, 0, len(topology.Instances)),
-		Buses:     make([]core.BusView, 0, len(topology.Buses)),
+		Instances:      make([]core.InstanceView, 0, len(topology.Instances)),
+		Buses:          make([]core.BusView, 0, len(topology.Buses)),
+		ProjectionHost: projectionHost,
 	}
 
 	for _, instance := range topology.Instances {
@@ -78,13 +87,6 @@ func topologyViewFrom(topology *system.Topology) core.TopologyView {
 		})
 	}
 
-	if topology.ProjectionHost != nil {
-		view.ProjectionHost = &core.ProjectionHostView{
-			Started: topology.ProjectionHost.Started,
-			Workers: topology.ProjectionHost.Workers,
-		}
-	}
-
 	return view
 }
 
@@ -92,12 +94,16 @@ func engineHealthViews(healths []system.EngineHealth) []core.EngineHealthView {
 	views := make([]core.EngineHealthView, 0, len(healths))
 
 	for _, health := range healths {
-		view := core.EngineHealthView{Name: health.Name, Healthy: health.Error == nil}
+		var engineErr string
 		if health.Error != nil {
-			view.Error = health.Error.Error()
+			engineErr = health.Error.Error()
 		}
 
-		views = append(views, view)
+		views = append(views, core.EngineHealthView{
+			Name:    health.Name,
+			Healthy: health.Error == nil,
+			Error:   engineErr,
+		})
 	}
 
 	return views
