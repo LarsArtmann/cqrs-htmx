@@ -2,18 +2,6 @@ package usermgmt
 
 import "net/http"
 
-// sessionUserID returns the authenticated user from the request context,
-// writing a 401 Unauthorized response when no session is present.
-// ok=false means the response has been written and the caller must return.
-func (h *AuthHandler) sessionUserID(w http.ResponseWriter, r *http.Request) (*User, bool) {
-	user, ok := UserFromContext(r.Context())
-	if !ok || user == nil {
-		writeError(w, http.StatusUnauthorized, "not authenticated")
-		return nil, false
-	}
-	return user, true
-}
-
 // requireSessionUserTarget enforces the owner-match rule for credential
 // ceremonies: the request must carry a session AND the requested target user
 // must be the session user themselves.
@@ -29,7 +17,7 @@ func (h *AuthHandler) sessionUserID(w http.ResponseWriter, r *http.Request) (*Us
 func (h *AuthHandler) requireSessionUserTarget(
 	w http.ResponseWriter, r *http.Request, target string,
 ) (UserID, bool) {
-	user, ok := h.sessionUserID(w, r)
+	user, ok := h.currentUser(w, r)
 	if !ok {
 		return UserID{}, false
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
@@ -150,21 +151,7 @@ func FetchOverview( //nolint:gocognit,cyclop // multi-source aggregation
 	if cfg.SeekableJournal != nil { //nolint:nestif // optional data source branching
 		events, err := cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, OverviewCountLimit)
 		if err == nil {
-			for i, evt := range events {
-				if i >= RecentEventsLimit {
-					break
-				}
-
-				stats.RecentEvents = append(stats.RecentEvents, RecentEvent{
-					Time:       evt.OccurredAt().Format(time.RFC3339),
-					Type:       string(evt.Type()),
-					StreamID:   evt.StreamID().String(),
-					StreamType: string(evt.StreamType()),
-					Version:    evt.Version().String(),
-					EventID:    evt.ID().String(),
-					OccurredAt: evt.OccurredAt(),
-				})
-			}
+			stats.RecentEvents = recentEventsFrom(events)
 
 			stats.TotalEvents = strconv.Itoa(len(events))
 			if len(events) >= OverviewCountLimit {
@@ -175,21 +162,7 @@ func FetchOverview( //nolint:gocognit,cyclop // multi-source aggregation
 		events, err := cfg.Journal.ReadAll(ctx)
 		if err == nil {
 			stats.TotalEvents = strconv.Itoa(len(events))
-			for i, evt := range events {
-				if i >= RecentEventsLimit {
-					break
-				}
-
-				stats.RecentEvents = append(stats.RecentEvents, RecentEvent{
-					Time:       evt.OccurredAt().Format(time.RFC3339),
-					Type:       string(evt.Type()),
-					StreamID:   evt.StreamID().String(),
-					StreamType: string(evt.StreamType()),
-					Version:    evt.Version().String(),
-					EventID:    evt.ID().String(),
-					OccurredAt: evt.OccurredAt(),
-				})
-			}
+			stats.RecentEvents = recentEventsFrom(events)
 		}
 	}
 
@@ -199,6 +172,27 @@ func FetchOverview( //nolint:gocognit,cyclop // multi-source aggregation
 	}
 
 	return stats
+}
+
+// recentEventsFrom projects at most RecentEventsLimit committed events into
+// the display shape used by the overview card.
+func recentEventsFrom(events []event.Event) []RecentEvent {
+	recent := make([]RecentEvent, 0, min(len(events), RecentEventsLimit))
+	for i, evt := range events {
+		if i >= RecentEventsLimit {
+			break
+		}
+		recent = append(recent, RecentEvent{
+			Time:       evt.OccurredAt().Format(time.RFC3339),
+			Type:       string(evt.Type()),
+			StreamID:   evt.StreamID().String(),
+			StreamType: string(evt.StreamType()),
+			Version:    evt.Version().String(),
+			EventID:    evt.ID().String(),
+			OccurredAt: evt.OccurredAt(),
+		})
+	}
+	return recent
 }
 
 // classifyProjectionHealth sums DLQ counts and derives the overall health
