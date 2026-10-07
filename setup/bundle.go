@@ -218,10 +218,7 @@ func (b *Bundle) Close() error {
 	}
 
 	if b.Broadcaster != nil {
-		if b.sseDone != nil {
-			close(b.sseDone)
-			b.sseDone = nil
-		}
+		closeSSEDone(b)
 
 		// Drain queued events to connected subscribers before closing the
 		// hub so a server restart does not drop in-flight events.
@@ -241,9 +238,7 @@ func (b *Bundle) Close() error {
 
 		cancelDrain()
 
-		b.Broadcaster.Close()
-		b.Broadcaster = nil
-		b.DataStarBroadcaster = nil
+		closeSSEBroadcasters(b)
 	}
 
 	if b.ownsService && b.Service != nil {

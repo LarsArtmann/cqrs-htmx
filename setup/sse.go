@@ -48,10 +48,8 @@ func (b *Bundle) attachSSE() error {
 	//cqrs-lint:ignore(C027,A005) SSE fan-out bridge for the shared endpoint, not a read-model projection
 	if err := b.Stores.EventBus.SubscribeAll(handler); err != nil {
 		// Roll back the broadcaster/sseDone we just created — New returns nil on error.
-		close(b.sseDone)
-		b.sseDone = nil
-		b.Broadcaster.Close()
-		b.Broadcaster = nil
+		closeSSEDone(b)
+		closeSSEBroadcasters(b)
 
 		return errorfamily.WrapInfrastructure(err,
 			"setup.sse_subscribe_failed", "subscribe to event bus for SSE bridge")
@@ -62,6 +60,25 @@ func (b *Bundle) attachSSE() error {
 	}
 
 	return nil
+}
+
+// closeSSEDone closes the SSE bridge's done channel exactly once, so a late
+// bridge callback cannot panic on a re-closed channel.
+func closeSSEDone(b *Bundle) {
+	if b.sseDone != nil {
+		close(b.sseDone)
+		b.sseDone = nil
+	}
+}
+
+// closeSSEBroadcasters closes the hub-backed broadcasters and nils them so a
+// double Close cannot double-close the shared hub.
+func closeSSEBroadcasters(b *Bundle) {
+	if b.Broadcaster != nil {
+		b.Broadcaster.Close()
+	}
+	b.Broadcaster = nil
+	b.DataStarBroadcaster = nil
 }
 
 // sseHandler serves the shared SSE endpoint: session-gated feed of every event

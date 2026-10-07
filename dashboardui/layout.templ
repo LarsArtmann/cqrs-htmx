@@ -34,9 +34,7 @@ templ layout(p pageData, content templ.Component) {
 				// @custom-variant dark note in tailwind.css): reads
 				// localStorage['theme'], falls back to the system preference,
 				// and applies .dark + color-scheme before first paint.
-				@tclayout.ThemeScript(p.Nonce)
-				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard.css" }/>
-				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard-tw.css" }/>
+				@dashboardStylesheets(p.Nonce, p.BasePath)
 				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
 				<script src={ p.BasePath + "/-/dashboard.js" } defer></script>
 			</head>
@@ -145,6 +143,15 @@ templ navIcon(name string) {
 	</svg>
 }
 
+// dashboardStylesheets renders the pre-paint theme script and the two
+// dashboard stylesheets — the shared <head> payload of the full shell and
+// the error shell.
+templ dashboardStylesheets(nonce, basePath string) {
+	@tclayout.ThemeScript(nonce)
+	<link rel="stylesheet" href={ basePath + "/-/dashboard.css" }/>
+	<link rel="stylesheet" href={ basePath + "/-/dashboard-tw.css" }/>
+}
+
 // errorShell wraps library error-page markup in a minimal HTML document that
 // loads the dashboard stylesheets. It bridges the library's bare component
 // output and the full layout shell (which needs pageData); the CSS keeps the
@@ -156,9 +163,7 @@ templ errorShell(title, basePath, nonce string, inner templ.Component) {
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ title }</title>
-			@tclayout.ThemeScript(nonce)
-			<link rel="stylesheet" href={ basePath + "/-/dashboard.css" }/>
-			<link rel="stylesheet" href={ basePath + "/-/dashboard-tw.css" }/>
+			@dashboardStylesheets(nonce, basePath)
 		</head>
 		<body>
 			<div class="error-shell">
