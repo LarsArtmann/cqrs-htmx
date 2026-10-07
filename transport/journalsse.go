@@ -124,6 +124,7 @@ func (s *JournalSSEStore) replayLimit() int {
 	if s.maxReplay <= 0 {
 		return DefaultMaxReplay
 	}
+
 	return s.maxReplay
 }
 
