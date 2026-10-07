@@ -16,6 +16,13 @@
 #   check-family-release-consumable.sh --check-gomod <file> [family-prefix]
 #       Offline mode: check a local go.mod file (self-tests, bump-dep
 #       pre-flight after its own fetch).
+#   check-family-release-consumable.sh            (no args)
+#       Repo sweep (offline): scan every tracked go.mod under the repo root
+#       (git ls-files 'go.mod' '*/go.mod'; CONSUMABLE_ROOT overrides the root
+#       for self-tests) for placeholder requires. This is the check-modules
+#       stage and flake-app default — the local go.mods are the only thing a
+#       battery can vouch for without a target tag. Exit 1 = placeholder
+#       found, 2 = tool failure (no git repo, zero candidates), 0 = clean.
 #
 # Fixture self-test: scripts/selftests/test-check-family-release-consumable.sh
 
@@ -59,6 +66,40 @@ EOF
   return "$rc"
 }
 
+# --- No-arg repo sweep (offline; check-modules stage + flake-app default) ----
+if [ $# -eq 0 ]; then
+  ROOT="${CONSUMABLE_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null)}"
+  if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+    echo "TOOL FAILURE: not a git repository and no CONSUMABLE_ROOT set — cannot sweep go.mods" >&2
+    exit 2
+  fi
+  gomods="$(cd "$ROOT" && git ls-files -- 'go.mod' '*/go.mod' 2>/dev/null | sort)"
+  if [ -z "$gomods" ]; then
+    echo "TOOL FAILURE: zero tracked go.mod files found under $ROOT — a wired sweep that scans nothing is a false green" >&2
+    exit 2
+  fi
+  rc=0
+  files=0
+  requires_total=0
+  while IFS= read -r gomod; do
+    [ -n "$gomod" ] || continue
+    files=$((files + 1))
+    if ! scan_gomod "$ROOT/$gomod" "$gomod" ""; then
+      rc=1
+    fi
+    n="$(grep -cE '^[[:space:]]*[a-zA-Z0-9/._-]+ v' "$ROOT/$gomod" 2>/dev/null || true)"
+    requires_total=$((requires_total + ${n:-0}))
+  done <<EOF
+$gomods
+EOF
+  if [ "$rc" -eq 0 ]; then
+    echo "OK: no placeholder requires in any of $files tracked go.mod files ($requires_total requires scanned)"
+    exit 0
+  fi
+  echo "FAIL: placeholder requires found — every tag cut from this tree would be unconsumable (R2 poison class)" >&2
+  exit 1
+fi
+
 if [ "${1:-}" = "--check-gomod" ]; then
   [ -n "${2:-}" ] || {
     echo "usage: $0 --check-gomod <file>" >&2
@@ -77,7 +118,7 @@ if [ "${1:-}" = "--check-gomod" ]; then
 fi
 
 [ $# -eq 2 ] || {
-  echo "usage: $0 <module-path> <version> | --check-gomod <file>" >&2
+  echo "usage: $0 <module-path> <version> | --check-gomod <file>    (no args = offline repo sweep of every tracked go.mod)" >&2
   exit 2
 }
 

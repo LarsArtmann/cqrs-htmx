@@ -2,11 +2,14 @@
 # test-check-family-release-consumable.sh — offline fixture self-test for
 # check-family-release-consumable.sh (R2 guard).
 #
-# Cases (all via --check-gomod, no network):
+# Cases (all offline, no network):
 #   1. clean go.mod            -> exit 0, requires scanned printed
 #   2. placeholder go.mod      -> exit 1, "unconsumable (placeholder sub-requires)"
 #   3. missing file            -> exit 2 (tool failure, not a finding)
-#   4. no args                 -> exit 2 usage
+#   4. no-args sweep, poison present -> exit 1, names the poison go.mod path
+#   5. no-args sweep, clean tree     -> exit 0, per-file + require tally
+#   6. no-args sweep, non-git root   -> exit 2 (loud, not a false green)
+#   7. bogus flag              -> exit 2 usage
 #
 # Usage: bash scripts/selftests/test-check-family-release-consumable.sh
 set -uo pipefail
@@ -87,10 +90,35 @@ out=$(bash "$GATE" --check-gomod "$WORK/absent.mod" 2>&1)
 rc=$?
 check 3 2 "not found" "$rc" "$out"
 
-# Case 4: no arguments is a usage error (rc 2).
-out=$(bash "$GATE" 2>&1)
+# Case 4: no-args repo sweep fails and NAMES the poison go.mod (label = tracked path).
+SWEEP="$(mktemp -d "$WORK/sweep-XXXXXX")"
+git -C "$SWEEP" init -q
+mkdir -p "$SWEEP/poison" "$SWEEP/sub"
+cp "$WORK/clean.mod" "$SWEEP/go.mod"
+cp "$WORK/clean.mod" "$SWEEP/sub/go.mod"
+cp "$WORK/poison.mod" "$SWEEP/poison/go.mod"
+git -C "$SWEEP" add -A
+out=$(CONSUMABLE_ROOT="$SWEEP" bash "$GATE" 2>&1)
 rc=$?
-check 4 2 "usage" "$rc" "$out"
+check 4 1 "poison/go.mod" "$rc" "$out"
+
+# Case 5: no-args sweep over a clean tree passes with the file/require tally.
+git -C "$SWEEP" rm -q --cached poison/go.mod
+rm "$SWEEP/poison/go.mod"
+out=$(CONSUMABLE_ROOT="$SWEEP" bash "$GATE" 2>&1)
+rc=$?
+check 5 0 "2 tracked go.mod files" "$rc" "$out"
+
+# Case 6: no-args sweep on a non-git root exits 2 loudly (never a false green).
+NOTGIT="$(mktemp -d "$WORK/notgit-XXXXXX")"
+out=$(CONSUMABLE_ROOT="$NOTGIT" bash "$GATE" 2>&1)
+rc=$?
+check 6 2 "TOOL FAILURE" "$rc" "$out"
+
+# Case 7: a bogus flag is a usage error (rc 2).
+out=$(bash "$GATE" --bogus 2>&1)
+rc=$?
+check 7 2 "usage" "$rc" "$out"
 
 echo "pass=$pass fail=$fail"
 if [ "$fail" -ne 0 ]; then
