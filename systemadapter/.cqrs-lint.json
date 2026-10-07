@@ -1,0 +1,13 @@
+{
+  "preset": "library",
+  "rules": {
+    // E014 (no projection drain/sync/flush) is a false positive for this
+    // module BY DESIGN: systemadapter is a config factory that owns no
+    // projection host and never responds to commands itself — system.New()
+    // (the ADR-0123 composition root) owns the projection host lifecycle
+    // including drain/sync. Inline suppression cannot express this: the
+    // package-level anchor drifts between walk modes (declarations.go in a
+    // module walk, capabilities.go in the recursive root walk).
+    "disable": ["E014"]
+  }
+}

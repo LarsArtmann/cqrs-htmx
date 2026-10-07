@@ -1,4 +1,3 @@
-//cqrs-lint:ignore(E014) false positive at this layer: systemadapter is a config factory that owns no projection host and never responds to commands itself — system.New() (ADR-0123 composition root) owns the projection host lifecycle including drain/sync
 package systemadapter
 
 import (
