@@ -28,7 +28,7 @@ fi
 allowlist=(
   "datastar/event_bridge.go:1"
   "dashboardui/core/events.go:1"
-  "dashboardui/core/overview.go:2"
+  "dashboardui/core/overview.go:1"
   "dashboardui/detail_items.go:2"
   "dashboardui/export.go:4"
   "e2e/server/main.go:1"
