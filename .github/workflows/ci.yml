@@ -792,7 +792,7 @@ jobs:
           GOEXPERIMENT: jsonv2
 
       - name: gosec
-        uses: securego/gosec@8c77519419e934a3e158dbf1a3fbbc0871b8c691 # master
+        uses: securego/gosec@d2b649ec01825c20bd101ec584e559adb287e578 # master
         with:
           args: "-no-fail -fmt sarif -out results.sarif ./..."
         env:
