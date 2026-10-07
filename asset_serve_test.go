@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
@@ -62,5 +63,23 @@ func TestAssetETag_Derivation(t *testing.T) {
 
 	if tag == cqrshtmx.AssetETag("other.css", css) {
 		t.Error("AssetETag did not change when the asset name changed")
+	}
+}
+
+func TestAssetFromFS(t *testing.T) {
+	fsys := fstest.MapFS{
+		"assets/app.css": &fstest.MapFile{Data: []byte("body{}")},
+	}
+
+	data, err := cqrshtmx.AssetFromFS(fsys, "app.css")
+	if err != nil {
+		t.Fatalf("AssetFromFS: %v", err)
+	}
+	if string(data) != "body{}" {
+		t.Errorf("AssetFromFS data = %q, want %q", data, "body{}")
+	}
+
+	if _, err := cqrshtmx.AssetFromFS(fsys, "missing.css"); err == nil {
+		t.Error("AssetFromFS(missing asset) = nil error, want the fs error surfaced")
 	}
 }

@@ -14,8 +14,7 @@ import (
 // ===== Command/Query Audit =====
 
 //
-//nolint:cyclop // export branching adds complexity
-//nolint:dupl // deliberate twin of queriesIndexHandler — see the rationale there
+//nolint:cyclop,dupl // export branching; deliberate parallel twin — see queriesIndexHandler
 func (d *Dashboard) commandsIndexHandler(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -98,8 +97,7 @@ func (d *Dashboard) commandsIndexHandler(
 // machinery than the mirrored lines save. dupl is suppressed on both
 // handlers; change one, then mirror the change deliberately.
 //
-//nolint:cyclop // export branching adds complexity
-//nolint:dupl // deliberate twin of commandsIndexHandler — see the rationale above
+//nolint:cyclop,dupl // export branching; deliberate parallel twin — see rationale above
 func (d *Dashboard) queriesIndexHandler(
 	w http.ResponseWriter,
 	r *http.Request,

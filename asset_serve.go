@@ -49,15 +49,20 @@ func ServeAsset(name, contentType string, data []byte) http.Handler {
 // AssetFromFS reads name from the "assets" subtree of fsys — the read half
 // of the embed-asset recipe shared by every UI module (each module must
 // declare its own embed.FS, but the subtree + ReadFile plumbing lives here
-// so the modules cannot drift). Raw fs errors are returned unwrapped; the
-// caller owns error presentation (each module wraps in its own config-error
-// family). Read eagerly so a missing asset surfaces at construction time
-// instead of a panic at first request.
+// so the modules cannot drift). Failures surface as Infrastructure-family
+// errors — a missing embed is a packaging defect, not user error — so
+// callers can pass them through verbatim. Read eagerly so a missing asset
+// surfaces at construction time instead of a panic at first request.
 func AssetFromFS(fsys fs.FS, name string) ([]byte, error) {
 	sub, err := fs.Sub(fsys, "assets")
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.NewInfrastructure("asset_fs", fmt.Sprintf("asset subtree %q: %v", "assets", err))
 	}
 
-	return fs.ReadFile(sub, name)
+	data, err := fs.ReadFile(sub, name)
+	if err != nil {
+		return nil, errorfamily.NewInfrastructure("asset_fs", fmt.Sprintf("embedded asset %q: %v", name, err))
+	}
+
+	return data, nil
 }
