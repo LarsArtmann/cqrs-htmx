@@ -139,6 +139,18 @@ func newShellBundle(cfg Config) (*Bundle, error) {
 	bus := cfg.EventBus
 	if bus == nil {
 		bus = watermill.NewEventBus()
+		// Safe-by-default: a panicking subscriber must not take the process
+		// down. The recovered panic is logged via the process default logger
+		// and returned as a Corruption error — visible even though the bus's
+		// internal router discards handler-error logs (watermill.NopLogger).
+		// Opt-out: bring your own EventBus via Config.EventBus.
+		if err := bus.Use(middleware.EventRecovery(middleware.WithLogger(slog.Default()))); err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"setup.default_event_bus_recovery",
+				"failed to apply recovery middleware to the default event bus",
+			)
+		}
 	}
 
 	return &Bundle{ //nolint:exhaustruct // Service/Auth/panels/Broadcaster stay nil by design (ADR-0054)
