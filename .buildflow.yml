@@ -26,51 +26,11 @@ todo_min_severity: warning
 # script linting is enforced by treefmt + CI. HTML/min.js are generated or
 # vendored artifacts that must not be reformatted.
 #
-# GOTCHA (verified 2026-09-20 via `buildflow config view`): a user `exclude:`
-# list REPLACES BuildFlow's built-in defaults — it does NOT merge. Listing only
-# the three repo-specific patterns silently dropped every default (vendor,
-# testdata, *_templ.go, lock files, ...), so formatters lost their protection
-# against generated/vendored trees. The list below therefore mirrors
-# DefaultExcludePatterns() (BuildFlow domain/file/ignore_dirs.go) explicitly,
-# then adds this repo's patterns. Keep both halves in sync when bumping
-# BuildFlow.
+# A user `exclude:` list ADDS to BuildFlow's built-in defaults (merge
+# semantics since BuildFlow b27f4f05b, 2026-09-30, verified in the installed
+# binary) — vendor/testdata/*_templ.go/lock files stay protected without
+# restating them.
 exclude:
-  # --- BuildFlow defaults (do not drop; see gotcha above) ---
-  - "vendor"
-  - ".git"
-  - "node_modules"
-  - ".next"
-  - ".turbo"
-  - ".nuxt"
-  - ".svelte-kit"
-  - ".direnv"
-  - "dist"
-  - "target"
-  - "testdata"
-  - ".golden"
-  - "generated.go"
-  - "*.pb.go"
-  - "*.gen.go"
-  - "*_templ.go"
-  - "__snapshots__"
-  - "__pycache__"
-  - ".pytest_cache"
-  - ".mypy_cache"
-  - ".tox"
-  - ".venv"
-  - "venv"
-  - ".cache"
-  - "reports/"
-  - "flake.lock"
-  - "package-lock.json"
-  - "yarn.lock"
-  - "pnpm-lock.yaml"
-  - "Cargo.lock"
-  - "composer.lock"
-  - "poetry.lock"
-  - "Gemfile.lock"
-  - "mix.lock"
-  # --- Repo-specific ---
   - "*.html"
   - "*.min.js"
   - "*.sh"
