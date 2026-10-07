@@ -78,7 +78,7 @@ func TestShellBundle_DefaultBusRecoversSubscriberPanic(t *testing.T) {
 	}
 }
 
-func newBusEvent(t *testing.T, aggID id.StreamID, version int) event.Event {
+func newBusEvent(t *testing.T, aggID id.StreamID, version uint64) event.Event {
 	t.Helper()
 
 	evt, err := event.New("user.created", aggID, "User", event.Version(version), struct{}{})
