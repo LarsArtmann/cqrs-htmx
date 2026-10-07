@@ -86,6 +86,11 @@ exclude:
 # E1005/F1001 class regardless of tree health (verified: all 29 module steps
 # red with identical errors on a fully-green tree, 2026-10-05). Licensing is
 # enforced by the repos' own LICENSE files + license-sync, not by go-licenses.
+# skip_steps is LOAD-BEARING: its 2026-10-07 deletion (captured by the
+# auto-commit daemon) let go-version-auto-configure + templ-generate
+# re-damage the tree within the hour. If this block is ever found missing,
+# restore it FIRST (stops active/future runs from re-damaging), then repair
+# the tree from a content-verified pre-damage commit. AGENTS.md gotcha 35.
 skip_steps:
   - templ-generate
   - tailwind-build
@@ -114,9 +119,16 @@ skip_steps:
 # and, for go-version, an explicit removal condition (TODO_LIST P2 toolchain
 # decision). CAVEAT: a go-structure-linter build from the v0.10.0 TAG does
 # not carry the suppression feature; machines running only tagged builds
-# would see the raw findings. Current verification: 5 findings (2 warnings
-# + 3 infos, 0 errors) with BUILDFLOW_NO_RESULT_CACHE=1.
+# would see the raw findings. Re-verified 2026-10-07: go-structure-linter
+# reports 0 findings ("structure is excellent"); the only gate-visible
+# remainder is 1 info (dependabot 20-entry cap for 28 modules) + 1 warning
+# (nix-checker vendorHash staleness — gotcha 31 class: verify via a real
+# nix build before touching the hash).
 # GOTCHA: buildflow's result cache keys on matched FILES — config/binary
 # changes do NOT invalidate it; use BUILDFLOW_NO_RESULT_CACHE=1 when a
 # finding replays after its cause was fixed.
+# Binary provenance (2026-10-07): the 2026-09-18 ~/go/bin shadow build is
+# gone; the active binary is the nix-profile build and lags BuildFlow HEAD
+# (doctor reports binary-freshness as an advisory each run — check it
+# before trusting rule-set-dependent results).
 fail_on: critical
