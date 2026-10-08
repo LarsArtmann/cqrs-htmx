@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 _(nothing yet)_
 
+## [v4.12.2] - 2026-10-08
+
+### Changed
+
+- **Fold defensive copies modernized to `slices.Clone` (no behavior change):** `FoldMembership` (roles ×2) and `FoldBot` (scopes) replace the `make`+`copy` pairs with `slices.Clone`; the payload-slices-alias-event-bytes invariant (every slice taken from a payload is defensively copied at the fold site) is now documented in `doc.go` so future folds keep it.
+- **Dependency alignment:** `go-cqrs-lite id/v4 v4.7.0→v4.7.2` (race-red patch wave), indirects `snapshot/v4 v4.6.2`, `storage/memory/v4 v4.6.2`, `fxamacker/cbor/v2 v2.9.6`.
+
+### Added
+
+- **`TestUserID_ParseBrandPrefix_Policy` — the `ParseUserID` prefix-strip policy is pinned (6 subtests):** known brand prefixes strip and parse, unknown brands strip the same way (generic policy, not a whitelist), multi-colon and non-ULID tails reject, brand-only strings reject, and the leading-colon quirk is pinned as documented behavior. Mechanizes the D13 decision input (`docs/drafts/2026-10-07-d13-parseuserid-prefix-policy-memo.md`).
+
 ## [v4.12.1] - 2026-10-05
 
 ### Fixed

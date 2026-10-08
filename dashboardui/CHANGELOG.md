@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.13.2] - 2026-10-08
+
 ### Added
 
 - **Read-only telemetry phase 1 — `/telemetry` panel + engine-health probe composition (M26):** four optional Config providers (`Topology`, `EngineHealths`, `Placements`, `EngineStats`) light up a Telemetry nav entry + route with three sections: the system topology table (instances/buses/projection-host), the metaengine query-placement table (query → engine + ADT + volume + est. latency), and engine latency cards (RTT EWMA/P95/samples, freshness badge at 5 minutes, explicit "no tracker"/"no samples" states). `EngineHealths` also composes into the probes: `/-/healthz` carries an `engines` array (liveness stays 200 — a sick engine is not a dead process) and `/-/readyz` returns 503 `engine_unhealthy` while any engine is down, so orchestrators keep the pod out of rotation. Providers return dashboard-owned `core` view structs (no system/metaengine types in the rendering layer); sections render independently with inline errors; without providers the route, nav, and probe payloads are byte-for-byte unchanged. `systembridge.WireTelemetry(&cfg, sys)` (a new optional sub-package — the one place dashboardui imports the system/metaengine packages) maps a real `*system.System` onto all four in one call. Pinned by panel/capability-gating/inline-error/probe-composition tests and the `TestDashboard_TelemetryFromSystem` integration proof.
