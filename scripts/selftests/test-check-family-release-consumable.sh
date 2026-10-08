@@ -134,7 +134,9 @@ module github.com/example/family
 
 go 1.27
 
-require github.com/example/family/sub v1.0.1
+require (
+	github.com/example/family/sub v1.0.1
+)
 EOF
 cat >"$PROXY/github.com/example/family/sub/@v/v1.0.1.mod" <<'EOF'
 module github.com/example/family/sub
@@ -145,7 +147,7 @@ EOF
 # Case 8: multi-train family — the submodule is healthy at its own version.
 out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.2 2>&1)
 rc=$?
-check 8 0 "sub@v1.0.1" "$rc" "$out"
+check 8 0 "is consumable" "$rc" "$out"
 
 # Case 9: the parent requires a submodule version the proxy does not have.
 cat >"$PROXY/github.com/example/family/@v/v1.4.3.mod" <<'EOF'
@@ -153,11 +155,29 @@ module github.com/example/family
 
 go 1.27
 
-require github.com/example/family/sub v1.0.2
+require (
+	github.com/example/family/sub v1.0.2
+)
 EOF
 out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.3 2>&1)
 rc=$?
 check 9 1 "no published v1.0.2" "$rc" "$out"
+
+# Case 10: a submodule whose OWN go.mod carries a placeholder is caught at ITS
+# version (the templ-components v1.20.0 submodule-poison class, now labeled
+# with the submodule's own train instead of the parent's tag).
+cat >"$PROXY/github.com/example/family/sub/@v/v1.0.1.mod" <<'EOF'
+module github.com/example/family/sub
+
+go 1.27
+
+require (
+	github.com/example/family/deep v1.0.0-00010101000000-000000000000
+)
+EOF
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.2 2>&1)
+rc=$?
+check 10 1 "sub@v1.0.1 is unconsumable (placeholder sub-requires)" "$rc" "$out"
 
 echo "pass=$pass fail=$fail"
 if [ "$fail" -ne 0 ]; then

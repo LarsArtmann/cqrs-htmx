@@ -52,7 +52,7 @@ walk_family_subs() { # <gomod-file> <candidate-module> <version>
   # must not be demanded at the root's version. A same-version family
   # (templ-components) is still caught — its parent requires carry the (often
   # placeholder) version verbatim, and fetching that version is what fails.
-  while IFS= read -r path subver; do
+  while read -r path subver; do
     [ -n "$path" ] || continue
     subver="${subver:-$version}"
     subfile="$(mktemp /tmp/cqrs-htmx-consumable-sub-XXXXXX)"
