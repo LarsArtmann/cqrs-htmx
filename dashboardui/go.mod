@@ -6,7 +6,7 @@ go 1.27
 require (
 	github.com/a-h/templ v0.3.1070
 	github.com/dustin/go-humanize v1.1.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.2
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.3
 	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
@@ -47,7 +47,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260926063103-aaccee046517 // indirect
+	github.com/google/pprof v0.0.0-20261006160405-d99a6174ef52 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect

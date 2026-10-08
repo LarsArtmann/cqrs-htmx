@@ -110,8 +110,8 @@ github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-github.com/google/pprof v0.0.0-20260926063103-aaccee046517 h1:joNby64wfCIWh0HXBMrjZc6ii70nntnG9u3CQSXXwiA=
-github.com/google/pprof v0.0.0-20260926063103-aaccee046517/go.mod h1:jl5iWTm0/hd5PjEYEOuwAJ57L/CibdZfrqZ5XA5GrCk=
+github.com/google/pprof v0.0.0-20261006160405-d99a6174ef52 h1:fYZBNW/L8htMW8QjQFsw+pjcoHaV9wFlJ+T6Q6SaHFs=
+github.com/google/pprof v0.0.0-20261006160405-d99a6174ef52/go.mod h1:yUo1AMMpsPIDFGuwDK8nLcf8+vvAd5l2O6JDZ6hpwrM=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -149,8 +149,8 @@ github.com/larsartmann/cqrs-htmx/setup/v4 v4.14.1 h1:SggIeCF9Xojbtfu6HrYVtTPoF99
 github.com/larsartmann/cqrs-htmx/setup/v4 v4.14.1/go.mod h1:0WMjSA8jWr4WFVjkS9+cEXExdVxjDMv7Q6eaUD/fcgE=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2 h1:7wECrh53UU33C1Qc+94oV/laSfZw1dQth7RxN08ODlI=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2/go.mod h1:tw0ky5Mk2zQcSwOVjFU8v98D9gbLeOPLNpEM+J4Gh2I=
-github.com/larsartmann/cqrs-htmx/v4 v4.13.2 h1:MmTccNgH91ODjiC3Yz5SOr9Jg7nvaAiZuKcbu5MmicQ=
-github.com/larsartmann/cqrs-htmx/v4 v4.13.2/go.mod h1:CuK14LadxSj5+pHCFMg7A5RbOlr2mP/VCs7lChqp3Rw=
+github.com/larsartmann/cqrs-htmx/v4 v4.13.3 h1:fs0rE0wv4z88Jq/Dj59HLs4FkL5OlojurIp8bIx5boY=
+github.com/larsartmann/cqrs-htmx/v4 v4.13.3/go.mod h1:39TtNhOc5wBXw5Qjq909UggpDriNy3Ngh3CyltKdAhk=
 github.com/larsartmann/go-appkit v0.8.0 h1:SaeciIb1WtHn2zBmc9eKJ3zEb/c7Hcz59tHKf1sfEEE=
 github.com/larsartmann/go-appkit v0.8.0/go.mod h1:txVMEPI/ZL4npZDu08bgaylCGo2J8l2N0ysRIPdjMvU=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=
