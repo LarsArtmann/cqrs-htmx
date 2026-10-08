@@ -634,6 +634,14 @@ jobs:
       - name: Wait-tree-quiet self-test
         run: bash scripts/selftests/test-wait-tree-quiet.sh
 
+      # Train-preflight (T02, 2026-10-08): one command before a train —
+      # quiescence + surprise + lint + hermetic tests + strict train gate,
+      # with gotcha-2 candidate-count guards. Runners cannot execute the
+      # real stages here; the stub self-test is the coverage and the real
+      # app is the documented pre-train step (release playbook).
+      - name: Train-preflight self-test
+        run: bash scripts/selftests/test-train-preflight.sh
+
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
       # uses anonymous `git ls-remote`; the larsartmann repos are public

@@ -15,7 +15,32 @@ operator-facing summary; the deep details live in the linked documents.
 3. **Verify facts at execution time.** `git ls-remote` / `git show <tag>:` —
    precondition tables rot within 24 hours (the dashboardui/v4.8.1 class).
 
-## 1. Pre-tag checklist (per module)
+## 1. Before the first mutation AND before push: train-preflight
+
+```sh
+nix run .#train-preflight
+```
+
+One command, run (a) before the first tree-mutating step of a train session
+and (b) before the final push. It chains the shared-tree quiescence gate
+(`wait-tree-quiet`), the abort-on-surprise gate (`preflight-tree-check`),
+the workspace lint, the hermetic test battery (`nix run .#test` — the same
+`GOWORK=off` resolution CI uses), and the strict release-train gate
+(`--refresh-cache --strict-lag 0` — the exact pre-push flags).
+
+Every heavy stage carries a candidate-count guard: a lint/test stage that
+printed zero per-module markers, or a train check without its requires
+tally, fails the preflight loudly instead of passing as a silent no-op
+(gotcha 2). The 2026-10-08 push-unblock session paid hours of forensics for
+reds this command would have surfaced before the first mutation — the two
+CI reds (status-row gate, auditlog go.sum residue) and the hermetic-only
+test red (root CSP vs published root, gotcha-30 test form) were all
+preflight-detectable.
+
+Offline coverage: `nix run .#test-train-preflight` (stub fixtures; also a
+check-modules + CI stage).
+
+## 2. Pre-tag checklist (per module)
 
 ```sh
 # Hermetic verification of EXACTLY what the tag will contain (vet compiles
@@ -34,7 +59,7 @@ git show <dep-repo>/<dep-tag>:<path/to/file> | grep <the symbol>
 Then repo-wide gates from the root: `nix run .#check-modules -- --report`,
 `nix run .#check-release-train`, `nix run .#build`, `.#test`, `.#lint`.
 
-## 2. Tagging
+## 3. Tagging
 
 ```sh
 scripts/tools/verify-tag.sh <module-dir> vX.Y.Z --dry-run   # rehearse
@@ -50,7 +75,7 @@ Version numbers: the cqrs-htmx family cuts ONE coordinated version per train
 (buildflow's gomod-check enforces it). First-time modules join the current
 family version (health/auditlog precedent: first tag = v4.8.0).
 
-## 3. Family train order
+## 4. Family train order
 
 Follow `docs/runbooks/release-next-train-prep.md` — the ordered,
 copy-pasteable train script. Shape:
@@ -63,7 +88,7 @@ copy-pasteable train script. Shape:
    proxy at every step.
 4. `nix run .#check-release-train` must read `0 unpublished / 0 lag` after.
 
-### 3a. Wave-ordered choreography (the `--no-verify` killer)
+### 4a. Wave-ordered choreography (the `--no-verify` killer)
 
 The v4.12.0 train (2026-09-22, 14 tags) proved the refinement: sequence the
 tags so that **every commit's `require` lines point at ALREADY-PUBLISHED
@@ -103,7 +128,7 @@ it, so tag day needs NO `git commit --no-verify` (v4.12.0: zero skips).
 Out-of-order trains are the ones that need the documented
 `--no-verify`-with-justification fallback (AGENTS.md gotcha 6).
 
-## 4. Poisoned-tag recovery ladder
+## 5. Poisoned-tag recovery ladder
 
 Published tags cannot be repaired in place (the proxy caches the name
 forever; force-moving a tag makes it WORSE):
@@ -117,7 +142,7 @@ forever; force-moving a tag makes it WORSE):
    has the complete, execution-ready recipe (pre-tag gates, CHANGELOG entry,
    proxy/pkg.go.dev verification).
 
-## 5. Post-train hygiene
+## 6. Post-train hygiene
 
 - `bash scripts/checks/check-module-isolation.sh` — 27 modules hermetic.
 - `nix run .#check-modules -- --report` — all stages red/green.
@@ -126,7 +151,7 @@ forever; force-moving a tag makes it WORSE):
 - pkg.go.dev spot-check the new tags (license + docs render — the LICENSE
   files land per-tag).
 
-## 6. Daemon attribution (who authored which commit)
+## 7. Daemon attribution (who authored which commit)
 
 The auto-commit daemon absorbs dirty files every 30-60 s, so long sessions
 land mostly as `chore: auto-commit N changed file(s) (heuristic)` commits.

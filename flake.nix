@@ -1073,6 +1073,7 @@
                         "css-bundle-classes-self-test:bash scripts/selftests/test-check-css-bundle-classes.sh"
                         "preflight-self-test:bash scripts/selftests/test-preflight-tree-check.sh"
                         "wait-tree-quiet-self-test:bash scripts/selftests/test-wait-tree-quiet.sh"
+                        "train-preflight-self-test:bash scripts/selftests/test-train-preflight.sh"
                         "replace-directives:bash scripts/checks/check-replace-directives.sh"
                         "docs-freshness:bash scripts/checks/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/selftests/test-check-docs-freshness.sh"
@@ -1670,6 +1671,41 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/tools/wait-tree-quiet.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            train-preflight = {
+              type = "app";
+              meta.description = "ONE command before a train: tree quiescence + surprise check + lint + hermetic test battery + strict release-train gate, with candidate-count guards (a zero-iteration stage is a false green)";
+              # pkgs.nix: the lint/test stages invoke `nix run .#lint` / `.#test`
+              # from inside the app; without nix on PATH they fail with a
+              # confusing command-not-found after the slow stages.
+              runtimeInputs = [
+                pkgs.nix
+                pkgs.git
+                pkgs.coreutils
+              ];
+              text = ''
+                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                bash scripts/checks/train-preflight.sh "$@"
+              '';
+            };
+
+            test-train-preflight = {
+              type = "app";
+              meta.description = "Fixture self-test for train-preflight.sh (offline stubs: all-green / stage failure / guard misses / keep-going aggregate / outside-repo)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-train-preflight";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-train-preflight.sh
                   '';
                 }
               );
