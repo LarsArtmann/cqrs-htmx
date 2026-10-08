@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
 	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )

@@ -54,8 +54,8 @@ github.com/larsartmann/go-cqrs-lite/schema/v4 v4.5.0 h1:0J7hTj8QBrGnxTJjN4dUKHpw
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.5.0/go.mod h1:FFzU6OQNrDc4LHExSDXLcQ4QZ+kuQxNNoT5Oh88a8Hw=
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 h1:wUB01/0p6iDDyQ5XAnQEYgL1c6/SgxJnGUfFoO/z4NA=
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2/go.mod h1:of3SGHkLFeRGvOoIYcDT2+aoZGjkXVHC91rHibTAiT8=
-github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1 h1:YCpVyQCh1EBGihtaBoaUHrez4nw8JUrEzUnd6Q1zSYs=
-github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1/go.mod h1:j54scL/fCMXFGOE9WZlvXxYudevNKaXDYBW0pI5iwvs=
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX2xkBd8FPen7hDraHFfVsMFhFdZs=
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
