@@ -8,7 +8,7 @@ only on **NEW** findings.
 
 | File                                                               | Purpose                                                                                                                                                                                                                                                                                                              |
 | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`branching-flow-baseline.sarif`](./branching-flow-baseline.sarif) | Minified SARIF, one entry per frozen finding (666 at 2026-10-07 — re-pinned from 659 accepting 9 SUPERB-plan findings under existing verdicts (see the amendment log): 501 phantom, 76 strong-id, 51 mixins, 18 duplicate-types, 8 large-struct, 5 do, 2 flag-param, 3 iface-complete, 1 bool-blind, 1 base-naming). |
+| [`branching-flow-baseline.sarif`](./branching-flow-baseline.sarif) | Minified SARIF, one entry per frozen finding (229 at 2026-10-08 — re-pinned from 666 after the M17–M26 panel rewrites + dedup rounds dissolved 449 findings, +59 new branding-advice findings accepted under existing verdicts (see the amendment log)). |
 | [`triage-decisions.md`](./triage-decisions.md)                     | The verdict ledger: every analyzer class, its count, its reject/fix verdict, and the reason. Read this before "fixing" a baseline finding.                                                                                                                                                                           |
 
 ## The gate
@@ -27,6 +27,14 @@ Semantics (verified empirically 2026-10-05 vs branching-flow 0.2.0):
 - anything else — tool failure (most commonly the experimental `panic` linter
   failing to load packages because `go` on PATH is below the go.work floor;
   run via the flake app, which pins the 1.27 toolchain).
+
+Every verdict line prints the tool's Baseline counts (`+added, -removed,
+~modified, =unchanged`) so a suspicious run is visible in the output. The
+`rc 0` path carries a **zero-candidate false-green guard**: a committed
+non-empty baseline with detected=0 (added+modified+unchanged) and removed>0
+means the analyzer matched NOTHING (toolchain-floor misfire, SARIF parse
+failure, or a full ratchet-down that never re-pinned) — the gate fails
+loudly instead of passing.
 
 ## Refreshing the baseline (ratchet down)
 
@@ -52,7 +60,7 @@ Rules:
   message — growth means new findings were accepted, which belongs in
   [`triage-decisions.md`](./triage-decisions.md).
 
-## Why a baseline instead of fixing all 666
+## Why a baseline instead of fixing all 229
 
 The 2026-10-05 full-analysis pass adjudicated the bulk as deliberate
 (wire contracts, golden-pinned DTOs, config composition roots — see the
