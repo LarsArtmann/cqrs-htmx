@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/e2e/server
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.1
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.2
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.3
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
