@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.3
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.2
-	github.com/larsartmann/httputil v1.4.1
+	github.com/larsartmann/httputil v1.4.2
 	github.com/larsartmann/httputil/server_timing v1.0.1
 )
 
