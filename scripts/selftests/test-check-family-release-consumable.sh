@@ -120,6 +120,45 @@ out=$(bash "$GATE" --bogus 2>&1)
 rc=$?
 check 7 2 "usage" "$rc" "$out"
 
+# Cases 8-9: the family walk demands each submodule's OWN required version,
+# not the candidate's tag (multi-train families — httputil root v1.4.x +
+# server_timing v1.0.x — must not be swept onto the root's version). A
+# same-version family (templ-components) is still caught: the parent's
+# require line carries the (placeholder or missing) version verbatim, and
+# fetching exactly that version is what fails. Exercised offline through a
+# file:// stub proxy.
+PROXY="$WORK/proxy"
+mkdir -p "$PROXY/github.com/example/family/@v" "$PROXY/github.com/example/family/sub/@v"
+cat >"$PROXY/github.com/example/family/@v/v1.4.2.mod" <<'EOF'
+module github.com/example/family
+
+go 1.27
+
+require github.com/example/family/sub v1.0.1
+EOF
+cat >"$PROXY/github.com/example/family/sub/@v/v1.0.1.mod" <<'EOF'
+module github.com/example/family/sub
+
+go 1.27
+EOF
+
+# Case 8: multi-train family — the submodule is healthy at its own version.
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.2 2>&1)
+rc=$?
+check 8 0 "sub@v1.0.1" "$rc" "$out"
+
+# Case 9: the parent requires a submodule version the proxy does not have.
+cat >"$PROXY/github.com/example/family/@v/v1.4.3.mod" <<'EOF'
+module github.com/example/family
+
+go 1.27
+
+require github.com/example/family/sub v1.0.2
+EOF
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.3 2>&1)
+rc=$?
+check 9 1 "no published v1.0.2" "$rc" "$out"
+
 echo "pass=$pass fail=$fail"
 if [ "$fail" -ne 0 ]; then
   exit 1
