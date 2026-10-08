@@ -19,7 +19,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
-	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.2
+	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
@@ -70,7 +70,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2 // indirect
