@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 // --- Stubs ---
@@ -492,6 +493,15 @@ func TestTimeTravelDetailHandler_LoadToVersionError(t *testing.T) {
 
 func mustTestDashboardWithConfig(t *testing.T, config Config) *Dashboard {
 	t.Helper()
+
+	// Vanilla store wiring on deviation-only Configs: when the caller sets
+	// neither source, one fresh in-memory store serves as EventSource and
+	// Journal, so a test's Config states only what it deviates by.
+	if config.EventSource == nil && config.Journal == nil {
+		store := memorystorage.NewMemoryStore()
+		config.EventSource = store
+		config.Journal = store
+	}
 
 	d, err := New(config)
 	if err != nil {
