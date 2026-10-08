@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 )
 
 // New creates a fully wired [Bundle] from a single [Config].
@@ -331,6 +332,12 @@ func (b *Bundle) attachLogin() error {
 		AccentColor:    b.config.AccentColor,
 		NoRegistration: b.config.LoginNoRegistration,
 		CSSPath:        b.config.LoginCSSPath,
+		// The bundle's security layer (RecommendedSecurityMiddleware) sets a
+		// nonce CSP on every response, so the login page's inline scripts must
+		// carry that same nonce or the browser blocks them. No nonce in the
+		// request context (consumer disabled the security layer) renders the
+		// scripts unchanged, without a nonce attribute.
+		NonceFromRequest: httputil.NonceFromRequest,
 	})
 	if err != nil {
 		return errorfamily.WrapRejection(

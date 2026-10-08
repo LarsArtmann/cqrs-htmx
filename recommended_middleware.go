@@ -20,7 +20,8 @@ const RecommendedPermissionsPolicy = "geolocation=(), microphone=(), camera=(), 
 //     Referrer-Policy, and RecommendedPermissionsPolicy.
 //   - Nonce — generates a per-request CSP nonce and sets a
 //     Content-Security-Policy header that allows 'self' + nonce for scripts
-//     and styles.
+//     and styles, plus img-src 'self' data: for the login page's inline
+//     SVG favicon.
 //   - RecoveryMiddleware — catches panics and returns 500 instead of crashing.
 //
 // Both adminui.Handler.Middleware and dashboardui.Dashboard.Middleware delegate
@@ -39,7 +40,16 @@ func RecommendedSecurityMiddleware() func(http.Handler) http.Handler {
 
 	return Chain(
 		httputil.SecurityHeaders(securityCfg),
-		httputil.Nonce(httputil.DefaultNonceConfig()),
+		httputil.Nonce(httputil.NonceConfig{CSPBuilder: recommendedCSP}),
 		RecoveryMiddleware,
 	)
+}
+
+// recommendedCSP extends httputil.RecommendedCSPWithNonce with
+// img-src 'self' data:. The login page renders its brand favicon as an
+// inline SVG data URI (no extra route to 404), which the default-src
+// 'self' fallback would block; images cannot execute script, so data:
+// in img-src carries no script risk.
+func recommendedCSP(nonce string) string {
+	return httputil.RecommendedCSPWithNonce(nonce) + "; img-src 'self' data:"
 }
