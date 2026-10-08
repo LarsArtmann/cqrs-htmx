@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.11.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.2
-	github.com/larsartmann/httputil v1.4.1
+	github.com/larsartmann/httputil v1.4.2
 	github.com/larsartmann/templ-components v1.20.1
 	github.com/larsartmann/templ-components/errorpage v1.20.1
 	github.com/larsartmann/templ-components/htmx v1.20.1
