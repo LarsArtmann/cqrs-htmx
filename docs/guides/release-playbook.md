@@ -86,6 +86,12 @@ tags** — never at a tag you are ABOUT to cut. Concretely:
   tag as UNPUBLISHED. `bump-dep --commit` prints this reminder and reports
   honestly when the commit did not land (rc-checked; the daemon may absorb the
   staged sweep as a heuristic commit — amend its message, don't re-commit blind).
+- The dance is CROSS-REPO too (2026-10-08 incident): after releasing a family
+  dependency from a SIBLING repo (e.g. httputil), refresh the same cache BEFORE
+  pushing this repo's consumer bumps — the local pre-push gate green-lights on
+  the stale cache while CI (fresh proxy resolution) red's the lag it could not
+  see. Sequence: release upstream → `check-release-train.sh --refresh-cache` →
+  sweep consumers → push.
 - CHANGELOG-before-tag: write the consumer-visible receipts into the module's
   CHANGELOG `[Unreleased]` section and cut the tag WITH them committed — a tag
   whose CHANGELOG section is a stub (identity-model v4.12.0 class) ships empty

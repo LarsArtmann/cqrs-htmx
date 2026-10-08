@@ -73,6 +73,16 @@ consumability pre-flight (offline fixtures). The consumability pre-flight
 (R18) validates the TARGET release before the first mutation and aborts with
 the named upstream fault.
 
+**Multi-train families are normal (2026-10-08, `23b54cc2`).** The pre-flight's
+family walk demands each submodule's OWN version — read verbatim from the
+parent's require line — never the parent's tag version. httputil root v1.4.x
+with server_timing on its own v1.0.x train is a VALID state (the earlier walk
+false-aborted it and blocked a live release); the poison class the walk exists
+for (templ-components v1.20.0 placeholder requires) is still caught, because a
+placeholder rides the submodule's own require line into the proxy fetch, which
+fails. Known scope limit: the walk's grep matches BLOCK require form only —
+single-line `require <mod> <ver>` submodules are silently skipped.
+
 **Moving-target stop-rule.** If new family tags land WHILE you are aligning
 (the upstream released mid-sweep), STOP after the current module: re-run the
 pre-flight for the new tag, decide explicitly (finish the old train, or restart
