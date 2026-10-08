@@ -43,6 +43,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **push-unblock battery: release-train alignment to zero lag + status-row fixer gap (2026-10-08).** Every workspace go.mod re-pinned to the published go-cqrs-lite family tags (13 families, encryption→watermill; `nix run .#check-release-train --strict-lag 0` green at 842 requires) with one hermetic go.sum residue fix (auditlog). The CI `checks` red's root cause was a fixer/gate split brain: `normalize-status-rows.py` required a well-formed separator row before touching a table, while `check-status-rows.py` flags rows in ANY pipe-block — so 40 aborted-annotation rows behind malformed 2-dash separators were flagged forever and silently unfixable. The fixer now mirrors the checker's block detection (first non-separator line is the header, separator shape irrelevant), regression-tested in the fixture self-test; the 40 rows are normalized per the whole-row-strike policy and the gate is green across all 467 files.
+
 - **18 generated `_templ.go` files regenerated to module-canonical form (2026-10-05).** The committed files were stale repo-root-run output (path-prefixed `FileName:` fields); `nix run .#gen` / `.#check-codegen` verify the bare-field canonical form — regeneration must run from the MODULE dir (gotcha 10). Rendered output unchanged (formatting only).
 
 - **setup tests: deprecated `NewUserID` → `SyntheticUserID` (2026-10-05).** The only real lint finding repo-wide (`session_gate_test.go` ×3): `NewUserID` silently SHA-256-hashes non-ULID inputs (gotcha 16); the synthetic variant states the intent. Root module lints 0 issues.
