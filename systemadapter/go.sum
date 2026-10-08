@@ -165,8 +165,8 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 h1:t6+zJntr/N9ah7HEUHab3X
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3/go.mod h1:RzBMkLnFnOXEx5R5OVj4pRs+cYToWDQbT0BaOFMUutM=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 h1:TLxR52e2An1kbrJHaf9Y8Om0f3LuwzBSFqXf7e1YIQI=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3/go.mod h1:Gn1lMDrE4/lJ2zTgcyuuLVqFWCrEXiI+imrUYpBfU4c=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1 h1:+DMWNY925W0Vfz5onuzRW6UETqz2TvW940Dhu1wSOSc=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1/go.mod h1:kl4EnqmjAtVlS03bpSvYVdvo3aa1KB896aQJKh4XVSY=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2 h1:62R7BYzsBmre3ZpLI/1Ix17kx+wUbnQwfJI/z4HbkZg=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2/go.mod h1:8ROLpkWKi10BvYkgMIj1bjJJrKABX0gKQuUDt2bAjzQ=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0 h1:4Kn7ulDYRn9Xt6L+mqPJXP3mc09XTkylpfck2o/Taow=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0/go.mod h1:9AHwAtaOfkLBYDJ/MANM8ngPpNbpna27rGwCUO4rjIY=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 h1:Vzel6eXmS9dum1Pi7tdViiOlSzcH02ajCUXYK6LL5HQ=
