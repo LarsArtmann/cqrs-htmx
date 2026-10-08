@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.7.1
-	github.com/larsartmann/httputil v1.4.1
+	github.com/larsartmann/httputil v1.4.2
 )
 
 require (

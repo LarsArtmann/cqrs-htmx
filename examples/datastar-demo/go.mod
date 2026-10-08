@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/httputil v1.4.1
+	github.com/larsartmann/httputil v1.4.2
 )
 
 require (

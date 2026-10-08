@@ -29,7 +29,7 @@ require (
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-health v0.5.0
 	github.com/larsartmann/go-sse v0.6.2
-	github.com/larsartmann/httputil v1.4.1
+	github.com/larsartmann/httputil v1.4.2
 	github.com/larsartmann/samber-do-auditlog v0.11.0
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/do/v2 v2.1.0
