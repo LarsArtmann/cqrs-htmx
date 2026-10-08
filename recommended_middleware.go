@@ -40,7 +40,7 @@ func RecommendedSecurityMiddleware() func(http.Handler) http.Handler {
 
 	return Chain(
 		httputil.SecurityHeaders(securityCfg),
-		httputil.Nonce(httputil.NonceConfig{CSPBuilder: recommendedCSP}),
+		httputil.Nonce(httputil.NonceConfig{Size: 0, CSPBuilder: recommendedCSP}),
 		RecoveryMiddleware,
 	)
 }

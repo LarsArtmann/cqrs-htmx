@@ -53,7 +53,7 @@ func TestLoginPage_InlineScriptsCarryCSPNonce(t *testing.T) {
 		t.Fatalf("CSP carries no script nonce, got %q", csp)
 	}
 	start += len(noncePrefix)
-	nonce := csp[start:strings.IndexByte(csp[start:], '\'')+start]
+	nonce := csp[start : strings.IndexByte(csp[start:], '\'')+start]
 	if nonce == "" {
 		t.Fatal("extracted empty nonce from CSP")
 	}
@@ -63,7 +63,10 @@ func TestLoginPage_InlineScriptsCarryCSPNonce(t *testing.T) {
 		t.Error("login page must ship its brand favicon as a data: URI")
 	}
 	if got := strings.Count(body, `nonce="`+nonce+`"`); got < 3 {
-		t.Errorf("expected the theme script, the config block, and the WebAuthn script to carry the CSP nonce, found %d nonce'd tags", got)
+		t.Errorf(
+			"expected the theme script, the config block, and the WebAuthn script to carry the CSP nonce, found %d nonce'd tags",
+			got,
+		)
 	}
 
 	for rest := body; ; {
