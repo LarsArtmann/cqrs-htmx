@@ -19,18 +19,7 @@ import (
 )
 
 func TestDashboard_OverviewRenders(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/", nil)
@@ -49,18 +38,7 @@ func TestDashboard_OverviewRenders(t *testing.T) {
 }
 
 func TestMount_CoexistsWithRootIndex(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
@@ -97,13 +75,7 @@ func TestDashboard_EventBrowserRenders(t *testing.T) {
 		event.Version(0),
 	)
 
-	d, _ := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/events", nil)
@@ -120,15 +92,7 @@ func TestDashboard_EventBrowserRenders(t *testing.T) {
 }
 
 func TestDashboard_CapabilityDetection(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
+	d := mustTestDashboardWithConfig(t, Config{})
 
 	caps := d.Capabilities()
 	if !caps.EventSource {
@@ -156,11 +120,7 @@ func TestDashboard_RequiresAtLeastOneInterface(t *testing.T) {
 }
 
 func TestDashboard_NavBuildsFromCapabilities(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	d, _ := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
+	d := mustTestDashboardWithConfig(t, Config{})
 
 	p := d.page("Test", "/", &http.Request{})
 
@@ -203,13 +163,7 @@ func TestDashboard_EventDetailRenders(t *testing.T) {
 		event.Version(0),
 	)
 
-	d, _ := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
 
 	url := "/dashboard/events/" + evt.ID().String()
 	rec := httptest.NewRecorder()
@@ -251,13 +205,7 @@ func TestDashboard_AggregateDetailRenders(t *testing.T) {
 	)
 	_ = store.Save(context.Background(), ref, []event.Event{evt2}, event.Version(1))
 
-	d, _ := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
 
 	url := "/dashboard/aggregates/User/" + aggID.String()
 	rec := httptest.NewRecorder()
@@ -290,14 +238,11 @@ func TestDashboard_CommandAuditRenders(t *testing.T) {
 	)
 	_ = cmdStore.Save(context.Background(), ref, cmd)
 
-	d, _ := New(Config{
+	mux := mustTestDashboardMuxWithConfig(t, Config{
 		EventSource:    store,
 		Journal:        store,
 		CommandJournal: cmdStore,
 	})
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/commands", nil)
@@ -322,14 +267,11 @@ func TestDashboard_QueryAuditRenders(t *testing.T) {
 	q, _ := query.NewPersistedQuery("get.user", []byte(`{"id":"123"}`))
 	_ = queryStore.SaveQuery(context.Background(), q)
 
-	d, _ := New(Config{
+	mux := mustTestDashboardMuxWithConfig(t, Config{
 		EventSource:  store,
 		Journal:      store,
 		QueryJournal: queryStore,
 	})
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/queries", nil)
@@ -364,15 +306,11 @@ func TestDashboard_TimeTravelDetailRenders(t *testing.T) {
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)
-
-	d, _ := New(Config{
+	mux := mustTestDashboardMuxWithConfig(t, Config{
 		EventSource:  store,
 		Journal:      store,
 		StreamReader: reader,
 	})
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
 
 	// Test version 2 of 3
 	url := "/dashboard/time-travel/Order/" + aggID.String() + "?v=2"
@@ -420,16 +358,12 @@ func TestDashboard_SnapshotDetailRenders(t *testing.T) {
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
 
 	reader := listing.NewInMemoryStreamReader(store)
-
-	d, _ := New(Config{
+	mux := mustTestDashboardMuxWithConfig(t, Config{
 		EventSource:   store,
 		Journal:       store,
 		StreamReader:  reader,
 		SnapshotStore: snapStore,
 	})
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
 
 	url := "/dashboard/snapshots/Order/" + aggID.String()
 	rec := httptest.NewRecorder()
@@ -449,17 +383,11 @@ func TestDashboard_SnapshotDetailRenders(t *testing.T) {
 }
 
 func TestDashboard_SSEBridgeWorks(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
 	bus := eventtest.NewFakeBus()
 
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-		EventBus:    bus,
+	d := mustTestDashboardWithConfig(t, Config{
+		EventBus: bus,
 	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
 
 	if d.broadcaster == nil {
 		t.Fatal("broadcaster should be created when EventBus is configured")
@@ -506,18 +434,7 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 // showToast listener, and every handler registered after it — including the
 // SSE connect — silently never runs (page stuck on "Connecting").
 func TestLayout_ScriptsAreDeferred(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/", nil)

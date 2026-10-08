@@ -25,9 +25,7 @@ func TestXSS_EventTypeEscaped(t *testing.T) {
 		event.Version(0),
 	)
 
-	d, _ := New(Config{EventSource: store, Journal: store})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/events", nil)
@@ -55,9 +53,7 @@ func TestXSS_EventDetailEscaped(t *testing.T) {
 		event.Version(0),
 	)
 
-	d, _ := New(Config{EventSource: store, Journal: store})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/events/"+evt.ID().String(), nil)
@@ -82,9 +78,7 @@ func TestXSS_AggregateDetailEscaped(t *testing.T) {
 	)
 
 	reader := listing.NewInMemoryStreamReader(store)
-	d, _ := New(Config{EventSource: store, Journal: store, StreamReader: reader})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store, StreamReader: reader})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/aggregates/User/"+aggID.String(), nil)
@@ -111,9 +105,7 @@ func TestOverviewStats_AccurateCount(t *testing.T) {
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)
-	d, _ := New(Config{EventSource: store, SeekableJournal: store, StreamReader: reader})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, SeekableJournal: store, StreamReader: reader})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/", nil)
@@ -136,10 +128,7 @@ func TestOverviewStats_AccurateCount(t *testing.T) {
 }
 
 func TestNotFound_Handler(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	d, _ := New(Config{EventSource: store, Journal: store})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/nonexistent-page", nil)
@@ -155,14 +144,7 @@ func TestNotFound_Handler(t *testing.T) {
 }
 
 func TestReadOnlyMode_WriteEndpointsNotFound(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	d, _ := New(Config{
-		EventSource: store,
-		Journal:     store,
-		ReadOnly:    true,
-	})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{ReadOnly: true})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/dashboard/projections/test/reset", nil)
@@ -194,9 +176,7 @@ func TestEventFilter_ByType(t *testing.T) {
 		event.Version(0),
 	)
 
-	d, _ := New(Config{EventSource: store, Journal: store})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/events?type=user.created", nil)
@@ -217,10 +197,7 @@ func TestEventFilter_ByType(t *testing.T) {
 }
 
 func TestCSS_ServedWithCorrectHeaders(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	d, _ := New(Config{EventSource: store, Journal: store})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.css", nil)
@@ -244,10 +221,7 @@ func TestCSS_ServedWithCorrectHeaders(t *testing.T) {
 }
 
 func TestJS_ServedWithCorrectHeaders(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	d, _ := New(Config{EventSource: store, Journal: store})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil)
@@ -287,9 +261,7 @@ func TestPagination_PreservesFilterInLinks(t *testing.T) {
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)
-	d, _ := New(Config{EventSource: store, SeekableJournal: store, StreamReader: reader})
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, SeekableJournal: store, StreamReader: reader})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/events?streamType=User", nil)
@@ -312,8 +284,7 @@ func TestPagination_PreservesFilterInLinks(t *testing.T) {
 }
 
 func TestMiddleware_PermissionsPolicy(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	d, _ := New(Config{EventSource: store, Journal: store})
+	d := mustTestDashboardWithConfig(t, Config{})
 
 	mw := d.Middleware()
 
@@ -337,8 +308,7 @@ func TestMiddleware_PermissionsPolicy(t *testing.T) {
 }
 
 func TestMiddleware_CSPWithNonceAndSecurityHeaders(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	d, _ := New(Config{EventSource: store, Journal: store})
+	d := mustTestDashboardWithConfig(t, Config{})
 
 	mw := d.Middleware()
 

@@ -43,14 +43,11 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	d, err := New(Config{
+	d := mustTestDashboardWithConfig(t, Config{
 		EventSource: store,
 		Journal:     store,
 		EventBus:    bus,
 	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
 	defer d.Close()
 
 	if d.sseStore == nil {
@@ -114,7 +111,7 @@ func TestDashboard_SSEInitialBackfill(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	d, _ := New(Config{
+	d := mustTestDashboardWithConfig(t, Config{
 		EventSource: store,
 		Journal:     store,
 		EventBus:    bus,
@@ -154,18 +151,12 @@ func TestDashboard_SSEInitialBackfill(t *testing.T) {
 }
 
 func TestDashboard_SSEHeartbeatEmission(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
 	bus := eventtest.NewFakeBus()
 
-	d, err := New(Config{
-		EventSource:          store,
-		Journal:              store,
+	d := mustTestDashboardWithConfig(t, Config{
 		EventBus:             bus,
 		SSEHeartbeatInterval: 10 * time.Millisecond,
 	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
 	defer d.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -205,17 +196,11 @@ func TestDashboard_SSEHeartbeatEmission(t *testing.T) {
 }
 
 func TestDashboard_Close(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
 	bus := eventtest.NewFakeBus()
 
-	d, err := New(Config{
-		EventSource: store,
-		Journal:     store,
-		EventBus:    bus,
+	d := mustTestDashboardWithConfig(t, Config{
+		EventBus: bus,
 	})
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
 
 	// Close should not panic.
 	d.Close()
