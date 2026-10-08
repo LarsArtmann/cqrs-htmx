@@ -296,6 +296,21 @@
 
 ## g) QUESTIONS (cannot figure out myself)
 
+> **ANNOTATED 2026-10-08** — defaults applied + resolved since:
+> (1) The window OPENED 2026-10-07 evening: root tags first exactly as the
+> foreign-session assets demanded (v4.13.2 carrying `ServeAsset`/`AssetETag`,
+> then v4.13.3 for the CSP img-src fix), consumers re-pinned (`56242288`), and
+> the 2026-10-08 untagged-debt train (identity-model v4.12.2 → dashboardui
+> v4.13.2 → setup v4.14.2 + full consumer alignment, 842 requires 0/0) pushed
+> through the strict pre-push gates.
+> (2) The foreign session LANDED: its root APIs are published (root v4.13.2),
+> dashboardui's dedup onto them ships in dashboardui v4.13.2, and hermetic
+> consumer builds are green — the check-modules exclusion question is moot.
+> (3) The post-daemon compile guard stayed MANUAL (no mechanization without
+> owner decision, same default as this report's own housekeeping note);
+> `preflight-tree-check` + `wait-tree-quiet` remain the only mechanical
+> daemon-churn guards. Re-open if the M19 incident class recurs.
+
 1. **Push/train window:** CH is now ~65+ commits ahead of origin (M17–M26 all
    unpushed), GCL ~40+ ahead, and a foreign session is mid-flight on the
    root/adminui asset refactor. Open the window now (I would: full battery
