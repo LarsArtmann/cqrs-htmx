@@ -344,8 +344,8 @@ github.com/larsartmann/go-output/testhelpers/graphtest v0.38.3 h1:4/O76muT2Yi6bD
 github.com/larsartmann/go-output/testhelpers/graphtest v0.38.3/go.mod h1:UCuUXgqKAI2SZYui9ijwVGU5im8stpE46tXAbPZgomo=
 github.com/larsartmann/go-output/tree v0.38.4 h1:sJvy+8uCk1ljDp4z4NeZDZiw/K/MCGbs0XSWnRiwJv0=
 github.com/larsartmann/go-output/tree v0.38.4/go.mod h1:1nxcRDckCr2oHWwtaSg8ucjnYLVGNB/3WDJ7QMdzwoY=
-github.com/larsartmann/go-retry v0.7.1 h1:e3MwEB8SvR0p1XMOtkFofFOS2y5rITzNLmbgZfCtO0c=
-github.com/larsartmann/go-retry v0.7.1/go.mod h1:jIPlAHcD/D+lqBo9CLWAEaJQqDgyFtvDE2RoG1SbZL4=
+github.com/larsartmann/go-retry v0.8.0 h1:R7twMiRiZNWQKryF3nqtE/3R3Td5xkhiHIoXEnlCZNM=
+github.com/larsartmann/go-retry v0.8.0/go.mod h1:p1ITwjm4NMVRhJHV/23ymaIbAdGuvufounnvFbgItXs=
 github.com/larsartmann/go-sqlitestore v0.1.0 h1:+u9nCNdyHZPjduUXWdfy087b9tSeo8GVXrsK4NieVWA=
 github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykWdmJLnm8K8LdmH2JzU8=
 github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
