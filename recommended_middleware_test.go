@@ -49,6 +49,10 @@ func TestRecommendedSecurityMiddleware_SetsAllHeaders(t *testing.T) {
 	if !strings.Contains(csp, "'self'") {
 		t.Errorf("expected CSP to allow 'self', got %q", csp)
 	}
+
+	if !strings.Contains(csp, "img-src 'self' data:") {
+		t.Errorf("expected CSP to allow the login page's inline SVG favicon (img-src 'self' data:), got %q", csp)
+	}
 }
 
 func TestRecommendedSecurityMiddleware_NonceAvailableInContext(t *testing.T) {
