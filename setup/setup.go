@@ -142,8 +142,9 @@ func newShellBundle(cfg Config) (*Bundle, error) {
 		bus = watermill.NewEventBus()
 		// Safe-by-default: a panicking subscriber must not take the process
 		// down. The recovered panic is logged via the process default logger
-		// and returned as a Corruption error — visible even though the bus's
-		// internal router discards handler-error logs (watermill.NopLogger).
+		// and returned as an Infrastructure error, visible even though the
+		// bus's internal router discards handler-error logs
+		// (watermill.NopLogger).
 		// Opt-out: bring your own EventBus via Config.EventBus.
 		if err := bus.Use(middleware.EventRecovery(middleware.WithLogger(slog.Default()))); err != nil {
 			return nil, errorfamily.WrapInfrastructure(
