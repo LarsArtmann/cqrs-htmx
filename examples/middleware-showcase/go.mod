@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
