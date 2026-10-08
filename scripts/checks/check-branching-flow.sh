@@ -69,7 +69,7 @@ added=$(printf '%s' "$baseline_line" | sed -nE 's/.*\+([0-9]+) added.*/\1/p')
 removed=$(printf '%s' "$baseline_line" | sed -nE 's/.*-([0-9]+) removed.*/\1/p')
 modified=$(printf '%s' "$baseline_line" | sed -nE 's/.*~([0-9]+) modified.*/\1/p')
 unchanged=$(printf '%s' "$baseline_line" | sed -nE 's/.*=([0-9]+) unchanged.*/\1/p')
-detected=$(( ${added:-0} + ${modified:-0} + ${unchanged:-0} ))
+detected=$((${added:-0} + ${modified:-0} + ${unchanged:-0}))
 
 case "$rc" in
 0)
