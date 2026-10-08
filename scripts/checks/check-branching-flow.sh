@@ -59,16 +59,35 @@ LOG="/tmp/check-branching-flow-$$-$(date +%s).log"
   --baseline "$BASELINE" --exit-code >/dev/null 2>"$LOG"
 rc=$?
 
+# Parse the tool's Baseline summary line: `Baseline <path>: +N added, -M removed, ~K modified, =U unchanged`.
+# detected = added+modified+unchanged is what the tool CURRENTLY sees; a committed
+# non-empty baseline with detected=0 and removed>0 means the analyzer matched
+# NOTHING (misfire: wrong go/go.work floor, SARIF parse failure) — rc=0 would be a
+# false green, so it fails loudly instead.
+baseline_line=$(grep 'Baseline' "$LOG" | tail -1 || true)
+added=$(printf '%s' "$baseline_line" | sed -nE 's/.*\+([0-9]+) added.*/\1/p')
+removed=$(printf '%s' "$baseline_line" | sed -nE 's/.*-([0-9]+) removed.*/\1/p')
+modified=$(printf '%s' "$baseline_line" | sed -nE 's/.*~([0-9]+) modified.*/\1/p')
+unchanged=$(printf '%s' "$baseline_line" | sed -nE 's/.*=([0-9]+) unchanged.*/\1/p')
+detected=$(( ${added:-0} + ${modified:-0} + ${unchanged:-0} ))
+
 case "$rc" in
 0)
-  grep 'Baseline' "$LOG" | tail -1 >&2 || true
-  echo "check-branching-flow: OK — no new findings vs committed baseline"
+  if [ "$detected" -eq 0 ] && [ "${removed:-0}" -gt 0 ]; then
+    echo "check-branching-flow: FAILED — ZERO candidates detected ($baseline_line)" >&2
+    echo "  The tool matched none of the committed baseline's findings — analyzer" >&2
+    echo "  misfire (go on PATH below the go.work floor, SARIF parse failure) or a" >&2
+    echo "  full ratchet-down whose baseline was never re-pinned. Check the tool" >&2
+    echo "  output, or refresh the baseline per docs/analysis/README.md." >&2
+    rm -f "$LOG"
+    exit 1
+  fi
+  echo "check-branching-flow: OK — no new findings vs committed baseline ($baseline_line)"
   rm -f "$LOG"
   exit 0
   ;;
 1)
-  echo "check-branching-flow: FAILED — NEW findings vs baseline:" >&2
-  grep 'Baseline' "$LOG" | tail -1 >&2 || true
+  echo "check-branching-flow: FAILED — NEW findings vs baseline ($baseline_line):" >&2
   echo "  Fix them, or (if adjudicated as deliberate) refresh the baseline per docs/analysis/README.md." >&2
   rm -f "$LOG"
   exit 1
