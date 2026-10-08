@@ -67,3 +67,26 @@ The 2026-10-05 full-analysis pass adjudicated the bulk as deliberate
 verdict ledger). A gate that failed on all of them would brick every commit;
 freezing them and failing on NEW findings only converts the one-off firehose
 into a durable ratchet without re-litigating a single verdict.
+
+## Analyzer-subset measurement (R15/T14, 2026-10-08): keep all 14
+
+Measured against the 229-finding baseline × the verdict ledger's per-class
+dispositions, the signal fraction of the full analyzer set is ~2.6% (~6 of
+229: the 4 high-severity STRONG_ID rows under TODO T6 plus borderlines).
+Per-analyzer: STRONG_ID 76 (reject ~70 — wire contracts),
+COMPOSITION_mixin 51 (reject — golden-pinned wire structs), PHANTOM
+64 across TRANSPOSE/COLLISION (reject — branding advice),
+DUPLICATE_TYPE 18 (rejected FP/intentional groups; its one realized fix —
+the T3 `commandOptionApplier` drift guard — already landed),
+large-struct 8 / DO 5 / IFACE_COMPLETE 3 / FLAG_PARAM 2 / BOOL_BLIND 1 /
+base-naming 1 (all reject or FP).
+
+Narrow-or-not verdict: **no narrowing.** The ratchet shape (fail on NEW
+only, tolerate modified/removed) already neutralizes the noise — the 229
+never block a commit — so a subset would buy nothing operationally while
+removing the new-finding tripwires for the two classes that DID produce
+real fixes (T3 split-brain guard from DUPLICATE_TYPE, T5 named-options
+from FLAG_PARAM). The three-day churn measurement (663 → 666 → 229,
+2026-10-05→08) also shows per-line baselines swing ~68% under normal
+development as line-shift re-attribution — re-measure only when upstream
+adds an analyzer; the ratchet absorbs new classes the same way.
