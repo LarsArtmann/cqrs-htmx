@@ -44,9 +44,9 @@ Content is ready to re-add.
 
 | Item | What remains                                          |
 | ---- | ----------------------------------------------------- |
-| ~~   | **M13/F40–F45 — escaping sweep (CH dashboardui)**     |
-| ~~   | **M14/F46–F50 — error honesty (CH dashboardui)**      |
-| ~~   | **M15/F51–F53 — sorted-view notice (CH dashboardui)** |
+| ~~   | ~~**M13/F40–F45 — escaping sweep (CH dashboardui)**~~     |
+| ~~   | ~~**M14/F46–F50 — error honesty (CH dashboardui)**~~      |
+| ~~   | ~~**M15/F51–F53 — sorted-view notice (CH dashboardui)**~~ |
 
 ## d) Totally fucked up
 
