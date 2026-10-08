@@ -48,7 +48,7 @@ elif [ "$_train_rc" -ne 0 ]; then
   exit "$_train_rc"
 fi
 
-echo "Running BuildFlow pre-commit checks (budget: 60s)..."
+echo "Running BuildFlow pre-commit checks (soft budget: 150s)..."
 
 START=$(date +%s)
 
@@ -57,13 +57,23 @@ START=$(date +%s)
 # of racing on concurrent WRITEs. ~2s on warm cache.
 bash "$(git rev-parse --show-toplevel)/scripts/tools/prewarm-gocache.sh" 2>/dev/null || true
 
-# Run buildflow in pre-commit mode with performance budget
+# Honest budgets + per-step timeouts (T01, 2026-10-08). The old invocation
+# printed "budget: 60s" but passed none — under cold caches or a busy machine
+# samber-linter died with deadline-exceeded and test-compile steps were killed
+# mid-compile, turning the gate into reflex `--no-verify` theater (13/13 sweep
+# commits bypassed it on 2026-10-08). Fix keeps EVERY step running (coverage
+# not scoped out): a truthful 150s soft budget plus room for the two slow
+# steps to actually finish. dev/full modes and CI are untouched — the knobs
+# live ONLY in this invocation.
 # BUILDFLOW_MAX_CONCURRENCY=1 pins the GOCACHE single-writer invariant: the
 # refreshed buildflow binary's CLI default (4) wins over the file's
 # max_concurrency: 1 and re-opens the documented govalid/golangci GOCACHE
 # race (random per-module step failures: 2/2 fast runs failed at 4,
 # 1/1 green at 1, 2026-09-18).
-BUILDFLOW_MAX_CONCURRENCY=1 buildflow --build-mode pre-commit --staged-only
+BUILDFLOW_MAX_CONCURRENCY=1 buildflow --build-mode pre-commit --staged-only \
+  --budget 150s \
+  --step-timeout samber-linter=2m \
+  --step-timeout test-compile=2m
 
 # Re-stage files that may have been modified by formatters
 # This ensures formatted code is included in the commit
