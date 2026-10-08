@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2030,SC2031
+# Every fixture stage exports its stub env Vars inside a ( cd ... ) subshell on
+# purpose — the exports are meant to be subshell-scoped, so SC2030/SC2031 are
+# false positives here by construction.
 # test-train-preflight.sh — fixture self-test for train-preflight.sh (offline)
 #
 #   F1  all stub stages pass with canaries      -> exit 0, ALL STAGES GREEN
