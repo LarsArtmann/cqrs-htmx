@@ -17,13 +17,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.4
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.2
@@ -69,16 +69,16 @@ require (
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-datastar v0.6.2 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
@@ -97,7 +97,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/mattn/go-runewidth v0.0.30 // indirect
+	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
@@ -125,7 +125,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/exp v0.0.0-20261005173118-76772065c9b0 // indirect
+	golang.org/x/exp v0.0.0-20261007192929-f45ad48fbe92 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
