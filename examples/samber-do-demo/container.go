@@ -63,7 +63,11 @@ func NewContainer(cfg AppConfig) (*Container, func(), error) {
 	injector := do.NewWithOpts(auditSetup.Opts)
 
 	if err := registerProviders(injector, cfg); err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.register_providers", "register container providers")
+		return nil, nil, errorfamily.WrapInfrastructure(
+			err,
+			"samber_do_demo.register_providers",
+			"register container providers",
+		)
 	}
 
 	// Eagerly invoke the lifecycle wrappers so that injector.Shutdown() will
@@ -73,11 +77,19 @@ func NewContainer(cfg AppConfig) (*Container, func(), error) {
 	// propagate: an application whose lifecycle wiring is broken must not
 	// start serving.
 	if _, err := do.Invoke[*serviceLifecycle](injector); err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.service_lifecycle", "initialize service lifecycle")
+		return nil, nil, errorfamily.WrapInfrastructure(
+			err,
+			"samber_do_demo.service_lifecycle",
+			"initialize service lifecycle",
+		)
 	}
 
 	if _, err := do.Invoke[*broadcasterLifecycle](injector); err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.broadcaster_lifecycle", "initialize broadcaster lifecycle")
+		return nil, nil, errorfamily.WrapInfrastructure(
+			err,
+			"samber_do_demo.broadcaster_lifecycle",
+			"initialize broadcaster lifecycle",
+		)
 	}
 
 	// Eagerly construct and START the health surface (go-health probe +
@@ -101,11 +113,19 @@ func NewContainer(cfg AppConfig) (*Container, func(), error) {
 
 	dashboard, err := do.Invoke[*healthdashboard.Dashboard](injector)
 	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.health_dashboard", "initialize health dashboard")
+		return nil, nil, errorfamily.WrapInfrastructure(
+			err,
+			"samber_do_demo.health_dashboard",
+			"initialize health dashboard",
+		)
 	}
 
 	if err := dashboard.Start(context.Background()); err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.health_dashboard_start", "start health dashboard")
+		return nil, nil, errorfamily.WrapInfrastructure(
+			err,
+			"samber_do_demo.health_dashboard_start",
+			"start health dashboard",
+		)
 	}
 
 	return &Container{injector: injector, AuditViewer: auditSetup.Viewer}, func() {

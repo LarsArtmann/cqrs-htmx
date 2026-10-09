@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	gohealth "github.com/larsartmann/go-health"
@@ -256,7 +256,10 @@ func TestHealthDashboard_ShowsProjectionChecks(t *testing.T) {
 	body := rec.Body.String()
 	for _, name := range []string{"user-read-model", "casbin-projection"} {
 		if !strings.Contains(body, name) {
-			t.Fatalf("GET /health-ui: projection check %q missing from rendered page (the empty-green regression)", name)
+			t.Fatalf(
+				"GET /health-ui: projection check %q missing from rendered page (the empty-green regression)",
+				name,
+			)
 		}
 	}
 }
