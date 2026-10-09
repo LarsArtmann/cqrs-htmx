@@ -9,17 +9,20 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	gohealth "github.com/larsartmann/go-health"
 	"github.com/samber/do/v2"
 )
 
-// newTestContainer creates a production container then overrides the TOTP
-// provider with a stub. This demonstrates the canonical test-container pattern:
-// production wiring + targeted overrides. The override targets the service's
-// INTERFACE name (do.NameOf[identitymodel.TOTPProvider]) — the name do.As
-// registered — so every InvokeAs consumer resolves the stub.
+// newTestContainer creates the production container as-is. The canonical
+// test-container pattern (production wiring + targeted overrides) is
+// demonstrated in TestContainerOverrideConcreteTOTP — note it overrides the
+// CONCRETE service, not the do.As alias: overriding an already-invoked ALIAS
+// name is nondeterministic in samber/do v2.1.0 (minimal repro captured in the
+// 2026-10-09 session notes), while overriding a plain lazy service is
+// deterministic.
 //
 // do.Override* is safe in _test.go files (DO-3 rule explicitly allows it).
 func newTestContainer(t *testing.T) (*Container, func()) {
@@ -32,26 +35,38 @@ func newTestContainer(t *testing.T) (*Container, func()) {
 		t.Fatalf("build DI container: %v", err)
 	}
 
-	// Override the TOTP provider with a no-op stub for tests.
-	// This avoids real TOTP secret generation during unit tests.
-	do.OverrideNamed(container.injector, do.NameOf[identitymodel.TOTPProvider](),
-		func(_ do.Injector) (identitymodel.TOTPProvider, error) {
-			return stubTOTP{}, nil
-		})
-
 	return container, cleanup
 }
 
-// stubTOTP satisfies identitymodel.TOTPProvider without doing any real TOTP work.
-type stubTOTP struct{}
+// TestContainerOverrideConcreteTOTP demonstrates the canonical test-container
+// override on the CONCRETE service seam: replace *totp.Provider after the
+// container is built. It was already eagerly invoked — plain lazy services
+// re-resolve deterministically after Override, unlike do.As aliases.
+func TestContainerOverrideConcreteTOTP(t *testing.T) {
+	container, cleanup := newTestContainer(t)
+	defer cleanup()
 
-func (stubTOTP) GenerateSecret(_ string) ([]byte, string, string, error) {
-	return []byte("test"), "test-base32", "otpauth://test", nil
+	before, err := do.Invoke[*totp.Provider](container.injector)
+	if err != nil {
+		t.Fatalf("resolve original TOTP provider: %v", err)
+	}
+
+	do.OverrideNamed(container.injector, do.NameOf[*totp.Provider](),
+		func(_ do.Injector) (*totp.Provider, error) {
+			return totp.New(totp.Config{Issuer: "overridden-issuer"}), nil
+		})
+
+	after, err := do.Invoke[*totp.Provider](container.injector)
+	if err != nil {
+		t.Fatalf("resolve overridden TOTP provider: %v", err)
+	}
+	if before == after {
+		t.Fatal("override did not take effect — same instance resolved before and after")
+	}
 }
-func (stubTOTP) ValidateCode(_ []byte, _ string) bool { return true }
 
 // TestContainerResolvesService verifies that the container can resolve the
-// usermgmt.Service with the overridden TOTP provider.
+// usermgmt.Service.
 func TestContainerResolvesService(t *testing.T) {
 	container, cleanup := newTestContainer(t)
 	defer cleanup()
@@ -133,13 +148,13 @@ func TestContainerResolveTOTPViaInvokeAs(t *testing.T) {
 	container, cleanup := newTestContainer(t)
 	defer cleanup()
 
-	totp, err := do.InvokeAs[identitymodel.TOTPProvider](container.injector)
+	totpProvider, err := do.InvokeAs[identitymodel.TOTPProvider](container.injector)
 	if err != nil {
 		t.Fatalf("resolve TOTP provider via InvokeAs: %v", err)
 	}
 
-	if _, ok := totp.(stubTOTP); !ok {
-		t.Fatalf("expected stubTOTP, got %T", totp)
+	if _, ok := totpProvider.(*totp.Provider); !ok {
+		t.Fatalf("expected *totp.Provider behind the alias, got %T", totpProvider)
 	}
 }
 
