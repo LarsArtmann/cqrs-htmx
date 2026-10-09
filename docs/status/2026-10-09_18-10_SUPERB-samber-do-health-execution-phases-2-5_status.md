@@ -34,9 +34,9 @@ The handoff's "OverrideNamed on an already-invoked do.As alias is nondeterminist
 - **Daemon interleaving hit on every phase** (T4, T6, docs, boot): recovered each time by soft-reset folding into one coherent commit; final chain is 5 clean commits.
 - **A concurrent session PUSHED mid-flight** (origin/master moved to `3ffb168d`, my pre-amend T5 shape) — local and origin have diverged cleanly: origin holds my T5 content in daemon shape, local holds the 5-commit verified chain (+761 lines, all mine in the delta).
 
-## e) Push state (authorized, sequenced)
+## e) ~~Push state (authorized, sequenced)~~
 
-Push remains authorized. Sequence: tree quiet → rebase the 5 commits onto origin (duplicate-hunk auto-merge expected; verify the post-rebase tree is byte-identical to the verified HEAD) → strict pre-push gates (release-train + version-drift, expected green: no version changes) → push → CI watch (systemadapter job red is the standing foreign replace, already red on master; every job my commits touch was verified green hermetically).
+> **ANNOTATED 2026-10-09 18:25:** DONE — pushed as `ae7a25ee` through the strict pre-push gates (release-train strict: 841 requires published, 0 drift). A concurrent session had pushed my pre-amend T5 shape mid-flight (`3ffb168d`); reconciled by merge taking ours (origin's delta was strictly my own intermediate content; post-merge tree verified byte-identical to the pre-merge HEAD). CI run 37957309392: every job my commits touches is GREEN (root, health, integration_test, samber-do-demo, examples, coverage, docs gates). The 8 red jobs are all pre-existing foreign classes: systemadapter filesystem replace ×4 (test / module-architecture / mod-tidy / lint — gotcha 36, drops with the GCL systemscenario wave), identity-model + usermgmt exhaustruct (their tasks 5-7), dashboardui exhaustruct_v5 panic (their filed question 3), govulncheck stdlib CVEs (owner-gated fleet toolchain question). No NEW red introduced.
 
 ## f) Rubric re-score (T14)
 
