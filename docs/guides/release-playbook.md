@@ -166,7 +166,40 @@ forever; force-moving a tag makes it WORSE):
 - pkg.go.dev spot-check the new tags (license + docs render — the LICENSE
   files land per-tag).
 
-## 7. Daemon attribution (who authored which commit)
+## 8. Post-push: watch CI, don't assume
+
+```sh
+gh run watch <run-id> --exit-status
+```
+
+A push is not done when `git push` returns — the 2026-10-08 session carried
+master "green" through three separate post-push repair rounds (mod-tidy
+residue, status-row gate, hermetic test gap) that a watched run would have
+surfaced in one pass. `--exit-status` makes the command's rc carry the run
+verdict, so scripted trains can gate on it. Multi-red tip: fix ALL reds in
+ONE local replication pass before re-pushing — CI only surfaces the FIRST
+failure per job (gotcha 27c).
+
+## 9. Sweep-commit mechanics
+
+- **Same-version prefix sweeps merge.** A consumer requiring N modules of
+  the SAME family at ONE target version needs ONE sweep anchored at the
+  family path, not N per-module sweeps — the 2026-10-08 samber-do-demo
+  round merged 10 `bump-dep.sh` invocations into 1 by anchoring
+  `larsartmann/go-samber-do-auditlog` once every require shared the target
+  version. Rule: one sweep per distinct TARGET VERSION, not per module.
+- **Mid-train daemon absorption is expected.** If the daemon lands your
+  sweep as `chore: auto-commit ...` before your own commit does, AMEND the
+  heuristic commit with the real message — never re-commit on top (two
+  commits for one sweep breaks per-sweep bisection). bump-dep `--commit`
+  prints the reminder automatically.
+- **Receipt style: one change-class per entry.** A CHANGELOG bullet that
+  bundles a dependency alignment with a code fix forces consumers to read a
+  wall to find what changed for them; split them. Docs-only work does NOT
+  get a CHANGELOG receipt (commit message + touched doc is the receipt —
+  AGENTS gotcha 20).
+
+## 10. Daemon attribution (who authored which commit)
 
 The auto-commit daemon absorbs dirty files every 30-60 s, so long sessions
 land mostly as `chore: auto-commit N changed file(s) (heuristic)` commits.
