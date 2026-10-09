@@ -216,8 +216,8 @@ github.com/larsartmann/go-sse/ssetest v0.4.0 h1:MxkTgUnDhun2/UQURq4iAOENr8mvB6Xm
 github.com/larsartmann/go-sse/ssetest v0.4.0/go.mod h1:XNwAlmELNm154O4QoNvktGH1DpyxafvMQDOJbLfVFIc=
 github.com/larsartmann/httputil v1.4.2 h1:OGrP9PBgjmQzRGA6R+KKEsgt3I5NbjdMDcwWgJJ+h1M=
 github.com/larsartmann/httputil v1.4.2/go.mod h1:6SUXrarIpc/qJ9paJfcV4tPrO8bI3ZtzOYwIxKwnLoE=
-github.com/larsartmann/httputil/server_timing v1.0.1 h1:9T2YwZfrj71F1NFblFwIDsJZ7rnLU8K1BYlxBmrwfn8=
-github.com/larsartmann/httputil/server_timing v1.0.1/go.mod h1:QumWlp/L8NhkwNXZkN/IeLjtE5Y97axZ9LCK9NzSVck=
+github.com/larsartmann/httputil/server_timing v1.0.2 h1:x2J4vLsqHDYi9VbeMabLKlTXFnBgcKFV7LKdNXuMfG0=
+github.com/larsartmann/httputil/server_timing v1.0.2/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
 github.com/larsartmann/templ-components v1.21.0 h1:i1kEJSnkZCkAcZCvxhpPHz2KGqpsrbTZMsrBjcmNeUU=
 github.com/larsartmann/templ-components v1.21.0/go.mod h1:uadQrFxEaVZ1PtRjd5kRJfjcnCh5sMRaWBxFeW9BwOQ=
 github.com/larsartmann/templ-components/errorpage v1.21.0 h1:KeMqflITk2UUb9cYDAQELc4vgAoxGzf10trF9ogeT90=
