@@ -41,17 +41,25 @@ if [ ! -f go.work ]; then
 fi
 
 LOG=$(mktemp /tmp/check-workspace-build-XXXXXX.log)
-WORK_GO_WORK=".go.work.check-workspace-build"
+# Temp go.work lives in /tmp, NOT the repo root: the 2026-10-08 daemon-capture
+# incident (commit 88c44ae0) happened when a hard-killed run stranded
+# .go.work.check-workspace-build at the root and the auto-commit daemon swept
+# it into a heuristic commit. GOWORK needs an absolute path anyway.
+WORK_GO_WORK="$(mktemp /tmp/go.work.check-workspace-build-XXXXXX)"
 # Drop machine-local replace targets (absolute /paths and relative ../paths);
-# keep every version-to-version replace line.
-grep -v -E '^[[:space:]]*replace[[:space:]]+[^[:space:]]+[[:space:]]+=>[[:space:]]+(\.\./|/)' go.work >"$WORK_GO_WORK" || true
+# keep every version-to-version replace line. Relative `use` paths (including
+# the lone root ".") are rewritten to absolute so the temp copy resolves
+# against the repo root, not the temp dir.
+grep -v -E '^[[:space:]]*replace[[:space:]]+[^[:space:]]+[[:space:]]+=>[[:space:]]+(\.\./|/)' go.work |
+  sed -E -e "s|^([[:space:]]*)\.[[:space:]]*$|\1$PROJECT_ROOT|" \
+    -e "s|^([[:space:]]*)\./|\1$PROJECT_ROOT/|" >"$WORK_GO_WORK" || true
 if [ ! -s "$WORK_GO_WORK" ]; then
   echo "check-workspace-build: FAILED — filtered go.work is empty (go.work malformed?)" >&2
   rm -f "$WORK_GO_WORK"
   exit 1
 fi
-trap 'rm -f "$LOG" "$(pwd)/$WORK_GO_WORK"' EXIT
-export GOWORK="$PWD/$WORK_GO_WORK"
+trap 'rm -f "$LOG" "$WORK_GO_WORK"' EXIT
+export GOWORK="$WORK_GO_WORK"
 
 # Workspace members from go.work itself — the artifact whose integrity this
 # gate protects. Handles both `use ./x` and block `use (...)` forms.
