@@ -36,10 +36,16 @@ from status_table import classify_row, is_separator, table_blocks
 DEFAULT_DIR = Path("docs/status/archived")
 
 
-def check_file(path: Path) -> tuple[int, int]:
-    """Returns (partial_row_count, mixed_table_count)."""
+def check_file(path: Path) -> tuple[int, int, int]:
+    """Returns (partial_row_count, mixed_table_count, mixed_table_lines).
+
+    mixed_table_lines carries the (path, line) anchors of deliberately-mixed
+    tables so the summary can name FILES, not just counts (T20, 2026-10-08):
+    a bare count forces a re-grep to find where a convention lives.
+    """
     problems: list[str] = []
     mixed_tables = 0
+    mixed_lines: list[str] = []
 
     partial_rows = 0
 
@@ -62,11 +68,12 @@ def check_file(path: Path) -> tuple[int, int]:
                 problems.append(f"  line {no}: {line[:100]}")
         elif 0 < struck < len(rows):
             mixed_tables += 1
+            mixed_lines.append(f"{path.name}:{data[0][0]}")
 
     for problem in problems:
         print(problem)
 
-    return partial_rows, mixed_tables
+    return partial_rows, mixed_tables, mixed_lines
 
 
 def resolve_args(argv: list[str]) -> list[Path]:
@@ -94,14 +101,16 @@ def main() -> int:
     partial_rows = 0
     missing = 0
     mixed = 0
+    mixed_anchors: list[str] = []
     for path in files:
         if not path.is_file():
             print(f"  ✗ MISSING: {path}")
             missing += 1
             continue
-        file_partials, file_mixed = check_file(path)
+        file_partials, file_mixed, file_anchors = check_file(path)
         partial_rows += file_partials
         mixed += file_mixed
+        mixed_anchors.extend(file_anchors)
 
     print()
     if partial_rows:
@@ -118,6 +127,8 @@ def main() -> int:
         f"✓ row gate: {len(files)} file(s) free of PARTIAL rows "
         f"({mixed} deliberately-mixed table(s) reported, first-class by convention)"
     )
+    if mixed_anchors:
+        print("  mixed tables (first-class): " + ", ".join(mixed_anchors))
 
     return 0
 
