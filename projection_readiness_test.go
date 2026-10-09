@@ -136,6 +136,61 @@ func TestProjectionReadinessCheck_FailedPriority(t *testing.T) {
 	}
 }
 
+// TestProjectionDrainReady verifies the exported drain predicate: exactly the
+// terminal drain states report ready (the same semantics ProjectionReadinessCheck
+// applies per projection), and unknown states fail closed.
+func TestProjectionDrainReady(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		status string
+		want   bool
+	}{
+		{cqrshtmx.ProjectionStatusLive, true},
+		{cqrshtmx.ProjectionStatusStopped, true},
+		{cqrshtmx.ProjectionStatusIdle, false},
+		{cqrshtmx.ProjectionStatusRunning, false},
+		{cqrshtmx.ProjectionStatusBackoff, false},
+		{cqrshtmx.ProjectionStatusDraining, false},
+		{cqrshtmx.ProjectionStatusFailed, false},
+		{"", false},
+		{"unknown-state", false},
+	}
+
+	for _, tt := range tests {
+		if got := cqrshtmx.ProjectionDrainReady(tt.status); got != tt.want {
+			t.Errorf("ProjectionDrainReady(%q) = %v, want %v", tt.status, got, tt.want)
+		}
+	}
+}
+
+// TestProjectionStatusConstants pins the wire vocabulary: the exported status
+// constants must equal the strings ProjectionStatusHandler serves and
+// projectionhost workers report, so health bridges and consumer alerting can
+// reference the constants instead of hardcoding strings.
+func TestProjectionStatusConstants(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		got  string
+		want string
+	}{
+		{cqrshtmx.ProjectionStatusIdle, "idle"},
+		{cqrshtmx.ProjectionStatusRunning, "running"},
+		{cqrshtmx.ProjectionStatusBackoff, "backoff"},
+		{cqrshtmx.ProjectionStatusDraining, "draining"},
+		{cqrshtmx.ProjectionStatusLive, "live"},
+		{cqrshtmx.ProjectionStatusStopped, "stopped"},
+		{cqrshtmx.ProjectionStatusFailed, "failed"},
+	}
+
+	for _, tt := range tests {
+		if tt.got != tt.want {
+			t.Errorf("status constant = %q, want %q", tt.got, tt.want)
+		}
+	}
+}
+
 // TestProjectionReadinessCheck_HandlerHTTP verifies the check wired through
 // ReadinessHandler returns 200 when ready and 503 when draining.
 func TestProjectionReadinessCheck_HandlerHTTP(t *testing.T) {
