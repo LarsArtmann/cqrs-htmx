@@ -77,6 +77,13 @@ bash scripts/selftests/test-check-status-rows.sh
 #   checker and fixer are proven to agree by the self-test. `--dry-run` first.
 python3 scripts/tools/normalize-status-rows.py --dry-run
 bash scripts/selftests/test-normalize-status-rows.sh
+
+# Equivalence meta-test (T05, 2026-10-08): the checker and fixer import the
+#   shared scripts/lib/status_table.py; this pushes 7 adversarial fixtures
+#   through BOTH and proves the fixer normalizes exactly the rows the gate
+#   flags — the split-brain class is structurally dead, not just currently
+#   aligned. Also a check-modules + CI stage.
+bash scripts/selftests/test-status-table-equivalence.sh
 ```
 
 A third, **advisory** gate keeps the live tail honest: `scripts/checks/check-docs-tail-budget.sh`
