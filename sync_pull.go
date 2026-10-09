@@ -192,6 +192,44 @@ func SyncPullHandler(journal event.Journal, opts ...SyncPullOption) http.Handler
 	}
 }
 
+// parseSyncPullQuery reads and validates the ?after= cursor and ?limit= page
+// size. Invalid input writes the protocol error shape and reports ok=false.
+func parseSyncPullQuery(w http.ResponseWriter, r *http.Request, defaultLimit int) (id.EventID, int, bool) {
+	limit := defaultLimit
+
+	if raw := r.URL.Query().Get("limit"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed <= 0 {
+			writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.limit_invalid",
+				"limit must be a positive integer")
+
+			return id.EventID{}, 0, false
+		}
+
+		limit = parsed
+	}
+
+	if limit > MaxSyncPullLimit {
+		limit = MaxSyncPullLimit
+	}
+
+	var afterID id.EventID
+
+	if raw := r.URL.Query().Get("after"); raw != "" {
+		parsed, err := id.ParseEventID(raw)
+		if err != nil {
+			writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.cursor_invalid",
+				"after must be a valid event ID (ULID)")
+
+			return id.EventID{}, 0, false
+		}
+
+		afterID = parsed
+	}
+
+	return afterID, limit, true
+}
+
 // readSyncPullWindow reads at most limit events strictly after afterID and
 // reports whether more remain (it reads limit+1 and peeks).
 func readSyncPullWindow(
@@ -234,7 +272,7 @@ func readAllAfter(
 ) ([]event.Event, error) {
 	all, err := journal.ReadAll(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(err, "cqrshtmx.sync.pull.read_all", "journal read failed")
 	}
 
 	cursor := afterID.String()
@@ -273,6 +311,8 @@ func newSyncEvent(evt event.Event) SyncEvent {
 		SchemaVersion:   evt.SchemaVersion().String(),
 		OccurredAt:      evt.OccurredAt().Format(time.RFC3339),
 		PayloadEncoding: string(evt.Encoding()),
+		Payload:         nil,
+		PayloadB64:      "",
 	}
 
 	payload := evt.Payload()
@@ -294,16 +334,16 @@ func newSyncEvent(evt event.Event) SyncEvent {
 // detector ETag: two pulls at the same cursor state share a tag, so a
 // conditional re-poll costs one FNV-1a hash instead of a body.
 func syncPullETag(resp *SyncPullResponse) string {
-	h := fnv.New64a()
-	_, _ = h.Write([]byte(resp.BackendID))
-	_, _ = h.Write([]byte{0})
-	_, _ = h.Write([]byte(resp.NextCursor))
-	_, _ = h.Write([]byte{0})
-	_, _ = h.Write([]byte(strconv.Itoa(len(resp.Events))))
-	_, _ = h.Write([]byte{0})
-	_, _ = h.Write([]byte(strconv.FormatBool(resp.HasMore)))
+	hasher := fnv.New64a()
+	_, _ = hasher.Write([]byte(resp.BackendID))
+	_, _ = hasher.Write([]byte{0})
+	_, _ = hasher.Write([]byte(resp.NextCursor))
+	_, _ = hasher.Write([]byte{0})
+	_, _ = hasher.Write([]byte(strconv.Itoa(len(resp.Events))))
+	_, _ = hasher.Write([]byte{0})
+	_, _ = hasher.Write([]byte(strconv.FormatBool(resp.HasMore)))
 
-	return `"` + strconv.FormatUint(h.Sum64(), 16) + `"`
+	return `"` + strconv.FormatUint(hasher.Sum64(), 16) + `"`
 }
 
 // writeSyncPullResponse writes a successful pull with the protocol's caching
@@ -338,5 +378,5 @@ func writeSyncPullError(w http.ResponseWriter, status int, code, message string)
 		JSONKeyError:  message,
 		JSONKeyStatus: status,
 		JSONKeyCode:   code,
-	}) //nolint:errcheck // best-effort error body on an already-committed status
+	})
 }

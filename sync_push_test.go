@@ -85,6 +85,7 @@ func newSyncPushApp(t *testing.T) (*App, *[]string) {
 func postSyncPush(handler http.HandlerFunc, body string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodPost, "/sync/push", strings.NewReader(body))
 	req.Header.Set("Content-Type", ContentTypeJSON)
+
 	rec := httptest.NewRecorder()
 	handler(rec, req)
 
@@ -196,8 +197,10 @@ func TestSyncPushHandler_RejectsMalformedBatches(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/sync/push", nil)
+
 	rec := httptest.NewRecorder()
 	handler(rec, req)
+
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Errorf("GET: status = %d, want 405", rec.Code)
 	}
@@ -326,6 +329,7 @@ func TestSyncPushHandler_TransientFailuresKeepRetryableFamily(t *testing.T) {
 	t.Parallel()
 
 	cmdDisp := command.NewDispatcher()
+
 	err := cmdDisp.Register("Flaky", func(_ context.Context, _ command.Command) error {
 		return errorfamily.NewTransient("flaky.down", "database unavailable")
 	})

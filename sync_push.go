@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"context"
 	"encoding/json/v2"
 	"io"
 	"log/slog"
@@ -158,21 +159,21 @@ func (a *App) SyncPushHandler() http.HandlerFunc {
 
 		results := make([]SyncPushResult, 0, len(req.Commands))
 		for _, envelope := range req.Commands {
-			results = append(results, a.dispatchSyncPushEnvelope(r, envelope))
+			results = append(results, a.dispatchSyncPushEnvelope(r.Context(), r, envelope))
 		}
 
 		_ = WriteJSON(
 			w,
 			http.StatusOK,
 			SyncPushResponse{Results: results},
-		) //nolint:errcheck // WriteJSON fails only on encode bugs; the empty-body class is guarded by tests
+		)
 	}
 }
 
 // dispatchSyncPushEnvelope replays the endpoint pipeline for one envelope and
 // returns its outcome. It never panics upward on domain errors: every failure
 // path becomes a rejected result with a classified family.
-func (a *App) dispatchSyncPushEnvelope(r *http.Request, envelope SyncPushEnvelope) SyncPushResult {
+func (a *App) dispatchSyncPushEnvelope(ctx context.Context, r *http.Request, envelope SyncPushEnvelope) SyncPushResult {
 	if envelope.CommandID == "" {
 		return rejectedSyncPushResult("", "cqrshtmx.sync.push.command_id_missing",
 			"commandId is required", event.Rejection)
@@ -186,7 +187,7 @@ func (a *App) dispatchSyncPushEnvelope(r *http.Request, envelope SyncPushEnvelop
 			"unknown command type: "+envelope.Type, event.Rejection)
 	}
 
-	inner := synthesizeSyncPushRequest(r, envelope)
+	inner := synthesizeSyncPushRequest(ctx, r, envelope)
 
 	if err := a.executeAuthorization(inner, config); err != nil {
 		return rejectedSyncPushResult(envelope.CommandID, ErrorCode(err), err.Error(),
@@ -210,16 +211,16 @@ func (a *App) dispatchSyncPushEnvelope(r *http.Request, envelope SyncPushEnvelop
 		}
 	}
 
-	ctx, cancel := a.timeoutCtx(inner.Context(), config)
+	dispatchCtx, cancel := a.timeoutCtx(ctx, config)
 	defer cancel()
 
-	enrichCommandFromContext(ctx, cmd)
+	enrichCommandFromContext(dispatchCtx, cmd)
 
-	dispatchErr := a.commands.Dispatch(ctx, cmd)
+	dispatchErr := a.commands.Dispatch(dispatchCtx, cmd)
 
 	// The afterDispatch hook runs per envelope with the synthesized request,
 	// so ACK-style hooks (BroadcastOnAck reads X-Command-Id) fire per command.
-	a.afterDispatchHook(ctx, inner, dispatchErr)
+	a.afterDispatchHook(dispatchCtx, inner, dispatchErr)
 
 	if dispatchErr != nil {
 		return rejectedSyncPushResult(envelope.CommandID, ErrorCode(dispatchErr),
@@ -227,12 +228,12 @@ func (a *App) dispatchSyncPushEnvelope(r *http.Request, envelope SyncPushEnvelop
 			errorfamily.Classify(dispatchErr))
 	}
 
-	slog.DebugContext(ctx, "cqrs-htmx: sync push confirmed",
+	slog.DebugContext(dispatchCtx, "cqrs-htmx: sync push confirmed",
 		slog.String("commandId", envelope.CommandID),
 		slog.String("commandType", envelope.Type),
 	)
 
-	return SyncPushResult{CommandID: envelope.CommandID, Status: SyncPushStatusConfirmed}
+	return SyncPushResult{CommandID: envelope.CommandID, Status: SyncPushStatusConfirmed, Error: nil}
 }
 
 // synthesizeSyncPushRequest clones the outer request with the envelope's body.
@@ -240,8 +241,8 @@ func (a *App) dispatchSyncPushEnvelope(r *http.Request, envelope SyncPushEnvelop
 // context (user ID, actor, correlation) carry over unchanged, so decoders and
 // authz behave exactly as on the single-command endpoint. X-Command-Id is
 // (re)stamped from the envelope for ACK correlation and idempotent retries.
-func synthesizeSyncPushRequest(r *http.Request, envelope SyncPushEnvelope) *http.Request {
-	inner := r.Clone(r.Context())
+func synthesizeSyncPushRequest(ctx context.Context, r *http.Request, envelope SyncPushEnvelope) *http.Request {
+	inner := r.Clone(ctx)
 
 	contentType := envelope.ContentType
 	if contentType == "" {

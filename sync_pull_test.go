@@ -38,6 +38,7 @@ func seedSyncEvents(t *testing.T, count int) []event.Event {
 			// untouched (a plain string would be CBOR-encoded by the default
 			// codec even with a json encoding stamp).
 			payload = jsontext.Value(fmt.Sprintf(`{"seq":%d}`, i))
+
 			opts = append(opts, event.WithEncoding(codec.EncodingJSON))
 		}
 
@@ -280,6 +281,7 @@ func TestSyncPullHandler_ETagServesNotModified(t *testing.T) {
 	handler := SyncPullHandler(store)
 
 	first := doPull(handler, "/sync/pull")
+
 	tag := first.Header().Get("ETag")
 	if tag == "" {
 		t.Fatal("first pull: no ETag header")

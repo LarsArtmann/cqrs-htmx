@@ -63,3 +63,16 @@ Add a **read-only event pull** and a **batched command push** to the root module
 ## Non-goals (explicit)
 
 - No client-appended events, no CRDTs, no client-side deciders (see the [research synthesis](../research/2026-10-09_frontend-sync-protocol-synthesis.md) §2.4 for the reasoning trail).
+
+## Amendment 1 — Truthful delivery encoding on the degraded payload path (2026-10-09, same day)
+
+The decision body says pulled events carry "raw JSON when the event encoding is JSON, base64 + `payloadEncoding` otherwise" — which under-specified the lying-stamp case the integration test caught immediately: `event.WithEncoding("json")` is a metadata-only stamp, and `event.New` still CBOR-encodes `map[string]any` payloads, so an event can claim `json` while its bytes are not valid JSON. Reporting `payloadEncoding: "json"` over an absent `payload` field was a self-inconsistent wire shape (the client would trust a JSON promise the bytes cannot keep).
+
+Refined contract (`SyncEvent.PayloadEncoding` names the DELIVERED bytes' framing, never the internal stamp alone):
+
+- `"json"` + `payload` — stamp and bytes agree; the payload rides inline, verbatim.
+- codec name (e.g. `"cbor"`) + `payloadB64` — the stamp names the bytes' real codec; bytes arrive base64.
+- `"opaque"` (`SyncPayloadEncodingOpaque`) + `payloadB64` — the stamp promised JSON but the bytes are not valid JSON; the base64 bytes carry no decodable-framing promise.
+
+Exactly one of `payload`/`payloadB64` is ever set. Pinned by `TestSyncPullHandler_LyingJsonStampDegradesToOpaque`.
+

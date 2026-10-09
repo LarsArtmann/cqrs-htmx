@@ -85,6 +85,7 @@ func newSyncProtocolEnv(t *testing.T) *syncProtocolEnv {
 func (e *syncProtocolEnv) serve(method, target, body string, headers ...string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(method, target, strings.NewReader(body))
 	req.Header.Set("Content-Type", ContentTypeJSON)
+
 	for i := 0; i+1 < len(headers); i += 2 {
 		req.Header.Set(headers[i], headers[i+1])
 	}
@@ -172,39 +173,12 @@ func TestSyncProtocol_OfflineQueueBatchPushAndCatchUpPull(t *testing.T) {
 	}
 
 	// --- 3. Page to caught-up ---
-	for page.HasMore {
-		next := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "")
-		if next.Code != http.StatusOK {
-			t.Fatalf("pull page status = %d", next.Code)
-		}
-
-		if err := json.Unmarshal(next.Body.Bytes(), &page); err != nil {
-			t.Fatalf("unmarshal pull page: %v", err)
-		}
-	}
-
-	// The single-page journal never entered the loop, so prove caught-up
-	// EXPLICITLY: a fresh pull at the persisted cursor returns zero events
-	// (and an empty nextCursor — the client keeps its previous cursor).
-	finalRec := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "")
-	if finalRec.Code != http.StatusOK {
-		t.Fatalf("final pull status = %d, body: %s", finalRec.Code, finalRec.Body.String())
-	}
-
-	finalPage := pullSyncBody(t, finalRec)
-	if len(finalPage.Events) != 0 || finalPage.HasMore {
-		t.Fatalf("final page: events=%d hasMore=%v, want 0/false (caught up)",
-			len(finalPage.Events), finalPage.HasMore)
-	}
-
-	if finalPage.NextCursor != "" {
-		t.Errorf("final page nextCursor = %q, want empty (keep previous cursor)", finalPage.NextCursor)
-	}
+	caughtUpCursor := env.pullToCaughtUp(t, page)
 
 	// --- 4. Conditional re-poll at the caught-up cursor: 304, no body ---
 	tag := firstPull.Header().Get("ETag")
-	rePoll := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "")
-	rePollSameCursor := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "",
+	rePoll := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+caughtUpCursor, "")
+	rePollSameCursor := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+caughtUpCursor, "",
 		"If-None-Match", rePoll.Header().Get("ETag"))
 
 	if tag == "" || rePoll.Header().Get("ETag") == "" {
@@ -215,4 +189,40 @@ func TestSyncProtocol_OfflineQueueBatchPushAndCatchUpPull(t *testing.T) {
 		t.Errorf("conditional re-poll = %d, want 304 (body: %s)",
 			rePollSameCursor.Code, rePollSameCursor.Body.String())
 	}
+}
+
+// pullToCaughtUp pages from the given page's cursor until the journal reports
+// caught-up, then proves it: one more pull at the resting cursor returns zero
+// events with an empty nextCursor. It returns the cursor a client persists
+// (the last NON-empty one — an empty page never moves the cursor).
+func (e *syncProtocolEnv) pullToCaughtUp(t *testing.T, page SyncPullResponse) string {
+	t.Helper()
+
+	for page.HasMore {
+		next := e.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "")
+		if next.Code != http.StatusOK {
+			t.Fatalf("pull page status = %d", next.Code)
+		}
+
+		if err := json.Unmarshal(next.Body.Bytes(), &page); err != nil {
+			t.Fatalf("unmarshal pull page: %v", err)
+		}
+	}
+
+	restRec := e.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "")
+	if restRec.Code != http.StatusOK {
+		t.Fatalf("caught-up pull status = %d, body: %s", restRec.Code, restRec.Body.String())
+	}
+
+	rest := pullSyncBody(t, restRec)
+	if len(rest.Events) != 0 || rest.HasMore {
+		t.Fatalf("caught-up pull: events=%d hasMore=%v, want 0/false",
+			len(rest.Events), rest.HasMore)
+	}
+
+	if rest.NextCursor != "" {
+		t.Errorf("caught-up nextCursor = %q, want empty (keep previous cursor)", rest.NextCursor)
+	}
+
+	return page.NextCursor
 }

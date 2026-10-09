@@ -178,6 +178,32 @@
 //	})
 //	// Client receives: {"commandId":"abc","status":"confirmed"}
 
+// # Frontend Sync Protocol (Offline Reads + Batched Command Push)
+//
+// SyncPullHandler and [App.SyncPushHandler] implement the two server halves of
+// the offline sync loop (ADR-0056). Clients sync COMMANDS up (the server
+// re-decides everything) and cache EVENTS down for offline reads:
+//
+//	mux.Handle("GET /sync/pull", cqrshtmx.SyncPullHandler(journal,
+//	    cqrshtmx.WithSyncPullBackendID("prod-2026-10"),
+//	    cqrshtmx.WithSyncPullFilter(visibilityFilter),
+//	))
+//	mux.Handle("POST /sync/push", app.SyncPushHandler())
+//
+// Pull answers GET ?after=<eventID>&limit=<n> with events (payloads included —
+// this is the explicit opt-in payload surface; the SSE envelope stays
+// metadata-only), a nextCursor, and hasMore; a permission filter hides events
+// per request while the cursor still advances past them. Push replays each
+// envelope through the pipeline its app.Command registration defined and
+// answers per-command outcomes (confirmed/rejected + errorfamily) — Axon
+// CommandGateway semantics: outcomes, never domain state.
+//
+// The embedded sync client (sync/sync-worker.js + sync/sync-client.js, served
+// via SyncWorkerHandler/SyncClientHandler) queues offline commands in
+// IndexedDB, flushes typed commands as one batch push on reconnect, caches
+// pulled events for offline reads (window.cqrsSync.getEvents), and resets the
+// cache when backendId changes. See docs/guides/frontend-sync.md.
+
 // # Submodule: usermgmt
 //
 // The [github.com/larsartmann/cqrs-htmx/usermgmt] submodule provides passwordless
