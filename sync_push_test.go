@@ -186,7 +186,10 @@ func TestSyncPushHandler_RejectsMalformedBatches(t *testing.T) {
 		t.Errorf("empty batch: status = %d, want 400", rec.Code)
 	}
 
-	oversized := `{"commands":[` + strings.Repeat(`{"commandId":"x","type":"SyncTest","body":"{}"},`, MaxSyncPushBatch+1) + `{"commandId":"x","type":"SyncTest","body":"{}"}]}`
+	oversized := `{"commands":[` + strings.Repeat(
+		`{"commandId":"x","type":"SyncTest","body":"{}"},`,
+		MaxSyncPushBatch+1,
+	) + `{"commandId":"x","type":"SyncTest","body":"{}"}]}`
 	if rec := postSyncPush(handler, oversized); rec.Code != http.StatusBadRequest {
 		t.Errorf("oversized batch: status = %d, want 400", rec.Code)
 	}
@@ -232,8 +235,10 @@ func TestSyncPushHandler_StampesCommandIDOnInnerRequest(t *testing.T) {
 		return newSyncTestCmd("HeaderProbe"), nil
 	}))
 
-	rec := postSyncPush(app.SyncPushHandler(),
-		`{"commands":[{"commandId":"probe-42","type":"HeaderProbe","body":"{}","contentType":"application/x-www-form-urlencoded"}]}`)
+	rec := postSyncPush(
+		app.SyncPushHandler(),
+		`{"commands":[{"commandId":"probe-42","type":"HeaderProbe","body":"{}","contentType":"application/x-www-form-urlencoded"}]}`,
+	)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, body: %s", rec.Code, rec.Body.String())
@@ -291,8 +296,8 @@ func TestSyncPushHandler_AfterDispatchHookSeesInnerRequest(t *testing.T) {
 	var hookCommandIDs []string
 
 	app := MustNew(Config{
-		Commands:      cmdDisp,
-		Queries:       query.NewDispatcher(),
+		Commands: cmdDisp,
+		Queries:  query.NewDispatcher(),
 		AfterDispatch: func(_ context.Context, r *http.Request, _ error) {
 			hookCommandIDs = append(hookCommandIDs, r.Header.Get(CommandIDHeader))
 		},

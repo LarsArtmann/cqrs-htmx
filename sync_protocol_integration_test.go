@@ -203,7 +203,7 @@ func TestSyncProtocol_OfflineQueueBatchPushAndCatchUpPull(t *testing.T) {
 	// --- 4. Conditional re-poll at the caught-up cursor: 304, no body ---
 	tag := firstPull.Header().Get("ETag")
 	rePoll := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "")
-	rePollSameCursor := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor,
+	rePollSameCursor := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "",
 		"If-None-Match", rePoll.Header().Get("ETag"))
 
 	if tag == "" || rePoll.Header().Get("ETag") == "" {

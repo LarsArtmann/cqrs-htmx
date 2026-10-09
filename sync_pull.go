@@ -33,13 +33,13 @@ const SyncPayloadEncodingOpaque = "opaque"
 // default), the pull endpoint is the explicit opt-in surface for payload
 // exposure — gate it with [WithSyncPullFilter].
 type SyncEvent struct {
-	EventID         string         `json:"eventId"`
-	Type            string         `json:"type"`
-	StreamType      string         `json:"streamType"`
-	StreamID        string         `json:"streamId"`
-	Version         uint64         `json:"version"`
-	SchemaVersion   string         `json:"schemaVersion,omitempty"`
-	OccurredAt      string         `json:"occurredAt"`
+	EventID       string `json:"eventId"`
+	Type          string `json:"type"`
+	StreamType    string `json:"streamType"`
+	StreamID      string `json:"streamId"`
+	Version       uint64 `json:"version"`
+	SchemaVersion string `json:"schemaVersion,omitempty"`
+	OccurredAt    string `json:"occurredAt"`
 
 	// PayloadEncoding names the delivered bytes' framing. Exactly one of
 	// Payload/PayloadB64 is set: "json" → Payload holds the verbatim JSON;
