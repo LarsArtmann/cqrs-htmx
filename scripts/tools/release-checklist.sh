@@ -9,6 +9,12 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
+# Gate outputs land here; rc is captured via `|| rc=$?` NEVER through a pipe
+# (`if nix run … | tail` tests TAIL's rc — the 2026-10-08 discovery that made
+# six of these steps report pass on a failing gate, gotcha-3 class).
+LOGDIR="$(mktemp -d /tmp/cqrs-htmx-release-checklist-XXXXXX)"
+trap 'rm -rf "$LOGDIR"' EXIT
+
 FAILED=0
 EXPECTED=0
 step() {
@@ -77,7 +83,10 @@ fi
 
 # 4. Run full verification suite (matching CONTRIBUTING.md pre-release checklist)
 step "Tests (nix run .#test)"
-if nix run .#test 2>&1 | tail -5; then
+rc=0
+nix run .#test >"$LOGDIR/test.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/test.log"
+if [ "$rc" -eq 0 ]; then
   pass "All module tests pass"
 elif [ "$PRE_TAG" -eq 1 ]; then
   expected "Tests failed — sub-modules reference unpublished root exports (ToastDetail, HTMXRedirect, SafeRedirectPath). Tag + push resolves this."
@@ -86,7 +95,10 @@ else
 fi
 
 step "Build (nix run .#build)"
-if nix run .#build 2>&1 | tail -5; then
+rc=0
+nix run .#build >"$LOGDIR/build.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/build.log"
+if [ "$rc" -eq 0 ]; then
   pass "All modules build"
 elif [ "$PRE_TAG" -eq 1 ]; then
   expected "Build failed — sub-modules reference unpublished root exports. Tag + push resolves this."
@@ -95,21 +107,30 @@ else
 fi
 
 step "Lint (nix run .#lint)"
-if nix run .#lint 2>&1 | tail -5; then
+rc=0
+nix run .#lint >"$LOGDIR/lint.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/lint.log"
+if [ "$rc" -eq 0 ]; then
   pass "Lint clean"
 else
   expected "Lint issues found (pre-existing style nits: varnamelen, exhaustruct, SA1019 — non-release-blocking). Recompute uncapped: GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./..."
 fi
 
 step "ErrorFamily (nix run .#errorfamily)"
-if nix run .#errorfamily 2>&1 | tail -5; then
+rc=0
+nix run .#errorfamily >"$LOGDIR/errorfamily.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/errorfamily.log"
+if [ "$rc" -eq 0 ]; then
   pass "Zero stdlib error constructors"
 else
   fail "ErrorFamily violations"
 fi
 
 step "Module checks (nix run .#check-modules)"
-if nix run .#check-modules 2>&1 | tail -5; then
+rc=0
+nix run .#check-modules >"$LOGDIR/check-modules.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/check-modules.log"
+if [ "$rc" -eq 0 ]; then
   pass "Module isolation + dep budgets OK"
 elif [ "$PRE_TAG" -eq 1 ]; then
   expected "Module isolation failed — adminui/loginpage reference unpublished root exports. Tag + push resolves this."
@@ -118,7 +139,10 @@ else
 fi
 
 step "Coverage gate (nix run .#coverage-gate)"
-if nix run .#coverage-gate 2>&1 | tail -5; then
+rc=0
+nix run .#coverage-gate >"$LOGDIR/coverage-gate.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/coverage-gate.log"
+if [ "$rc" -eq 0 ]; then
   pass "Coverage above thresholds"
 elif [ "$PRE_TAG" -eq 1 ]; then
   expected "Coverage gate failed — runs with GOWORK=off so sub-modules that depend on unpublished root exports cannot build pre-tag. Tag + push resolves this."
@@ -136,7 +160,10 @@ else
 fi
 
 step "Flake check (nix flake check)"
-if nix flake check 2>&1 | tail -5; then
+rc=0
+nix flake check >"$LOGDIR/flake-check.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/flake-check.log"
+if [ "$rc" -eq 0 ]; then
   pass "Flake checks pass"
 else
   fail "Flake check failed"
