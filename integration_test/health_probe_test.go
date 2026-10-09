@@ -9,9 +9,9 @@ import (
 
 	auditlog "github.com/larsartmann/cqrs-htmx/auditlog/v4"
 	"github.com/larsartmann/cqrs-htmx/health/v4"
+	gohealth "github.com/larsartmann/go-health"
 	doauditlog "github.com/larsartmann/samber-do-auditlog"
 	"github.com/larsartmann/samber-do-auditlog/live"
-	gohealth "github.com/larsartmann/go-health"
 	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -110,11 +110,7 @@ func TestHealthProbe_StartAndRoutesE2E(t *testing.T) {
 
 	// The handlers serve the cached response; wait for the first refresh.
 	deadline := time.Now().Add(10 * time.Second)
-	for {
-		if len(probe.CachedResponse().Checks) > 0 || time.Now().After(deadline) {
-			break
-		}
-
+	for len(probe.CachedResponse().Checks) == 0 && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)
 	}
 
@@ -173,4 +169,3 @@ func TestHealthProbe_AuditlogPluginIsRecorder(t *testing.T) {
 	require.Equal(t, gohealth.StatusPass, resp.Status)
 	require.Len(t, resp.Checks, len(pluginResults))
 }
-
