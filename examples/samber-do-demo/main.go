@@ -9,7 +9,8 @@
 //   - Lifecycle adapter (serviceLifecycle implements ShutdownerWithContextAndError)
 //   - Typed accessors (Container.Service(), Container.App(), etc.)
 //
-// Run: go run . and open http://localhost:8098/
+// Run: `go run .` and open http://localhost:8098/ (override the port with
+// `PORT=9090 go run .`).
 package main
 
 import (
@@ -17,6 +18,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -25,12 +28,27 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
+// demoAddr resolves the listen address: the PORT environment variable when
+// set (digits only, no colon), else :8098. The override exists so tests and
+// containers can run the demo on any free port.
+func demoAddr() string {
+	if port := os.Getenv("PORT"); port != "" {
+		if _, err := strconv.Atoi(port); err == nil {
+			return ":" + port
+		}
+	}
+
+	return ":8098"
+}
+
 func main() {
+	addr := demoAddr()
+
 	// 1. Create the DI container. The returned cleanup function MUST be
 	// deferred — it calls injector.Shutdown(), which cascades to every
 	// service implementing do.Shutdowner* (including usermgmt.Service.Close()).
 	container, cleanup, err := NewContainer(AppConfig{
-		Addr:       ":8098",
+		Addr:       addr,
 		TOTPIssuer: "cqrs-htmx samber/do Demo",
 	})
 	if err != nil {
@@ -38,25 +56,43 @@ func main() {
 	}
 	defer cleanup()
 
-	// 2. Resolve the cqrshtmx.App — lazy singleton, constructed on first
-	// invocation. No do.MustInvoke here: we handle the error gracefully.
-	app, err := container.App()
-	if err != nil {
-		log.Fatalf("resolve App: %v", err)
-	}
-
-	// 3. Resolve the usermgmt.Service — also lazy.
+	// 2. Resolve the usermgmt.Service — lazy — and seed a demo user so the
+	// service has data.
 	svc, err := container.Service()
 	if err != nil {
 		log.Fatalf("resolve Service: %v", err)
 	}
-
-	// Seed a demo user so the service has data.
 	seed(context.Background(), svc)
 
-	// 4. Wire routes. The app produces HTTP handlers via app.Command() /
-	// app.Query(): POST /command/hello dispatches the "Hello" command through
-	// the DI-managed dispatcher registered in the container.
+	// 3. Wire routes (buildRouter owns the full mux — tests exercise the
+	// same function, so route conflicts panic in tests, not at boot).
+	mux, err := buildRouter(container)
+	if err != nil {
+		log.Fatalf("build router: %v", err)
+	}
+
+	logger, _ := container.Logger()
+	logger.Info("samber-do-demo starting", "addr", addr, "hint", "open http://localhost"+addr+"/")
+
+	srv, err := httputil.NewServer(httputil.ServerConfig{Addr: addr}, mux)
+	if err != nil {
+		log.Fatalf("NewServer: %v", err)
+	}
+
+	if err := <-srv.Start(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// buildRouter mounts every route the demo serves. main and the boot tests
+// share this function: a ServeMux pattern conflict (the Go 1.22+ class that
+// once panicked this demo at boot) fails HERE, in tests, not in main.
+func buildRouter(container *Container) (*http.ServeMux, error) {
+	app, err := container.App()
+	if err != nil {
+		return nil, fmt.Errorf("resolve App: %w", err)
+	}
+
 	mux := http.NewServeMux()
 	// Method-less root: go-health's RegisterRoutes mounts method-less /healthz,
 	// /readyz, /startupz patterns, and a method-scoped "GET /" conflicts with
@@ -73,7 +109,7 @@ func main() {
 	// false-green class this demo exists to avoid.
 	probe, err := container.Probe()
 	if err != nil {
-		log.Fatalf("resolve health probe: %v", err)
+		return nil, fmt.Errorf("resolve health probe: %w", err)
 	}
 	probe.RegisterRoutes(mux, gohealth.DefaultRoutes())
 	// Live audit-log viewer from the auditlog/v4 bridge (plugin recorded every
@@ -88,7 +124,7 @@ func main() {
 	// projection worker of the usermgmt.Service; live via SSE).
 	healthDashboard, err := container.HealthDashboard()
 	if err != nil {
-		log.Fatalf("resolve HealthDashboard: %v", err)
+		return nil, fmt.Errorf("resolve HealthDashboard: %w", err)
 	}
 	mux.Handle("GET /health-ui", healthDashboard.Handler())
 	mux.Handle("POST /command/hello", app.Command(
@@ -102,17 +138,7 @@ func main() {
 		}),
 	))
 
-	logger, _ := container.Logger()
-	logger.Info("samber-do-demo starting", "addr", ":8098", "hint", "open http://localhost:8098/")
-
-	srv, err := httputil.NewServer(httputil.ServerConfig{Addr: ":8098"}, mux)
-	if err != nil {
-		log.Fatalf("NewServer: %v", err)
-	}
-
-	if err := <-srv.Start(); err != nil {
-		log.Fatal(err)
-	}
+	return mux, nil
 }
 
 // indexHandler serves a simple HTML page demonstrating the app is wired.

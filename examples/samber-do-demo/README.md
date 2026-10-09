@@ -28,7 +28,7 @@ cqrs-htmx is a **library**, not an application — it deliberately avoids imposi
 ```bash
 cd examples/samber-do-demo
 GOEXPERIMENT=jsonv2 go run .
-# Open http://localhost:8098/
+# Open http://localhost:8098/ (or: PORT=9090 go run .)
 ```
 
 ## Endpoints
