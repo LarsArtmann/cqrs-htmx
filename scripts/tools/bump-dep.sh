@@ -12,10 +12,12 @@
 #
 # Usage:
 #   scripts/tools/bump-dep.sh <module-substring-or-regex> <version> \
-#       [--dry-run] [--commit] [--no-verify]
+#       [--dry-run] [--commit] [--no-verify] [--message <tpl>]
 # Example:
 #   scripts/tools/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0
 #   scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0   # $ = exact module only
+#   scripts/tools/bump-dep.sh 'larsartmann/go-foo$' v1.2.3 --commit \
+#       --message 'deps: align go-foo to {version} (wave 3)'
 # A trailing $ anchors the END of the module path — without it the pattern
 # is a prefix and also sweeps sibling submodules with their own trains
 # (httputil/server_timing and go-cqrs-lite/storage/memory both bit this way:
@@ -44,18 +46,32 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DRY=0
 COMMIT=0
 VERIFY=1
+MSG_TEMPLATE=""
 positional=()
-for arg in "$@"; do
-  case "$arg" in
+while [ "$#" -gt 0 ]; do
+  case "$1" in
   --dry-run) DRY=1 ;;
   --commit) COMMIT=1 ;;
   --no-verify) VERIFY=0 ;;
-  *) positional+=("$arg") ;;
+  --message)
+    if [ "$#" -lt 2 ]; then
+      echo "bump-dep: --message requires a value" >&2
+      exit 2
+    fi
+    MSG_TEMPLATE="$2"
+    shift
+    ;;
+  *) positional+=("$1") ;;
   esac
+  shift
 done
 
+# Supported --message placeholders: {pattern} and {version}; the default keeps
+# the historical one-line subject.
+
 if [ "${#positional[@]}" -lt 2 ]; then
-  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify]" >&2
+  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify] [--message <tpl>]" >&2
+  echo "  --message <tpl>: commit subject; {pattern} and {version} placeholders" >&2
   exit 2
 fi
 
@@ -115,7 +131,14 @@ if [ "${#mods[@]}" -eq 0 ]; then
 fi
 
 echo "bump-dep: sweeping $PATTERN -> $VERSION across ${#mods[@]} module(s)"
-[ "$DRY" -eq 1 ] && printf '  (dry-run) %s\n' "${mods[@]}" && exit 0
+if [ "$DRY" -eq 1 ]; then
+  printf '  (dry-run) %s\n' "${mods[@]}"
+  if [ -n "$MSG_TEMPLATE" ]; then
+    preview="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
+    echo "bump-dep: commit subject will be: ${preview//\{version\}/$VERSION}"
+  fi
+  exit 0
+fi
 
 # R18 pre-flight: validate the TARGET release is consumable BEFORE touching
 # anything. The templ-components v1.20.0 class — a tag whose go.mod carries
@@ -191,19 +214,40 @@ if [ "$fail" -ne 0 ]; then
   exit 1
 fi
 echo "bump-dep: OK — $PATTERN at $VERSION everywhere, all modules tidy+verify+build+vet green"
+if [ -n "$MSG_TEMPLATE" ]; then
+  preview="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
+  echo "bump-dep: commit subject will be: ${preview//\{version\}/$VERSION}"
+fi
 
 if [ "$COMMIT" -eq 1 ]; then
   cd "$REPO_ROOT" || exit 1
   git add -u
+  if [ -n "$MSG_TEMPLATE" ]; then
+    COMMIT_SUBJECT="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
+    COMMIT_SUBJECT="${COMMIT_SUBJECT//\{version\}/$VERSION}"
+  else
+    COMMIT_SUBJECT="chore(deps): bump $PATTERN to $VERSION"
+  fi
   commit_log="/tmp/bump-dep-commit-$$-$(date +%s).log"
-  git commit -m "chore(deps): bump $PATTERN to $VERSION" >"$commit_log" 2>&1
+  git commit -m "$COMMIT_SUBJECT" >"$commit_log" 2>&1
   commit_rc=$?
   if [ "$commit_rc" -eq 0 ]; then
-    echo "bump-dep: committed the sweep as one commit"
-    echo "  next: check-release-train --refresh-cache --strict-lag 0 (fresh-tag TTL can read a JUST-pushed tag as UNPUBLISHED)"
+    echo "bump-dep: committed the sweep as one commit: $COMMIT_SUBJECT"
+    # Auto-warm the tag cache NOW (gotcha 27): the NEXT gated commit reads the
+    # 15-min /tmp tag cache, and a just-pushed tag reads UNPUBLISHED until the
+    # cache refreshes. Refreshing here costs seconds and kills the
+    # tag-then-commit-fails class; failure to refresh is a warning, not fatal
+    # (offline trains re-run the gate explicitly).
+    echo "bump-dep: refreshing tag cache (gotcha 27)..."
+    if bash "$REPO_ROOT/scripts/checks/check-release-train.sh" --refresh-cache --advisory >"$commit_log" 2>&1; then
+      echo "bump-dep: tag cache refreshed"
+    else
+      echo "bump-dep: WARNING — tag-cache refresh failed (offline?). Re-run 'nix run .#check-release-train -- --refresh-cache' before the next gated commit."
+    fi
+    echo "  daemon note: if 'git log -1' now shows 'chore: auto-commit ...', AMEND that commit with this subject — don't re-commit on top."
   else
     echo "bump-dep: WARNING — the sweep commit did NOT land (rc=$commit_rc); the go.mod/go.sum changes remain STAGED"
-    echo "  usual causes: pre-commit hook failure. The auto-commit daemon may absorb the staged content as a heuristic commit — check git log before re-committing."
+    echo "  usual causes: pre-commit hook failure. The auto-commit daemon may absorb the staged content as a heuristic commit — check git log before re-committing; if it did, AMEND that commit with: $COMMIT_SUBJECT"
     tail -5 "$commit_log" | sed 's/^/    /'
     exit 1
   fi

@@ -154,6 +154,29 @@ else
   fail=$((fail + 1))
 fi
 
+# Case 6 (T09): --message template resolves both placeholders offline.
+out=$(run_bump 'larsartmann/exmod' v9.9.9 --dry-run --message 'deps: align {pattern} to {version} (wave X)')
+if printf '%s' "$out" | grep -q 'commit subject will be: deps: align larsartmann/exmod to v9.9.9 (wave X)'; then
+  echo "  ok 6: --message template resolves {pattern} and {version}"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 6: --message resolution wrong; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 7 (T09): --message without a value is a usage error (exit 2).
+out=$(run_bump 'larsartmann/exmod' v9.9.9 --message 2>&1)
+rc=$?
+if [ "$rc" -eq 2 ] && printf '%s' "$out" | grep -q "requires a value"; then
+  echo "  ok 7: valueless --message is a usage error"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 7: valueless --message should exit 2 (got $rc); output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
 echo ""
 if [ "$fail" -gt 0 ]; then
   echo "test-bump-dep: $fail case(s) FAILED"
