@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2030,SC2031
-# Every fixture stage exports its stub env Vars inside a ( cd ... ) subshell on
-# purpose — the exports are meant to be subshell-scoped, so SC2030/SC2031 are
-# false positives here by construction.
 # test-train-preflight.sh — fixture self-test for train-preflight.sh (offline)
 #
 #   F1  all stub stages pass with canaries      -> exit 0, ALL STAGES GREEN
@@ -44,15 +40,16 @@ new_repo() { # <dir>
 }
 
 # Stub stage commands. PASS_STAGES emit the canary lines the guards require;
-# individual fixtures override the map entries they want to break.
+# fixtures that need a broken or silent stage overwrite the stub afterwards.
 stub_dir=$(mktemp -d)
-trap 'rm -rf "$tmp" "$stub_dir"' EXIT
 tmp=$(mktemp -d)
+trap 'rm -rf "$tmp" "$stub_dir"' EXIT
 
-write_stubs() { # <fail-stage-name-or-empty>
+write_stubs() { # <broken-stage-name-or-empty>
   local broken="$1"
+  local stage body
   for stage in quiescence surprise lint tests train; do
-    local body="echo '==> module-$stage'; echo 'checked 1 internal requires'; exit 0"
+    body="echo '==> module-$stage'; exit 0"
     if [ "$stage" = "quiescence" ] || [ "$stage" = "surprise" ]; then
       body="echo 'ok'; exit 0"
     fi
@@ -67,21 +64,32 @@ write_stubs() { # <fail-stage-name-or-empty>
   done
 }
 
+# run_case runs the checker in <repo> against the stub env and writes output
+# to <out>. env-prefix assignments (NOT export-inside-the-subshell) make the
+# per-stage env strictly per-invocation, so SC2030/SC2031 cannot fire — no
+# suppression directive needed, the pattern really is per-invocation.
+run_case() { # <repodir> <outfile> <keep-going 0|1>
+  local repo="$1" out="$2" kg="$3"
+  (
+    cd "$repo" || exit 1
+    env \
+      TRAIN_PREFLIGHT_KEEP_GOING="$kg" \
+      TRAIN_PREFLIGHT_QUIET_CMD="bash $stub_dir/quiescence.sh" \
+      TRAIN_PREFLIGHT_PREFLIGHT_CMD="bash $stub_dir/surprise.sh" \
+      TRAIN_PREFLIGHT_LINT_CMD="bash $stub_dir/lint.sh" \
+      TRAIN_PREFLIGHT_TEST_CMD="bash $stub_dir/tests.sh" \
+      TRAIN_PREFLIGHT_TRAIN_CMD="bash $stub_dir/train.sh" \
+      bash "$CHECKER"
+  ) >"$out" 2>&1
+}
+
 echo "== test-train-preflight.sh"
 
 # F1 all green
 r="$tmp/f1"
 new_repo "$r"
 write_stubs ""
-(
-  cd "$r" || exit 1
-  export TRAIN_PREFLIGHT_QUIET_CMD="bash $stub_dir/quiescence.sh"
-  export TRAIN_PREFLIGHT_PREFLIGHT_CMD="bash $stub_dir/surprise.sh"
-  export TRAIN_PREFLIGHT_LINT_CMD="bash $stub_dir/lint.sh"
-  export TRAIN_PREFLIGHT_TEST_CMD="bash $stub_dir/tests.sh"
-  export TRAIN_PREFLIGHT_TRAIN_CMD="bash $stub_dir/train.sh"
-  bash "$CHECKER"
-) >"$tmp/f1.out" 2>&1
+run_case "$r" "$tmp/f1.out" 0
 rc=$?
 ok=0
 [ "$rc" -eq 0 ] || ok=1
@@ -92,15 +100,7 @@ report $ok "F1 all stub stages green -> exit 0 (got $rc)"
 r="$tmp/f2"
 new_repo "$r"
 write_stubs "tests"
-(
-  cd "$r" || exit 1
-  export TRAIN_PREFLIGHT_QUIET_CMD="bash $stub_dir/quiescence.sh"
-  export TRAIN_PREFLIGHT_PREFLIGHT_CMD="bash $stub_dir/surprise.sh"
-  export TRAIN_PREFLIGHT_LINT_CMD="bash $stub_dir/lint.sh"
-  export TRAIN_PREFLIGHT_TEST_CMD="bash $stub_dir/tests.sh"
-  export TRAIN_PREFLIGHT_TRAIN_CMD="bash $stub_dir/train.sh"
-  bash "$CHECKER"
-) >"$tmp/f2.out" 2>&1
+run_case "$r" "$tmp/f2.out" 0
 rc=$?
 ok=0
 [ "$rc" -eq 1 ] || ok=1
@@ -112,15 +112,7 @@ r="$tmp/f3"
 new_repo "$r"
 write_stubs ""
 printf '#!/usr/bin/env bash\nexit 0\n' >"$stub_dir/lint.sh"
-(
-  cd "$r" || exit 1
-  export TRAIN_PREFLIGHT_QUIET_CMD="bash $stub_dir/quiescence.sh"
-  export TRAIN_PREFLIGHT_PREFLIGHT_CMD="bash $stub_dir/surprise.sh"
-  export TRAIN_PREFLIGHT_LINT_CMD="bash $stub_dir/lint.sh"
-  export TRAIN_PREFLIGHT_TEST_CMD="bash $stub_dir/tests.sh"
-  export TRAIN_PREFLIGHT_TRAIN_CMD="bash $stub_dir/train.sh"
-  bash "$CHECKER"
-) >"$tmp/f3.out" 2>&1
+run_case "$r" "$tmp/f3.out" 0
 rc=$?
 ok=0
 [ "$rc" -eq 1 ] || ok=1
@@ -133,15 +125,7 @@ r="$tmp/f4"
 new_repo "$r"
 write_stubs ""
 printf '#!/usr/bin/env bash\necho "no tally here"; exit 0\n' >"$stub_dir/train.sh"
-(
-  cd "$r" || exit 1
-  export TRAIN_PREFLIGHT_QUIET_CMD="bash $stub_dir/quiescence.sh"
-  export TRAIN_PREFLIGHT_PREFLIGHT_CMD="bash $stub_dir/surprise.sh"
-  export TRAIN_PREFLIGHT_LINT_CMD="bash $stub_dir/lint.sh"
-  export TRAIN_PREFLIGHT_TEST_CMD="bash $stub_dir/tests.sh"
-  export TRAIN_PREFLIGHT_TRAIN_CMD="bash $stub_dir/train.sh"
-  bash "$CHECKER"
-) >"$tmp/f4.out" 2>&1
+run_case "$r" "$tmp/f4.out" 0
 rc=$?
 ok=0
 [ "$rc" -eq 1 ] || ok=1
@@ -152,16 +136,7 @@ report $ok "F4 train tally guard miss -> exit 1 (got $rc)"
 r="$tmp/f5"
 new_repo "$r"
 write_stubs "tests"
-(
-  cd "$r" || exit 1
-  export TRAIN_PREFLIGHT_KEEP_GOING=1
-  export TRAIN_PREFLIGHT_QUIET_CMD="bash $stub_dir/quiescence.sh"
-  export TRAIN_PREFLIGHT_PREFLIGHT_CMD="bash $stub_dir/surprise.sh"
-  export TRAIN_PREFLIGHT_LINT_CMD="bash $stub_dir/lint.sh"
-  export TRAIN_PREFLIGHT_TEST_CMD="bash $stub_dir/tests.sh"
-  export TRAIN_PREFLIGHT_TRAIN_CMD="bash $stub_dir/train.sh"
-  bash "$CHECKER"
-) >"$tmp/f5.out" 2>&1
+run_case "$r" "$tmp/f5.out" 1
 rc=$?
 ok=0
 [ "$rc" -eq 1 ] || ok=1
