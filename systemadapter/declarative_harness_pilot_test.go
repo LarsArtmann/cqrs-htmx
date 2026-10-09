@@ -8,6 +8,7 @@ package systemadapter
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -27,9 +28,9 @@ func newHarnessScenario(t *testing.T) (*systemscenario.Scenario, context.Context
 	return sc, ctx
 }
 
-// findUser closes over the booted system for ThenQuery lookups.
-func findUser(sc *systemscenario.Scenario, ctx context.Context, userID string) func() (any, error) {
-	return func() (any, error) {
+// findUser closes over the booted system for typed query assertions.
+func findUser(sc *systemscenario.Scenario, ctx context.Context, userID string) func() (UserView, error) {
+	return func() (UserView, error) {
 		return FindUserByID(ctx, sc.System(), userID)
 	}
 }
@@ -42,54 +43,25 @@ func TestHarnessPilot_UserLifecycle(t *testing.T) {
 	sc.Given().Command(identitymodel.NewRegisterUserCmd(
 		userStreamID, "user@example.com", "Test User",
 		[]identitymodel.Role{identitymodel.RoleUser},
-	)).When(identitymodel.NewChangeEmailCmd(userStreamID, "new@example.com")).
-		ThenQueryFunc(findUser(sc, ctx, userStreamID.String()), func(got any) error {
-			user, ok := got.(UserView)
-			if !ok {
-				t.Fatalf("FindUserByID returned %T, want UserView", got)
-			}
+	)).When(identitymodel.NewChangeEmailCmd(userStreamID, "new@example.com"))
 
-			if user.Email != "new@example.com" {
-				return &fieldMismatch{field: "Email", want: "new@example.com", got: user.Email}
-			}
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+		checkUserFields("new@example.com", false))
 
-			if user.EmailVerified {
-				return &fieldMismatch{field: "EmailVerified", want: "false", got: "true"}
-			}
+	systemscenario.ThenQueryTyped(sc.Phase(), func() (UserView, error) {
+		return FindUserByEmail(ctx, sc.System(), "new@example.com")
+	}, func(user UserView) error {
+		if user.ID != userStreamID.String() {
+			return &fieldMismatch{field: "ID", want: userStreamID.String(), got: user.ID}
+		}
 
-			if user.CreatedAt.IsZero() {
-				return &fieldMismatch{field: "CreatedAt", want: "set", got: "zero"}
-			}
+		return nil
+	})
 
-			return nil
-		}).
-		ThenQueryFunc(func() (any, error) {
-			return FindUserByEmail(ctx, sc.System(), "new@example.com")
-		}, func(got any) error {
-			user, ok := got.(UserView)
-			if !ok {
-				t.Fatalf("FindUserByEmail returned %T, want UserView", got)
-			}
+	sc.Phase().Command(identitymodel.NewVerifyEmailCmd(userStreamID))
 
-			if user.ID != userStreamID.String() {
-				return &fieldMismatch{field: "ID", want: userStreamID.String(), got: user.ID}
-			}
-
-			return nil
-		}).
-		Command(identitymodel.NewVerifyEmailCmd(userStreamID)).
-		ThenQueryFunc(findUser(sc, ctx, userStreamID.String()), func(got any) error {
-			user, ok := got.(UserView)
-			if !ok {
-				t.Fatalf("FindUserByID returned %T, want UserView", got)
-			}
-
-			if !user.EmailVerified {
-				return &fieldMismatch{field: "EmailVerified", want: "true", got: "false"}
-			}
-
-			return nil
-		})
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+		checkUserFields("new@example.com", true))
 }
 
 func TestHarnessPilot_UserDisplayNameChange(t *testing.T) {
@@ -100,13 +72,10 @@ func TestHarnessPilot_UserDisplayNameChange(t *testing.T) {
 	sc.Given().Command(identitymodel.NewRegisterUserCmd(
 		userStreamID, "display@example.com", "Original",
 		[]identitymodel.Role{identitymodel.RoleUser},
-	)).When(identitymodel.NewChangeDisplayNameCmd(userStreamID, "Updated Name")).
-		ThenQueryFunc(findUser(sc, ctx, userStreamID.String()), func(got any) error {
-			user, ok := got.(UserView)
-			if !ok {
-				t.Fatalf("FindUserByID returned %T, want UserView", got)
-			}
+	)).When(identitymodel.NewChangeDisplayNameCmd(userStreamID, "Updated Name"))
 
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+		func(user UserView) error {
 			if user.DisplayName != "Updated Name" {
 				return &fieldMismatch{field: "DisplayName", want: "Updated Name", got: user.DisplayName}
 			}
@@ -121,8 +90,6 @@ func TestHarnessPilot_UserDisplayNameChange(t *testing.T) {
 func TestHarnessPilot_MissingLookups(t *testing.T) {
 	sc, ctx := newHarnessScenario(t)
 
-	missing := id.NewStreamID().String()
-
 	seed := id.NewStreamID()
 
 	sc.Given().Command(identitymodel.NewRegisterUserCmd(
@@ -130,18 +97,39 @@ func TestHarnessPilot_MissingLookups(t *testing.T) {
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)).When(identitymodel.NewChangeDisplayNameCmd(seed, "Still Seed")).
 		ThenQueryFails(func() (any, error) {
-			return FindUserByID(ctx, sc.System(), missing)
+			return FindUserByID(ctx, sc.System(), id.NewStreamID().String())
 		}, system.ErrNotFound).
 		ThenQueryFails(func() (any, error) {
-			return FindTenantByID(ctx, sc.System(), missing)
+			return FindTenantByID(ctx, sc.System(), id.NewStreamID().String())
 		}, system.ErrNotFound).
 		ThenQueryFails(func() (any, error) {
-			return FindBotByID(ctx, sc.System(), missing)
+			return FindBotByID(ctx, sc.System(), id.NewStreamID().String())
 		}, system.ErrNotFound)
 }
 
-// fieldMismatch gives ThenQueryFunc checks precise, field-named errors
-// instead of the legacy string-only "Email mismatch" messages.
+// checkUserFields asserts the fields the legacy eventually blocks checked,
+// with field-named mismatch errors instead of "Email mismatch" strings.
+func checkUserFields(email string, verified bool) func(UserView) error {
+	return func(user UserView) error {
+		if user.Email != email {
+			return &fieldMismatch{field: "Email", want: email, got: user.Email}
+		}
+
+		if user.EmailVerified != verified {
+			return &fieldMismatch{
+				field: "EmailVerified", want: fmt.Sprint(verified), got: fmt.Sprint(user.EmailVerified),
+			}
+		}
+
+		if user.CreatedAt.IsZero() {
+			return &fieldMismatch{field: "CreatedAt", want: "set", got: "zero"}
+		}
+
+		return nil
+	}
+}
+
+// fieldMismatch gives query checks precise, field-named errors.
 type fieldMismatch struct {
 	field string
 	want  string
