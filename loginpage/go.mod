@@ -60,7 +60,7 @@ require (
 	github.com/larsartmann/go-retry v0.8.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
+	github.com/larsartmann/httputil/server_timing v1.0.2 // indirect
 	github.com/larsartmann/templ-components/htmx v1.21.0 // indirect
 	github.com/larsartmann/templ-components/icons v1.21.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

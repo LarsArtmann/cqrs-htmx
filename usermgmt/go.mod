@@ -79,7 +79,7 @@ require (
 	github.com/larsartmann/go-retry v0.8.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
+	github.com/larsartmann/httputil/server_timing v1.0.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.12 // indirect
