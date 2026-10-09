@@ -4,6 +4,8 @@
 
 ---
 
+> **ANNOTATED 2026-10-09 (docs-health tail pass)** — every forward-looking item resolved or routed: §b fixture work done at `70b1289e` + both TODO rows struck; §c/§f done items verified inline (A012 0-re-derived, M15/M13 receipts, R12/T8 `baeffce1`+`c5d223de`, R15/T14 `ab23e247`, family-walk receipt `23b54cc2` in CHANGELOG, push landed → origin CI green on `c5bbc693`); open work routed (loginpage, Credential memo, battery, GCL legs → their TODO rows; server_timing + BuildFlow policy → decision table D14/D15; train-trust plan → its own TODO row); noise/incident classes dispositioned (§f28 gate-covered, §f30 NOT-DO, §f34/§f35 Won't-implement). Struck inline below; open lanes live in `TODO_LIST.md`.
+
 ## a) FULLY DONE (this session)
 
 ### 1. P1: the 2026-10-07 untagged-debt patch train — shipped end to end

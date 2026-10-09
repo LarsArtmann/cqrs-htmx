@@ -4,6 +4,8 @@
 
 ---
 
+> **ANNOTATED 2026-10-09 (docs-health tail pass)** — all open items resolved or routed: §b1/§c2 battery refusal → TODO post-change-battery row; §b2/§c3 owner lanes → decision table D14/D15 + the GCL row (opened 2026-10-09); §b3 the concurrent session's sync feature landed (`278b16c2`, follow-through row in TODO_LIST); §c1 CI verified green (run 37851669797 on `c5bbc693`); §c4 feedback inbox empty + this archive is the tail annotation. Struck inline below; open lanes live in `TODO_LIST.md`.
+
 ## a) FULLY DONE (this session)
 
 ### 1. dashboardui test-fixture consolidation (P2 row closed)
