@@ -2,67 +2,39 @@ import { test, expect } from "@playwright/test";
 
 // TEMPORARY debug spec — delete after T01 triage.
 
-test("debug: probe worker + DB + 404s", async ({ page, context }) => {
-  const logs: string[] = [];
-  page.on("console", (m) => logs.push(`[page:${m.type()}] ${m.text()}`));
-  page.on("pageerror", (e) => logs.push(`[pageerror] ${e.message}`));
-  page.on("response", (r) => {
-    if (r.status() >= 400) logs.push(`[http ${r.status()}] ${r.url()}`);
-  });
-  page.on("requestfailed", (r) => logs.push(`[reqfail] ${r.url()} ${r.failure()?.errorText}`));
-
+test("debug: instrument real worker boot errors", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("[data-sync-status]")).toContainText(
-    /Connected|Synced|All changes saved/i,
-    { timeout: 15000 },
-  );
-  await page.waitForTimeout(1500);
-
-  const probe = await page.evaluate(`(async function() {
-    var dbs = [];
-    if (indexedDB.databases) {
-      try { dbs = (await indexedDB.databases()).map(function(d) { return d.name + "(v" + (d.version || "?") + ")"; }); } catch (e) { dbs = ["err " + e]; }
-    }
-    var clientVersion = window.cqrsSync && window.cqrsSync.version;
-    var events = null;
-    if (window.cqrsSync && window.cqrsSync.getEvents) {
-      try { events = JSON.stringify(await window.cqrsSync.getEvents()).slice(0, 200); } catch (e) { events = "err " + e; }
-    }
-    return { dbs: dbs, clientVersion: clientVersion, events: events, onLine: navigator.onLine };
+  const result = await page.evaluate(`(async function() {
+    var src = await fetch('/sync-worker.js').then(function(r) { return r.text(); });
+    var prefix = "var __bootError = null;" +
+      "self.addEventListener('error', function(e) {" +
+      "  if (!__bootError) __bootError = String(e.message) + ' @' + (e.filename||'?') + ':' + (e.lineno||'?') + ':' + (e.colno||'?');" +
+      "});";
+    var suffix = "(function() {" +
+      "  var _orig = self.onconnect;" +
+      "  self.onconnect = function(e) {" +
+      "    var port = e.ports[0];" +
+      "    port.addEventListener('message', function(ev) {" +
+      "      if (ev.data && ev.data.type === '__bootprobe') {" +
+      "        port.postMessage({ type: '__bootreply', error: __bootError, onconnectAssigned: typeof _orig === 'function' });" +
+      "      }" +
+      "    });" +
+      "    if (_orig) _orig(e);" +
+      "  };" +
+      "})();";
+    var blob = new Blob([prefix + src + suffix], { type: 'application/javascript' });
+    var w = new SharedWorker(URL.createObjectURL(blob));
+    return await new Promise(function(resolve) {
+      var out = { replies: [] };
+      var t1 = setTimeout(function() { resolve({ timeout: true, out: out }); }, 6000);
+      w.port.onmessage = function(e) {
+        if (e.data && e.data.type === '__bootreply') { clearTimeout(t1); resolve(e.data); }
+      };
+      w.port.postMessage({ type: 'hello', tabId: 'probe-tab' });
+      w.port.postMessage({ type: '__bootprobe' });
+      setTimeout(function() { w.port.postMessage({ type: '__bootprobe' }); }, 1500);
+    });
   })()`);
-  console.log("=== PROBE (after load, before submit) ===", JSON.stringify(probe));
-
-  await context.setOffline(true);
-  await page.waitForTimeout(300);
-  await page.fill('input[name="name"]', "Debug Item 2");
-  await page.click('button[type="submit"]');
-  await page.waitForTimeout(2000);
-
-  const probe2 = await page.evaluate(`(async function() {
-    var dbs = [];
-    if (indexedDB.databases) {
-      try { dbs = (await indexedDB.databases()).map(function(d) { return d.name + "(v" + (d.version || "?") + ")"; }); } catch (e) { dbs = ["err " + e]; }
-    }
-    var out = {};
-    try {
-      out.state = await new Promise(function(resolve) {
-        var req = indexedDB.open('cqrshtmx-sync');
-        req.onsuccess = function(e) {
-          var db = e.target.result;
-          out.version = db.version;
-          out.stores = Array.from(db.objectStoreNames);
-          if (db.objectStoreNames.contains('commands')) {
-            var tx = db.transaction('commands', 'readonly');
-            var c = tx.objectStore('commands').count();
-            c.onsuccess = function() { db.close(); resolve({count: c.result}); };
-          } else { db.close(); resolve({count: -1}); }
-        };
-        req.onerror = function() { resolve({error: String(req.error)}); };
-      });
-    } catch (e) { out.state = "err " + e; }
-    return out;
-  })()`);
-  console.log("=== PROBE2 (after offline submit) ===", JSON.stringify(probe2));
-  console.log("=== CONSOLE/HTTP LOGS ===");
-  for (const l of logs) console.log(l);
+  console.log("=== BOOT PROBE ===", JSON.stringify(result));
+  expect(true).toBe(true);
 });

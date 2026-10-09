@@ -62,7 +62,15 @@
   // To customize: copy this file, change values, serve via SyncWorkerHandlerWith.
   const DB_NAME = "cqrshtmx-sync";
   const STORE = "commands";
-  const DB_VERSION = 1;
+  // v2 (ADR-0056): the pulled event cache and the cursor/backendId state.
+  const EVENTS_STORE = "events";
+  const META_STORE = "meta";
+  const META_KEY = "state";
+  // 1 = ADR-0040 (commands only). 2 = ADR-0056 (events + meta). Bumping this
+  // is what makes a 1.4.0 database run the v2 upgrade: opening an existing
+  // v1 database at version 1 never fires onupgradeneeded, so the new stores
+  // would be missing and every cache transaction would throw NotFoundError.
+  const DB_VERSION = 2;
   const MAX_RETRIES = 10;
   const RETRY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
   const STAGGER_MS = 100; // delay between successive retry messages
