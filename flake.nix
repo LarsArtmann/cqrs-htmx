@@ -1077,6 +1077,7 @@
                         "train-consumers-hermetic:bash scripts/checks/check-train-consumers-hermetic.sh"
                         "train-consumers-hermetic-self-test:bash scripts/selftests/test-check-train-consumers-hermetic.sh"
                         "status-rows-equivalence-self-test:bash scripts/selftests/test-status-table-equivalence.sh"
+                        "train-lag-report-self-test:bash scripts/selftests/test-train-lag-report.sh"
                         "replace-directives:bash scripts/checks/check-replace-directives.sh"
                         "docs-freshness:bash scripts/checks/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/selftests/test-check-docs-freshness.sh"
@@ -1762,6 +1763,37 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-status-table-equivalence.sh
+                  '';
+                }
+              );
+            };
+
+            train-lag-report = {
+              type = "app";
+              meta.description = "Early-warning train-lag report: runs the strict release-train gate and surfaces the lag table + fix recipe advisory-style (never red on lag; broken gates stay loud). Nightly workflow + manual";
+              runtimeInputs = [
+                pkgs.git
+                pkgs.coreutils
+              ];
+              text = ''
+                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                bash scripts/checks/train-lag-report.sh "$@"
+              '';
+            };
+
+            test-train-lag-report = {
+              type = "app";
+              meta.description = "Fixture self-test for train-lag-report.sh (offline stubs: aligned / lag advisory / strict propagation / broken-gate propagation / tally guard)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-train-lag-report";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-train-lag-report.sh
                   '';
                 }
               );

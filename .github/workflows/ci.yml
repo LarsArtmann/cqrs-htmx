@@ -656,6 +656,13 @@ jobs:
       - name: Status-table equivalence meta-test
         run: bash scripts/selftests/test-status-table-equivalence.sh
 
+      # Train-lag early warning (T08): the wrapper's verdict logic (advisory
+      # lag vs broken-gate propagation vs tally guard) is CI-tested with
+      # stubs; the nightly workflow (.github/workflows/train-lag.yml) runs
+      # the real gate on schedule.
+      - name: Train-lag-report self-test
+        run: bash scripts/selftests/test-train-lag-report.sh
+
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
       # uses anonymous `git ls-remote`; the larsartmann repos are public

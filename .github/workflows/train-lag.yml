@@ -1,0 +1,30 @@
+# Nightly train-lag early warning (plan T08, 2026-10-08).
+#
+# The push-unblock session found 33 lag findings ~24h after the previous
+# alignment; waiting for the next push to discover lag turns alignment into
+# a reactive afternoon. This workflow runs the advisory report NIGHTLY and
+# posts the result to the job summary. It is deliberately NEVER red on lag
+# (advisory surface); a broken gate fails the job (never mask a broken gate).
+#
+# No GITHUB_TOKEN needed: tag lookups use anonymous `git ls-remote` and the
+# larsartmann repos are public (gotcha 5).
+name: train-lag
+
+on:
+  schedule:
+    # 03:17 UTC daily — off the hour to avoid the top-of-hour runner rush.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Train-lag report
+        run: |
+          bash scripts/checks/train-lag-report.sh | tee "$GITHUB_STEP_SUMMARY"
