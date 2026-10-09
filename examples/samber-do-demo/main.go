@@ -58,7 +58,12 @@ func main() {
 	// app.Query(): POST /command/hello dispatches the "Hello" command through
 	// the DI-managed dispatcher registered in the container.
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", indexHandler)
+	// Method-less root: go-health's RegisterRoutes mounts method-less /healthz,
+	// /readyz, /startupz patterns, and a method-scoped "GET /" conflicts with
+	// any of them under Go 1.22+ ServeMux rules (incomparable specificity).
+	// A method-less "/" is strictly more general than every other pattern —
+	// no conflict, and the index answers any method as a plain info page.
+	mux.HandleFunc("/", indexHandler)
 	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
 	// Real Kubernetes health probes from the go-health surface NewContainer
 	// started: /healthz (liveness — dependency-blind, always 200), /readyz
@@ -73,10 +78,12 @@ func main() {
 	probe.RegisterRoutes(mux, gohealth.DefaultRoutes())
 	// Live audit-log viewer from the auditlog/v4 bridge (plugin recorded every
 	// service invocation in the container; HTML UI + JSON API + SSE stream).
-	// GET-scoped: its dashboard/API/SSE/export routes are all GET semantics,
-	// and a method-less "/audit/" pattern would conflict with "GET /" under
-	// Go 1.22+ ServeMux rules (the demo used to panic at boot over this).
-	mux.Handle("GET /audit/", http.StripPrefix("/audit", container.AuditViewer))
+	// GET-scoped and mounted WITHOUT StripPrefix: the viewer serves its own
+	// configured prefix (Prefix: "/audit" routes /audit/, /audit/api/...
+	// internally), and a method-less "/audit/" pattern would conflict with
+	// "GET /" under Go 1.22+ ServeMux rules (the demo used to panic at boot
+	// over exactly this).
+	mux.Handle("GET /audit/", container.AuditViewer)
 	// Projection health dashboard from the health/v4 bridge (one check per
 	// projection worker of the usermgmt.Service; live via SSE).
 	healthDashboard, err := container.HealthDashboard()

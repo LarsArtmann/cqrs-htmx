@@ -21,10 +21,11 @@ retry_modifier: conservative
 # commits (documentation notes).
 todo_min_severity: warning
 
-# Shell scripts are owned by treefmt (`nix fmt`: shfmt 2-space indent +
-# shellcheck). BuildFlow's own shfmt would fight that on every staged script;
-# script linting is enforced by treefmt + CI. HTML/min.js are generated or
-# vendored artifacts that must not be reformatted.
+# Shell scripts: BuildFlow's shfmt now honors the treefmt-nix disposition
+# (flake.nix programs.shfmt → -i 2, ZC6 fix 2026-10-09), so the "*.sh"
+# global exclude is GONE — shfmt and shellcheck lint scripts again, agreeing
+# with `nix fmt`. HTML/min.js remain excluded: generated or vendored
+# artifacts that must not be reformatted.
 #
 # A user `exclude:` list ADDS to BuildFlow's built-in defaults (merge
 # semantics since BuildFlow b27f4f05b, 2026-09-30, verified in the installed
@@ -33,7 +34,6 @@ todo_min_severity: warning
 exclude:
   - "*.html"
   - "*.min.js"
-  - "*.sh"
   # Committed Tailwind bundles + buildflow's orphan styles.css outputs are
   # NEVER buildflow's business: the canonical minified bundles are built by
   # the flake apps (nix run .#build-adminui-css / .#build-dashboardui-css)

@@ -146,8 +146,10 @@ func TestContainerResolveTOTPViaInvokeAs(t *testing.T) {
 // TestHealthProbe_StartedByNewContainer proves the HW-4 posture end to end:
 // NewContainer starts the probe (refresh loop + first evaluation), the
 // critical projection names are real checks (Start validates them — a typo
-// fails NewContainer), and the startup latch is complete because every
-// projection worker reached live state during synchronous startup.
+// fails NewContainer), and the background cache holds a pass verdict with
+// every projection check present — never the pre-fix zero-value empty pass.
+// (The startup LATCH itself is set by the /startupz endpoint on its first
+// all-criticals-pass evaluation — asserted in TestHealthRoutes_ServeRealVerdicts.)
 func TestHealthProbe_StartedByNewContainer(t *testing.T) {
 	container, cleanup := newTestContainer(t)
 	defer cleanup()
@@ -155,10 +157,6 @@ func TestHealthProbe_StartedByNewContainer(t *testing.T) {
 	probe, err := container.Probe()
 	if err != nil {
 		t.Fatalf("resolve health probe: %v", err)
-	}
-
-	if !probe.StartupComplete() {
-		t.Fatal("startup latch not complete — critical projections never passed their first check")
 	}
 
 	resp := probe.CachedResponse()
@@ -212,6 +210,13 @@ func TestHealthRoutes_ServeRealVerdicts(t *testing.T) {
 			t.Fatalf("GET %s: body does not report status %q: %s", tc.path, tc.wantStatus, body)
 		}
 	}
+
+	// The /startupz request above evaluated every critical check and latched
+	// the startup probe — StartupComplete flips exactly once, from the
+	// endpoint's own evaluation (not from Start).
+	if !probe.StartupComplete() {
+		t.Fatal("startup latch not set after a passing /startupz request")
+	}
 }
 
 // TestHealthDashboard_ShowsProjectionChecks pins the dashboard's data source
@@ -244,13 +249,15 @@ func TestHealthDashboard_ShowsProjectionChecks(t *testing.T) {
 // TestAuditViewerMount_NoServeMuxConflict regression-pins the 2026-10-09
 // boot panic: a method-less "/audit/" pattern conflicts with "GET /" under
 // Go 1.22+ ServeMux rules, so the demo MUST mount the viewer GET-scoped.
+// No StripPrefix: the live server serves its own configured prefix
+// (Prefix: "/audit" routes /audit/, /audit/api/..., internally).
 func TestAuditViewerMount_NoServeMuxConflict(t *testing.T) {
 	container, cleanup := newTestContainer(t)
 	defer cleanup()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", indexHandler)
-	mux.Handle("GET /audit/", http.StripPrefix("/audit", container.AuditViewer))
+	mux.HandleFunc("/", indexHandler)
+	mux.Handle("GET /audit/", container.AuditViewer)
 
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
