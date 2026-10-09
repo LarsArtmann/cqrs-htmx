@@ -82,7 +82,7 @@ func doPull(handler http.HandlerFunc, url string, headers ...string) *httptest.R
 		req.Header.Set(headers[i], headers[i+1])
 	}
 
-	rec := &httptest.ResponseRecorder{}
+	rec := httptest.NewRecorder()
 	handler(rec, req)
 
 	return rec
@@ -266,7 +266,7 @@ func TestSyncPullHandler_RejectsNonGet(t *testing.T) {
 	handler := SyncPullHandler(memory.NewMemoryStore())
 
 	req := httptest.NewRequest(http.MethodPost, "/sync/pull", strings.NewReader("{}"))
-	rec := &httptest.ResponseRecorder{}
+	rec := httptest.NewRecorder()
 	handler(rec, req)
 
 	if rec.Code != http.StatusMethodNotAllowed {
