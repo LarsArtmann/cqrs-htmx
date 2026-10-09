@@ -44,26 +44,26 @@
 
 - **Analysis complete:** `mustTestDashboardWithConfig` already exists (`handlers_write_test.go:493`); classified every candidate site — sse_replay ×5 (EventBus/heartbeat variants, no Mount), handlers_security ×13 (XSS seeds ×3, SeekableJournal stats/pagination ×2, ReadOnly ×1, pure-vanilla asset/404 ×3, middleware-only ×2), dashboard_test ×12 (pure-vanilla Mount ×3, seeded Mount ×5, variant-store Mount ×2, no-Mount probes ×3). Deviating-by-design classes (handlers_coverage stub-journal, csp/fmt dashboards) stay custom per the row.
 - **DONE:** `mustTestDashboardWithConfig` now auto-fills the vanilla store wiring when a Config sets neither source (deviation-only Configs), `memorystorage` import added, hermetic vet green. The daemon swept this edit as `07b2b54a` (unpushed).
-- **REMAINING:** add `mustTestDashboardMuxWithConfig` (Mount-twin returning `(*Dashboard, *http.ServeMux)`); convert the ~24 classified sites; drop the resulting dead imports; run the dashboardui suite in workspace AND hermetic mode; commit.
+~~- **REMAINING:** add `mustTestDashboardMuxWithConfig` (Mount-twin returning `(*Dashboard, *http.ServeMux)`); convert the ~24 classified sites; drop the resulting dead imports; run the dashboardui suite in workspace AND hermetic mode; commit.~~ done at `70b1289e` (00-06 session §a1: 29 near-vanilla sites converted, both modes green, lint 0)
 
 ### 2. TODO_LIST row hygiene for THIS session's work
 
-- The httputil-release row and the dashboardui fixture row are not yet struck (the release itself is done; the row strike is pending the fixture completion so one commit can close both honestly).
+~~- The httputil-release row and the dashboardui fixture row are not yet struck (the release itself is done; the row strike is pending the fixture completion so one commit can close both honestly).~~ done — both rows struck 2026-10-08 (httputil release + fixture conversion receipts)
 
 ---
 
 ## c) NOT STARTED (all still open in TODO_LIST)
 
-1. A012×4 inspection → per-finding verdicts into the residual-triage doc.
-2. v5 cut runbook skeleton (plan M15) from `docs/guides/v5-removal-inventory.md`.
-3. BuildFlow failing-step-name capture (plan M13) → agents-notes.
-4. branching-flow per-module candidate-count proof (plan R12/T8) — gate must print counts, fail on zero.
-5. branching-flow analyzer-subset tuning (plan R15/T14) — two-run stability + FP measurement.
-6. loginpage test-depth debt (login.js zero tests; property test + goldens + Playwright WebAuthn E2E).
-7. Credential 4× duplication decision memo (feeds OQ28).
-8. Battery remainder: `.#test-all`, `.#coverage-gate` re-run (2026-10-04/06 wave paths unmeasured), bench-spike (REFUSED this session — load 36–86; needs a quiet window).
-9. GCL legs: (b) cqrs-lint/coverage runs + the captured 11 lint findings, (e) `fail()`/`Close()` teardown unify — cross-repo.
-10. CHANGELOG receipt for the family-walk checker fix (`23b54cc2`) — CI-behavior gates get receipts per gotcha 20; NOT yet written. Should ride the next docs commit.
+~~1. A012×4 inspection → per-finding verdicts into the residual-triage doc.~~ done 2026-10-08 — re-derived 0 under the current binary; verdicts in the residual-triage doc (00-06 §a5)
+~~2. v5 cut runbook skeleton (plan M15) from `docs/guides/v5-removal-inventory.md`.~~ done — landed 2026-10-05, `docs/runbooks/release-v5-cut.md` (verified 00-06 §a6)
+~~3. BuildFlow failing-step-name capture (plan M13) → agents-notes.~~ done — `docs/agents-notes.md` failing-steps receipt + 2026-10-08 addendum; TODO row struck 2026-10-09
+~~4. branching-flow per-module candidate-count proof (plan R12/T8) — gate must print counts, fail on zero.~~ done at `baeffce1`+`c5d223de` (00-06 §a4)
+~~5. branching-flow analyzer-subset tuning (plan R15/T14) — two-run stability + FP measurement.~~ done at `ab23e247` (00-06 §a4)
+~~6. loginpage test-depth debt (login.js zero tests; property test + goldens + Playwright WebAuthn E2E).~~ DUPLICATE — TODO row (loginpage test-depth debt)
+~~7. Credential 4× duplication decision memo (feeds OQ28).~~ DUPLICATE — TODO row (Credential memo, R11/T7)
+~~8. Battery remainder: `.#test-all`, `.#coverage-gate` re-run (2026-10-04/06 wave paths unmeasured), bench-spike (REFUSED this session — load 36–86; needs a quiet window).~~ DUPLICATE — TODO row (post-change verification battery)
+~~9. GCL legs: (b) cqrs-lint/coverage runs + the captured 11 lint findings, (e) `fail()`/`Close()` teardown unify — cross-repo.~~ DUPLICATE — TODO row (GCL hardening follow-through)
+~~10. CHANGELOG receipt for the family-walk checker fix (`23b54cc2`) — CI-behavior gates get receipts per gotcha 20; NOT yet written. Should ride the next docs commit.~~ done — receipt verified in root CHANGELOG 2026-10-09 (`23b54cc2`, CI-behavior gate)
 
 ---
 
@@ -95,58 +95,58 @@
 ## f) NEXT (up to 50, impact-ordered)
 
 **Immediate tails of this session**
-1. Finish the dashboardui fixture conversion (add `mustTestDashboardMuxWithConfig`, convert ~24 sites, both-mode tests, commit; then strike the TODO row).
-2. CHANGELOG receipt for the family-walk checker fix (CI-behavior gate, gotcha 20).
-3. Strike the httputil-release TODO row (work done; receipt + release + CI-green evidence in hand).
-4. Push `07b2b54a` + the fixture commit; watch CI.
-5. Add the cross-repo fresh-tag race to AGENTS gotcha 27 (or a new gotcha) + release-playbook §3a note.
-6. Amend `docs/analysis`-style docs: record the family-walk multi-train rule in `docs/runbooks/dependency-train-bump.md` (R18 pre-flight section).
-7. A012×4 inspection → residual-triage verdicts (bounded analysis).
-8. v5 cut runbook skeleton (M15) — pure docs from the removal inventory.
-9. BuildFlow failing-step capture (M13) — dry-run + tee, append the named steps to agents-notes.
-10. branching-flow per-module candidate-count proof (R12/T8) — checker prints counts, fails on zero, fixture case, flake app wiring, atomic checklist.
-11. branching-flow analyzer-subset measurement (R15/T14) — two-run diff + FP rates from triage-decisions, narrow-or-not verdict.
-12. Credential 4× duplication memo (R11/T7) — read-only analysis, input to OQ28.
-13. loginpage test-depth: Base64URL property test + serializeAssertion/serializeAttestation goldens via `node --test` (the Playwright WebAuthn E2E is the bigger half — maybe phase it).
-14. Battery legs at a quiet window: `.#test-all`, `.#coverage-gate` re-run (wave paths unmeasured), bench-spike only when load < threshold.
-15. GCL legs (b): run cqrs-lint + coverage on the M04–M10 surface (read-only; capture verdicts).
-16. GCL legs (e) + the 11 lint findings — needs owner go-ahead (see g1).
-17. server_timing LICENSE: decide whether to cut server_timing v1.0.2 so the proxy copy carries the license (see g2).
+~~1. Finish the dashboardui fixture conversion (add `mustTestDashboardMuxWithConfig`, convert ~24 sites, both-mode tests, commit; then strike the TODO row).~~ done at `70b1289e` (00-06 §a1)
+~~2. CHANGELOG receipt for the family-walk checker fix (CI-behavior gate, gotcha 20).~~ done — same receipt as §c10 (`23b54cc2` in root CHANGELOG)
+~~3. Strike the httputil-release TODO row (work done; receipt + release + CI-green evidence in hand).~~ done — TODO row struck 2026-10-08 (release + CI-green evidence in hand)
+~~4. Push `07b2b54a` + the fixture commit; watch CI.~~ done — pushed by the 00-06 session; origin CI green (run 37851669797 on `c5bbc693`, verified 2026-10-09)
+~~5. Add the cross-repo fresh-tag race to AGENTS gotcha 27 (or a new gotcha) + release-playbook §3a note.~~ done — AGENTS gotcha 27(e) + release-playbook note (`b2a12066`, 00-06 §a6)
+~~6. Amend `docs/analysis`-style docs: record the family-walk multi-train rule in `docs/runbooks/dependency-train-bump.md` (R18 pre-flight section).~~ done — `docs/runbooks/dependency-train-bump.md` multi-train rule + block-require limit (`b2a12066`)
+~~7. A012×4 inspection → residual-triage verdicts (bounded analysis).~~ done 2026-10-08 (00-06 §a5)
+~~8. v5 cut runbook skeleton (M15) — pure docs from the removal inventory.~~ done — landed 2026-10-05 (00-06 §a6)
+~~9. BuildFlow failing-step capture (M13) — dry-run + tee, append the named steps to agents-notes.~~ done — agents-notes receipt + addendum (TODO row struck 2026-10-09)
+~~10. branching-flow per-module candidate-count proof (R12/T8) — checker prints counts, fails on zero, fixture case, flake app wiring, atomic checklist.~~ done at `baeffce1`+`c5d223de`
+~~11. branching-flow analyzer-subset measurement (R15/T14) — two-run diff + FP rates from triage-decisions, narrow-or-not verdict.~~ done at `ab23e247`
+~~12. Credential 4× duplication memo (R11/T7) — read-only analysis, input to OQ28.~~ DUPLICATE — TODO row (Credential memo)
+~~13. loginpage test-depth: Base64URL property test + serializeAssertion/serializeAttestation goldens via `node --test` (the Playwright WebAuthn E2E is the bigger half — maybe phase it).~~ DUPLICATE — TODO row (loginpage test-depth)
+~~14. Battery legs at a quiet window: `.#test-all`, `.#coverage-gate` re-run (wave paths unmeasured), bench-spike only when load < threshold.~~ DUPLICATE — TODO row (post-change battery)
+~~15. GCL legs (b): run cqrs-lint + coverage on the M04–M10 surface (read-only; capture verdicts).~~ DUPLICATE — TODO row (GCL (b))
+~~16. GCL legs (e) + the 11 lint findings — needs owner go-ahead (see g1).~~ DUPLICATE — TODO row (GCL (e) + 11 findings; owner-gated)
+~~17. server_timing LICENSE: decide whether to cut server_timing v1.0.2 so the proxy copy carries the license (see g2).~~ ROUTED — TODO decision table D14 (opened 2026-10-09)
 
 **From TODO_LIST (unchanged, still open)**
-18. Wire `check-cqrs-lint` into CI (blocked: nested-module tag decision D6).
-19. Fleet cqrs-lint binary swap (D4; local verification done 2026-10-01, steps in packet §8).
-20. D13 owner tick (memo + pins are closed; KEEP-generic recommendation stands).
-21. PapDashboard reply send (owner channel).
-22. D1–D12 decision-table ticks as the owner rules on them.
-23. SidebarNav revisit when templ-components ships a dark-token shell (criterion 1 re-check on next UI change).
-24. DataStar Tier 4 (demand-gated; no signal yet).
-25. BuildFlow `go-version-auto-configure` re-enable after BF1+BF2 upstream.
-26. GCL pre-commit "Doc-only" misclassification repro (M7).
-27. scorecard timing variance env investigation (M22, low).
-28. VCS-cache junk-vs-corruption classification (03-45 table item 22).
-29. Foreign-session lint debts: handlers_events cyclop, accent_color mnd (03-45 items 21).
-30. httputil/server_timing proxy checksum anomaly in BuildFlow env (03-45 item 20).
+~~18. Wire `check-cqrs-lint` into CI (blocked: nested-module tag decision D6).~~ DUPLICATE — TODO row (check-cqrs-lint CI; blocked on D6)
+~~19. Fleet cqrs-lint binary swap (D4; local verification done 2026-10-01, steps in packet §8).~~ DUPLICATE — TODO row (fleet cqrs-lint binary swap D4)
+~~20. D13 owner tick (memo + pins are closed; KEEP-generic recommendation stands).~~ DUPLICATE — TODO D13 (memo + pins closed; owner tick outstanding)
+~~21. PapDashboard reply send (owner channel).~~ DUPLICATE — TODO row (PapDashboard reply)
+~~22. D1–D12 decision-table ticks as the owner rules on them.~~ DUPLICATE — TODO decision table (D1–D15)
+~~23. SidebarNav revisit when templ-components ships a dark-token shell (criterion 1 re-check on next UI change).~~ done 2026-10-09 — criterion-1 re-check fired + verified (02-44 §a4; TODO row updated); hybrid decision → owner Q3
+~~24. DataStar Tier 4 (demand-gated; no signal yet).~~ DUPLICATE — TODO row (DataStar Tier 4, demand-gated)
+~~25. BuildFlow `go-version-auto-configure` re-enable after BF1+BF2 upstream.~~ DUPLICATE — TODO row (BuildFlow go-version-auto-configure)
+~~26. GCL pre-commit "Doc-only" misclassification repro (M7).~~ DUPLICATE — TODO row (GCL pre-commit misclassification M7)
+~~27. scorecard timing variance env investigation (M22, low).~~ DUPLICATE — TODO row (scorecard timing variance M22)
+~~28. VCS-cache junk-vs-corruption classification (03-45 table item 22).~~ done-by-gate — `check-vcs-cache` flake app + self-test + CI (AGENTS gotcha 12)
+~~29. Foreign-session lint debts: handlers_events cyclop, accent_color mnd (03-45 items 21).~~ DUPLICATE — battery lint legs (TODO post-change battery row)
+~~30. httputil/server_timing proxy checksum anomaly in BuildFlow env (03-45 item 20).~~ NOT-DO — documented env noise (`docs/runbooks/buildflow-noise-policy.md`)
 
 **Housekeeping / candidates surfaced this session**
-31. TODO_LIST header "Modules: 28" + coverage/lint lines are stale vs today's train — next docs-health pass should refresh the header block (22:05 state: CI green on `254c3919`, tags +3).
-32. `docs/status/` this report should be harvested by the next docs-health round (annotations + archive per convention).
-33. Consider a `check-release-train --refresh-cache` step in the pre-push hook (see e2) — small, mechanical, kills the fresh-tag class permanently.
-34. `mustTestDashboardWithConfig` auto-fill semantics deserve a line in dashboardui's test README/AGENTS section if one exists (fixture contract discoverability).
-35. The two mid-stack daemon commits (`deeb31f7`, `2a8af1d7`) still carry heuristic messages — note for the next rebase-free history pass (or accept; they are unambiguous bumps).
-36. Loginpage coverage-gate re-pin (quiet-window micro from the episode-4 tail).
-37. Roadmap: capture the "multi-train family" lesson for templ-components-style releases in the family-release-consumable README section.
-38. `.buildflow.yml`: evaluate budget/timeout floors for go-generate/govulncheck under load (e5) — needs a load-representative measurement run.
-39. Confirm the ship-state of `docs/planning/2026-10-08` SUPERB "train trust & cadence" plan (`93230e16`, another session) — cross-link today's outcomes if it tracks train cadence.
-40. CHANGELOG [Unreleased] "Fixed" section: today's entries (train receipt, checker fix once receipted) are already correctly placed — verify at next docs-health sweep that nothing else claims the same receipt.
+~~31. TODO_LIST header "Modules: 28" + coverage/lint lines are stale vs today's train — next docs-health pass should refresh the header block (22:05 state: CI green on `254c3919`, tags +3).~~ done — header refreshed 2026-10-08 + restamped 2026-10-09 (this pass)
+~~32. `docs/status/` this report should be harvested by the next docs-health round (annotations + archive per convention).~~ done 2026-10-09 — this harvest (22-02 + 00-06 annotated + archived)
+~~33. Consider a `check-release-train --refresh-cache` step in the pre-push hook (see e2) — small, mechanical, kills the fresh-tag class permanently.~~ done-by-train-preflight — `scripts/checks/train-preflight.sh:52` runs `--refresh-cache --strict-lag 0` in its train stage
+~~34. `mustTestDashboardWithConfig` auto-fill semantics deserve a line in dashboardui's test README/AGENTS section if one exists (fixture contract discoverability).~~ Won't implement — the helper's doc comment (`dashboardui/testsetup_test.go:10-13`) already carries the contract
+~~35. The two mid-stack daemon commits (`deeb31f7`, `2a8af1d7`) still carry heuristic messages — note for the next rebase-free history pass (or accept; they are unambiguous bumps).~~ Won't implement — accepted daemon churn per gotcha-4 doctrine
+~~36. Loginpage coverage-gate re-pin (quiet-window micro from the episode-4 tail).~~ DUPLICATE — TODO row 78 tail (loginpage coverage-gate re-pin)
+~~37. Roadmap: capture the "multi-train family" lesson for templ-components-style releases in the family-release-consumable README section.~~ done — the multi-train-family lesson landed in `docs/runbooks/dependency-train-bump.md` (`b2a12066`)
+~~38. `.buildflow.yml`: evaluate budget/timeout floors for go-generate/govulncheck under load (e5) — needs a load-representative measurement run.~~ ROUTED — TODO row (verify + annotate the train-trust plan; opened 2026-10-09)
+~~39. Confirm the ship-state of `docs/planning/2026-10-08` SUPERB "train trust & cadence" plan (`93230e16`, another session) — cross-link today's outcomes if it tracks train cadence.~~ done — verified 2026-10-09 (single `23b54cc2` receipt, correctly placed)
+~~40. CHANGELOG [Unreleased] "Fixed" section: today's entries (train receipt, checker fix once receipted) are already correctly placed — verify at next docs-health sweep that nothing else claims the same receipt.~~ done — verified 2026-10-09 (nothing else claims the same receipt)
 
 ---
 
 ## g) QUESTIONS (cannot figure out myself)
 
-1. **GCL authorization:** the go-cqrs-lite repo holds the remaining hardening legs — (b) cqrs-lint/coverage gate runs, (e) the `fail()`/`Close()` teardown unify, and 11 golangci findings (gci ×10, gocognit ×1). Cross-repo DOCS were explicitly owner-gated in the TODO, but code fixes happened in the M-wave. Do I have the go-ahead to edit + commit (daemon rules) in go-cqrs-lite for (e) + the lint findings, or are those still foreign-session territory?
-2. **server_timing release:** the LICENSE file for `httputil/server_timing` is committed but its proxy copy (v1.0.1) predates it. Cut `server_timing/v1.0.2` so license scanners resolve it from the proxy, or leave the submodule untouched until its next real change?
-3. **BuildFlow pre-commit policy:** the 12 deterministic env-class failures (license-check unpassable class; go-generate/govulncheck timeout-killed under load ~36) cost ~90s per commit before the documented `--no-verify` fallback. Should I tune budgets/skips in `.buildflow.yml` (affects every session, and gotcha 35 warns about config churn), or is `--no-verify`-with-step-names the standing answer?
+~~1. **GCL authorization:** the go-cqrs-lite repo holds the remaining hardening legs — (b) cqrs-lint/coverage gate runs, (e) the `fail()`/`Close()` teardown unify, and 11 golangci findings (gci ×10, gocognit ×1). Cross-repo DOCS were explicitly owner-gated in the TODO, but code fixes happened in the M-wave. Do I have the go-ahead to edit + commit (daemon rules) in go-cqrs-lite for (e) + the lint findings, or are those still foreign-session territory?~~ ROUTED — TODO row (GCL hardening follow-through; owner-gated)
+~~2. **server_timing release:** the LICENSE file for `httputil/server_timing` is committed but its proxy copy (v1.0.1) predates it. Cut `server_timing/v1.0.2` so license scanners resolve it from the proxy, or leave the submodule untouched until its next real change?~~ ROUTED — TODO decision table D14 (opened 2026-10-09)
+~~3. **BuildFlow pre-commit policy:** the 12 deterministic env-class failures (license-check unpassable class; go-generate/govulncheck timeout-killed under load ~36) cost ~90s per commit before the documented `--no-verify` fallback. Should I tune budgets/skips in `.buildflow.yml` (affects every session, and gotcha 35 warns about config churn), or is `--no-verify`-with-step-names the standing answer?~~ ROUTED — TODO decision table D15 (opened 2026-10-09; `7505cb85` partially addressed lane 3)
 
 ---
 

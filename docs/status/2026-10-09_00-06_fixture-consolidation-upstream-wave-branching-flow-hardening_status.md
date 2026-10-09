@@ -39,19 +39,19 @@ The 2026-10-01 4-finding inventory does NOT regenerate under the current system 
 
 ## b) NOT DONE (honest refusals + blocked)
 
-1. **Bench-spike + `.#test-all` race battery + coverage-gate re-run:** load swung 6→30→67 all night (the concurrent session's gate runs). A machine-pinned bench baseline under load is a false measurement (gotcha: never re-pin under load); race tests under load 67 flake on timing. Deferred to a quiet window — the main `.#test` battery DID run green earlier at load ~7 before the push.
-2. **The 3 owner questions from the 22-02 report remain unanswered** (unanswered ≠ forgotten): (1) go-cqrs-lite edit authorization for GCL legs (b-remainder)+(e)+11 lint findings; (2) cut `server_timing/v1.0.2` for the LICENSE; (3) BuildFlow pre-commit policy — NOTE: lane (3) was partially addressed tonight by the concurrent session's `7505cb85` (honest hook budgets); `.buildflow.yml` skip-list tuning is still open.
-3. **Concurrent-session in flight:** `train-preflight.sh` + flake app + CI step + playbook docs landed mid-session (their session). The pre-push `--refresh-cache` candidate from my 22-02 report §e2 appears to be what they built. Their AGENTS.md edits and mine coexist; no collisions after the self-test fix above.
+~~1. **Bench-spike + `.#test-all` race battery + coverage-gate re-run:** load swung 6→30→67 all night (the concurrent session's gate runs). A machine-pinned bench baseline under load is a false measurement (gotcha: never re-pin under load); race tests under load 67 flake on timing. Deferred to a quiet window — the main `.#test` battery DID run green earlier at load ~7 before the push.~~ DUPLICATE — TODO row (post-change verification battery; refusal receipts land there when the legs run)
+~~2. **The 3 owner questions from the 22-02 report remain unanswered** (unanswered ≠ forgotten): (1) go-cqrs-lite edit authorization for GCL legs (b-remainder)+(e)+11 lint findings; (2) cut `server_timing/v1.0.2` for the LICENSE; (3) BuildFlow pre-commit policy — NOTE: lane (3) was partially addressed tonight by the concurrent session's `7505cb85` (honest hook budgets); `.buildflow.yml` skip-list tuning is still open.~~ ROUTED — Q1→TODO GCL row, Q2→decision D14, Q3→decision D15 (lanes opened 2026-10-09)
+~~3. **Concurrent-session in flight:** `train-preflight.sh` + flake app + CI step + playbook docs landed mid-session (their session). The pre-push `--refresh-cache` candidate from my 22-02 report §e2 appears to be what they built. Their AGENTS.md edits and mine coexist; no collisions after the self-test fix above.~~ done — the sync feature landed (`278b16c2` + TODO ADR-0056 follow-through row); preflight landed + documented
 
 ## c) NEXT (impact-ordered)
 
-1. Confirm CI green on `0017cc35` (watch in flight at write time).
-2. Battery legs at a quiet window: `.#test-all`, coverage-gate re-run (the 10-04/06 wave paths are still unmeasured), bench-spike when load < ~4.
-3. The 3 owner-decision lanes above.
-4. `docs/feedback/new/` sweep if anything landed; docs-health tail annotation for the 22-02 + this report when their items age out.
+~~1. Confirm CI green on `0017cc35` (watch in flight at write time).~~ done — verified 2026-10-09 (origin CI success, run 37851669797 on `c5bbc693`)
+~~2. Battery legs at a quiet window: `.#test-all`, coverage-gate re-run (the 10-04/06 wave paths are still unmeasured), bench-spike when load < ~4.~~ DUPLICATE — TODO row (post-change verification battery)
+~~3. The 3 owner-decision lanes above.~~ ROUTED — as §b2
+~~4. `docs/feedback/new/` sweep if anything landed; docs-health tail annotation for the 22-02 + this report when their items age out.~~ done — `docs/feedback/new/` empty (verified 2026-10-09); the tail annotation + archive is this pass
 
 ---
 
 ## g) QUESTIONS
 
-Same three as the 22-02 report (§g), unchanged — no new blockers discovered this session.
+~~Same three as the 22-02 report (§g), unchanged — no new blockers discovered this session.~~ ROUTED — as §b2
