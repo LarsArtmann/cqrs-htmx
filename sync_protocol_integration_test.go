@@ -2,12 +2,15 @@ package cqrshtmx
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -39,13 +42,16 @@ func newSyncProtocolEnv(t *testing.T) *syncProtocolEnv {
 			return errorfamily.NewConflict("note.conflict", "note already exists: "+note.Name)
 		}
 
+		// jsontext payload + json stamp = GENUINELY-JSON bytes. (A map payload
+		// would still be CBOR-encoded despite the stamp — the WithEncoding
+		// metadata-only trap — and land on the degraded opaque path.)
 		evt, err := event.New(
 			event.Type("NoteAppended"),
 			note.StreamID(),
 			"note",
 			event.Version(1),
-			map[string]any{"name": note.Name},
-			event.WithEncoding("json"),
+			jsontext.Value(`{"name":`+strconv.Quote(note.Name)+`}`),
+			event.WithEncoding(codec.EncodingJSON),
 		)
 		if err != nil {
 			return err
@@ -159,8 +165,8 @@ func TestSyncProtocol_OfflineQueueBatchPushAndCatchUpPull(t *testing.T) {
 		t.Errorf("first event type = %q, want NoteAppended", page.Events[0].Type)
 	}
 
-	if page.Events[0].PayloadEncoding != "json" || len(page.Events[0].Payload) == 0 {
-		t.Errorf("first event payload: encoding=%q payload=%q, want json with bytes",
+	if page.Events[0].PayloadEncoding != "json" || string(page.Events[0].Payload) != `{"name":"grocery-list"}` {
+		t.Errorf("first event payload: encoding=%q payload=%q, want json grocery-list",
 			page.Events[0].PayloadEncoding, string(page.Events[0].Payload))
 	}
 
@@ -176,8 +182,22 @@ func TestSyncProtocol_OfflineQueueBatchPushAndCatchUpPull(t *testing.T) {
 		}
 	}
 
-	if len(page.Events) != 0 {
-		t.Fatalf("final page events = %d, want 0 (caught up)", len(page.Events))
+	// The single-page journal never entered the loop, so prove caught-up
+	// EXPLICITLY: a fresh pull at the persisted cursor returns zero events
+	// (and an empty nextCursor — the client keeps its previous cursor).
+	finalRec := env.serve(http.MethodGet, "/sync/pull?limit=1&after="+page.NextCursor, "")
+	if finalRec.Code != http.StatusOK {
+		t.Fatalf("final pull status = %d, body: %s", finalRec.Code, finalRec.Body.String())
+	}
+
+	finalPage := pullSyncBody(t, finalRec)
+	if len(finalPage.Events) != 0 || finalPage.HasMore {
+		t.Fatalf("final page: events=%d hasMore=%v, want 0/false (caught up)",
+			len(finalPage.Events), finalPage.HasMore)
+	}
+
+	if finalPage.NextCursor != "" {
+		t.Errorf("final page nextCursor = %q, want empty (keep previous cursor)", finalPage.NextCursor)
 	}
 
 	// --- 4. Conditional re-poll at the caught-up cursor: 304, no body ---

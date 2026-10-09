@@ -151,6 +151,54 @@ func TestSyncPullHandler_BootstrapReturnsAllEventsWithPayloads(t *testing.T) {
 	}
 }
 
+func TestSyncPullHandler_LyingJsonStampDegradesToOpaque(t *testing.T) {
+	t.Parallel()
+
+	aggID, err := id.ParseStreamID(ulid.Make().String())
+	if err != nil {
+		t.Fatalf("parse aggregate ID: %v", err)
+	}
+
+	// The trap: a map payload with a json stamp still gets CBOR-encoded by
+	// event.New's default codec (the stamp is metadata-only). The wire shape
+	// must stay self-consistent on this degraded path: never a json promise
+	// over an empty payload field.
+	evt, err := event.New(
+		event.Type("sync.lying.json"),
+		aggID,
+		"test",
+		event.Version(1),
+		map[string]any{"name": "stamped-but-cbor"},
+		event.WithEncoding(codec.EncodingJSON),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	store := memory.NewMemoryStore()
+	appendSyncEvents(t, store, []event.Event{evt})
+
+	resp := pullSyncBody(t, doPull(SyncPullHandler(store), "/sync/pull"))
+	if len(resp.Events) != 1 {
+		t.Fatalf("events = %d, want 1", len(resp.Events))
+	}
+
+	got := resp.Events[0]
+	if got.PayloadEncoding != SyncPayloadEncodingOpaque {
+		t.Errorf("payloadEncoding = %q, want %q (never promise json over invalid bytes)",
+			got.PayloadEncoding, SyncPayloadEncodingOpaque)
+	}
+
+	if len(got.Payload) != 0 {
+		t.Errorf("payload = %q, want empty on the degraded path", string(got.Payload))
+	}
+
+	raw, err := base64.StdEncoding.DecodeString(got.PayloadB64)
+	if err != nil || len(raw) == 0 {
+		t.Errorf("payloadB64 = %q, want decodable non-empty bytes (err: %v)", got.PayloadB64, err)
+	}
+}
+
 func TestSyncPullHandler_CursorReturnsOnlyEventsAfter(t *testing.T) {
 	t.Parallel()
 

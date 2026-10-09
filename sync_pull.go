@@ -22,6 +22,12 @@ const (
 	MaxSyncPullLimit     = 1000
 )
 
+// SyncPayloadEncodingOpaque is the PayloadEncoding reported when an event's
+// stamp promises JSON but its bytes are not valid JSON (the metadata-only
+// event.WithEncoding trap: event.New still CBOR-encodes map payloads). The
+// wire never promises an encoding the delivered bytes cannot keep.
+const SyncPayloadEncodingOpaque = "opaque"
+
 // SyncEvent is the JSON shape of one pulled domain event: the SSE metadata
 // envelope plus the payload. Unlike the SSE envelope (metadata-only by
 // default), the pull endpoint is the explicit opt-in surface for payload
@@ -34,6 +40,13 @@ type SyncEvent struct {
 	Version         uint64         `json:"version"`
 	SchemaVersion   string         `json:"schemaVersion,omitempty"`
 	OccurredAt      string         `json:"occurredAt"`
+
+	// PayloadEncoding names the delivered bytes' framing. Exactly one of
+	// Payload/PayloadB64 is set: "json" → Payload holds the verbatim JSON;
+	// a codec name ("cbor") → PayloadB64 holds that codec's bytes;
+	// "opaque" ([SyncPayloadEncodingOpaque]) → the event's stamp promised
+	// JSON but the bytes are not valid JSON, so PayloadB64 carries them
+	// without a decodable-framing promise.
 	PayloadEncoding string         `json:"payloadEncoding"`
 	Payload         jsontext.Value `json:"payload,omitempty"`
 	PayloadB64      string         `json:"payloadB64,omitempty"`
@@ -270,8 +283,11 @@ func readAllAfter(
 // payload verbatim when the event encoding is JSON and base64-encoding it
 // otherwise (clients cannot decode CBOR in the JSON field without help).
 // JSON-stamped payloads are validity-checked defensively: an event whose
-// stamp and bytes disagree degrades to the base64 path instead of poisoning
-// the response marshal.
+// stamp and bytes disagree (the metadata-only WithEncoding trap — event.New
+// still CBOR-encodes map payloads) degrades to the base64 path with
+// payloadEncoding [SyncPayloadEncodingOpaque] instead of promising JSON the
+// bytes cannot keep. Non-JSON stamps are reported as-is: they name the
+// bytes' real codec.
 func newSyncEvent(evt event.Event) SyncEvent {
 	out := SyncEvent{
 		EventID:         evt.ID().String(),
@@ -292,6 +308,9 @@ func newSyncEvent(evt event.Event) SyncEvent {
 	}
 
 	out.PayloadB64 = base64.StdEncoding.EncodeToString(payload)
+	if string(evt.Encoding()) == "json" {
+		out.PayloadEncoding = SyncPayloadEncodingOpaque
+	}
 
 	return out
 }
