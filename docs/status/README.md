@@ -110,8 +110,8 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: **0 unarchived reports** (the 2026-10-06 round-18 docs-health pass annotated + archived the entire 17-report tail in one sweep) + README + 12 HTML artifacts.
-- `docs/status/archived/`: **467 archived reports** (2026-05-03 → 2026-10-06).
+- `docs/status/`: **18 unarchived reports** (the 2026-10-07→09 tail — round-19 full-tail archive owed, tracked in TODO_LIST) + README + 12 HTML artifacts.
+- `docs/status/archived/`: **469 archived reports** (2026-05-03 → 2026-10-09).
 - The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), 2026-09-21 (the 34-report tail), 2026-09-22 (the 8-report superb-plan tail + the plan itself), 2026-10-01 round-13 (the 22-report 09-22→09-30 tail — every report annotated with a dated blockquote + evidence-backed inline strikes, open items routed to TODO_LIST/ROADMAP, then archived), 2026-10-01 round-14 (the 10-01 pair — the 02:59 BuildFlow-recovery and 06:36 round-13 reports got W0–W3-receipt top-up blockquotes + inline strikes for everything the train/gate/erraudit sessions then resolved, then archived; the same pass triaged the six 2026-08-30 planning files — upstream-asks draft archived, gated-work index + cqrs-lint distribution draft annotated, three live owner-gated decisions confirmed leave-in-place — and confirmed the HTML corpus keep-in-place decision), and **2026-10-04 round-17 (the 13-report 10-01→10-04 tail — every report annotated with a dated blockquote + evidence strikes, open items verified against the tree (CI run 37178906141: test green on published pins; master red on exactly one job — the loginpage 7/5 dep budget) and routed to TODO_LIST/ROADMAP, then archived; the two `docs/drafts/2026-10-04-signing-cloneevent-encoding*` files got RESOLVED-SHIPPED blockquotes and stay in place)**, and **2026-10-06 round-18 (the 17-report 10-04→10-06 tail — every report annotated with a dated blockquote + evidence strikes verified against the tree (the identity-auth-hardening wave tags, the 11-module sweep train, push `e2f6be27`, CI green 37392674249, the M01–M15 hardening execution across three sibling sessions) and routed to TODO_LIST/ROADMAP, then archived; the six 2026-08-30/09-23 planning files re-confirmed: 3 annotated, 3 owner-gated LEAVE-IN-PLACE; the HTML corpus keep-in-place decision re-honored)**. Of the 467 archived reports, **102 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and the rest predate annotation entirely (legacy-exempt). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
 
 ### Round-17 archive manifest (2026-10-04)
@@ -163,6 +163,15 @@ All 17 files: classification **ARCHIVE** (dated `> ANNOTATED 2026-10-06` blockqu
 | `2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md`               | Round 2 comprehensive status + self-review: honest gaps (skipped gates d1/d2, manifest miss d5, batched-lint d3) + 40 ranked next steps + 3 owner questions                                    |
 
 Also archived in the same sweep (planning corpus): `docs/planning/archived/2026-10-01_06-47_pareto-round13-superb-execution-plan.md` and `..._15-04_pareto-round14-gates-green-first.md` — both carry dated OUTCOME blockquotes, every executable item shipped 2026-10-01/02, residue (bench, T08 fleet swap, D-list) routed in TODO_LIST; the round-16 and episode-4 plans stay ACTIVE in `docs/planning/`.
+
+### 2026-10-09 tail-pass archive manifest
+
+Both files: classification **ARCHIVE** (dated `> ANNOTATED 2026-10-09` blockquote + evidence strikes + open items routed), `git mv` → `docs/status/archived/`. Verification anchors: origin CI green (run 37851669797 on `c5bbc693`), fixture conversion `70b1289e`, R12/T8 `baeffce1`+`c5d223de`, R15/T14 `ab23e247`, family-walk receipt `23b54cc2`, runbook docs `b2a12066`, the landed frontend-sync feature (`278b16c2`, ADR-0056). The manifest lives HERE (not `archived/README.md`) — the annotation gate requires every `archived/*.md` to carry a date prefix.
+
+| File                                                                        | Deciding evidence                                                                                                                                                          |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2026-10-08_22-02_train-ci-repair-family-walk-fix-fixture-helper-status.md` | Patch train + httputil v1.4.2 + family-walk fix all shipped and CI-verified; 55 strikes; survivors routed to TODO rows + decision table D14/D15 + the train-trust-plan row |
+| `2026-10-09_00-06_fixture-consolidation-upstream-wave-branching-flow-hardening_status.md` | Fixtures landed, upstream wave aligned, branching-flow ratchet re-pinned to 229; battery + owner lanes routed; the sync session landed after this report                 |
 
 ## Why not "update them all" ad hoc?
 
