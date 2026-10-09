@@ -1679,18 +1679,23 @@
             train-preflight = {
               type = "app";
               meta.description = "ONE command before a train: tree quiescence + surprise check + lint + hermetic test battery + strict release-train gate, with candidate-count guards (a zero-iteration stage is a false green)";
-              # pkgs.nix: the lint/test stages invoke `nix run .#lint` / `.#test`
-              # from inside the app; without nix on PATH they fail with a
-              # confusing command-not-found after the slow stages.
-              runtimeInputs = [
-                pkgs.nix
-                pkgs.git
-                pkgs.coreutils
-              ];
-              text = ''
-                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                bash scripts/checks/train-preflight.sh "$@"
-              '';
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "train-preflight";
+                  # pkgs.nix: the lint/test stages invoke `nix run .#lint` /
+                  # `.#test` from inside the app; without nix on PATH they fail
+                  # with a confusing command-not-found after the slow stages.
+                  runtimeInputs = [
+                    pkgs.nix
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/train-preflight.sh "$@"
+                  '';
+                }
+              );
             };
 
             test-train-preflight = {

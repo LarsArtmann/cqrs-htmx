@@ -2,8 +2,9 @@ package cqrshtmx
 
 import (
 	"context"
-	"crypto/fnv" //nolint:gosec // FNV-1a is used as a change-detector ETag, not for security
+	"hash/fnv" //nolint:gosec // FNV-1a is used as a change-detector ETag, not for security
 	"encoding/base64"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"net/http"
 	"strconv"
@@ -34,7 +35,7 @@ type SyncEvent struct {
 	SchemaVersion   string          `json:"schemaVersion,omitempty"`
 	OccurredAt      string          `json:"occurredAt"`
 	PayloadEncoding string          `json:"payloadEncoding"`
-	Payload         json.RawMessage `json:"payload,omitempty"`
+	Payload         jsontext.Value `json:"payload,omitempty"`
 	PayloadB64      string          `json:"payloadB64,omitempty"`
 }
 
@@ -282,7 +283,7 @@ func newSyncEvent(evt event.Event) SyncEvent {
 
 	payload := evt.Payload()
 	if string(evt.Encoding()) == "json" {
-		out.Payload = json.RawMessage(payload)
+		out.Payload = jsontext.Value(payload)
 
 		return out
 	}
@@ -328,13 +329,6 @@ func writeSyncPullResponse(w http.ResponseWriter, r *http.Request, resp *SyncPul
 // writeSyncPullError emits the standalone JSON error shape used by the sync
 // protocol endpoints ({"error", "status", "code"} — the JSONErrorHandler body).
 func writeSyncPullError(w http.ResponseWriter, status int, code, message string) {
-	err := errorfamily.Newf(
-		familyForStatus(status),
-		code,
-		"%s",
-		message,
-	)
-
 	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)
 
@@ -342,16 +336,5 @@ func writeSyncPullError(w http.ResponseWriter, status int, code, message string)
 		JSONKeyError:  message,
 		JSONKeyStatus: status,
 		JSONKeyCode:   code,
-		_:             err.Error(),
 	}) //nolint:errcheck // best-effort error body on an already-committed status
-}
-
-// familyForStatus maps an HTTP status onto the error family used for the
-// internal error value (kept for slog/classification symmetry).
-func familyForStatus(status int) errorfamily.Family {
-	if status >= 500 {
-		return errorfamily.Infrastructure
-	}
-
-	return errorfamily.Rejection
 }
