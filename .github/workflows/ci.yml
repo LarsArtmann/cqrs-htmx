@@ -642,6 +642,13 @@ jobs:
       - name: Train-preflight self-test
         run: bash scripts/selftests/test-train-preflight.sh
 
+      # Hermetic consumer catch (T04, 2026-10-08; gotcha-30 mechanized): the
+      # stub self-test is the CI coverage; the real gate runs locally via
+      # `nix run .#check-train-consumers-hermetic` before verify-tag --push
+      # (release checklist + playbook §1).
+      - name: Train-consumers-hermetic self-test
+        run: bash scripts/selftests/test-check-train-consumers-hermetic.sh
+
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
       # uses anonymous `git ls-remote`; the larsartmann repos are public

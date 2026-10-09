@@ -1074,6 +1074,8 @@
                         "preflight-self-test:bash scripts/selftests/test-preflight-tree-check.sh"
                         "wait-tree-quiet-self-test:bash scripts/selftests/test-wait-tree-quiet.sh"
                         "train-preflight-self-test:bash scripts/selftests/test-train-preflight.sh"
+                        "train-consumers-hermetic:bash scripts/checks/check-train-consumers-hermetic.sh"
+                        "train-consumers-hermetic-self-test:bash scripts/selftests/test-check-train-consumers-hermetic.sh"
                         "replace-directives:bash scripts/checks/check-replace-directives.sh"
                         "docs-freshness:bash scripts/checks/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/selftests/test-check-docs-freshness.sh"
@@ -1711,6 +1713,36 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-train-preflight.sh
+                  '';
+                }
+              );
+            };
+
+            check-train-consumers-hermetic = {
+              type = "app";
+              meta.description = "Pre-publish hermetic consumer catch (gotcha-30 mechanized): GOWORK=off build+vet+test for every module with go.mod/go.sum changes vs origin/master — run BEFORE verify-tag --push";
+              # goPkg: the hermetic pipeline shells out to `go`; without the
+              # 1.27.1 toolchain the ambient go cannot load the workspace floor.
+              runtimeInputs = [ goPkg ];
+              text = ''
+                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                bash scripts/checks/check-train-consumers-hermetic.sh "$@"
+              '';
+            };
+
+            test-check-train-consumers-hermetic = {
+              type = "app";
+              meta.description = "Fixture self-test for check-train-consumers-hermetic.sh (offline stubs: zero-count pass / green module / red module blocks / base SKIP / testdata exclusion)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-train-consumers-hermetic";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-train-consumers-hermetic.sh
                   '';
                 }
               );

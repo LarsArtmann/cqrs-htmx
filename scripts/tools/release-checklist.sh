@@ -82,6 +82,16 @@ else
 fi
 
 # 4. Run full verification suite (matching CONTRIBUTING.md pre-release checklist)
+step "Hermetic consumer catch (check-train-consumers-hermetic)"
+rc=0
+bash scripts/checks/check-train-consumers-hermetic.sh >"$LOGDIR/hermetic.log" 2>&1 || rc=$?
+tail -5 "$LOGDIR/hermetic.log"
+if [ "$rc" -eq 0 ]; then
+  pass "Changed modules green under GOWORK=off (published-tag resolution)"
+else
+  fail "Hermetic red — a consumer resolving PUBLISHED tags will break; fix BEFORE verify-tag --push (gotcha-30 class)"
+fi
+
 step "Tests (nix run .#test)"
 rc=0
 nix run .#test >"$LOGDIR/test.log" 2>&1 || rc=$?
