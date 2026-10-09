@@ -62,37 +62,57 @@ func NewContainer(cfg AppConfig) (*Container, func(), error) {
 
 	injector := do.NewWithOpts(auditSetup.Opts)
 
-	registerProviders(injector, cfg)
+	if err := registerProviders(injector, cfg); err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.register_providers", "register container providers")
+	}
 
-	// Eagerly invoke the lifecycle wrapper so that injector.Shutdown() will
-	// call usermgmt.Service.Close() even if no consumer ever resolved the
-	// Service. This mirrors the ProvideValue pattern for resource-holding
-	// services that have background goroutines.
+	// Eagerly invoke the lifecycle wrappers so that injector.Shutdown() will
+	// call usermgmt.Service.Close() and the SSE hub's Shutdown even if no
+	// consumer ever resolved them (the ProvideValue pattern for
+	// resource-holding services with background goroutines). Boot failures
+	// propagate: an application whose lifecycle wiring is broken must not
+	// start serving.
 	if _, err := do.Invoke[*serviceLifecycle](injector); err != nil {
-		slog.Error("failed to initialize service lifecycle", "error", err)
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.service_lifecycle", "initialize service lifecycle")
 	}
 
-	// Eagerly invoke the SSE hub lifecycle for the same shutdown-ordering
-	// reason as the service lifecycle above.
 	if _, err := do.Invoke[*broadcasterLifecycle](injector); err != nil {
-		slog.Error("failed to initialize broadcaster lifecycle", "error", err)
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.broadcaster_lifecycle", "initialize broadcaster lifecycle")
 	}
 
-	// Eagerly construct the health-gated services (go-health probe +
+	// Eagerly construct and START the health surface (go-health probe +
 	// dashboard): a lazily-provided health dashboard reports green precisely
-	// when it knows the least (samber-linter HW-4). Constructing them here
-	// means the dashboard exists — and shows real projection state — from the
-	// first second the server accepts traffic.
-	if _, err := do.Invoke[*gohealth.Probe](injector); err != nil {
-		slog.Error("failed to initialize health probe", "error", err)
+	// when it knows the least (samber-linter HW-4), and an UNSTARTED probe is
+	// worse — Probe.CachedResponse() returns a zero-value pass with zero
+	// checks before the first refresh, so /health-ui would render an
+	// empty-but-green page forever. probe.Start runs the first evaluation
+	// (validating WithCriticalServices names against real checks) and the
+	// background refresh loop; dash.Start drives the SSE push loop. Both stop
+	// on injector.Shutdown() — *Probe and *Dashboard implement do.Shutdowner
+	// natively, in reverse invocation order (dashboard first, probe second).
+	probe, err := do.Invoke[*gohealth.Probe](injector)
+	if err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.health_probe", "initialize health probe")
 	}
-	if _, err := do.Invoke[*healthdashboard.Dashboard](injector); err != nil {
-		slog.Error("failed to initialize health dashboard", "error", err)
+
+	if err := probe.Start(context.Background()); err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.health_probe_start", "start health probe")
+	}
+
+	dashboard, err := do.Invoke[*healthdashboard.Dashboard](injector)
+	if err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.health_dashboard", "initialize health dashboard")
+	}
+
+	if err := dashboard.Start(context.Background()); err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.health_dashboard_start", "start health dashboard")
 	}
 
 	return &Container{injector: injector, AuditViewer: auditSetup.Viewer}, func() {
 		// injector.Shutdown() calls Shutdown() on every service that
-		// implements do.Shutdowner* — in reverse invocation order.
+		// implements do.Shutdowner* — in reverse invocation order: the
+		// dashboard's SSE pusher, the probe's refresh loop (readiness flips
+		// to 503), the SSE hub, then usermgmt.Service.Close().
 		report := injector.Shutdown()
 		if len(report.Services) > 0 {
 			slog.Debug("DI container shut down", "services", len(report.Services))
@@ -101,8 +121,9 @@ func NewContainer(cfg AppConfig) (*Container, func(), error) {
 }
 
 // registerProviders wires every service into the container. Each registration
-// demonstrates a specific samber/do pattern.
-func registerProviders(injector do.Injector, cfg AppConfig) {
+// demonstrates a specific samber/do pattern. An error return means the
+// wiring itself is broken (e.g. a do.As alias for an unregistered service).
+func registerProviders(injector do.Injector, cfg AppConfig) error {
 	// --- Eager foundation (ProvideValue) ---
 	// Config must exist immediately because lazy providers depend on it
 	// at construction time.
@@ -117,9 +138,10 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 	})
 
 	// TOTP auth provider — lazy because it only needs to exist when the
-	// usermgmt.Service is first invoked. Named so we can show the named-
-	// service pattern (multiple auth strategies could coexist).
-	do.ProvideNamed(injector, "auth.totp", func(i do.Injector) (identitymodel.TOTPProvider, error) {
+	// usermgmt.Service is first invoked. Registered as the CONCRETE type and
+	// exposed under its interface via do.As below: the canonical
+	// "provide concrete, consume interface" pattern.
+	do.Provide(injector, func(i do.Injector) (*totp.Provider, error) {
 		appCfg, err := do.Invoke[AppConfig](i)
 		if err != nil {
 			return nil, err
@@ -131,12 +153,20 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 		return totp.New(totp.Config{Issuer: issuer}), nil
 	})
 
+	// Interface alias: consumers resolve identitymodel.TOTPProvider with
+	// do.InvokeAs without naming the concrete type. (do.ProvideNamed is the
+	// pattern when MULTIPLE implementations must coexist under names — the
+	// named-override variant lives in container_test.go.)
+	if err := do.As[*totp.Provider, identitymodel.TOTPProvider](injector); err != nil {
+		return err
+	}
+
 	// usermgmt.Service — the core event-sourced identity service.
 	// Lazy singleton: built once on first invocation. Resolves the TOTP
-	// provider from the container via InvokeNamed, demonstrating the
-	// named-service resolution pattern.
+	// provider from the container via InvokeAs (interface consumption — the
+	// provider-to-provider dependency-resolution pattern).
 	do.Provide(injector, func(i do.Injector) (*usermgmt.Service, error) {
-		totpProvider, err := do.InvokeNamed[identitymodel.TOTPProvider](i, "auth.totp")
+		totpProvider, err := do.InvokeAs[identitymodel.TOTPProvider](i)
 		if err != nil {
 			return nil, err
 		}
@@ -166,23 +196,29 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 
 	// Projection health probe — the health/v4 bridge builds a go-health
 	// Probe with one check per projection worker from the usermgmt.Service
-	// (a ProjectionStatusProvider). health.Recorder(svc) additionally merges
-	// the injector's own service checks when a go-health ecosystem wants a
-	// single recorder for app + infrastructure health.
+	// (a ProjectionStatusProvider). WithCriticalServices names the two
+	// projections an identity app cannot serve without (their failure flips
+	// /readyz to 503; the other workers degrade to warn); WithVersion stamps
+	// the build into every response body. NewContainer eagerly invokes AND
+	// STARTS this provider (see the HW-4 note there).
 	//
-	//samber-linter:allow hw-4 NewContainer eagerly invokes this provider at boot (no false pre-construction green)
+	//samber-linter:allow hw-4 NewContainer eagerly invokes AND Starts this provider at boot (no false pre-construction green)
 	do.Provide(injector, func(i do.Injector) (*gohealth.Probe, error) {
 		svc, err := do.Invoke[*usermgmt.Service](i)
 		if err != nil {
 			return nil, err
 		}
-		return health.NewProbe(svc) //nolint:wrapcheck // demo: bridge errors surface as-is
+		return health.NewProbe(svc, //nolint:wrapcheck // demo: bridge errors surface as-is
+			gohealth.WithCriticalServices("user-read-model", "casbin-projection"),
+			gohealth.WithVersion("samber-do-demo"),
+		)
 	})
 
 	// Health dashboard UI — renders the probe as an HTML page + SSE stream.
-	// Mounted by main.go at /health-ui.
+	// Mounted by main.go at /health-ui. Implements do.Shutdowner natively
+	// (closing its SSE pusher), so injector.Shutdown() needs no wrapper.
 	//
-	//samber-linter:allow hw-4 NewContainer eagerly invokes this provider at boot (no false pre-construction green)
+	//samber-linter:allow hw-4 NewContainer eagerly invokes AND Starts this provider at boot (no false pre-construction green)
 	do.Provide(injector, func(i do.Injector) (*healthdashboard.Dashboard, error) {
 		probe, err := do.Invoke[*gohealth.Probe](i)
 		if err != nil {
@@ -232,6 +268,8 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 		}
 		return disp, nil
 	})
+
+	return nil
 }
 
 // --- Demo command ---
@@ -322,6 +360,13 @@ func (c *Container) Broadcaster() (*cqrshtmx.Broadcaster, error) {
 // App resolves the cqrshtmx.App.
 func (c *Container) App() (*cqrshtmx.App, error) {
 	return do.Invoke[*cqrshtmx.App](c.injector)
+}
+
+// Probe resolves the go-health probe (already started by NewContainer —
+// its refresh loop serves /readyz, /healthz, /startupz after
+// probe.RegisterRoutes).
+func (c *Container) Probe() (*gohealth.Probe, error) {
+	return do.Invoke[*gohealth.Probe](c.injector)
 }
 
 // Logger resolves the configured logger.
