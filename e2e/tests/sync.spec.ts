@@ -4,16 +4,15 @@ import { test, expect, type Page, type BrowserContext, type Route } from "@playw
 // Playwright's TypeScript transformer issues with module-level arrow
 // functions that access DOM APIs.
 
+// Version-agnostic on purpose: the worker owns the DB version (v2 since
+// sync assets 1.5.0 added the events+meta stores). Opening with a pinned
+// lower version fires VersionError against a live v2 database, which made
+// QUEUE_DEPTH resolve 0 forever (found 2026-10-09 against the 1.5.0 worker).
+
 const QUEUE_DEPTH = `(function() {
   return new Promise(function(resolve) {
     try {
-      var req = indexedDB.open('cqrshtmx-sync', 1);
-      req.onupgradeneeded = function(e) {
-        var db = e.target.result;
-        if (!db.objectStoreNames.contains('commands')) {
-          db.createObjectStore('commands', { keyPath: 'commandId' });
-        }
-      };
+      var req = indexedDB.open('cqrshtmx-sync');
       req.onsuccess = function(e) {
         var db = e.target.result;
         if (!db.objectStoreNames.contains('commands')) {
@@ -34,13 +33,7 @@ const QUEUE_DEPTH = `(function() {
 const QUEUE_ENTRIES = `(function() {
   return new Promise(function(resolve) {
     try {
-      var req = indexedDB.open('cqrshtmx-sync', 1);
-      req.onupgradeneeded = function(e) {
-        var db = e.target.result;
-        if (!db.objectStoreNames.contains('commands')) {
-          db.createObjectStore('commands', { keyPath: 'commandId' });
-        }
-      };
+      var req = indexedDB.open('cqrshtmx-sync');
       req.onsuccess = function(e) {
         var db = e.target.result;
         if (!db.objectStoreNames.contains('commands')) {

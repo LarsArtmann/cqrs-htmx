@@ -1995,8 +1995,15 @@
                       bun install --frozen-lockfile 2>/dev/null || bun install
                       # Auto-provision the browser when no Nix/system Chromium
                       # was found (no-op fast path when already installed).
+                      # ffmpeg ALWAYS: video contexts (retain-on-failure) need
+                      # the downloaded binary even when the browser itself
+                      # comes from Nix via E2E_BROWSER_PATH (2026-10-09: the
+                      # Nix-Chromium machine class failed all 61 specs because
+                      # ffmpeg was skipped alongside the browser).
                       if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
                         bun x playwright install chromium ffmpeg
+                      else
+                        bun x playwright install ffmpeg
                       fi
                       bun run test
                     elif command -v pnpm dlx >/dev/null 2>&1; then
