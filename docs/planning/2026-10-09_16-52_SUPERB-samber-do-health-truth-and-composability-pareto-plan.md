@@ -1,5 +1,7 @@
 # SUPERB: samber/do × Health — Truth, Composability & Discoverability Pareto Plan
 
+> **ANNOTATED 2026-10-09 (execution session):** Phase 1 landed as `7ee463ba` (demo truth). Phase 2–4 landed same day: T5 root state export `0012e2dd`, T4 health RecorderChain + duration_ns (implements #31) `f0e6f7e5` — with one ADAPTATION: f16 (delete health's status mirrors) is deferred to the health train rider, because health's require must point at a PUBLISHED root tag carrying `ProjectionStatus*` before it can consume them (gotcha 30; the mirrors carry a switch-on-train comment), and f25's chain proof in integration_test is deferred with it (CI runs that module GOWORK=off against the published tag). T6 landed as the E2E lifecycle + plugin-is-recorder proofs; T7/T8 docs landed; T9 harvest + F12 root-cause correction landed (InvokeAs interface-scan map-order nondeterminism — repro + safe pattern in the research report's Outcome Annex). Boot-smoke test for the demo added beyond plan scope. T12/T13 remain owner-gated; upstream filings (F11/F12) queued for owner decision in TODO_LIST.
+
 > **Date:** 2026-10-09 16:52 CEST
 > **Input sources:** `docs/research/2026-10-08_samber-do-v2-health-checks-deep-review.md` (findings F1–F9, roadmap R1–R8) + `docs/status/2026-10-09_16-21_samber-do-health-deep-review-session.md` (§f 28 items, §g 3 questions).
 > **Verdict driving this plan:** bridges superb (8/10), flagship demo false-greens (3× P1), one composability ceiling, one discoverability gap, two owner-gated decisions.

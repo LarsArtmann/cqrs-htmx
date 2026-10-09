@@ -29,6 +29,13 @@ _(the 2026-10-04 identity-auth-hardening wave shipped: usermgmt v4.14.0 + setup 
 
 ## P2 — Medium impact (tooling & quality)
 
+- [ ] **samber/do × health SUPERB round follow-through (opened 2026-10-09).** The 20% tier landed (demo truth `7ee463ba`; root `ProjectionStatus*` + `ProjectionDrainReady` `0012e2dd`; health `RecorderChain` + duration_ns + `NewWithDetailedCheck` ctor `f0e6f7e5`, implements [#31](https://github.com/LarsArtmann/cqrs-htmx/issues/31); docs surface map + cross-links; setup drain posture). Open tails, ordered:
+  - [ ] **Health train rider** — at the next health/v4 tag: delete the `statusLive/statusStopped/statusFailed` mirrors in `health/probe.go` (consume `cqrshtmx.ProjectionStatus*`), bump health's root require to the tag carrying them, and add the deferred integration_test half (the `RecorderChain(Recorder(svc), auditPlugin)` chain proof — CI runs integration_test `GOWORK=off` against the PUBLISHED tag, so it cannot land before the train; gotcha 30).
+  - [ ] **Upstream filings (owner decision which/whether)** — (a) samber/do: `InvokeAs` interface-scan resolution is map-order nondeterministic when two services satisfy the interface (F12; corrected mechanism + repro + safe named-alias pattern in the research report's Outcome Annex); (b) go-health: `RegisterRoutes` mounts method-less patterns (F11; Go 1.22+ ServeMux conflict note for its README).
+  - [ ] **crush-config `references/lessons.md`** — cross-project lesson candidates from F12/F11 (InvokeAs ambiguity rule; method-less mux mounts) — edit in the crush-config repo, not here.
+  - [ ] **T12 (owner-gated)** — unify wire-visible projection-health error codes (health `cqrshtmx.health.*` → root `projection.*`) in the next minor train.
+  - [ ] **T13 (owner-gated)** — `Bundle.MarkDraining()` or keep the RunWithAppkit docs posture for `Run`'s no-readiness-flip drain.
+
 - [ ] **Frontend Sync Protocol (ADR-0056) follow-through (opened 2026-10-09).** The core landed (SyncPullHandler + App.SyncPushHandler + sync assets v1.5.0 + integration test + guide `docs/guides/frontend-sync.md` + CHANGELOG [Unreleased] receipt); these are the bounded follow-ups, ordered:
   - [ ] **Root release train** — bundle the root-module API onto the next root tag (the CHANGELOG `[Unreleased]` entry is the receipt; verify-tag + pre-push strict gates as usual). Decision made 2026-10-09: train bundling is release-time, not blocking docs/demo follow-ups.
   - [ ] **Playwright E2E for the pull loop** — extend `e2e/server` + the offline-sync e2e specs to cover batch push on reconnect, offline reads via `window.cqrsSync.getEvents()`, and `sync:reset` on backendId change (the current 4 specs cover the queue/ACK half only).

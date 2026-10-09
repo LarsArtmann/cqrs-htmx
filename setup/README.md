@@ -89,6 +89,19 @@ http.ListenAndServe(":8080", bundle.Middleware()(mux))
 `WriteTimeout` — the dashboard serves SSE streams that outlive any fixed
 deadline.
 
+### Drain posture: `RunWithAppkit` is the production drain path
+
+`Run` (and `RunHandler`) stop the server gracefully but do not flip readiness
+while draining — in-flight LB health checks keep seeing whatever the mounted
+`/health` last reported. For a production drain sequence, serve with
+`RunWithAppkit`: go-appkit's service flips `/health/ready` to 503 the moment
+shutdown begins, waits `DrainDelay` (2s default — time for load balancers to
+observe the flip and stop routing), then stops accepting connections and
+drains. Readiness stays projection-aware: appkit's `ReadyCheck` is the
+bundle's projection drain gate, and `/health/live` stays always-200 so a
+journal drain never restarts the pod. `Metrics` and `Version` (see the config
+table) are appkit-path extras.
+
 ## Styling
 
 The **admin panel and CQRS dashboard need nothing from you** — both serve their
@@ -218,6 +231,12 @@ HealthChecks: []cqrshtmx.NamedCheck{
 
 Names are validated at `New` (non-empty, non-nil checks, no collisions with
 each other or the built-ins); the field is ignored when `HealthPath` is `-`.
+
+Need full Kubernetes liveness/readiness/startup probes, per-check durations,
+or a health dashboard instead of the single `/health` JSON endpoint? The
+[`cqrs-htmx/health`](../health/README.md) bridge module builds a
+`gohealth.Probe` over the same projection statuses — see its "which surface
+for which consumer" table.
 
 ### Bringing your own service
 

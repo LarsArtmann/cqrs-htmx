@@ -470,3 +470,125 @@ only).
   exists. The gaps are surface coherence (vocabularies/codes/map), one drain
   path, one recorder ceiling, and demo truth — all small, all listed, all
   actionable.
+
+---
+
+## Outcome Annex: SUPERB plan execution (annotated 2026-10-09)
+
+The 2026-10-09 SUPERB round (`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`)
+executed the 20% tier. Findings disposition:
+
+- **F1/F2/F3/F5/F9/F10 (demo P1s + boot panic): FIXED** in
+  `7ee463ba` (Phase 1) — probe/dashboard started by `NewContainer`, static
+  `/health` deleted, K8s routes mounted, eager-init errors propagated,
+  ServeMux conflicts fixed; tests pin each.
+- **F4 (setup.Run drain): docs posture** — `setup/README.md` now documents
+  `RunWithAppkit` as THE production drain path (readiness 503 → DrainDelay →
+  stop). `Bundle.MarkDraining()` stays owner-gated (T13).
+- **F6 (health undiscoverable): FIXED** — health/README gained the "which
+  surface for which consumer" table + do extras; cross-links from
+  setup/README and the root README module tree.
+- **F7 (dummy injector): FIXED** — `NewProbe` builds on
+  `gohealth.NewWithDetailedCheck`; `RecorderChain` added; the auditlog
+  README's "one probe" composition is now literal API. Also implements
+  [#31](https://github.com/LarsArtmann/cqrs-htmx/issues/31) (duration_ns on
+  the wire). Published-module deltas ride the next health train; the
+  integration_test chain proof waits with it (CI runs that module
+  GOWORK=off against the published tag).
+- **F8 (error-code drift): still owner-gated (T12).**
+
+### F12 corrected and reproduced: `do.InvokeAs` is interface-scan + map-order
+
+The session-temp note ("`OverrideNamed` on an already-invoked `do.As` alias
+is nondeterministic, 18/20 runs") was directionally right but mechanically
+wrong. Verified reproduction (samber/do v2.1.0, single-goroutine, 5 process
+runs × 200 injector builds):
+
+- Register a concrete `greeter` via `do.Provide`, add `do.As[greeter,
+  Speaker]`, invoke the alias.
+- `do.OverrideNamed(inj, "speaker", greeterProvider)` — an override under an
+  arbitrary NAME whose instance also satisfies `Speaker`.
+- `do.InvokeAs[Speaker](inj)` then returns the OVERRIDE's instance in
+  15–28 of every 200 process runs (observed 172–185/200 returning the
+  alias's original; the rest leak the override).
+
+Root cause (source-verified, `di.go:562` + `invokeByGenericType`):
+`InvokeAs` finds "the first service that matches the provided type or
+interface" by SCANNING the service map — Go map iteration order is
+randomized, so with two or more interface-satisfying services the pick is a
+per-run coin flip. Not a cache bug; a resolution-contract bug.
+
+The SAFE pattern is deterministic (verified 200/200 × 2 runs): a NAMED
+alias (`do.AsNamed[Initial, Alias](inj, "svc", "speaker")`) resolved by
+NAME (`do.InvokeNamed[Alias](inj, "speaker")`), overridden via
+`OverrideNamed` on the alias name with an Alias-typed provider.
+
+Repro source (self-contained, `go mod init repro && go get
+github.com/samber/do/v2@v2.1.0`):
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/samber/do/v2"
+)
+
+type Speaker interface{ Line() string }
+
+type greeter struct{ line string }
+
+func (g greeter) Line() string { return g.line }
+
+func main() {
+	stale, leaked := 0, 0
+
+	for i := 0; i < 200; i++ {
+		inj := do.New()
+
+		do.Provide(inj, func(_ do.Injector) (greeter, error) {
+			return greeter{line: "original"}, nil
+		})
+		if err := do.As[greeter, Speaker](inj); err != nil {
+			panic(err)
+		}
+		if _, err := do.InvokeAs[Speaker](inj); err != nil {
+			panic(err)
+		}
+
+		// Unrelated by key ("speaker" vs the type-keyed alias), but the
+		// provider's instances also satisfy Speaker.
+		do.OverrideNamed(inj, "speaker", func(_ do.Injector) (greeter, error) {
+			return greeter{line: "replacement"}, nil
+		})
+
+		alias, err := do.InvokeAs[Speaker](inj)
+		if err != nil {
+			panic(err)
+		}
+		if alias.Line() == "original" {
+			stale++
+		} else {
+			leaked++
+		}
+	}
+
+	fmt.Printf("stale=%d leaked=%d /200 (leaked>0 = F12)\n", stale, leaked)
+}
+```
+
+**Consumer rule:** never let two services satisfy the same interface when
+resolving via `InvokeAs` — alias to a NAME and resolve by NAME (the pattern
+`examples/samber-do-demo/container.go` now uses for TOTP). Upstream filing
+of the InvokeAs interface-scan contract is queued (owner decision: samber/do
+issue vs internal rule).
+
+### F11 note (go-health RegisterRoutes is method-less)
+
+`gohealth.Probe.RegisterRoutes(mux, routes)` registers `mux.Handle(path,
+handler)` without method patterns — mounting it next to method-scoped
+patterns (`mux.HandleFunc("GET /x", ...)`) is fine, but a method-scoped
+duplicate of the same path panics Go 1.22+ ServeMux. Demo mounts RegisterRoutes
+BEFORE method-scoped routes on distinct paths; note candidate for the
+go-health repo (its README examples assume bare paths).

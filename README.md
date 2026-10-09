@@ -1176,6 +1176,7 @@ cqrs-htmx/
 ├── identity-model/     # Pure domain types — IDs, events, commands, fold functions, Authz engine (ADR 0043)
 ├── adminui/             # Admin Dashboard UI (templ + HTMX, independent Go module)
 ├── loginpage/          # Ready-made passwordless login page (templ + HTMX, independent Go module)
+├── health/             # Optional go-health bridge: K8s probes + dashboard over projection health (independent Go module)
 ├── dashboardui/        # CQRS/ES observability dashboard (HTMX + Tailwind v4, independent Go module)
 ├── datastar/           # Optional Datastar frontend adapter (script serving, signals, SSE, replay, event bridge)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
