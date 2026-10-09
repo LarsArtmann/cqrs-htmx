@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,12 +11,15 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	gohealth "github.com/larsartmann/go-health"
 	"github.com/samber/do/v2"
 )
 
 // newTestContainer creates a production container then overrides the TOTP
 // provider with a stub. This demonstrates the canonical test-container pattern:
-// production wiring + targeted overrides via do.OverrideNamedValue.
+// production wiring + targeted overrides. The override targets the service's
+// INTERFACE name (do.NameOf[identitymodel.TOTPProvider]) — the name do.As
+// registered — so every InvokeAs consumer resolves the stub.
 //
 // do.Override* is safe in _test.go files (DO-3 rule explicitly allows it).
 func newTestContainer(t *testing.T) (*Container, func()) {
@@ -30,11 +34,10 @@ func newTestContainer(t *testing.T) (*Container, func()) {
 
 	// Override the TOTP provider with a no-op stub for tests.
 	// This avoids real TOTP secret generation during unit tests.
-	// OverrideNamed (not OverrideNamedValue) preserves the interface type
-	// so that InvokeNamed[identitymodel.TOTPProvider] resolves correctly.
-	do.OverrideNamed(container.injector, "auth.totp", func(_ do.Injector) (identitymodel.TOTPProvider, error) {
-		return stubTOTP{}, nil
-	})
+	do.OverrideNamed(container.injector, do.NameOf[identitymodel.TOTPProvider](),
+		func(_ do.Injector) (identitymodel.TOTPProvider, error) {
+			return stubTOTP{}, nil
+		})
 
 	return container, cleanup
 }
@@ -123,19 +126,142 @@ func TestContainerServiceIsSingleton(t *testing.T) {
 	}
 }
 
-// TestContainerOverrideTOTP verifies that the named override actually replaces
-// the production TOTP provider.
-func TestContainerOverrideTOTP(t *testing.T) {
+// TestContainerResolveTOTPViaInvokeAs verifies the interface-consumption
+// wiring: the do.As alias resolves, and the override actually replaced the
+// production provider underneath it.
+func TestContainerResolveTOTPViaInvokeAs(t *testing.T) {
 	container, cleanup := newTestContainer(t)
 	defer cleanup()
 
-	totp, err := do.InvokeNamed[identitymodel.TOTPProvider](container.injector, "auth.totp")
+	totp, err := do.InvokeAs[identitymodel.TOTPProvider](container.injector)
 	if err != nil {
-		t.Fatalf("resolve TOTP provider: %v", err)
+		t.Fatalf("resolve TOTP provider via InvokeAs: %v", err)
 	}
 
 	if _, ok := totp.(stubTOTP); !ok {
 		t.Fatalf("expected stubTOTP, got %T", totp)
+	}
+}
+
+// TestHealthProbe_StartedByNewContainer proves the HW-4 posture end to end:
+// NewContainer starts the probe (refresh loop + first evaluation), the
+// critical projection names are real checks (Start validates them — a typo
+// fails NewContainer), and the startup latch is complete because every
+// projection worker reached live state during synchronous startup.
+func TestHealthProbe_StartedByNewContainer(t *testing.T) {
+	container, cleanup := newTestContainer(t)
+	defer cleanup()
+
+	probe, err := container.Probe()
+	if err != nil {
+		t.Fatalf("resolve health probe: %v", err)
+	}
+
+	if !probe.StartupComplete() {
+		t.Fatal("startup latch not complete — critical projections never passed their first check")
+	}
+
+	resp := probe.CachedResponse()
+	if resp.Status != gohealth.StatusPass {
+		t.Fatalf("cached response status = %q, want pass (checks: %v)", resp.Status, resp.Checks)
+	}
+	if len(resp.Checks) == 0 {
+		t.Fatal("cached response has ZERO checks — the pre-fix false-green: probe constructed but never started")
+	}
+	for _, name := range []string{"user-read-model", "casbin-projection"} {
+		if _, ok := resp.Checks[name]; !ok {
+			t.Fatalf("critical projection %q missing from probe checks: %v", name, resp.Checks)
+		}
+	}
+}
+
+// TestHealthRoutes_ServeRealVerdicts wires the mux exactly like main.go and
+// proves the three Kubernetes probes answer from the STARTED probe (the
+// static {"status":"ok"} handler is gone — a dead feed must never answer 200).
+func TestHealthRoutes_ServeRealVerdicts(t *testing.T) {
+	container, cleanup := newTestContainer(t)
+	defer cleanup()
+
+	probe, err := container.Probe()
+	if err != nil {
+		t.Fatalf("resolve health probe: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	probe.RegisterRoutes(mux, gohealth.DefaultRoutes())
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	for _, tc := range []struct{ path, wantStatus string }{
+		{"/healthz", "pass"},
+		{"/readyz", "pass"},
+		{"/startupz", "pass"},
+	} {
+		resp, err := http.Get(srv.URL + tc.path)
+		if err != nil {
+			t.Fatalf("GET %s: %v", tc.path, err)
+		}
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("GET %s: status = %d, want 200 (body: %s)", tc.path, resp.StatusCode, body)
+		}
+		if !strings.Contains(string(body), `"status":"`+tc.wantStatus+`"`) {
+			t.Fatalf("GET %s: body does not report status %q: %s", tc.path, tc.wantStatus, body)
+		}
+	}
+}
+
+// TestHealthDashboard_ShowsProjectionChecks pins the dashboard's data source
+// to the STARTED probe's cache: the rendered page must name real projection
+// checks, never an empty-but-green page.
+func TestHealthDashboard_ShowsProjectionChecks(t *testing.T) {
+	container, cleanup := newTestContainer(t)
+	defer cleanup()
+
+	dashboard, err := container.HealthDashboard()
+	if err != nil {
+		t.Fatalf("resolve health dashboard: %v", err)
+	}
+
+	rec := httptest.NewRecorder()
+	dashboard.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/health-ui", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /health-ui: status = %d", rec.Code)
+	}
+
+	body := rec.Body.String()
+	for _, name := range []string{"user-read-model", "casbin-projection"} {
+		if !strings.Contains(body, name) {
+			t.Fatalf("GET /health-ui: projection check %q missing from rendered page (the empty-green regression)", name)
+		}
+	}
+}
+
+// TestAuditViewerMount_NoServeMuxConflict regression-pins the 2026-10-09
+// boot panic: a method-less "/audit/" pattern conflicts with "GET /" under
+// Go 1.22+ ServeMux rules, so the demo MUST mount the viewer GET-scoped.
+func TestAuditViewerMount_NoServeMuxConflict(t *testing.T) {
+	container, cleanup := newTestContainer(t)
+	defer cleanup()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", indexHandler)
+	mux.Handle("GET /audit/", http.StripPrefix("/audit", container.AuditViewer))
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/audit/")
+	if err != nil {
+		t.Fatalf("GET /audit/: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /audit/: status = %d, want 200", resp.StatusCode)
 	}
 }
 

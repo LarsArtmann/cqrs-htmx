@@ -21,6 +21,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	gohealth "github.com/larsartmann/go-health"
 	"github.com/larsartmann/httputil"
 )
 
@@ -59,12 +60,25 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", indexHandler)
 	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
-	mux.HandleFunc("GET /health", healthHandler)
+	// Real Kubernetes health probes from the go-health surface NewContainer
+	// started: /healthz (liveness — dependency-blind, always 200), /readyz
+	// (readiness — 503 while projections drain or a critical projection
+	// fails), /startupz (startup latch). No hand-rolled static handler: a
+	// health endpoint that answers 200 without checking anything is the
+	// false-green class this demo exists to avoid.
+	probe, err := container.Probe()
+	if err != nil {
+		log.Fatalf("resolve health probe: %v", err)
+	}
+	probe.RegisterRoutes(mux, gohealth.DefaultRoutes())
 	// Live audit-log viewer from the auditlog/v4 bridge (plugin recorded every
 	// service invocation in the container; HTML UI + JSON API + SSE stream).
-	mux.Handle("/audit/", http.StripPrefix("/audit", container.AuditViewer))
+	// GET-scoped: its dashboard/API/SSE/export routes are all GET semantics,
+	// and a method-less "/audit/" pattern would conflict with "GET /" under
+	// Go 1.22+ ServeMux rules (the demo used to panic at boot over this).
+	mux.Handle("GET /audit/", http.StripPrefix("/audit", container.AuditViewer))
 	// Projection health dashboard from the health/v4 bridge (one check per
-	// projection worker of the usermgmt.Service).
+	// projection worker of the usermgmt.Service; live via SSE).
 	healthDashboard, err := container.HealthDashboard()
 	if err != nil {
 		log.Fatalf("resolve HealthDashboard: %v", err)
@@ -112,18 +126,12 @@ func indexHandler(w http.ResponseWriter, _ *http.Request) {
 		<li><code>*usermgmt.Service</code> — lazy singleton (event-sourced identity)</li>
 		<li><code>*cqrshtmx.App</code> — lazy singleton (HTMX handler factory)</li>
 		<li><code>*cqrshtmx.Broadcaster</code> — lazy singleton (SSE live updates)</li>
-		<li><code>usermgmt.TOTPProvider</code> — named service <code>"auth.totp"</code></li>
+		<li><code>identitymodel.TOTPProvider</code> — interface service via <code>do.As</code> + <code>InvokeAs</code></li>
 		<li><code>serviceLifecycle</code> — ShutdownerWithContextAndError adapter</li>
 		<li><code>auditlog.WithAuditLog</code> — live audit viewer at <code>/audit/</code></li>
-		<li><code>health.NewProbe</code> + <code>NewDashboard</code> — projection health UI at <code>/health-ui</code></li>
+		<li><code>health.NewProbe</code> + <code>NewDashboard</code> — real health probes at <code>/healthz</code> <code>/readyz</code> <code>/startupz</code>, UI at <code>/health-ui</code></li>
 	</ul>
-	<p>Visit <a href="/health"><code>/health</code></a> for a health check, <a href="/audit/"><code>/audit/</code></a> for the live audit log, or <a href="/health-ui"><code>/health-ui</code></a> for projection health.</p>
+	<p>Visit <a href="/readyz"><code>/readyz</code></a> for readiness, <a href="/healthz"><code>/healthz</code></a> for liveness, <a href="/audit/"><code>/audit/</code></a> for the live audit log, or <a href="/health-ui"><code>/health-ui</code></a> for the projection health dashboard.</p>
 </body>
 </html>`)
-}
-
-// healthHandler is a simple readiness probe.
-func healthHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = fmt.Fprintf(w, `{"status":"ok"}`)
 }
