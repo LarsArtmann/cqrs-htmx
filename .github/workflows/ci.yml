@@ -649,6 +649,13 @@ jobs:
       - name: Train-consumers-hermetic self-test
         run: bash scripts/selftests/test-check-train-consumers-hermetic.sh
 
+      # Fixer/gate drift kill (T05): both tools import the shared
+      # status_table lib; the meta-test proves they still agree on
+      # adversarial fixtures (the 2026-10-08 split brain made this class
+      # a two-time offender).
+      - name: Status-table equivalence meta-test
+        run: bash scripts/selftests/test-status-table-equivalence.sh
+
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
       # uses anonymous `git ls-remote`; the larsartmann repos are public

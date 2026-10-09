@@ -1076,6 +1076,7 @@
                         "train-preflight-self-test:bash scripts/selftests/test-train-preflight.sh"
                         "train-consumers-hermetic:bash scripts/checks/check-train-consumers-hermetic.sh"
                         "train-consumers-hermetic-self-test:bash scripts/selftests/test-check-train-consumers-hermetic.sh"
+                        "status-rows-equivalence-self-test:bash scripts/selftests/test-status-table-equivalence.sh"
                         "replace-directives:bash scripts/checks/check-replace-directives.sh"
                         "docs-freshness:bash scripts/checks/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/selftests/test-check-docs-freshness.sh"
@@ -1743,6 +1744,24 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-train-consumers-hermetic.sh
+                  '';
+                }
+              );
+            };
+
+            test-status-table-equivalence = {
+              type = "app";
+              meta.description = "Adversarial equivalence meta-test: the PARTIAL-row gate and the normalizer must agree exactly (shared scripts/lib/status_table.py; 7 fixtures incl. the 2026-10-08 malformed-separator split brain)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-status-table-equivalence";
+                  runtimeInputs = [
+                    pkgs.python3
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-status-table-equivalence.sh
                   '';
                 }
               );

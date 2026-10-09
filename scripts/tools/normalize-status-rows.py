@@ -24,7 +24,6 @@ Usage:
 Exit: 0 = normalized (or nothing to do); 1 = a file could not be read.
 """
 
-import re
 import sys
 from pathlib import Path
 
