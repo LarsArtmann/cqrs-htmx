@@ -4,6 +4,8 @@
 **Scope:** This session only — the "bring go-cqrs-lite CQRS/ES to the frontend" request (offline support, distributed conflict resolution, permission- and cache-aware), inspired by LiveStore + Axon.
 **Series:** episode 2 of the offline-sync series (episode 1 = 2026-06-27 brainstorming → ADR-0023/0029/0040/0042).
 
+> **ANNOTATED 2026-10-09 (same day, resume session):** items 6, 8, 9, 10, 11, 16, 17 and immediate-list 1–5 resolved (integration test GREEN after fixing THREE bugs — the wire lie plus two test bugs, one of which (the `env.serve` body-slot bug d17b, below) was found by instrumenting the mux; full workspace battery green; root lint 0 issues; CHANGELOG + guide + README/FEATURES/TODO/doc.go written; branching-flow +10 adjudicated with baseline re-pin 229→237 and the App 16-field finding fixed at birth via the `commandRegistry` extraction). Item 7 partially resolved (coverage gate + final check-modules re-run outstanding). Decisions on g1–g3 taken autonomously: g2 explicit-only (TODO row), g3 keep-commands (TODO row pins it), g1 deferred to release time via `[Unreleased]`.
+
 ---
 
 ## a) FULLY DONE (verified green)
@@ -28,15 +30,15 @@
 
 ## b) PARTIALLY DONE
 
-6. **Integration test** (`sync_protocol_integration_test.go`) — the full loop (batch push → conflict rejection → paged pull → 304 re-poll) is written and **2 assertions still RED** (see d): one is a test-side stale-variable bug, one exposes a real wire-shape inconsistency. Test does not pass yet.
-7. **Gates** — root package: build + vet + full `go test .` green (3.0s) BEFORE the integration test was added; the new integration test is the only red. **Not yet run**: `nix run .#test` (full workspace), `.#lint`, `.#fmt` (scoped), `.#check-modules`, `.#check-templates`. Coverage-gate impact unknown (root has a threshold).
-8. **CHANGELOG** — NOT yet written (planned entry: SyncPullHandler/SyncPushHandler/registry/client v1.5.0). Per repo convention this is a consumer-visible change → receipt required.
+6. ~~**Integration test** (`sync_protocol_integration_test.go`) — the full loop (batch push → conflict rejection → paged pull → 304 re-poll) is written and **2 assertions still RED** (see d): one is a test-side stale-variable bug, one exposes a real wire-shape inconsistency. Test does not pass yet.~~ **done (evidence)** — GREEN: 3 bugs fixed (d16 wire lie → `SyncPayloadEncodingOpaque` contract pinned by a new unit test; d17 stale page → explicit caught-up re-pull via the `pullToCaughtUp` helper; PLUS a third, previously-masked test bug d17b — the conditional re-poll passed `"If-None-Match"` as the `body` argument of `env.serve(method, target, body, headers...)`, so the header was never set; found by wrapping the mux with a header-dumping middleware). `go test . -run TestSync` green + full root module green.
+7. **Gates** — root package: build + vet + full `go test .` green (3.0s) BEFORE the integration test was added; ~~the new integration test is the only red.~~ **done (evidence, mostly)** — `nix run .#test` full workspace GREEN; `nix run .#lint` (root) 0 issues after fixing 20 findings (exhaustruct ×3, wsl ×7, gofumpt ×2, gocognit ×2 via `parseSyncPullQuery` + `pullToCaughtUp` extractions, contextcheck via explicit ctx threading, wrapcheck via `errorfamily.WrapInfrastructure`, varnamelen, 3 stale nolints); scoped `nix fmt` stable; check-modules flagged branching-flow +10 → 9 adjudicated (wire-contract strong-id class + one flagparam re-attribution; ledger amended, baseline re-pinned 229→237) and 1 FIXED at birth (App 16 fields → `commandRegistry` extraction). Remaining: final check-modules re-run + `nix run .#coverage-gate`.
+8. ~~**CHANGELOG** — NOT yet written (planned entry: SyncPullHandler/SyncPushHandler/registry/client v1.5.0). Per repo convention this is a consumer-visible change → receipt required.~~ **done (evidence)** — `[Unreleased]` → `### Added` entry written (pull + push + client 1.5.0 + ADR/guide links).
 
 ## c) NOT STARTED
 
-9. Docs: `docs/guides/frontend-sync.md` (the consumer guide: wiring pull/push endpoints, Casbin filter recipe, data-sync-command-type stamping, cqrsSync API).
-10. README (root) section + FEATURES.md entries + TODO_LIST bookkeeping.
-11. `doc.go` package-documentation mention of the sync protocol.
+9. ~~Docs: `docs/guides/frontend-sync.md` (the consumer guide: wiring pull/push endpoints, Casbin filter recipe, data-sync-command-type stamping, cqrsSync API).~~ **done (evidence)** — written (three laws, server wiring, HTML attributes, both wire contracts, permission recipe, client API, security notes, non-goals).
+10. ~~README (root) section + FEATURES.md entries + TODO_LIST bookkeeping.~~ **done (evidence)** — README feature bullet; FEATURES Offline Sync section upgraded (Command Sync 🟢 + new Offline Event Pull 🟢 row); TODO_LIST P2 follow-through section opened (train bundling, Playwright extension, sync-demo, setup seam decision, OpenAPI, queue-on-reset pin).
+11. ~~`doc.go` package-documentation mention of the sync protocol.~~ **done (evidence)** — new "Frontend Sync Protocol" section between ACK Protocol and the usermgmt submodule note.
 12. Example demo (`examples/offline-sync-demo` or extending `examples/basic`) proving the loop in a runnable app.
 13. OpenAPI surface for the two new endpoints (`WithOpenAPI` route entries).
 14. Browser-level E2E of the new client paths (existing Playwright suite covers v1.4 paths only).
@@ -44,8 +46,8 @@
 
 ## d) TOTALLY FUCKED UP (honest)
 
-16. **`payloadEncoding` lies on degraded payloads** (REAL bug, found by the failing integration test): when an event is stamped `json` but its bytes are not valid JSON (the gotcha-24 class — `WithEncoding` is metadata-only; a `map[string]any` payload under the default CBOR codec gets CBOR bytes with a json stamp), `newSyncEvent` correctly falls back to base64 delivery BUT still reports `payloadEncoding: "json"` with an empty `payload` field. Wire shape is self-inconsistent; a client would try to read `payload` as JSON and get nothing. Fix: on the degraded path report the DELIVERY encoding truthfully (or add a `payloadDegraded` marker).
-17. **Integration-test paging-loop bug** (test-side): after a caught-up single page (`hasMore=false`), the loop never runs and the "final page empty" assertion reads the STALE page-1 variable → false red at line 180. Fix: explicit re-pull after the loop.
+16. ~~**`payloadEncoding` lies on degraded payloads** (REAL bug...)~~ **done (evidence)** — fixed: `SyncPayloadEncodingOpaque` contract (stamp≠json keeps its codec name; lying json stamp reports `opaque`), pinned by `TestSyncPullHandler_LyingJsonStampDegradesToOpaque`, ADR-0056 Amendment 1 appended.
+17. ~~**Integration-test paging-loop bug** (test-side)...~~ **done (evidence)** — explicit `pullToCaughtUp` helper re-pulls at the resting cursor; PLUS the then-unmasked d17b: the 304 re-poll call passed `"If-None-Match"` as `env.serve`'s BODY param (headers variadic went odd-length, loop never set anything) — root-caused with an instrumented mux; fixed with the explicit `""` body argument.
 18. **Wasted cycles on tool-shape mistakes** (all caught and fixed, but cost time): `crypto/fnv` instead of `hash/fnv`; `json.RawMessage`/`json.NewDecoder` don't exist under `GOEXPERIMENT=jsonv2` (`jsontext.Value`, `UnmarshalRead`); `httptest.ResponseRecorder{}` has nil Body (must `NewRecorder()`); an invalid `_:` map key; `command.Command` needs `StreamID()` not `AggregateID()`; `UserIDExtractor` returns `(UserID, error)`; hard-coded command `Type()` broke dispatcher routing (the "handler not found for SyncTest" misdiagnosis).
 19. **LSP was dead/stale the whole session** ("jsonrpc2: connection is closed", phantom `crypto/fnv` typecheck) — every real verification was CLI (`go build`/`go vet`/`go test`), which is correct per gotcha 14, but the pre-existing 40 vtsls errors on `sync/sync-worker.js` made it impossible to use LSP signal at all.
 
@@ -61,13 +63,13 @@
 ## f) NEXT — up to 50 items (priority order)
 
 **Immediate (unblock the red):**
-1. Fix `newSyncEvent` degraded-payload encoding honesty (d16).
-2. Fix integration-test stale `page` variable (d17); get `TestSyncProtocol_OfflineQueueBatchPushAndCatchUpPull` green.
-3. `nix run .#fmt -- ` the touched files; fix the one `wsl_v5` whitespace warning (`sync_pull_test.go:228`).
-4. `nix run .#lint` (root) — expect nolint/exhaustruct_v5 fun on new files; fix findings.
-5. `nix run .#test` full workspace (the gotcha-2 battery; root's new code is the only delta).
-6. `nix run .#check-modules` (docs-freshness, release-train, VCS-cache, self-tests).
-7. `nix run .#coverage-gate` — check root threshold still met with the new files.
+1. ~~Fix `newSyncEvent` degraded-payload encoding honesty (d16).~~ done
+2. ~~Fix integration-test stale `page` variable (d17); get `TestSyncProtocol_OfflineQueueBatchPushAndCatchUpPull` green.~~ done (both test bugs + d17b)
+3. ~~`nix run .#fmt -- ` the touched files; fix the one `wsl_v5` whitespace warning (`sync_pull_test.go:228`).~~ done
+4. ~~`nix run .#lint` (root) — expect nolint/exhaustruct_v5 fun on new files; fix findings.~~ done (0 issues after 20 fixes)
+5. ~~`nix run .#test` full workspace (the gotcha-2 battery; root's new code is the only delta).~~ done (green)
+6. `nix run .#check-modules` (docs-freshness, release-train, VCS-cache, self-tests). — **in progress**: first run red ONLY on branching-flow (+10 → 9 adjudicated + baseline re-pinned 229→237, 1 fixed via `commandRegistry`); final re-run pending after the baseline commit lands
+7. `nix run .#coverage-gate` — check root threshold still met with the new files. — **pending**
 
 **Docs receipts:**
 8. CHANGELOG `[Unreleased]`: SyncPullHandler + SyncPushHandler + command registry + sync assets 1.5.0 + ADR-0056 links.
