@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"hash/fnv" //nolint:gosec // FNV-1a is used as a change-detector ETag, not for security
+	"hash/fnv"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	etag "github.com/larsartmann/go-etag/server"
 )
 
@@ -139,7 +140,7 @@ func SyncPullHandler(journal event.Journal, opts ...SyncPullOption) http.Handler
 		panic("cqrs-htmx: SyncPullHandler: journal must not be nil")
 	}
 
-	config := syncPullConfig{limit: DefaultSyncPullLimit}
+	config := syncPullConfig{backendID: "", filter: nil, limit: DefaultSyncPullLimit}
 	for _, opt := range opts {
 		opt(&config)
 	}
@@ -154,35 +155,9 @@ func SyncPullHandler(journal event.Journal, opts ...SyncPullOption) http.Handler
 			return
 		}
 
-		limit := config.limit
-		if raw := r.URL.Query().Get("limit"); raw != "" {
-			parsed, err := strconv.Atoi(raw)
-			if err != nil || parsed <= 0 {
-				writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.limit_invalid",
-					"limit must be a positive integer")
-
-				return
-			}
-
-			limit = parsed
-		}
-
-		if limit > MaxSyncPullLimit {
-			limit = MaxSyncPullLimit
-		}
-
-		var afterID id.EventID
-
-		if raw := r.URL.Query().Get("after"); raw != "" {
-			parsed, err := id.ParseEventID(raw)
-			if err != nil {
-				writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.cursor_invalid",
-					"after must be a valid event ID (ULID)")
-
-				return
-			}
-
-			afterID = parsed
+		afterID, limit, ok := parseSyncPullQuery(w, r, config.limit)
+		if !ok {
+			return
 		}
 
 		events, hasMore, err := readSyncPullWindow(r.Context(), journal, seekable, afterID, limit)

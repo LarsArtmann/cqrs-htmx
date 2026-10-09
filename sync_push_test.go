@@ -71,7 +71,8 @@ func newSyncPushApp(t *testing.T) (*App, *[]string) {
 	// The endpoint registration is what makes the type pushable.
 	_ = app.Command("SyncTest", DecodeJSON(func(req struct {
 		Name string `json:"name"`
-	}) (command.Command, error) {
+	},
+	) (command.Command, error) {
 		cmd := newSyncTestCmd("SyncTest")
 		cmd.Name = req.Name
 

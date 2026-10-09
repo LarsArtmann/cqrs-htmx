@@ -67,7 +67,8 @@ func newSyncProtocolEnv(t *testing.T) *syncProtocolEnv {
 
 	_ = app.Command("AppendNote", DecodeJSON(func(req struct {
 		Name string `json:"name"`
-	}) (command.Command, error) {
+	},
+	) (command.Command, error) {
 		cmd := newSyncTestCmd("AppendNote")
 		cmd.Name = req.Name
 
