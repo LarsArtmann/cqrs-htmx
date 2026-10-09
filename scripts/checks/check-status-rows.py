@@ -27,53 +27,13 @@ Usage:
 Exit: 0 = no PARTIAL rows; 1 = at least one PARTIAL row.
 """
 
-import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+from status_table import classify_row, is_separator, table_blocks
+
 DEFAULT_DIR = Path("docs/status/archived")
-
-
-def outside_code_spans(text: str) -> str:
-    without_double = re.sub(r"``[^`]+``", "", text)
-
-    return re.sub(r"`[^`]*`", "", without_double)
-
-
-def cells_of(line: str) -> list[str]:
-    return [c.strip() for c in line.strip().strip("|").split("|")]
-
-
-def is_separator(line: str) -> bool:
-    cells = cells_of(line)
-
-    return bool(cells) and all(re.fullmatch(r":?-{3,}:?", c) for c in cells)
-
-
-def classify_row(line: str) -> str:
-    """STRUCK / CLEAN / PARTIAL for one table data row."""
-    states = ["~~" in outside_code_spans(cell) for cell in cells_of(line)]
-
-    if all(states):
-        return "STRUCK"
-    if not any(states):
-        return "CLEAN"
-
-    return "PARTIAL"
-
-
-def table_blocks(lines: list[str]):
-    block: list[tuple[int, str]] = []
-
-    for i, line in enumerate(lines, start=1):
-        if line.lstrip().startswith("|"):
-            block.append((i, line))
-            continue
-        if block:
-            yield block
-            block = []
-    if block:
-        yield block
 
 
 def check_file(path: Path) -> tuple[int, int]:

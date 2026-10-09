@@ -28,19 +28,12 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+# classify_row comes from the shared lib too — the fixer MUST see the same
+# row verdicts as the gate (the equivalence meta-test pins this).
+from status_table import classify_row, is_separator, outside_code_spans
+
 DEFAULT_DIR = Path("docs/status/archived")
-
-
-def outside_code_spans(text: str) -> str:
-    without_double = re.sub(r"``[^`]+``", "", text)
-
-    return re.sub(r"`[^`]*`", "", without_double)
-
-
-def is_separator(line: str) -> bool:
-    cells = [c.strip() for c in line.strip().strip("|").split("|")]
-
-    return bool(cells) and all(re.fullmatch(r":?-{3,}:?", c) for c in cells)
 
 
 def strike_cell(cell: str) -> str:
@@ -52,18 +45,6 @@ def strike_cell(cell: str) -> str:
         return cell
 
     return cell.replace(stripped, f"~~{stripped}~~", 1)
-
-
-def classify_row(line: str) -> str:
-    cells = line.strip().strip("|").split("|")
-    states = ["~~" in outside_code_spans(c) for c in cells]
-
-    if all(states):
-        return "STRUCK"
-    if not any(states):
-        return "CLEAN"
-
-    return "PARTIAL"
 
 
 def normalize_row(line: str) -> str:
