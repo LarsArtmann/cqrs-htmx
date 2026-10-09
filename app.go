@@ -39,12 +39,11 @@ type App struct {
 	openapiMu     sync.Mutex
 	openapiRoutes []OpenAPIRoute
 
-	// commandConfigs retains the per-type handler configuration from every
+	// commandRegistry retains the per-type handler configuration from every
 	// App.Command / CommandTyped registration so SyncPushHandler can replay
 	// the endpoint pipeline (decode → guard → authz → dispatch) for batch
-	// envelopes without a second registration surface. Guarded by commandMu.
-	commandMu      sync.Mutex
-	commandConfigs map[command.Type]*handlerConfig
+	// envelopes without a second registration surface.
+	commandRegistry commandRegistry
 }
 
 // Config configures an App. Commands or Queries must be non-nil.
@@ -185,8 +184,7 @@ func New(config Config) (*App, error) {
 		serverTiming:    config.ServerTiming,
 		openapiMu:       sync.Mutex{},
 		openapiRoutes:   nil,
-		commandMu:       sync.Mutex{},
-		commandConfigs:  make(map[command.Type]*handlerConfig),
+		commandRegistry: commandRegistry{mu: sync.Mutex{}, configs: make(map[command.Type]*handlerConfig)},
 	}, nil
 }
 
@@ -242,7 +240,7 @@ func (a *App) EventOptions(ctx context.Context) []event.Option {
 //  5. Apply HTMX response headers (redirect, trigger, push URL)
 func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
 	config := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
-	a.rememberCommandConfig(cmdType, config)
+	a.commandRegistry.remember(cmdType, config)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
@@ -296,7 +294,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 //	)
 func CommandTyped[Q command.Command](a *App, cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
 	config := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
-	a.rememberCommandConfig(cmdType, config)
+	a.commandRegistry.remember(cmdType, config)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {

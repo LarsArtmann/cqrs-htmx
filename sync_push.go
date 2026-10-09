@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -66,26 +67,35 @@ type SyncPushResponse struct {
 	Results []SyncPushResult `json:"results"`
 }
 
-// rememberCommandConfig retains a command registration for SyncPushHandler.
-// Later registrations for the same type win (mirrors route registration
-// semantics: the last wiring is the live one).
-func (a *App) rememberCommandConfig(cmdType command.Type, config *handlerConfig) {
-	a.commandMu.Lock()
-	defer a.commandMu.Unlock()
-
-	if a.commandConfigs == nil {
-		a.commandConfigs = make(map[command.Type]*handlerConfig)
-	}
-
-	a.commandConfigs[cmdType] = config
+// commandRegistry retains the per-type handler configuration from every
+// App.Command / CommandTyped registration so SyncPushHandler can replay the
+// endpoint pipeline for batch envelopes without a second registration
+// surface. Safe for concurrent use.
+type commandRegistry struct {
+	mu      sync.Mutex
+	configs map[command.Type]*handlerConfig
 }
 
-// commandConfig looks up a retained command registration.
-func (a *App) commandConfig(cmdType command.Type) (*handlerConfig, bool) {
-	a.commandMu.Lock()
-	defer a.commandMu.Unlock()
+// remember retains a command registration. Later registrations for the same
+// type win (mirrors route registration semantics: the last wiring is the live
+// one).
+func (r *commandRegistry) remember(cmdType command.Type, config *handlerConfig) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-	config, ok := a.commandConfigs[cmdType]
+	if r.configs == nil {
+		r.configs = make(map[command.Type]*handlerConfig)
+	}
+
+	r.configs[cmdType] = config
+}
+
+// lookup returns a retained command registration.
+func (r *commandRegistry) lookup(cmdType command.Type) (*handlerConfig, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	config, ok := r.configs[cmdType]
 
 	return config, ok
 }
@@ -181,7 +191,7 @@ func (a *App) dispatchSyncPushEnvelope(ctx context.Context, r *http.Request, env
 
 	cmdType := command.Type(envelope.Type)
 
-	config, ok := a.commandConfig(cmdType)
+	config, ok := a.commandRegistry.lookup(cmdType)
 	if !ok || config.commandDecoder == nil {
 		return rejectedSyncPushResult(envelope.CommandID, "cqrshtmx.sync.push.unknown_type",
 			"unknown command type: "+envelope.Type, event.Rejection)
