@@ -144,6 +144,130 @@ type stubHealthchecker struct {
 
 func (s stubHealthchecker) HealthCheck() error { return s.err }
 
+type staticRecorder struct {
+	results map[string]error
+}
+
+func (s staticRecorder) RecordHealthCheckWithContext(
+	_ context.Context,
+	_ do.Injector,
+) map[string]error {
+	return s.results
+}
+
+type slowProvider struct {
+	entries []cqrshtmx.ProjectionStatusEntry
+	delay   time.Duration
+}
+
+func (s slowProvider) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntry {
+	time.Sleep(s.delay)
+
+	return s.entries
+}
+
+func TestRecorderChain_LaterRecorderWinsNameCollisions(t *testing.T) {
+	t.Parallel()
+
+	first := staticRecorder{results: map[string]error{
+		"user-read-model": nil,
+		"shared":          errors.New("first"),
+	}}
+	second := staticRecorder{results: map[string]error{
+		"shared": errors.New("second"),
+	}}
+
+	chain := RecorderChain(first, second)
+	results := chain.RecordHealthCheckWithContext(t.Context(), nil)
+
+	require.Len(t, results, 2)
+	require.NoError(t, results["user-read-model"])
+	require.EqualError(t, results["shared"], "second")
+}
+
+func TestRecorderChain_SkipsNilRecorders(t *testing.T) {
+	t.Parallel()
+
+	recorder := staticRecorder{results: map[string]error{"user-read-model": nil}}
+
+	chain := RecorderChain(nil, recorder, nil)
+	results := chain.RecordHealthCheckWithContext(t.Context(), nil)
+
+	require.Len(t, results, 1)
+	require.Contains(t, results, "user-read-model")
+}
+
+func TestRecorderChain_EmptyChainReportsNoChecks(t *testing.T) {
+	t.Parallel()
+
+	chain := RecorderChain()
+	require.Empty(t, chain.RecordHealthCheckWithContext(t.Context(), nil))
+
+	allNil := RecorderChain(nil, nil)
+	require.Empty(t, allNil.RecordHealthCheckWithContext(t.Context(), nil))
+}
+
+func TestNewProbe_CarriesDurationsOnTheWire(t *testing.T) {
+	t.Parallel()
+
+	provider := slowProvider{
+		entries: []cqrshtmx.ProjectionStatusEntry{
+			{Name: "user-read-model", Status: "live"},
+			{Name: "casbin-projection", Status: "draining"},
+		},
+		delay: 2 * time.Millisecond,
+	}
+
+	probe, err := NewProbe(provider)
+	require.NoError(t, err)
+
+	resp := probe.Evaluate(t.Context())
+
+	for name, check := range resp.Checks {
+		require.Positive(t, check.DurationNanos, "check %q should carry a duration", name)
+	}
+}
+
+func TestRecorder_DetailedDurationsFlowThroughWithHealthRecorder(t *testing.T) {
+	t.Parallel()
+
+	injector := do.New()
+	do.ProvideValue(injector, stubHealthchecker{err: nil})
+
+	provider := slowProvider{
+		entries: []cqrshtmx.ProjectionStatusEntry{
+			{Name: "user-read-model", Status: "live"},
+		},
+		delay: 2 * time.Millisecond,
+	}
+
+	probe := gohealth.New(injector, gohealth.WithHealthRecorder(Recorder(provider)))
+	resp := probe.Evaluate(t.Context())
+
+	require.Contains(t, resp.Checks, "user-read-model")
+	require.Positive(t,
+		resp.Checks["user-read-model"].DurationNanos,
+		"detailed recorder should report the batch read time")
+}
+
+func TestRecorderChain_ComposesInOneProbe(t *testing.T) {
+	t.Parallel()
+
+	provider := fakeProvider{entries: []cqrshtmx.ProjectionStatusEntry{
+		{Name: "user-read-model", Status: "live"},
+	}}
+	plugin := staticRecorder{results: map[string]error{"audit-log": nil}}
+
+	probe := gohealth.New(do.New(), gohealth.WithHealthRecorder(
+		RecorderChain(Recorder(provider), plugin),
+	))
+	resp := probe.Evaluate(t.Context())
+
+	require.Contains(t, resp.Checks, "user-read-model")
+	require.Contains(t, resp.Checks, "audit-log")
+	require.Equal(t, gohealth.StatusPass, resp.Status)
+}
+
 func TestRecorder_MergesInjectorChecks(t *testing.T) {
 	t.Parallel()
 
