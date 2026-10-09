@@ -92,10 +92,8 @@ func TestResolveServiceConfig_ObservabilityComposesWithConsumerHooks(t *testing.
 	out := resolveServiceConfig(Config{
 		Title: "Test",
 		ServiceConfig: &usermgmt.ServiceConfig{
-			SecurityHooks: usermgmt.SecurityHooks{
-				PublishMiddleware: consumerPublish,
-				HandlerMiddleware: consumerHandler,
-			},
+			PublishMiddleware: consumerPublish,
+			HandlerMiddleware: consumerHandler,
 		},
 		Observability: bundle,
 	})

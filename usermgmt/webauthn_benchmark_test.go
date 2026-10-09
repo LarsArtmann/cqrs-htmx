@@ -13,8 +13,8 @@ func BenchmarkMarshalWebAuthnUser(b *testing.B) {
 		ID:    NewUserID("01HXKYGEG0QH8XJYQKZ3R8WZAA"),
 		Email: "benchmark@test.com",
 		Credentials: []WebAuthnCredential{
-			{CredentialCore: CredentialCore{Name: "key1"}},
-			{CredentialCore: CredentialCore{Name: "key2"}},
+			{Name: "key1"},
+			{Name: "key2"},
 		},
 	}
 	b.ReportAllocs()

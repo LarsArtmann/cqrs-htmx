@@ -59,7 +59,7 @@ func TestNewDeleteUserCmd(t *testing.T) {
 
 func TestNewAddCredentialCmd(t *testing.T) {
 	cred := WebAuthnCredential{
-		CredentialCore: CredentialCore{ID: []byte{1, 2}, AttestationType: "none"},
+		ID: []byte{1, 2}, AttestationType: "none",
 	}
 	cmd := NewAddCredentialCmd(testStreamID(), cred)
 	if !slices.Equal(cmd.Credential().ID, []byte{1, 2}) || cmd.Type() != CmdAddCredential {
@@ -264,12 +264,10 @@ func TestBotRegisteredPayload_RoundTrip(t *testing.T) {
 
 func TestCredentialAddedPayload_RoundTrip(t *testing.T) {
 	original := CredentialAddedPayload{
-		SchemaVersion: 1,
-		CredentialCore: CredentialCore{
-			ID:              []byte{1, 2, 3},
-			AttestationType: "none",
-			SignCount:       42,
-		},
+		SchemaVersion:   1,
+		ID:              []byte{1, 2, 3},
+		AttestationType: "none",
+		SignCount:       42,
 	}
 	b, _ := json.Marshal(original)
 	var decoded CredentialAddedPayload
@@ -282,12 +280,10 @@ func TestCredentialAddedPayload_RoundTrip(t *testing.T) {
 func TestExternalAccountLinkedPayload_RoundTrip(t *testing.T) {
 	original := ExternalAccountLinkedPayload{
 		SchemaVersion: 1,
-		ExternalAccountCore: ExternalAccountCore{
-			Provider:    "google",
-			Subject:     "sub123",
-			Email:       "g@example.com",
-			DisplayName: "G",
-		},
+		Provider:      "google",
+		Subject:       "sub123",
+		Email:         "g@example.com",
+		DisplayName:   "G",
 	}
 	b, _ := json.Marshal(original)
 	var decoded ExternalAccountLinkedPayload
@@ -309,11 +305,9 @@ func TestUserDeletedPayload_RoundTrip(t *testing.T) {
 
 func TestNewCredentialFromPayload(t *testing.T) {
 	p := CredentialAddedPayload{
-		CredentialCore: CredentialCore{
-			ID:         []byte{1},
-			Transports: []string{"usb"},
-			AAGUID:     []byte{2},
-		},
+		ID:         []byte{1},
+		Transports: []string{"usb"},
+		AAGUID:     []byte{2},
 	}
 	cred := NewCredentialFromPayload(p, testTimestamp())
 	if !slices.Equal(cred.ID, []byte{1}) || cred.Transports[0] != "usb" {

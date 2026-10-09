@@ -62,8 +62,8 @@ func ParseUserID(s string) (UserID, error) {
 
 // strippedBrandPrefix removes a leading "<Brand>:..." prefix if present.
 func strippedBrandPrefix(s string) string {
-	if i := strings.IndexByte(s, ':'); i >= 0 {
-		return s[i+1:]
+	if _, after, ok := strings.Cut(s, ":"); ok {
+		return after
 	}
 	return s
 }

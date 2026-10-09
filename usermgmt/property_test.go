@@ -129,12 +129,10 @@ func TestFoldUserProperty_CredentialAddRemoveRoundTrip(t *testing.T) {
 		credID := rapid.SliceOfN(rapid.Byte(), 16, 32).Draw(t, "credID")
 
 		addEvt := mustPropEvent(eventCredentialAdded, 2, CredentialAddedPayload{
-			CredentialCore: CredentialCore{
-				ID:             credID,
-				PublicKey:      []byte{0x01, 0x02},
-				SignCount:      42,
-				BackupEligible: true,
-			},
+			ID:             credID,
+			PublicKey:      []byte{0x01, 0x02},
+			SignCount:      42,
+			BackupEligible: true,
 		})
 		added, err := foldUser(initial, addEvt)
 		if err != nil {

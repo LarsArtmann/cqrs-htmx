@@ -26,8 +26,7 @@ func TestService_GracefulClose_ActiveContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	if err := svc.GracefulClose(ctx); err != nil {
 		t.Fatalf("GracefulClose: %v", err)
 	}

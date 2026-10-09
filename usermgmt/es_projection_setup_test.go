@@ -110,10 +110,8 @@ func TestStartProjectionHost_CustomDrainTimeout(t *testing.T) {
 	t.Cleanup(func() { closeBus(bus) })
 
 	slow := &slowProjection{
-		stubProjection: stubProjection{
-			name:  "slow",
-			types: []event.Type{evt.Type()},
-		},
+		name:  "slow",
+		types: []event.Type{evt.Type()},
 		delay: 2 * time.Second,
 	}
 
@@ -157,10 +155,8 @@ func TestStartProjectionHost_AsyncSkipsDrain(t *testing.T) {
 	t.Cleanup(func() { closeBus(bus) })
 
 	slow := &slowProjection{
-		stubProjection: stubProjection{
-			name:  "slow",
-			types: []event.Type{evt.Type()},
-		},
+		name:  "slow",
+		types: []event.Type{evt.Type()},
 		delay: 2 * time.Second,
 	}
 

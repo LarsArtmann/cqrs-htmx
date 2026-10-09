@@ -13,10 +13,10 @@ import (
 func TestStartPeriodicEviction_RunsAndStops(t *testing.T) {
 	t.Parallel()
 
-	var calls int32
+	var calls atomic.Int32
 
 	stop := startPeriodicEviction(func() int {
-		atomic.AddInt32(&calls, 1)
+		calls.Add(1)
 		return 0
 	}, 20*time.Millisecond)
 
@@ -24,9 +24,9 @@ func TestStartPeriodicEviction_RunsAndStops(t *testing.T) {
 	stop()
 
 	time.Sleep(30 * time.Millisecond) // let in-flight calls drain
-	before := atomic.LoadInt32(&calls)
+	before := calls.Load()
 	time.Sleep(80 * time.Millisecond)
-	after := atomic.LoadInt32(&calls)
+	after := calls.Load()
 
 	if before < 2 {
 		t.Fatalf("expected at least 2 eviction calls in 100ms, got %d", before)

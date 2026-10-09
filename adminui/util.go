@@ -87,22 +87,13 @@ func pageBounds(page, total, pageSize int) (offset, limit, totalPages, current i
 	if pageSize <= 0 {
 		pageSize = listPageSize
 	}
-	totalPages = (total + pageSize - 1) / pageSize
-	if totalPages < 1 {
-		totalPages = 1
-	}
-	current = page
-	if current < 1 {
-		current = 1
-	}
+	totalPages = max((total+pageSize-1)/pageSize, 1)
+	current = max(page, 1)
 	if current > totalPages {
 		current = totalPages
 	}
 	offset = (current - 1) * pageSize
-	limit = min(pageSize, total-offset)
-	if limit < 0 {
-		limit = 0
-	}
+	limit = max(min(pageSize, total-offset), 0)
 	return offset, limit, totalPages, current
 }
 

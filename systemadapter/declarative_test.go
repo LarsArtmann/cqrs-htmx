@@ -551,13 +551,11 @@ func TestDeclarative_UserCredentials(t *testing.T) {
 	credID := []byte{0xAA, 0xBB, 0xCC}
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddCredentialCmd(
 		userStreamID, identitymodel.WebAuthnCredential{
-			CredentialCore: identitymodel.CredentialCore{
-				ID:              credID,
-				PublicKey:       []byte{0x01, 0x02, 0x03},
-				AttestationType: "none",
-				Transports:      []string{"internal"},
-				Name:            "My Passkey",
-			},
+			ID:              credID,
+			PublicKey:       []byte{0x01, 0x02, 0x03},
+			AttestationType: "none",
+			Transports:      []string{"internal"},
+			Name:            "My Passkey",
 		},
 	)))
 
@@ -643,11 +641,9 @@ func TestDeclarative_UserExternalAccounts(t *testing.T) {
 	// violate the "last auth method" invariant.
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddCredentialCmd(
 		userStreamID, identitymodel.WebAuthnCredential{
-			CredentialCore: identitymodel.CredentialCore{
-				ID:              []byte{0x01},
-				PublicKey:       []byte{0x02},
-				AttestationType: "none",
-			},
+			ID:              []byte{0x01},
+			PublicKey:       []byte{0x02},
+			AttestationType: "none",
 		},
 	)))
 
@@ -1081,11 +1077,9 @@ func TestDeclarative_SQLite_UserLifecycle(t *testing.T) {
 	)))
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddCredentialCmd(
 		userStreamID, identitymodel.WebAuthnCredential{
-			CredentialCore: identitymodel.CredentialCore{
-				ID:              []byte{0x01},
-				PublicKey:       []byte{0x02},
-				AttestationType: "none",
-			},
+			ID:              []byte{0x01},
+			PublicKey:       []byte{0x02},
+			AttestationType: "none",
 		},
 	)))
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewLinkExternalAccountCmd(

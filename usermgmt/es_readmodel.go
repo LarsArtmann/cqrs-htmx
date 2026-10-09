@@ -34,21 +34,19 @@ type externalAccountKey struct {
 
 func NewUserReadModel() *UserReadModel {
 	return &UserReadModel{
-		readModelCore: readModelCore[*UserReadModel]{
-			handlers: map[event.Type]eventHandler[*UserReadModel]{
-				eventUserRegistered:          (*UserReadModel).handleUserRegistered,
-				eventRolesUpdated:            (*UserReadModel).handleRolesUpdated,
-				eventEmailChanged:            (*UserReadModel).handleEmailChanged,
-				eventDisplayNameChanged:      (*UserReadModel).handleDisplayNameChanged,
-				eventCredentialAdded:         (*UserReadModel).handleCredentialAdded,
-				eventCredentialRemoved:       (*UserReadModel).handleCredentialRemoved,
-				eventUserDeleted:             (*UserReadModel).handleUserDeleted,
-				eventEmailVerified:           (*UserReadModel).handleEmailVerified,
-				eventTOTPEnabled:             (*UserReadModel).handleTOTPEnabled,
-				eventTOTPDisabled:            (*UserReadModel).handleTOTPDisabled,
-				eventExternalAccountLinked:   (*UserReadModel).handleExternalAccountLinked,
-				eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
-			},
+		handlers: map[event.Type]eventHandler[*UserReadModel]{
+			eventUserRegistered:          (*UserReadModel).handleUserRegistered,
+			eventRolesUpdated:            (*UserReadModel).handleRolesUpdated,
+			eventEmailChanged:            (*UserReadModel).handleEmailChanged,
+			eventDisplayNameChanged:      (*UserReadModel).handleDisplayNameChanged,
+			eventCredentialAdded:         (*UserReadModel).handleCredentialAdded,
+			eventCredentialRemoved:       (*UserReadModel).handleCredentialRemoved,
+			eventUserDeleted:             (*UserReadModel).handleUserDeleted,
+			eventEmailVerified:           (*UserReadModel).handleEmailVerified,
+			eventTOTPEnabled:             (*UserReadModel).handleTOTPEnabled,
+			eventTOTPDisabled:            (*UserReadModel).handleTOTPDisabled,
+			eventExternalAccountLinked:   (*UserReadModel).handleExternalAccountLinked,
+			eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
 		},
 		users:            make(map[id.StreamID]*User),
 		emails:           make(map[string]id.StreamID),
@@ -244,13 +242,11 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Eve
 			return ea.Provider == p.Provider && ea.Subject == p.Subject
 		}) {
 			u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
-				ExternalAccountCore: ExternalAccountCore{
-					Provider:    p.Provider,
-					Subject:     p.Subject,
-					Email:       p.Email,
-					DisplayName: p.DisplayName,
-				},
-				LinkedAt: evt.OccurredAt(),
+				Provider:    p.Provider,
+				Subject:     p.Subject,
+				Email:       p.Email,
+				DisplayName: p.DisplayName,
+				LinkedAt:    evt.OccurredAt(),
 			})
 		}
 		u.UpdatedAt = evt.OccurredAt()

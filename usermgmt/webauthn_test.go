@@ -97,14 +97,12 @@ func TestWebAuthn_BeginLogin_Success(t *testing.T) {
 	registerTestUser(t, svc, "u1", "login@test.com")
 
 	fakeCred := WebAuthnCredential{
-		CredentialCore: CredentialCore{
-			ID:              []byte{0x01, 0x02, 0x03},
-			PublicKey:       []byte{0x04, 0x05, 0x06},
-			AttestationType: "none",
-			Transports:      []string{"internal"},
-			BackupEligible:  true,
-			BackupState:     true,
-		},
+		ID:              []byte{0x01, 0x02, 0x03},
+		PublicKey:       []byte{0x04, 0x05, 0x06},
+		AttestationType: "none",
+		Transports:      []string{"internal"},
+		BackupEligible:  true,
+		BackupState:     true,
 	}
 	if err := svc.AddCredential(context.Background(), NewUserID("u1"), fakeCred); err != nil {
 		t.Fatalf("AddCredential: %v", err)

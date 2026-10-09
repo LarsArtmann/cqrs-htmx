@@ -29,13 +29,11 @@ type TenantReadModel struct {
 // NewTenantReadModel creates an empty TenantReadModel.
 func NewTenantReadModel() *TenantReadModel {
 	return &TenantReadModel{
-		readModelCore: readModelCore[*TenantReadModel]{
-			handlers: map[event.Type]eventHandler[*TenantReadModel]{
-				eventTenantCreated:     (*TenantReadModel).handleTenantCreated,
-				eventTenantSuspended:   (*TenantReadModel).handleTenantSuspended,
-				eventTenantReactivated: (*TenantReadModel).handleTenantReactivated,
-				eventTenantDeleted:     (*TenantReadModel).handleTenantDeleted,
-			},
+		handlers: map[event.Type]eventHandler[*TenantReadModel]{
+			eventTenantCreated:     (*TenantReadModel).handleTenantCreated,
+			eventTenantSuspended:   (*TenantReadModel).handleTenantSuspended,
+			eventTenantReactivated: (*TenantReadModel).handleTenantReactivated,
+			eventTenantDeleted:     (*TenantReadModel).handleTenantDeleted,
 		},
 		tenants: make(map[id.StreamID]*Tenant),
 	}

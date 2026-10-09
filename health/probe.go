@@ -3,6 +3,7 @@ package health
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -68,9 +69,7 @@ func (r projectionRecorder) RecordHealthCheckWithContext(
 	results := make(map[string]error)
 
 	if injector != nil {
-		for name, err := range injector.HealthCheckWithContext(ctx) {
-			results[name] = err
-		}
+		maps.Copy(results, injector.HealthCheckWithContext(ctx))
 	}
 
 	for _, entry := range r.provider.ProjectionStatuses() {

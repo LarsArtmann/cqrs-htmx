@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-health v0.5.0
 	github.com/larsartmann/go-health-dashboard v0.10.2
-	github.com/larsartmann/httputil v1.4.2
+	github.com/larsartmann/httputil v1.5.0
 	github.com/larsartmann/samber-do-auditlog v0.11.0
 	github.com/samber/do/v2 v2.1.0
 )
@@ -32,8 +32,8 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd // indirect
-	github.com/charmbracelet/x/ansi v0.11.8 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
+	github.com/charmbracelet/x/ansi v0.11.9 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -95,7 +95,7 @@ require (
 	github.com/larsartmann/go-retry v0.8.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
+	github.com/larsartmann/httputil/server_timing v1.0.2 // indirect
 	github.com/larsartmann/templ-components v1.21.0 // indirect
 	github.com/larsartmann/templ-components/datastar v1.21.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.21.0 // indirect
@@ -131,8 +131,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 	modernc.org/libc v1.77.1 // indirect

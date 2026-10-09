@@ -33,12 +33,10 @@ func decideLinkExternalAccount(
 			eventExternalAccountLinked, aggID, aggregateTypeUser, version.Increment(),
 			ExternalAccountLinkedPayload{
 				SchemaVersion: currentSchemaVersion,
-				ExternalAccountCore: ExternalAccountCore{
-					Provider:    provider,
-					Subject:     subject,
-					Email:       email,
-					DisplayName: displayName,
-				},
+				Provider:      provider,
+				Subject:       subject,
+				Email:         email,
+				DisplayName:   displayName,
 			},
 			event.WithCodec(codec.JSONCodec{}),
 		)

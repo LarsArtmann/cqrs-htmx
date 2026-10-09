@@ -122,8 +122,8 @@ func firstDomainEventID(t *testing.T, body string) string {
 	t.Helper()
 
 	for line := range strings.SplitSeq(body, "\n") {
-		if strings.HasPrefix(line, "id: ") {
-			return strings.TrimPrefix(line, "id: ")
+		if after, ok := strings.CutPrefix(line, "id: "); ok {
+			return after
 		}
 	}
 

@@ -13,7 +13,7 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(all), listPageSize)
 	d := tenantsListData{
 		Tenants: all[offset : offset+limit], Total: len(all), BasePath: h.config.BasePath,
-		listPage: listPage{Page: page, TotalPages: totalPages},
+		Page: page, TotalPages: totalPages,
 	}
 	p := h.page("Tenants", "/tenants", user, r)
 	renderPage(w, r, tenantsPage(p, d))

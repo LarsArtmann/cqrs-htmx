@@ -152,9 +152,7 @@ func TestBareMount_SessionRoutes_ReachableWithCookie(t *testing.T) {
 	_, mux, token := bareFullAuthMux(t)
 	svc, wmux, wtoken, _ := bareWebAuthnAuthMux(t)
 	addTestCredential(t, svc, NewUserID("gateu1"), WebAuthnCredential{
-		CredentialCore: CredentialCore{
-			ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
-		},
+		ID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6}, AttestationType: "none",
 	})
 	credID := base64.RawURLEncoding.EncodeToString([]byte{1, 2, 3})
 

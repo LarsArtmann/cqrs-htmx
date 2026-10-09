@@ -10,7 +10,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // updateGolden is set with -update to rewrite the golden files after an
@@ -40,34 +39,34 @@ func goldenRender(t *testing.T, c templ.Component) string {
 // CSP attributes, or the compiled CSS class coverage.
 func TestGolden_ComponentMarkup(t *testing.T) {
 	statusBadge := display.StatusBadge("healthy")
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
+
 	badge := display.Badge(display.BadgeProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Text:      "42",
-		Type:      display.BadgeNeutral,
-		Size:      display.BadgeSizeMD,
-		Pill:      false,
-		Dot:       true,
-		Href:      "",
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		Text: "42",
+		Type: display.BadgeNeutral,
+		Size: display.BadgeSizeMD,
+		Pill: false,
+		Dot:  true,
+		Href: "",
 	})
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
+
 	statCard := display.StatCard(display.StatCardProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Value:     "1234",
-		Label:     "Events",
-		Change:    "",
-		Trend:     display.TrendNone,
-		Tone:      display.StatToneBlue,
-		Icon:      "",
-		Href:      "",
-		HxGet:     "",
-		HxTarget:  "",
-		HxSwap:    "",
-		ValueID:   "stat-total-events",
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		Value:    "1234",
+		Label:    "Events",
+		Change:   "",
+		Trend:    display.TrendNone,
+		Tone:     display.StatToneBlue,
+		Icon:     "",
+		Href:     "",
+		HxGet:    "",
+		HxTarget: "",
+		HxSwap:   "",
+		ValueID:  "stat-total-events",
 	})
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
+
 	emptyState := display.EmptyState(display.EmptyStateProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Title:       "No events yet",
 		TitleTag:    "h2",
 		Description: "Events will appear here.",
@@ -76,12 +75,12 @@ func TestGolden_ComponentMarkup(t *testing.T) {
 		ActionHref:  "",
 		ActionAttrs: nil,
 	})
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
+
 	listNoteCount := display.ListNote(display.ListNoteProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "Dead letter count", Nonce: ""},
-		Shown:     3,
-		Total:     0,
-		Variant:   display.ListNoteCount,
+		ID: "", Class: "", Attrs: nil, AriaLabel: "Dead letter count", Nonce: "",
+		Shown:   3,
+		Total:   0,
+		Variant: display.ListNoteCount,
 	})
 
 	cases := map[string]string{

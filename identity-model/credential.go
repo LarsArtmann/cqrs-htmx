@@ -27,18 +27,16 @@ type WebAuthnCredential struct {
 // slices so the result does not alias event payload memory.
 func NewCredentialFromPayload(p CredentialAddedPayload, createdAt time.Time) WebAuthnCredential {
 	return WebAuthnCredential{
-		CredentialCore: CredentialCore{
-			ID:              p.ID,
-			PublicKey:       p.PublicKey,
-			AttestationType: p.AttestationType,
-			Transports:      append([]string(nil), p.Transports...),
-			AAGUID:          append([]byte(nil), p.AAGUID...),
-			SignCount:       p.SignCount,
-			BackupEligible:  p.BackupEligible,
-			BackupState:     p.BackupState,
-			Name:            p.Name,
-		},
-		CreatedAt: createdAt,
+		ID:              p.ID,
+		PublicKey:       p.PublicKey,
+		AttestationType: p.AttestationType,
+		Transports:      append([]string(nil), p.Transports...),
+		AAGUID:          append([]byte(nil), p.AAGUID...),
+		SignCount:       p.SignCount,
+		BackupEligible:  p.BackupEligible,
+		BackupState:     p.BackupState,
+		Name:            p.Name,
+		CreatedAt:       createdAt,
 	}
 }
 

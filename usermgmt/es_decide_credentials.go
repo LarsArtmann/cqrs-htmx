@@ -30,18 +30,16 @@ func decideAddCredential(
 		evt, err := event.New(
 			eventCredentialAdded, aggID, aggregateTypeUser, version.Increment(),
 			CredentialAddedPayload{
-				SchemaVersion: currentSchemaVersion,
-				CredentialCore: CredentialCore{
-					ID:              cred.ID,
-					PublicKey:       cred.PublicKey,
-					AttestationType: cred.AttestationType,
-					Transports:      cred.Transports,
-					AAGUID:          cred.AAGUID,
-					SignCount:       cred.SignCount,
-					BackupEligible:  cred.BackupEligible,
-					BackupState:     cred.BackupState,
-					Name:            cred.Name,
-				},
+				SchemaVersion:   currentSchemaVersion,
+				ID:              cred.ID,
+				PublicKey:       cred.PublicKey,
+				AttestationType: cred.AttestationType,
+				Transports:      cred.Transports,
+				AAGUID:          cred.AAGUID,
+				SignCount:       cred.SignCount,
+				BackupEligible:  cred.BackupEligible,
+				BackupState:     cred.BackupState,
+				Name:            cred.Name,
 			},
 			event.WithCodec(codec.JSONCodec{}),
 		)

@@ -72,8 +72,7 @@ func TestOnProjectionFailed_FiresOnTerminalFailure(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	if err := host.Start(ctx); err != nil {
 		t.Fatalf("Start: %v", err)

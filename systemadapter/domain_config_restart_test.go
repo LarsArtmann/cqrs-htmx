@@ -3,6 +3,7 @@ package systemadapter_test
 import (
 	"context"
 	"errors"
+	"maps"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -71,9 +72,7 @@ func (r *recordingCheckpointStore) snapshotSaved() map[string]event.Checkpoint {
 	defer r.mu.Unlock()
 
 	snapshot := make(map[string]event.Checkpoint, len(r.saved))
-	for name, cp := range r.saved {
-		snapshot[name] = cp
-	}
+	maps.Copy(snapshot, r.saved)
 
 	return snapshot
 }
@@ -83,9 +82,7 @@ func (r *recordingCheckpointStore) snapshotLoaded() map[string]event.Checkpoint 
 	defer r.mu.Unlock()
 
 	snapshot := make(map[string]event.Checkpoint, len(r.loaded))
-	for name, cp := range r.loaded {
-		snapshot[name] = cp
-	}
+	maps.Copy(snapshot, r.loaded)
 
 	return snapshot
 }

@@ -725,11 +725,11 @@ func TestPage_NonceSanitized(t *testing.T) {
 func bodyClassTokens(t *testing.T, body string) []string {
 	t.Helper()
 	const marker = `<body class="`
-	i := strings.Index(body, marker)
-	if i < 0 {
+	_, after, ok := strings.Cut(body, marker)
+	if !ok {
 		t.Fatal("body tag with class attribute not found")
 	}
-	rest := body[i+len(marker):]
+	rest := after
 	end := strings.Index(rest, `"`)
 	if end < 0 {
 		t.Fatal("unterminated body class attribute")

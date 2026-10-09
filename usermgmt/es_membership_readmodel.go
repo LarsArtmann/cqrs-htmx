@@ -25,12 +25,10 @@ type MembershipReadModel struct {
 // NewMembershipReadModel creates an empty MembershipReadModel.
 func NewMembershipReadModel() *MembershipReadModel {
 	return &MembershipReadModel{
-		readModelCore: readModelCore[*MembershipReadModel]{
-			handlers: map[event.Type]eventHandler[*MembershipReadModel]{
-				eventMemberAdded:        (*MembershipReadModel).applyMemberAdded,
-				eventMemberRolesChanged: (*MembershipReadModel).handleMemberRolesChanged,
-				eventMemberRemoved:      (*MembershipReadModel).handleMemberRemoved,
-			},
+		handlers: map[event.Type]eventHandler[*MembershipReadModel]{
+			eventMemberAdded:        (*MembershipReadModel).applyMemberAdded,
+			eventMemberRolesChanged: (*MembershipReadModel).handleMemberRolesChanged,
+			eventMemberRemoved:      (*MembershipReadModel).handleMemberRemoved,
 		},
 		memberships: make(map[id.StreamID]*Membership),
 		byActor:     make(map[string][]id.StreamID),

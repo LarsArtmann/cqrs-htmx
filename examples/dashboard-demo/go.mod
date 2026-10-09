@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/httputil v1.4.2
+	github.com/larsartmann/httputil v1.5.0
 )
 
 require (
@@ -47,7 +47,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
+	github.com/larsartmann/httputil/server_timing v1.0.2 // indirect
 	github.com/larsartmann/templ-components v1.21.0 // indirect
 	github.com/larsartmann/templ-components/errorpage v1.21.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.21.0 // indirect
@@ -70,6 +70,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )

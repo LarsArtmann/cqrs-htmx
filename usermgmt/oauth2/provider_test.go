@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json/v2"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -740,9 +741,7 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 			"iat": now.Unix(),
 			"exp": now.Add(time.Hour).Unix(),
 		}
-		for k, v := range prov.claims {
-			claims[k] = v
-		}
+		maps.Copy(claims, prov.claims)
 
 		payload, _ := json.Marshal(claims)
 		signed, err := prov.signer.Sign(payload)

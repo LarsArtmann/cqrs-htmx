@@ -3,7 +3,6 @@ package dashboardui
 import (
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // defItem builds a definition item with plain-text detail.
@@ -35,9 +34,8 @@ func rawComponent(html string) templ.Component {
 // copyButtonComponent builds an unrendered library CopyButton component for
 // embedding inside other components (definition list details).
 func copyButtonComponent(text string) templ.Component {
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	return display.CopyButton(display.CopyButtonProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Text:        text,
 		Label:       "",
 		CopiedLabel: "",
