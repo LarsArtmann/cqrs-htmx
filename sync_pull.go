@@ -2,10 +2,10 @@ package cqrshtmx
 
 import (
 	"context"
-	"hash/fnv" //nolint:gosec // FNV-1a is used as a change-detector ETag, not for security
 	"encoding/base64"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"hash/fnv" //nolint:gosec // FNV-1a is used as a change-detector ETag, not for security
 	"net/http"
 	"strconv"
 	"time"
@@ -27,16 +27,16 @@ const (
 // default), the pull endpoint is the explicit opt-in surface for payload
 // exposure — gate it with [WithSyncPullFilter].
 type SyncEvent struct {
-	EventID         string          `json:"eventId"`
-	Type            string          `json:"type"`
-	StreamType      string          `json:"streamType"`
-	StreamID        string          `json:"streamId"`
-	Version         uint64          `json:"version"`
-	SchemaVersion   string          `json:"schemaVersion,omitempty"`
-	OccurredAt      string          `json:"occurredAt"`
-	PayloadEncoding string          `json:"payloadEncoding"`
+	EventID         string         `json:"eventId"`
+	Type            string         `json:"type"`
+	StreamType      string         `json:"streamType"`
+	StreamID        string         `json:"streamId"`
+	Version         uint64         `json:"version"`
+	SchemaVersion   string         `json:"schemaVersion,omitempty"`
+	OccurredAt      string         `json:"occurredAt"`
+	PayloadEncoding string         `json:"payloadEncoding"`
 	Payload         jsontext.Value `json:"payload,omitempty"`
-	PayloadB64      string          `json:"payloadB64,omitempty"`
+	PayloadB64      string         `json:"payloadB64,omitempty"`
 }
 
 // SyncPullResponse is the body returned by [SyncPullHandler].
@@ -269,6 +269,9 @@ func readAllAfter(
 // newSyncEvent converts a domain event into the pull wire shape, embedding the
 // payload verbatim when the event encoding is JSON and base64-encoding it
 // otherwise (clients cannot decode CBOR in the JSON field without help).
+// JSON-stamped payloads are validity-checked defensively: an event whose
+// stamp and bytes disagree degrades to the base64 path instead of poisoning
+// the response marshal.
 func newSyncEvent(evt event.Event) SyncEvent {
 	out := SyncEvent{
 		EventID:         evt.ID().String(),
@@ -282,8 +285,8 @@ func newSyncEvent(evt event.Event) SyncEvent {
 	}
 
 	payload := evt.Payload()
-	if string(evt.Encoding()) == "json" {
-		out.Payload = jsontext.Value(payload)
+	if v := jsontext.Value(payload); string(evt.Encoding()) == "json" && v.IsValid() {
+		out.Payload = v
 
 		return out
 	}
@@ -323,7 +326,12 @@ func writeSyncPullResponse(w http.ResponseWriter, r *http.Request, resp *SyncPul
 		return
 	}
 
-	_ = WriteJSON(w, http.StatusOK, resp) //nolint:errcheck // WriteJSON logs write failures; nothing to retry
+	if err := WriteJSON(w, http.StatusOK, resp); err != nil {
+		// WriteJSON only fails before committing (buffered marshal), so a 500
+		// with a fresh body is still possible — never a silent empty 200.
+		writeSyncPullError(w, http.StatusInternalServerError, "cqrshtmx.sync.pull.encode",
+			"pull response encoding failed")
+	}
 }
 
 // writeSyncPullError emits the standalone JSON error shape used by the sync

@@ -3,6 +3,7 @@ package cqrshtmx
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"net/http"
@@ -30,7 +31,13 @@ func seedSyncEvents(t *testing.T, count int) []event.Event {
 	events := make([]event.Event, 0, count)
 	for i := 1; i <= count; i++ {
 		opts := []event.Option{}
+		payload := any(fmt.Sprintf(`{"seq":%d}`, i))
+
 		if i%2 == 1 {
+			// JSON-stamped: pass the raw bytes so the codec leaves them
+			// untouched (a plain string would be CBOR-encoded by the default
+			// codec even with a json encoding stamp).
+			payload = jsontext.Value(fmt.Sprintf(`{"seq":%d}`, i))
 			opts = append(opts, event.WithEncoding(codec.EncodingJSON))
 		}
 
@@ -39,7 +46,7 @@ func seedSyncEvents(t *testing.T, count int) []event.Event {
 			aggID,
 			"test",
 			event.Version(i),
-			fmt.Sprintf(`{"seq":%d}`, i),
+			payload,
 			opts...,
 		)
 		if err != nil {

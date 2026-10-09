@@ -31,7 +31,16 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.4.0";
+  const VERSION = "1.5.0";
+
+  // --- Sync protocol endpoints (ADR-0056) ---
+  // Pull (reads): cursor-based event batches cached in the worker. Push
+  // (writes): batched queue flush for commands stamped with a command type.
+  // Configure per-app via <body data-sync-pull-url data-sync-push-url>.
+  const DEFAULT_PULL_URL = "/sync/pull";
+  const DEFAULT_PUSH_URL = "/sync/push";
+  const PULL_PAGE_LIMIT = 500;
+  const PULL_MAX_PAGES = 20;
 
   // --- Sync state: tracks pending/confirmed/failed/queued mutation counts ---
   const sync = {
@@ -161,6 +170,7 @@
 
   // --- SSE connection manager (auto-reconnect via EventSource) ---
   let eventSource = null;
+  let sseHadError = false;
   /**
    * Connect to the SSE endpoint for server ACK confirmations.
    * Reads the URL from <body data-sse-url>. Auto-reconnects via EventSource.
@@ -186,9 +196,16 @@
         bar.setAttribute("data-sync-status", "ok");
         bar.textContent = "Connected";
       }
+      // After a dropped connection the client may have missed events —
+      // catch up from the cached cursor (ADR-0056 pull).
+      if (sseHadError) {
+        sseHadError = false;
+        pullEvents();
+      }
     });
 
     eventSource.onerror = () => {
+      sseHadError = true;
       // EventSource auto-reconnects; just update the indicator
       const bar = document.querySelector("[data-sync-status]");
       if (bar && sync.pending > 0) {
@@ -266,11 +283,27 @@
 
         if (data.type === "retry") {
           retryQueuedCommand(data.commandId, data.envelope);
+        } else if (data.type === "retry-batch") {
+          pushCommandBatch(data.commands || []);
         } else if (data.type === "pending") {
           sync.queued = Math.max(sync.queued, data.count | 0);
           updateIndicator();
         } else if (data.type === "dead") {
           handleDeadCommand(data.commandId);
+        } else if (data.type === "sync:events") {
+          notifyEventsCached(data.cursor || "", data.count | 0, false);
+        } else if (data.type === "sync:reset") {
+          notifyEventsCached("", 0, true);
+        } else if (data.type === "sync-state") {
+          if (pendingStateResolve) {
+            pendingStateResolve({ cursor: data.cursor || "", backendId: data.backendId || "" });
+            pendingStateResolve = null;
+          }
+        } else if (data.type === "events") {
+          if (pendingEventsResolve) {
+            pendingEventsResolve({ events: data.events || [], cursor: data.cursor || "", backendId: data.backendId || "" });
+            pendingEventsResolve = null;
+          }
         }
       };
       syncWorker.port.start();
@@ -290,18 +323,19 @@
         }
       });
 
-      // When the page detects connectivity return, tell the worker to flush.
-      // The window online/offline events fire reliably in the page context
-      // (unlike in the SharedWorker scope, which may not receive them in
-      // some browsers or test environments like Playwright).
+      // When the page detects connectivity return: PULL FIRST (ADR-0056 —
+      // catch up on missed events so queued commands re-decide against fresh
+      // state), THEN tell the worker to flush the offline queue.
       window.addEventListener("online", () => {
-        if (syncWorker) {
-          try {
-            syncWorker.port.postMessage({ type: "flush" });
-          } catch (e) {
-            // Worker gone — nothing to flush
+        pullEvents().then(() => {
+          if (syncWorker) {
+            try {
+              syncWorker.port.postMessage({ type: "flush" });
+            } catch (e) {
+              // Worker gone — nothing to flush
+            }
           }
-        }
+        });
       });
     } catch (e) {
       // SharedWorker unavailable — online path unaffected (graceful degradation)
@@ -327,6 +361,218 @@
   function ackCommand(commandId) {
     if (!syncWorker || !commandId) return;
     syncWorker.port.postMessage({ type: "ack", commandId: commandId });
+  }
+
+  // --- ADR-0056 read half: cursor-based event pull + worker cache ---
+
+  let pendingStateResolve = null;
+  let pendingEventsResolve = null;
+
+  /**
+   * Ask the worker for the persisted sync state (cursor + backendId).
+   * @returns {Promise<{ cursor: string, backendId: string }>}
+   */
+  function getSyncState() {
+    if (!syncWorker) return Promise.resolve({ cursor: "", backendId: "" });
+    return new Promise((resolve) => {
+      pendingStateResolve = resolve;
+      try {
+        syncWorker.port.postMessage({ type: "get-state" });
+        setTimeout(() => {
+          if (pendingStateResolve === resolve) {
+            pendingStateResolve = null;
+            resolve({ cursor: "", backendId: "" });
+          }
+        }, 2000);
+      } catch (e) {
+        pendingStateResolve = null;
+        resolve({ cursor: "", backendId: "" });
+      }
+    });
+  }
+
+  /**
+   * Ask the worker for the cached event feed (offline reads).
+   * @returns {Promise<{ events: Array<Object>, cursor: string, backendId: string }>}
+   */
+  function getCachedEvents() {
+    if (!syncWorker) return Promise.resolve({ events: [], cursor: "", backendId: "" });
+    return new Promise((resolve) => {
+      pendingEventsResolve = resolve;
+      try {
+        syncWorker.port.postMessage({ type: "get-events" });
+        setTimeout(() => {
+          if (pendingEventsResolve === resolve) {
+            pendingEventsResolve = null;
+            resolve({ events: [], cursor: "", backendId: "" });
+          }
+        }, 2000);
+      } catch (e) {
+        pendingEventsResolve = null;
+        resolve({ events: [], cursor: "", backendId: "" });
+      }
+    });
+  }
+
+  /**
+   * Pull events from the server starting at the cached cursor, page until
+   * caught up (or the page cap), hand the batch to the worker for caching,
+   * and notify the document. Safe to call repeatedly; a pull in flight is
+   * coalesced. Resolves when caught up (or on failure — never throws).
+   * @returns {Promise<void>}
+   */
+  let pullInFlight = false;
+  let pullQueued = false;
+  function pullEvents() {
+    if (!syncWorker || typeof fetch === "undefined") return Promise.resolve();
+    if (pullInFlight) {
+      pullQueued = true;
+      return Promise.resolve();
+    }
+    pullInFlight = true;
+
+    const pullURL = document.body.getAttribute("data-sync-pull-url") || DEFAULT_PULL_URL;
+
+    return getSyncState()
+      .then((state) => {
+        const collected = [];
+        let cursor = state.cursor;
+        let backendId = state.backendId;
+
+        function page() {
+          const url = pullURL + "?limit=" + PULL_PAGE_LIMIT + (cursor ? "&after=" + encodeURIComponent(cursor) : "");
+          return fetch(url, { credentials: "same-origin" }).then((res) => {
+            if (!res.ok) throw new Error("pull failed: " + res.status);
+            return res.json();
+          }).then((body) => {
+            backendId = body.backendId || backendId;
+            for (let i = 0; i < (body.events || []).length; i++) {
+              collected.push(body.events[i]);
+            }
+            cursor = body.nextCursor || cursor;
+            if (body.hasMore && pageCount < PULL_MAX_PAGES) {
+              pageCount++;
+              return page();
+            }
+          });
+        }
+
+        let pageCount = 0;
+        return page().then(() => {
+          if (collected.length > 0 || cursor !== state.cursor) {
+            syncWorker.port.postMessage({
+              type: "cache-events",
+              cursor: cursor,
+              backendId: backendId,
+              events: collected,
+            });
+          }
+        });
+      })
+      .catch(() => {
+        // Offline / server gone — the cached feed is still readable; the
+        // next online/SSE-reconnect/batch-push completion re-triggers a pull.
+      })
+      .then(() => {
+        pullInFlight = false;
+        if (pullQueued) {
+          pullQueued = false;
+          pullEvents();
+        }
+      });
+  }
+
+  /**
+   * Broadcast cached-events notifications to the document so consumer UIs
+   * can re-render from the cache (htmx event + DOM CustomEvent).
+   */
+  function notifyEventsCached(cursor, count, reset) {
+    const detail = { cursor: cursor, count: count, reset: !!reset };
+    document.dispatchEvent(new CustomEvent("cqrshtmx:sync-events", { detail: detail }));
+    if (typeof htmx !== "undefined") {
+      htmx.trigger(document.body, "cqrshtmx:sync-events", detail);
+    }
+  }
+
+  // --- ADR-0056 write half: batched command push ---
+
+  /**
+   * Serialize captured values into a request body string for a push envelope.
+   * Form posts (the HTMX default) are URL-encoded; JSON endpoints get JSON.
+   */
+  function envelopeBody(envelope) {
+    const values = envelope.values || {};
+    if ((envelope.contentType || "").indexOf("json") !== -1) {
+      return JSON.stringify(values);
+    }
+    return new URLSearchParams(values).toString();
+  }
+
+  /**
+   * POST one batch of queued typed commands to /sync/push and reconcile the
+   * per-command outcomes: confirmed/permanently-rejected commands are ACKed
+   * (deleted from the queue); transient failures stay queued for the next
+   * flush cycle. Afterwards, pull to pick up the resulting events.
+   * @param {Array<{ commandId: string, envelope: Object }>} commands
+   */
+  function pushCommandBatch(commands) {
+    if (commands.length === 0 || typeof fetch === "undefined") return;
+
+    const pushURL = document.body.getAttribute("data-sync-push-url") || DEFAULT_PUSH_URL;
+
+    // Headers from the first envelope carry session-level concerns
+    // (X-Client-Id, CSRF token if the app put one in hx-headers).
+    const headers = { "Content-Type": "application/json" };
+    const firstHeaders = (commands[0].envelope && commands[0].envelope.headers) || {};
+    for (const key of Object.keys(firstHeaders)) {
+      const lower = key.toLowerCase();
+      if (lower !== "content-type" && lower !== "content-length") {
+        headers[key] = firstHeaders[key];
+      }
+    }
+
+    const batch = commands.map((cmd) => ({
+      commandId: cmd.commandId,
+      type: cmd.envelope.commandType,
+      body: envelopeBody(cmd.envelope),
+      contentType: cmd.envelope.contentType || "application/x-www-form-urlencoded",
+    }));
+
+    fetch(pushURL, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: headers,
+      body: JSON.stringify({ commands: batch }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("push failed: " + res.status);
+        return res.json();
+      })
+      .then((body) => {
+        const results = body.results || [];
+        for (let i = 0; i < results.length; i++) {
+          const result = results[i];
+          const family = result.error ? result.error.family : "";
+          if (result.status === "confirmed" || (family !== "transient" && result.status === "rejected")) {
+            handleSyncAck({
+              commandId: result.commandId,
+              status: result.status,
+              error: result.error ? result.error.message : undefined,
+            });
+            ackCommand(result.commandId);
+          }
+          // transient rejections: stay queued — the worker's next flush
+          // cycle retries them (retry count already incremented).
+        }
+        updateIndicator();
+        // Pull-before-push's mirror: after pushing, catch up on the events
+        // the just-confirmed commands produced.
+        pullEvents();
+      })
+      .catch(() => {
+        // Network failed mid-batch — every command stays queued; the next
+        // flush cycle re-sends the batch.
+      });
   }
 
   // handleDeadCommand: the worker gave up after MAX_RETRIES or TTL.
@@ -489,6 +735,13 @@
         url: cfg.path || "",
         values: params || null,
         headers: cfg.headers || null,
+        // ADR-0056 batch push: the issuing element (or an ancestor) can stamp
+        // data-sync-command-type so the queue flush batches this command via
+        // POST /sync/push instead of per-URL HTMX replay. Absent = classic path.
+        commandType: (target.closest && target.closest("[data-sync-command-type]"))
+          ? target.closest("[data-sync-command-type]").getAttribute("data-sync-command-type")
+          : "",
+        contentType: (cfg.headers && cfg.headers["Content-Type"]) || "application/x-www-form-urlencoded",
       };
     }
 
@@ -520,14 +773,27 @@
     }
   });
 
-  // --- Boot: connect SSE + init offline queue on DOMContentLoaded ---
+  // --- Boot: connect SSE + init offline queue + initial catch-up pull ---
   function boot() {
     connectSSE();
     initSyncWorker();
+    // Initial pull: a freshly loaded tab catches up on everything missed
+    // while it was closed (ADR-0056). The worker broadcast tells other tabs.
+    pullEvents();
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
   } else {
     boot();
   }
+
+  // --- Public API (ADR-0056): offline reads + manual pull for consumer UIs ---
+  // window.cqrsSync.getEvents() — the cached event feed (survives offline).
+  // window.cqrsSync.pull()     — force a catch-up pull; resolves when done.
+  // window.cqrsSync.version    — client version (matches SyncVersion()).
+  window.cqrsSync = {
+    version: VERSION,
+    getEvents: getCachedEvents,
+    pull: pullEvents,
+  };
 })();
