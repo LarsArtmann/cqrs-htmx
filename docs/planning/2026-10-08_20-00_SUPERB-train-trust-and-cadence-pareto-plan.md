@@ -2,6 +2,8 @@
 
 > **Created:** 2026-10-08 20:00 CEST · **Session evidence:** `docs/status/2026-10-08_19-55_push-unblock-train-alignment-ci-green_status.md`
 > **State at planning time:** master CI success @ `f49fb815` (run 37818614080); train lag 0/0/0 at 842 requires; root v4.13.3 published; 5 concurrent Crush sessions active on this tree.
+> **EXECUTED 2026-10-08/09 (ANNOTATED):** T01–T12 + T14–T20 done with receipts (commits 7505cb85→31907bfe; gates: train-preflight/hermetic-catch/nightly-lag/equivalence-meta-test all shipped atomically + self-tested; coverage battery re-measured; erraudit TOTAL=0 after one fresh sync context_loss fix; branching-flow +59 adjudicated by the concurrent session, ledger amended, gate green rc=0). T13 semantic repair landed beyond scope (50 rows / 10 files). T07 owner gate resolved by adjudication (reject-class accept, no re-pin debate). D16/D17 decision lanes opened for the owner gates (GitHub-Releases: defer with recommendation; gosec float: pin at next touch). T18 upstream ask stays an owner-channel draft; signing/v4.4.0 tag-level WithEncoding VERIFIED. Same-day falsification receipt: T19's "no repo edit needed" corrected in agents-notes (the roll landed early; af14058a pins the root directive).
+
 > **Task universe:** the 50 next-tasks from the status report §f + partials §b (B1–B4) + not-started §c, reconciled against live `TODO_LIST.md` rows (P1 3-module patch train, coverage battery row, GCL upstream row — referenced, never duplicated).
 
 **Directive:** Verschlimmbesserung is forbidden. Every task below either restores trust in an existing gate, closes a proven red class at root cause, or documents tribal knowledge — none weaken a gate. Guards: §Risk.
