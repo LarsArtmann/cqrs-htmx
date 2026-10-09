@@ -356,7 +356,10 @@
         const req = tx.objectStore(META_STORE).get(META_KEY);
         req.onsuccess = (e) => {
           const record = e.target.result;
-          resolve({ cursor: (record && record.cursor) || "", backendId: (record && record.backendId) || "" });
+          resolve({
+            cursor: (record && record.cursor) || "",
+            backendId: (record && record.backendId) || "",
+          });
         };
         req.onerror = () => resolve({ cursor: "", backendId: "" });
       } catch (e) {
@@ -395,7 +398,11 @@
           }
 
           if (cursor) {
-            metaStore.put({ key: META_KEY, cursor: cursor, backendId: backendId || state.backendId });
+            metaStore.put({
+              key: META_KEY,
+              cursor: cursor,
+              backendId: backendId || state.backendId,
+            });
           }
 
           tx.oncomplete = () => {
@@ -431,7 +438,8 @@
             events.sort((a, b) => String(a.eventId).localeCompare(String(b.eventId)));
             resolve({ events: events, cursor: state.cursor, backendId: state.backendId });
           };
-          req.onerror = () => resolve({ events: [], cursor: state.cursor, backendId: state.backendId });
+          req.onerror = () =>
+            resolve({ events: [], cursor: state.cursor, backendId: state.backendId });
         } catch (e) {
           resolve({ events: [], cursor: state.cursor, backendId: state.backendId });
         }
@@ -710,7 +718,11 @@
       if (data.type === "get-state") {
         getSyncState().then((state) => {
           try {
-            port.postMessage({ type: "sync-state", cursor: state.cursor, backendId: state.backendId });
+            port.postMessage({
+              type: "sync-state",
+              cursor: state.cursor,
+              backendId: state.backendId,
+            });
           } catch (e) {
             /* port gone — the tab will re-ask */
           }

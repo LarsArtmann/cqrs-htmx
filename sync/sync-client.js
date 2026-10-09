@@ -301,7 +301,11 @@
           }
         } else if (data.type === "events") {
           if (pendingEventsResolve) {
-            pendingEventsResolve({ events: data.events || [], cursor: data.cursor || "", backendId: data.backendId || "" });
+            pendingEventsResolve({
+              events: data.events || [],
+              cursor: data.cursor || "",
+              backendId: data.backendId || "",
+            });
             pendingEventsResolve = null;
           }
         }
@@ -440,21 +444,27 @@
         let backendId = state.backendId;
 
         function page() {
-          const url = pullURL + "?limit=" + PULL_PAGE_LIMIT + (cursor ? "&after=" + encodeURIComponent(cursor) : "");
-          return fetch(url, { credentials: "same-origin" }).then((res) => {
-            if (!res.ok) throw new Error("pull failed: " + res.status);
-            return res.json();
-          }).then((body) => {
-            backendId = body.backendId || backendId;
-            for (let i = 0; i < (body.events || []).length; i++) {
-              collected.push(body.events[i]);
-            }
-            cursor = body.nextCursor || cursor;
-            if (body.hasMore && pageCount < PULL_MAX_PAGES) {
-              pageCount++;
-              return page();
-            }
-          });
+          const url =
+            pullURL +
+            "?limit=" +
+            PULL_PAGE_LIMIT +
+            (cursor ? "&after=" + encodeURIComponent(cursor) : "");
+          return fetch(url, { credentials: "same-origin" })
+            .then((res) => {
+              if (!res.ok) throw new Error("pull failed: " + res.status);
+              return res.json();
+            })
+            .then((body) => {
+              backendId = body.backendId || backendId;
+              for (let i = 0; i < (body.events || []).length; i++) {
+                collected.push(body.events[i]);
+              }
+              cursor = body.nextCursor || cursor;
+              if (body.hasMore && pageCount < PULL_MAX_PAGES) {
+                pageCount++;
+                return page();
+              }
+            });
         }
 
         let pageCount = 0;
@@ -553,7 +563,10 @@
         for (let i = 0; i < results.length; i++) {
           const result = results[i];
           const family = result.error ? result.error.family : "";
-          if (result.status === "confirmed" || (family !== "transient" && result.status === "rejected")) {
+          if (
+            result.status === "confirmed" ||
+            (family !== "transient" && result.status === "rejected")
+          ) {
             handleSyncAck({
               commandId: result.commandId,
               status: result.status,
@@ -738,10 +751,12 @@
         // ADR-0056 batch push: the issuing element (or an ancestor) can stamp
         // data-sync-command-type so the queue flush batches this command via
         // POST /sync/push instead of per-URL HTMX replay. Absent = classic path.
-        commandType: (target.closest && target.closest("[data-sync-command-type]"))
-          ? target.closest("[data-sync-command-type]").getAttribute("data-sync-command-type")
-          : "",
-        contentType: (cfg.headers && cfg.headers["Content-Type"]) || "application/x-www-form-urlencoded",
+        commandType:
+          target.closest && target.closest("[data-sync-command-type]")
+            ? target.closest("[data-sync-command-type]").getAttribute("data-sync-command-type")
+            : "",
+        contentType:
+          (cfg.headers && cfg.headers["Content-Type"]) || "application/x-www-form-urlencoded",
       };
     }
 
