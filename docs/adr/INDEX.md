@@ -58,3 +58,4 @@
 | [0053](0053-dashboardui-templ-components-divergences.md)  | dashboardui's Justified Divergences from templ-components Defaults (shell, cursor pagination, sidebar) | Accepted                                                             |
 | [0054](0054-identity-external-shell-mode.md)              | Identity-External Shell Mode for setup (DisableAuth + DisableService)                                  | Accepted                                                             |
 | [0055](0055-owner-session-gated-credential-ceremonies.md) | Owner-Session-Gated Credential Ceremonies + Self-Wrapped Session Routes                                | Accepted                                                             |
+| [0056](0056-frontend-sync-protocol.md)                    | Frontend Sync Protocol — Permission-Aware Event Pull + Batched Command Push                            | Accepted                                                             |
