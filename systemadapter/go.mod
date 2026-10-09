@@ -17,6 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.0.0
 	github.com/larsartmann/go-error-family v0.11.0
 )
 
@@ -105,3 +106,6 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.60.1 // indirect
 )
+
+// systemscenario: pre-tag replace (rides the next go-cqrs-lite tag wave; ADR-0153 harness pilot)
+replace github.com/larsartmann/go-cqrs-lite/systemscenario/v4 => /home/lars/projects/go-cqrs-lite/systemscenario

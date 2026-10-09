@@ -102,6 +102,9 @@ replace github.com/larsartmann/go-cqrs-lite/record/v4 => /home/lars/projects/go-
 
 replace github.com/larsartmann/go-cqrs-lite/system/v4 => /home/lars/projects/go-cqrs-lite/system
 
+// systemscenario: pre-tag replace (rides the next go-cqrs-lite tag wave; ADR-0153 harness pilot)
+replace github.com/larsartmann/go-cqrs-lite/systemscenario/v4 => /home/lars/projects/go-cqrs-lite/systemscenario
+
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/sqliteengine

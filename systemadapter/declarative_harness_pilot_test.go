@@ -9,7 +9,6 @@ package systemadapter
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
