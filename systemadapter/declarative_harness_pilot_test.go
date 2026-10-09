@@ -8,14 +8,13 @@ package systemadapter
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
-
-	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
 // newHarnessScenario boots the declarative system under the harness.
@@ -117,7 +116,7 @@ func checkUserFields(email string, verified bool) func(UserView) error {
 
 		if user.EmailVerified != verified {
 			return &fieldMismatch{
-				field: "EmailVerified", want: fmt.Sprint(verified), got: fmt.Sprint(user.EmailVerified),
+				field: "EmailVerified", want: strconv.FormatBool(verified), got: strconv.FormatBool(user.EmailVerified),
 			}
 		}
 

@@ -272,7 +272,8 @@ func readAllAfter(
 ) ([]event.Event, error) {
 	all, err := journal.ReadAll(ctx)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "cqrshtmx.sync.pull.read_all", "journal read failed")
+		return nil, errorfamily.WrapInfrastructure(err, "cqrshtmx.sync.pull.read_all", "journal read failed").
+			WithContextAny("after_id", afterID)
 	}
 
 	cursor := afterID.String()
