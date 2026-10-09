@@ -68,8 +68,8 @@
 3. ~~`nix run .#fmt -- ` the touched files; fix the one `wsl_v5` whitespace warning (`sync_pull_test.go:228`).~~ done
 4. ~~`nix run .#lint` (root) — expect nolint/exhaustruct_v5 fun on new files; fix findings.~~ done (0 issues after 20 fixes)
 5. ~~`nix run .#test` full workspace (the gotcha-2 battery; root's new code is the only delta).~~ done (green)
-6. `nix run .#check-modules` (docs-freshness, release-train, VCS-cache, self-tests). — **in progress**: first run red ONLY on branching-flow (+10 → 9 adjudicated + baseline re-pinned 229→237, 1 fixed via `commandRegistry`); final re-run pending after the baseline commit lands
-7. `nix run .#coverage-gate` — check root threshold still met with the new files. — **pending**
+6. ~~`nix run .#check-modules` (docs-freshness, release-train, VCS-cache, self-tests).~~ done — rc=0 after the branching-flow adjudication (baseline re-pinned 229→237 + ledger amendment, committed together per the refresh flow)
+7. ~~`nix run .#coverage-gate` — check root threshold still met with the new files.~~ done — PASSED (root included; every module above its threshold)
 
 **Docs receipts:**
 8. CHANGELOG `[Unreleased]`: SyncPullHandler + SyncPushHandler + command registry + sync assets 1.5.0 + ADR-0056 links.
