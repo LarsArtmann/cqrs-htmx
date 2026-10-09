@@ -56,8 +56,23 @@ GOWORK=off GOEXPERIMENT=jsonv2 go test ./...
 git show <dep-repo>/<dep-tag>:<path/to/file> | grep <the symbol>
 ```
 
-Then repo-wide gates from the root: `nix run .#check-modules -- --report`,
-`nix run .#check-release-train`, `nix run .#build`, `.#test`, `.#lint`.
+Then repo-wide gates from the root: `nix run .#train-preflight` (§1 — includes
+lint, the hermetic battery, and the strict train gate),
+`nix run .#check-modules -- --report`, `nix run .#build`.
+
+Per-module hermetic catch (gotcha-30 mechanized — run BEFORE `verify-tag
+--push` whenever go.mod/go.sum changed):
+
+```sh
+nix run .#check-train-consumers-hermetic
+```
+
+It re-resolves every dependency-changed module with `GOWORK=off` (published
+tags, the consumer's view) and runs build+vet+test. This is the gate that
+would have caught both gotcha-30 fires: the missing-symbol one (2026-10-07,
+root v4.13.1 vs asset_serve.go) and the behavior one (2026-10-08, the login
+CSP test passing workspace-mode while `nix run .#test` resolved root
+v4.13.2 hermetically).
 
 ## 3. Tagging
 
