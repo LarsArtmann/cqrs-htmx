@@ -272,8 +272,8 @@ github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.2 h1:tGQCEnsaM+p2GDI7kgQ4te
 github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.2/go.mod h1:9Huv68KM5rn9qnTN0itord5TVDXQcSnG1tHf0UrZccs=
 github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.2 h1:xlLfoDS2dCMiRJNnzw46j4ALDuv1SO2WZvJQUsZV/1U=
 github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.2/go.mod h1:WIUgYGEC6+FEVgJ6ELgr9dSeAKUsyEcYEKMz0tzhmH8=
-github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2 h1:t/m/gGQa3yJ5Hkhg/9sNsFMCy3huVuc/TLM75+yKyx4=
-github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2/go.mod h1:cZXsFgzBWnYj5QMOYWGwU5zuD5q78G6kWW3dygQ/GI4=
+github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 h1:umt4vxzuGfmgbELbTsmyuUSnZZkdrWM4ALX6QT9jLU8=
+github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0/go.mod h1:NGC8vVv1YakNxbMtjq6DNUZORY41bwuq14hM2l4dVYA=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.5.1 h1:J/NgWdiORO+FIC/R9P5/4U5jwkJZIHUunRP+4F04mMQ=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.5.1/go.mod h1:kWI9pNT40eb0FPkZLHeUSlUuwAWWk+jtF0X2a6i0x/U=
 github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.0 h1:jAqQy/Ee9sBH6vApEh1GA1WddRsJNev7bLJRtePSooo=
@@ -290,8 +290,8 @@ github.com/larsartmann/go-cqrs-lite/system/v4 v4.11.0 h1:VVWZ4D+k6qjhfLOWrThwhFf
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.11.0/go.mod h1:NtYRhfnxjLMbNMg2jkhLtGFEXwZ3n2EMSH6tfoYpw3g=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3 h1:6MvhIwZpxMUf9bLN2qBcL4oNtk/s09se2hc4gWJCEgM=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3/go.mod h1:UO3RXsNhk/wo6EAdm3jzjtjJRN4JkeviTvco4sJffmg=
-github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.3 h1:XMbpVK5HNrhq1zHtJGRhMf6mAuH2t8mMMYt/I03RfjM=
-github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.3/go.mod h1:A4A/ZZWGLf3kbfRFB0XrBTpGwN8LYlYbeThlURqMIiM=
+github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4 h1:pjLtfnaGP1L2xssLxK+zrgagDSZ1gPinUYhyMMLbGQA=
+github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4/go.mod h1:srePZ4/nmXnrmqZJS6BVGc33qoOLQz47+jJEXAnKQIo=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5 h1:31qbWhY2xiKCtFKuzJo1VJKdAl7LV9wxIOIbdA74uDk=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5/go.mod h1:cv6+mNdXYgnTUwWUwJ/U8VxZ6IyxipCS5w+i7tIC/Rg=
 github.com/larsartmann/go-datastar v0.6.2 h1:jmfiddveCW0zi1j2064zQDhFAZaRfjRQZmhWmVT6w3U=
