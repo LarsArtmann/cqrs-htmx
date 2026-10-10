@@ -77,7 +77,11 @@ func TestHarnessUserTrain_Credentials(t *testing.T) {
 
 			cred := user.Credentials[0]
 			if cred.AttestationType != "none" {
-				return &fieldMismatchError{field: "Credentials[0].AttestationType", want: "none", got: cred.AttestationType}
+				return &fieldMismatchError{
+					field: "Credentials[0].AttestationType",
+					want:  "none",
+					got:   cred.AttestationType,
+				}
 			}
 
 			if cred.Name != "My Passkey" {
@@ -333,11 +337,19 @@ func TestHarnessUserTrain_AuditLog(t *testing.T) {
 		}
 
 		if !foundRegister {
-			return &fieldMismatchError{field: "AuditEntriesFor event types", want: "UserRegistered present", got: "missing"}
+			return &fieldMismatchError{
+				field: "AuditEntriesFor event types",
+				want:  "UserRegistered present",
+				got:   "missing",
+			}
 		}
 
 		if !foundChangeEmail {
-			return &fieldMismatchError{field: "AuditEntriesFor event types", want: "EmailChanged present", got: "missing"}
+			return &fieldMismatchError{
+				field: "AuditEntriesFor event types",
+				want:  "EmailChanged present",
+				got:   "missing",
+			}
 		}
 
 		return nil
