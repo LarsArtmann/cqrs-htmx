@@ -17,6 +17,7 @@ require (
 	github.com/larsartmann/httputil v1.5.0
 	github.com/larsartmann/samber-do-auditlog v0.11.0
 	github.com/samber/do/v2 v2.1.0
+	github.com/stretchr/testify v1.12.1
 )
 
 require (
@@ -67,7 +68,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
@@ -118,7 +119,6 @@ require (
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
