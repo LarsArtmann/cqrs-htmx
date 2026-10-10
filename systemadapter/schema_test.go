@@ -27,7 +27,8 @@ func TestEventSchemasCoverDecoderRegistrations(t *testing.T) {
 	slices.Sort(schemaTypes)
 
 	if len(decoderTypes) != len(schemaTypes) {
-		t.Fatalf("decoder registers %d event types, schema declares %d — lists drifted", len(decoderTypes), len(schemaTypes))
+		t.Fatalf("decoder registers %d event types, schema declares %d — lists drifted",
+			len(decoderTypes), len(schemaTypes))
 	}
 
 	for i := range decoderTypes {

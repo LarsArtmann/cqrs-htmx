@@ -50,7 +50,7 @@ func TestHarnessPilot_UserLifecycle(t *testing.T) {
 		return FindUserByEmail(ctx, sc.System(), "new@example.com")
 	}, func(user UserView) error {
 		if user.ID != userStreamID.String() {
-			return &fieldMismatch{field: "ID", want: userStreamID.String(), got: user.ID}
+			return &fieldMismatchError{field: "ID", want: userStreamID.String(), got: user.ID}
 		}
 
 		return nil
@@ -75,43 +75,42 @@ func TestHarnessPilot_UserDisplayNameChange(t *testing.T) {
 	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
 		func(user UserView) error {
 			if user.DisplayName != "Updated Name" {
-				return &fieldMismatch{field: "DisplayName", want: "Updated Name", got: user.DisplayName}
+				return &fieldMismatchError{field: "DisplayName", want: "Updated Name", got: user.DisplayName}
 			}
 
 			return nil
 		})
 }
 
-
 // checkUserFields asserts the fields the legacy eventually blocks checked,
 // with field-named mismatch errors instead of "Email mismatch" strings.
 func checkUserFields(email string, verified bool) func(UserView) error {
 	return func(user UserView) error {
 		if user.Email != email {
-			return &fieldMismatch{field: "Email", want: email, got: user.Email}
+			return &fieldMismatchError{field: "Email", want: email, got: user.Email}
 		}
 
 		if user.EmailVerified != verified {
-			return &fieldMismatch{
+			return &fieldMismatchError{
 				field: "EmailVerified", want: strconv.FormatBool(verified), got: strconv.FormatBool(user.EmailVerified),
 			}
 		}
 
 		if user.CreatedAt.IsZero() {
-			return &fieldMismatch{field: "CreatedAt", want: "set", got: "zero"}
+			return &fieldMismatchError{field: "CreatedAt", want: "set", got: "zero"}
 		}
 
 		return nil
 	}
 }
 
-// fieldMismatch gives query checks precise, field-named errors.
-type fieldMismatch struct {
+// fieldMismatchError gives query checks precise, field-named errors.
+type fieldMismatchError struct {
 	field string
 	want  string
 	got   string
 }
 
-func (e *fieldMismatch) Error() string {
+func (e *fieldMismatchError) Error() string {
 	return e.field + ": want " + e.want + ", got " + e.got
 }

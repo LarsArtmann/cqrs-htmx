@@ -39,7 +39,11 @@ func awaitNotFound(fn func() error) func() (any, error) {
 func checkCredentialCount(n int) func(UserView) error {
 	return func(user UserView) error {
 		if len(user.Credentials) != n {
-			return &fieldMismatch{field: "len(Credentials)", want: strconv.Itoa(n), got: strconv.Itoa(len(user.Credentials))}
+			return &fieldMismatchError{
+				field: "len(Credentials)",
+				want:  strconv.Itoa(n),
+				got:   strconv.Itoa(len(user.Credentials)),
+			}
 		}
 
 		return nil
@@ -73,11 +77,11 @@ func TestHarnessUserTrain_Credentials(t *testing.T) {
 
 			cred := user.Credentials[0]
 			if cred.AttestationType != "none" {
-				return &fieldMismatch{field: "Credentials[0].AttestationType", want: "none", got: cred.AttestationType}
+				return &fieldMismatchError{field: "Credentials[0].AttestationType", want: "none", got: cred.AttestationType}
 			}
 
 			if cred.Name != "My Passkey" {
-				return &fieldMismatch{field: "Credentials[0].Name", want: "My Passkey", got: cred.Name}
+				return &fieldMismatchError{field: "Credentials[0].Name", want: "My Passkey", got: cred.Name}
 			}
 
 			return nil
@@ -101,7 +105,7 @@ func TestHarnessUserTrain_TOTP(t *testing.T) {
 	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
 		func(user UserView) error {
 			if !user.TOTPEnabled {
-				return &fieldMismatch{field: "TOTPEnabled", want: "true", got: "false"}
+				return &fieldMismatchError{field: "TOTPEnabled", want: "true", got: "false"}
 			}
 
 			return nil
@@ -112,7 +116,7 @@ func TestHarnessUserTrain_TOTP(t *testing.T) {
 	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
 		func(user UserView) error {
 			if user.TOTPEnabled {
-				return &fieldMismatch{field: "TOTPEnabled", want: "false", got: "true"}
+				return &fieldMismatchError{field: "TOTPEnabled", want: "false", got: "true"}
 			}
 
 			return nil
@@ -142,11 +146,19 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
 		func(user UserView) error {
 			if len(user.ExternalAccounts) != 1 {
-				return &fieldMismatch{field: "len(ExternalAccounts)", want: "1", got: strconv.Itoa(len(user.ExternalAccounts))}
+				return &fieldMismatchError{
+					field: "len(ExternalAccounts)",
+					want:  "1",
+					got:   strconv.Itoa(len(user.ExternalAccounts)),
+				}
 			}
 
 			if user.ExternalAccounts[0].Provider != "github" {
-				return &fieldMismatch{field: "ExternalAccounts[0].Provider", want: "github", got: user.ExternalAccounts[0].Provider}
+				return &fieldMismatchError{
+					field: "ExternalAccounts[0].Provider",
+					want:  "github",
+					got:   user.ExternalAccounts[0].Provider,
+				}
 			}
 
 			return nil
@@ -156,7 +168,7 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 		return FindUserByExternalAccount(ctx, sc.System(), "github", "gh-123")
 	}, func(byExt UserView) error {
 		if byExt.ID != userStreamID.String() {
-			return &fieldMismatch{field: "external-account lookup ID", want: userStreamID.String(), got: byExt.ID}
+			return &fieldMismatchError{field: "external-account lookup ID", want: userStreamID.String(), got: byExt.ID}
 		}
 
 		return nil
@@ -167,7 +179,11 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
 		func(user UserView) error {
 			if len(user.ExternalAccounts) != 0 {
-				return &fieldMismatch{field: "len(ExternalAccounts) after unlink", want: "0", got: strconv.Itoa(len(user.ExternalAccounts))}
+				return &fieldMismatchError{
+					field: "len(ExternalAccounts) after unlink",
+					want:  "0",
+					got:   strconv.Itoa(len(user.ExternalAccounts)),
+				}
 			}
 
 			return nil
@@ -194,7 +210,11 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 		return FindUserByExternalAccount(ctx, sc.System(), "github", "gh-123")
 	}, func(byExt UserView) error {
 		if byExt.ID != secondStreamID.String() {
-			return &fieldMismatch{field: "re-link lookup ID (must follow new owner)", want: secondStreamID.String(), got: byExt.ID}
+			return &fieldMismatchError{
+				field: "re-link lookup ID (must follow new owner)",
+				want:  secondStreamID.String(),
+				got:   byExt.ID,
+			}
 		}
 
 		return nil
@@ -225,7 +245,7 @@ func TestHarnessUserTrain_UserDelete(t *testing.T) {
 		}
 
 		if len(all) != 0 {
-			return &fieldMismatch{field: "len(AllUsers) after delete", want: "0", got: strconv.Itoa(len(all))}
+			return &fieldMismatchError{field: "len(AllUsers) after delete", want: "0", got: strconv.Itoa(len(all))}
 		}
 
 		return nil
@@ -258,7 +278,7 @@ func TestHarnessUserTrain_AllUsers(t *testing.T) {
 		}
 
 		if len(all) != 3 {
-			return &fieldMismatch{field: "len(AllUsers)", want: "3", got: strconv.Itoa(len(all))}
+			return &fieldMismatchError{field: "len(AllUsers)", want: "3", got: strconv.Itoa(len(all))}
 		}
 
 		return nil
@@ -284,7 +304,7 @@ func TestHarnessUserTrain_AuditLog(t *testing.T) {
 		}
 
 		if len(entries) < 2 {
-			return &fieldMismatch{field: "len(AuditEntries)", want: ">=2", got: strconv.Itoa(len(entries))}
+			return &fieldMismatchError{field: "len(AuditEntries)", want: ">=2", got: strconv.Itoa(len(entries))}
 		}
 
 		return nil
@@ -308,16 +328,16 @@ func TestHarnessUserTrain_AuditLog(t *testing.T) {
 			}
 
 			if entry.OccurredAt.IsZero() {
-				return &fieldMismatch{field: "AuditEntry.OccurredAt", want: "set", got: "zero"}
+				return &fieldMismatchError{field: "AuditEntry.OccurredAt", want: "set", got: "zero"}
 			}
 		}
 
 		if !foundRegister {
-			return &fieldMismatch{field: "AuditEntriesFor event types", want: "UserRegistered present", got: "missing"}
+			return &fieldMismatchError{field: "AuditEntriesFor event types", want: "UserRegistered present", got: "missing"}
 		}
 
 		if !foundChangeEmail {
-			return &fieldMismatch{field: "AuditEntriesFor event types", want: "EmailChanged present", got: "missing"}
+			return &fieldMismatchError{field: "AuditEntriesFor event types", want: "EmailChanged present", got: "missing"}
 		}
 
 		return nil
@@ -332,7 +352,7 @@ func TestHarnessUserTrain_AuditLog(t *testing.T) {
 		}
 
 		if len(recent) != 1 {
-			return &fieldMismatch{field: "len(RecentAuditEntries(1))", want: "1", got: strconv.Itoa(len(recent))}
+			return &fieldMismatchError{field: "len(RecentAuditEntries(1))", want: "1", got: strconv.Itoa(len(recent))}
 		}
 
 		return nil
@@ -379,7 +399,11 @@ func TestHarnessUserTrain_MissingLookups(t *testing.T) {
 		}
 
 		if len(memberships) != 0 {
-			return &fieldMismatch{field: "len(FindMembershipsByActor(missing))", want: "0", got: strconv.Itoa(len(memberships))}
+			return &fieldMismatchError{
+				field: "len(FindMembershipsByActor(missing))",
+				want:  "0",
+				got:   strconv.Itoa(len(memberships)),
+			}
 		}
 
 		return nil
