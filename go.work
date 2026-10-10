@@ -83,6 +83,11 @@ replace github.com/larsartmann/go-cqrs-lite/scenario/v4 => /home/lars/projects/g
 
 replace github.com/larsartmann/go-cqrs-lite/scheduling/v4 => /home/lars/projects/go-cqrs-lite/scheduling
 
+// schema: local-dev replace (same pattern as the block above). Required since
+// the go-cqrs-lite system/ module consumes the untagged schema.Event/EventSchema
+// declaration API (2026-10-09); published schema/v4.5.2 lacks it.
+replace github.com/larsartmann/go-cqrs-lite/schema/v4 => /home/lars/projects/go-cqrs-lite/schema
+
 replace github.com/larsartmann/go-cqrs-lite/signing/v4 => /home/lars/projects/go-cqrs-lite/signing
 
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => /home/lars/projects/go-cqrs-lite/snapshot
