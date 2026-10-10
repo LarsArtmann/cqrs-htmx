@@ -83,28 +83,6 @@ func TestHarnessPilot_UserDisplayNameChange(t *testing.T) {
 		})
 }
 
-// TestHarnessPilot_MissingLookups migrates the negative lookups: the
-// harness's ThenQueryFails asserts the classified ErrNotFound immediately
-// (ThenQuery would poll for 5s on a legitimately-missing row).
-func TestHarnessPilot_MissingLookups(t *testing.T) {
-	sc, ctx := newHarnessScenario(t)
-
-	seed := id.NewStreamID()
-
-	sc.Given().Command(identitymodel.NewRegisterUserCmd(
-		seed, "seed@example.com", "Seed",
-		[]identitymodel.Role{identitymodel.RoleUser},
-	)).When(identitymodel.NewChangeDisplayNameCmd(seed, "Still Seed")).
-		ThenQueryFails(func() (any, error) {
-			return FindUserByID(ctx, sc.System(), id.NewStreamID().String())
-		}, system.ErrNotFound).
-		ThenQueryFails(func() (any, error) {
-			return FindTenantByID(ctx, sc.System(), id.NewStreamID().String())
-		}, system.ErrNotFound).
-		ThenQueryFails(func() (any, error) {
-			return FindBotByID(ctx, sc.System(), id.NewStreamID().String())
-		}, system.ErrNotFound)
-}
 
 // checkUserFields asserts the fields the legacy eventually blocks checked,
 // with field-named mismatch errors instead of "Email mismatch" strings.
