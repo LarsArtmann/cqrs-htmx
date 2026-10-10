@@ -63,6 +63,7 @@ func DomainConfig(opts ...DomainOption) system.DomainConfig {
 
 	return system.DomainConfig{
 		Commands:              registerAllCommands,
+		Schema:                EventSchemas(),
 		ProjectionTypeDecoder: EventTypeDecoder(),
 		Projections:           DeclarativeProjections(),
 		CheckpointStore:       cfg.checkpointStore,
