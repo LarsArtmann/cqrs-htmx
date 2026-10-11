@@ -469,7 +469,16 @@
 
         let pageCount = 0;
         return page().then(() => {
-          if (collected.length > 0 || cursor !== state.cursor) {
+          if (
+            collected.length > 0 ||
+            cursor !== state.cursor ||
+            backendId !== state.backendId
+          ) {
+            // A caught-up pull with a CHANGED backendId must still reach the
+            // worker: the reset detector (cache wipe on backend rebuild) fires
+            // on the backendId delta, not on new events. Dropping the update
+            // here would leave a stale cache forever after a backend rebuild
+            // with no new events (the exact ADR-0056 rebuild scenario).
             syncWorker.port.postMessage({
               type: "cache-events",
               cursor: cursor,

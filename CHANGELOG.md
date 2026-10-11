@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **root: Go toolchain floor raised 1.27.1 -> 1.27.2 (2026-10-11, security).** CI's govulncheck flagged four reachable stdlib `net/http`/`http2` vulnerabilities (GO-2026-6603, GO-2026-6611, GO-2026-6613, GO-2026-6617 — the HTTP/2 HPACK race class), all fixed in Go 1.27.2. The root `go.mod` (and the whole workspace) now declares `go 1.27.2`, so consumers building this module with a 1.27.1 toolchain get Go's own version error instead of a vulnerable binary; consumers already on 1.27.2+ see no change. Fleet-wide battery + lint verified green on the new floor.
 
+### Fixed
+
+- **root: sync assets v1.5.0 offline-read cache never persisted its cursor/backendId (2026-10-11, found by the new e2e specs).** Two defects in the freshly shipped ADR-0056 pull-cache: (1) `sync-worker.js` wrote the sync-state record with a keyless `metaStore.put()` on an out-of-line-key store — IndexedDB throws `DataError` synchronously, the catch swallowed it, and the already-queued event puts still auto-committed, so events cached while the cursor and backendId silently never landed (every pull re-read the whole journal, backend-reset detection had nothing to compare). The put now passes the key explicitly. (2) `sync-client.js` dropped the `cache-events` update whenever a pull came back caught-up (no new events, same cursor) — which is exactly the backend-rebuild shape: after a rebuild a caught-up client pulls zero events but a CHANGED backendId, so the reset detector never fired and the stale cache survived forever. The update now also posts when the backendId changed. Both pinned by the new Playwright specs (offline reads via `window.cqrsSync.getEvents()`, `sync:reset` on backend rotation keeps the queue while wiping the cache); full battery 73/73.
+
 ## [v4.14.0] - 2026-10-11
 
 ### Added

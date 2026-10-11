@@ -406,11 +406,18 @@
           }
 
           if (cursor) {
-            metaStore.put({
-              key: META_KEY,
-              cursor: cursor,
-              backendId: backendId || state.backendId,
-            });
+            // META_STORE has no keyPath (out-of-line keys): put() MUST carry
+            // the key as the second argument — a keyless put on an out-of-line
+            // store throws DataError synchronously, which would swallow the
+            // cursor write while the already-queued event puts still commit
+            // (observed live: events cached, meta forever empty).
+            metaStore.put(
+              {
+                cursor: cursor,
+                backendId: backendId || state.backendId,
+              },
+              META_KEY,
+            );
           }
 
           tx.oncomplete = () => {
