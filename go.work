@@ -18,6 +18,7 @@ use (
 	./examples/observability-demo
 	./examples/samber-do-demo
 	./examples/setup-demo
+	./examples/sync-demo
 	./examples/system-demo
 	./health
 	./identity-model

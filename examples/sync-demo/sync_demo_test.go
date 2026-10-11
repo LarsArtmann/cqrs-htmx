@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json/v2"
 	"io"
 	"net/http"
@@ -213,8 +212,13 @@ func TestSyncDemo_PullFilterHidesConfidentialNotes(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
+	adminBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	var admin syncPullResponse
-	if err := json.NewDecoder(resp.Body).Decode(&admin); err != nil {
+	if err := json.Unmarshal(adminBody, &admin); err != nil {
 		t.Fatalf("decode admin pull: %v", err)
 	}
 
@@ -290,6 +294,3 @@ func TestSyncDemo_ServerTruthListsNotes(t *testing.T) {
 		t.Errorf("GET /api/notes = %d %s, want 200 containing truth-note", status, listBody)
 	}
 }
-
-// keep bytes imported for future request-body tests without churn
-var _ = bytes.MinRead
