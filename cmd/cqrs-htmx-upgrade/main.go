@@ -47,7 +47,7 @@ func main() {
 		fatal("derive mappings: %v", err)
 	}
 
-	files, reports, err := run(paths, mappings)
+	files, reports, err := run(paths, mappings, *apply)
 	if err != nil {
 		fatal("%v", err)
 	}

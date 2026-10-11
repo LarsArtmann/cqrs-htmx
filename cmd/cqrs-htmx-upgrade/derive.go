@@ -125,7 +125,7 @@ func deriveFromFiles(dir string, files []string, wantTargetPath, rule string) (s
 
 		for _, decl := range file.Decls {
 			gen, ok := decl.(*ast.GenDecl)
-			if !ok && true {
+			if !ok {
 				continue
 			}
 
