@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **root: Go toolchain floor raised 1.27.1 -> 1.27.2 (2026-10-11, security).** CI's govulncheck flagged four reachable stdlib `net/http`/`http2` vulnerabilities (GO-2026-6603, GO-2026-6611, GO-2026-6613, GO-2026-6617 — the HTTP/2 HPACK race class), all fixed in Go 1.27.2. The root `go.mod` (and the whole workspace) now declares `go 1.27.2`, so consumers building this module with a 1.27.1 toolchain get Go's own version error instead of a vulnerable binary; consumers already on 1.27.2+ see no change. Fleet-wide battery + lint verified green on the new floor.
+
+## [v4.14.0] - 2026-10-11
+
 ### Added
 
 - **health/v4: `RecorderChain` + duration_ns on the wire (implements #31, 2026-10-09).** `RecorderChain(recorders ...gohealth.HealthRecorder)` composes several recorders into one ordered merge (later recorders win name collisions, nils are skipped), making the auditlog README's "DI audit and projection health in one probe" composition literal: `gohealth.New(injector, gohealth.WithHealthRecorder(health.RecorderChain(health.Recorder(svc), auditPlugin)))`. `Recorder` now also implements go-health's optional `DetailedHealthRecorder`: every projection check carries the shared `ProjectionStatuses()` read time as its `duration_ns` (previously always omitted), and `NewProbe` builds on `gohealth.NewWithDetailedCheck` instead of a throwaway `do.New()` injector — same checks, same classification, honest construction, and durations on every path (liveness/readiness/startup JSON + dashboard). Note: passing `gohealth.WithHealthRecorder` to `NewProbe` now has no effect (the provider owns the batch); compose with `RecorderChain` instead. The private status mirrors stay until the module's require points at a root tag carrying `cqrshtmx.ProjectionStatus*` (next health train).
