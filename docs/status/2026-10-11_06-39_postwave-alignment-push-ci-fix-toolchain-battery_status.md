@@ -66,9 +66,11 @@ P8 (GCL gate compliance — foreign repo, active owner session), P10 (sync-demo)
 
 ## g) Questions I can NOT answer myself
 
-1. **v4.14.0 tag authorization** — everything through preflight is green and the 21-09 report's T02 was "fully prepped"; but a release tag is owner territory (q2 was explicitly left to you). Cut it now, or hold?
-2. **Family-train cadence for the other untagged deltas** — usermgmt (exhaustruct fix), loginpage (JS suite), dashboardui/systemadapter/adminui (floor bumps + 10-06-era deltas): one wave-ordered family train after root v4.14.0 (playbook §4a), or per-module as touched? My default: wave-ordered, one sitting, after the e2e specs prove green — but the cadence call is yours.
-3. **The e2e demo server now carries real ADR-0056 surface (pull/push/rotate)** — keep the rotate-backend debug endpoint permanently (it is the only way to e2e-pin sync:reset) or gate it behind a build tag so consumer-copied versions cannot ship it? My default: keep it, document it in the file header as test-only.
+> **ANNOTATED 2026-10-11 09:05:** all three answered by the owner — (1) v4.14.0 CUT+PUSHED (`bfe86081`); (2) WAVE-ordered family train after e2e green (staged in `docs/status/2026-10-11_10-58_…_status.md` §b); (3) rotate endpoint KEPT + documented test-only (`8c29f147`).
+
+1. **v4.14.0 tag authorization** — ~~everything through preflight is green and the 21-09 report's T02 was "fully prepped"; but a release tag is owner territory (q2 was explicitly left to you). Cut it now, or hold?~~ **DONE — cut + pushed 2026-10-11.**
+2. **Family-train cadence for the other untagged deltas** — usermgmt (exhaustruct fix), loginpage (JS suite), dashboardui/systemadapter/adminui (floor bumps + 10-06-era deltas): one wave-ordered family train after root v4.14.0 (playbook §4a), or per-module as touched? My default: wave-ordered, one sitting, after the e2e specs prove green — but the cadence call is yours. **ANSWERED: wave-ordered (receipts staged, awaiting the go-cqrs-lite dedup settlement).**
+3. **The e2e demo server now carries real ADR-0056 surface (pull/push/rotate)** — keep the rotate-backend debug endpoint permanently (it is the only way to e2e-pin sync:reset) or gate it behind a build tag so consumer-copied versions cannot ship it? My default: keep it, document it in the file header as test-only. **ANSWERED: keep + documented.**
 
 ---
 
