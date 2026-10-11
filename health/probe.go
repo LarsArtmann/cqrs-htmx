@@ -17,19 +17,9 @@ import (
 // *usermgmt.EventSourcedSetup satisfy it directly.
 type ProjectionStatusProvider = cqrshtmx.ProjectionStatusProvider
 
-// Projection worker states (mirror projectionhost.WorkerState statuses;
-// see cqrshtmx.ProjectionReadinessCheck for the readiness semantics).
-//
-// Root exports these as cqrshtmx.ProjectionStatus* constants (2026-10-09,
-// [Unreleased] at the time of writing). This module keeps its own mirrors
-// until its require points at a published root tag carrying them: consuming
-// the unpublished constants would break hermetic (GOWORK=off) builds, which
-// workspace mode masks. Switch on the next health train.
-const (
-	statusLive    = "live"
-	statusStopped = "stopped"
-	statusFailed  = "failed"
-)
+// Projection worker states come from the root module
+// (cqrshtmx.ProjectionStatusLive/Stopped/Failed, published in root v4.14.0);
+// see cqrshtmx.ProjectionReadinessCheck for the readiness semantics.
 
 // NewProbe builds a go-health [gohealth.Probe] with one named check per
 // projection of the provider. Check names are the projection names
@@ -190,10 +180,10 @@ func (r projectionRecorder) RecordDetailedHealthCheckWithContext(
 // infrastructure error carrying the last error message.
 func checkError(entry cqrshtmx.ProjectionStatusEntry) error {
 	switch entry.Status {
-	case statusLive, statusStopped:
+	case cqrshtmx.ProjectionStatusLive, cqrshtmx.ProjectionStatusStopped:
 		return nil
 
-	case statusFailed:
+	case cqrshtmx.ProjectionStatusFailed:
 		return errorfamily.NewInfrastructure("cqrshtmx.health.projection_failed",
 			fmt.Sprintf("projection %q failed: %s", entry.Name, entry.LastError))
 	default:
