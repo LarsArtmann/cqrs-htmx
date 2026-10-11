@@ -21,25 +21,29 @@ func TestSyncWorkerJSSuite(t *testing.T) {
 		t.Skip("node not found in PATH; JS suite skipped")
 	}
 
-	cmd := exec.Command( //nolint:gosec // G204: node binary from LookPath above; test-only
+	cmd := exec.Command(
 		node,
 		"--test",
 		"--test-reporter=tap",
 		"./sync/jstests/sync-worker.test.js",
 	)
+
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("node --test ./sync/jstests/sync-worker.test.js failed: %v\n%s", err, out)
 	}
 
 	var passed int
-	for _, line := range strings.Split(string(out), "\n") {
+
+	for line := range strings.SplitSeq(string(out), "\n") {
 		if strings.HasPrefix(line, "ok ") {
 			passed++
 		}
+
 		if strings.HasPrefix(line, "not ok ") {
 			t.Errorf("JS subtest failed: %s", line)
 		}
 	}
+
 	t.Logf("node --test: %d subtests ok", passed)
 }
