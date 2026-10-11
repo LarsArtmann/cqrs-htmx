@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.12.3] - 2026-10-11
+
+### Added
+
+- **node:test smoke suite for the embedded WebAuthn JS (2026-10-11).** `go test ./...` now also runs `internal/jstests/login.test.js` through `node --test` when node is on PATH (clean skip otherwise): seeded Base64URL property round-trips (x200), serializer shape goldens, and prepare* decoding — generated with the tool under test, never hand-derived. `login.js` gained three browser-inert guards (lazy config parse, DOMContentLoaded wiring, CommonJS export tail) so the same file is testable in node and runs unchanged in the browser. The goldens cover the exact bytes browsers must produce for WebAuthn ceremonies.
+
 ### Changed
 
 - **Rebuilt on the templ-components design system.** The hand-rolled `lp-*`
@@ -41,7 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `Config.CSSPath` is now validated to be a root-relative path or absolute http(s) URL, rejecting executable schemes like `javascript:`.
 - Corrected the `Config.OAuth2Buttons` field doc: a nil/empty slice **auto-detects** configured providers (the previous comment claimed an empty slice hides all buttons — it never did).
 
-## [v4.11.0] - 2026-09-19
+# [v4.11.0] - 2026-09-19
 
 ### Changed
 

@@ -8,7 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 _(nothing yet)_
 
-## [v4.12.2] - 2026-10-08
+## [v4.12.3] - 2026-10-11
+
+### Fixed
+
+- **Canonical nested struct literals for embedded cores (exhaustruct, 2026-10-11).** `ExternalAccount` construction sites now use the explicit `ExternalAccountCore: ExternalAccountCore{...}` form instead of promoted-key literals — identical runtime behavior, unambiguous for readers and linters alike.
+- **Go toolchain floor raised 1.27.1 -> 1.27.2 (security, 2026-10-11).** `go.mod` declares `go 1.27.2` (GO-2026-6603/6611/6613/6617 stdlib fixes); consumers on 1.27.2+ see no change.
+
+# [v4.12.2] - 2026-10-08
 
 ### Changed
 

@@ -8,7 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 _(nothing yet)_
 
-## [v4.11.0] - 2026-09-19
+## [v4.12.2] - 2026-10-11
+
+### Changed
+
+- **Dependency/floor alignment (2026-10-11 wave):** go-cqrs-lite storage/memory v4.6.2, snapshot v4.6.2, and the 1.27.2 toolchain floor. No API change.
+
+# [v4.11.0] - 2026-09-19
 
 ### Changed
 

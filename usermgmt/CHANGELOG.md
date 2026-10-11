@@ -8,7 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 _(nothing yet)_
 
-## [v4.14.1] - 2026-10-05
+## [v4.14.3] - 2026-10-11
+
+### Fixed
+
+- **Canonical nested struct literals for embedded read-model cores (exhaustruct, 2026-10-11).** The SQL read models construct their embedded `readModelCore` explicitly (`readModelCore: readModelCore[T]{...}`) instead of via promoted-key literals — identical behavior, canonical form.
+- **Dependency/floor alignment (2026-10-11 wave):** go-retry v0.8.0, httputil v1.4.2, go-cqrs-lite scheduling v4.7.0, identity-model v4.12.2, root v4.14.x, and the 1.27.2 toolchain floor.
+
+# [v4.14.1] - 2026-10-05
 
 ### Fixed
 

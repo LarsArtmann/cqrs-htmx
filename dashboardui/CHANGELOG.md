@@ -8,7 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 _(nothing yet)_
 
-## [v4.13.2] - 2026-10-08
+## [v4.13.3] - 2026-10-11
+
+### Changed
+
+- **Near-vanilla test prologues folded into config-variant helpers (2026-10-09):** the test suite's repeated boot scaffolding is now shared helpers — same coverage, less duplication.
+- **Dependency/floor alignment (2026-10-11 wave):** templ-components v1.21.0, root v4.14.x, and the 1.27.2 toolchain floor. No API change.
+
+# [v4.13.2] - 2026-10-08
 
 ### Added
 

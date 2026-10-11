@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Family wave train 2026-10-11 (14 tags, owner-approved wave cadence): root v4.14.1, usermgmt v4.14.3, identity-model v4.12.3, totp v4.12.1, webauthn v4.12.1, oauth2 v4.13.0, datastar v4.12.2, auditlog v4.12.2, loginpage v4.12.3, dashboardui v4.13.3, adminui v4.12.4, systemadapter v4.12.4, setup v4.14.3, health v4.13.0.** Every module's requires were swept to the new tags after they published (wave-ordered: no commit ever points at an unpublished tag). Per-module consumer-visible deltas: **oauth2 v4.13.0** (minor) ships the public secret-less PKCE clients (`ProviderConfig.ClientType`), `preferred_username` extraction, and `FinishLoginWithToken` (receipts in its module CHANGELOG). **health v4.13.0** (minor) ships `RecorderChain` + `duration_ns` (receipt under v4.14.0 above) and now consumes root's published `cqrshtmx.ProjectionStatus*` constants directly — the private mirror constants are deleted, so the bridge and root can no longer drift on the worker-state vocabulary (its require rides root v4.14.1). **root v4.14.1** carries the sync-asset fixes below plus the 1.27.2 toolchain floor. The remaining tags are maintenance releases riding the same wave: exhaustruct canonical form (identity-model, usermgmt), dependency/floor alignment (totp, webauthn, datastar, auditlog, setup, adminui, dashboardui, loginpage), the systemscenario test-train migration (systemadapter), and the loginpage node:test JS suite (loginpage; `go test ./...` now runs the embedded WebAuthn JS battery when node is present). The e2e sync battery (73/73) gates this wave — it found and pinned the two v1.5.0 sync defects fixed in v4.14.1.
+
+## [v4.14.1] - 2026-10-11
+
+### Changed
+
 - **root: Go toolchain floor raised 1.27.1 -> 1.27.2 (2026-10-11, security).** CI's govulncheck flagged four reachable stdlib `net/http`/`http2` vulnerabilities (GO-2026-6603, GO-2026-6611, GO-2026-6613, GO-2026-6617 — the HTTP/2 HPACK race class), all fixed in Go 1.27.2. The root `go.mod` (and the whole workspace) now declares `go 1.27.2`, so consumers building this module with a 1.27.1 toolchain get Go's own version error instead of a vulnerable binary; consumers already on 1.27.2+ see no change. Fleet-wide battery + lint verified green on the new floor.
 
 ### Fixed

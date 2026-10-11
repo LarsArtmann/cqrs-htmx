@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+_(nothing yet)_
+
+## [v4.12.1] - 2026-10-11
+
+### Fixed
+
+- **go.sum union-graph residue removed (2026-10-07):** stale hashes from a timed-out go-mod-update dropped; hermetic `GOWORK=off` builds no longer depend on workspace state.
+- **Dependency/floor alignment (2026-10-11 wave):** go-error-family v0.10.2 and the 1.27.2 toolchain floor. No API change.
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added

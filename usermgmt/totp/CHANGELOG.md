@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+_(nothing yet)_
+
+## [v4.12.1] - 2026-10-11
+
+### Changed
+
+- **Dependency/floor alignment (2026-10-11 wave):** go-error-family v0.10.2 and the 1.27.2 toolchain floor (GO-2026-6603/6611/6613/6617). No API change.
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added

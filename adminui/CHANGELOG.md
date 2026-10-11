@@ -6,13 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.12.4] - 2026-10-11
+
+### Changed
+
+- **Dependency/codegen alignment (2026-10-11 wave):** templ-components v1.21.0, root v4.14.x, `_templ.go` regenerated to canonical module-dir form, and the 1.27.2 toolchain floor. The asset-dedup and content-ETag receipts above are retroactive notes for work that shipped inside v4.12.3 (receipt-less there); no behavior change in this tag beyond the dependency rides.
+
 ### Fixed
 
 - **Asset serving delegates to the root module's `cqrshtmx.ServeAsset` (2026-10-07, art-dupl dedup round):** `/-/admin-tw.css` and `/-/admin.js` keep the immutable-asset posture (content-derived ETag, 1-year immutable caching, nosniff) but the read/serve/ETag plumbing now lives once in the root module (`cqrshtmx.ServeAsset`/`cqrshtmx.AssetETag`/`cqrshtmx.AssetFromFS`) instead of being duplicated with dashboardui — the posture can no longer drift between the two UI modules; only the `embed.FS` declaration and config-error wrapping stay local (a missing embedded asset now surfaces as a wrapped Infrastructure-family error). ETag values change format from `"adminui-<name>-<16-hex>"` to `"<name>-<unpadded-hex>"`; consumers see one revalidation, then behavior is identical. Pinned by the same 304 round-trip tests plus root's header/conditional-GET/read contract tests.
 
 - **Asset ETags are content-derived and cache headers immutable (dashboardui M16 sweep):** `/-/admin-tw.css` and `/-/admin.js` now carry ETags computed from their own bytes (FNV-1a, `"adminui-<name>-<hash>"`) instead of the hand-bumped `adminui-v3.4.0` constant — the class where the compiled bundle changes but the version const does not, silently diverging every consumer's cached copy. `Cache-Control` moves from `public, max-age=86400` to `public, max-age=31536000, immutable` (the root module's `HTMXScriptHandler` posture). Pinned by a round-trip 304 test and the content-hash assertion in `assets_test.go`; mirrors dashboardui's `assets.go` so both UI modules follow one rule.
 
-## [v4.11.0] - 2026-09-19
+# [v4.11.0] - 2026-09-19
 
 ### Added
 
