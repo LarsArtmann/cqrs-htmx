@@ -1,0 +1,334 @@
+{
+  "/sync/pull": {
+    "get": {
+      "tags": [
+        "sync"
+      ],
+      "summary": "Pull domain events after a cursor",
+      "description": "Read half of the frontend sync protocol (ADR-0056): a cursor-based, permission-filtered batch pull of events WITH payloads. Responses are ETagged over (backendId, nextCursor, event count, hasMore); send If-None-Match to make re-polls cheap. Events hidden by the server-side WithSyncPullFilter still advance the cursor — they are never re-read.",
+      "operationId": "syncPull",
+      "parameters": [
+        {
+          "name": "after",
+          "in": "query",
+          "description": "Event ID (ULID) cursor; pull events strictly after it. Empty bootstraps from the journal start.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "description": "Batch size; default 500, hard ceiling 1000.",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        {
+          "name": "If-None-Match",
+          "in": "header",
+          "description": "ETag from a previous pull; a match answers 304 without a body.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "The visible events after the cursor, in journal order.",
+          "headers": {
+            "ETag": {
+              "description": "Weak-change tag over backendId, nextCursor, event count, and hasMore; reuse as If-None-Match.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            "Cache-Control": {
+              "description": "private, no-cache — always revalidate; the ETag makes that cheap.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "backendId": {
+                    "type": "string",
+                    "description": "Stable identity of the backing journal; clients reset their local cache when it changes. Omitted when no backend ID is configured."
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "eventId": {
+                          "type": "string"
+                        },
+                        "streamType": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "integer"
+                        },
+                        "schemaVersion": {
+                          "type": "string"
+                        },
+                        "payloadEncoding": {
+                          "type": "string",
+                          "description": "Framing of the delivered payload bytes: \"json\" — payload holds verbatim JSON; a codec name (e.g. \"cbor\") — payloadB64 holds that codec's bytes; \"opaque\" — the event's stamp promised JSON but the bytes are not valid JSON, so payloadB64 carries them without a decodable-framing promise. Exactly one of payload/payloadB64 is ever set."
+                        },
+                        "payload": {
+                          "type": "object",
+                          "description": "Present only when payloadEncoding is json."
+                        },
+                        "payloadB64": {
+                          "type": "string",
+                          "format": "byte",
+                          "description": "Present only when payloadEncoding is not json."
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "streamId": {
+                          "type": "string"
+                        },
+                        "occurredAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "eventId",
+                        "type",
+                        "streamType",
+                        "streamId",
+                        "version",
+                        "occurredAt",
+                        "payloadEncoding"
+                      ]
+                    }
+                  },
+                  "nextCursor": {
+                    "type": "string",
+                    "description": "Event ID to pass as ?after= on the next pull; the last READ event (visible or filtered-out), so invisible events are never re-read. Empty when no events were read — keep the previous cursor."
+                  },
+                  "hasMore": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "events",
+                  "hasMore"
+                ]
+              }
+            }
+          }
+        },
+        "304": {
+          "description": "Unchanged since the If-None-Match tag (no body)."
+        },
+        "400": {
+          "description": "Invalid cursor or limit.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "error": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "integer"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "error",
+                  "status"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/sync/push": {
+    "post": {
+      "tags": [
+        "sync"
+      ],
+      "summary": "Push a batch of queued commands",
+      "description": "Write half of the frontend sync protocol (ADR-0056): each envelope replays the SAME pipeline its single-command endpoint uses (authorization, decoding, request guards, context enrichment, dispatch) against the outer request's headers and context. Commands answer with per-command outcomes, never domain state — state arrives via pull or SSE. Batch failures are isolated; only malformed requests (wrong method, undecodable body, empty or oversized batch) fail whole.",
+      "operationId": "syncPush",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "commands": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "commandId": {
+                        "type": "string",
+                        "description": "Client-minted ULID; used for ACK correlation and idempotent retries."
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "Command type registered via App.Command / CommandTyped."
+                      },
+                      "body": {
+                        "type": "string",
+                        "description": "Exact request body the single-command endpoint's decoder expects (JSON or form-encoded; match contentType)."
+                      },
+                      "contentType": {
+                        "type": "string",
+                        "description": "Body's content type, e.g. application/json (default) or application/x-www-form-urlencoded."
+                      }
+                    },
+                    "required": [
+                      "commandId",
+                      "type",
+                      "body"
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 100
+                }
+              },
+              "required": [
+                "commands"
+              ]
+            }
+          }
+        }
+      },
+      "responses": {
+        "400": {
+          "description": "Malformed batch: undecodable body, empty batch, or more than 100 envelopes.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "error": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "integer"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "error",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "503": {
+          "description": "No command dispatcher configured on the App.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "error": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "error",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "200": {
+          "description": "The batch was processable; per-command outcomes live in the results.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "results": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "commandId": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "confirmed",
+                            "rejected"
+                          ]
+                        },
+                        "error": {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "family": {
+                              "type": "string",
+                              "description": "The client's retry contract: rejection/conflict are permanent (surface, drop); transient is retryable (re-queue); corruption/infrastructure are permanent failures (drop, log).",
+                              "enum": [
+                                "rejection",
+                                "conflict",
+                                "transient",
+                                "corruption",
+                                "infrastructure"
+                              ]
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "message",
+                            "family"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "commandId",
+                        "status"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "results"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

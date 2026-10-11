@@ -22,17 +22,19 @@ func SyncPullOpenAPIOp() openapi.Operation {
 		Tag("sync").
 		Summary("Pull domain events after a cursor").
 		Description(
-			"Read half of the frontend sync protocol (ADR-0056): a cursor-based, " +
-				"permission-filtered batch pull of events WITH payloads. Responses are " +
-				"ETagged over (backendId, nextCursor, event count, hasMore); send " +
-				"If-None-Match to make re-polls cheap. Events hidden by the server-side " +
+			"Read half of the frontend sync protocol (ADR-0056): a cursor-based, "+
+				"permission-filtered batch pull of events WITH payloads. Responses are "+
+				"ETagged over (backendId, nextCursor, event count, hasMore); send "+
+				"If-None-Match to make re-polls cheap. Events hidden by the server-side "+
 				"WithSyncPullFilter still advance the cursor — they are never re-read.",
 		).
 		QueryParam("after", openapi.String(),
 			"Event ID (ULID) cursor; pull events strictly after it. Empty bootstraps from the journal start.").
 		QueryParam("limit",
 			openapi.Integer().WithMin(1).WithMax(MaxSyncPullLimit),
-			"Batch size; default "+strconv.Itoa(DefaultSyncPullLimit)+", hard ceiling "+strconv.Itoa(MaxSyncPullLimit)+".").
+			"Batch size; default "+strconv.Itoa(DefaultSyncPullLimit)+
+				", hard ceiling "+strconv.Itoa(MaxSyncPullLimit)+
+				".").
 		HeaderParam("If-None-Match", openapi.String(),
 			"ETag from a previous pull; a match answers 304 without a body.").
 		Response(http.StatusOK,
@@ -59,12 +61,12 @@ func SyncPushOpenAPIOp() openapi.Operation {
 		Tag("sync").
 		Summary("Push a batch of queued commands").
 		Description(
-			"Write half of the frontend sync protocol (ADR-0056): each envelope replays " +
-				"the SAME pipeline its single-command endpoint uses (authorization, " +
-				"decoding, request guards, context enrichment, dispatch) against the outer " +
-				"request's headers and context. Commands answer with per-command outcomes, " +
-				"never domain state — state arrives via pull or SSE. Batch failures are " +
-				"isolated; only malformed requests (wrong method, undecodable body, empty " +
+			"Write half of the frontend sync protocol (ADR-0056): each envelope replays "+
+				"the SAME pipeline its single-command endpoint uses (authorization, "+
+				"decoding, request guards, context enrichment, dispatch) against the outer "+
+				"request's headers and context. Commands answer with per-command outcomes, "+
+				"never domain state — state arrives via pull or SSE. Batch failures are "+
+				"isolated; only malformed requests (wrong method, undecodable body, empty "+
 				"or oversized batch) fail whole.",
 		).
 		JSONBody(openapi.Object(
@@ -105,10 +107,12 @@ func AddSyncOpenAPI(spec *openapi.Spec, pullPath, pushPath string) *openapi.Spec
 func syncPullResponseSchema() *openapi.Schema {
 	return openapi.Object(
 		openapi.Prop("backendId", openapi.String().WithDescription(
-			"Stable identity of the backing journal; clients reset their local cache when it changes. Omitted when no backend ID is configured.")),
+			"Stable identity of the backing journal; clients reset their local cache when it changes. Omitted when no backend ID is configured."),
+		),
 		openapi.PropReq("events", openapi.Array(syncEventSchema())),
 		openapi.Prop("nextCursor", openapi.String().WithDescription(
-			"Event ID to pass as ?after= on the next pull; the last READ event (visible or filtered-out), so invisible events are never re-read. Empty when no events were read — keep the previous cursor.")),
+			"Event ID to pass as ?after= on the next pull; the last READ event (visible or filtered-out), so invisible events are never re-read. Empty when no events were read — keep the previous cursor."),
+		),
 		openapi.PropReq("hasMore", openapi.Boolean()),
 	)
 }
@@ -143,7 +147,8 @@ func syncPushEnvelopeSchema() *openapi.Schema {
 		openapi.PropReq("type", openapi.String().WithDescription(
 			"Command type registered via App.Command / CommandTyped.")),
 		openapi.PropReq("body", openapi.String().WithDescription(
-			"Exact request body the single-command endpoint's decoder expects (JSON or form-encoded; match contentType).")),
+			"Exact request body the single-command endpoint's decoder expects (JSON or form-encoded; match contentType)."),
+		),
 		openapi.Prop("contentType", openapi.String().WithDescription(
 			"Body's content type, e.g. application/json (default) or application/x-www-form-urlencoded.")),
 	)

@@ -77,8 +77,8 @@ func (s *Spec) PathOp(path string, op Operation) *Spec {
 // opBuilder carries an HTTP method + Operation and applies it to a PathItem.
 // Instances are created by Get, Post, Put, Patch, Delete, Head, Options.
 type opBuilder struct {
-	method  string
-	op      *Operation
+	method   string
+	op       *Operation
 	lastResp *Response
 }
 
