@@ -69,7 +69,7 @@ test("b64uToBuf rejects classic base64 that atob would widen", () => {
   const classic = "AA+ECA==";
   const bytes = new Uint8Array(loginJS.b64uToBuf(classic));
   assert.strictEqual(bytes.length, 4);
-  assert.deepStrictEqual([...bytes], [0, 0x3e, 0x10]);
+  assert.deepStrictEqual([...bytes], [0, 15, 132, 8]);
 });
 
 test("serializeAssertion shape: minimal credential (no userHandle, no extensions)", () => {
@@ -91,7 +91,7 @@ test("serializeAssertion shape: minimal credential (no userHandle, no extensions
     response: {
       authenticatorData: "TZk",
       clientDataJSON: "e30",
-      signature: "CAc",
+      signature: "CQgH",
     },
   });
   assert.ok(!("userHandle" in out.response));
