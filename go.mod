@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-etag/server v0.6.1
 	github.com/larsartmann/go-idempotency v0.3.1
 	github.com/larsartmann/go-sse v0.6.2
-	github.com/larsartmann/go-sse/ssetest v0.4.0
+	github.com/larsartmann/go-sse/ssetest v0.5.0
 	github.com/larsartmann/httputil v1.5.0
 	github.com/larsartmann/httputil/server_timing v1.0.2
 	github.com/oklog/ulid/v2 v2.1.2
