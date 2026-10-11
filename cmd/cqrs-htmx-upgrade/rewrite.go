@@ -320,7 +320,9 @@ func importEdits(
 
 	edits = edits[:0]
 
-	// Drops.
+	// Drops first: source-package imports whose qualifier lost every ref.
+	var drops []textEdit
+
 	for _, decl := range file.Decls {
 		gen, ok := decl.(*ast.GenDecl)
 		if !ok || gen.Tok != token.IMPORT {
@@ -355,38 +357,89 @@ func importEdits(
 				end = next // consume the newline too
 			}
 
-			edits = append(edits, textEdit{off, end, ""})
+			drops = append(drops, textEdit{off, end, ""})
 		}
 	}
 
-	// Inserts (after the drops so both shapes compose).
+	// Then inserts: appended after the last import line — or, when that line
+	// is itself being dropped, FUSED into the drop (replacing the line) so
+	// the two edits can never overlap.
 	if len(inserts) > 0 {
-		if anchor, ok := lastImportLine(fset, file); ok {
-			at := lineEnd(anchor) // before the newline of the last import line
-
-			for _, ins := range inserts {
-				edits = append(edits, textEdit{at, at, "\n\t" + `"` + ins.newText + `"`})
-				at = at // same anchor is fine: repeated inserts append in order
-			}
-		} else {
-			// No import block: open one right after the package clause.
-			at := lineEnd(fset.Position(file.Package).Offset)
-			if file.Name != nil {
-				at = lineEnd(fset.Position(file.Name.End()).Offset)
-			}
-
-			block := "\n\nimport (\n"
-			for _, ins := range inserts {
-				block += "\t" + `"` + ins.newText + `"` + "\n"
-			}
-
-			block += ")"
-
-			edits = append(edits, textEdit{at, at, block})
-		}
+		fuseInserts(fset, file, src, &drops, inserts)
 	}
 
-	return edits
+	return append(edits, drops...)
+}
+
+// fuseInserts places the needed imports. When the last import line survives,
+// the inserts append after it; when it is among the drops, the first drop
+// REPLACES its line with the new imports (same indent, trailing newline);
+// when the file has no import block at all, one opens under the package
+// clause.
+func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textEdit, inserts []textEdit) {
+	lineEnd := func(offset int) int {
+		if idx := strings.IndexByte(src[offset:], '\n'); idx >= 0 {
+			return offset + idx
+		}
+
+		return len(src)
+	}
+
+	lineStart := func(offset int) int {
+		if idx := strings.LastIndexByte(src[:offset], '\n'); idx >= 0 {
+			return idx + 1
+		}
+
+		return 0
+	}
+
+	var lines strings.Builder
+
+	for _, ins := range inserts {
+		lines.WriteString("\n\t")
+		lines.WriteString(`"`)
+		lines.WriteString(ins.newText)
+		lines.WriteString(`"`)
+	}
+
+	if anchor, ok := lastImportLine(fset, file); ok {
+		for i := range *drops {
+			d := &(*drops)[i]
+
+			if anchor >= d.offset && anchor < d.end {
+				// The anchor line is dropped: fuse — replace instead of
+				// insert+delete. Preserve the line's leading indent.
+				indent := "\t"
+				if start := lineStart(d.offset); start >= 0 && start < d.offset {
+					indent = src[start:d.offset]
+				}
+
+				*d = textEdit{d.offset, d.end, indent + strings.TrimLeft(strings.TrimPrefix(lines.String(), "\n"), "\t") + "\n"}
+
+				return
+			}
+		}
+
+		at := lineEnd(anchor) // before the newline of the last import line
+		*drops = append(*drops, textEdit{at, at, lines.String()})
+
+		return
+	}
+
+	// No import block: open one right after the package clause.
+	at := lineEnd(fset.Position(file.Package).Offset)
+	if file.Name != nil {
+		at = lineEnd(fset.Position(file.Name.End()).Offset)
+	}
+
+	block := "\n\nimport (\n"
+	for _, ins := range inserts {
+		block += "\t" + `"` + ins.newText + `"` + "\n"
+	}
+
+	block += ")"
+
+	*drops = append(*drops, textEdit{at, at, block})
 }
 
 func defaultQualFor(importPath string) string {
