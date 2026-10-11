@@ -69,7 +69,7 @@ Browser-level: 4 sync specs (enqueue persistence, online flush, cross-session re
 
 | Item | State | Blocker |
 | --- | --- | --- |
-| **T01** — verification sweep | e2e ✅, templates ✅, ~~**lint ❌**~~ done 2026-10-11 (`febb8ef5`: exhaustruct ×6 nested-literal fix; fleet lint 0 issues; CI 38110505538 green) | ~~identity-model exhaustruct ×2 (confirmed still red today — foreign module, q1 open); systemadapter typecheck ×8~~ resolved 2026-10-11: the exhaustruct ×2 + 4 more fixed in `febb8ef5`; systemadapter CLEAN post-migration (fleet sweep 0 issues) |
+| ~~**T01** — verification sweep~~ done 2026-10-11 | ~~e2e ✅, templates ✅, **lint ❌**~~ done (`febb8ef5`: exhaustruct ×6 nested-literal fix; fleet lint 0 issues; CI 38110505538 green) | ~~identity-model exhaustruct ×2; systemadapter typecheck ×8~~ resolved: exhaustruct ×2 + 4 more fixed `febb8ef5`; systemadapter CLEAN post-migration |
 | **T02** — root release train v4.14.0 | fully prepped, not executed | gated on T01 lint green + q2 (timing vs go-cqrs-lite train); a day of drift accumulated |
 | Optimistic-prediction design | analyzed, direction sound | captured nowhere; needs ROADMAP entry + ADR-0056 amendment note |
 
