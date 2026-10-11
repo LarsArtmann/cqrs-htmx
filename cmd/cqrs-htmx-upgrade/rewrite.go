@@ -177,48 +177,22 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 	remainingRefs := map[string]int{}
 	needImport := map[string]bool{}
 
-	edits := make([]textEdit, 0, 8)
+	edits := make([]textEdit, 0, len(file.Decls))
 
-	ast.Inspect(file, func(n ast.Node) bool {
-		sel, ok := n.(*ast.SelectorExpr)
-		if !ok {
-			reportRawCall(fset, n, qualToPath, &rep)
+	ctx := &planCtx{
+		fset:          fset,
+		table:         table,
+		qualToPath:    qualToPath,
+		pathToQual:    pathToQual,
+		targetQual:    targetQual,
+		remainingRefs: remainingRefs,
+		needImport:    needImport,
+		edits:         edits,
+		rep:           &rep,
+	}
 
-			return true
-		}
-
-		ident, ok := sel.X.(*ast.Ident)
-		if !ok {
-			return true
-		}
-
-		srcPath, known := qualToPath[ident.Name]
-		if !known {
-			return true
-		}
-
-
-		remainingRefs[ident.Name]++
-
-		// Rule R3: constructor renames within the same package.
-		if renamed, isRaw := rawBroadcasterRenames[sel.Sel.Name]; isRaw && sourcePackages[srcPath] {
-			remainingRefs[ident.Name]--
-			renameRawConstructor(fset, ident, sel, renamed, &edits, &rep)
-
-			return true
-		}
-
-		// R1/R2/R9/R10: deprecated re-export requalification.
-		sym, mapped := table[srcPath][sel.Sel.Name]
-		if !mapped {
-			return true
-		}
-
-		remainingRefs[ident.Name]--
-		requalify(fset, ident, sel, sym, pathToQual, targetQual, needImport, &edits, &rep)
-
-		return true
-	})
+	ast.Inspect(file, ctx.visit)
+	edits = ctx.edits
 
 	if len(edits) == 0 && len(rep.manual) == 0 {
 		return rep, nil
@@ -571,4 +545,59 @@ func renameRawConstructor(
 		Old:  ident.Name + "." + sel.Sel.Name,
 		New:  ident.Name + "." + renamed,
 	})
+}
+
+// planCtx carries one file's planning state through the AST walk.
+type planCtx struct {
+	fset          *token.FileSet
+	table         rulesTable
+	qualToPath    map[string]string
+	pathToQual    map[string]string
+	targetQual    map[string]string
+	remainingRefs map[string]int
+	needImport    map[string]bool
+	edits         []textEdit
+	rep           *fileReport
+}
+
+// visit is the AST walk: reports .Raw() calls, renames R3 constructors, and
+// requalifies deprecated re-export selectors (R1/R2/R9/R10).
+func (p *planCtx) visit(n ast.Node) bool {
+	sel, ok := n.(*ast.SelectorExpr)
+	if !ok {
+		reportRawCall(p.fset, n, p.qualToPath, p.rep)
+
+		return true
+	}
+
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok {
+		return true
+	}
+
+	srcPath, known := p.qualToPath[ident.Name]
+	if !known {
+		return true
+	}
+
+	p.remainingRefs[ident.Name]++
+
+	// Rule R3: constructor renames within the same package.
+	if renamed, isRaw := rawBroadcasterRenames[sel.Sel.Name]; isRaw && sourcePackages[srcPath] {
+		p.remainingRefs[ident.Name]--
+		renameRawConstructor(p.fset, ident, sel, renamed, &p.edits, p.rep)
+
+		return true
+	}
+
+	// R1/R2/R9/R10: deprecated re-export requalification.
+	sym, mapped := p.table[srcPath][sel.Sel.Name]
+	if !mapped {
+		return true
+	}
+
+	p.remainingRefs[ident.Name]--
+	requalify(p.fset, ident, sel, sym, p.pathToQual, p.targetQual, p.needImport, &p.edits, p.rep)
+
+	return true
 }

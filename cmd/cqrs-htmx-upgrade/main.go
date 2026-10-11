@@ -35,6 +35,7 @@ import (
 func main() {
 	apply := flag.Bool("apply", false, "write rewritten files (default: dry-run report)")
 	verbose := flag.Bool("v", false, "print every planned edit")
+
 	flag.Parse()
 
 	paths := flag.Args()
