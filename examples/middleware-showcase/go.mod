@@ -1,9 +1,9 @@
 module github.com/larsartmann/cqrs-htmx/examples/middleware-showcase
 
-go 1.27
+go 1.27.2
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.3
+	github.com/larsartmann/cqrs-htmx/v4 v4.14.0
 	github.com/larsartmann/go-etag/server v0.6.1
 	github.com/larsartmann/httputil v1.5.0
 )
