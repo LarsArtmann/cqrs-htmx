@@ -40,7 +40,20 @@
           # cannot satisfy those directives under go_1_26, so the toolchain
           # moves to nixpkgs' go_1_27 — the same change go-cqrs-lite landed
           # in its flake the same day.
-          goPkg = pkgs.go_1_27;
+          #
+          # 2026-10-11: stdlib net/http vulns GO-2026-6603/6611/6613/6617
+          # (HTTP/2 HPACK race class) reddened CI's govulncheck on the 1.27.1
+          # floor; fixes ship in go 1.27.2. This nixpkgs rev still carries
+          # go_1_27 = 1.27.1, so pin the patch version forward via
+          # overrideAttrs (same mechanism go-health used in reverse for gosec
+          # on 2026-10-11) instead of a whole nixpkgs bump.
+          goPkg = pkgs.go_1_27.overrideAttrs (_old: rec {
+            version = "1.27.2";
+            src = pkgs.fetchurl {
+              url = "https://go.dev/dl/go${version}.src.tar.gz";
+              hash = "sha256-A0ldorpkiU1A9cSZLklFT6eLUGkGBP+Stq//UIG3bmI=";
+            };
+          });
 
           goEnv = ''
             export GOWORK=off

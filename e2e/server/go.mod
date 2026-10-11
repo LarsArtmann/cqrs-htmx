@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/e2e/server
 
-go 1.27.1
+go 1.27.2
 
 require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.2
