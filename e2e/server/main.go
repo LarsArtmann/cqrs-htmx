@@ -265,6 +265,9 @@ func main() {
 		}
 		pullBackendA.ServeHTTP(w, r)
 	}))
+	// TEST-ONLY debug endpoint: rotating the pull backend's identity is the
+	// only way to e2e-pin the client's sync:reset behavior (cache wipe +
+	// queue retention on backend switch). Never ship this in a consumer app.
 	mux.HandleFunc("POST /api/debug/rotate-backend", func(w http.ResponseWriter, _ *http.Request) {
 		rotated.Store(true)
 		w.WriteHeader(http.StatusNoContent)

@@ -320,15 +320,13 @@ test("batched offline commands flush as ONE /sync/push request", async ({ page, 
 });
 
 // Typed window.cqrsSync access (no global declaration file for specs).
-type SyncPublicAPI = {
-  getEvents: () => Promise<{ events: Array<{ type?: string }>; cursor: string; backendId: string }>;
-  pull: () => Promise<unknown>;
-  version: string;
-};
-
-function cqrsSync(): SyncPublicAPI {
-  return (window as unknown as { cqrsSync: SyncPublicAPI }).cqrsSync;
-}
+// page.evaluate structured-clones its result: functions do NOT survive the
+// boundary, so specs must evaluate inline expressions that AWAIT the call and
+// return plain data (the CACHED_EVENTS pattern), never the API object itself.
+const GET_EVENTS = `(async function() {
+  const out = await window.cqrsSync.getEvents();
+  return { events: out.events, cursor: out.cursor, backendId: out.backendId };
+})()`;
 
 const CACHED_EVENTS = `(async function() {
   const out = await window.cqrsSync.getEvents();
@@ -349,15 +347,19 @@ test("offline reads serve cached events via window.cqrsSync.getEvents()", async 
     { timeout: 15000 },
   );
 
-  // First pull populates the cache from the seeded journal.
-  const online = await page.evaluate(cqrsSync);
-  expect(online.events.length).toBeGreaterThanOrEqual(2);
+  // First pull populates the cache from the seeded journal. The status
+  // indicator does NOT gate the boot-time catch-up pull (it reflects the
+  // push/SSE connection), so poll the cache until the pull lands.
+  await expect
+    .poll(async () => (await page.evaluate(GET_EVENTS)).events.length, { timeout: 15000 })
+    .toBeGreaterThanOrEqual(2);
+  const online = await page.evaluate(GET_EVENTS);
   expect(online.backendId).toBe("e2e-backend-A");
 
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  const offline = await page.evaluate(cqrsSync);
+  const offline = await page.evaluate(GET_EVENTS);
   expect(offline.events.length).toBeGreaterThanOrEqual(2);
   expect(offline.events[offline.events.length - 1].type).toBe("Item.synced");
   expect(offline.backendId).toBe("e2e-backend-A");
@@ -379,8 +381,9 @@ test("sync:reset on backendId change clears the cache but keeps the queue", asyn
     { timeout: 15000 },
   );
 
-  const initial = await page.evaluate(cqrsSync);
-  expect(initial.events.length).toBeGreaterThanOrEqual(2);
+  await expect
+    .poll(async () => (await page.evaluate(GET_EVENTS)).events.length, { timeout: 15000 })
+    .toBeGreaterThanOrEqual(2);
 
   // Rotate the backend identity, then force a pull: the response's
   // backendId no longer matches the persisted one, so the worker wipes
