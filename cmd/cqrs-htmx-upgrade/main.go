@@ -43,7 +43,7 @@ func main() {
 	}
 
 	if err := runCLI(paths, *apply, *verbose); err != nil {
-		fatal("%v", err)
+		fatalf("%v", err)
 	}
 }
 
@@ -57,7 +57,7 @@ func runCLI(paths []string, apply, verbose bool) error {
 
 	_, reports, err := run(paths, mappings, apply)
 	if err != nil {
-		return err //nolint:wrapcheck // already wrapped at its source; CLI boundary
+		return err
 	}
 
 	printReport(reports, apply, verbose)
@@ -76,26 +76,11 @@ func printReport(reports []fileReport, apply, verbose bool) {
 		totalEdits += len(rep.edits)
 		totalManual += len(rep.manual)
 
-		if len(rep.edits) == 0 && len(rep.manual) == 0 {
-			continue
-		}
-
 		if len(rep.edits) > 0 {
 			changed++
 		}
 
-		//nolint:forbidigo // CLI report output is the tool's product
-		fmt.Printf("%s:\n", rep.path)
-
-		for _, e := range rep.edits {
-			//nolint:forbidigo // CLI report output is the tool's product
-			fmt.Printf("  %s: %s -> %s\n", e.Rule, e.Old, e.New)
-		}
-
-		for _, m := range rep.manual {
-			//nolint:forbidigo // CLI report output is the tool's product
-			fmt.Printf("  %s (MANUAL): %s\n", m.Rule, m.Note)
-		}
+		printFileFindings(rep)
 	}
 
 	mode := "dry run (no files written; pass -apply)"
@@ -118,7 +103,28 @@ func printReport(reports []fileReport, apply, verbose bool) {
 	}
 }
 
-func fatal(format string, args ...any) {
+func fatalf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, "cqrs-htmx-upgrade: "+format+"\n", args...)
 	os.Exit(1)
+}
+
+// printFileFindings prints one file's edits and manual findings. The CLI's
+// stdout IS its product — fmt.Print* is deliberate here.
+func printFileFindings(rep fileReport) {
+	if len(rep.edits) == 0 && len(rep.manual) == 0 {
+		return
+	}
+
+	//nolint:forbidigo // CLI report output is the tool's product
+	fmt.Printf("%s:\n", rep.path)
+
+	for _, e := range rep.edits {
+		//nolint:forbidigo // CLI report output is the tool's product
+		fmt.Printf("  %s: %s -> %s\n", e.Rule, e.Old, e.New)
+	}
+
+	for _, m := range rep.manual {
+		//nolint:forbidigo // CLI report output is the tool's product
+		fmt.Printf("  %s (MANUAL): %s\n", m.Rule, m.Note)
+	}
 }

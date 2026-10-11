@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"maps"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -34,15 +35,18 @@ const (
 )
 
 // root httputil re-export files (class 1) and go-sse shims (class 1).
-var (
-	rootHTTputilFiles = []string{
+func rootHTTputilFiles() []string {
+	return []string{
 		"csrf_reexport.go",
 		"ratelimit_reexport.go",
 		"server_timing_reexport.go",
 		"security.go",
 	}
-	rootGoSSEFiles = []string{"sse_event.go", "sse_store.go", "event_store_sse.go"}
-)
+}
+
+func rootGoSSEFiles() []string {
+	return []string{"sse_event.go", "sse_store.go", "event_store_sse.go"}
+}
 
 // usermgmt identity-model alias layer (class 3): the named files plus every
 // es_*.go event/command/state file.
@@ -78,12 +82,12 @@ func deriveMappings() (rulesTable, error) {
 		return nil, err
 	}
 
-	httputil, err := deriveFromFiles(rootDir, rootHTTputilFiles, httputilImportPath, "R1")
+	httputil, err := deriveFromFiles(rootDir, rootHTTputilFiles(), httputilImportPath, "R1")
 	if err != nil {
 		return nil, fmt.Errorf("R1 (httputil re-exports): %w", err)
 	}
 
-	gosse, err := deriveFromFiles(rootDir, rootGoSSEFiles, gosseImportPath, "R2")
+	gosse, err := deriveFromFiles(rootDir, rootGoSSEFiles(), gosseImportPath, "R2")
 	if err != nil {
 		return nil, fmt.Errorf("R2 (go-sse re-exports): %w", err)
 	}
@@ -94,13 +98,11 @@ func deriveMappings() (rulesTable, error) {
 	}
 
 	root := symbolMap{}
-	for sym, m := range httputil {
-		root[sym] = m
-	}
+	maps.Copy(root, httputil)
 
 	for sym, m := range gosse {
 		if _, clash := root[sym]; clash {
-			return nil, fmt.Errorf("symbol %s appears in both the httputil and go-sse re-export sets", sym)
+			return nil, fmt.Errorf("re-export clash: %s", sym) //nolint:err113 // CLI diagnostic
 		}
 
 		root[sym] = m
@@ -129,44 +131,12 @@ func deriveFromFiles(dir string, files []string, wantTargetPath, rule string) (s
 		qualToPath := importQualifierMap(file)
 
 		for _, decl := range file.Decls {
-			gen, ok := decl.(*ast.GenDecl)
-			if !ok {
-				continue
-			}
-
-			if gen.Tok != token.TYPE && gen.Tok != token.VAR {
-				continue
-			}
-
-			for _, spec := range gen.Specs {
-				switch s := spec.(type) {
-				case *ast.TypeSpec: // X = pkg.Y (transparent alias only)
-					if !s.Assign.IsValid() {
-						continue
-					}
-
-					collectAlias(out, s.Name.Name, s.Type, qualToPath, wantTargetPath, ruleForTok(rule, token.TYPE))
-
-				case *ast.ValueSpec: // X = pkg.Y (var/const re-export)
-					if len(s.Names) != 1 || len(s.Values) != 1 {
-						continue
-					}
-
-					collectAlias(
-						out,
-						s.Names[0].Name,
-						s.Values[0],
-						qualToPath,
-						wantTargetPath,
-						ruleForTok(rule, token.VAR),
-					)
-				}
-			}
+			collectDeclAliases(out, decl, qualToPath, wantTargetPath, rule)
 		}
 	}
 
 	if len(out) == 0 {
-		return nil, fmt.Errorf("no %s alias declarations found in %s (files: %v)", wantTargetPath, dir, files)
+		return nil, fmt.Errorf("no %s aliases in %s", wantTargetPath, dir) //nolint:err113 // CLI diagnostic
 	}
 
 	return out, nil
@@ -246,14 +216,7 @@ func defaultPackageName(importPath string) string {
 // moduleDir resolves a module's local source directory via the consumer's
 // module graph (`go list -m`), so the tables match the installed version.
 func moduleDir(importPath string) (string, error) {
-	cmd := exec.Command(
-		"go",
-		"list",
-		"-m",
-		"-f",
-		"{{.Dir}}",
-		importPath,
-	) //nolint:gosec // fixed argv; runs in the consumer's tree
+	cmd := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", importPath) //nolint:gosec // fixed argv; importPath is a repo constant //nolint:gosec // fixed argv; runs in the consumer's tree
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -262,8 +225,39 @@ func moduleDir(importPath string) (string, error) {
 
 	dir := strings.TrimSpace(string(out))
 	if dir == "" {
-		return "", fmt.Errorf("module %s resolved to an empty directory", importPath)
+		return "", fmt.Errorf("empty dir for %s", importPath) //nolint:err113 // CLI diagnostic
 	}
 
 	return dir, nil
+}
+
+// collectDeclAliases scans one top-level declaration for `X = pkg.Y` alias
+// forms (transparent type aliases and single-value var re-exports).
+func collectDeclAliases(out symbolMap, decl ast.Decl, qualToPath map[string]string, wantTargetPath, rule string) {
+	gen, ok := decl.(*ast.GenDecl)
+	if !ok {
+		return
+	}
+
+	if gen.Tok != token.TYPE && gen.Tok != token.VAR {
+		return
+	}
+
+	for _, spec := range gen.Specs {
+		switch s := spec.(type) {
+		case *ast.TypeSpec: // X = pkg.Y (transparent alias only)
+			if !s.Assign.IsValid() {
+				continue
+			}
+
+			collectAlias(out, s.Name.Name, s.Type, qualToPath, wantTargetPath, ruleForTok(rule, token.TYPE))
+
+		case *ast.ValueSpec: // X = pkg.Y (var/const re-export)
+			if len(s.Names) != 1 || len(s.Values) != 1 {
+				continue
+			}
+
+			collectAlias(out, s.Names[0].Name, s.Values[0], qualToPath, wantTargetPath, ruleForTok(rule, token.VAR))
+		}
+	}
 }

@@ -32,12 +32,16 @@ type manualFinding struct {
 
 // rawBroadcasterRenames is rule R3: constructor renames inside the SAME
 // package (import-neutral).
+//
+//nolint:gochecknoglobals // fixed lookup table
 var rawBroadcasterRenames = map[string]string{
 	"NewBroadcasterFromRaw": "NewBroadcasterFromHub",
 }
 
 // sourcePackages are the packages whose deprecated re-exports the codemod
 // migrates; imports of these are drop-candidates once unreferenced.
+//
+//nolint:gochecknoglobals // fixed lookup table
 var sourcePackages = map[string]bool{
 	rootImportPath:     true,
 	usermgmtImportPath: true,
@@ -76,41 +80,18 @@ func run(paths []string, table rulesTable, apply bool) (int, []fileReport, error
 	return len(goFiles), reports, nil
 }
 
+// skipDirs are never scanned.
+//
+//nolint:gochecknoglobals // fixed lookup table
+var skipDirs = map[string]bool{"vendor": true, "testdata": true, ".git": true}
+
 // collectGoFiles expands dirs (recursively) into .go file paths, skipping
 // vendor/, testdata/, and .git/ trees.
 func collectGoFiles(paths []string) ([]string, error) {
 	var out []string
 
 	for _, root := range paths {
-		info, err := os.Stat(root)
-		if err != nil {
-			return nil, err
-		}
-
-		if !info.IsDir() {
-			if strings.HasSuffix(root, ".go") {
-				out = append(out, root)
-			}
-
-			continue
-		}
-
-		err = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if d.IsDir() && (d.Name() == "vendor" || d.Name() == "testdata" || d.Name() == ".git") {
-				return filepath.SkipDir
-			}
-
-			if !d.IsDir() && strings.HasSuffix(d.Name(), ".go") {
-				out = append(out, path)
-			}
-
-			return nil
-		})
-		if err != nil {
+		if err := collectRoot(root, &out); err != nil {
 			return nil, err
 		}
 	}
@@ -118,6 +99,40 @@ func collectGoFiles(paths []string) ([]string, error) {
 	sort.Strings(out)
 
 	return out, nil
+}
+
+func collectRoot(root string, out *[]string) error {
+	info, err := os.Stat(root)
+	if err != nil {
+		//nolint:wrapcheck // CLI boundary: errors terminate the run, not API
+		return err
+	}
+
+	if !info.IsDir() {
+		if strings.HasSuffix(root, ".go") {
+			*out = append(*out, root)
+		}
+
+		return nil
+	}
+
+	//nolint:wrapcheck // CLI boundary
+	return filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			//nolint:wrapcheck // CLI boundary
+			return err
+		}
+
+		if d.IsDir() && skipDirs[d.Name()] {
+			return filepath.SkipDir
+		}
+
+		if !d.IsDir() && strings.HasSuffix(d.Name(), ".go") {
+			*out = append(*out, path)
+		}
+
+		return nil
+	})
 }
 
 // textEdit is one byte-range replacement against the ORIGINAL source (all
@@ -130,11 +145,11 @@ type textEdit struct {
 
 // planFile parses one file and computes its rewritten form (without writing).
 func planFile(path string, table rulesTable) (fileReport, error) {
-	rep := fileReport{path: path}
+	rep := fileReport{path: path, edits: nil, manual: nil, applied: ""}
 
 	src, err := os.ReadFile(path)
 	if err != nil {
-		return rep, err
+		return rep, err //nolint:wrapcheck // CLI boundary: errors terminate the run, not API
 	}
 
 	fset := token.NewFileSet()
@@ -245,6 +260,7 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 
 	for _, e := range edits {
 		if e.offset < 0 || e.end > len(out) || e.offset > e.end {
+			//nolint:err113 // CLI: terminal invariant diagnostic, not a library API error
 			return rep, fmt.Errorf("internal: bad edit range [%d,%d) for %s (len %d)", e.offset, e.end, path, len(out))
 		}
 
@@ -446,14 +462,19 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 		at = lineEnd(fset.Position(file.Name.End()).Offset)
 	}
 
-	block := "\n\nimport (\n"
+	var block strings.Builder
+	block.WriteString("\n\nimport (\n")
 	for _, ins := range inserts {
-		block += "\t" + `"` + ins.newText + `"` + "\n"
+		block.WriteString("\t")
+		block.WriteString(`"`)
+		block.WriteString(ins.newText)
+		block.WriteString(`"`)
+		block.WriteString("\n")
 	}
 
-	block += ")"
+	block.WriteString(")")
 
-	*drops = append(*drops, textEdit{at, at, block})
+	*drops = append(*drops, textEdit{at, at, block.String()})
 }
 
 func defaultQualFor(importPath string) string {

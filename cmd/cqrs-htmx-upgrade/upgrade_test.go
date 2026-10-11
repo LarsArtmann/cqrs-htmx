@@ -382,10 +382,12 @@ func TestDeriveMappings_LiveModules(t *testing.T) {
 	}
 
 	r9, r10 := 0, 0
+
 	for _, m := range identity {
-		if m.rule == "R9" {
+		switch m.rule {
+		case "R9":
 			r9++
-		} else if m.rule == "R10" {
+		case "R10":
 			r10++
 		}
 	}
