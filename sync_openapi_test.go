@@ -2,14 +2,14 @@ package cqrshtmx_test
 
 import (
 	"bytes"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
-
-	"encoding/json/jsontext"
-	"encoding/json/v2"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
@@ -24,10 +24,10 @@ var updateGoldens = flag.Bool("update", false, "rewrite golden files instead of 
 //	go test ./ -run TestAddSyncOpenAPI_Golden -update
 const goldenPath = "testdata/sync-openapi-paths.golden.json"
 
-// TestAddSyncOpenAPI_Golden pins the emitted spec fragment byte-for-byte:
-// any drift in the sync operation metadata (params, schemas, enums, headers,
-// response codes) is a consumer-visible documentation change and must be
-// reviewed, not silently regenerated.
+// TestAddSyncOpenAPI_Golden pins the emitted spec fragment: any drift in the
+// sync operation metadata (params, schemas, enums, headers, response codes)
+// is a consumer-visible documentation change and must be reviewed, not
+// silently regenerated.
 func TestAddSyncOpenAPI_Golden(t *testing.T) {
 	spec := openapi.New("Golden API", "1.0.0")
 	cqrshtmx.AddSyncOpenAPI(spec, "/sync/pull", "/sync/push")
@@ -58,7 +58,19 @@ func TestAddSyncOpenAPI_Golden(t *testing.T) {
 		t.Fatalf("read golden (run with -update to create): %v", err)
 	}
 
-	if !bytes.Equal(got, want) {
+	// Compare semantically, not byte-for-byte: encoding/json/v2 does not sort
+	// map keys, so key ORDER in the serialized spec is randomized per run. The
+	// golden pins the CONTENT of the wire-contract documentation.
+	var wantDoc, gotDoc map[string]any
+	if err := json.Unmarshal(want, &wantDoc); err != nil {
+		t.Fatalf("golden is not valid JSON: %v", err)
+	}
+
+	if err := json.Unmarshal(got, &gotDoc); err != nil {
+		t.Fatalf("emitted fragment is not valid JSON: %v", err)
+	}
+
+	if !reflect.DeepEqual(wantDoc, gotDoc) {
 		t.Errorf(
 			"sync OpenAPI fragment drifted; diff old/new and re-pin deliberately with -update:\n--- golden ---\n%s\n--- got ---\n%s",
 			want,

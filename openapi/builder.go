@@ -55,8 +55,8 @@ func (s *Spec) Path(path string, operations ...*opBuilder) *Spec {
 // builder calls. It panics when the operation carries no HTTPMethod (only
 // literally-constructed Operations can lack one). If the path already exists,
 // the operation is merged into the existing PathItem.
-func (s *Spec) PathOp(path string, op Operation) *Spec {
-	if op.HTTPMethod == "" {
+func (s *Spec) PathOp(path string, operation Operation) *Spec {
+	if operation.HTTPMethod == "" {
 		panic("openapi: PathOp: operation has no HTTPMethod (build it with Get/Post/... and .Op())")
 	}
 
@@ -67,7 +67,7 @@ func (s *Spec) PathOp(path string, op Operation) *Spec {
 		s.Paths[path] = item
 	}
 
-	(&opBuilder{method: op.HTTPMethod, op: &op}).apply(item)
+	(&opBuilder{method: operation.HTTPMethod, op: &operation}).apply(item)
 
 	return s
 }

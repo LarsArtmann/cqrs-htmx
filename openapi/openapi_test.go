@@ -342,7 +342,8 @@ func TestSpec_AllBuildersAndMutators(t *testing.T) {
 }
 
 // TestOpBuilder_RespHeader verifies response-header documentation: headers land
-// on the response they follow, and only there.
+// on the response they follow, and only there. Asserts on the decoded document
+// (encoding/json/v2 does not sort map keys, so substring order is not stable).
 func TestOpBuilder_RespHeader(t *testing.T) {
 	spec := cqrsopenapi.New("Demo API", "1.0.0").Path("/feed",
 		cqrsopenapi.Get("GetFeed").
@@ -353,22 +354,29 @@ func TestOpBuilder_RespHeader(t *testing.T) {
 			RespHeader("X-Empty", cqrsopenapi.String(), "no-content header"),
 	)
 
-	data, err := spec.JSON()
-	if err != nil {
-		t.Fatalf("JSON: %v", err)
+	op := spec.Paths["/feed"].Get
+	if op == nil {
+		t.Fatal("GET operation missing")
 	}
 
-	out := string(data)
-
-	resp200 := `"responses":{"200":{"description":"OK","headers":{"Cache-Control":{"description":"revalidate always",` +
-		`"schema":{"type":"string"}},"ETag":{"description":"weak-change tag","schema":{"type":"string"}}}`
-	if !strings.Contains(out, resp200) {
-		t.Errorf("200 response missing its headers:\n%s", out)
+	resp200 := op.Responses[200]
+	if resp200 == nil {
+		t.Fatal("200 response missing")
 	}
 
-	resp304 := `"304":{"description":"Not modified","headers":{"X-Empty"`
-	if !strings.Contains(out, resp304) {
-		t.Errorf("304 response header landed on the wrong response:\n%s", out)
+	for _, name := range []string{"ETag", "Cache-Control"} {
+		if resp200.Headers[name] == nil {
+			t.Errorf("200 response missing %q header: %+v", name, resp200.Headers)
+		}
+	}
+
+	if _, leaked := resp200.Headers["X-Empty"]; leaked {
+		t.Errorf("X-Empty header leaked onto the 200 response: %+v", resp200.Headers)
+	}
+
+	resp304 := op.Responses[304]
+	if resp304 == nil || resp304.Headers["X-Empty"] == nil {
+		t.Errorf("304 response missing its X-Empty header: %+v", resp304)
 	}
 }
 

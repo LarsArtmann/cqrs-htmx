@@ -98,6 +98,20 @@ mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 - `commandId` is stamped as `X-Command-Id` on the replayed pipeline, so `BroadcastOnAck`-style hooks fire per command and idempotency middleware dedups retries.
 - Batches cap at `MaxSyncPushBatch` (100); failures are isolated per command — one rejected command never aborts the batch.
 
+## OpenAPI metadata
+
+Both sync endpoints ship their wire contract as ready-made OpenAPI 3.1 operations — attach them at the same paths you mounted the handlers:
+
+```go
+spec := openapi.New("MyApp", "1.0.0")
+cqrshtmx.AddSyncOpenAPI(spec, "/sync/pull", "/sync/push")
+handler, err := cqrshtmx.OpenAPISpecHandler(spec)
+if err != nil { log.Fatal(err) } // serialization failed — a programming error
+mux.Handle("GET /openapi.json", handler)
+```
+
+Custom paths or an existing spec? `cqrshtmx.SyncPullOpenAPIOp()` / `cqrshtmx.SyncPushOpenAPIOp()` return the operation metadata for `openapi.Spec.PathOp` — the schemas are inline, so no component registration is needed. The emitted fragment (params, payload-encoding rules, outcome enums, batch bounds, ETag/304 contract) is pinned by a golden test: documentation drift is a test failure, not a footnote.
+
 ## Permissions (the pull filter)
 
 `WithSyncPullFilter` runs **per request** with the live `*http.Request` — session-derived authorization composes naturally. Filtering is fail-closed, and invisible events still advance the cursor (they are never re-read):
