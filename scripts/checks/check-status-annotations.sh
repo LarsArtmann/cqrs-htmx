@@ -38,9 +38,15 @@ failed=0
 
 for f in "$DIR"/*.md; do
   [ -e "$f" ] || continue
-  total=$((total + 1))
 
   base="$(basename "$f")"
+
+  # README.md is the bulk-pass manifest (docs/status/README.md documents it),
+  # not a session report — never gated.
+  [ "$base" = "README.md" ] && continue
+
+  total=$((total + 1))
+
   date="$(printf '%s' "$base" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}')" || date=""
 
   if [ -z "$date" ]; then
