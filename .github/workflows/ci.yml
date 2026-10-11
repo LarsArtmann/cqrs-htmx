@@ -430,7 +430,10 @@ jobs:
       - name: golangci-lint (${{ matrix.module }})
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.13.2
+          # v2.13.2 cannot read Go 1.27.2 export data ("export data version 5
+          # is greater than maximum supported version 4"); v2.14.0 parses the
+          # 1.27.2 workspace (verified locally, fleet build).
+          version: v2.14.0
           working-directory: ${{ matrix.module }}
           args: "--timeout=5m"
         env:
