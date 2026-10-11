@@ -1,5 +1,7 @@
 # T01 Execution — Self-Review + Status (Session Report)
 
+> ANNOTATED 2026-10-11 (post-wave alignment session): the overnight pile **pushed green** — `3bedf6e8` (13 commits: systemscenario migration `749ddbb5`+`e4f9784f`, sweeps) then `3e2bf224` (security: Go floor 1.27.1→1.27.2 for GO-2026-6603/6611/6613/6617) + `febb8ef5` (lint); CI run **38110505538 success** (17 jobs). Resolved inline below: **f-2** (exhaustruct ×2 + 4 more — fixed `febb8ef5`, nested-literal form), **f-3** (fresh fleet lint DONE: 6 findings total, systemadapter CLEAN post-migration), **f-5** (health rider confirmed blocked — `ProjectionStatusLive` in NO published root tag, gotcha 30), **q1-class resolved by the default-and-act doctrine** (e-3: this session fixed the foreign-module reds without waiting). Still open: T02 train decision (strict gate shows 0 lag — no train forced), T03/T04 sync specs (→ plan 2026-10-10 P6), T09 amends partially done (sweep commits amended in-band).
+
 **Date:** 2026-10-10 21:09
 **Scope:** This session's run only — the T01 verification arc of the SUPERB follow-through plan ([plan](../planning/2026-10-09_14-49_SUPERB-frontend-sync-follow-through-pareto-plan.md)) plus the follow-up design conversations (goal inventory, LiveStore learnings, optimistic-prediction proposal). Prior episodes: [04-04 ADR-0056](2026-10-09_04-04_frontend-sync-protocol-adr0056.md), [05-17 completion + self-review](2026-10-09_05-17_frontend-sync-protocol-completion-and-self-review.md), [20-06 T01 execution](2026-10-09_20-06_frontend-sync-followthrough-execution-t01.md).
 **Format:** `.md` at explicit user demand (HTML-canonical override, flagged per skill contract).
@@ -67,7 +69,7 @@ Browser-level: 4 sync specs (enqueue persistence, online flush, cross-session re
 
 | Item | State | Blocker |
 | --- | --- | --- |
-| **T01** — verification sweep | e2e ✅, templates ✅, **lint ❌** | identity-model exhaustruct ×2 (confirmed still red today — foreign module, q1 open); systemadapter typecheck ×8 (concurrent go-cqrs-lite refactor; `749ddbb5`/`e4f9784f` landed overnight — verdict needs a fresh `nix run .#lint`, do not assume) |
+| **T01** — verification sweep | e2e ✅, templates ✅, ~~**lint ❌**~~ done 2026-10-11 (`febb8ef5`: exhaustruct ×6 nested-literal fix; fleet lint 0 issues; CI 38110505538 green) | ~~identity-model exhaustruct ×2 (confirmed still red today — foreign module, q1 open); systemadapter typecheck ×8~~ resolved 2026-10-11: the exhaustruct ×2 + 4 more fixed in `febb8ef5`; systemadapter CLEAN post-migration (fleet sweep 0 issues) |
 | **T02** — root release train v4.14.0 | fully prepped, not executed | gated on T01 lint green + q2 (timing vs go-cqrs-lite train); a day of drift accumulated |
 | Optimistic-prediction design | analyzed, direction sound | captured nowhere; needs ROADMAP entry + ADR-0056 amendment note |
 
@@ -95,10 +97,10 @@ T03 (e2e harness for pull/push/page-attrs) · T04 (new-path Playwright specs ×5
 
 **Unblock + release**
 1. Resolve g-questions below → proceed per answers
-2. Fix identity-model exhaustruct ×2 (`external_account.go:23`, `fold.go:190`) — q1 default
-3. Fresh `nix run .#lint` — adjudicate systemadapter after the overnight systemscenario commits; wait/coordinate if the go-cqrs-lite refactor is still moving (gotcha 4), never patch their work
+2. ~~Fix identity-model exhaustruct ×2 (`external_account.go:23`, `fold.go:190`)~~ done 2026-10-11 `febb8ef5` (+ usermgmt ×4 same form; nested literals)
+3. ~~Fresh `nix run .#lint` — adjudicate systemadapter after the overnight systemscenario commits~~ done 2026-10-11: 6 findings total, systemadapter clean, fleet 0 issues after `febb8ef5`
 4. T02: `train-preflight` → `verify-tag.sh . v4.14.0` (dry-run → `--push`) → `check-release-train.sh --refresh-cache` → consumer sweep (`bump-dep` + per-module tidy + strict gate)
-5. Health module's train (unblocked by the root tag — its entry waits on `ProjectionStatus*`)
+5. Health module's train (unblocked by the root tag — its entry waits on `ProjectionStatus*`) — confirmed blocked 2026-10-11: `ProjectionStatusLive` (added `0012e2dd` 2026-10-09) is in NO published root tag (gotcha 30); rides the next root train
 6. T09 (pulled forward): amend daemon-commit messages for the 10-09/10-10 window, by-hash on the shared tree
 
 **Prove (the new surface is currently believed, not pinned)**

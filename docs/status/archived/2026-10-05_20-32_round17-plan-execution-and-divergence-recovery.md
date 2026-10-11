@@ -1,5 +1,7 @@
 # Round-17 Plan Execution, Divergence Recovery & Cross-Session Triage
 
+> ANNOTATED 2026-10-11 (post-wave alignment session, 6 days later): **f-10 DONE** — loginpage JS smoke tests landed `bd38452c` (node:test suite 9/9: seeded Base64URL property round-trip + serializer goldens, wired via `js_smoke_test.go`; flake `#test` lane automatic). **f-11 HALF-DONE** — `.#test-all` green twice (1.27.1 floor and post-1.27.2 bump `3e2bf224`); bench-spike honestly refused at load 72–77. **f-9 GREEN-NO-REPIN** — coverage gate 15/15 on 2026-10-11 (loginpage 81.7% vs 79% floor; floor unchanged). **f-18 DONE 2026-10-07** (`check-family-release-consumable.sh`, TODO row 79). f-12→P12, f-13→P13, f-14→P14, f-15→P15, f-17→P23 of the 2026-10-10 23:42 plan (open). The systemscenario wave published 2026-10-10, dissolving the A3/A9 blocker class — CI run 38110505538 green.
+
 **Date:** 2026-10-05 20:32 CEST
 **Session window:** 2026-10-04 07:45 → 2026-10-05 20:32 (two active turns, one ~32 h gap)
 **Scope of this report:** what THIS session ran, verified, broke, and noticed. Concurrent-session work is attributed, not claimed.
@@ -71,8 +73,8 @@
 7. Cut CHANGELOG version headers BEFORE tagging (train step 3.7) — High / S / Release
 ~~8. Run `.#check-modules` composite (28 stages) at the first quiet window — High / M / Quality~~ done — fully green in the 03-04 + 10-06 batteries
 9. Re-pin the loginpage coverage gate post-adoption (quiet window) — Med / S / Quality
-10. A7: loginpage JS smoke tests (node:test, Base64URL property test, serialize goldens, wire into `.#test`) — High / M / Quality
-11. A9: `.#test-all` (28 modules) + `.#bench-spike` under verified quiet (< 6 twice) — High / M / Quality
+10. ~~A7: loginpage JS smoke tests (node:test, Base64URL property test, serialize goldens, wire into `.#test`)~~ done 2026-10-11 `bd38452c`
+11. ~~A9: `.#test-all` (28 modules)~~ done 2026-10-11 (green on both toolchain floors) + `.#bench-spike` refused under load (honest refusal, twice-quiet rule)
 12. A11: `cqrs-htmx-upgrade` codemod Track A (R1–R3, R9–R10, dry-run default, golden fixture) — High / L / Feature
 13. A12: Track B data-compat goldens (real v4.13 journal, 21-event decode, upcaster matrix) — High / L / Feature
 14. A14: loginpage Playwright E2E (real WebAuthn ceremony + full-page golden) — Med / L / Quality
