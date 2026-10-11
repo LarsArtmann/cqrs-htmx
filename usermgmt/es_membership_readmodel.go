@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"slices"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -25,10 +26,13 @@ type MembershipReadModel struct {
 // NewMembershipReadModel creates an empty MembershipReadModel.
 func NewMembershipReadModel() *MembershipReadModel {
 	return &MembershipReadModel{
-		handlers: map[event.Type]eventHandler[*MembershipReadModel]{
-			eventMemberAdded:        (*MembershipReadModel).applyMemberAdded,
-			eventMemberRolesChanged: (*MembershipReadModel).handleMemberRolesChanged,
-			eventMemberRemoved:      (*MembershipReadModel).handleMemberRemoved,
+		readModelCore: readModelCore[*MembershipReadModel]{
+			mu: sync.RWMutex{},
+			handlers: map[event.Type]eventHandler[*MembershipReadModel]{
+				eventMemberAdded:        (*MembershipReadModel).applyMemberAdded,
+				eventMemberRolesChanged: (*MembershipReadModel).handleMemberRolesChanged,
+				eventMemberRemoved:      (*MembershipReadModel).handleMemberRemoved,
+			},
 		},
 		memberships: make(map[id.StreamID]*Membership),
 		byActor:     make(map[string][]id.StreamID),

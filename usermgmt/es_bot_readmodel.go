@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -34,9 +35,12 @@ type BotReadModel struct {
 // NewBotReadModel creates an empty BotReadModel.
 func NewBotReadModel() *BotReadModel {
 	return &BotReadModel{
-		handlers: map[event.Type]eventHandler[*BotReadModel]{
-			eventBotRegistered: (*BotReadModel).handleBotRegistered,
-			eventBotDeleted:    (*BotReadModel).handleBotDeleted,
+		readModelCore: readModelCore[*BotReadModel]{
+			mu: sync.RWMutex{},
+			handlers: map[event.Type]eventHandler[*BotReadModel]{
+				eventBotRegistered: (*BotReadModel).handleBotRegistered,
+				eventBotDeleted:    (*BotReadModel).handleBotDeleted,
+			},
 		},
 		bots:        make(map[id.StreamID]*Bot),
 		byTokenHash: make(map[string]*Bot),
