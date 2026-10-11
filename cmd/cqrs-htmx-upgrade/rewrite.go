@@ -177,7 +177,7 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 	remainingRefs := map[string]int{}
 	needImport := map[string]bool{}
 
-	var edits []textEdit
+	edits := make([]textEdit, 0, 8)
 
 	ast.Inspect(file, func(n ast.Node) bool {
 		sel, ok := n.(*ast.SelectorExpr)
@@ -197,21 +197,13 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 			return true
 		}
 
+
 		remainingRefs[ident.Name]++
 
 		// Rule R3: constructor renames within the same package.
 		if renamed, isRaw := rawBroadcasterRenames[sel.Sel.Name]; isRaw && sourcePackages[srcPath] {
 			remainingRefs[ident.Name]--
-
-			off := fset.Position(sel.Sel.Pos()).Offset
-			end := fset.Position(sel.Sel.End()).Offset
-			edits = append(edits, textEdit{off, end, renamed})
-
-			rep.edits = append(rep.edits, plannedEdit{
-				Rule: "R3",
-				Old:  ident.Name + "." + sel.Sel.Name,
-				New:  ident.Name + "." + renamed,
-			})
+			renameRawConstructor(fset, ident, sel, renamed, &edits, &rep)
 
 			return true
 		}
@@ -223,27 +215,7 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 		}
 
 		remainingRefs[ident.Name]--
-
-		newQual := pathToQual[sym.targetImportPath]
-		if newQual == "" {
-			newQual = targetQual[sym.targetImportPath]
-			needImport[sym.targetImportPath] = true
-		}
-
-		off := fset.Position(ident.Pos()).Offset
-		end := fset.Position(ident.End()).Offset
-		edits = append(edits, textEdit{off, end, newQual})
-
-		oldText := ident.Name + "." + sel.Sel.Name
-		newText := newQual + "." + sym.targetName
-
-		if sym.targetName != sel.Sel.Name {
-			soff := fset.Position(sel.Sel.Pos()).Offset
-			send := fset.Position(sel.Sel.End()).Offset
-			edits = append(edits, textEdit{soff, send, sym.targetName})
-		}
-
-		rep.edits = append(rep.edits, plannedEdit{Rule: sym.rule, Old: oldText, New: newText})
+		requalify(fset, ident, sel, sym, pathToQual, targetQual, needImport, &edits, &rep)
 
 		return true
 	})
@@ -309,6 +281,12 @@ func reportRawCall(fset *token.FileSet, n ast.Node, qualToPath map[string]string
 //   - target imports that are newly referenced but not present are appended
 //     inside the first import block (or a fresh block under the package
 //     clause when the file imports nothing).
+//
+// importEdits computes drop/insert edits for the import block:
+//   - a source-package import whose qualifier lost every reference is
+//     dropped line-wise (whole ImportSpec line, comments included);
+//   - target imports that are newly referenced but not present are inserted
+//     (fused into a dropped line when they would overlap — see fuseInserts).
 func importEdits(
 	fset *token.FileSet,
 	file *ast.File,
@@ -317,7 +295,45 @@ func importEdits(
 	remainingRefs map[string]int,
 	needImport map[string]bool,
 ) []textEdit {
-	var edits []textEdit
+	inserts := missingImports(file, qualToPath, needImport)
+	drops := dropImportSpecs(fset, file, src, qualToPath, remainingRefs)
+
+	if len(inserts) > 0 {
+		fuseInserts(fset, file, src, &drops, inserts)
+	}
+
+	return drops
+}
+
+// missingImports returns the import paths that needImport asks for but the
+// file does not already provide (under any name).
+func missingImports(file *ast.File, qualToPath map[string]string, needImport map[string]bool) []textEdit {
+	var inserts []textEdit
+
+	for path := range needImport {
+		_, byQual := qualToPath[defaultQualFor(path)]
+
+		if byQual || importedPath(file, path) {
+			continue
+		}
+
+		inserts = append(inserts, textEdit{-1, -1, path})
+	}
+
+	return inserts
+}
+
+// dropImportSpecs drops source-package imports whose qualifier lost every
+// remaining reference: line-wise for parenthesized blocks, whole-declaration
+// for single-line imports.
+func dropImportSpecs(
+	fset *token.FileSet,
+	file *ast.File,
+	src string,
+	qualToPath map[string]string,
+	remainingRefs map[string]int,
+) []textEdit {
+	var drops []textEdit
 
 	lineEnd := func(offset int) int {
 		if idx := strings.IndexByte(src[offset:], '\n'); idx >= 0 {
@@ -330,21 +346,6 @@ func importEdits(
 	lineStart := func(offset int) int {
 		return offset - strings.IndexByte(src[:offset], '\n') - 1
 	}
-
-	for path := range needImport {
-		if _, present := qualToPath[defaultQualFor(path)]; present || importedPath(file, path) {
-			continue
-		}
-
-		edits = append(edits, textEdit{-1, -1, path}) // resolved to an insert below
-	}
-
-	inserts := edits
-
-	edits = edits[:0]
-
-	// Drops first: source-package imports whose qualifier lost every ref.
-	var drops []textEdit
 
 	for _, decl := range file.Decls {
 		gen, ok := decl.(*ast.GenDecl)
@@ -384,21 +385,9 @@ func importEdits(
 		}
 	}
 
-	// Then inserts: appended after the last import line — or, when that line
-	// is itself being dropped, FUSED into the drop (replacing the line) so
-	// the two edits can never overlap.
-	if len(inserts) > 0 {
-		fuseInserts(fset, file, src, &drops, inserts)
-	}
-
-	return append(edits, drops...)
+	return drops
 }
 
-// fuseInserts places the needed imports. When the last import line survives,
-// the inserts append after it; when it is among the drops, the first drop
-// REPLACES its line with the new imports (same indent, trailing newline);
-// when the file has no import block at all, one opens under the package
-// clause.
 func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textEdit, inserts []textEdit) {
 	lineEnd := func(offset int) int {
 		if idx := strings.IndexByte(src[offset:], '\n'); idx >= 0 {
@@ -457,13 +446,14 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 	}
 
 	// No import block: open one right after the package clause.
-	at := lineEnd(fset.Position(file.Package).Offset)
+	insertAt := lineEnd(fset.Position(file.Package).Offset)
 	if file.Name != nil {
-		at = lineEnd(fset.Position(file.Name.End()).Offset)
+		insertAt = lineEnd(fset.Position(file.Name.End()).Offset)
 	}
 
 	var block strings.Builder
 	block.WriteString("\n\nimport (\n")
+
 	for _, ins := range inserts {
 		block.WriteString("\t")
 		block.WriteString(`"`)
@@ -474,7 +464,7 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 
 	block.WriteString(")")
 
-	*drops = append(*drops, textEdit{at, at, block.String()})
+	*drops = append(*drops, textEdit{insertAt, insertAt, block.String()})
 }
 
 func defaultQualFor(importPath string) string {
@@ -524,4 +514,61 @@ func lastImportLine(fset *token.FileSet, file *ast.File) (int, bool) {
 	}
 
 	return 0, false
+}
+
+// requalify rewrites one deprecated package-qualified selector to its target
+// package (import bookkeeping included) and records the planned edit.
+func requalify(
+	fset *token.FileSet,
+	ident *ast.Ident,
+	sel *ast.SelectorExpr,
+	sym mappedSymbol,
+	pathToQual map[string]string,
+	targetQual map[string]string,
+	needImport map[string]bool,
+	edits *[]textEdit,
+	rep *fileReport,
+) {
+	newQual := pathToQual[sym.targetImportPath]
+	if newQual == "" {
+		newQual = targetQual[sym.targetImportPath]
+		needImport[sym.targetImportPath] = true
+	}
+
+	off := fset.Position(ident.Pos()).Offset
+	end := fset.Position(ident.End()).Offset
+	*edits = append(*edits, textEdit{off, end, newQual})
+
+	if sym.targetName != sel.Sel.Name {
+		soff := fset.Position(sel.Sel.Pos()).Offset
+		send := fset.Position(sel.Sel.End()).Offset
+		*edits = append(*edits, textEdit{soff, send, sym.targetName})
+	}
+
+	rep.edits = append(rep.edits, plannedEdit{
+		Rule: sym.rule,
+		Old:  ident.Name + "." + sel.Sel.Name,
+		New:  newQual + "." + sym.targetName,
+	})
+}
+
+// renameRawConstructor rewrites one NewBroadcasterFromRaw -> FromHub call
+// (rule R3; the selector name alone changes, the import stays).
+func renameRawConstructor(
+	fset *token.FileSet,
+	ident *ast.Ident,
+	sel *ast.SelectorExpr,
+	renamed string,
+	edits *[]textEdit,
+	rep *fileReport,
+) {
+	off := fset.Position(sel.Sel.Pos()).Offset
+	end := fset.Position(sel.Sel.End()).Offset
+	*edits = append(*edits, textEdit{off, end, renamed})
+
+	rep.edits = append(rep.edits, plannedEdit{
+		Rule: "R3",
+		Old:  ident.Name + "." + sel.Sel.Name,
+		New:  ident.Name + "." + renamed,
+	})
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -216,7 +217,8 @@ func defaultPackageName(importPath string) string {
 // moduleDir resolves a module's local source directory via the consumer's
 // module graph (`go list -m`), so the tables match the installed version.
 func moduleDir(importPath string) (string, error) {
-	cmd := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", importPath) //nolint:gosec // fixed argv; importPath is a repo constant //nolint:gosec // fixed argv; runs in the consumer's tree
+	//nolint:gosec // fixed argv; importPath is one of this file's two constants
+	cmd := exec.CommandContext(context.Background(), "go", "list", "-m", "-f", "{{.Dir}}", importPath)
 
 	out, err := cmd.Output()
 	if err != nil {

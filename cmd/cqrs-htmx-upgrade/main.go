@@ -38,6 +38,7 @@ func main() {
 	flag.Parse()
 
 	paths := flag.Args()
+
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
