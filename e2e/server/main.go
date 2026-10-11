@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	dashboardui "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
@@ -212,6 +213,63 @@ func main() {
 	// --- Command endpoint: POST form data -> store -> broadcast ACK ---
 	mux.HandleFunc("POST /api/items", itemsPostHandler(store, ackHook))
 
+	// --- ADR-0056 sync halves: typed commands batch-push through
+	// POST /sync/push; events journal back via GET /sync/pull. The pull
+	// backend identity is rotatable (debug endpoint) so specs can pin the
+	// sync:reset-on-backendId-change contract. ---
+	syncStore := memorystorage.NewMemoryStore()
+	seedSyncEvents(syncStore)
+
+	cmdDisp := command.NewDispatcher()
+	//cqrs-lint:ignore(C028) e2e server: event append failures fail the test command outright
+	_ = command.RegisterTyped(cmdDisp, "SyncAddItem", func(ctx context.Context, c *syncAddItemCmd) error {
+		aggID := id.NewStreamID()
+		ref := id.StreamRef{Type: "Item", ID: aggID}
+		evt, err := event.New(event.Type("Item.synced"), aggID, "Item", event.Version(1),
+			map[string]string{"name": c.ItemName()})
+		if err != nil {
+			return err
+		}
+
+		if err := syncStore.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+			return err
+		}
+
+		store.add(c.ItemName())
+
+		return nil
+	})
+
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: cmdDisp, AfterDispatch: ackHook})
+
+	mux.Handle("POST /api/sync-items", app.Command("SyncAddItem",
+		cqrshtmx.DecodeForm(func(f syncItemForm) (command.Command, error) {
+			core, err := command.New("SyncAddItem", id.NewStreamID())
+			if err != nil {
+				return nil, err
+			}
+			return &syncAddItemCmd{BasicCommand: *core, name: f.Name}, nil
+		}),
+		cqrshtmx.WithSuccessStatus(http.StatusCreated),
+	))
+
+	mux.Handle("POST /sync/push", app.SyncPushHandler())
+
+	pullBackendA := cqrshtmx.SyncPullHandler(syncStore, cqrshtmx.WithSyncPullBackendID("e2e-backend-A"))
+	pullBackendB := cqrshtmx.SyncPullHandler(syncStore, cqrshtmx.WithSyncPullBackendID("e2e-backend-B"))
+	var rotated atomic.Bool
+	mux.Handle("GET /sync/pull", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if rotated.Load() {
+			pullBackendB.ServeHTTP(w, r)
+			return
+		}
+		pullBackendA.ServeHTTP(w, r)
+	}))
+	mux.HandleFunc("POST /api/debug/rotate-backend", func(w http.ResponseWriter, _ *http.Request) {
+		rotated.Store(true)
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	// --- Query endpoint: list stored items (for test assertions) ---
 	mux.HandleFunc("GET /api/debug/items", itemsDebugHandler(store))
 
@@ -262,7 +320,7 @@ const indexHTML = `<!DOCTYPE html>
   <title>Sync E2E Test</title>
   <script src="/htmx.js"></script>
 </head>
-<body data-sse-url="/events">
+<body data-sse-url="/events" data-sync-pull-url="/sync/pull" data-sync-push-url="/sync/push">
   <div id="sync-indicator" data-sync-status="idle">Synced</div>
   <main>
     <h1>Items</h1>
@@ -270,6 +328,10 @@ const indexHTML = `<!DOCTYPE html>
       <form id="add-form" hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend">
         <input type="text" name="name" placeholder="Item name" required autocomplete="off">
         <button type="submit">Add</button>
+      </form>
+      <form id="sync-add-form" data-sync-command-type="SyncAddItem" hx-post="/api/sync-items" hx-target="#item-list" hx-swap="beforeend">
+        <input type="text" name="name" placeholder="Batched item" required autocomplete="off">
+        <button type="submit">Add (batched)</button>
       </form>
       <ul id="item-list"></ul>
     </div>
@@ -371,4 +433,39 @@ func (s *itemStore) list() []string {
 	copy(out, s.items)
 
 	return out
+}
+
+// --- ADR-0056 sync types: form -> typed command -> journaled event ---
+
+type syncItemForm struct {
+	Name string `json:"name"`
+}
+
+type syncAddItemCmd struct {
+	command.BasicCommand
+	name string
+}
+
+func (c *syncAddItemCmd) ItemName() string { return c.name }
+
+// seedSyncEvents gives the pull cache deterministic content on first
+// connect (the offline-reads spec reads these through
+// window.cqrsSync.getEvents() without issuing any command).
+func seedSyncEvents(store *memorystorage.MemoryStore) {
+	ctx := context.Background()
+
+	for _, name := range []string{"seed-one", "seed-two"} {
+		aggID := id.NewStreamID()
+		ref := id.StreamRef{Type: "Item", ID: aggID}
+
+		evt, err := event.New(event.Type("Item.synced"), aggID, "Item", event.Version(1),
+			map[string]string{"name": name})
+		if err != nil {
+			log.Fatalf("event.New: %v", err)
+		}
+
+		if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+			log.Fatalf("AppendBatch: %v", err)
+		}
+	}
 }

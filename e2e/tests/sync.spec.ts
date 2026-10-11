@@ -100,8 +100,8 @@ test("offline enqueue persists command envelope to IndexedDB", async ({ page, co
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  await page.fill('input[name="name"]', "Offline Test Item");
-  await page.click('button[type="submit"]');
+  await page.fill('#add-form input[name="name"]', "Offline Test Item");
+  await page.click('#add-form button[type="submit"]');
 
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
@@ -129,8 +129,8 @@ test("online flush delivers queued command to server", async ({ page, context })
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  await page.fill('input[name="name"]', "Delivered After Reconnect");
-  await page.click('button[type="submit"]');
+  await page.fill('#add-form input[name="name"]', "Delivered After Reconnect");
+  await page.click('#add-form button[type="submit"]');
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
   const before = await page.request.get("/api/debug/items");
@@ -174,8 +174,8 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
   await goOffline(page1, context);
   await page1.waitForTimeout(500);
 
-  await page1.fill('input[name="name"]', "Cross-Session Recovery");
-  await page1.click('button[type="submit"]');
+  await page1.fill('#add-form input[name="name"]', "Cross-Session Recovery");
+  await page1.click('#add-form button[type="submit"]');
   await expect.poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
   // Close session 1. The worker's round-robin + periodic re-flush will
@@ -233,8 +233,8 @@ test("multiple offline commands are queued and delivered on reconnect", async ({
 
   const names = ["Multi-1", "Multi-2", "Multi-3"];
   for (const name of names) {
-    await page.fill('input[name="name"]', name);
-    await page.click('button[type="submit"]');
+    await page.fill('#add-form input[name="name"]', name);
+    await page.click('#add-form button[type="submit"]');
     await page.waitForTimeout(300);
   }
 
