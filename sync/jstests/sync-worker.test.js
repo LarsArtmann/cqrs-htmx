@@ -250,7 +250,9 @@ function waitFor(messages, predicate, label, timeoutMs = 500) {
       const found = messages.find(predicate);
       if (found) return resolve(found);
       if (Date.now() - started > timeoutMs) {
-        return reject(new Error("timeout waiting for " + label + "; got: " + JSON.stringify(messages)));
+        return reject(
+          new Error("timeout waiting for " + label + "; got: " + JSON.stringify(messages)),
+        );
       }
       setTimeout(tick, 10);
     };
@@ -261,7 +263,13 @@ function waitFor(messages, predicate, label, timeoutMs = 500) {
 // A valid command envelope (the enqueue guard demands url + verb).
 function envelope(overrides) {
   return Object.assign(
-    { verb: "POST", url: "/api/notes", values: { name: "x" }, headers: null, commandType: "CreateNote" },
+    {
+      verb: "POST",
+      url: "/api/notes",
+      values: { name: "x" },
+      headers: null,
+      commandType: "CreateNote",
+    },
     overrides,
   );
 }
@@ -300,7 +308,11 @@ test("enqueue persists a typed command and it flushes as ONE retry-batch", async
   await drain();
 
   port.onmessage({
-    data: { type: "enqueue", commandId: "cmd-1", envelope: envelope({ url: "/api/notes", values: { name: "a" } }) },
+    data: {
+      type: "enqueue",
+      commandId: "cmd-1",
+      envelope: envelope({ url: "/api/notes", values: { name: "a" } }),
+    },
   });
   port.onmessage({
     data: { type: "enqueue", commandId: "cmd-2", envelope: envelope({ values: { name: "b" } }) },
@@ -318,7 +330,10 @@ test("enqueue persists a typed command and it flushes as ONE retry-batch", async
   );
   assert.equal(batch.commands.length, 2, "both typed commands must ride ONE batch");
   assert.equal(
-    batch.commands.map((c) => c.commandId).sort().join(","),
+    batch.commands
+      .map((c) => c.commandId)
+      .sort()
+      .join(","),
     "cmd-1,cmd-2",
   );
 
@@ -409,7 +424,12 @@ test("backendId change wipes the cache and broadcasts sync:reset, keeping the qu
   await drain();
 
   port.onmessage({
-    data: { type: "cache-events", cursor: "c1", backendId: "backend-A", events: [{ eventId: "e1" }] },
+    data: {
+      type: "cache-events",
+      cursor: "c1",
+      backendId: "backend-A",
+      events: [{ eventId: "e1" }],
+    },
   });
   await waitFor(port.messages, (m) => m.type === "sync:events", "first cache write");
 
