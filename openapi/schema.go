@@ -32,6 +32,12 @@ type Schema struct {
 	// Type == "array".
 	Items *Schema `json:"items,omitempty"`
 
+	// MinItems is the inclusive minimum element count (array type only).
+	MinItems *uint64 `json:"minItems,omitempty"`
+
+	// MaxItems is the inclusive maximum element count (array type only).
+	MaxItems *uint64 `json:"maxItems,omitempty"`
+
 	// Enum constrains the value to one of the listed constants (any JSON type).
 	Enum []any `json:"enum,omitempty"`
 
@@ -180,6 +186,22 @@ func (s *Schema) WithMin(n float64) *Schema {
 // WithMax sets the inclusive numeric maximum and returns the schema.
 func (s *Schema) WithMax(n float64) *Schema {
 	s.Maximum = &n
+
+	return s
+}
+
+// WithMinItems sets the inclusive minimum element count (array type) and
+// returns the schema.
+func (s *Schema) WithMinItems(n uint64) *Schema {
+	s.MinItems = &n
+
+	return s
+}
+
+// WithMaxItems sets the inclusive maximum element count (array type) and
+// returns the schema.
+func (s *Schema) WithMaxItems(n uint64) *Schema {
+	s.MaxItems = &n
 
 	return s
 }

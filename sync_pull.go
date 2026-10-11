@@ -149,7 +149,7 @@ func SyncPullHandler(journal event.Journal, opts ...SyncPullOption) http.Handler
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
-			writeSyncPullError(w, http.StatusMethodNotAllowed, "cqrshtmx.sync.pull.method_not_allowed",
+			writeSyncError(w, http.StatusMethodNotAllowed, "cqrshtmx.sync.pull.method_not_allowed",
 				"sync pull is a GET endpoint")
 
 			return
@@ -162,7 +162,7 @@ func SyncPullHandler(journal event.Journal, opts ...SyncPullOption) http.Handler
 
 		events, hasMore, err := readSyncPullWindow(r.Context(), journal, seekable, afterID, limit)
 		if err != nil {
-			writeSyncPullError(w, http.StatusInternalServerError, "cqrshtmx.sync.pull.journal_read",
+			writeSyncError(w, http.StatusInternalServerError, "cqrshtmx.sync.pull.journal_read",
 				"journal read failed")
 
 			return
@@ -200,7 +200,7 @@ func parseSyncPullQuery(w http.ResponseWriter, r *http.Request, defaultLimit int
 	if raw := r.URL.Query().Get("limit"); raw != "" {
 		parsed, err := strconv.Atoi(raw)
 		if err != nil || parsed <= 0 {
-			writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.limit_invalid",
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.limit_invalid",
 				"limit must be a positive integer")
 
 			return id.EventID{}, 0, false
@@ -218,7 +218,7 @@ func parseSyncPullQuery(w http.ResponseWriter, r *http.Request, defaultLimit int
 	if raw := r.URL.Query().Get("after"); raw != "" {
 		parsed, err := id.ParseEventID(raw)
 		if err != nil {
-			writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.cursor_invalid",
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.pull.cursor_invalid",
 				"after must be a valid event ID (ULID)")
 
 			return id.EventID{}, 0, false
@@ -364,14 +364,14 @@ func writeSyncPullResponse(w http.ResponseWriter, r *http.Request, resp *SyncPul
 	if err := WriteJSON(w, http.StatusOK, resp); err != nil {
 		// WriteJSON only fails before committing (buffered marshal), so a 500
 		// with a fresh body is still possible — never a silent empty 200.
-		writeSyncPullError(w, http.StatusInternalServerError, "cqrshtmx.sync.pull.encode",
+		writeSyncError(w, http.StatusInternalServerError, "cqrshtmx.sync.pull.encode",
 			"pull response encoding failed")
 	}
 }
 
-// writeSyncPullError emits the standalone JSON error shape used by the sync
+// writeSyncError emits the standalone JSON error shape used by the sync
 // protocol endpoints ({"error", "status", "code"} — the JSONErrorHandler body).
-func writeSyncPullError(w http.ResponseWriter, status int, code, message string) {
+func writeSyncError(w http.ResponseWriter, status int, code, message string) {
 	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)
 

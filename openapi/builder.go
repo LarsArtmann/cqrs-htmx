@@ -48,13 +48,38 @@ func (s *Spec) Path(path string, operations ...*opBuilder) *Spec {
 	return s
 }
 
+// PathOp attaches an already-built Operation to a path, using the operation's
+// own HTTPMethod (set by the Get/Post/... constructors and carried through
+// Op()). This is the seam for attaching operation metadata shipped by a
+// library — e.g. cqrshtmx.SyncPullOpenAPIOp() — without redeclaring it in
+// builder calls. It panics when the operation carries no HTTPMethod (only
+// literally-constructed Operations can lack one). If the path already exists,
+// the operation is merged into the existing PathItem.
+func (s *Spec) PathOp(path string, op Operation) *Spec {
+	if op.HTTPMethod == "" {
+		panic("openapi: PathOp: operation has no HTTPMethod (build it with Get/Post/... and .Op())")
+	}
+
+	item := s.Paths[path]
+
+	if item == nil {
+		item = &PathItem{}
+		s.Paths[path] = item
+	}
+
+	(&opBuilder{method: op.HTTPMethod, op: &op}).apply(item)
+
+	return s
+}
+
 // --- operation constructors ---
 
 // opBuilder carries an HTTP method + Operation and applies it to a PathItem.
 // Instances are created by Get, Post, Put, Patch, Delete, Head, Options.
 type opBuilder struct {
-	method string
-	op     *Operation
+	method  string
+	op      *Operation
+	lastResp *Response
 }
 
 func (b *opBuilder) apply(item *PathItem) {
@@ -206,13 +231,33 @@ func (b *opBuilder) Response(status int, description string, content ...*MediaTy
 	}
 
 	b.op.Responses[status] = resp
+	b.lastResp = resp
+
+	return b
+}
+
+// RespHeader documents a response header on the response most recently added
+// via Response or NoContent. Panics when no response was added yet — order the
+// call directly after the Response it decorates.
+func (b *opBuilder) RespHeader(name string, schema *Schema, description string) *opBuilder {
+	if b.lastResp == nil {
+		panic("openapi: RespHeader: no response to decorate (call Response or NoContent first)")
+	}
+
+	if b.lastResp.Headers == nil {
+		b.lastResp.Headers = map[string]*Header{}
+	}
+
+	b.lastResp.Headers[name] = &Header{Description: description, Schema: schema}
 
 	return b
 }
 
 // NoContent adds a response for the given status code with no body (e.g. 204).
 func (b *opBuilder) NoContent(status int, description string) *opBuilder {
-	b.op.Responses[status] = &Response{Description: description}
+	resp := &Response{Description: description}
+	b.op.Responses[status] = resp
+	b.lastResp = resp
 
 	return b
 }

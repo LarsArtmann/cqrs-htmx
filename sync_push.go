@@ -127,14 +127,14 @@ func (r *commandRegistry) lookup(cmdType command.Type) (*handlerConfig, bool) {
 func (a *App) SyncPushHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			writeSyncPullError(w, http.StatusMethodNotAllowed, "cqrshtmx.sync.push.method_not_allowed",
+			writeSyncError(w, http.StatusMethodNotAllowed, "cqrshtmx.sync.push.method_not_allowed",
 				"sync push is a POST endpoint")
 
 			return
 		}
 
 		if a.commands == nil {
-			writeSyncPullError(w, http.StatusServiceUnavailable, "cqrshtmx.sync.push.no_commands",
+			writeSyncError(w, http.StatusServiceUnavailable, "cqrshtmx.sync.push.no_commands",
 				"no command dispatcher configured")
 
 			return
@@ -147,21 +147,21 @@ func (a *App) SyncPushHandler() http.HandlerFunc {
 
 		var req SyncPushRequest
 		if err := json.UnmarshalRead(body, &req); err != nil {
-			writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.push.decode",
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.push.decode",
 				"request body must be a JSON batch of commands")
 
 			return
 		}
 
 		if len(req.Commands) == 0 {
-			writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.push.empty",
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.push.empty",
 				"commands must not be empty")
 
 			return
 		}
 
 		if len(req.Commands) > MaxSyncPushBatch {
-			writeSyncPullError(w, http.StatusBadRequest, "cqrshtmx.sync.push.too_large",
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.push.too_large",
 				"batch exceeds MaxSyncPushBatch envelopes")
 
 			return

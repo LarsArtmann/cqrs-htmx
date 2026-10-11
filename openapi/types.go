@@ -87,7 +87,15 @@ type RequestBody struct {
 // Response describes a single HTTP response by status code.
 type Response struct {
 	Description string                `json:"description"`
+	Headers     map[string]*Header    `json:"headers,omitempty"`
 	Content     map[string]*MediaType `json:"content,omitempty"`
+}
+
+// Header describes a single response header (OpenAPI's header object: a
+// description plus the header value's schema).
+type Header struct {
+	Description string  `json:"description,omitempty"`
+	Schema      *Schema `json:"schema,omitempty"`
 }
 
 // MediaType pairs a content type with a schema (e.g. application/json).
