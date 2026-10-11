@@ -25,18 +25,23 @@ type mappedSymbol struct {
 }
 
 const (
-	rootImportPath      = "github.com/larsartmann/cqrs-htmx/v4"
-	usermgmtImportPath  = "github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	datastarImportPath  = "github.com/larsartmann/cqrs-htmx/datastar/v4"
-	httputilImportPath  = "github.com/larsartmann/httputil"
-	gosseImportPath     = "github.com/larsartmann/go-sse"
-	identityImportPath  = "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	rootImportPath     = "github.com/larsartmann/cqrs-htmx/v4"
+	usermgmtImportPath = "github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	datastarImportPath = "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	httputilImportPath = "github.com/larsartmann/httputil"
+	gosseImportPath    = "github.com/larsartmann/go-sse"
+	identityImportPath = "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
 // root httputil re-export files (class 1) and go-sse shims (class 1).
 var (
-	rootHTTputilFiles = []string{"csrf_reexport.go", "ratelimit_reexport.go", "server_timing_reexport.go"}
-	rootGoSSEFiles    = []string{"sse_event.go", "sse_store.go", "event_store_sse.go"}
+	rootHTTputilFiles = []string{
+		"csrf_reexport.go",
+		"ratelimit_reexport.go",
+		"server_timing_reexport.go",
+		"security.go",
+	}
+	rootGoSSEFiles = []string{"sse_event.go", "sse_store.go", "event_store_sse.go"}
 )
 
 // usermgmt identity-model alias layer (class 3): the named files plus every
@@ -147,7 +152,14 @@ func deriveFromFiles(dir string, files []string, wantTargetPath, rule string) (s
 						continue
 					}
 
-					collectAlias(out, s.Names[0].Name, s.Values[0], qualToPath, wantTargetPath, ruleForTok(rule, token.VAR))
+					collectAlias(
+						out,
+						s.Names[0].Name,
+						s.Values[0],
+						qualToPath,
+						wantTargetPath,
+						ruleForTok(rule, token.VAR),
+					)
 				}
 			}
 		}
@@ -189,12 +201,16 @@ func collectAlias(out symbolMap, sym string, expr ast.Expr, qualToPath map[strin
 }
 
 // importQualifierMap builds localQualifier -> importPath for a parsed file.
+// For unaliased imports the qualifier is the package NAME — unknowable from
+// the path alone — so the fleet's known names are mapped explicitly (with a
+// last-segment fallback for anything else).
 func importQualifierMap(file *ast.File) map[string]string {
 	out := map[string]string{}
 
 	for _, imp := range file.Imports {
 		path := strings.Trim(imp.Path.Value, `"`)
-		local := filepath.Base(path)
+
+		local := defaultPackageName(path)
 		if imp.Name != nil {
 			local = imp.Name.Name
 		}
@@ -205,10 +221,39 @@ func importQualifierMap(file *ast.File) map[string]string {
 	return out
 }
 
+// defaultPackageName names the package for an import path when the import
+// carries no explicit alias — the fleet's names, stated as facts (they are
+// unknowable from the path alone).
+func defaultPackageName(importPath string) string {
+	switch importPath {
+	case rootImportPath:
+		return "cqrshtmx"
+	case usermgmtImportPath:
+		return "usermgmt"
+	case datastarImportPath:
+		return "datastar"
+	case httputilImportPath:
+		return "httputil"
+	case gosseImportPath:
+		return "sse"
+	case identityImportPath:
+		return "identitymodel"
+	}
+
+	return filepath.Base(importPath)
+}
+
 // moduleDir resolves a module's local source directory via the consumer's
 // module graph (`go list -m`), so the tables match the installed version.
 func moduleDir(importPath string) (string, error) {
-	cmd := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", importPath) //nolint:gosec // fixed argv; runs in the consumer's tree
+	cmd := exec.Command(
+		"go",
+		"list",
+		"-m",
+		"-f",
+		"{{.Dir}}",
+		importPath,
+	) //nolint:gosec // fixed argv; runs in the consumer's tree
 
 	out, err := cmd.Output()
 	if err != nil {

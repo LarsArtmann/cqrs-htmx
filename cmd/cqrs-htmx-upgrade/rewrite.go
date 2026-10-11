@@ -167,7 +167,7 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 	ast.Inspect(file, func(n ast.Node) bool {
 		sel, ok := n.(*ast.SelectorExpr)
 		if !ok {
-			reportRawCall(fset, n, &rep)
+			reportRawCall(fset, n, qualToPath, &rep)
 
 			return true
 		}
@@ -258,8 +258,10 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 
 // reportRawCall adds an R3 manual finding for `.Raw()` calls — rewriting a
 // method by name alone is type-ambiguous, so they are surfaced for manual
-// Hub() migration.
-func reportRawCall(fset *token.FileSet, n ast.Node, rep *fileReport) {
+// Hub() migration. Package-qualified calls (`pkg.Raw(...)`) are skipped —
+// they are function calls, not the broadcaster method, and the R1/R2
+// tables own package selectors anyway.
+func reportRawCall(fset *token.FileSet, n ast.Node, qualToPath map[string]string, rep *fileReport) {
 	call, ok := n.(*ast.CallExpr)
 	if !ok || len(call.Args) != 0 {
 		return
@@ -270,13 +272,18 @@ func reportRawCall(fset *token.FileSet, n ast.Node, rep *fileReport) {
 		return
 	}
 
-	if _, plain := method.X.(*ast.Ident); plain {
-		return // pkg.Raw(...) — not the method shape; R1/R2 tables handle package selectors
+	if ident, isIdent := method.X.(*ast.Ident); isIdent {
+		if _, isPkg := qualToPath[ident.Name]; isPkg {
+			return
+		}
 	}
 
 	rep.manual = append(rep.manual, manualFinding{
 		Rule: "R3",
-		Note: fmt.Sprintf("%s: .Raw() — migrate manually to .Hub() (type-ambiguous to rewrite)", fset.Position(call.Pos())),
+		Note: fmt.Sprintf(
+			"%s: .Raw() — migrate manually to .Hub() (type-ambiguous to rewrite)",
+			fset.Position(call.Pos()),
+		),
 	})
 }
 
@@ -335,7 +342,7 @@ func importEdits(
 				continue
 			}
 
-			local := filepath.Base(strings.Trim(imp.Path.Value, `"`))
+			local := defaultPackageName(strings.Trim(imp.Path.Value, `"`))
 			if imp.Name != nil {
 				local = imp.Name.Name
 			}
@@ -406,15 +413,22 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 		for i := range *drops {
 			d := &(*drops)[i]
 
-			if anchor >= d.offset && anchor < d.end {
+			if anchor >= d.offset && anchor <= d.end {
 				// The anchor line is dropped: fuse — replace instead of
-				// insert+delete. Preserve the line's leading indent.
-				indent := "\t"
-				if start := lineStart(d.offset); start >= 0 && start < d.offset {
-					indent = src[start:d.offset]
+				// insert+delete. The replacement must account for what the
+				// drop range already preserves: a parenthesized spec's range
+				// starts AFTER the line's leading indent (keep it, add none);
+				// a whole-declaration drop starts at column 0 (add one tab).
+				indent := ""
+				if lineStart(d.offset) >= d.offset {
+					indent = "\t"
 				}
 
-				*d = textEdit{d.offset, d.end, indent + strings.TrimLeft(strings.TrimPrefix(lines.String(), "\n"), "\t") + "\n"}
+				*d = textEdit{
+					d.offset,
+					d.end,
+					indent + strings.TrimLeft(strings.TrimPrefix(lines.String(), "\n"), "\t") + "\n",
+				}
 
 				return
 			}

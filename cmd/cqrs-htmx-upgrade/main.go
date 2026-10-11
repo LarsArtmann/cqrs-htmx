@@ -42,18 +42,35 @@ func main() {
 		paths = []string{"."}
 	}
 
-	mappings, err := deriveMappings()
-	if err != nil {
-		fatal("derive mappings: %v", err)
-	}
-
-	files, reports, err := run(paths, mappings, *apply)
-	if err != nil {
+	if err := runCLI(paths, *apply, *verbose); err != nil {
 		fatal("%v", err)
 	}
+}
 
+// runCLI is main's body: derive the rule tables, plan every file, print the
+// report, optionally write.
+func runCLI(paths []string, apply, verbose bool) error {
+	mappings, err := deriveMappings()
+	if err != nil {
+		return fmt.Errorf("derive mappings: %w", err)
+	}
+
+	_, reports, err := run(paths, mappings, apply)
+	if err != nil {
+		return err //nolint:wrapcheck // already wrapped at its source; CLI boundary
+	}
+
+	printReport(reports, apply, verbose)
+
+	return nil
+}
+
+// printReport writes the per-file findings and the summary. The CLI's
+// stdout IS its product — fmt.Print* is deliberate here.
+func printReport(reports []fileReport, apply, verbose bool) {
 	totalEdits := 0
 	totalManual := 0
+	changed := 0
 
 	for _, rep := range reports {
 		totalEdits += len(rep.edits)
@@ -63,44 +80,42 @@ func main() {
 			continue
 		}
 
+		if len(rep.edits) > 0 {
+			changed++
+		}
+
+		//nolint:forbidigo // CLI report output is the tool's product
 		fmt.Printf("%s:\n", rep.path)
 
 		for _, e := range rep.edits {
+			//nolint:forbidigo // CLI report output is the tool's product
 			fmt.Printf("  %s: %s -> %s\n", e.Rule, e.Old, e.New)
 		}
 
 		for _, m := range rep.manual {
+			//nolint:forbidigo // CLI report output is the tool's product
 			fmt.Printf("  %s (MANUAL): %s\n", m.Rule, m.Note)
 		}
 	}
 
 	mode := "dry run (no files written; pass -apply)"
-	if *apply {
+	if apply {
 		mode = "APPLY"
 	}
 
+	//nolint:forbidigo // CLI report output is the tool's product
 	fmt.Printf("\n%d file(s) scanned, %d file(s) with planned edits, %d edit(s), %d manual finding(s) — %s\n",
-		files, countChanged(reports), totalEdits, totalManual, mode)
+		len(reports), changed, totalEdits, totalManual, mode)
 
-	if !*apply && totalEdits > 0 {
+	if !apply && totalEdits > 0 {
+		//nolint:forbidigo // CLI report output is the tool's product
 		fmt.Println("re-run with -apply to write these changes")
 	}
 
-	if !*apply && !*verbose && totalEdits == 0 && totalManual == 0 {
+	if !apply && !verbose && totalEdits == 0 && totalManual == 0 {
+		//nolint:forbidigo // CLI report output is the tool's product
 		fmt.Println("nothing to upgrade")
 	}
-}
-
-func countChanged(reports []fileReport) int {
-	n := 0
-
-	for _, rep := range reports {
-		if len(rep.edits) > 0 {
-			n++
-		}
-	}
-
-	return n
 }
 
 func fatal(format string, args ...any) {

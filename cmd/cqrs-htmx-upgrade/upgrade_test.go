@@ -19,7 +19,11 @@ func fixtureTable() rulesTable {
 		},
 		usermgmtImportPath: {
 			"UserRegistered": {targetImportPath: identityImportPath, targetName: "UserRegistered", rule: "R9"},
-			"EventUserRegistered": {targetImportPath: identityImportPath, targetName: "EventUserRegistered", rule: "R10"},
+			"EventUserRegistered": {
+				targetImportPath: identityImportPath,
+				targetName:       "EventUserRegistered",
+				rule:             "R10",
+			},
 		},
 	}
 }
@@ -58,8 +62,8 @@ func wire(mux *http.ServeMux) {
 		t.Fatal(err)
 	}
 
-	if len(rep.edits) != 3 {
-		t.Fatalf("edits = %d (%+v), want 3 (2 requalify + 1 var)", len(rep.edits), rep.edits)
+	if len(rep.edits) != 2 {
+		t.Fatalf("edits = %d (%+v), want 2 symbol requalifications", len(rep.edits), rep.edits)
 	}
 
 	want := `package app
@@ -148,7 +152,8 @@ func emit() cqrshtmx.SSEEvent {
 		t.Fatal(err)
 	}
 
-	if !strings.Contains(rep.applied, "func emit() sse.Event {") || !strings.Contains(rep.applied, "return sse.Event{}") {
+	if !strings.Contains(rep.applied, "func emit() sse.Event {") ||
+		!strings.Contains(rep.applied, "return sse.Event{}") {
 		t.Errorf("SSEEvent must become sse.Event:\n%s", rep.applied)
 	}
 
@@ -221,7 +226,8 @@ var evtType = usermgmt.EventUserRegistered
 		t.Fatal(err)
 	}
 
-	if !strings.Contains(rep.applied, "identitymodel.UserRegistered{}") || !strings.Contains(rep.applied, "identitymodel.EventUserRegistered") {
+	if !strings.Contains(rep.applied, "identitymodel.UserRegistered{}") ||
+		!strings.Contains(rep.applied, "identitymodel.EventUserRegistered") {
 		t.Errorf("aliases must requalify to identitymodel:\n%s", rep.applied)
 	}
 
@@ -345,5 +351,46 @@ func TestGoldenConsumer_R1RoundTrip(t *testing.T) {
 
 	if rep.applied != string(golden) {
 		t.Errorf("golden round-trip drifted:\n--- got ---\n%s\n--- want ---\n%s", rep.applied, golden)
+	}
+}
+
+// TestDeriveMappings_LiveModules proves the derivation against the REAL
+// module tree (via `go list -m`): the root re-export tables and the
+// usermgmt identity-model layer must derive with their documented scale
+// (class 1 ~39 symbols; class 3 ~161 symbols per the v5 removal inventory).
+func TestDeriveMappings_LiveModules(t *testing.T) {
+	table, err := deriveMappings()
+	if err != nil {
+		t.Skipf("live module graph unavailable (go list -m failed): %v", err)
+	}
+
+	root := table[rootImportPath]
+	if len(root) < 25 {
+		t.Errorf(
+			"derived root table has %d symbols, want >= 25 (class 1 re-exports; exact count floats with the library version)",
+			len(root),
+		)
+	}
+
+	if _, ok := root["CSRFMiddleware"]; !ok {
+		t.Error("CSRFMiddleware missing from the derived R1 table")
+	}
+
+	identity := table[usermgmtImportPath]
+	if len(identity) < 100 {
+		t.Errorf("derived usermgmt table has %d symbols, want >= 100 (class 3 alias layer)", len(identity))
+	}
+
+	r9, r10 := 0, 0
+	for _, m := range identity {
+		if m.rule == "R9" {
+			r9++
+		} else if m.rule == "R10" {
+			r10++
+		}
+	}
+
+	if r9 == 0 || r10 == 0 {
+		t.Errorf("expected both R9 (types, got %d) and R10 (values, got %d) in the usermgmt table", r9, r10)
 	}
 }
