@@ -62,7 +62,7 @@ Add a **read-only event pull** and a **batched command push** to the root module
 
 ## Non-goals (explicit)
 
-- No client-appended events, no CRDTs, no client-side deciders (see the [research synthesis](../research/2026-10-09_frontend-sync-protocol-synthesis.md) §2.4 for the reasoning trail).
+- No client-appended events, no CRDTs, no client-side deciders (see the [research synthesis](../research/2026-10-09_frontend-sync-protocol-synthesis.md) §2.4 for the reasoning trail). _Refinement direction (researched 2026-10-10, not adopted): optimistic predictions — transparently-pending, `commandId`-keyed local events that never claim authority; the server re-decides and the client rebases the prediction, never the fact — are recorded as a ROADMAP raw idea ("Frontend Sync Future Scope"). Law 1 is unchanged for facts._
 
 ## Amendment 1 — Truthful delivery encoding on the degraded payload path (2026-10-09, same day)
 
