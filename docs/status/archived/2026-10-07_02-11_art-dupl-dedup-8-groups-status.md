@@ -1,5 +1,7 @@
 # Status: art-dupl Deduplication Session (8 actionable clone groups, threshold 4)
 
+> **SUPERSEDED** (2026-10-11, round-21 archive pass): intra-round status — every item of this round is covered, with verdicts quoted, by the same round's completion report `../2026-10-07_03-13_art-dupl-dedup-round-complete-8-groups-dispositioned.md` (verdict up front: "all 8 groups dispositioned. 3 extracted, 5 accepted with written rationale"; its follow-up item 12 asked for exactly this supersession annotation). The round's follow-ups were harvested and completed via TODO_LIST row 52 (DONE 2026-10-08) and the 2026-10-07→11 alignment pushes. Archived as superseded; nothing unique lives only here.
+
 **Date:** 2026-10-07 02:11 CEST · **Session scope:** triage + deduplicate the art-dupl report (279 detected / 271 suppressed / 8 shown) in cqrs-htmx · **Concurrent session:** ACTIVE in this tree (systemadapter + dashboardui StreamReader work + scripts/ci/flake) — its in-flight state directly blocks one verification step below.
 
 ---

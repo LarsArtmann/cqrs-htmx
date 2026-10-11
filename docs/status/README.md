@@ -17,8 +17,8 @@ Each report in this tree captures what someone knew at the end of a work session
 
 | Path                               | Contents                                                                                    |
 | ---------------------------------- | ------------------------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; 18 live after the 2026-10-09 tail pass — round-19 full-tail archive owed, see TODO_LIST) |
-| `docs/status/archived/`            | 469 archived session reports (2026-05-03 → 2026-10-09); bulk-pass manifest in `archived/README.md`                                          |
+| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; 27 live after the round-21 supersession pair — full-tail ANNOTATE sweep owed, see TODO_LIST) |
+| `docs/status/archived/`            | 472 archived session reports (2026-05-03 → 2026-10-11); bulk-pass manifest in `archived/README.md`                                          |
 | `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                                |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`                             |
 | `docs/reviews/archived/`           | Archived review documents                                                                   |
