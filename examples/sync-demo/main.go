@@ -47,8 +47,8 @@ type createNoteCmd struct {
 	confidential bool
 }
 
-func (c *createNoteCmd) NoteName() string     { return c.name }
-func (c *createNoteCmd) Secret() bool         { return c.confidential }
+func (c *createNoteCmd) NoteName() string { return c.name }
+func (c *createNoteCmd) Secret() bool     { return c.confidential }
 
 func (c *createNoteCmd) StreamTypeName() string {
 	if c.confidential {

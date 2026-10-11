@@ -148,6 +148,8 @@ document.addEventListener("cqrshtmx:sync-events", (e) => {
 
 The SharedWorker stays a **coordinator, not a proxy** (ADR-0029): tabs own their fetches and SSE connections; the worker owns persistence (command queue, event cache, cursor/backendId meta) and cross-tab broadcasts. Offline reads ask the worker (`get-events`); the client does not project events — folding cached events into view state is consumer territory (see ROADMAP).
 
+A runnable version of everything on this page — offline queue, batched push, filtered pull, conflict rejection, the OpenAPI contract — lives at [`examples/sync-demo/`](../../examples/sync-demo/) (its README has a 2-minute offline walkthrough).
+
 ## Security notes
 
 - **Mount behind your middleware**: session (outside CSRF), CSRF (protects the outer POST once — inner envelopes are not independently reachable), security headers as usual.

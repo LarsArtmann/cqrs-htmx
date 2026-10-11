@@ -86,8 +86,8 @@ type syncPullResponse struct {
 	NextCursor string `json:"nextCursor"`
 	HasMore    bool   `json:"hasMore"`
 	Events     []struct {
-		EventID string `json:"eventId"`
-		Type    string `json:"type"`
+		EventID    string `json:"eventId"`
+		Type       string `json:"type"`
 		StreamType string `json:"streamType"`
 	} `json:"events"`
 }
@@ -131,7 +131,8 @@ func TestSyncDemo_PushThenPull(t *testing.T) {
 		t.Errorf("first outcome = %s (err %+v), want confirmed", results.Results[0].Status, results.Results[0].Error)
 	}
 
-	if results.Results[1].Status != "rejected" || results.Results[1].Error == nil || results.Results[1].Error.Family != "rejection" {
+	if results.Results[1].Status != "rejected" || results.Results[1].Error == nil ||
+		results.Results[1].Error.Family != "rejection" {
 		t.Errorf("second outcome = %+v, want rejected/rejection", results.Results[1])
 	}
 
@@ -157,7 +158,12 @@ func TestSyncDemo_DuplicateNameRejected(t *testing.T) {
 
 	body := `{"commands":[{"commandId":"01J8Z0DEMO000000000000002","type":"CreateNote",` +
 		`"body":"name=dupe","contentType":"application/x-www-form-urlencoded"}]}`
-	if status, results := pushBatch(t, server.URL+"/sync/push", body); status != http.StatusOK || results.Results[0].Status != "confirmed" {
+	if status, results := pushBatch(
+		t,
+		server.URL+"/sync/push",
+		body,
+	); status != http.StatusOK ||
+		results.Results[0].Status != "confirmed" {
 		t.Fatalf("first push = %d %+v, want confirmed", status, results.Results)
 	}
 
@@ -179,7 +185,8 @@ func TestSyncDemo_PullFilterHidesConfidentialNotes(t *testing.T) {
 	body := `{"commands":[` +
 		`{"commandId":"01J8Z0DEMO000000000000003","type":"CreateNote","body":"name=open-note","contentType":"application/x-www-form-urlencoded"},` +
 		`{"commandId":"01J8Z0DEMO000000000000004","type":"CreateNote","body":"name=secret-note&confidential=true","contentType":"application/x-www-form-urlencoded"}]}`
-	if status, results := pushBatch(t, server.URL+"/sync/push", body); status != http.StatusOK {
+	status, results := pushBatch(t, server.URL+"/sync/push", body)
+	if status != http.StatusOK {
 		t.Fatalf("push status = %d", status)
 	}
 
@@ -271,7 +278,7 @@ func TestSyncDemo_AssetsAndOpenAPI(t *testing.T) {
 	}
 
 	var doc struct {
-		Paths map[string]json.RawValue `json:"paths"`
+		Paths map[string]any `json:"paths"`
 	}
 	if err := json.Unmarshal([]byte(body), &doc); err != nil || len(doc.Paths) != 2 {
 		t.Errorf("openapi.json paths decode err=%v count=%d, want 2 paths", err, len(doc.Paths))
@@ -285,8 +292,9 @@ func TestSyncDemo_ServerTruthListsNotes(t *testing.T) {
 
 	body := `{"commands":[{"commandId":"01J8Z0DEMO000000000000005","type":"CreateNote",` +
 		`"body":"name=truth-note","contentType":"application/x-www-form-urlencoded"}]}`
-	if status, _ := pushBatch(t, server.URL+"/sync/push", body); status != http.StatusOK {
-		t.Fatalf("push status = %d", status)
+	_, results := pushBatch(t, server.URL+"/sync/push", body)
+	if len(results.Results) != 1 || results.Results[0].Status != "confirmed" {
+		t.Fatalf("push outcomes = %+v, want one confirmed", results.Results)
 	}
 
 	status, listBody, _ := get(t, server.URL+"/api/notes")
