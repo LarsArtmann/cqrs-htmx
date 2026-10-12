@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
