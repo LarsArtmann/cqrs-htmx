@@ -42,7 +42,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.2 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.2 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.0 // indirect
-	github.com/larsartmann/go-appkit v0.8.0 // indirect
+	github.com/larsartmann/go-appkit v0.9.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 // indirect
@@ -108,7 +108,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/exp v0.0.0-20261007192929-f45ad48fbe92 // indirect
+	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
