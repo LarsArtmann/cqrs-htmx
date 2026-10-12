@@ -6,7 +6,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3
 	//cqrs-lint:ignore(V003) v4.0.1 IS the latest published tag; detector compares against the core module version — false positive
