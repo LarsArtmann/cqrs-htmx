@@ -91,60 +91,59 @@ func cspDashboardWithDetail(t *testing.T) (http.Handler, string) {
 // class where inline event handlers previously hid from the CSP sweep (the
 // listing-only sweep was a vacuous pass).
 
-// renderWithNonce renders a page through the security middleware so
-// request-scoped nonces are populated. The second result is false when the
-// page is unavailable without its data source (404-class responses).
-func renderWithNonce(t *testing.T, target string) (string, bool) {
-	t.Helper()
-
-	h := cspDashboard(t)
-
-	req := httptest.NewRequest(http.MethodGet, target, nil)
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		return "", false
-	}
-
-	return rec.Body.String(), true
-}
-
 // TestCSP_LibraryScriptsCarryNonce pins the M22 contract: every inline script
 // the dashboard emits (library toast/copy/error-handling scripts) carries the
-// per-request nonce so a nonce-locked CSP policy executes them.
+// per-request nonce so a nonce-locked CSP policy executes them. The detail
+// page is included because the overview renders no CopyButton — a listing-only
+// sweep would pass vacuously while every copy script died under CSP.
 func TestCSP_LibraryScriptsCarryNonce(t *testing.T) {
-	body, ok := renderWithNonce(t, "/dashboard/")
-	if !ok {
-		t.Fatal("overview unavailable")
-	}
+	handler, detailPath := cspDashboardWithDetail(t)
 
-	if !strings.Contains(body, "nonce=") {
-		t.Fatal("expected at least one nonce-carrying inline script")
-	}
+	for _, target := range []string{"/dashboard/", detailPath} {
+		req := httptest.NewRequest(http.MethodGet, target, nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
 
-	for _, want := range []string{"tcShowToast", "tcCopyAttached", "tcErrorAttached"} {
-		idx := strings.Index(body, want)
-
-		// The error-handling/toast/copy scripts must be nonce-tagged. Find the
-		// enclosing <script tag for this occurrence and verify it has a nonce.
-		if idx < 0 {
-			continue
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: status %d", target, rec.Code)
 		}
 
-		scriptStart := strings.LastIndex(body[:idx], "<script")
-		if scriptStart < 0 {
-			t.Fatalf("no <script tag before %q", want)
+		body := rec.Body.String()
+
+		if !strings.Contains(body, "nonce=") {
+			t.Errorf("%s: expected at least one nonce-carrying inline script", target)
 		}
 
-		tag := body[scriptStart:idx]
+		for _, want := range []string{"tcShowToast", "tcCopyAttached", "tcErrorAttached"} {
+			idx := strings.Index(body, want)
 
-		if !strings.Contains(tag, "nonce=") {
-			t.Errorf(
-				"inline script containing %q lacks nonce attribute: %q",
-				want,
-				tag[:min(len(tag), 120)],
-			)
+			// The error-handling/toast/copy scripts must be nonce-tagged. Find
+			// the enclosing <script tag for this occurrence and verify it has
+			// a nonce. The copy singleton must exist on the detail page — if
+			// it is missing, the page stopped rendering CopyButtons.
+			if idx < 0 {
+				if want == "tcCopyAttached" && strings.Contains(target, "time-travel") {
+					t.Errorf("%s: copy script absent (detail page must render CopyButton)", target)
+				}
+				continue
+			}
+
+			scriptStart := strings.LastIndex(body[:idx], "<script")
+			if scriptStart < 0 {
+				t.Errorf("%s: no <script tag before %q", target, want)
+				continue
+			}
+
+			tag := body[scriptStart:idx]
+
+			if !strings.Contains(tag, "nonce=") {
+				t.Errorf(
+					"%s: inline script containing %q lacks nonce attribute: %q",
+					target,
+					want,
+					tag[:min(len(tag), 120)],
+				)
+			}
 		}
 	}
 }
