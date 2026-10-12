@@ -225,6 +225,7 @@ func main() {
 	_ = command.RegisterTyped(cmdDisp, "SyncAddItem", func(ctx context.Context, c *syncAddItemCmd) error {
 		aggID := id.NewStreamID()
 		ref := id.StreamRef{Type: "Item", ID: aggID}
+
 		evt, err := event.New(event.Type("Item.synced"), aggID, "Item", event.Version(1),
 			map[string]string{"name": c.ItemName()})
 		if err != nil {
@@ -248,6 +249,7 @@ func main() {
 			if err != nil {
 				return nil, err
 			}
+
 			return &syncAddItemCmd{BasicCommand: *core, name: f.Name}, nil
 		}),
 		cqrshtmx.WithSuccessStatus(http.StatusCreated),
@@ -257,12 +259,16 @@ func main() {
 
 	pullBackendA := cqrshtmx.SyncPullHandler(syncStore, cqrshtmx.WithSyncPullBackendID("e2e-backend-A"))
 	pullBackendB := cqrshtmx.SyncPullHandler(syncStore, cqrshtmx.WithSyncPullBackendID("e2e-backend-B"))
+
 	var rotated atomic.Bool
+
 	mux.Handle("GET /sync/pull", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if rotated.Load() {
 			pullBackendB.ServeHTTP(w, r)
+
 			return
 		}
+
 		pullBackendA.ServeHTTP(w, r)
 	}))
 	// TEST-ONLY debug endpoint: rotating the pull backend's identity is the
@@ -446,6 +452,7 @@ type syncItemForm struct {
 
 type syncAddItemCmd struct {
 	command.BasicCommand
+
 	name string
 }
 
