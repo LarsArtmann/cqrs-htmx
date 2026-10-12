@@ -125,12 +125,14 @@ func TestCSP_LibraryScriptsCarryNonce(t *testing.T) {
 				if want == "tcCopyAttached" && strings.Contains(target, "time-travel") {
 					t.Errorf("%s: copy script absent (detail page must render CopyButton)", target)
 				}
+
 				continue
 			}
 
 			scriptStart := strings.LastIndex(body[:idx], "<script")
 			if scriptStart < 0 {
 				t.Errorf("%s: no <script tag before %q", target, want)
+
 				continue
 			}
 
