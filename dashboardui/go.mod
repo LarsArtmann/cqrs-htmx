@@ -62,7 +62,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
