@@ -336,6 +336,14 @@ have no store requirements: the catalog comes from
 `usermgmt.DefaultEventCatalog()` (the 21 identity events), projection statuses
 from the service, and debug metadata from the build.
 
+> **Naming note:** `EventCatalogPath` serves cqrs-htmx's own dependency-free
+> `EventCatalog` schema surface (see the [event catalog guide](../docs/guides/event-catalog-guide.md)).
+> It is **not** [`go-cqrs-lite/catalog/v4`](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)
+> (the OpenAPI/AsyncAPI/D2 doc-generation suite) — setup deliberately does not
+> embed that; composing it is consumer-side via
+> [`examples/catalog-demo`](../examples/catalog-demo/)
+> ([integration map](../docs/research/2026-10-12_catalog-v4-integration-map.md)).
+
 Practical consequence: a minimal live-only store that cannot replay history
 still boots the bundle but silently loses the replay-backed surfaces above —
 which is exactly why `New` refuses non-`SeekableJournal` stores rather than

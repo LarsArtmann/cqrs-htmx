@@ -68,3 +68,21 @@ rg -l 'go-cqrs-lite/catalog' ~/projects/go-appkit --glob 'go.mod'
 rg -n 'go:embed' ~/projects/go-cqrs-lite/catalog
 rg -n 'EventCatalogHandler' ~/projects/cqrs-htmx/setup ~/projects/cqrs-htmx/event_catalog_handler.go
 ```
+
+## Outcome (2026-10-12, later the same day — append-only)
+
+- **Versions advanced:** the 10-sweep family alignment swept `catalog/v4`
+  v4.8.0 onto both cqrs-htmx consumers (`integration_test` +
+  `examples/catalog-demo`); push `291b2c51`, strict train gate 866 requires
+  0/0/0. The v4.7.1 pins in the TL;DR above are the morning snapshot; the
+  go-appkit `docs` + `integration` consumers remain at v4.7.1 pending
+  go-appkit's own train (owner-gated lane).
+- **Disambiguation landed where consumers look:** the two-catalogs distinction
+  is now documented in `docs/guides/event-catalog-guide.md` (Serving note +
+  See Also), `setup/README.md` (EventCatalogPath naming note), and the
+  catalog-demo doc comment — killing the exact conflation that prompted this
+  map.
+- **DocsPath stays a decision, not a feature:** the seam design + go/no-go
+  demand-signal criteria were consolidated into the ROADMAP data-mesh
+  Approach-C row (no separate proposal artifact); implementation remains
+  owner-gated.

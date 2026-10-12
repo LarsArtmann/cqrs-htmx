@@ -33,6 +33,12 @@ The handler:
 - Serves immutable JSON with a 1-year `Cache-Control` and an FNV-1a ETag.
 - Returns 304 on matching `If-None-Match`.
 
+> **Not the doc-generation suite.** This catalog is schema metadata only. For
+> full API documentation (OpenAPI/AsyncAPI specs, D2 diagrams, EventCatalog MDX)
+> generated from Go types, use [`go-cqrs-lite/catalog/v4`](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)
+> — see [`examples/catalog-demo`](../../examples/catalog-demo/) for the executable
+> recipe and [See Also](#see-also) for the distinction.
+
 ---
 
 ## Catalog Format
@@ -141,6 +147,19 @@ for _, e := range events {
 
 ## See Also
 
+- **Two catalogs — do not conflate:**
+  1. **`cqrshtmx.EventCatalog`** (this guide) — dependency-free, immutable-JSON
+     schema surface for the 21 identity events (Published Language).
+  2. **[`go-cqrs-lite/catalog/v4`](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)**
+     — the heavier doc-generation suite (OpenAPI/AsyncAPI 3.0, D2 diagrams,
+     EventCatalog MDX from Go types), pulling templ/yaml into the graph. Not
+     embedded by `setup`; wiring it is a consumer-side composition.
+- [catalog/v4 integration map](../research/2026-10-12_catalog-v4-integration-map.md) —
+  who depends on which catalog, and why `setup` ships only the light one
+- [`examples/catalog-demo`](../../examples/catalog-demo/) — executable guide:
+  `simple` builder + `docserver` serving OpenAPI/AsyncAPI/D2
+- [`integration_test/catalog_test.go`](../../integration_test/catalog_test.go) —
+  contract test proving the composition over a live App
 - [Projection Health Monitoring](./projection-health-monitoring.md)
 - `event_catalog.go` — The EventCatalog type
 - `event_catalog_handler.go` — The HTTP handler

@@ -1,6 +1,12 @@
 // Command catalog-demo starts an HTTP server that serves live API documentation
 // (OpenAPI, AsyncAPI, D2) generated from Go types via the cqrs-htmx catalog module.
 //
+// Catalog vocabulary note: this demo uses go-cqrs-lite/catalog/v4, the
+// doc-generation suite (OpenAPI/AsyncAPI/D2/EventCatalog MDX). It is a
+// different concept from cqrs-htmx's own dependency-free EventCatalog schema
+// surface — see docs/guides/event-catalog-guide.md ("See Also") and
+// docs/research/2026-10-12_catalog-v4-integration-map.md for the distinction.
+//
 // Run it and visit:
 //
 //	http://localhost:8080/openapi.json       — OpenAPI 3.0 spec
