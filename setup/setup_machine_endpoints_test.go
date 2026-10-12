@@ -20,8 +20,17 @@ const (
 	machineCatalogPath  = "/events/catalog"
 	machineProjPath     = "/health/projections"
 	machineDebugPath    = "/debug"
+	machineDocsPath     = "/docs/"
 	machineRegisterBody = `{"email":"machine@example.com","display_name":"Machine"}`
 )
+
+// stubDocsHandler stands in for a consumer-supplied docserver (shape B: the
+// consumer builds it, setup only mounts it).
+func stubDocsHandler(body string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, body)
+	})
+}
 
 func newMachineBundle(t *testing.T, cfg setup.Config) *httptest.Server {
 	t.Helper()
@@ -239,6 +248,44 @@ func TestNew_OptInPaths_Validation(t *testing.T) {
 		{
 			name: "live health collision rejected",
 			cfg:  setup.Config{Title: "Collision", LivePath: "/health"},
+			want: "routes would conflict",
+		},
+		{
+			name: "docs path without handler rejected",
+			cfg:  setup.Config{Title: "Half Docs", DocsPath: "/docs"},
+			want: "DocsPath and DocsHandler must be set together",
+		},
+		{
+			name: "docs handler without path rejected",
+			cfg:  setup.Config{Title: "Half Docs", DocsHandler: stubDocsHandler("x")},
+			want: "DocsPath and DocsHandler must be set together",
+		},
+		{
+			name: "docs root path rejected",
+			cfg: setup.Config{
+				Title:       "Root Docs",
+				DocsPath:    "/",
+				DocsHandler: stubDocsHandler("x"),
+			},
+			want: "reserved for the login page",
+		},
+		{
+			name: "docs missing leading slash rejected",
+			cfg: setup.Config{
+				Title:       "Shape",
+				DocsPath:    "docs",
+				DocsHandler: stubDocsHandler("x"),
+			},
+			want: "must start with",
+		},
+		{
+			name: "docs collision with health rejected",
+			cfg: setup.Config{
+				Title:       "Collision",
+				HealthPath:  "/health",
+				DocsPath:    "/health",
+				DocsHandler: stubDocsHandler("x"),
+			},
 			want: "routes would conflict",
 		},
 	} {

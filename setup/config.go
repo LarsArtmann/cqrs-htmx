@@ -31,6 +31,7 @@ const (
 	fieldEventCatalogPath     = "EventCatalogPath"
 	fieldProjectionStatusPath = "ProjectionStatusPath"
 	fieldDebugPath            = "DebugPath"
+	fieldDocsPath             = "DocsPath"
 )
 
 // Config is the single entry point for configuring a full-stack cqrs-htmx application.
@@ -266,6 +267,20 @@ type Config struct {
 	// Keep it session-gated (it is here) — build metadata leaks deployment
 	// details.
 	DebugPath string
+
+	// DocsPath + DocsHandler mount the consumer's own documentation surface
+	// at an opt-in, session-gated path (the shape-B seam, 2026-10-12: setup
+	// pulls in zero documentation dependencies — the consumer builds the
+	// docserver, e.g. from go-cqrs-lite/catalog, and hands setup the
+	// handler). Set both or neither: one without the other is rejected at
+	// New. DocsPath keeps the consumer's exact form — a trailing slash
+	// mounts a subtree ("/docs/" serves the whole prefix), no slash mounts
+	// exactly one route. Session-gated like the other machine endpoints:
+	// generated documentation describes the deployment's internals (the
+	// event-metadata 401 precedent); consumers wanting public docs mount
+	// their handler on their own mux instead.
+	DocsPath    string
+	DocsHandler http.Handler
 
 	// Session configuration.
 	CookieName string        // default: "session"
@@ -888,6 +903,7 @@ func (c Config) disableServiceGatedSurfaces() []string {
 		{fieldEventCatalogPath, c.EventCatalogPath},
 		{fieldProjectionStatusPath, c.ProjectionStatusPath},
 		{fieldDebugPath, c.DebugPath},
+		{fieldDocsPath, c.DocsPath},
 	} {
 		if surface.path != "" {
 			gated = append(gated, surface.name)
@@ -1059,6 +1075,7 @@ func (c Config) validateOptionalFeedPaths() error {
 		{"SSEScriptPath", c.SSEScriptPath, true},
 		{fieldDataStarPath, c.DataStarPath, false},
 		{"DataStarScriptPath", c.DataStarScriptPath, true},
+		{fieldDocsPath, c.DocsPath, false},
 	} {
 		if opt.path == "" || (opt.allowDash && opt.path == "-") {
 			continue
@@ -1070,6 +1087,13 @@ func (c Config) validateOptionalFeedPaths() error {
 		}
 	}
 
+	if (c.DocsPath == "") != (c.DocsHandler == nil) {
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DocsPath and DocsHandler must be set together — mount both or neither",
+		)
+	}
+
 	return nil
 }
 
@@ -1079,10 +1103,11 @@ func (c Config) validateOptionalFeedPaths() error {
 func (c Config) validatePathRoots() error {
 	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" ||
 		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") || (c.SSEScriptPath == "/") ||
-		c.LivePath == "/" || c.EventCatalogPath == "/" || c.ProjectionStatusPath == "/" || c.DebugPath == "/" {
+		c.LivePath == "/" || c.EventCatalogPath == "/" || c.ProjectionStatusPath == "/" || c.DebugPath == "/" ||
+		c.DocsPath == "/" {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
-			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, DataStarScriptPath, LivePath, EventCatalogPath, ProjectionStatusPath, and DebugPath must not be \"/\" — the site root is reserved for the login page",
+			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, DataStarScriptPath, LivePath, EventCatalogPath, ProjectionStatusPath, DebugPath, and DocsPath must not be \"/\" — the site root is reserved for the login page",
 		)
 	}
 
@@ -1108,6 +1133,7 @@ func requireDistinctPaths(c Config) error {
 		{fieldEventCatalogPath, trimTrailingSlash(c.EventCatalogPath)},
 		{fieldProjectionStatusPath, trimTrailingSlash(c.ProjectionStatusPath)},
 		{fieldDebugPath, trimTrailingSlash(c.DebugPath)},
+		{fieldDocsPath, trimTrailingSlash(c.DocsPath)},
 	}
 
 	for i := range paths {
