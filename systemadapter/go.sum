@@ -152,8 +152,8 @@ github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 h1:wedLRUReekM48vc4cNi2s3+
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0/go.mod h1:7l6iPlJomlmj/25CHxdai6fa3rhYWFOeDOY/na33++8=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 h1:p5wGOfVWc+lqEi1yVM4/rfH1pDxNg6Vmb/zys15d0kM=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0/go.mod h1:AbQjMKQWyXaz0lDe4/9Xryvmq6FzwlfuQNaCKR5KizI=
-github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.4.0 h1:9q4Bg4gOwHnN36/dZ5hEVKmNJVPPSsYpsXK7vADA8iA=
-github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.4.0/go.mod h1:iAgeKbxxEs2sN3B0cd5UEtNZO/7KDXF+LJTvXNLptzQ=
+github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.5.0 h1:TQ7GRW+RhaDMuLtRbQ7fwYDSz91HwfHBfYZgJ75u1d4=
+github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.5.0/go.mod h1:xrV+ovffWnoW/05tv1XfOEXygRBuh0nrFQ91wQaQiXA=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 h1:19mLTKKDCLrwUDWYVBQptOAai+AOs9/2HzzuO/Gchy0=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2/go.mod h1:YMXWKgNJdM3bNOrgwoER/C2XYUDpXVZpFqJYco34K6U=
 github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.3 h1:Be5ok5oKjS5u4Zixd1EZjZjJ0i0A6/7Z5/CK3M0ncq8=
@@ -206,8 +206,8 @@ github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5 h1:qm7hwql6sPBH/BKX1kZY0H
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5/go.mod h1:bWMQuLfIYGlTEhNCOkPIk++m/047mVJ+0P6IKoHrYuo=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0 h1:gKfnJJMC1pMXVUkTfQEA5XfZ5gLPyP4dR4d4AjcVXt8=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0/go.mod h1:WkkPKzDOVqNkWuggSKoYhS52yBcS7YsC4RswRG4g8UY=
-github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.0.0 h1:E++M200v139/7/EEVlz9i1KxRcJr4W0lvJOpbFoBNDw=
-github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.0.0/go.mod h1:un6H8dD8t8DE6tH0hAglkHEWTHvi29dGmh8Qv1OGxC0=
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0 h1:ADb3Zz4PNYrOJ+kOdSEsrIAEqO++FMc+GqF3rTceinA=
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0/go.mod h1:WGysFJNDwYQV7bsOz7kDVlVHxnm0wUNUTZK0n9AlGng=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3 h1:6MvhIwZpxMUf9bLN2qBcL4oNtk/s09se2hc4gWJCEgM=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3/go.mod h1:UO3RXsNhk/wo6EAdm3jzjtjJRN4JkeviTvco4sJffmg=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4 h1:pjLtfnaGP1L2xssLxK+zrgagDSZ1gPinUYhyMMLbGQA=
