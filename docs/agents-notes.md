@@ -358,3 +358,23 @@ The full story behind gotcha 36 (the filesystem-replace hermeticity trap), assem
 **Resolution (10-11):** the postwave plan's P1 verification confirmed "the replace-drop made `.#test-all` hermetic-runnable again" — 28 modules including e2e/examples, the first full hermetic battery since the replace landed. systemadapter's lint went clean post-migration (the 10-10 21-09 report's f-3). The 14-tag family wave carries systemadapter v4.12.4 with the migration + retro M22/M23 receipts. The residual go-cqrs-lite in-flight surface (the dedup generics change still unpublished at v4.2.4 as of this writing) is the wave's LAST blocker, not a new gotcha.
 
 **The durable lesson:** a pre-tag filesystem replace trades hermetic truth for workspace convenience, and the debt is collected by EVERY gate that resolves from the proxy. The three-day arc cost roughly: one CI red misattributed to the ubuntu-26 roll, one lint-adjudication detour, and a battery that couldn't run at all. The payoff — scenario tests over the production DomainConfig at one-third the runtime — was real, which is why the doctrine was "leave it un-hermetic, wait for the tag," not "rip it out." Both halves of that call are the lesson: borrow against hermeticity only when the upstream tag is genuinely coming, and record the collateral (which gates lie, for how long) in the gotcha at the moment of borrowing, not at settlement.
+
+## The master-red arc: three legs, the rc-truth correction, and the G20 wrapper sketch (2026-10-12, 18:45–20:15)
+
+The 18-20 plan's A5 CI check found our own 16:07 alignment push had red'ed master on two jobs (templ codegen drift in dashboardui + exhaustruct StateShape in usermgmt) and it had sat ~4h. The full a–g record lives in `docs/status/2026-10-12_20-01_18-20-plan-execution-wave-master-red-repair_status.md`; this section carries only the durable process residue. Three legs: (1) bump-dep verify = tidy+verify+build+vet — vet does not run exhaustruct, so the swept-module lint regression surfaced first in CI; (2) BuildFlow's templ-fmt reformatted a `.templ`, the daemon captured it (`79711ae0`) without the `_templ.go` regen, and the derived artifact went stale (third instance of the formatter→derived-artifact class); (3) no post-push CI-watch step existed, so nobody looked at 16:07's run. The lint leg and the watch step are harvested TODO rows; the formatter→regen guard likewise.
+
+**The rc-truth correction (verify-against-source before sketching):** this arc's first draft claimed bump-dep's `--commit` prints success without checking the commit rc (gotcha-27a, 2026-10-05). Source shows that HALF was already fixed by plan R18 (2026-10-07, bump-dep.sh:232-251): rc is captured, failure prints "did NOT land … remain STAGED" + the daemon-absorption caution. The HALF that survives is staging: `git add -u` (line 224) sweeps ALL tracked-modified files, foreign work included. Lesson recorded: a gotcha documents the state at its incident date — re-verify the premise against source before building on it (same shape as gotcha 33's tool-vs-API truth split). The stale phrasing is annotated in the report itself.
+
+**G20 sketch — `scripts/tools/sweep-commit.sh` (proposed, not yet built):**
+
+Problem it kills: every sweep-type tool (bump-dep, the future treadmill script, family-alignment loops) re-implements the sweep→verify→commit chain, and each hand-rolled chain re-learns the same failure modes: committing over a surprise dirty file, swallowing a stage's failure through a pipe, printing success without a postcondition.
+
+Contract:
+
+1. Args: `<commit-msg-file> <expected-path>…` — the EXACT dirty set the sweep intends to land, nothing else.
+2. Precondition: `git status --porcelain` must equal the expected set (tracked-modified plus the tool's declared untracked additions); any surprise path ⇒ abort BEFORE the commit and print the foreign paths (preflight-tree-check class, embedded at commit time).
+3. Verify legs run first, each capturing `rc=$?` immediately — never through a pipe (gotcha 3); any nonzero aborts before staging, printing the failing stage and its last 20 output lines.
+4. `git add <expected-paths> && git commit -F <msg-file>`; capture rc; nonzero ⇒ loud "COMMIT FAILED — staged, not committed" + exit rc (bump-dep R18 semantics, generalized).
+5. Postcondition: HEAD moved (before/after compare) AND the expected paths are clean; print the new HEAD hash.
+
+Callers: bump-dep `--commit` becomes a thin call into this wrapper (or adopts `--commit-mine`, the G21 companion draft at `docs/proposals/2026-10-12_bump-dep-commit-mine.md`); the treadmill and alignment tools are born on it. Never swallow stderr — the ls-remote awk lesson from the same session.
