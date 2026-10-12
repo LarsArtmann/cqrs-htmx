@@ -104,10 +104,11 @@ templ buttonSubmit(text, ariaLabel string, variant display.ButtonType, attrs tem
 
 // copyButton renders a library CopyButton (data-tc-copy + the library's
 // singleton delegated clipboard script). The empty label falls back to the
-// library's "Copy"/"Copied!" pair.
-templ copyButton(text, label string) {
+// library's "Copy"/"Copied!" pair. nonce threads the per-request CSP nonce
+// into the clipboard script; the library omits the attribute when empty.
+templ copyButton(text, label, nonce string) {
 	@display.CopyButton(display.CopyButtonProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: nonce},
 		Text:      text,
 		Label:     label,
 		Icon:      true,
