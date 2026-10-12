@@ -6,6 +6,8 @@
 > (its T3 tier was consumed by the 10-sweep family alignment, push `58a6a7ce..291b2c51`).
 > **Inputs:** that plan · [`docs/status/2026-10-12_18-11_catalog-v4-plan-family-alignment-push_status.md`](../status/2026-10-12_18-11_catalog-v4-plan-family-alignment-push_status.md)
 > (sections a–f) · the three owner questions below.
+>
+> **ANNOTATED 2026-10-12 (evening, same day):** A1 done `46ed1cec`; A2 done `46ed1cec` (stale-row strike + TODO stamp + `$`-anchor note); A5 done this session — CI watch found the `291b2c51` push had red'ed master on 2 jobs (templ codegen drift in dashboardui + exhaustruct StateShape in usermgmt, ~4h undetected), both repaired forward at `0d473d99`, and the go-cqrs-lite treadmill verified CURRENT (12 pins, no fresh tags — tail did not grow); A3 done `1bc4ce48` (verdict slot open → Q1); A4 done as preflight only (receipts `ff36c975`/`a4f28aae`/`3e2bf224` verified, `verify-tag --dry-run` ALL GUARDS PASSED — the cut itself still awaits Q2); A6 resolved as stale-gap (pre-existing `TestHTTPHandlers_ServeSpecs`, `main_test.go:50`, since `25cfd08b`; ROADMAP gap struck `1bc4ce48`). Pile pushed `563b8dc8..98c3fd6e` through strict pre-push (866 requires 0/0/0). A7 in flight; A8/A9/A10 + the root cut remain owner-gated (Q1/Q2/Q3).
 
 ## 0. Context (verified this session)
 
@@ -37,12 +39,12 @@
 
 | # | Task | Tier | Est | Impact | Effort | Value | Gate |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A1 | **T1 docs disambiguation bundle** — guide See Also + Serving (F1–F2), setup README footnote (F3), demo doc-comment links (F4) | 1% | 40 min | High | Low | **High** | none |
-| A2 | **Truth-pass on session artifacts** — strike/reword stale P2 row (keep go-appkit remainder), F11 outcome annotations on plan + research note, TODO "Updated:" stamp, note the `$`-anchor title leaks in the plan's outcome note | 1% | 30 min | Medium | Low | Medium (record honesty) | none |
-| A3 | **T2 DocsPath decision packet** — seam design + scenarios + demand-signal criteria (F5–F6), consolidated INTO `ROADMAP.md:75-83` Approach-C row (F7, no duplicate artifact) | 4% | 50 min | High (decision) | Low | Medium | owner verdict |
-| A4 | **Root v4.14.1 preflight (prep-only, NO tag)** — verify the staged sync-asset defect-fix receipts (`ff36c975`, `a4f28aae`) + 1.27.2-floor receipts; single-test every wave member (gotcha 24/38a); CHANGELOG completeness; `verify-tag` dry-run readiness | 4% | 60 min | High | Medium | High | owner YES to cut (Q2) |
-| A5 | **CI watch + treadmill check** — CI verdict on `291b2c51`; `ls-remote` fresh-tag sweep (the tail grows — gotcha-39 candidate); verdicts into the next report | 20% | 30 min | Medium | Low | Medium | none |
-| A6 | **T6 catalog-demo visual smoke** — httptest boot, assert `/openapi.json` `/asyncapi.json` `/diagram.d2`, strike `ROADMAP.md:236` gap (F17–F18) | 20% | 30 min | Low | Low | Low | none |
+| A1 | ~~**T1 docs disambiguation bundle** — guide See Also + Serving (F1–F2), setup README footnote (F3), demo doc-comment links (F4)~~ DONE `46ed1cec` | 1% | 40 min | High | Low | **High** | none |
+| A2 | ~~**Truth-pass on session artifacts** — strike/reword stale P2 row (keep go-appkit remainder), F11 outcome annotations on plan + research note, TODO "Updated:" stamp, note the `$`-anchor title leaks in the plan's outcome note~~ DONE `46ed1cec` | 1% | 30 min | Medium | Low | Medium (record honesty) | none |
+| A3 | ~~**T2 DocsPath decision packet** — seam design + scenarios + demand-signal criteria (F5–F6), consolidated INTO `ROADMAP.md:75-83` Approach-C row (F7, no duplicate artifact)~~ PACKET DONE `1bc4ce48`; verdict open → Q1 | 4% | 50 min | High (decision) | Low | Medium | owner verdict |
+| A4 | ~~**Root v4.14.1 preflight (prep-only, NO tag)** — verify the staged sync-asset defect-fix receipts (`ff36c975`, `a4f28aae`) + 1.27.2-floor receipts; single-test every wave member (gotcha 24/38a); CHANGELOG completeness; `verify-tag` dry-run readiness~~ DONE — dry-run ALL GUARDS PASSED; cut awaits Q2 | 4% | 60 min | High | Medium | High | owner YES to cut (Q2) |
+| A5 | ~~**CI watch + treadmill check** — CI verdict on `291b2c51`; `ls-remote` fresh-tag sweep (the tail grows — gotcha-39 candidate); verdicts into the next report~~ DONE — found + repaired the 2-job master red (`0d473d99`); treadmill current | 20% | 30 min | Medium | Low | Medium | none |
+| A6 | ~~**T6 catalog-demo visual smoke** — httptest boot, assert `/openapi.json` `/asyncapi.json` `/diagram.d2`, strike `ROADMAP.md:236` gap (F17–F18)~~ RESOLVED stale-gap — pre-existing `TestHTTPHandlers_ServeSpecs` covers it; ROADMAP struck `1bc4ce48` | 20% | 30 min | Low | Low | Low | none |
 | A7 | **Process hardening** — AGENTS gotcha 39 (refresh-cache AFTER the last sweep; the tail grows — live-proven today); rc-guard sweep→commit wrapper sketch; optional upstream `bump-dep --commit-mine` filing draft | 20% | 45 min | Medium | Low | Medium | filing owner-gated |
 | A8 | **T7 go-appkit docs pointer** — one-liner linking the integration map (F19) | 80% | 30 min | Low | Low | Low | cross-repo |
 | A9 | **(GATED) T5 `Config.DocsPath` implementation** — F12 config+validation, F13 machine wiring, F14 serving test, F15 README/doc.go/CHANGELOG, F16 verify-tag train + consumer sweep | 80% | 100 min | High | Medium | High if approved | **owner YES (Q1)** |
