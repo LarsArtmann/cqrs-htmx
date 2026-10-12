@@ -64,6 +64,9 @@
 //   - [Config.EventCatalogPath] / [Config.ProjectionStatusPath] /
 //     [Config.DebugPath] — opt-in session-gated JSON machine endpoints
 //     (event catalog, live projection statuses, build metadata)
+//   - [Config.DocsPath] + [Config.DocsHandler] — opt-in session-gated mount
+//     for the consumer's own documentation surface (the consumer builds the
+//     docserver; setup validates the path and gates it)
 //   - [Config.LivePath] — opt-in public liveness probe (always-200);
 //     [Config.HealthPath] "-" opts the readiness endpoint out entirely;
 //     [Config.HealthChecks] appends consumer checks to the built-ins on

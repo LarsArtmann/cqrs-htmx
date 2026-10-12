@@ -303,3 +303,68 @@ func TestNew_OptInPaths_Validation(t *testing.T) {
 		})
 	}
 }
+
+func TestMount_DocsHandler_Unauthenticated401(t *testing.T) {
+	t.Parallel()
+
+	server := newMachineBundle(t, setup.Config{
+		Title:       "Docs 401",
+		DocsPath:    machineDocsPath,
+		DocsHandler: stubDocsHandler("deployment docs"),
+	})
+
+	resp, err := server.Client().Get(server.URL + machineDocsPath)
+	if err != nil {
+		t.Fatalf("GET %s: %v", machineDocsPath, err)
+	}
+	_, _ = io.Copy(io.Discard, resp.Body)
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Errorf("GET %s unauthenticated = %d, want 401 (docs describe deployment internals)",
+			machineDocsPath, resp.StatusCode)
+	}
+}
+
+func TestMount_DocsHandler_AuthenticatedServesConsumerHandler(t *testing.T) {
+	t.Parallel()
+
+	server := newMachineBundle(t, setup.Config{
+		Title:       "Docs Serve",
+		DocsPath:    machineDocsPath,
+		DocsHandler: stubDocsHandler("deployment docs body"),
+	})
+
+	client := registerAndLogin(t, server)
+
+	resp := getWithSession(t, server, machineDocsPath, client)
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET %s authenticated = %d, want 200", machineDocsPath, resp.StatusCode)
+	}
+	if string(body) != "deployment docs body" {
+		t.Errorf("docs body = %q, want the consumer handler's own response verbatim", string(body))
+	}
+}
+
+func TestMount_DocsHandler_SubtreePathServesPrefix(t *testing.T) {
+	t.Parallel()
+
+	server := newMachineBundle(t, setup.Config{
+		Title:       "Docs Subtree",
+		DocsPath:    machineDocsPath,
+		DocsHandler: stubDocsHandler("subtree page"),
+	})
+
+	client := registerAndLogin(t, server)
+
+	resp := getWithSession(t, server, machineDocsPath+"guide", client)
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK || string(body) != "subtree page" {
+		t.Fatalf("GET %sguide = %d %q, want 200 from the subtree-mounted handler", machineDocsPath, resp.StatusCode, string(body))
+	}
+}
