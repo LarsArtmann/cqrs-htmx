@@ -64,6 +64,12 @@ func wire(mux *http.ServeMux) {
 func TestCollectGoFiles_WalkSkipsSortsAndAcceptsSingleFiles(t *testing.T) {
 	dir := t.TempDir()
 
+	for _, nested := range []string{"sub", "vendor", "testdata", ".git"} {
+		if err := os.MkdirAll(filepath.Join(dir, nested), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
 	writeFile(t, dir, "a.go", "package app")
 	writeFile(t, dir, "notes.txt", "not go")
 	writeFile(t, dir, filepath.Join("sub", "b.go"), "package sub")

@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+/cqrs-htmx-upgrade
 
 # Test binary
 *.test
