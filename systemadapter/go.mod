@@ -18,7 +18,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.11.0
 )
 
