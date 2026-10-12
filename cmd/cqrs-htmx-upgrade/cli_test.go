@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -28,6 +29,7 @@ func captureStdout(t *testing.T, fn func()) string {
 
 	go func() {
 		var buf bytes.Buffer
+
 		_, _ = io.Copy(&buf, r)
 		done <- buf.String()
 	}()
@@ -255,17 +257,7 @@ func TestRootFileClassLists(t *testing.T) {
 
 	sseFiles := rootGoSSEFiles()
 	for _, want := range []string{"sse_event.go", "sse_store.go", "event_store_sse.go"} {
-		found := false
-
-		for _, f := range sseFiles {
-			if f == want {
-				found = true
-
-				break
-			}
-		}
-
-		if !found {
+		if !slices.Contains(sseFiles, want) {
 			t.Errorf("rootGoSSEFiles must contain %q, got %v", want, sseFiles)
 		}
 	}
