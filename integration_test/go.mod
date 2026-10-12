@@ -24,7 +24,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-health v0.7.0

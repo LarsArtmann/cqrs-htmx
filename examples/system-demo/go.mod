@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.3
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0
 )
 
 require (
