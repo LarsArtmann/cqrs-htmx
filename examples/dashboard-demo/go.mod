@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/httputil v1.5.0
 )
