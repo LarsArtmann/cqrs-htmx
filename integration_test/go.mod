@@ -25,7 +25,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-health v0.7.0
 	github.com/larsartmann/go-sse v0.6.2
@@ -93,7 +93,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.18.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect

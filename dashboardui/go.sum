@@ -160,8 +160,8 @@ github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 h1:TL
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3/go.mod h1:Gn1lMDrE4/lJ2zTgcyuuLVqFWCrEXiI+imrUYpBfU4c=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2 h1:62R7BYzsBmre3ZpLI/1Ix17kx+wUbnQwfJI/z4HbkZg=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2/go.mod h1:8ROLpkWKi10BvYkgMIj1bjJJrKABX0gKQuUDt2bAjzQ=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0 h1:4Kn7ulDYRn9Xt6L+mqPJXP3mc09XTkylpfck2o/Taow=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0/go.mod h1:9AHwAtaOfkLBYDJ/MANM8ngPpNbpna27rGwCUO4rjIY=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.18.0 h1:RzlhSTcpsVZaKsXQ7O9HFdl1c0WvBLQc/AUYbEBV2VI=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.18.0/go.mod h1:i7+bTWKNSEqx2Jg9Tpdg1J0C3Op7GJC69q+LC5b7ss8=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 h1:Vzel6eXmS9dum1Pi7tdViiOlSzcH02ajCUXYK6LL5HQ=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2/go.mod h1:2ecijvSEDd4Tz0vCermNDRktU5+UARhuYFyc5rOYZxU=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 h1:q91s4+q6eoKZDXzil/WV5kTGRFUNbDXiebkMlxiJpcg=
@@ -192,8 +192,8 @@ github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3 h1:6MvhIw
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3/go.mod h1:UO3RXsNhk/wo6EAdm3jzjtjJRN4JkeviTvco4sJffmg=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4 h1:pjLtfnaGP1L2xssLxK+zrgagDSZ1gPinUYhyMMLbGQA=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4/go.mod h1:srePZ4/nmXnrmqZJS6BVGc33qoOLQz47+jJEXAnKQIo=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5 h1:31qbWhY2xiKCtFKuzJo1VJKdAl7LV9wxIOIbdA74uDk=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5/go.mod h1:cv6+mNdXYgnTUwWUwJ/U8VxZ6IyxipCS5w+i7tIC/Rg=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 h1:iVMpCZnjhIK+P2uwUwbDW/gOB7vnnyMPPd6Q7rB1nZo=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0/go.mod h1:02FR0CDEWBlmg6KBOl3rwH6qF7DpJ2SmDoIrchBUymY=
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/larsartmann/go-etag/entitytag v0.6.1 h1:tBr+hR4dqks75SY+pqmUNHUajzOG6qUfT8gE9H+Pbws=
@@ -291,8 +291,8 @@ github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/power-devops/perfstat v0.0.0-20260916203055-22a1a467d9f0 h1:XA01Vk/wv9YikCi1V51yRzIHPMT5of9+cMpZoZvDn/M=
 github.com/power-devops/perfstat v0.0.0-20260916203055-22a1a467d9f0/go.mod h1:OmDBASR4679mdNQnz2pUhc2G8CO2JrUAVFDRBDP/hJE=
-github.com/redis/go-redis/v9 v9.22.0 h1:laDvpYXTJtZLloinw1fA5Kqd6HAEH2XKxOkG/PDq2F0=
-github.com/redis/go-redis/v9 v9.22.0/go.mod h1:y2g0Wj8rQvuK0ELM+oxSudcLtC09JScs98I/X9gRWY4=
+github.com/redis/go-redis/v9 v9.23.0 h1:/TTVdJa8BRNsybwwGGnmiYktHNlUXtbOQxlWpHBPL3s=
+github.com/redis/go-redis/v9 v9.23.0/go.mod h1:EWP2UUk+XDaI1s5nQB5mablZN6vccXlmBQTyfnF87D0=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=

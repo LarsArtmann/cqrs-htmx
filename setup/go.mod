@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.2
