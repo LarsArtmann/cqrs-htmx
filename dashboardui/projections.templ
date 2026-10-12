@@ -104,7 +104,7 @@ templ projectionDetailContent(p pageData, proj projectionStat) {
 		@statCard("stat-lag-"+slug, proj.Lag, "Lag", display.StatToneBlue)
 	}
 	<h3>Details</h3>
-	@definitionList(projectionDetailItems(proj))
+	@definitionList(projectionDetailItems(proj, p.Nonce))
 	<div class="filter-bar">
 		@buttonLink(
 			fmt.Sprintf("View Dead Letters (%d)", proj.Errors),

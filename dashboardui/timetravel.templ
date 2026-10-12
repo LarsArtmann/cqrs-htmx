@@ -76,7 +76,7 @@ templ timeTravelDetailContent(
 	maxVersion event.Version,
 ) {
 	<div class="page-header">
-		<h2>Time Travel: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")</h2>
+		<h2>Time Travel: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "", p.Nonce)</h2>
 		<div class="page-subtitle">Viewing version { strconv.Itoa(currentVersion.Int()) } of { strconv.Itoa(maxVersion.Int()) }</div>
 	</div>
 	<div class="panel">

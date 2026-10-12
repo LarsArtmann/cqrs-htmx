@@ -42,7 +42,7 @@ templ snapshotDetailPage(p pageData, ref id.StreamRef, snap *snapshot.Snapshot, 
 
 templ snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot, stateText string) {
 	<div class="page-header">
-		<h2>Snapshot: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")</h2>
+		<h2>Snapshot: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "", p.Nonce)</h2>
 		<div class="page-subtitle">
 			Version { snap.Version.String() } · Created { snap.CreatedAt.Format(time.RFC3339) + " · " } @snapshotRelativeTime(p.Nonce, snap.CreatedAt)
 		</div>
@@ -59,7 +59,7 @@ templ snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapsho
 		</form>
 	}
 	<h3>Metadata</h3>
-	@definitionList(snapshotMetaItems(snap))
+	@definitionList(snapshotMetaItems(snap, p.Nonce))
 	<h3>State</h3>
 	<pre class="code-block"><code>{ stateText }</code></pre>
 }

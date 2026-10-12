@@ -654,7 +654,7 @@ func TestDefItem(t *testing.T) {
 }
 
 func TestDefItemCopy(t *testing.T) {
-	item := defItemCopy("ID", `<span class="mono">abc</span>`, "raw-id")
+	item := defItemCopy("ID", `<span class="mono">abc</span>`, "raw-id", "")
 
 	if item.DetailComponent == nil {
 		t.Fatal("defItemCopy must carry a DetailComponent")

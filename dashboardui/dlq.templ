@@ -131,7 +131,7 @@ templ dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLe
 	<div class="two-col-grid">
 		<div>
 			<h3>Error Details</h3>
-			@definitionList(dlqEntryErrorItems(entry))
+			@definitionList(dlqEntryErrorItems(entry, p.Nonce))
 			<h3>Error Message</h3>
 			<pre class="code-block"><code>{ entry.Error }</code></pre>
 		</div>

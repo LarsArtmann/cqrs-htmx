@@ -189,12 +189,12 @@ func benchTemplDefinitionList(b *testing.B) {
 
 	benchRender(b, definitionList([]display.DefinitionItem{
 		defItem("Stream Type", "user"),
-		defItemCopy("Stream ID", "01HXYZ", "01HXYZ"),
+		defItemCopy("Stream ID", "01HXYZ", "01HXYZ", ""),
 		defItem("Version", "42"),
 		defItem("Schema Version", "1"),
 		defItem("Encoding", "json"),
 		defItem("Occurred At", "2026-09-19T10:00:00Z"),
-		defItemCopy("Correlation ID", "01HCORR", "01HCORR"),
+		defItemCopy("Correlation ID", "01HCORR", "01HCORR", ""),
 	}))
 }
 
