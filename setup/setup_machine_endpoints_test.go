@@ -365,6 +365,11 @@ func TestMount_DocsHandler_SubtreePathServesPrefix(t *testing.T) {
 	_ = resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK || string(body) != "subtree page" {
-		t.Fatalf("GET %sguide = %d %q, want 200 from the subtree-mounted handler", machineDocsPath, resp.StatusCode, string(body))
+		t.Fatalf(
+			"GET %sguide = %d %q, want 200 from the subtree-mounted handler",
+			machineDocsPath,
+			resp.StatusCode,
+			string(body),
+		)
 	}
 }
