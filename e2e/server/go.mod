@@ -42,11 +42,11 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/httputil v1.5.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.2 // indirect
-	github.com/larsartmann/templ-components v1.21.0 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.21.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.21.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.21.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.21.0 // indirect
+	github.com/larsartmann/templ-components v1.22.0 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.22.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.22.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.22.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.22.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
