@@ -32,6 +32,9 @@ const (
 	fieldProjectionStatusPath = "ProjectionStatusPath"
 	fieldDebugPath            = "DebugPath"
 	fieldDocsPath             = "DocsPath"
+	fieldLivePath             = "LivePath"
+	fieldSSEScriptPath        = "SSEScriptPath"
+	fieldDataStarScriptPath   = "DataStarScriptPath"
 )
 
 // Config is the single entry point for configuring a full-stack cqrs-htmx application.
@@ -1070,11 +1073,11 @@ func (c Config) validateOptionalFeedPaths() error {
 		{fieldEventCatalogPath, c.EventCatalogPath, false},
 		{fieldProjectionStatusPath, c.ProjectionStatusPath, false},
 		{fieldDebugPath, c.DebugPath, false},
-		{"LivePath", c.LivePath, false},
+		{fieldLivePath, c.LivePath, false},
 		{fieldSSEPath, c.SSEPath, false},
-		{"SSEScriptPath", c.SSEScriptPath, true},
+		{fieldSSEScriptPath, c.SSEScriptPath, true},
 		{fieldDataStarPath, c.DataStarPath, false},
-		{"DataStarScriptPath", c.DataStarScriptPath, true},
+		{fieldDataStarScriptPath, c.DataStarScriptPath, true},
 		{fieldDocsPath, c.DocsPath, false},
 	} {
 		if opt.path == "" || (opt.allowDash && opt.path == "-") {
@@ -1106,10 +1109,10 @@ func (c Config) validatePathRoots() error {
 		{"DashboardPath", c.DashboardPath},
 		{"HealthPath", c.HealthPath},
 		{fieldSSEPath, c.SSEPath},
-		{"SSEScriptPath", c.SSEScriptPath},
+		{fieldSSEScriptPath, c.SSEScriptPath},
 		{fieldDataStarPath, c.DataStarPath},
-		{"DataStarScriptPath", c.DataStarScriptPath},
-		{"LivePath", c.LivePath},
+		{fieldDataStarScriptPath, c.DataStarScriptPath},
+		{fieldLivePath, c.LivePath},
 		{fieldEventCatalogPath, c.EventCatalogPath},
 		{fieldProjectionStatusPath, c.ProjectionStatusPath},
 		{fieldDebugPath, c.DebugPath},
@@ -1137,10 +1140,10 @@ func requireDistinctPaths(c Config) error {
 		{"DashboardPath", trimTrailingSlash(c.DashboardPath)},
 		{"HealthPath", trimTrailingSlash(c.HealthPath)},
 		{fieldSSEPath, trimTrailingSlash(c.SSEPath)},
-		{"SSEScriptPath", trimTrailingSlash(c.SSEScriptPath)},
+		{fieldSSEScriptPath, trimTrailingSlash(c.SSEScriptPath)},
 		{fieldDataStarPath, trimTrailingSlash(c.DataStarPath)},
-		{"DataStarScriptPath", trimTrailingSlash(c.DataStarScriptPath)},
-		{"LivePath", trimTrailingSlash(c.LivePath)},
+		{fieldDataStarScriptPath, trimTrailingSlash(c.DataStarScriptPath)},
+		{fieldLivePath, trimTrailingSlash(c.LivePath)},
 		{fieldEventCatalogPath, trimTrailingSlash(c.EventCatalogPath)},
 		{fieldProjectionStatusPath, trimTrailingSlash(c.ProjectionStatusPath)},
 		{fieldDebugPath, trimTrailingSlash(c.DebugPath)},

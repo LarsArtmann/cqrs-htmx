@@ -6,7 +6,7 @@ require (
 	github.com/a-h/templ v0.3.1070
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2
-	github.com/larsartmann/cqrs-htmx/v4 v4.14.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/httputil v1.5.0
 	github.com/larsartmann/templ-components v1.22.0
