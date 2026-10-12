@@ -4,6 +4,10 @@
 > **Created:** 2026-10-12 17:33 · **Input:** `docs/research/2026-10-12_catalog-v4-integration-map.md`
 > **Question driving this plan:** setup and go-appkit do NOT embed go-cqrs-lite/catalog —
 > what should we *really* do about that?
+>
+> **2026-10-12 update:** tier T3 was consumed the same day by the 10-sweep family
+> alignment (catalog v4.8.0 landed here; push `291b2c51`). Execution supersedes to
+> [`2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md`](2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md).
 
 ## 1. Context — what we know (verified 2026-10-12)
 
