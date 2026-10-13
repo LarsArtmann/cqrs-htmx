@@ -638,12 +638,26 @@ jobs:
         run: bash scripts/selftests/test-wait-tree-quiet.sh
 
       # Train-preflight (T02, 2026-10-08): one command before a train —
-      # quiescence + surprise + lint + hermetic tests + strict train gate,
-      # with gotcha-2 candidate-count guards. Runners cannot execute the
-      # real stages here; the stub self-test is the coverage and the real
-      # app is the documented pre-train step (release playbook).
+      # quiescence + surprise + lint + hermetic tests + strict train gate +
+      # the e2e battery as the wave's declared gate (self-skips under CI;
+      # no browser provisioning on runners), with gotcha-2 candidate-count
+      # guards. Runners cannot execute the real stages here; the stub
+      # self-test is the coverage and the real app is the documented
+      # pre-train step (release playbook).
       - name: Train-preflight self-test
         run: bash scripts/selftests/test-train-preflight.sh
+
+      # Push-and-watch (2026-10-13): push + watch THIS push's ci.yml run to
+      # terminal state — the wrong-run watch (Dependabot graph update read
+      # as "the" CI run) mechanized away. Stub self-test is the coverage.
+      - name: Push-and-watch self-test
+        run: bash scripts/selftests/test-push-and-watch.sh
+
+      # Verify-remote-tags (2026-10-13): peeled-ref tag audit — the
+      # tag-object vs peeled-commit false-alarm class that first "failed"
+      # 13/13 healthy wave tags. Offline bare-clone self-test is coverage.
+      - name: Verify-remote-tags self-test
+        run: bash scripts/selftests/test-verify-remote-tags.sh
 
       # Hermetic consumer catch (T04, 2026-10-08; gotcha-30 mechanized): the
       # stub self-test is the CI coverage; the real gate runs locally via

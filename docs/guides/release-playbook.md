@@ -25,8 +25,14 @@ One command, run (a) before the first tree-mutating step of a train session
 and (b) before the final push. It chains the shared-tree quiescence gate
 (`wait-tree-quiet`), the abort-on-surprise gate (`preflight-tree-check`),
 the workspace lint, the hermetic test battery (`nix run .#test` — the same
-`GOWORK=off` resolution CI uses), and the strict release-train gate
-(`--refresh-cache --strict-lag 0` — the exact pre-push flags).
+`GOWORK=off` resolution CI uses), the strict release-train gate
+(`--refresh-cache --strict-lag 0` — the exact pre-push flags), and — since
+2026-10-13 — the e2e Playwright battery (`nix run .#e2e`) as the wave's
+DECLARED gate (self-skips under CI: runners have no browser provisioning;
+`TRAIN_PREFLIGHT_SKIP_E2E=1` is the explicit local opt-out). The e2e stage
+exists because the 2026-10-13 wave cut 7 tags and ran the battery AFTER —
+passing later does not make the order right, so the gate now lives where
+the train starts.
 
 Every heavy stage carries a candidate-count guard: a lint/test stage that
 printed zero per-module markers, or a train check without its requires
@@ -132,6 +138,14 @@ tags** — never at a tag you are ABOUT to cut. Concretely:
   the stale cache while CI (fresh proxy resolution) red's the lag it could not
   see. Sequence: release upstream → `check-release-train.sh --refresh-cache` →
   sweep consumers → push.
+- **Refresh immediately before EVERY push — the tail grows while you sweep**
+  (2026-10-13, twice live): upstream published `system/v4 v4.14.0` BETWEEN the
+  first strict gate run and the push, adding 4 lag entries absent from the
+  original list; `go-appkit v0.9.0` published mid-sweep the same day, adding
+  3 more. Treat a pre-push release-train rc=3 as "fetch and look for a fresh
+  upstream tag FIRST": refresh the cache, check for new upstream tags, sweep
+  the new consumers, THEN re-push. `push-and-watch.sh` runs this refresh as
+  its first step so forgetting is no longer possible.
 - CHANGELOG-before-tag: write the consumer-visible receipts into the module's
   CHANGELOG `[Unreleased]` section and cut the tag WITH them committed — a tag
   whose CHANGELOG section is a stub (identity-model v4.12.0 class) ships empty
@@ -169,7 +183,9 @@ forever; force-moving a tag makes it WORSE):
 ## 8. Post-push: watch CI, don't assume
 
 ```sh
-gh run watch <run-id> --exit-status
+nix run .#push-and-watch        # refresh-cache → push → watch THIS push's ci.yml run
+# or by hand:
+gh run watch "$(gh run list --workflow ci.yml --branch "$(git rev-parse --abbrev-ref HEAD)" --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
 ```
 
 A push is not done when `git push` returns — the 2026-10-08 session carried
@@ -179,6 +195,20 @@ surfaced in one pass. `--exit-status` makes the command's rc carry the run
 verdict, so scripted trains can gate on it. Multi-red tip: fix ALL reds in
 ONE local replication pass before re-pushing — CI only surfaces the FIRST
 failure per job (gotcha 27c).
+
+**The workflow filter is not optional** (2026-10-13 wrong-run watch): the
+newest run without `--workflow ci.yml` is the Dependabot config-graph update
+every single time — that session read it green in 1m34s while the real run
+was red for hours. `push-and-watch.sh` mechanizes the whole loop: tag-cache
+refresh → push → SHA-verified run lookup → watch → on red, the failed job
+names + triage hint (`gh api repos/<slug>/actions/runs/<id>/jobs`).
+
+**Paranoia tag audit** (after any tag wave): `nix run .#verify-remote-tags
+'<pattern>...'` — every local tag must peel (`^{}`) on the remote to the
+SAME commit. Compare peeled-vs-peeled: `git ls-remote` reports the TAG
+OBJECT for annotated tags, and comparing it to `rev-parse <tag>^{commit}`
+without peeling the remote side false-alarms on every healthy tag (the
+2026-10-13 audit "failed" 13/13 on exactly this).
 
 ## 9. Sweep-commit mechanics
 

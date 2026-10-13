@@ -1738,12 +1738,15 @@
             push-and-watch = {
               type = "app";
               meta.description = "Push, then watch THIS push's ci.yml run to terminal state (workflow-filtered — the newest unfiltered run is the Dependabot graph update); refreshes the release-train tag cache first, prints failed jobs + triage hint on red";
-              runtimeInputs = [
-                pkgs.git
-                pkgs.gh
-                pkgs.coreutils
-              ];
-              text = ''
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "push-and-watch";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.gh
+                    pkgs.coreutils
+                  ];
+                  text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/tools/push-and-watch.sh "$@"
                   '';
@@ -1772,11 +1775,14 @@
             verify-remote-tags = {
               type = "app";
               meta.description = "Paranoia tag audit: local tags must peel (^{}) on the remote to the SAME commit (tag-object vs peeled-commit false-alarm class, 2026-10-13); fails on mismatch/missing/zero candidates";
-              runtimeInputs = [
-                pkgs.git
-                pkgs.coreutils
-              ];
-              text = ''
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "verify-remote-tags";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/tools/verify-remote-tags.sh "$@"
                   '';
