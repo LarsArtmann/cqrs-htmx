@@ -19,6 +19,14 @@
 #                     flake goApp exports GOWORK=off)
 #   5. train        — check-release-train --refresh-cache --strict-lag 0
 #                     (the exact CI/pre-push flags)
+#   6. e2e          — nix run .#e2e (the Playwright battery — the wave's
+#                     DECLARED gate). Auto-skips under CI (runners have no
+#                     browser provisioning) and via TRAIN_PREFLIGHT_SKIP_E2E=1
+#                     (explicit opt-out); the stub self-test covers the
+#                     stage mechanics. 2026-10-13: a session cut 7 tags and
+#                     ran the battery AFTER — passing later does not make
+#                     the order right, so the gate is wired here where the
+#                     train starts.
 #
 # CANDIDATE-COUNT GUARDS (gotcha 2: a gate that scans zero candidates is a
 # FALSE green): the lint/test logs must contain at least one per-module
@@ -26,7 +34,7 @@
 # tally line. A guard miss fails the run loudly even when the stage rc was 0.
 #
 # STUB SURFACE (fixture self-test): every stage command is env-overridable —
-#   TRAIN_PREFLIGHT_QUIET_CMD / _PREFLIGHT_CMD / _LINT_CMD / _TEST_CMD / _TRAIN_CMD
+#   TRAIN_PREFLIGHT_QUIET_CMD / _PREFLIGHT_CMD / _LINT_CMD / _TEST_CMD / _TRAIN_CMD / _E2E_CMD
 # The self-test (scripts/selftests/test-train-preflight.sh) injects stubs to
 # exercise pass, fail, and guard-miss paths offline in seconds.
 #
@@ -50,6 +58,8 @@ PREFLIGHT_CMD="${TRAIN_PREFLIGHT_PREFLIGHT_CMD:-bash scripts/tools/preflight-tre
 LINT_CMD="${TRAIN_PREFLIGHT_LINT_CMD:-nix run .#lint}"
 TEST_CMD="${TRAIN_PREFLIGHT_TEST_CMD:-nix run .#test}"
 TRAIN_CMD="${TRAIN_PREFLIGHT_TRAIN_CMD:-bash scripts/checks/check-release-train.sh --refresh-cache --strict-lag 0}"
+E2E_CMD="${TRAIN_PREFLIGHT_E2E_CMD:-nix run .#e2e}"
+SKIP_E2E="${TRAIN_PREFLIGHT_SKIP_E2E:-0}"
 KEEP_GOING="${TRAIN_PREFLIGHT_KEEP_GOING:-0}"
 
 LOGDIR="$(mktemp -d /tmp/cqrs-htmx-train-preflight-XXXXXX)"
@@ -103,6 +113,22 @@ run_stage "lint" "$LINT_CMD" '^==> ' 1 || [ "$KEEP_GOING" = "1" ] || exit 1
 run_stage "tests" "$TEST_CMD" '^==> ' 1 || [ "$KEEP_GOING" = "1" ] || exit 1
 # Train gate prints "Checked N internal requires" on every complete run.
 run_stage "train" "$TRAIN_CMD" 'internal requires' 1 || [ "$KEEP_GOING" = "1" ] || exit 1
+
+# Stage 6 is the wave's declared gate; skipping must be a DECISION, never an
+# accident. The CI self-skip is loud and points at the stub coverage.
+if [ "$SKIP_E2E" = "1" ]; then
+  echo ""
+  echo "=== train-preflight: e2e ==="
+  echo "  SKIPPED (TRAIN_PREFLIGHT_SKIP_E2E=1)"
+elif [ -n "${CI:-}" ]; then
+  echo ""
+  echo "=== train-preflight: e2e ==="
+  echo "  SELF-SKIP under CI (runners have no browser provisioning; the fixture self-test is the coverage)"
+else
+  # Playwright's line reporter always prints "N passed" on a green run; a
+  # zero-iteration run is a false green (gotcha 2).
+  run_stage "e2e" "$E2E_CMD" 'passed' 1 || [ "$KEEP_GOING" = "1" ] || exit 1
+fi
 
 echo ""
 if [ "$failed" -eq 0 ]; then
