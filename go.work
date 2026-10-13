@@ -32,15 +32,6 @@ use (
 	./usermgmt/webauthn
 )
 
-// templ-components: local bridge for UNRELEASED features (#405 ButtonProps.Children,
-// #406 TableRow.Class) while adminui's go.mod stays pinned at published v1.22.0.
-// Remove these five lines once the next library release ships the Children slot.
-replace github.com/larsartmann/templ-components => /home/lars/projects/templ-components
-replace github.com/larsartmann/templ-components/utils => /home/lars/projects/templ-components/utils
-replace github.com/larsartmann/templ-components/icons => /home/lars/projects/templ-components/icons
-replace github.com/larsartmann/templ-components/errorpage => /home/lars/projects/templ-components/errorpage
-replace github.com/larsartmann/templ-components/htmx => /home/lars/projects/templ-components/htmx
-
 replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => /home/lars/projects/go-cqrs-lite/catalog
 
 // REMOVED 2026-08-15: codec/, flightrecorder/, and retry/ replaces.
