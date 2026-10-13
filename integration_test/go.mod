@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.3
-	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.1
+	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.2
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.12.2
@@ -49,8 +49,8 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd // indirect
-	github.com/charmbracelet/x/ansi v0.11.8 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
+	github.com/charmbracelet/x/ansi v0.11.9 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -137,7 +137,7 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/mattn/go-runewidth v0.0.30 // indirect
+	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
