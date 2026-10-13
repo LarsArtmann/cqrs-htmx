@@ -316,7 +316,7 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
-	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.Get())
 	tenantID := identitymodel.NewTenantID("tenant-1")
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
@@ -370,7 +370,7 @@ func TestDeclarative_MembershipRolesUpdate(t *testing.T) {
 	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
-	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.Get())
 	tenantID := identitymodel.NewTenantID("tenant-roles")
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
@@ -413,7 +413,7 @@ func TestDeclarative_MembershipRemove(t *testing.T) {
 	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
-	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.Get())
 	tenantID := identitymodel.NewTenantID("tenant-remove")
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
@@ -548,7 +548,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 
 	userStreamID := id.NewStreamID()
 	tenantID := identitymodel.NewTenantID("tenant-authz")
-	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.Get())
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		userStreamID, "admin@example.com", "Admin User",
@@ -571,7 +571,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	})
 
 	plainStreamID := id.NewStreamID()
-	plainActorID := identitymodel.NewActorID(identitymodel.ActorUser, plainStreamID.String())
+	plainActorID := identitymodel.NewActorID(identitymodel.ActorUser, plainStreamID.Get())
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		plainStreamID, "plain@example.com", "Plain User",
 		[]identitymodel.Role{identitymodel.RoleUser},
@@ -856,7 +856,7 @@ func TestDeclarative_SQLite_AuthzPolicies(t *testing.T) {
 
 	userStreamID := id.NewStreamID()
 	tenantID := identitymodel.NewTenantID("tenant-sqlite-authz")
-	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.Get())
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		userStreamID, "sqlite-admin@example.com", "SQLite Admin",
