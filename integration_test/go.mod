@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.2
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2
-	github.com/larsartmann/cqrs-htmx/health/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/health/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.3
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.3
