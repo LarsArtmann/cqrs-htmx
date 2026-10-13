@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.27.2
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.3
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.4
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.3
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2
