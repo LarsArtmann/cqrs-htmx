@@ -62,11 +62,11 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-retry v0.8.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
-	github.com/larsartmann/templ-components v1.22.0 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.22.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.22.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.22.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.22.0 // indirect
+	github.com/larsartmann/templ-components v1.23.0 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.23.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.23.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.23.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.23.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
