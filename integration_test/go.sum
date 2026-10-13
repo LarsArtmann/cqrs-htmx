@@ -202,8 +202,8 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.3 h1:dfLKPUBwrdZ+xG/vd5
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.3/go.mod h1:Vnq/n1rSXEEkjySK6rsYfPSRa0RslDUFURGvRHnUpao=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.3 h1:OeNwVAcY0L8IhomKtjxFM2aWmo/PiLHPCENn5KzvLDk=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.3/go.mod h1:kgFWFHdfuCdbyq6SV7lsgWzyzEFSgFBFU50aHhJhsRo=
-github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.3 h1:rVBkGm85+dToT0tsdIr4CLF2dLUxrYf3C0qZlLL/YEI=
-github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.3/go.mod h1:EE8nCoSzmMyQHnNWhOZxu2MmobiIyq2HQY9XDDrMWqk=
+github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.4 h1:izMuBh/fl5i67gnLvBmoDynqgAJDxOR/Xq7T0aYkqBI=
+github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.4/go.mod h1:ItSYTxTqPqj6myzTKfPdWci0WGCu5vOQ6YZvZN2xED4=
 github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.0 h1:nT55gRlyqmVRUTNAa5xhGjZ3aYOxGH0kL2zUfm9sIZ8=
 github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.0/go.mod h1:UsxJWqFvjCkYfXCJ8TkNmEC3pIzpfIqxYjfn3xQ8zC0=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1 h1:50h3ypO0I346KBzghWNWTixhB6CAQfQpk2gnG4HDQUY=
@@ -252,8 +252,8 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 h1:t6+zJntr/N9ah7HEUHab3X
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3/go.mod h1:RzBMkLnFnOXEx5R5OVj4pRs+cYToWDQbT0BaOFMUutM=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 h1:TLxR52e2An1kbrJHaf9Y8Om0f3LuwzBSFqXf7e1YIQI=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3/go.mod h1:Gn1lMDrE4/lJ2zTgcyuuLVqFWCrEXiI+imrUYpBfU4c=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2 h1:62R7BYzsBmre3ZpLI/1Ix17kx+wUbnQwfJI/z4HbkZg=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2/go.mod h1:8ROLpkWKi10BvYkgMIj1bjJJrKABX0gKQuUDt2bAjzQ=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3 h1:BU/a5PDT7sR6AcEjyTLOZhq3oyQxfpbnlWP6g+HqKe4=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3/go.mod h1:vCrxqWnbAmu80CoeNlmZ4YtlQ1PpEPJYRkHyJwpVcMs=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0 h1:0r2O5TuMIRDOlrER07m/FbAV5TieB3jnb9bWQNu+K2w=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0/go.mod h1:i7+bTWKNSEqx2Jg9Tpdg1J0C3Op7GJC69q+LC5b7ss8=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 h1:Vzel6eXmS9dum1Pi7tdViiOlSzcH02ajCUXYK6LL5HQ=
@@ -288,6 +288,8 @@ github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5 h1:qm7hwql6sPBH/BKX1kZY0H
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5/go.mod h1:bWMQuLfIYGlTEhNCOkPIk++m/047mVJ+0P6IKoHrYuo=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0 h1:q++Rp1uC5WJdVpoajiWfbM9qa1l8aXTh5HIJvfzDCIw=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0/go.mod h1:z2w36TmzgQ2w0ThStnDRwXuvzD/GHsxdq1fB/Qf+oHQ=
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0 h1:ADb3Zz4PNYrOJ+kOdSEsrIAEqO++FMc+GqF3rTceinA=
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0/go.mod h1:WGysFJNDwYQV7bsOz7kDVlVHxnm0wUNUTZK0n9AlGng=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3 h1:6MvhIwZpxMUf9bLN2qBcL4oNtk/s09se2hc4gWJCEgM=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3/go.mod h1:UO3RXsNhk/wo6EAdm3jzjtjJRN4JkeviTvco4sJffmg=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4 h1:pjLtfnaGP1L2xssLxK+zrgagDSZ1gPinUYhyMMLbGQA=
