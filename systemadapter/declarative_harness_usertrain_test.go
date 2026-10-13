@@ -69,7 +69,7 @@ func TestHarnessUserTrain_Credentials(t *testing.T) {
 		},
 	))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		func(user UserView) error {
 			if err := checkCredentialCount(1)(user); err != nil {
 				return err
@@ -93,7 +93,7 @@ func TestHarnessUserTrain_Credentials(t *testing.T) {
 
 	sc.Phase().Command(identitymodel.NewRemoveCredentialCmd(userStreamID, credID))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()), checkCredentialCount(0))
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()), checkCredentialCount(0))
 }
 
 func TestHarnessUserTrain_TOTP(t *testing.T) {
@@ -106,7 +106,7 @@ func TestHarnessUserTrain_TOTP(t *testing.T) {
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)).When(identitymodel.NewEnableTOTPCmd(userStreamID, []byte("secret-key")))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		func(user UserView) error {
 			if !user.TOTPEnabled {
 				return &fieldMismatchError{field: "TOTPEnabled", want: "true", got: "false"}
@@ -117,7 +117,7 @@ func TestHarnessUserTrain_TOTP(t *testing.T) {
 
 	sc.Phase().Command(identitymodel.NewDisableTOTPCmd(userStreamID))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		func(user UserView) error {
 			if user.TOTPEnabled {
 				return &fieldMismatchError{field: "TOTPEnabled", want: "false", got: "true"}
@@ -147,7 +147,7 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 		userStreamID, "github", "gh-123", "ext@github.com", "Ext User",
 	))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		func(user UserView) error {
 			if len(user.ExternalAccounts) != 1 {
 				return &fieldMismatchError{
@@ -171,8 +171,8 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 	systemscenario.ThenQueryTyped(sc.Phase(), func() (UserView, error) {
 		return FindUserByExternalAccount(ctx, sc.System(), "github", "gh-123")
 	}, func(byExt UserView) error {
-		if byExt.ID != userStreamID.String() {
-			return &fieldMismatchError{field: "external-account lookup ID", want: userStreamID.String(), got: byExt.ID}
+		if byExt.ID != userStreamID.Get() {
+			return &fieldMismatchError{field: "external-account lookup ID", want: userStreamID.Get(), got: byExt.ID}
 		}
 
 		return nil
@@ -180,7 +180,7 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 
 	sc.Phase().Command(identitymodel.NewUnlinkExternalAccountCmd(userStreamID, "github", "gh-123"))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		func(user UserView) error {
 			if len(user.ExternalAccounts) != 0 {
 				return &fieldMismatchError{
@@ -213,10 +213,10 @@ func TestHarnessUserTrain_ExternalAccounts(t *testing.T) {
 	systemscenario.ThenQueryTyped(sc.Phase(), func() (UserView, error) {
 		return FindUserByExternalAccount(ctx, sc.System(), "github", "gh-123")
 	}, func(byExt UserView) error {
-		if byExt.ID != secondStreamID.String() {
+		if byExt.ID != secondStreamID.Get() {
 			return &fieldMismatchError{
 				field: "re-link lookup ID (must follow new owner)",
-				want:  secondStreamID.String(),
+				want:  secondStreamID.Get(),
 				got:   byExt.ID,
 			}
 		}
@@ -236,7 +236,7 @@ func TestHarnessUserTrain_UserDelete(t *testing.T) {
 	)).When(identitymodel.NewDeleteUserCmd(userStreamID, "test"))
 
 	sc.Phase().ThenQueryFunc(awaitNotFound(func() error {
-		_, err := FindUserByID(ctx, sc.System(), userStreamID.String())
+		_, err := FindUserByID(ctx, sc.System(), userStreamID.Get())
 		return err
 	}), func(got any) error { return nil })
 
@@ -315,7 +315,7 @@ func TestHarnessUserTrain_AuditLog(t *testing.T) {
 	})
 
 	sc.Phase().ThenQueryFunc(func() (any, error) {
-		return AuditEntriesFor(ctx, sc.System(), userStreamID.String())
+		return AuditEntriesFor(ctx, sc.System(), userStreamID.Get())
 	}, func(got any) error {
 		forUser, ok := got.([]AuditEntryView)
 		if !ok {
@@ -378,7 +378,7 @@ func TestHarnessUserTrain_MissingLookups(t *testing.T) {
 	sc, ctx := newHarnessScenario(t)
 
 	seed := id.NewStreamID()
-	missing := id.NewStreamID().String()
+	missing := id.NewStreamID().Get()
 
 	sc.Given().Command(identitymodel.NewRegisterUserCmd(
 		seed, "seed@example.com", "Seed",

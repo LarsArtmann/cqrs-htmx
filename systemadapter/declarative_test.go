@@ -138,7 +138,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.Get())
 		if err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewSuspendTenantCmd(tenantID, "test")))
 	eventually(t, 5*time.Second, func() error {
-		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.Get())
 		if err != nil {
 			return err
 		}
@@ -168,7 +168,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewReactivateTenantCmd(tenantID)))
 	eventually(t, 5*time.Second, func() error {
-		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.Get())
 		if err != nil {
 			return err
 		}
@@ -183,7 +183,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if byName.ID != tenantID.String() {
+		if byName.ID != tenantID.Get() {
 			return errors.New("ID mismatch")
 		}
 		return nil
@@ -211,7 +211,7 @@ func TestDeclarative_TenantDelete(t *testing.T) {
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewDeleteTenantCmd(tenantID, "cleanup")))
 
 	eventually(t, 5*time.Second, func() error {
-		_, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		_, err := systemadapter.FindTenantByID(ctx, sys, tenantID.Get())
 		if err == nil {
 			return errors.New("tenant should be deleted")
 		}
@@ -246,7 +246,7 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		bot, err := systemadapter.FindBotByID(ctx, sys, botID.String())
+		bot, err := systemadapter.FindBotByID(ctx, sys, botID.Get())
 		if err != nil {
 			return err
 		}
@@ -327,7 +327,7 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
 
 	eventually(t, 5*time.Second, func() error {
-		mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
+		mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.Get())
 		if err != nil {
 			return err
 		}
@@ -386,7 +386,7 @@ func TestDeclarative_MembershipRolesUpdate(t *testing.T) {
 	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
 
 	eventually(t, 5*time.Second, func() error {
-		mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
+		mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.Get())
 		if err != nil {
 			return err
 		}
@@ -426,7 +426,7 @@ func TestDeclarative_MembershipRemove(t *testing.T) {
 	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
 
 	eventually(t, 5*time.Second, func() error {
-		_, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
+		_, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.Get())
 		if err == nil {
 			return errors.New("membership should be removed")
 		}
@@ -459,7 +459,7 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.Get())
 		if err != nil {
 			return err
 		}
@@ -488,7 +488,7 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.Get())
 		if err != nil {
 			return err
 		}
@@ -504,7 +504,7 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewVerifyEmailCmd(userStreamID)))
 
 	eventually(t, 5*time.Second, func() error {
-		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.Get())
 		if err != nil {
 			return err
 		}
@@ -528,7 +528,7 @@ func TestDeclarative_UserDisplayNameChange(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.Get())
 		if err != nil {
 			return err
 		}
@@ -560,7 +560,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.Get(), "manage")
+		allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.Get(), tenantID.Get(), "manage")
 		if err != nil {
 			return err
 		}
@@ -582,7 +582,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		allowed, err := systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "manage")
+		allowed, err := systemadapter.Enforce(ctx, sys, plainStreamID.Get(), tenantID.Get(), "manage")
 		if err != nil {
 			return err
 		}
@@ -593,7 +593,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	})
 
 	eventually(t, 5*time.Second, func() error {
-		allowed, err := systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "view")
+		allowed, err := systemadapter.Enforce(ctx, sys, plainStreamID.Get(), tenantID.Get(), "view")
 		if err != nil {
 			return err
 		}
@@ -604,7 +604,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	})
 
 	eventually(t, 5*time.Second, func() error {
-		entries, err := systemadapter.FindPolicies(ctx, sys, userStreamID.String(), tenantID.Get())
+		entries, err := systemadapter.FindPolicies(ctx, sys, userStreamID.Get(), tenantID.Get())
 		if err != nil {
 			return err
 		}
@@ -620,11 +620,11 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)))
 	eventually(t, 5*time.Second, func() error {
-		pol, err := systemadapter.FindPolicyByStreamID(ctx, sys, userPolID.String())
+		pol, err := systemadapter.FindPolicyByStreamID(ctx, sys, userPolID.Get())
 		if err != nil {
 			return err
 		}
-		if pol.Subject != userPolID.String() {
+		if pol.Subject != userPolID.Get() {
 			return errors.New("policy subject mismatch")
 		}
 		return nil
@@ -719,7 +719,7 @@ func TestDeclarative_EquivalenceWithProjectionLayer(t *testing.T) {
 	if !ok {
 		t.Fatal("ProjectionLayer: tenant not found")
 	}
-	declTenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+	declTenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.Get())
 	if err != nil {
 		t.Fatalf("declarative: FindTenantByID failed: %v", err)
 	}
@@ -738,7 +738,7 @@ func TestDeclarative_EquivalenceWithProjectionLayer(t *testing.T) {
 	if !ok {
 		t.Fatal("ProjectionLayer: user not found")
 	}
-	declUser, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+	declUser, err := systemadapter.FindUserByID(ctx, sys, userStreamID.Get())
 	if err != nil {
 		t.Fatalf("declarative: FindUserByID failed: %v", err)
 	}
@@ -784,7 +784,7 @@ func TestDeclarative_SQLite_UserLifecycle(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		byID, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		byID, err := systemadapter.FindUserByID(ctx, sys, userStreamID.Get())
 		if err != nil {
 			return err
 		}
@@ -802,14 +802,14 @@ func TestDeclarative_SQLite_UserLifecycle(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if byEmail.ID != userStreamID.String() {
+		if byEmail.ID != userStreamID.Get() {
 			return errors.New("FindUserByEmail ID mismatch")
 		}
 		byExt, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "sqlite-gh-1")
 		if err != nil {
 			return err
 		}
-		if byExt.ID != userStreamID.String() {
+		if byExt.ID != userStreamID.Get() {
 			return errors.New("FindUserByExternalAccount ID mismatch")
 		}
 		return nil
@@ -828,7 +828,7 @@ func TestDeclarative_SQLite_UserLifecycle(t *testing.T) {
 	})
 
 	eventually(t, 5*time.Second, func() error {
-		entries, err := systemadapter.AuditEntriesFor(ctx, sys, userStreamID.String())
+		entries, err := systemadapter.AuditEntriesFor(ctx, sys, userStreamID.Get())
 		if err != nil {
 			return err
 		}
@@ -841,7 +841,7 @@ func TestDeclarative_SQLite_UserLifecycle(t *testing.T) {
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewDeleteUserCmd(userStreamID, "test")))
 
 	eventually(t, 5*time.Second, func() error {
-		_, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		_, err := systemadapter.FindUserByID(ctx, sys, userStreamID.Get())
 		if errors.Is(err, system.ErrNotFound) {
 			return nil
 		}
@@ -868,18 +868,18 @@ func TestDeclarative_SQLite_AuthzPolicies(t *testing.T) {
 	)))
 
 	eventually(t, 5*time.Second, func() error {
-		allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.Get(), "manage")
+		allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.Get(), tenantID.Get(), "manage")
 		if err != nil {
 			return err
 		}
 		if !allowed {
 			return errors.New("admin should be allowed to manage (SQLite)")
 		}
-		pol, err := systemadapter.FindPolicyByStreamID(ctx, sys, userStreamID.String())
+		pol, err := systemadapter.FindPolicyByStreamID(ctx, sys, userStreamID.Get())
 		if err != nil {
 			return err
 		}
-		if pol.Subject != userStreamID.String() {
+		if pol.Subject != userStreamID.Get() {
 			return errors.New("policy subject mismatch (SQLite)")
 		}
 		return nil

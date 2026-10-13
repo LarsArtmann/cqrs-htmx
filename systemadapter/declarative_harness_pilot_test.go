@@ -43,14 +43,14 @@ func TestHarnessPilot_UserLifecycle(t *testing.T) {
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)).When(identitymodel.NewChangeEmailCmd(userStreamID, "new@example.com"))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		checkUserFields("new@example.com", false))
 
 	systemscenario.ThenQueryTyped(sc.Phase(), func() (UserView, error) {
 		return FindUserByEmail(ctx, sc.System(), "new@example.com")
 	}, func(user UserView) error {
-		if user.ID != userStreamID.String() {
-			return &fieldMismatchError{field: "ID", want: userStreamID.String(), got: user.ID}
+		if user.ID != userStreamID.Get() {
+			return &fieldMismatchError{field: "ID", want: userStreamID.Get(), got: user.ID}
 		}
 
 		return nil
@@ -58,7 +58,7 @@ func TestHarnessPilot_UserLifecycle(t *testing.T) {
 
 	sc.Phase().Command(identitymodel.NewVerifyEmailCmd(userStreamID))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		checkUserFields("new@example.com", true))
 }
 
@@ -72,7 +72,7 @@ func TestHarnessPilot_UserDisplayNameChange(t *testing.T) {
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)).When(identitymodel.NewChangeDisplayNameCmd(userStreamID, "Updated Name"))
 
-	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.String()),
+	systemscenario.ThenQueryTyped(sc.Phase(), findUser(sc, ctx, userStreamID.Get()),
 		func(user UserView) error {
 			if user.DisplayName != "Updated Name" {
 				return &fieldMismatchError{field: "DisplayName", want: "Updated Name", got: user.DisplayName}
