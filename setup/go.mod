@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.2
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.3
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.3
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
 	github.com/larsartmann/go-appkit v0.9.0
