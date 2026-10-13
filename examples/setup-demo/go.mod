@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/setup-demo
 go 1.27.2
 
 require (
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.1
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.3
 	github.com/larsartmann/cqrs-htmx/setup/v4 v4.14.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3
