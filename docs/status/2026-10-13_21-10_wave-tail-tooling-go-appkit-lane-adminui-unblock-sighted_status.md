@@ -1,6 +1,8 @@
 # Status: Wave-Tail Follow-Up — Tooling Landed, go-appkit Lane Executed, adminui Unblock Sightedin (2026-10-13 19:30 → 21:10)
 
 > **Repo state at writing (cqrs-htmx):** HEAD `46f0b074` + 4 heuristic daemon commits (all pushed, `nix run .#push-and-watch` dogfooded on the real push — run `38449543118` watched to terminal by the new tool). **CI: exactly the documented 4-job adminui deferral class** (module-architecture / build / test / lint(adminui), failed steps all adminui-specific; 13 jobs green). **templ-components cut v1.23.0 locally at 20:26 — the release line names `ButtonProps.Children` (#405) — but the family tags were not yet pushed to origin at 21:00; the unblock runbook fires when they publish.** go-appkit: lane executed, `docs/v0.3.3` tagged+pushed, all guards green.
+>
+> **RESOLVED 21:05→21:20 (same session, annotated inline):** the v1.23.0 tags PUBLISHED at 21:05; the runbook executed end-to-end — adminui swept to v1.23.0, bridge removed, bundles rebuilt (gates exact), lag-59 family sweep (12 modules), **adminui v4.12.4 cut+pushed, setup v4.14.4 re-cut, setup-demo swept — the wave is 14/14 with the strict gate at 866/0/0**; final push + CI watch closes the session.
 
 ## a) FULLY DONE
 
