@@ -1087,6 +1087,8 @@
                         "preflight-self-test:bash scripts/selftests/test-preflight-tree-check.sh"
                         "wait-tree-quiet-self-test:bash scripts/selftests/test-wait-tree-quiet.sh"
                         "train-preflight-self-test:bash scripts/selftests/test-train-preflight.sh"
+                        "push-and-watch-self-test:bash scripts/selftests/test-push-and-watch.sh"
+                        "verify-remote-tags-self-test:bash scripts/selftests/test-verify-remote-tags.sh"
                         "train-consumers-hermetic:bash scripts/checks/check-train-consumers-hermetic.sh"
                         "train-consumers-hermetic-self-test:bash scripts/selftests/test-check-train-consumers-hermetic.sh"
                         "status-rows-equivalence-self-test:bash scripts/selftests/test-status-table-equivalence.sh"
@@ -1717,7 +1719,7 @@
 
             test-train-preflight = {
               type = "app";
-              meta.description = "Fixture self-test for train-preflight.sh (offline stubs: all-green / stage failure / guard misses / keep-going aggregate / outside-repo)";
+              meta.description = "Fixture self-test for train-preflight.sh (offline stubs: all-green / stage failure / guard misses / keep-going aggregate / outside-repo / e2e skip + CI self-skip)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "test-train-preflight";
@@ -1728,6 +1730,73 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-train-preflight.sh
+                  '';
+                }
+              );
+            };
+
+            push-and-watch = {
+              type = "app";
+              meta.description = "Push, then watch THIS push's ci.yml run to terminal state (workflow-filtered — the newest unfiltered run is the Dependabot graph update); refreshes the release-train tag cache first, prints failed jobs + triage hint on red";
+              runtimeInputs = [
+                pkgs.git
+                pkgs.gh
+                pkgs.coreutils
+              ];
+              text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/push-and-watch.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-push-and-watch = {
+              type = "app";
+              meta.description = "Fixture self-test for push-and-watch.sh (offline stubs: green watch / red triage / run-not-found / push failure / refresh-before-push)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-push-and-watch";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-push-and-watch.sh
+                  '';
+                }
+              );
+            };
+
+            verify-remote-tags = {
+              type = "app";
+              meta.description = "Paranoia tag audit: local tags must peel (^{}) on the remote to the SAME commit (tag-object vs peeled-commit false-alarm class, 2026-10-13); fails on mismatch/missing/zero candidates";
+              runtimeInputs = [
+                pkgs.git
+                pkgs.coreutils
+              ];
+              text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/verify-remote-tags.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-verify-remote-tags = {
+              type = "app";
+              meta.description = "Fixture self-test for verify-remote-tags.sh (offline bare-clone remote: usage / annotated+lightweight OK / zero candidates / missing / moved mismatch)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-verify-remote-tags";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-verify-remote-tags.sh
                   '';
                 }
               );
