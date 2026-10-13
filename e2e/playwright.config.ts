@@ -24,8 +24,12 @@ const GOTOOLCHAIN = goFloor ? `go${goFloor}` : undefined;
  * before tests and stops it after. GOEXPERIMENT=jsonv2 is mandatory for
  * the cqrs-htmx module to build.
  *
- * Run: pnpm dlx playwright test
- * Debug session (browser visible): pnpm dlx playwright test --headed --debug
+ * Run: pnpm test — the LOCAL @playwright/test runner (node_modules/.bin).
+ * NEVER `pnpm dlx playwright test`: the dlx'd standalone runner instance
+ * skews against the locally installed @playwright/test and dies with
+ * "Playwright Test did not expect test() to be called here" (2026-10-13).
+ * One-command path with browser/toolchain handling: nix run .#e2e
+ * Debug session (browser visible): pnpm run test:headed
  */
 export default defineConfig({
   testDir: "./tests",

@@ -2013,17 +2013,29 @@
                       # comes from Nix via E2E_BROWSER_PATH (2026-10-09: the
                       # Nix-Chromium machine class failed all 61 specs because
                       # ffmpeg was skipped alongside the browser).
+                      # Install via the LOCAL playwright CLI (node_modules/.bin):
+                      # bun x downloads a STANDALONE playwright whose browser
+                      # builds can skew against the local @playwright/test.
                       if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
-                        bun x playwright install chromium ffmpeg
+                        ./node_modules/.bin/playwright install chromium ffmpeg
                       else
-                        bun x playwright install ffmpeg
+                        ./node_modules/.bin/playwright install ffmpeg
                       fi
                       bun run test
-                    elif command -v pnpm dlx >/dev/null 2>&1; then
-                      pnpm dlx playwright install chromium
-                      pnpm dlx playwright test
+                    elif command -v pnpm >/dev/null 2>&1; then
+                      # LOCAL runner only: `pnpm dlx playwright test` fails with
+                      # "Playwright Test did not expect test() to be called here"
+                      # (dlx'd standalone runner skews against the local
+                      # @playwright/test; hit live 2026-10-13).
+                      pnpm install
+                      if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
+                        pnpm exec playwright install chromium ffmpeg
+                      else
+                        pnpm exec playwright install ffmpeg
+                      fi
+                      pnpm exec playwright test
                     else
-                      echo "FAIL: Neither bun nor pnpm dlx found. Install Node.js or Bun to run E2E tests."
+                      echo "FAIL: Neither bun nor pnpm found. Install Node.js or Bun to run E2E tests."
                       exit 1
                     fi
                   '';

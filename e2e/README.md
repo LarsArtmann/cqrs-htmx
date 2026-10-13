@@ -14,7 +14,12 @@ The E2E suite (`tests/sync.spec.ts`) exercises the offline command retry pipelin
 ## Prerequisites
 
 - Node.js 18+ (or [Bun](https://bun.sh))
-- Playwright browsers: `pnpm dlx playwright install --with-deps chromium`
+- Playwright browsers, installed with the LOCAL runner copy (never `pnpm dlx`):
+  `pnpm exec playwright install chromium`
+- NixOS only: Playwright's downloaded Chromium cannot run (no FHS linker).
+  Point `E2E_BROWSER_PATH` at a Nix-packaged Chromium instead (the
+  `nix run .#e2e` app below auto-detects one), e.g.
+  `export E2E_BROWSER_PATH="$(nix build nixpkgs#chromium --print-out-paths)/bin/chromium"`
 
 ## How to run
 
@@ -22,20 +27,36 @@ The E2E suite (`tests/sync.spec.ts`) exercises the offline command retry pipelin
 cd e2e
 
 # Install dependencies (first time only)
-bun install   # or: pnpm install
+pnpm install   # or: bun install
 
-# Run the test suite (headless)
-bun run test  # or: pnpm test
+# Run the test suite (headless) — the LOCAL @playwright/test copy
+pnpm test   # or: pnpm exec playwright test
 
 # Run with visible browser
-bun run test:headed
+pnpm run test:headed
 
 # Debug mode (step through each test)
-bun run test:debug
+pnpm run test:debug
 
 # View the HTML report after a run
-bun run report
+pnpm run report
 ```
+
+> **Never `pnpm dlx playwright test`.** The dlx'd standalone runner instance
+> skews against the locally installed `@playwright/test` (same version,
+> different copies) and fails with `Playwright Test did not expect test() to
+> be called here` (hit live 2026-10-13). Every script in `package.json`
+> resolves the local copy.
+
+### One-command path (Nix)
+
+```bash
+nix run .#e2e
+```
+
+Builds the Go test server, provisions a writable
+`PLAYWRIGHT_BROWSERS_PATH`, and auto-detects a Nix Chromium for
+`E2E_BROWSER_PATH` — the environment the full battery (73 specs) runs under.
 
 ## Test server
 
@@ -55,10 +76,11 @@ GOEXPERIMENT=jsonv2 go build -o test-server .
 
 ## CI integration
 
-These tests are **not** wired into `flake.nix` yet (Playwright requires browser binaries that aren't in the Nix shell). To run in CI:
+The suite is a local battery (`nix run .#e2e`); this repo's CI does not run
+browsers. To run it in your own pipeline:
 
-1. Install Playwright browsers in your CI pipeline
-2. Run `cd e2e && bun install && bun run test`
+1. Install Playwright browsers: `pnpm exec playwright install --with-deps chromium`
+2. Run `cd e2e && pnpm install && pnpm test`
 3. Upload `playwright-report/` as a CI artifact
 
 ## See also
