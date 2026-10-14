@@ -20,11 +20,14 @@ type ExternalAccount struct {
 
 // NewExternalAccount constructs an ExternalAccount from its field values.
 func NewExternalAccount(provider, subject, email, displayName string, linkedAt time.Time) ExternalAccount {
+	//nolint:modernize // exhaustruct_v5 requires the explicit nested core form (gotcha 7)
 	return ExternalAccount{
-		Provider:    provider,
-		Subject:     subject,
-		Email:       email,
-		DisplayName: displayName,
-		LinkedAt:    linkedAt,
+		ExternalAccountCore: ExternalAccountCore{
+			Provider:    provider,
+			Subject:     subject,
+			Email:       email,
+			DisplayName: displayName,
+		},
+		LinkedAt: linkedAt,
 	}
 }

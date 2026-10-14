@@ -1,11 +1,13 @@
 package transport
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -504,6 +506,8 @@ func TestServeDomainEvents_BroadcasterCloseMidStream(t *testing.T) {
 	}
 }
 
+const fanoutBroadcastMarker = "to-everyone"
+
 func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 	t.Parallel()
 
@@ -515,6 +519,7 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 	const clients = 16
 
 	recorders := make([]*httptest.ResponseRecorder, clients)
+	delivered := make([]chan struct{}, clients)
 	dones := make([]chan struct{}, clients)
 
 	for i := range clients {
@@ -522,20 +527,33 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 		rec := httptest.NewRecorder()
 		recorders[i] = rec
 
+		delivered[i] = make(chan struct{})
+		signal := &deliverySignalWriter{ResponseRecorder: rec, delivered: delivered[i]}
+
 		done := make(chan struct{})
 		dones[i] = done
 
 		go func() {
-			h.ServeHTTP(rec, req)
+			h.ServeHTTP(signal, req)
 			close(done)
 		}()
 	}
 
-	time.Sleep(50 * time.Millisecond)
+	// The handler subscribes before sending "connected", so a full
+	// SubscriberCount proves every client receives the fan-out. The former
+	// fixed sleep raced slow goroutines under load: they subscribed after
+	// the broadcast and legitimately missed it.
+	waitForSubscribers(t, b, clients)
 
-	b.Broadcast(sse.Event{Event: "fanout", Data: "to-everyone"})
+	b.Broadcast(sse.Event{Event: "fanout", Data: fanoutBroadcastMarker})
 
-	time.Sleep(100 * time.Millisecond)
+	for i := range clients {
+		select {
+		case <-delivered[i]:
+		case <-time.After(5 * time.Second):
+			t.Fatalf("client %d never received the broadcast", i)
+		}
+	}
 
 	for i := range clients {
 		select {
@@ -556,9 +574,42 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 		}
 
 		body := recorders[i].Body.String()
-		if !strings.Contains(body, "to-everyone") {
+		if !strings.Contains(body, fanoutBroadcastMarker) {
 			t.Errorf("client %d missed the broadcast\nbody:\n%s", i, body)
 		}
+	}
+}
+
+// deliverySignalWriter closes delivered once the broadcast marker has
+// streamed through. The sniff buffer is written and read only by the handler
+// goroutine; the channel close is the only cross-goroutine handoff, so the
+// test can wait on it race-free.
+type deliverySignalWriter struct {
+	*httptest.ResponseRecorder
+	delivered chan struct{}
+	seen      []byte
+	once      sync.Once
+}
+
+func (w *deliverySignalWriter) Write(p []byte) (int, error) {
+	w.seen = append(w.seen, p...)
+	if bytes.Contains(w.seen, []byte(fanoutBroadcastMarker)) {
+		w.once.Do(func() { close(w.delivered) })
+	}
+
+	return w.ResponseRecorder.Write(p)
+}
+
+func waitForSubscribers(t *testing.T, b *sse.Broadcaster[sse.Event], want int) {
+	t.Helper()
+
+	deadline := time.Now().Add(5 * time.Second)
+	for b.SubscriberCount() < want {
+		if time.Now().After(deadline) {
+			t.Fatalf("only %d/%d clients subscribed within 5s", b.SubscriberCount(), want)
+		}
+
+		time.Sleep(2 * time.Millisecond)
 	}
 }
 
