@@ -179,6 +179,41 @@ out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.2
 rc=$?
 check 10 1 "sub@v1.0.1 is unconsumable (placeholder sub-requires)" "$rc" "$out"
 
+# Case 11: a parenthesized replace block in the parent's go.mod must NOT be
+# parsed as versioned requires (the "no published =>" false positive, hit
+# live 2026-10-14 on go-output root v0.38.5 — four family replace lines read
+# as unpublished requires and aborted a legitimate sweep).
+# (Restore the clean sub@v1.0.1 fixture — case 10 poisoned it deliberately.)
+cat >"$PROXY/github.com/example/family/sub/@v/v1.0.1.mod" <<'EOF'
+module github.com/example/family/sub
+
+go 1.27
+EOF
+cat >"$PROXY/github.com/example/family/@v/v1.4.4.mod" <<'EOF'
+module github.com/example/family
+
+go 1.27
+
+require (
+	github.com/example/family/sub v1.0.1
+)
+
+replace (
+	github.com/example/family => ./
+	github.com/example/family/sub => ./sub
+)
+EOF
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.4 2>&1)
+rc=$?
+check 11 0 "is consumable" "$rc" "$out"
+if printf '%s' "$out" | grep -q '=>'; then
+  echo "  FAIL 11b: replace directive leaked into the walk output" >&2
+  fail=$((fail + 1))
+else
+  echo "  ok 11b: replace block ignored"
+  pass=$((pass + 1))
+fi
+
 echo "pass=$pass fail=$fail"
 if [ "$fail" -ne 0 ]; then
   exit 1

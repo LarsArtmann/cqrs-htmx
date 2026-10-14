@@ -52,6 +52,10 @@ walk_family_subs() { # <gomod-file> <candidate-module> <version>
   # must not be demanded at the root's version. A same-version family
   # (templ-components) is still caught — its parent requires carry the (often
   # placeholder) version verbatim, and fetching that version is what fails.
+  # `=>` excludes replace directives — a parenthesized replace block emits
+  # bare `path => target` lines that otherwise parse as versioned requires
+  # (the "no published =>" false positive, hit live 2026-10-14 on go-output
+  # root v0.38.5: four family replace lines read as unpublished requires).
   while read -r path subver; do
     [ -n "$path" ] || continue
     subver="${subver:-$version}"
@@ -67,7 +71,7 @@ walk_family_subs() { # <gomod-file> <candidate-module> <version>
     fi
     rm -f "$subfile"
   done <<EOF
-$(grep -E "^[[:space:]]*\"?$candidate_escaped/" "$file" | grep -v '//' | awk '{print $1, $2}' | tr -d '"' | sort -u)
+$(grep -E "^[[:space:]]*\"?$candidate_escaped/" "$file" | grep -v '//' | grep -v '=>' | awk '{print $1, $2}' | tr -d '"' | sort -u)
 EOF
   return "$rc"
 }
