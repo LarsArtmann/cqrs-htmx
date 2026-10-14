@@ -21,6 +21,9 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 TOOL="$SCRIPT_DIR/../tools/push-and-watch.sh"
 
+# shellcheck source=../lib/test-repo.sh
+. "$SCRIPT_DIR/../lib/test-repo.sh"
+
 pass=0
 fail=0
 
@@ -35,11 +38,7 @@ report() { # <ok 0|1> <label...>
 }
 
 new_repo() { # <dir>
-  git init -q -b main "$1" || return 1
-  git -C "$1" config user.email test@example.com
-  git -C "$1" config user.name test
-  git -C "$1" config commit.gpgsign false
-  git -C "$1" commit -q --allow-empty -m initial
+  fixture_repo "$@"
 }
 
 work=$(mktemp -d)

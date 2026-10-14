@@ -34,12 +34,12 @@ report() { # <ok 0|1> <label...>
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
+# shellcheck source=../lib/test-repo.sh
+. "$(dirname "$0")/../lib/test-repo.sh"
+
 new_repo() { # <dir>
   git init -q -b main "$1" || return 1
-  git -C "$1" config user.email test@example.com
-  git -C "$1" config user.name test
-  git -C "$1" config commit.gpgsign false
-  git -C "$1" config tag.gpgsign false
+  fixture_git_config "$1"
 }
 
 echo "== test-verify-remote-tags.sh"
