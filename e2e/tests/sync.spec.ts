@@ -333,6 +333,18 @@ const CACHED_EVENTS = `(async function() {
   return { count: out.events.length, backendId: out.backendId };
 })()`;
 
+const PULL = `(async function() {
+  await window.cqrsSync.pull();
+})()`;
+
+// Plain-data shape of GET_EVENTS as it crosses back through page.evaluate
+// (types do not survive the structured clone; this keeps spec reads checked).
+type SyncSnapshot = {
+  events: { type: string }[];
+  cursor: string;
+  backendId: string;
+};
+
 // Test 6 (ADR-0056 offline reads): events pulled while online stay
 // readable through window.cqrsSync.getEvents() with the network cut —
 // the cached feed is the offline read surface for consumer UIs.
@@ -351,15 +363,15 @@ test("offline reads serve cached events via window.cqrsSync.getEvents()", async 
   // indicator does NOT gate the boot-time catch-up pull (it reflects the
   // push/SSE connection), so poll the cache until the pull lands.
   await expect
-    .poll(async () => (await page.evaluate(GET_EVENTS)).events.length, { timeout: 15000 })
+    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, { timeout: 15000 })
     .toBeGreaterThanOrEqual(2);
-  const online = await page.evaluate(GET_EVENTS);
+  const online = await page.evaluate<SyncSnapshot>(GET_EVENTS);
   expect(online.backendId).toBe("e2e-backend-A");
 
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  const offline = await page.evaluate(GET_EVENTS);
+  const offline = await page.evaluate<SyncSnapshot>(GET_EVENTS);
   expect(offline.events.length).toBeGreaterThanOrEqual(2);
   expect(offline.events[offline.events.length - 1].type).toBe("Item.synced");
   expect(offline.backendId).toBe("e2e-backend-A");
@@ -382,7 +394,7 @@ test("sync:reset on backendId change clears the cache but keeps the queue", asyn
   );
 
   await expect
-    .poll(async () => (await page.evaluate(GET_EVENTS)).events.length, { timeout: 15000 })
+    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, { timeout: 15000 })
     .toBeGreaterThanOrEqual(2);
 
   // Rotate the backend identity, then force a pull: the response's
@@ -391,7 +403,7 @@ test("sync:reset on backendId change clears the cache but keeps the queue", asyn
   // batch, and broadcasts sync:reset to every tab.
   const rotate = await page.request.post("/api/debug/rotate-backend");
   expect(rotate.status()).toBe(204);
-  await page.evaluate(async () => await window.cqrsSync.pull());
+  await page.evaluate(PULL);
 
   await expect
     .poll(() => page.evaluate(CACHED_EVENTS), { timeout: 10000 })
