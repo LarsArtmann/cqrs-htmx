@@ -210,6 +210,25 @@ OBJECT for annotated tags, and comparing it to `rev-parse <tag>^{commit}`
 without peeling the remote side false-alarms on every healthy tag (the
 2026-10-13 audit "failed" 13/13 on exactly this).
 
+**Step-level triage before bounding blast radius** (AGENTS gotcha 40, live
+2026-10-13): a failed sequential job retires the evidentiary value of its
+LATER steps — the adminui deferral red aborted the `test` job before
+systemadapter's leg ran, so "16/17 green, systemadapter green" hid 16
+failures for ~a day. A failed-jobs listing is not enough; enumerate failed
+steps AND never-reached steps (conclusion `null`) of every red job:
+
+```sh
+gh api repos/<slug>/actions/runs/<id>/jobs --jq \
+  '.jobs[] | select(.conclusion=="failure") | {job: .name,
+   failed: [.steps[] | select(.conclusion=="failure") | .name],
+   never_ran: [.steps[] | select(.conclusion==null) | .name]}'
+```
+
+Never claim "nothing else broke" from a run where a red job has
+`never_ran` steps — the claim is unfalsifiable until those steps execute.
+`push-and-watch.sh` prints this warning whenever a red run's jobs listing
+fails transiently, instead of an empty failed-jobs list.
+
 ## 9. Sweep-commit mechanics
 
 - **Same-version prefix sweeps merge.** A consumer requiring N modules of
