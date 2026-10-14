@@ -106,13 +106,13 @@ for _ in 1 2 3 4 5; do
   sleep "$POLL_SLEEP"
 done
 case "$CONCLUSION" in
-  success) finish_green ;;
-  failure) : ;; # fall through to the RED triage below
-  *)
-    echo "✗ push-and-watch: watch failed and the conclusion could NOT be re-read (got: ${CONCLUSION:-<empty>})." >&2
-    echo "  Judge manually — do not assume red or green: $ACTIONS_URL" >&2
-    exit 1
-    ;;
+success) finish_green ;;
+failure) : ;; # fall through to the RED triage below
+*)
+  echo "✗ push-and-watch: watch failed and the conclusion could NOT be re-read (got: ${CONCLUSION:-<empty>})." >&2
+  echo "  Judge manually — do not assume red or green: $ACTIONS_URL" >&2
+  exit 1
+  ;;
 esac
 
 echo "✗ push-and-watch: run $RUN_ID RED — failed job(s):" >&2
