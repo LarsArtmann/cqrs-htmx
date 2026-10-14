@@ -43,15 +43,18 @@ An app typically composes some subset of these. They are **independent Go module
 
 | Module                | Import path                                              | Provides                                                                                                                                                                                               |
 | --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error->HTTP mapping, SSE (WebSocket removed in v5 — ADR 0046), embedded HTMX JS                 |
+| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (HTMX/recovery/security; CSRF/rate-limit are deprecated httputil re-exports), context IDs, error->HTTP mapping, SSE + the `transport/` domain-event surface + ADR-0056 frontend sync (`SyncPullHandler`/`App.SyncPushHandler`), OpenAPI 3.1 builder, EventCatalog, embedded HTMX JS (WebSocket removed — ADR 0046) |
 | **usermgmt**          | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`           | Event-sourced `Service` (register/login/logout/me), roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores. Auth strategies (WebAuthn/OAuth2/TOTP) are optional sub-modules. |
 | **usermgmt/totp**     | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`      | TOTP MFA (pquerna/otp). Inject `totp.New(...)` as `ServiceConfig.TOTP`.                                                                                                                                |
 | **usermgmt/webauthn** | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4`  | WebAuthn passkeys (go-webauthn). Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`.                                                                                                               |
 | **usermgmt/oauth2**   | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`    | OAuth2/OIDC login (oauth2+oidc). Inject `oauth2.New(...)` as `ServiceConfig.OAuth2`.                                                                                                                   |
 | **adminui**           | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | Ready-made admin dashboard (templ + HTMX): **identity operations** (users/tenants/members/audit over a `*usermgmt.Service`; write actions, role-gated). Depends on root + usermgmt                     |
 | **dashboardui**       | `github.com/larsartmann/cqrs-htmx/dashboardui/v4`        | Ready-made **event-store observability** dashboard (projection health, event catalog, live SSE; read-only by default). NOT user administration — see adminui. Depends on root + usermgmt               |
-| **loginpage**         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`          | Ready-made passwordless login page (hand-rolled templ + `lp-*` CSS). Third sibling UI panel.                                                                                                           |
+| **loginpage**         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`          | Ready-made passwordless login page (templ-components based: `layout.Base`, Tailwind-only styling, CSP-nonce + cookie-theme hooks). Third sibling UI panel.                                              |
 | **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering.                                                        |
+| **datastar**          | `github.com/larsartmann/cqrs-htmx/datastar/v4`           | Optional DataStar adapter: script serving, signal decoding, SSE response builder, EventBridge. Depends only on go-datastar + go-sse (no root dep).                                                     |
+
+Optional bridges also exist: **health** (go-health projection probes), **auditlog** (samber-do-auditlog), **systemadapter** (go-cqrs-lite `system.New` + metaengine). See `docs/guides/fullstack-wiring.md`.
 
 The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 
@@ -69,7 +72,7 @@ The skill targets **v4**. If you're on v3, the migration depends on what you use
 - **Root module only (no auth)?** v3->v4 is trivial: change import paths `/v3` -> `/v4`, run `go mod tidy`. The root module API (SSE, middleware, errors, HTMX, `App.Command/Query`) is **unchanged** between v3 and v4.
 - **Using usermgmt auth strategies (TOTP/WebAuthn/OAuth2)?** v4 moved these to separate modules behind interfaces. See `docs/migrations/v3-to-v4.md`.
 
-All features documented in this skill have been available since v3.3.0+.
+For the v4→v5 cutover (WebSocket removal), see `docs/migrations/v4-to-v5.md`.
 
 ## Step 1: Pick the integration path
 
@@ -280,7 +283,7 @@ cqrshtmx.RenderIf(func(r *http.Request) bool { return cqrshtmx.HTMXTarget(r) == 
 
 All use `cqrshtmx.RenderPartial(r)` internally (history-restore requests render full page). HTML-specific helpers set `Content-Type: text/html`; generic `RenderIf`/`RenderPartialOrFullFunc` do not (see ADR-0037).
 
-**OOB swap wrapping:** `cqrshtmx.OOBHTML(id, html, swapStrategy...)` wraps HTML with `hx-swap-oob` attributes. `WSOOBHTML` delegates to it.
+**OOB swap wrapping:** `cqrshtmx.OOBHTML(id, html, swapStrategy...)` wraps HTML with `hx-swap-oob` attributes.
 
 ### Custom auth (cookie-based, API keys, ownership checks)
 
@@ -376,7 +379,7 @@ panel.Mount(mux, "/admin/")
 
 `adminui.Config` fields that matter: `Mode` (`ModeSuperAdmin` = global; `ModeTenantAdmin` = scoped to one `TenantID`), `Authorizer` (default = role-based), `BasePath`. The panel reads `*usermgmt.User` from context -- your session middleware must put it there.
 
-> See `examples/admin-demo/` in the repo: a full runnable showcase (`go run .`, open `:8097`).
+> See `examples/admin-demo/` in the repo: a full runnable showcase (`go run .`, open `:18930`).
 
 ## The composition model (the heart of the library)
 
@@ -405,7 +408,7 @@ See `references/core-api.md` for the full `HandlerOption` catalogue.
 ### MapError: errors -> HTTP status (one function)
 
 ```go
-status := cqrshtmx.MapError(err) // Rejection->400, NotFound->404, Conflict->409, Transient->503, Corruption->422, Infrastructure->500
+status := cqrshtmx.MapError(err) // Rejection->400, Conflict->409, Transient->503, Corruption->500, Infrastructure->503; sentinels: 401/403/405/413
 ```
 
 Set `Config.ErrorHandler: cqrshtmx.JSONErrorHandler` to auto-map errors to JSON responses:
@@ -440,7 +443,7 @@ cqrshtmx.WriteJSON(w, http.StatusOK, data) // buffers before WriteHeader -- enco
 
 Realtime is **building blocks, not a server**: you own the HTTP handler, the library gives you the stream + fan-out.
 
-> **Note:** The library is **SSE-only** as of v5 (ADR 0046). The WebSocket transport (`WSBroadcaster`, `WSMessage`, `DispatchWSCommand`, etc.) was removed — SSE covers the same use cases with simpler reconnect semantics and no upgrade/auth dance. Consumers who need bi-directional transport should use SSE for server→client and POST endpoints for client→server, or integrate a dedicated WebSocket library directly (the library intentionally avoids pulling in `gorilla/websocket` or similar).
+> **Note:** The WebSocket transport (`WSBroadcaster`, `WSMessage`, `DispatchWSCommand`, etc.) was removed (ADR 0046) — the current tree is already WS-free; the v5 train is the consumer-facing cutover and `docs/migrations/v4-to-v5.md` has per-symbol recipes. SSE covers the same use cases with simpler reconnect semantics and no upgrade/auth dance. Consumers who need bi-directional transport should use SSE for server→client and POST endpoints for client→server, or integrate a dedicated WebSocket library directly (the library intentionally avoids pulling in `gorilla/websocket` or similar).
 
 ```go
 broadcaster := cqrshtmx.NewBroadcaster()
@@ -465,6 +468,8 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
     }
 })
 ```
+
+**Domain events → SSE:** for event-sourced streams use the canonical `transport/` surface — `transport.ServeDomainEvents` + the `DomainEventToSSE` envelope + `WithSSEFilter`/`WithSSEMaxReplay` (envelope bytes are golden-pinned). ADR-0056 adds the cursor-based frontend sync protocol on top: see `docs/guides/frontend-sync.md`.
 
 **SSE channel lifecycle:**
 
@@ -491,7 +496,7 @@ Same caching as `HTMXScriptHandler` (ETag, `Cache-Control: 1yr immutable`, 304).
 These are the highest-frequency mistakes. Read `references/gotchas.md` for the full list.
 
 1. **Module suffixes are mandatory.** v2+ Go modules require the major-version suffix: `github.com/larsartmann/cqrs-htmx/v4`, `.../usermgmt/v4`, `.../adminui/v4`.
-2. **Two different UserID types.** Root `cqrshtmx.UserID` is ULID-backed (via `go-cqrs-lite/id`); usermgmt `usermgmt.UserID` is string-backed (`go-branded-id`). They are **not** assignable to each other. Bridge with `.Get()` (raw value), never `.String()` (brand-prefixed).
+2. **One `UserID` type everywhere — construct it strictly.** Root `cqrshtmx.UserID`, `identitymodel.UserID`, and `usermgmt.UserID` all alias the same `go-cqrs-lite/id` ULID type (interoperable by design; no bridging needed). The trap is the deprecated `NewUserID(string)`: it silently SHA-256-hashes non-ULID input. Use `ParseUserID` (strict), `GenerateUserID` (fresh ULID), or `SyntheticUserID` (explicit stable hash).
 3. **Validation comes AFTER the decoder** in the `HandlerOption` list. The validator reads the decoded value off the context -- reversing the order silently skips validation (logs a `slog.Warn`).
 4. **Middleware trio order is `CSRF -> HTMX -> enrichment`.** Put your session middleware _outside_ (before) CSRF.
 5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v4`.
@@ -528,7 +533,9 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`docs/guides/dispatch-middleware-ordering.md`** -- correct ordering rules for dispatch middleware (recovery, circuit breaker, retry, tracing, metrics, logging).
 - **`docs/guides/fullstack-wiring.md`** -- the integration guide: one-call `setup/v4` SDK, manual wiring, feature flags, persistence, middleware ordering, and optional health/auditlog integrations.
 - **`docs/guides/sse-and-datastar.md`** -- the Broadcaster duality guide: `Hub()` accessor, `NewBroadcasterFromHub` cross-transport hub sharing (both adapters embed the hub; `Raw()`/`NewBroadcasterFromRaw` are deprecated v5-removal aliases), and HTMX vs Datastar transport comparison.
-- **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof), `examples/middleware-showcase/` (all 8 httputil HTTP middleware in a single validated `MiddlewareStack`: recovery, security headers, metrics, CORS, client IP, rate limiting, compression, ETag).
+- **`docs/guides/frontend-sync.md`** -- ADR-0056 frontend sync: cursor-based `SyncPullHandler` event pull (ETag + permission filter), `App.SyncPushHandler` batched push, sync assets.
+- **`docs/guides/datastar-integration.md`** -- the DataStar adapter: signals, SSE response builder, EventBridge wiring.
+- **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof), `examples/middleware-showcase/` (all 8 httputil HTTP middleware in a single validated `MiddlewareStack`: recovery, security headers, metrics, CORS, client IP, rate limiting, compression, ETag), `examples/setup-demo/` (one-call full-stack), `examples/sync-demo/` (executable ADR-0056 guide), `examples/datastar-demo/` (DataStar adapter).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 
 When the user asks for something not covered inline here, **read the matching reference file before improvising** -- it almost always contains the exact API and the ordering constraints.

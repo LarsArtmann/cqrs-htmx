@@ -10,7 +10,7 @@
 				"Mentions usermgmt.NewService with a WebAuthnConfig (RPID, RPDisplayName, RPOrigins)",
 				"Shows usermgmt.NewAuthHandler(svc) and .RegisterRoutes(mux)",
 				"Includes usermgmt.NewSessionMiddleware in the middleware chain, OUTSIDE CSRF",
-				"Uses the /v3 module suffix on import paths",
+				"Uses the /v4 module suffix on import paths",
 				"Does NOT suggest a password column or bcrypt"
 			]
 		},
@@ -32,7 +32,7 @@
 			"prompt": "ok so I've got the usermgmt Service working with users and roles. my product manager wants an admin dashboard where support can search users, suspend tenants, and view an audit log. is there something prebuilt I can just mount behind my session middleware, or do I have to build the whole UI?",
 			"expected_output": "Points to adminui.New(adminui.Config{Service: svc, ...}), Mount or Handler(), wraps with sessionMW outside CSRF outside panel.Middleware(). Mentions Mode (SuperAdmin/TenantAdmin), AccentColor, LogoutURL, SSEURL.",
 			"assertions": [
-				"Imports github.com/larsartmann/cqrs-htmx/adminui/v3",
+				"Imports github.com/larsartmann/cqrs-htmx/adminui/v4",
 				"Shows adminui.New(adminui.Config{Service: svc})",
 				"Uses panel.Mount(mux, \"/admin/\") or panel.Handler() with StripPrefix",
 				"Wraps with session middleware OUTSIDE CSRF and the panel's Middleware() (recovery + security headers)",

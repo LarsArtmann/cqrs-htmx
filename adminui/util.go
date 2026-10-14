@@ -20,7 +20,7 @@ func errConfig(msg string) error {
 }
 
 // errForbidden is the Rejection returned when a user lacks panel access.
-var errForbidden = errorfamily.NewRejection("adminui.forbidden", "access denied")
+var errForbidden error = errorfamily.NewRejection("adminui.forbidden", "access denied")
 
 // roleBadgeType maps a role string to a templ-components BadgeType.
 func roleBadgeType(role string) display.BadgeType {

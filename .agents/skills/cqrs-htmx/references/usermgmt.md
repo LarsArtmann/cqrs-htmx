@@ -219,12 +219,10 @@ Recommended: store-level encryption (`NewEncryptedStore`) + bus-level signing (`
 
 The default `watermill.EventBus` (GoChannel, `BlockPublishUntilSubscriberAck: true`) blocks publishers until projection handlers complete, so read models update _before_ `Execute()` returns. `StartProjections` replays all historical events synchronously first, then subscribes to live events with replay→live dedup. No `time.Sleep`-based catch-up. This means a `Register` followed immediately by a `FindByID` returns the new user.
 
-## UserID bridge (root ↔ usermgmt)
+## UserID (root ↔ usermgmt: same type)
 
-- `usermgmt.UserID` = `brandid.ID[userBrand, string]` (string-backed).
-- `cqrshtmx.UserID` = ULID-backed (`go-cqrs-lite/id`).
-- They are **not interconvertible by assignment**. Bridge with `.Get()` (raw value), never `.String()` (which is brand-prefixed and meant for debug).
-- When wiring usermgmt session context into root `App` handlers, convert explicitly via `cqrshtmx.ParseUserID(...)` on the raw value.
+- `usermgmt.UserID` = `identitymodel.UserID` = root `cqrshtmx.UserID` = `go-cqrs-lite/id`'s ULID-backed `UserID`. One type everywhere — assignment across modules just works; no bridging needed.
+- The only trap is the deprecated `NewUserID(string)` (silently SHA-256-hashes non-ULID input). Construct with `ParseUserID` / `GenerateUserID` / `SyntheticUserID` (see `references/gotchas.md` § Type system).
 
 ## Import / export users
 

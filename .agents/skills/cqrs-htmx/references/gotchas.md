@@ -25,7 +25,7 @@ cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 
 ### `GOWORK=off` for submodules
 
-`go.work` covers root + adminui + usermgmt + 3 auth sub-modules + integration_test + examples. When building/testing a submodule in isolation, set `GOWORK=off` so it uses its own `go.mod`. The `flake.nix` per-module apps do this for you (`nix run .#test-usermgmt`, `nix run .#test-webauthn`, etc.).
+`go.work` covers 29 modules (root, identity-model, usermgmt + 3 auth sub-modules, adminui, dashboardui, loginpage, datastar, setup, health, auditlog, systemadapter, integration_test, e2e/server, and the examples). When building/testing a submodule in isolation, set `GOWORK=off` so it uses its own `go.mod`. The `flake.nix` per-module apps do this for you (`nix run .#test-usermgmt`, `nix run .#test-webauthn`, etc.).
 
 ### `go.work` doesn't affect `go get` / `go mod tidy`
 
@@ -33,27 +33,25 @@ If a consumer imports your library, they only see published tags. Make sure tags
 
 ## 2. Type system
 
-### Two different `UserID` types
+### One `UserID` type everywhere — construct it strictly
 
-- Root `cqrshtmx.UserID` — ULID-backed (`go-cqrs-lite/id`). `String()` returns the ULID.
-- usermgmt `usermgmt.UserID` — string-backed (`go-branded-id`). `String()` returns a **brand-prefixed** debug form.
+Root `cqrshtmx.UserID`, `identitymodel.UserID`, and `usermgmt.UserID` all alias the same `go-cqrs-lite/id` ULID-backed type. Assignment across modules just works — no bridging needed.
 
-They are **not assignable** to each other. Bridge with `.Get()` (raw value), never `.String()`:
+The trap is the deprecated `NewUserID(string)`: it silently SHA-256-hashes non-ULID input, producing valid-looking but wrong IDs. Use the explicit constructors (re-exported by usermgmt from identity-model):
 
 ```go
-uid := userFromSession.ID                       // usermgmt.UserID
-rootID, err := cqrshtmx.ParseUserID(uid.Get())  // convert → cqrshtmx.UserID
+uid, err := usermgmt.ParseUserID(s)   // strict ULID parse
+uid := usermgmt.GenerateUserID()       // fresh ULID
+uid := usermgmt.SyntheticUserID(s)     // explicit stable hash (declared intent)
 ```
 
-Wiring context without this conversion silently puts the wrong (brand-prefixed) string into root handlers.
+### `ActorID` is one kind-discriminated type across all modules
 
-### `usermgmt.ActorID` is a struct, not a brandid
+`root`, `identitymodel`, and `usermgmt` `ActorID` all alias `go-cqrs-lite/id`'s `ActorID` — kind + raw (`"user"`, `"bot"`, `"system"`, `"service"`, `"unknown"`). Construct with the kind constructors (`id.NewUserActor(uid)`, `id.NewBotActor(...)`, `id.NewSystemActor(...)`, `id.NewServiceActor(...)`) or parse `"kind:raw"` via `ParseActorID(s)` (re-exported by root and usermgmt). `NewActorID(string)` is deleted. Use `.PrefixedString()` for the `kind:raw` form — using `.String()` instead is a known past bug.
 
-`ActorID{kind, raw}` — kind-discriminated (`"user"`, `"bot"`, etc.). Bridge to root with `.PrefixedString()` → `cqrshtmx.NewActorID(...)`. `ParseActorID(s)` is the inverse. Using `.String()` here instead of `.PrefixedString()` is a known past bug.
+### Root `ImpersonatorID` is an `ActorID` alias
 
-### Root `ActorID` / `ImpersonatorID` are branded
-
-`ImpersonatorID = ActorID` (type alias — an impersonator IS an actor). Construct with `cqrshtmx.NewActorID("user:01JX...")`, not `ActorID("...")` cast.
+`ImpersonatorID = ActorID` (type alias — an impersonator IS an actor).
 
 ### Branded IDs don't cross-assign
 

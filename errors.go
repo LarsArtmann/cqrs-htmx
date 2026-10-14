@@ -26,19 +26,19 @@ const (
 // through go-cqrs-lite/event/v4), so MapError derives the HTTP status directly —
 // no runtime RegisterClassification is needed.
 var (
-	ErrUnauthorized     = errorfamily.NewRejection(CodeUnauthorized, "unauthorized: authentication required")
-	ErrForbidden        = errorfamily.NewRejection(CodeForbidden, "forbidden: insufficient permissions")
-	ErrDecodeFailed     = errorfamily.NewRejection("decode_failed", "failed to decode request body")
-	ErrDispatchFailed   = errorfamily.NewTransient("dispatch_failed", "command/query dispatch failed")
-	ErrEnforcerNil      = errorfamily.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
-	ErrValidationFailed = errorfamily.NewRejection("validation_failed", "request validation failed")
-	ErrRequestTooLarge  = errorfamily.NewRejection("request_too_large", "request body exceeds maximum size")
-	ErrMethodNotAllowed = errorfamily.NewRejection("method_not_allowed", "HTTP method not allowed")
+	ErrUnauthorized error     = errorfamily.NewRejection(CodeUnauthorized, "unauthorized: authentication required")
+	ErrForbidden error        = errorfamily.NewRejection(CodeForbidden, "forbidden: insufficient permissions")
+	ErrDecodeFailed error     = errorfamily.NewRejection("decode_failed", "failed to decode request body")
+	ErrDispatchFailed error   = errorfamily.NewTransient("dispatch_failed", "command/query dispatch failed")
+	ErrEnforcerNil error      = errorfamily.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
+	ErrValidationFailed error = errorfamily.NewRejection("validation_failed", "request validation failed")
+	ErrRequestTooLarge error  = errorfamily.NewRejection("request_too_large", "request body exceeds maximum size")
+	ErrMethodNotAllowed error = errorfamily.NewRejection("method_not_allowed", "HTTP method not allowed")
 
-	errCommandsNil        = errorfamily.NewInfrastructure("commands_nil", "command dispatcher is required")
-	errQueriesNil         = errorfamily.NewInfrastructure("queries_nil", "query dispatcher is required")
-	errDecoderMissing     = errorfamily.NewInfrastructure("decoder_missing", "request decoder is required")
-	errDecoderReturnedNil = errorfamily.NewCorruption(
+	errCommandsNil error        = errorfamily.NewInfrastructure("commands_nil", "command dispatcher is required")
+	errQueriesNil error         = errorfamily.NewInfrastructure("queries_nil", "query dispatcher is required")
+	errDecoderMissing error     = errorfamily.NewInfrastructure("decoder_missing", "request decoder is required")
+	errDecoderReturnedNil error = errorfamily.NewCorruption(
 		"decoder_returned_nil",
 		"request decoder returned a nil result without an error — this is a server-side wiring bug",
 	)
