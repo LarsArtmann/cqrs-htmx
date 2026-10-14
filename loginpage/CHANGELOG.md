@@ -4,13 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [v4.13.0] - 2026-10-14
 
 ### Added
 
 - **`Config.AutoRedirect`** — when OAuth2 is the page's ONLY sign-in method (WebAuthn unconfigured, exactly one provider visible), `GET` answers with a 302 straight to `{AuthPrefix}/auth/oauth/{provider}/begin` instead of rendering a button the visitor would only click once. Multiple providers render the page normally (the visitor must choose); WebAuthn always wins the page. Mutually exclusive with `Config.NoOAuth2` (rejected at `New`). The setup module passes it through as `setup.Config.LoginAutoRedirect`.
-
-_(nothing else yet)_
 
 ## [v4.12.3] - 2026-10-11
 
