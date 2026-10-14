@@ -21,7 +21,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 TOOL="$SCRIPT_DIR/../tools/push-and-watch.sh"
 
-# shellcheck source=../lib/test-repo.sh
+# shellcheck disable=SC1091
 . "$SCRIPT_DIR/../lib/test-repo.sh"
 
 pass=0

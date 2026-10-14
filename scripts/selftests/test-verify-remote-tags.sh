@@ -34,7 +34,7 @@ report() { # <ok 0|1> <label...>
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-# shellcheck source=../lib/test-repo.sh
+# shellcheck disable=SC1091
 . "$(dirname "$0")/../lib/test-repo.sh"
 
 new_repo() { # <dir>
