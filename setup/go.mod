@@ -85,7 +85,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-retry v0.8.0 // indirect
-	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
+	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.2 // indirect
 	github.com/larsartmann/templ-components v1.23.0 // indirect
 	github.com/larsartmann/templ-components/errorpage v1.23.0 // indirect
