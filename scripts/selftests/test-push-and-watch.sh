@@ -6,6 +6,9 @@
 #   T3  run never appears                      -> exit 1, "no ci.yml run appeared"
 #   T4  push fails                             -> exit 1, "push FAILED"
 #   T5  tag-cache refresh fails                -> exit 1 BEFORE any push (sentinel absent)
+#   T6  watch fails but conclusion=success     -> exit 0, "CI GREEN" (watch lied)
+#   T7  conclusion=failure + jobs fetch fails  -> exit 1, RED + URL, step warning
+#   T8  conclusion unreadable                  -> exit 1, honest UNKNOWN (no false red)
 #
 # Runtime: seconds (every command is a stub; a fixture git repo supplies the
 # branch/SHA; the fake gh parses the tool's --jq expression for the SHA).
@@ -73,9 +76,20 @@ case "$1" in
       echo "fake gh: run GREEN"
       exit 0
     fi
+    if [ "$sub" = "view" ]; then
+      if [ -f "$STATE/view_fail" ]; then
+        exit 1
+      fi
+      [ -f "$STATE/view_conclusion" ] && cat "$STATE/view_conclusion"
+      exit 0
+    fi
     exit 0
     ;;
   api)
+    if [ -f "$STATE/api_fail" ]; then
+      echo "fake gh: HTTP 502" >&2
+      exit 1
+    fi
     [ -f "$STATE/jobs" ] && cat "$STATE/jobs"
     exit 0
     ;;
@@ -147,6 +161,7 @@ reset_state
 printf '%s\n' "$(git -C "$r" rev-parse HEAD)" >"$work/sha"
 printf '4243\n' >"$work/runid"
 touch "$work/watch_fail"
+printf 'failure\n' >"$work/view_conclusion"
 printf 'lint adminui\nTest adminui submodule\n' >"$work/jobs"
 run_tool "$r" "$tmp/t2.out" "bash $tmp/train_ok.sh" 0
 rc=$?
@@ -195,6 +210,62 @@ ok=0
 grep -q "refresh FAILED" "$tmp/t5.out" || ok=1
 [ ! -f "$work/pushes" ] || ok=1
 report $ok "T5 failed refresh -> exit 1, no push attempted (got $rc)"
+
+# T6 the watch dies transiently but the run is actually GREEN -> rc 0.
+# (Live 2026-10-14, run 38466348791: gh's jobs poll hit HTTP 502 and the
+# tool declared RED on a run that was still running.)
+r="$tmp/t6"
+new_repo "$r"
+reset_state
+printf '%s\n' "$(git -C "$r" rev-parse HEAD)" >"$work/sha"
+printf '4244\n' >"$work/runid"
+touch "$work/watch_fail"
+printf 'success\n' >"$work/view_conclusion"
+run_tool "$r" "$tmp/t6.out" "bash $tmp/train_ok.sh" 0
+rc=$?
+ok=0
+[ "$rc" -eq 0 ] || ok=1
+grep -q "CI GREEN" "$tmp/t6.out" || ok=1
+grep -q "run 4244 RED" "$tmp/t6.out" && ok=1
+report $ok "T6 watch lied (502) + conclusion=success -> exit 0 GREEN (got $rc)"
+
+# T7 genuinely RED: conclusion=failure, but the jobs listing itself fails
+# -> still RED (rc 1) with the Actions URL + the step-enumeration warning,
+# never an empty "failed job(s):" list.
+r="$tmp/t7"
+new_repo "$r"
+reset_state
+printf '%s\n' "$(git -C "$r" rev-parse HEAD)" >"$work/sha"
+printf '4245\n' >"$work/runid"
+touch "$work/watch_fail"
+printf 'failure\n' >"$work/view_conclusion"
+touch "$work/api_fail"
+run_tool "$r" "$tmp/t7.out" "bash $tmp/train_ok.sh" 0
+rc=$?
+ok=0
+[ "$rc" -eq 1 ] || ok=1
+grep -q "run 4245 RED" "$tmp/t7.out" || ok=1
+grep -q "github.com/owner/repo/actions/runs/4245" "$tmp/t7.out" || ok=1
+grep -q "failed STEPS" "$tmp/t7.out" || ok=1
+report $ok "T7 red + failed jobs fetch -> exit 1, URL + step warning (got $rc)"
+
+# T8 watch fails AND the conclusion is unreadable -> honest UNKNOWN, exit 1,
+# no false RED declaration.
+r="$tmp/t8"
+new_repo "$r"
+reset_state
+printf '%s\n' "$(git -C "$r" rev-parse HEAD)" >"$work/sha"
+printf '4246\n' >"$work/runid"
+touch "$work/watch_fail"
+touch "$work/view_fail"
+run_tool "$r" "$tmp/t8.out" "bash $tmp/train_ok.sh" 0
+rc=$?
+ok=0
+[ "$rc" -eq 1 ] || ok=1
+grep -q "could NOT be re-read" "$tmp/t8.out" || ok=1
+grep -q "run 4246 RED" "$tmp/t8.out" && ok=1
+grep -q "CI GREEN" "$tmp/t8.out" && ok=1
+report $ok "T8 unreadable conclusion -> exit 1 UNKNOWN, no false verdict (got $rc)"
 
 echo ""
 echo "test-push-and-watch: $pass passed, $fail failed"

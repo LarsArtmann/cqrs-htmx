@@ -15,7 +15,13 @@
 #   3. locate the ci.yml run for THIS branch + HEAD SHA (workflow-filtered
 #      poll — "the newest run" is the Dependabot graph update every time)
 #   4. gh run watch --exit-status
-#   5. on red: print the failed job names + the triage hint
+#   5. a nonzero watch is NOT a verdict (the watch itself dies on transient
+#      API 5xx — live 2026-10-14, run 38466348791): re-read the run's
+#      terminal conclusion with retries; only conclusion==failure is RED,
+#      success is GREEN (the watch lied), anything else = honest UNKNOWN
+#   6. on red: the Actions URL + failed job names (retried fetch; on a
+#      transient jobs failure print the step-enumeration warning instead of
+#      an empty list — sequential jobs mask later steps, AGENTS gotcha 40)
 #
 # STUB SURFACE (fixture self-test, offline):
 #   PAW_TRAIN_CMD     (default: bash scripts/checks/check-release-train.sh --refresh-cache)
