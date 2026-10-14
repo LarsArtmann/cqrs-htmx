@@ -188,13 +188,11 @@ func FoldUser(
 			return state, err
 		}
 		next.ExternalAccounts = append(next.ExternalAccounts, ExternalAccount{
-			ExternalAccountCore: ExternalAccountCore{
-				Provider:    p.Provider,
-				Subject:     p.Subject,
-				Email:       p.Email,
-				DisplayName: p.DisplayName,
-			},
-			LinkedAt: evt.OccurredAt(),
+			Provider:    p.Provider,
+			Subject:     p.Subject,
+			Email:       p.Email,
+			DisplayName: p.DisplayName,
+			LinkedAt:    evt.OccurredAt(),
 		})
 
 	case EventExternalAccountUnlinked:
