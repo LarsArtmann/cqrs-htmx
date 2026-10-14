@@ -92,6 +92,10 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.BotState$
         - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.TenantState$
         - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.MembershipState$
+        # Embedded-core types use promoted-key literals: Go 1.27's `go fix`
+        # (BuildFlow go-fix step) rewrites the explicit nested form to promoted
+        # keys automatically, so exhaustruct's embedded-core demand cannot win.
+        - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.ExternalAccount$
     gocritic:
       disabled-checks:
         - ifElseChain

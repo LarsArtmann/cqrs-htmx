@@ -97,6 +97,13 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.UserState$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.UserReadModel$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.CasbinProjection$
+        # Embedded-core types use promoted-key literals: Go 1.27's `go fix`
+        # (BuildFlow go-fix step) rewrites the explicit nested form to promoted
+        # keys automatically, so exhaustruct's embedded-core demand cannot win.
+        - github\.com/larsartmann/cqrs-htmx/identity-model/v4\.ExternalAccount$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.BotReadModel$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.MembershipReadModel$
+        - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.TenantReadModel$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.EventSourcedSetup$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.UserRegisteredPayload$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.RolesUpdatedPayload$
