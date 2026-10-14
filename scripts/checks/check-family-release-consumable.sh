@@ -137,8 +137,14 @@ version="$2"
 tmp="$(mktemp /tmp/cqrs-htmx-consumable-XXXXXX)"
 trap 'rm -f "$tmp"' EXIT
 
-if ! curl -fsSL --max-time 30 "$PROXY_BASE/$module/@v/$version.mod" >"$tmp"; then
-  curl_rc=$?
+curl -fsSL --max-time 30 "$PROXY_BASE/$module/@v/$version.mod" >"$tmp"
+curl_rc=$?
+if [ "$curl_rc" -ne 0 ]; then
+  # Read curl's rc OUTSIDE a `!` negation: inside `if ! curl; then`, $? is
+  # the INVERTED status (always 0), so every real-proxy 404 was misclassified
+  # "unreachable" (rc 2) and bump-dep's pre-flight warned-and-continued —
+  # edits then landed on untagged versions (live 2026-10-14, go-output
+  # daghtml v0.38.5: the R18 gate never aborted on a real 404 until now).
   if [ "$curl_rc" -eq 22 ]; then
     echo "FAIL: $module@$version is UNPUBLISHED on the module proxy (404) — the release cannot be consumed at all"
     exit 1

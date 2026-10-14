@@ -214,6 +214,41 @@ else
   pass=$((pass + 1))
 fi
 
+# Case 12: a REAL HTTP 404 (curl rc 22) is rc 1 — the go-output daghtml
+# v0.38.5 class (2026-10-14): the `if ! curl; then curl_rc=$?` negation trap
+# read $? as 0 and misclassified every 404 as "unreachable" (rc 2), so
+# bump-dep's pre-flight warned-and-continued onto untagged versions. A
+# localhost python server provides a genuine 404 without network.
+HTTPROOT="$(mktemp -d "$WORK/http-XXXXXX")"
+mkdir -p "$HTTPROOT/github.com/example/family/@v"
+printf 'module github.com/example/family\n\ngo 1.27\n' \
+  >"$HTTPROOT/github.com/example/family/@v/v1.5.0.mod"
+python3 -m http.server --bind 127.0.0.1 0 --directory "$HTTPROOT" >"$WORK/httpd.log" 2>&1 &
+HTTPD_PID=$!
+trap 'kill "$HTTPD_PID" 2>/dev/null; rm -rf "$work" "$tmp"' EXIT
+for _ in 1 2 3 4 5; do
+  HTTPPORT="$(sed -n 's|.*127.0.0.1:\([0-9]*\).*|\1|p' "$WORK/httpd.log" | head -1)"
+  [ -n "$HTTPPORT" ] && break
+  sleep 0.3
+done
+if [ -z "$HTTPPORT" ]; then
+  echo "  FAIL 12: localhost http.server did not start" >&2
+  fail=$((fail + 1))
+else
+  out=$(GOPROXY_BASE="http://127.0.0.1:$HTTPPORT" bash "$GATE" github.com/example/family v1.5.0 2>&1)
+  rc=$?
+  check 12a 0 "is consumable" "$rc" "$out"
+  out=$(GOPROXY_BASE="http://127.0.0.1:$HTTPPORT" bash "$GATE" github.com/example/family v9.9.9 2>&1)
+  rc=$?
+  check 12b 1 "UNPUBLISHED on the module proxy (404)" "$rc" "$out"
+fi
+
+# Case 13: connection-refused is a TOOL FAILURE (rc 2), never a finding —
+# bump-dep degrades to WARNING+continue for exactly this rc, never for 404.
+out=$(GOPROXY_BASE="http://127.0.0.1:1" bash "$GATE" github.com/example/family v1.5.0 2>&1)
+rc=$?
+check 13 2 "TOOL FAILURE" "$rc" "$out"
+
 echo "pass=$pass fail=$fail"
 if [ "$fail" -ne 0 ]; then
   exit 1
