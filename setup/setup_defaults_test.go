@@ -3,6 +3,7 @@ package setup_test
 import (
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/a-h/templ"
@@ -413,6 +414,28 @@ func TestNew_LoginNoRegistration(t *testing.T) {
 
 	if bundle.Login == nil {
 		t.Fatal("Login is nil")
+	}
+}
+
+func TestNew_LoginAutoRedirect(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{
+		Title:             "Auto Redirect",
+		LoginAutoRedirect: true,
+	})
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Login == nil {
+		t.Fatal("Login is nil")
+	}
+
+	// Without any auth provider the flag cannot redirect; the setup notice
+	// must still render (proves the flag was accepted at construction).
+	rec := httptest.NewRecorder()
+	bundle.Login.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
 }
 

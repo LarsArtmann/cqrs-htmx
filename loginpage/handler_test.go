@@ -989,11 +989,19 @@ func TestSoleOAuthBeginURL(t *testing.T) {
 		data PageData
 		want string
 	}{
-		{"single provider only", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, "/auth/oauth/google/begin"},
+		{
+			"single provider only",
+			PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}}},
+			"/auth/oauth/google/begin",
+		},
 		{"webauthn present", PageData{WebAuthn: true, OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, ""},
 		{"two providers", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}, {Provider: "github"}}}, ""},
 		{"no providers", PageData{}, ""},
-		{"auth prefix", PageData{authPrefix: "/api", OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, "/api/auth/oauth/google/begin"},
+		{
+			"auth prefix",
+			PageData{authPrefix: "/api", OAuth2Buttons: []OAuth2Button{{Provider: "google"}}},
+			"/api/auth/oauth/google/begin",
+		},
 	}
 	for _, tt := range tests {
 		if got := tt.data.soleOAuthBeginURL(); got != tt.want {

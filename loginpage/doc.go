@@ -36,6 +36,11 @@
 // display names (e.g., "google" -> "Google"). Set OAuth2Buttons explicitly to
 // override labels or limit which providers are shown.
 //
+// With [Config.AutoRedirect], a page whose ONLY sign-in method is a single
+// OAuth2 provider skips the button: GET answers with a redirect straight to
+// the provider's begin endpoint. Multiple providers or a configured WebAuthn
+// provider render the page normally.
+//
 // # Self-contained
 //
 // The page inlines its CSS and JavaScript — no external asset requests,

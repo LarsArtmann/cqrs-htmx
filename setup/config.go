@@ -473,6 +473,13 @@ type Config struct {
 	// LoginNoRegistration hides the registration section on the login page (default: false).
 	LoginNoRegistration bool
 
+	// LoginAutoRedirect makes the login page redirect straight to the OAuth2
+	// provider when OAuth2 is the page's ONLY sign-in method (no WebAuthn,
+	// exactly one provider) — no intermediate button click. With multiple
+	// providers or WebAuthn present, the page renders normally (see
+	// loginpage.Config.AutoRedirect).
+	LoginAutoRedirect bool
+
 	// LoginCSSPath is the URL of the compiled Tailwind stylesheet the login
 	// page loads (default: "/app.css"). The login page renders templ-components
 	// Tailwind utilities, so the consumer MUST compile a stylesheet scanning

@@ -333,6 +333,7 @@ func (b *Bundle) attachLogin() error {
 		AccentColor:    b.config.AccentColor,
 		NoRegistration: b.config.LoginNoRegistration,
 		CSSPath:        b.config.LoginCSSPath,
+		AutoRedirect:   b.config.LoginAutoRedirect,
 		// The bundle's security layer (RecommendedSecurityMiddleware) sets a
 		// nonce CSP on every response, so the login page's inline scripts must
 		// carry that same nonce or the browser blocks them. No nonce in the

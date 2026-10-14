@@ -85,7 +85,8 @@ mux.Use(httputil.CSRFMiddleware(httputil.CSRFConfig{}))
 | `AuthPrefix`       | `string`                     | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`)                                                                         |
 | `OAuth2Buttons`    | `[]OAuth2Button`             | **auto**     | OAuth2 provider buttons (auto-detected if empty)                                                                          |
 | `NoOAuth2`         | `bool`                       | `false`      | Force-hide every OAuth2 button, including auto-detected ones; mutually exclusive with `OAuth2Buttons` (rejected at `New`) |
-| `CredentialName`   | `string`                     | `"Passkey"`  | Label for newly registered credentials                                                                                    |
+| `AutoRedirect`     | `bool`                       | `false`      | When OAuth2 is the ONLY sign-in method (no WebAuthn, exactly one provider), redirect straight to the provider instead of rendering a button; mutually exclusive with `NoOAuth2` (rejected at `New`) |
+| `CredentialName`   | `string`                     | `"Passkey"`  | Label for newly registered credentials                                    |
 
 ## OAuth2 buttons
 
@@ -108,6 +109,15 @@ loginpage.Config{
 
 The `Provider` string must match a key in your `oauth2.Provider` configuration.
 Buttons link to `{AuthPrefix}/auth/oauth/{provider}/begin`.
+
+### One-click sign-in (`AutoRedirect`)
+
+With `AutoRedirect: true`, a page whose only sign-in method is a single OAuth2
+provider skips the button entirely: `GET /login` answers with a redirect
+(302) straight to `{AuthPrefix}/auth/oauth/{provider}/begin`. With multiple
+providers the page renders normally (the visitor must choose), and with
+WebAuthn configured the passkey form always renders. Mutually exclusive with
+`NoOAuth2` (rejected at `New`).
 
 ## Option B: Embed in your own layout
 
