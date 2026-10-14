@@ -232,8 +232,11 @@ func main() {
 			return err
 		}
 
-		//cqrs-lint:ignore(C033) e2e: the raw store error is the intended command failure
-		if err := syncStore.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+		if err := syncStore.AppendBatch(
+			ctx,
+			ref,
+			[]event.Event{evt},
+		); err != nil { //cqrs-lint:ignore(C033) e2e: the raw store error is the intended command failure
 			return err
 		}
 
@@ -447,8 +450,6 @@ func (s *itemStore) list() []string {
 
 // --- ADR-0056 sync types: form -> typed command -> journaled event ---
 
-const itemStreamType = id.StreamType("Item")
-
 type syncItemForm struct {
 	Name string `json:"name"`
 }
@@ -460,6 +461,8 @@ type syncAddItemCmd struct {
 }
 
 func (c *syncAddItemCmd) ItemName() string { return c.name }
+
+const itemStreamType = id.StreamType("Item")
 
 // seedSyncEvents gives the pull cache deterministic content on first
 // connect (the offline-reads spec reads these through
