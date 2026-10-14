@@ -586,6 +586,7 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 // test can wait on it race-free.
 type deliverySignalWriter struct {
 	*httptest.ResponseRecorder
+
 	delivered chan struct{}
 	seen      []byte
 	once      sync.Once
