@@ -52,8 +52,8 @@ github.com/larsartmann/go-datastar/broadcast v0.6.2 h1:+oIvxoK3qVVBm1mV/BwFMYNDq
 github.com/larsartmann/go-datastar/broadcast v0.6.2/go.mod h1:IzBChmu607vwXnr1rmm5pvTxhJiwxii8tSlYGxylkuk=
 github.com/larsartmann/go-datastar/static v0.6.1 h1:f9uKQG0tabjkdYVHM0qVmZlGDGsUVRxPU+UuelGhpxk=
 github.com/larsartmann/go-datastar/static v0.6.1/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
-github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
-github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
+github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=
+github.com/larsartmann/go-error-family v0.12.0/go.mod h1:gB43rKC69SoPilihuze43OFqKYMGQxDNUi/25PF9MgE=
 github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
 github.com/larsartmann/go-sse v0.6.2/go.mod h1:PVVDLkzjkTR2MvqcqL3/XmWY8cdSUpEe8YWaouHVVz4=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
