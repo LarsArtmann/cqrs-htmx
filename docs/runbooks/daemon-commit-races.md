@@ -58,6 +58,24 @@ together contain the full set, then continue — the split is cosmetic.
 | Always                                                  | commit at phase boundaries; verify → commit → next phase                                               |
 | Never                                                   | `reset --hard`, `checkout`, `clean`, force push, reverting diffs you did not author                    |
 
+### The fast-commit protocol (when the commit is pre-verified)
+
+For content whose gates already ran green OUTSIDE the hook (bump-dep legs
+green, markdown-only edits, self-tested scripts), commit in ONE call:
+
+```sh
+git add -A && git commit --no-verify -m "<real title + justification>"
+```
+
+There is no 96s BuildFlow-hook window for the daemon to win, so the commit
+lands under its real title. Rules: (a) the justification lives in the
+message (`--no-verify: gates pre-run green, <which>`); (b) hooked commits
+remain mandatory when a gate is LOAD-BEARING for the change (Go code that
+has not been through `golangci-lint` + `go vet` this session); (c) chained
+fmt goes in the same call (`nix run .#fmt -- <paths> && git add <paths> &&
+git commit …`) — the daemon polls during the multi-second nix-run window
+and captures fmt's output first (hit twice, 2026-10-13).
+
 ## Related
 
 - `docs/runbooks/dependency-train-bump.md` — sweeps refuse dirty trees
