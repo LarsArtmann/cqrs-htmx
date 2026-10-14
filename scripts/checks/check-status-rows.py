@@ -36,7 +36,7 @@ from status_table import classify_row, is_separator, table_blocks
 DEFAULT_DIR = Path("docs/status/archived")
 
 
-def check_file(path: Path) -> tuple[int, int, int]:
+def check_file(path: Path) -> tuple[int, int, list[str]]:
     """Returns (partial_row_count, mixed_table_count, mixed_table_lines).
 
     mixed_table_lines carries the (path, line) anchors of deliberately-mixed

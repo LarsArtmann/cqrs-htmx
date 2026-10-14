@@ -11,8 +11,6 @@ pins both tools to identical verdicts.
 
 import re
 
-DEFAULT_DIR_ARG_HELP = "default: docs/status/archived/*.md"
-
 
 def outside_code_spans(text: str) -> str:
     """Remove inline code spans so `~~` inside backticks is not strike markup."""
