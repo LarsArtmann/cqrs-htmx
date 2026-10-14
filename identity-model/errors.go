@@ -65,7 +65,10 @@ var (
 	)
 	// ErrEmailAlreadyVerified is returned when verification is requested for
 	// an already-verified email.
-	ErrEmailAlreadyVerified error = errorfamily.NewConflict("usermgmt.email_already_verified", "email is already verified")
+	ErrEmailAlreadyVerified error = errorfamily.NewConflict(
+		"usermgmt.email_already_verified",
+		"email is already verified",
+	)
 	// ErrTOTPNotConfigured is returned when TOTP MFA is used without being configured.
 	ErrTOTPNotConfigured error = errorfamily.NewTransient("usermgmt.totp_not_configured", "TOTP is not configured")
 	// ErrTOTPAlreadyEnabled is returned when TOTP setup is requested for a user who already has it.
