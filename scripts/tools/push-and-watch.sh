@@ -76,19 +76,58 @@ if [ -z "$RUN_ID" ]; then
   exit 1
 fi
 echo "==> watching run $RUN_ID"
-if $GH_CMD run watch "$RUN_ID" --exit-status; then
+SLUG="$($GH_CMD repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
+ACTIONS_URL="https://github.com/${SLUG:-<slug>}/actions/runs/$RUN_ID"
+
+finish_green() {
   echo "✓ push-and-watch: $BRANCH @ ${SHA:0:12} CI GREEN (run $RUN_ID)"
+  echo "  $ACTIONS_URL"
   exit 0
+}
+
+if $GH_CMD run watch "$RUN_ID" --exit-status; then
+  finish_green
 fi
 
+# A nonzero watch is NOT a verdict: the watch itself dies on transient API
+# errors (live 2026-10-14, run 38466348791 — HTTP 502 on gh's jobs poll was
+# reported as "run RED"). Re-read the run's terminal conclusion before
+# declaring anything.
+CONCLUSION=""
+for _ in 1 2 3 4 5; do
+  CONCLUSION="$($GH_CMD run view "$RUN_ID" --json conclusion --jq .conclusion 2>/dev/null || true)"
+  [ -n "$CONCLUSION" ] && break
+  sleep "$POLL_SLEEP"
+done
+case "$CONCLUSION" in
+  success) finish_green ;;
+  failure) : ;; # fall through to the RED triage below
+  *)
+    echo "✗ push-and-watch: watch failed and the conclusion could NOT be re-read (got: ${CONCLUSION:-<empty>})." >&2
+    echo "  Judge manually — do not assume red or green: $ACTIONS_URL" >&2
+    exit 1
+    ;;
+esac
+
 echo "✗ push-and-watch: run $RUN_ID RED — failed job(s):" >&2
-SLUG="$($GH_CMD repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
-if [ -n "$SLUG" ]; then
-  $GH_CMD api "repos/$SLUG/actions/runs/$RUN_ID/jobs" \
-    --jq '.jobs[] | select(.conclusion=="failure") | .name' 2>/dev/null || true
-  echo "" >&2
-  echo "Triage: gh api repos/$SLUG/actions/runs/$RUN_ID/jobs --jq '.jobs[] | select(.conclusion==\"failure\") | .name'" >&2
-else
+echo "  $ACTIONS_URL" >&2
+if [ -z "$SLUG" ]; then
   echo "(could not resolve the repo slug for the job listing — run gh api manually)" >&2
+  exit 1
 fi
+JOBS_OUT=""
+for _ in 1 2 3; do
+  JOBS_OUT="$($GH_CMD api "repos/$SLUG/actions/runs/$RUN_ID/jobs" \
+    --jq '.jobs[] | select(.conclusion=="failure") | .name' 2>/dev/null || true)"
+  [ -n "$JOBS_OUT" ] && break
+  sleep "$POLL_SLEEP"
+done
+if [ -n "$JOBS_OUT" ]; then
+  printf '%s\n' "$JOBS_OUT" >&2
+else
+  echo "(jobs listing failed/transient — enumerate failed STEPS before bounding blast radius:" >&2
+  echo " sequential jobs mask everything behind their first failure, AGENTS gotcha 40)" >&2
+fi
+echo "" >&2
+echo "Triage: gh api repos/$SLUG/actions/runs/$RUN_ID/jobs --jq '.jobs[] | select(.conclusion==\"failure\") | .name'" >&2
 exit 1
