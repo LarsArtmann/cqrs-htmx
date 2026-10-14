@@ -119,14 +119,16 @@ func New(config Config) (*Handler, error) {
 			"configure WebAuthn or OAuth2 providers in the usermgmt ServiceConfig",
 		)
 	}
-	h := &Handler{
-		config: config,
-		data:   buildPageData(config, nil),
-	}
+	data := buildPageData(config, nil)
+	autoRedirectURL := ""
 	if config.AutoRedirect {
-		h.autoRedirectURL = h.data.soleOAuthBeginURL()
+		autoRedirectURL = data.soleOAuthBeginURL()
 	}
-	return h, nil
+	return &Handler{
+		config:          config,
+		data:            data,
+		autoRedirectURL: autoRedirectURL,
+	}, nil
 }
 
 // ServeHTTP renders the login page. Only GET and HEAD are supported.
