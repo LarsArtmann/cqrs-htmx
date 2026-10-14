@@ -137,7 +137,7 @@ func seedDemoData(
 			"email": fmt.Sprintf("%s@example.com", name),
 		})
 
-		//cqrs-lint:ignore(E006,E004,D013) demo data: no catalog, no projection, no schema versioning in dashboard demo
+		//cqrs-lint:ignore(E006,E004,D013,E021,D001) demo data: no catalog, no projection, no schema versioning; mixed naming is deliberate
 		created, _ := event.New(
 			"user.created",
 			aggID,
@@ -148,7 +148,7 @@ func seedDemoData(
 		//cqrs-lint:ignore(C028,C042) demo seed data: errors are non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
-		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
+		//cqrs-lint:ignore(E006,E004,E021) demo data: no catalog and no projection in this dashboard demo
 		renamed, _ := event.New(
 			"user.renamed",
 			aggID,
@@ -184,7 +184,7 @@ func seedDemoData(
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef(streamTypeOrder, aggID)
 
-		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
+		//cqrs-lint:ignore(E006,E004,E021) demo data: no catalog and no projection in this dashboard demo
 		placed, _ := event.New(
 			"order.placed",
 			aggID,
@@ -199,7 +199,7 @@ func seedDemoData(
 		//cqrs-lint:ignore(C028,C042) demo seed data: errors are non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
-		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
+		//cqrs-lint:ignore(E006,E004,E021) demo data: no catalog and no projection in this dashboard demo
 		shipped, _ := event.New(
 			"order.shipped",
 			aggID,

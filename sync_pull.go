@@ -34,10 +34,10 @@ const SyncPayloadEncodingOpaque = "opaque"
 // default), the pull endpoint is the explicit opt-in surface for payload
 // exposure — gate it with [WithSyncPullFilter].
 type SyncEvent struct {
-	EventID       string `json:"eventId"`
+	EventID       string `json:"eventId"` //cqrs-lint:ignore(A032) ADR-0056 wire contract: opaque string at the JSON boundary
 	Type          string `json:"type"`
 	StreamType    string `json:"streamType"`
-	StreamID      string `json:"streamId"`
+	StreamID      string `json:"streamId"` //cqrs-lint:ignore(A032) ADR-0056 wire contract: opaque string at the JSON boundary
 	Version       uint64 `json:"version"`
 	SchemaVersion string `json:"schemaVersion,omitempty"`
 	OccurredAt    string `json:"occurredAt"`
@@ -59,7 +59,7 @@ type SyncPullResponse struct {
 	// backendId). Clients persist it and reset their local cache when it
 	// changes — the backend-rebuilt detection mechanism. Empty when no
 	// [WithSyncPullBackendID] was configured.
-	BackendID string `json:"backendId,omitempty"`
+	BackendID string `json:"backendId,omitempty"` //cqrs-lint:ignore(A032) ADR-0056 wire contract: opaque string at the JSON boundary
 
 	// Events are the visible events after the cursor, in journal order.
 	Events []SyncEvent `json:"events"`
@@ -83,7 +83,7 @@ type SyncPullFilter func(r *http.Request, evt event.Event) bool
 type SyncPullOption func(*syncPullConfig)
 
 type syncPullConfig struct {
-	backendID string
+	backendID string //cqrs-lint:ignore(A032) ADR-0056 wire contract: opaque string at the JSON boundary
 	filter    SyncPullFilter
 	limit     int
 }
@@ -137,6 +137,7 @@ func WithSyncPullLimit(n int) SyncPullOption {
 //	))
 func SyncPullHandler(journal event.Journal, opts ...SyncPullOption) http.HandlerFunc {
 	if journal == nil {
+		//cqrs-lint:ignore(C009) programmer error: nil journal at handler construction
 		panic("cqrs-htmx: SyncPullHandler: journal must not be nil")
 	}
 

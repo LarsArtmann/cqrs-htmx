@@ -110,6 +110,7 @@ func newHandler() http.Handler {
 	ackHook := broadcaster.BroadcastOnAck()
 
 	cmdDisp := command.NewDispatcher()
+	//cqrs-lint:ignore(C028) demo wiring: a failed registration surfaces via the smoke test that exercises the command
 	_ = command.RegisterTyped(cmdDisp, "CreateNote", func(ctx context.Context, c *createNoteCmd) error {
 		if err := board.create(c.NoteName(), c.Secret()); err != nil {
 			return err

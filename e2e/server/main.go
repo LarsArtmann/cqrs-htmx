@@ -224,14 +224,15 @@ func main() {
 	//cqrs-lint:ignore(C028) e2e server: event append failures fail the test command outright
 	_ = command.RegisterTyped(cmdDisp, "SyncAddItem", func(ctx context.Context, c *syncAddItemCmd) error {
 		aggID := id.NewStreamID()
-		ref := id.StreamRef{Type: "Item", ID: aggID}
+		ref := id.StreamRef{Type: itemStreamType, ID: aggID}
 
-		evt, err := event.New(event.Type("Item.synced"), aggID, "Item", event.Version(1),
+		evt, err := event.New(event.Type("Item.synced"), aggID, itemStreamType, event.Version(1),
 			map[string]string{"name": c.ItemName()})
 		if err != nil {
 			return err
 		}
 
+		//cqrs-lint:ignore(C033) e2e: the raw store error is the intended command failure
 		if err := syncStore.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
 			return err
 		}
@@ -446,6 +447,8 @@ func (s *itemStore) list() []string {
 
 // --- ADR-0056 sync types: form -> typed command -> journaled event ---
 
+const itemStreamType = id.StreamType("Item")
+
 type syncItemForm struct {
 	Name string `json:"name"`
 }
@@ -466,9 +469,9 @@ func seedSyncEvents(store *memorystorage.MemoryStore) {
 
 	for _, name := range []string{"seed-one", "seed-two"} {
 		aggID := id.NewStreamID()
-		ref := id.StreamRef{Type: "Item", ID: aggID}
+		ref := id.StreamRef{Type: itemStreamType, ID: aggID}
 
-		evt, err := event.New(event.Type("Item.synced"), aggID, "Item", event.Version(1),
+		evt, err := event.New(event.Type("Item.synced"), aggID, itemStreamType, event.Version(1),
 			map[string]string{"name": name})
 		if err != nil {
 			log.Fatalf("event.New: %v", err)
