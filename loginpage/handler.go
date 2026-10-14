@@ -53,6 +53,16 @@ func (p PageData) oauthBeginURL(provider string) string {
 	return p.authPrefix + "/auth/oauth/" + provider + "/begin"
 }
 
+// soleOAuthBeginURL returns the begin-login URL when exactly one OAuth2
+// provider is the page's ONLY sign-in method (no WebAuthn); "" otherwise.
+// Drives [Config.AutoRedirect].
+func (p PageData) soleOAuthBeginURL() string {
+	if p.WebAuthn || len(p.OAuth2Buttons) != 1 {
+		return ""
+	}
+	return p.oauthBeginURL(p.OAuth2Buttons[0].Provider)
+}
+
 // faviconURI returns an inline SVG data-URI favicon using the brand initial
 // and accent color. Returns templ.SafeURL to bypass templ's URL sanitizer
 // (which rejects data: URIs by default).
@@ -86,6 +96,10 @@ type clientConfig struct {
 type Handler struct {
 	config Config
 	data   PageData
+	// autoRedirectURL is non-empty when [Config.AutoRedirect] is set and the
+	// resolved page offers exactly one OAuth2 provider as its only sign-in
+	// method; ServeHTTP then redirects instead of rendering.
+	autoRedirectURL string
 }
 
 // New creates a login page handler from the given Config.
@@ -105,10 +119,14 @@ func New(config Config) (*Handler, error) {
 			"configure WebAuthn or OAuth2 providers in the usermgmt ServiceConfig",
 		)
 	}
-	return &Handler{
+	h := &Handler{
 		config: config,
 		data:   buildPageData(config, nil),
-	}, nil
+	}
+	if config.AutoRedirect {
+		h.autoRedirectURL = h.data.soleOAuthBeginURL()
+	}
+	return h, nil
 }
 
 // ServeHTTP renders the login page. Only GET and HEAD are supported.
@@ -116,6 +134,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		w.Header().Set("Allow", "GET, HEAD")
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// AutoRedirect: OAuth2 is the only sign-in method and it is a single
+	// provider — send the visitor straight to the provider instead of a
+	// button page. Auth hops must not be cached (the page itself is no-store).
+	if h.autoRedirectURL != "" {
+		w.Header().Set("Cache-Control", "no-store")
+		http.Redirect(w, r, h.autoRedirectURL, http.StatusFound)
 		return
 	}
 

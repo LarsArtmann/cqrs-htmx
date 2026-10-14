@@ -886,3 +886,118 @@ func TestPage_ButtonSpinnerServerRenderedHidden(t *testing.T) {
 		t.Error("login.js must no longer carry hand-built spinner markup")
 	}
 }
+
+func newOAuthOnlyService(t *testing.T, names ...string) *usermgmt.Service {
+	t.Helper()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		OAuth2: &stubOAuth2WithNames{names: names},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	return svc
+}
+
+func TestNew_AutoRedirect_NoOAuth2_Rejected(t *testing.T) {
+	_, err := New(Config{
+		Service:      newTestService(t),
+		AutoRedirect: true,
+		NoOAuth2:     true,
+	})
+	if err == nil {
+		t.Fatal("AutoRedirect together with NoOAuth2 must be rejected at New")
+	}
+}
+
+func TestServeHTTP_AutoRedirect_SingleProvider(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google"),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusFound {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusFound)
+	}
+	if loc := w.Header().Get("Location"); loc != "/auth/oauth/google/begin" {
+		t.Errorf("Location = %q, want %q", loc, "/auth/oauth/google/begin")
+	}
+	if cc := w.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("Cache-Control = %q, want %q", cc, "no-store")
+	}
+}
+
+func TestServeHTTP_AutoRedirect_AuthPrefix(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google"),
+		AutoRedirect: true,
+		AuthPrefix:   "/api",
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if loc := w.Header().Get("Location"); loc != "/api/auth/oauth/google/begin" {
+		t.Errorf("Location = %q, want %q", loc, "/api/auth/oauth/google/begin")
+	}
+}
+
+func TestServeHTTP_AutoRedirect_MultipleProvidersRendersPage(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google", "github"),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d (page must render so the visitor can choose)", w.Code, http.StatusOK)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "/auth/oauth/google/begin") || !strings.Contains(body, "/auth/oauth/github/begin") {
+		t.Error("page should render buttons for every provider")
+	}
+}
+
+func TestServeHTTP_AutoRedirect_NoAuthMethodRendersNotice(t *testing.T) {
+	h, err := New(Config{
+		Service:      newTestService(t),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+	if !strings.Contains(w.Body.String(), "No authentication method is configured") {
+		t.Error("page should render the setup notice when there is nothing to redirect to")
+	}
+}
+
+func TestSoleOAuthBeginURL(t *testing.T) {
+	tests := []struct {
+		name string
+		data PageData
+		want string
+	}{
+		{"single provider only", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, "/auth/oauth/google/begin"},
+		{"webauthn present", PageData{WebAuthn: true, OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, ""},
+		{"two providers", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}, {Provider: "github"}}}, ""},
+		{"no providers", PageData{}, ""},
+		{"auth prefix", PageData{authPrefix: "/api", OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, "/api/auth/oauth/google/begin"},
+	}
+	for _, tt := range tests {
+		if got := tt.data.soleOAuthBeginURL(); got != tt.want {
+			t.Errorf("%s: soleOAuthBeginURL = %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}

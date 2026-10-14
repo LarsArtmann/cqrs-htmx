@@ -142,6 +142,16 @@ type Config struct {
 	// Mutually exclusive with [Config.OAuth2Buttons] (rejected at [New]).
 	NoOAuth2 bool
 
+	// AutoRedirect skips the page when OAuth2 is the page's ONLY sign-in
+	// method: with WebAuthn unconfigured and exactly one OAuth2 provider
+	// visible, a GET answers with a redirect (302) straight to
+	// {AuthPrefix}/auth/oauth/{provider}/begin instead of rendering a button
+	// the visitor would only click once. With multiple providers the page
+	// renders normally (the visitor must choose); with WebAuthn configured
+	// the passkey form renders. Mutually exclusive with [Config.NoOAuth2]
+	// (rejected at [New]).
+	AutoRedirect bool
+
 	// CredentialName is the label stored with newly registered WebAuthn
 	// credentials (the "credential_name" query parameter). Default "Passkey".
 	CredentialName string
@@ -193,6 +203,11 @@ func (config Config) validate() error {
 	if config.NoOAuth2 && len(config.OAuth2Buttons) > 0 {
 		return errConfig(
 			"Config.NoOAuth2 and Config.OAuth2Buttons are mutually exclusive: NoOAuth2 hides every OAuth2 button, an explicit list shows specific ones",
+		)
+	}
+	if config.AutoRedirect && config.NoOAuth2 {
+		return errConfig(
+			"Config.AutoRedirect and Config.NoOAuth2 are contradictory: AutoRedirect sends visitors straight to an OAuth2 provider, NoOAuth2 hides every OAuth2 button",
 		)
 	}
 	if config.Theme != "" && config.Theme != ThemeLight && config.Theme != ThemeDark {
