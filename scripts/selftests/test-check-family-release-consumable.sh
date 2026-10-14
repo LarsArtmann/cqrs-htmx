@@ -223,15 +223,12 @@ HTTPROOT="$(mktemp -d "$WORK/http-XXXXXX")"
 mkdir -p "$HTTPROOT/github.com/example/family/@v"
 printf 'module github.com/example/family\n\ngo 1.27\n' \
   >"$HTTPROOT/github.com/example/family/@v/v1.5.0.mod"
-python3 -m http.server --bind 127.0.0.1 0 --directory "$HTTPROOT" >"$WORK/httpd.log" 2>&1 &
+HTTPPORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
+python3 -m http.server --bind 127.0.0.1 "$HTTPPORT" --directory "$HTTPROOT" >/dev/null 2>&1 &
 HTTPD_PID=$!
-trap 'kill "$HTTPD_PID" 2>/dev/null; rm -rf "$work" "$tmp"' EXIT
-for _ in 1 2 3 4 5; do
-  HTTPPORT="$(sed -n 's|.*127.0.0.1:\([0-9]*\).*|\1|p' "$WORK/httpd.log" | head -1)"
-  [ -n "$HTTPPORT" ] && break
-  sleep 0.3
-done
-if [ -z "$HTTPPORT" ]; then
+trap 'kill "$HTTPD_PID" 2>/dev/null; rm -rf "$WORK"' EXIT
+sleep 0.5
+if ! kill -0 "$HTTPD_PID" 2>/dev/null; then
   echo "  FAIL 12: localhost http.server did not start" >&2
   fail=$((fail + 1))
 else
