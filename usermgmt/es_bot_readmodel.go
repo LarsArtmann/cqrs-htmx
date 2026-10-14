@@ -35,12 +35,10 @@ type BotReadModel struct {
 // NewBotReadModel creates an empty BotReadModel.
 func NewBotReadModel() *BotReadModel {
 	return &BotReadModel{
-		readModelCore: readModelCore[*BotReadModel]{
-			mu: sync.RWMutex{},
-			handlers: map[event.Type]eventHandler[*BotReadModel]{
-				eventBotRegistered: (*BotReadModel).handleBotRegistered,
-				eventBotDeleted:    (*BotReadModel).handleBotDeleted,
-			},
+		mu: sync.RWMutex{},
+		handlers: map[event.Type]eventHandler[*BotReadModel]{
+			eventBotRegistered: (*BotReadModel).handleBotRegistered,
+			eventBotDeleted:    (*BotReadModel).handleBotDeleted,
 		},
 		bots:        make(map[id.StreamID]*Bot),
 		byTokenHash: make(map[string]*Bot),

@@ -187,15 +187,12 @@ func FoldUser(
 		if err != nil {
 			return state, err
 		}
-		//nolint:modernize // exhaustruct_v5 requires the explicit nested core form (gotcha 7)
 		next.ExternalAccounts = append(next.ExternalAccounts, ExternalAccount{
-			ExternalAccountCore: ExternalAccountCore{
-				Provider:    p.Provider,
-				Subject:     p.Subject,
-				Email:       p.Email,
-				DisplayName: p.DisplayName,
-			},
-			LinkedAt: evt.OccurredAt(),
+			Provider:    p.Provider,
+			Subject:     p.Subject,
+			Email:       p.Email,
+			DisplayName: p.DisplayName,
+			LinkedAt:    evt.OccurredAt(),
 		})
 
 	case EventExternalAccountUnlinked:

@@ -242,13 +242,11 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Eve
 			return ea.Provider == p.Provider && ea.Subject == p.Subject
 		}) {
 			u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
-				ExternalAccountCore: ExternalAccountCore{
-					Provider:    p.Provider,
-					Subject:     p.Subject,
-					Email:       p.Email,
-					DisplayName: p.DisplayName,
-				},
-				LinkedAt: evt.OccurredAt(),
+				Provider:    p.Provider,
+				Subject:     p.Subject,
+				Email:       p.Email,
+				DisplayName: p.DisplayName,
+				LinkedAt:    evt.OccurredAt(),
 			})
 		}
 		u.UpdatedAt = evt.OccurredAt()
