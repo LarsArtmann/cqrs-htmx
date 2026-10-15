@@ -35,6 +35,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
 	"github.com/larsartmann/httputil"
 )
@@ -128,13 +129,31 @@ func main() {
 		false,
 		"write the EventCatalog tree and exit (headless CI mode; no server)",
 	)
+	plain := flag.Bool(
+		"plain",
+		false,
+		"emit plain frontmatter-ID refs (governance/lint exports; pairs with -export-only)",
+	)
 	flag.Parse()
 
 	cat := buildCatalog()
 
 	// Build-time artifact: generate the EventCatalog MDX file tree.
 	if *eventCatalogDir != "" {
-		if err := docserver.GenerateEventCatalog(cat, *eventCatalogDir); err != nil {
+		if *plain {
+			// Plain-refs profile: the hub's per-source governance lint re-exports
+			// with bare frontmatter IDs (@eventcatalog/linter keys on them).
+			var opts []eventcatalog.Option
+			if *exportOnly {
+				opts = append(opts, eventcatalog.WithSkipBootstrapFiles())
+			}
+
+			opts = append(opts, eventcatalog.WithPlainRefIDs())
+
+			if err := eventcatalog.NewExporter(*eventCatalogDir, opts...).Export(cat); err != nil {
+				log.Fatalf("generate event catalog: %v", err)
+			}
+		} else if err := docserver.GenerateEventCatalog(cat, *eventCatalogDir); err != nil {
 			log.Fatalf("generate event catalog: %v", err)
 		}
 		log.Printf("wrote EventCatalog files to %s", *eventCatalogDir)
