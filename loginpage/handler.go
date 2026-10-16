@@ -170,6 +170,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data.Nonce = sanitizeNonce(h.config.NonceFromRequest(r))
 	}
 	data.Theme = h.config.resolveTheme(r)
+	data.ErrorMessage = errorMessageFromQuery(r)
 
 	renderPage(w, r, data)
 }
@@ -285,15 +286,21 @@ func buildPageData(config Config, r *http.Request) PageData {
 	if r != nil {
 		data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
 		data.CSRFField = httputil.CSRFTokenFormField(r)
-		if msg := strings.TrimSpace(r.URL.Query().Get("error")); msg != "" {
-			if len(msg) > maxErrorMessageLength {
-				msg = msg[:maxErrorMessageLength]
-			}
-			data.ErrorMessage = msg
-		}
+		data.ErrorMessage = errorMessageFromQuery(r)
 	}
 
 	return data
+}
+
+// errorMessageFromQuery reads the ?error= query param (the conventional
+// OAuth2ErrorURL callback target), trimmed and length-capped so a hostile
+// link cannot stuff unbounded text into the alert.
+func errorMessageFromQuery(r *http.Request) string {
+	msg := strings.TrimSpace(r.URL.Query().Get("error"))
+	if len(msg) > maxErrorMessageLength {
+		msg = msg[:maxErrorMessageLength]
+	}
+	return msg
 }
 
 // pageProps translates PageData into the templ-components layout props: the

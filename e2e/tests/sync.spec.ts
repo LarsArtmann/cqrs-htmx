@@ -363,7 +363,9 @@ test("offline reads serve cached events via window.cqrsSync.getEvents()", async 
   // indicator does NOT gate the boot-time catch-up pull (it reflects the
   // push/SSE connection), so poll the cache until the pull lands.
   await expect
-    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, { timeout: 15000 })
+    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, {
+      timeout: 15000,
+    })
     .toBeGreaterThanOrEqual(2);
   const online = await page.evaluate<SyncSnapshot>(GET_EVENTS);
   expect(online.backendId).toBe("e2e-backend-A");
@@ -394,7 +396,9 @@ test("sync:reset on backendId change clears the cache but keeps the queue", asyn
   );
 
   await expect
-    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, { timeout: 15000 })
+    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, {
+      timeout: 15000,
+    })
     .toBeGreaterThanOrEqual(2);
 
   // Rotate the backend identity, then force a pull: the response's

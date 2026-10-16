@@ -950,7 +950,7 @@ func TestServeHTTP_AutoRedirect_ErrorParamRendersPage(t *testing.T) {
 	if !strings.Contains(body, "Provider said no") {
 		t.Error("page should surface the error param in the #lp-error alert")
 	}
-	if strings.Contains(body, `id="lp-error" class="hidden`) {
+	if strings.Contains(body, "red-400 hidden") {
 		t.Error("error alert must not carry the hidden class when a message is present")
 	}
 }
