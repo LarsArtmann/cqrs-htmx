@@ -13,6 +13,11 @@ import (
 	"github.com/larsartmann/templ-components/utils"
 )
 
+// maxErrorMessageLength caps the ?error= query param so a hostile link
+// cannot stuff unbounded text into the alert. Long enough for any friendly
+// auth message.
+const maxErrorMessageLength = 300
+
 // PageData holds everything the templ page needs to render.
 // Exported so consumers can render [Page] directly in their own layout (Option B).
 // Construct via [NewPageData] — do not build by hand.
@@ -41,6 +46,11 @@ type PageData struct {
 	// Theme is the server-resolved color scheme ("light" or "dark", empty
 	// for prefers-color-scheme). Drives the body class and ThemeScript.
 	Theme string
+	// ErrorMessage is an OAuth2 callback failure surfaced via the ?error=
+	// query param (the conventional OAuth2ErrorURL target). Rendered
+	// server-side in the #lp-error alert; empty keeps the div hidden for
+	// the JS contract (AJAX failures fill it client-side).
+	ErrorMessage string
 
 	// --- Internal assets (consumers ignore these) ---
 	authPrefix string
@@ -142,7 +152,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// AutoRedirect: OAuth2 is the only sign-in method and it is a single
 	// provider — send the visitor straight to the provider instead of a
 	// button page. Auth hops must not be cached (the page itself is no-store).
-	if h.autoRedirectURL != "" {
+	// An ?error= query param skips the redirect: OAuth2 callbacks surface
+	// failures by redirecting back here, and bouncing the visitor straight
+	// out again would loop.
+	if h.autoRedirectURL != "" && r.URL.Query().Get("error") == "" {
 		w.Header().Set("Cache-Control", "no-store")
 		http.Redirect(w, r, h.autoRedirectURL, http.StatusFound)
 		return
@@ -272,6 +285,12 @@ func buildPageData(config Config, r *http.Request) PageData {
 	if r != nil {
 		data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
 		data.CSRFField = httputil.CSRFTokenFormField(r)
+		if msg := strings.TrimSpace(r.URL.Query().Get("error")); msg != "" {
+			if len(msg) > maxErrorMessageLength {
+				msg = msg[:maxErrorMessageLength]
+			}
+			data.ErrorMessage = msg
+		}
 	}
 
 	return data

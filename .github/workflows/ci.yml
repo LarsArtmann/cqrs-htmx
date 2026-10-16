@@ -860,3 +860,63 @@ jobs:
         if: always()
         with:
           sarif_file: results.sarif
+
+  architecture-gate:
+    # Breaking-change gate for the EventCatalog export (hub contract): diffs
+    # the PR's examples/catalog-demo eventcatalog tree against the base
+    # branch's — removed messages/services, changed schemas on unchanged
+    # ids, dropped producers/consumers fail the PR. The gate script lives
+    # in the PRIVATE eventcatalog-hub repo, so this job needs the same
+    # SSH_PRIVATE_KEY secret bank-sync's CI uses. Soft rollout: it reports
+    # but does not fail until that secret is configured — then drop
+    # continue-on-error.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git for private repos
+        run: git config --global url."ssh://git@github.com/LarsArtmann/".insteadOf "https://github.com/LarsArtmann/"
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+
+      - name: Clone go-cqrs-lite sibling (replace target)
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+
+      - name: Clone the eventcatalog-hub gate
+        run: git clone --depth 1 ssh://git@github.com/LarsArtmann/eventcatalog-hub.git /tmp/ec-hub
+
+      - name: Export PR-head tree
+        run: |
+          cd examples/catalog-demo
+          go build -o /tmp/catalog-demo-head .
+          /tmp/catalog-demo-head -eventcatalog /tmp/export-head -export-only
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Export base tree
+        run: |
+          # Worktree lives NEXT TO the checkout so the ../../go-cqrs-lite
+          # replace directives resolve in the base build exactly like the
+          # head build.
+          git worktree add --detach "${GITHUB_WORKSPACE}/../base-src" "${{ github.event.pull_request.base.sha }}"
+          cd "${GITHUB_WORKSPACE}/../base-src/examples/catalog-demo"
+          go build -o /tmp/catalog-demo-base .
+          /tmp/catalog-demo-base -eventcatalog /tmp/export-base -export-only
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Architecture change gate
+        run: bash /tmp/ec-hub/scripts/check-architecture-changes.sh /tmp/export-base /tmp/export-head
+        continue-on-error: true # enforcing once SSH_PRIVATE_KEY is configured on this repo

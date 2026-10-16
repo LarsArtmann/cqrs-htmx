@@ -930,6 +930,47 @@ func TestServeHTTP_AutoRedirect_SingleProvider(t *testing.T) {
 	}
 }
 
+func TestServeHTTP_AutoRedirect_ErrorParamRendersPage(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google"),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login?error=Provider+said+no", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d (?error= must break the callback redirect loop)", w.Code, http.StatusOK)
+	}
+	if loc := w.Header().Get("Location"); loc != "" {
+		t.Errorf("Location = %q, want none", loc)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "Provider said no") {
+		t.Error("page should surface the error param in the #lp-error alert")
+	}
+	if strings.Contains(body, `id="lp-error" class="hidden`) {
+		t.Error("error alert must not carry the hidden class when a message is present")
+	}
+}
+
+func TestServeHTTP_ErrorParamSanitized(t *testing.T) {
+	h, err := New(Config{Service: newOAuthOnlyService(t, "google")})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, `/login?error=<script>alert(1)</script>`, nil))
+	body := w.Body.String()
+	if strings.Contains(body, "<script>alert(1)</script>") {
+		t.Error("error message must be HTML-escaped by templ")
+	}
+	if !strings.Contains(body, "alert(1)") {
+		t.Error("escaped error text should still be present")
+	}
+}
+
 func TestServeHTTP_AutoRedirect_AuthPrefix(t *testing.T) {
 	h, err := New(Config{
 		Service:      newOAuthOnlyService(t, "google"),
