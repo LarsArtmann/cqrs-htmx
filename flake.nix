@@ -1097,6 +1097,8 @@
                         "docs-freshness:bash scripts/checks/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/selftests/test-check-docs-freshness.sh"
                         "docs-links:bash scripts/checks/check-docs-links.sh"
+                        "readme-quickstart:bash scripts/checks/check-readme-quickstart.sh"
+                        "readme-quickstart-self-test:bash scripts/selftests/test-check-readme-quickstart.sh"
                         "status-annotations:bash scripts/checks/check-status-annotations.sh"
                         "status-annotations-self-test:bash scripts/selftests/test-check-status-annotations.sh"
                         "status-rows:python3 scripts/checks/check-status-rows.py"

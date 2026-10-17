@@ -63,7 +63,25 @@ echo "· readme-quickstart: extracted 1 go fence (${lines} lines) from $README"
 TMP=$(mktemp -d /tmp/readme-quickstart-XXXXXX)
 trap 'rm -rf "$TMP"' EXIT
 
-printf 'module example.com/readmequickstart\n\ngo 1.27\n' >"$TMP/go.mod"
+# Toolchain floor: the fence compiles against the REAL root module, whose
+# go.mod demands the fleet floor (e.g. 1.27.2). Ambient shells can carry an
+# older binary with GOTOOLCHAIN=local (the go-cache-env class) — raise
+# deterministically from the target module so the consumer-view build never
+# dies on "requires go >= X (running older)". The toolchain resolves from
+# the local module cache; never downgrades a newer ambient setting.
+floor="$(awk '$1 == "toolchain" { print $2; exit }' "$LIB_ROOT/go.mod")"
+floor="${floor#go}"
+floor="${floor:-$(awk '$1 == "go" { print $2; exit }' "$LIB_ROOT/go.mod")}"
+ambient_go="$(go version 2>/dev/null | awk '{ print $3 }' | sed 's/^go//')"
+if [ -n "$floor" ] && [ -n "$ambient_go" ] &&
+  { [ -z "${GOTOOLCHAIN:-}" ] || [ "${GOTOOLCHAIN:-}" = "local" ]; }; then
+  older_of="$(printf '%s\n%s\n' "$floor" "$ambient_go" | sort -V | head -1)"
+  if [ "$older_of" = "$ambient_go" ] && [ "$floor" != "$ambient_go" ]; then
+    export GOTOOLCHAIN="go$floor"
+  fi
+fi
+
+printf 'module example.com/readmequickstart\n\ngo %s\n' "$floor" >"$TMP/go.mod"
 printf '%s\n' "$fence" >"$TMP/main.go"
 
 cat >>"$TMP/go.mod" <<GOMOD
@@ -78,7 +96,10 @@ export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 source "$SCRIPT_DIR/../lib/go-cache-env.sh" >/dev/null 2>&1 || true
 
 build_log="$TMP/build.log"
-(cd "$TMP" && timeout "$TIMEOUT_SECS" go build .) >"$build_log" 2>&1
+{
+  (cd "$TMP" && timeout "$TIMEOUT_SECS" go mod tidy) &&
+    (cd "$TMP" && timeout "$TIMEOUT_SECS" go build .)
+} >"$build_log" 2>&1
 rc=$?
 
 if [ "$rc" -ne 0 ]; then

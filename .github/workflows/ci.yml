@@ -812,6 +812,23 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      # The README quick start is a consumer-facing contract: extract the
+      # fenced example under `## Quick start`, compile it in a throwaway
+      # module against the real root (path replace, GOWORK=off). A README
+      # that lies about its quick start is a red gate, not a review-time
+      # discovery (the 2026-10-17 rewrite session's proof harness, mechanized).
+      - name: README quick-start compile check
+        run: bash scripts/checks/check-readme-quickstart.sh
+        env:
+          GOEXPERIMENT: jsonv2
+
+      # Offline fixture coverage for the gate itself (clean / broken-go /
+      # missing-fence / poisoned cases; GOPROXY=off inside).
+      - name: README quick-start self-test
+        run: bash scripts/selftests/test-check-readme-quickstart.sh
+        env:
+          GOEXPERIMENT: jsonv2
+
   security:
     runs-on: ubuntu-latest
     permissions:
