@@ -5,7 +5,7 @@
 *.so
 *.dylib
 /cqrs-htmx-upgrade
-/work/bin/
+/work/
 
 # Test binary
 *.test

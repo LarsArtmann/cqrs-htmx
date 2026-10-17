@@ -46,6 +46,20 @@ preflight-detectable.
 Offline coverage: `nix run .#test-train-preflight` (stub fixtures; also a
 check-modules + CI stage).
 
+**Non-train pushes (docs waves, dependency sweeps) — the mini-preflight.**
+`train-preflight` is the gold standard whenever load allows; when it is
+disproportionate, run at least this (the 2026-10-17 push-saga receipt — every
+item below caught something CI found the hard way):
+
+1. `git fetch` FIRST — concurrent sessions are the documented norm here, and
+   the first push of a local pile is the non-fast-forward rejection class.
+2. `bash scripts/checks/check-large-files.sh --all` — 15 local seconds vs an
+   8-minute CI round trip (the 19.5 MB daemon-committed binary class).
+3. The docs gates when the diff touches markdown: `nix run .#check-docs-links`
+   + `nix run .#check-docs-freshness`.
+4. `nix run .#check-modules` when the machine is quiet enough — it is the
+   local twin of CI's `checks` job.
+
 ## 2. Pre-tag checklist (per module)
 
 ```sh
