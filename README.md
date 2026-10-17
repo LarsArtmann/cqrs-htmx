@@ -80,7 +80,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 - **SQL event stores** — Postgres, SQLite, and MySQL via go-cqrs-lite storage: auto-migrating schemas, automatic error classification, one-call setup templates ([MySQL guide](docs/guides/mysql-setup.md))
 - **API documentation surfaces** — a dependency-free [OpenAPI 3.1 builder](openapi/) (`WithOpenAPI` attaches metadata per endpoint), an immutable [EventCatalog](docs/guides/event-catalog-guide.md) for the published event language, and projection-status JSON for alerting
 - **Security middleware** — `RecommendedSecurityMiddleware()` (security headers + per-request CSP nonce + panic recovery); CSRF, rate limiting, CORS, compression, and Server-Timing via the companion [httputil](https://github.com/larsartmann/httputil) library — all opt-in ([guide](docs/guides/leveraging-httputil.md))
-- **Composable dispatch middleware** — the dispatchers you hand to `Config.Commands`/`Config.Queries` accept all 27 go-cqrs-lite middleware factories (retry, circuit breaker, OTel, metrics, idempotency) with zero glue ([guide](docs/guides/leveraging-go-cqrs-lite.md))
+- **Composable dispatch middleware** — the dispatchers you hand to `Config.Commands`/`Config.Queries` accept every go-cqrs-lite middleware factory (retry, circuit breaker, OTel, metrics, idempotency) with zero glue ([guide](docs/guides/leveraging-go-cqrs-lite.md))
 
 **Ready-made UIs** — [adminui](adminui/README.md) (identity operations), [dashboardui](dashboardui/README.md) (event-store observability), [loginpage](loginpage/README.md) (passwordless sign-in), and [setup](setup/README.md) (all of it in one call). See [below](#ready-made-uis--the-one-call-setup).
 
@@ -357,7 +357,7 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 - For **offline-capable clients**, the frontend sync protocol ([ADR-0056](docs/adr/0056-frontend-sync-protocol.md)): `SyncPullHandler` serves cursor-based, permission-filtered event pulls (payloads included, ETag/304 re-polls, backend-reset detection); `App.SyncPushHandler()` accepts batched commands and answers per-command `confirmed`/`rejected` outcomes — each envelope replays the exact pipeline its single-command endpoint registered. The embedded JS client (`window.cqrsSync`) handles the IndexedDB queue and event cache. Runnable walkthrough: [`examples/sync-demo`](examples/sync-demo/README.md).
 - **Slow consumers** are dropped, never blocked — pair with idempotency middleware and the ACK protocol when you need delivery guarantees.
 
-WebSocket transport was removed in v5 (ADR 0046) — SSE covers the same use cases with simpler reconnect semantics. See [docs/guides/sse-and-datastar.md](docs/guides/sse-and-datastar.md) and [docs/guides/frontend-sync.md](docs/guides/frontend-sync.md).
+WebSocket transport was removed in v5 ([ADR 0046](docs/adr/0046-drop-websocket-sse-only.md)) — SSE covers the same use cases with simpler reconnect semantics. See [docs/guides/sse-and-datastar.md](docs/guides/sse-and-datastar.md) and [docs/guides/frontend-sync.md](docs/guides/frontend-sync.md).
 
 ## Error handling
 
@@ -484,6 +484,7 @@ Each runs with `go run .` from its directory and opens on a documented port.
 - [Event Catalog Guide](docs/guides/event-catalog-guide.md) — publishing your event schemas
 - [Hybrid templ-components Adoption](docs/guides/hybrid-templ-components-adoption.md) — mixing library UI components with hand-written templ
 - [ADR index](docs/adr/INDEX.md) — the _why_ behind each design decision
+- [CHANGELOG](CHANGELOG.md) — what shipped in every version
 - API reference: [pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 
 ## Versioning & migrations
