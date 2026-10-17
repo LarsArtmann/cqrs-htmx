@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.8.0
@@ -16,7 +16,7 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.1 // indirect
+	github.com/larsartmann/go-codec v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2 // indirect

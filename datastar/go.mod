@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/datastar/v4
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0
@@ -14,7 +14,7 @@ require (
 require (
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.1 // indirect
+	github.com/larsartmann/go-codec v0.3.2 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
