@@ -1,28 +1,27 @@
 # cqrs-htmx
 
-**One line per endpoint.** CQRS + event sourcing wired to HTMX — Casbin auth, CSRF, rate limiting, and SSE built in. Everything optional, zero framework lock-in.
-
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
 [![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](https://github.com/larsartmann/templ-components)
 
-```bash
-go get github.com/larsartmann/cqrs-htmx/v4
-```
+**CQRS + event sourcing for server-rendered Go apps — wired to HTTP and HTMX in one declarative line per endpoint.**
 
-Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` in one line per endpoint. HTMX responses, Casbin authorization, CSRF, rate limiting, SSE, and event-sourced user management come built-in — but nothing is forced on you. Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), etc.), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you.
+Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` and stop writing glue: request decoding, Casbin authorization, validation, HTMX response headers, partial-vs-full rendering, error-to-status mapping, and SSE fan-out are all `HandlerOption`s. Event-sourced user management (passkeys, OAuth2, TOTP), a ready-made admin panel, an event-store observability dashboard, and a one-call full-stack setup exist as optional modules — entirely out of your way until you want them.
+
+Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), …), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you, and never enforces a default you might disagree with.
 
 ```go
 mux.Handle("POST /items", app.Command("CreateItem",
     cqrshtmx.DecodeJSON(mapToCmd),          // decode body → command
     cqrshtmx.Authorize("items", "create"),  // Casbin check
+    cqrshtmx.ValidateCommand(validate),     // domain validation
     cqrshtmx.WithSuccessStatus(201),        // configure response
     cqrshtmx.PushURL("/items")))            // HTMX: update address bar
 ```
 
-One endpoint, four concerns, in declarative order. The same shape works for queries, form posts, and SSE handlers.
+One endpoint, five concerns, in declarative order. The same shape works for queries, form posts, and SSE handlers.
 
 > **Part of the GOTH stack** — pair with
 > [templ-components](https://github.com/larsartmann/templ-components) (UI components
@@ -30,35 +29,9 @@ One endpoint, four concerns, in declarative order. The same shape works for quer
 > [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) (event sourcing core)
 > for a complete server-rendered Go web stack with zero framework lock-in.
 
-## Features at a Glance
-
-- **Command & Query dispatch** — `app.Command()` / `app.Query()` return `http.HandlerFunc` that decode, authorize, dispatch, and respond
-- **Casbin authorization** — `Authorize(resource, action)` checks policies before dispatch; `RequireAuth()` for auth-only guards
-- **HTMX-aware responses** — fluent response builder with `HX-Trigger`, `HX-Redirect`, `HX-Push-Url`, swap strategies, and notifications
-- **templ integration** — duck-typed `TemplComponent` renders templ components without importing templ
-- **User identity propagation** — HTTP request → context → CQRS event metadata, with strongly-typed `UserID` and `CorrelationID` (ULID-backed)
-- **Request validation** — `ValidateCommand`/`ValidateQuery` wrap decoders with validation logic
-- **Dispatch timeout** — `Config.Timeout` wraps dispatch with `context.WithTimeout`
-- **Lifecycle hooks** — `BeforeDispatchHook`/`AfterDispatchHook` for tracing, logging, metrics
-- **Error classification** — CQRS error families automatically map to HTTP status codes
-- **JSON or plain-text error handlers** — pluggable `ErrorHandler` with HTMX-aware auth redirects
-- **Notification system** — `NotifySuccess`/`NotifyError`/`NotifyWarning`/`NotifyInfo` with standard `{level, message}` payload; custom event names via `NotifyWithEvent`
-- **CSRF protection** — double-submit cookie pattern with HTMX-aware `X-CSRF-Token` header validation
-- **Rate limiting** — per-key token-bucket with min-heap eviction, configurable burst, and hook callbacks
-- **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
-- **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
-- **SSE streaming** — built on [`go-sse`](https://github.com/larsartmann/go-sse) (`sse.Stream`, `sse.Event`); cqrs-htmx adds `Broadcaster` (thread-safe fan-out with CQRS hooks), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
-- **Offline sync** — `SyncPullHandler` (cursor-based, permission-filtered event pull WITH payloads, ETag/304, backend-reset detection) + `App.SyncPushHandler()` (batched push of queued commands, per-command classified outcomes — the server re-decides everything) + an embedded sync client (IndexedDB queue + event cache, offline reads via `window.cqrsSync.getEvents()`). See [Frontend Sync](docs/guides/frontend-sync.md) (ADR-0056)
-- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite
-- **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE + idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler` (the WS extension was removed in v5 alongside the WS transport — see ADR 0046)
-- **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
-- **Async projection startup** — `AsyncStartup: true` lets the HTTP server bind while projections replay the journal in the background; `ProjectionReadinessCheck` returns 503 until every worker is live, so load balancers hold traffic for zero-downtime restarts. See [Async Projection Startup](docs/guides/async-projection-startup.md)
-- **Actor + audit trail** — every event, command, and query carries who acted (user/bot/system/service), impersonation chains, and correlation/request IDs — auto-derived from the HTTP session. See [Actors and the Audit Trail](docs/guides/actor-and-audit-trail.md)
-- **SQL event store** — Postgres, SQLite, and MySQL backends via `go-cqrs-lite/storage/v4`. Auto-migrating schema, automatic error classification (Conflict/Transient), one-call setup templates for SQLite/Postgres/MySQL, plus MySQL session/snapshot/checkpoint stores and `ReadModelDialect` for Postgres/MySQL read models. See [MySQL Setup Guide](docs/guides/mysql-setup.md)
-
 ## Why
 
-Every Go backend that combines CQRS + HTMX ends up writing the same glue:
+Every Go backend that combines CQRS + HTMX ends up writing the same glue, endpoint after endpoint:
 
 - HTTP request → CQRS command/query dispatch
 - User identity from cookie/session → event metadata
@@ -69,1201 +42,461 @@ Every Go backend that combines CQRS + HTMX ends up writing the same glue:
 - templ component rendering for query results
 - CSRF protection, rate limiting, security headers
 
-This library handles all of it. **If your endpoint doesn't need all of it**, you can opt out piece by piece — every layer (auth, CSRF, rate limit, HTMX) is middleware or a `HandlerOption` you choose to apply.
+This library handles all of it — and if your endpoint doesn't need all of it, you opt out piece by piece. Every layer (auth, CSRF, rate limit, HTMX) is a middleware or a `HandlerOption` you choose to apply.
 
 **If you are not using go-cqrs-lite**, this library is not for you — it is the HTMX/HTTP binding for that specific CQRS core, not a generic web framework.
 
+## What you get
+
+**Endpoints & rendering**
+
+- **Command & query dispatch** — `app.Command()` / `app.Query()` return `http.HandlerFunc` that decode, authorize, validate, dispatch, and respond; typed variants (`CommandTyped[Q]`, `QueryTyped[Q, R]`) eliminate mappers and type assertions
+- **HTMX-aware responses** — fluent builder for every `HX-*` header, notifications (`NotifySuccess`/`NotifyError`/…), out-of-band swaps (`OOBHTML`), and `RenderPartialOrFull` to kill the `if HX-Request` branch in every handler
+- **templ integration** — duck-typed `TemplComponent` renders templ components without importing templ
+- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()`
+- **Embedded HTMX assets** — htmx v2.0.10 plus the SSE and idiomorph extensions, served from your binary with ETag + 1-year immutable caching; zero CDN dependency
+
+**Identity & access**
+
+- **Event-sourced user management** — the [`usermgmt`](usermgmt/README.md) module: register/login/logout/me, sessions, roles, tenants, bots, account lockout, audit log; SQL stores for SQLite, Postgres, and MySQL
+- **Passwordless auth** — WebAuthn/passkeys by default; [TOTP MFA](usermgmt/totp/README.md) and [OAuth2/OIDC](usermgmt/oauth2/README.md) as independent sub-modules (import only what you need — zero auth deps in core)
+- **Casbin authorization** — `Authorize(resource, action)` gates dispatch; domain/tenant-aware RBAC with a projection that derives policies from identity events
+- **Actor + audit chain built-in** — every event carries who acted (user/bot/system), impersonation chains, and correlation/request IDs, auto-derived from the HTTP session ([guide](docs/guides/actor-and-audit-trail.md))
+
+**Realtime**
+
+- **SSE, hub-first** — thread-safe `Broadcaster` fan-out, durable replay via `JournalSSEStore`, the canonical `transport.ServeDomainEvents` domain-event surface with filtering and replay caps, heartbeats for proxy keepalive, and an opt-in ACK protocol for command confirmation ([guide](docs/guides/sse-and-datastar.md))
+- **Offline sync protocol** — cursor-based, permission-filtered event pull (`SyncPullHandler`) + batched command push (`App.SyncPushHandler`) with per-command outcomes, plus an embedded JS client (IndexedDB queue + event cache, `window.cqrsSync`). The server keeps all authority: clients sync commands up, cache events down ([guide](docs/guides/frontend-sync.md))
+- **DataStar adapter** — optional [`datastar`](datastar/README.md) module: script serving, signal decoding, SSE response builder ([guide](docs/guides/datastar-integration.md))
+
+**Production posture**
+
+- **Async projection startup** — bind HTTP while projections replay in the background; `ProjectionReadinessCheck` answers 503 until every worker is live, so load balancers hold traffic for zero-downtime restarts ([guide](docs/guides/async-projection-startup.md))
+- **Projection health & rebuilds** — live status endpoints, `/health` wiring, and one-call `RebuildProjection(ctx, name)` replay ([guides](docs/guides/projection-health-monitoring.md))
+- **SQL event stores** — Postgres, SQLite, and MySQL via go-cqrs-lite storage: auto-migrating schemas, automatic error classification, one-call setup templates ([MySQL guide](docs/guides/mysql-setup.md))
+- **API documentation surfaces** — a dependency-free [OpenAPI 3.1 builder](openapi/) (`WithOpenAPI` attaches metadata per endpoint), an immutable [EventCatalog](docs/guides/event-catalog-guide.md) for the published event language, and projection-status JSON for alerting
+- **Security middleware** — `RecommendedSecurityMiddleware()` (security headers + per-request CSP nonce + panic recovery); CSRF, rate limiting, CORS, compression, and Server-Timing via the companion [httputil](https://github.com/larsartmann/httputil) library — all opt-in ([guide](docs/guides/leveraging-httputil.md))
+- **Composable dispatch middleware** — the dispatchers you hand to `Config.Commands`/`Config.Queries` accept all 27 go-cqrs-lite middleware factories (retry, circuit breaker, OTel, metrics, idempotency) with zero glue ([guide](docs/guides/leveraging-go-cqrs-lite.md))
+
+**Ready-made UIs** — [adminui](adminui/README.md) (identity operations), [dashboardui](dashboardui/README.md) (event-store observability), [loginpage](loginpage/README.md) (passwordless sign-in), and [setup](setup/README.md) (all of it in one call). See [below](#ready-made-uis--the-one-call-setup).
+
+**Ecosystem bridges** — [health](health/README.md) (go-health probes over projection health), [auditlog](auditlog/README.md) (samber-do-auditlog with a live SSE viewer), [systemadapter](systemadapter/README.md) (go-cqrs-lite `system.New` + metaengine).
+
 ## Install
+
+Requires Go 1.27+.
 
 ```bash
 go get github.com/larsartmann/cqrs-htmx/v4
 ```
 
-For the user management submodule:
+Add the pieces you need — each is an independent module:
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt/v4
+go get github.com/larsartmann/cqrs-htmx/usermgmt/v4            # event-sourced identity
+go get github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4   # passkeys
+go get github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4       # TOTP MFA
+go get github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4     # OAuth2/OIDC
+go get github.com/larsartmann/cqrs-htmx/adminui/v4             # admin panel
+go get github.com/larsartmann/cqrs-htmx/dashboardui/v4         # ES observability
+go get github.com/larsartmann/cqrs-htmx/loginpage/v4           # login page
+go get github.com/larsartmann/cqrs-htmx/setup/v4               # one-call full stack
+go get github.com/larsartmann/cqrs-htmx/datastar/v4            # DataStar adapter
 ```
 
-Auth strategies (WebAuthn, TOTP, OAuth2) are now **optional sub-modules** in v4 — import only what you need:
+## Quick start
 
-```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4  # Passkeys
-# go get github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4     # TOTP MFA
-# go get github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4   # OAuth2/OIDC
-```
-
-> **Upgrading from v3?** See the [v3→v4 Migration Guide](docs/migrations/v3-to-v4.md).
-> **Upgrading from v2?** See the [v2→v3 Migration Guide](docs/migrations/v2-to-v3.md).
-
-## Quick Start
+A complete, runnable server — copy into `main.go` and `go run .`:
 
 ```go
 package main
 
 import (
-    "net/http"
+	"context"
+	"log"
+	"net/http"
+	"sync"
 
-    cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-    "github.com/larsartmann/go-cqrs-lite/command/v4"
-    "github.com/larsartmann/go-cqrs-lite/query/v4"
-    "github.com/casbin/casbin/v3"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
+
+type item struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type itemStore struct {
+	mu    sync.RWMutex
+	items []item
+}
+
+func (s *itemStore) add(name string) item {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	it := item{ID: id.NewStreamID().String(), Name: name}
+	s.items = append(s.items, it)
+	return it
+}
+
+func (s *itemStore) list() []item {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]item, len(s.items))
+	copy(out, s.items)
+	return out
+}
+
+// createItemCmd embeds *command.BasicCommand, which provides
+// Type(), StreamID(), and ID() — the full command.Command interface.
+type createItemCmd struct {
+	*command.BasicCommand
+	Name string
+}
+
+type listItemsQuery struct{}
+
+func (q *listItemsQuery) Type() query.Type { return "ListItems" }
+
+type createItemRequest struct {
+	Name string `json:"name"`
+}
 
 func main() {
-    cmdDisp := command.NewDispatcher()
-    qryDisp := query.NewDispatcher()
-    enforcer, _ := casbin.NewEnforcer("model.conf", "policy.csv")
+	var db itemStore
 
-    app, _ := cqrshtmx.New(cqrshtmx.Config{
-        Commands:        cmdDisp,
-        Queries:         qryDisp,
-        Enforcer:        enforcer,
-        UserIDExtractor: func(r *http.Request) (cqrshtmx.UserID, error) {
-            return cqrshtmx.ParseUserID(r.Header.Get("X-User-ID"))
-        },
-    })
+	// Register handlers on the go-cqrs-lite dispatchers YOU own.
+	cmdDisp := command.NewDispatcher()
+	_ = command.RegisterTyped(cmdDisp, "CreateItem",
+		func(_ context.Context, c *createItemCmd) error {
+			db.add(c.Name)
+			return nil
+		})
 
-    mux := http.NewServeMux()
+	qryDisp := query.NewDispatcher()
+	_ = query.RegisterTyped(qryDisp, "ListItems",
+		func(_ context.Context, _ *listItemsQuery) ([]item, error) {
+			return db.list(), nil
+		})
 
-    // Command dispatch with auth + HTMX
-    mux.Handle("POST /users", app.Command("CreateUser",
-        cqrshtmx.Authorize("users", "create"),
-        cqrshtmx.DecodeJSON(func(req CreateUserRequest) (command.Command, error) {
-            return NewCreateUserCmd(req.Email, req.Name), nil
-        }),
-        cqrshtmx.NotifySuccess("User created"),
-        cqrshtmx.PushURL("/users"),
-    ))
+	// Build the App: dispatchers in, http.Handlers out.
+	app := cqrshtmx.MustNew(cqrshtmx.Config{
+		Commands: cmdDisp,
+		Queries:  qryDisp,
+	})
 
-    // Query dispatch with templ rendering
-    mux.Handle("GET /users", app.Query("ListUsers",
-        cqrshtmx.Authorize("users", "read"),
-        cqrshtmx.DecodeJSONQuery(func(req ListUsersRequest) (query.Query, error) {
-            return &ListUsersQuery{}, nil
-        }),
-        cqrshtmx.RenderTemplResult(func(result []*User) cqrshtmx.TemplComponent {
-            return userListPage(result)
-        }),
-    ))
+	mux := http.NewServeMux()
 
-    // Apply middleware stack
-    handler := cqrshtmx.Chain(
-        httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
-        httputil.CSRFMiddleware(httputil.CSRFConfig{}),
-        cqrshtmx.HTMXMiddleware,
-        app.Middleware(),
-    )(mux)
+	// POST /items — JSON body → command → 201
+	mux.Handle("POST /items", app.Command("CreateItem",
+		cqrshtmx.DecodeJSON(func(req createItemRequest) (command.Command, error) {
+			core, err := command.New("CreateItem", id.NewStreamID())
+			if err != nil {
+				return nil, err
+			}
+			return &createItemCmd{BasicCommand: core, Name: req.Name}, nil
+		}),
+		cqrshtmx.WithSuccessStatus(201),
+	))
 
-    http.ListenAndServe(":8080", handler)
+	// GET /items — query → JSON
+	mux.Handle("GET /items", app.Query("ListItems",
+		cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
+			return &listItemsQuery{}, nil
+		}),
+		cqrshtmx.RenderJSON[[]item](),
+	))
+
+	// Embedded htmx.js — no CDN, ETag + 1-year immutable cache.
+	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+
+	log.Fatal(http.ListenAndServe(":8080",
+		cqrshtmx.RecommendedSecurityMiddleware()(mux)))
 }
 ```
 
-> **Want the full stack in one call?** The [`setup/v4`](setup/) module creates shared stores, the user management service, admin dashboard, observability dashboard, and login page with correct middleware ordering in a single `setup.New()` call. Adopt your own service (`Config.Service`), override the full `usermgmt.ServiceConfig` (`Config.ServiceConfig` — MaxUsers, TokenPepper, SecurityHooks, ...), or stay with the flattened convenience fields. See the [Full-Stack Wiring Guide](docs/guides/fullstack-wiring.md).
-
-## Config
-
-`New(Config)` creates an `App`. `Commands` or `Queries` must be non-nil:
-
-```go
-app, err := cqrshtmx.New(cqrshtmx.Config{
-    Commands:        cmdDisp,          // *command.Dispatcher
-    Queries:         qryDisp,          // *query.Dispatcher
-    Enforcer:        enforcer,         // Enforcer interface (Casbin or custom)
-    UserIDExtractor: extractFunc,      // func(r *http.Request) (UserID, error)
-    LoginRedirect:   "/auth/signin",   // default: "/login"
-    Timeout:         5 * time.Second,  // wraps dispatch only; 0 = no timeout
-    ErrorHandler:    myErrorHandler,   // custom ErrorHandler; default uses plain text + LoginRedirect
-    BeforeDispatch:           beforeHook,       // func(ctx, r) context.Context — tracing, request IDs
-    AfterDispatch:            afterHook,        // func(ctx, r, err) — logging, metrics
-    IncludeRequestIDInErrors: true,             // prefix errors with request_id for log correlation
-    MaxBodySize:              10 << 20,         // max request body (default 10 MB)
-    ServiceName:              "my-service",     // identifies the service in event metadata
-})
-```
-
-## Handler Options
-
-### Authorization
-
-| Option                        | Description                                         |
-| ----------------------------- | --------------------------------------------------- |
-| `Authorize(resource, action)` | Check Casbin policy before dispatch                 |
-| `RequireAuth()`               | Require authenticated user (no specific permission) |
-
-### Request Decoding
-
-| Option                       | Description                                         |
-| ---------------------------- | --------------------------------------------------- |
-| `DecodeJSON[T](mapper)`      | Decode JSON body into a command via mapper function |
-| `DecodeJSONQuery[T](mapper)` | Decode JSON body into a query via mapper function   |
-| `DecodeForm[T](mapper)`      | Decode form data into a command via mapper function |
-| `DecodeFormQuery[T](mapper)` | Decode form data into a query via mapper function   |
-
-All decoders enforce `Config.MaxBodySize` when set (returns `ErrRequestTooLarge` / 413 when exceeded).
-
-### Validation
-
-Wrap your decoder with validation. Must be applied **after** the decoder in the option list:
-
-```go
-app.Command("CreateUser",
-    cqrshtmx.DecodeJSON(createUserMapper),
-    cqrshtmx.ValidateCommand(func(cmd command.Command) error {
-        return validateStruct(cmd)
-    }),
-)
-```
-
-| Option                       | Description                                        |
-| ---------------------------- | -------------------------------------------------- |
-| `ValidateCommand(validator)` | Validate decoded command; errors → 400 Bad Request |
-| `ValidateQuery(validator)`   | Validate decoded query; errors → 400 Bad Request   |
-
-### Response
-
-| Option                             | Description                                                            |
-| ---------------------------------- | ---------------------------------------------------------------------- |
-| `Render(fn)`                       | Render query result with custom function                               |
-| `RenderTempl(component)`           | Render a fixed templ.Component (duck-typed)                            |
-| `RenderTemplResult[T](mapper)`     | Map query result to a templ.Component and render                       |
-| `RenderJSON[T]()`                  | Render query result as JSON (200 OK)                                   |
-| `RenderJSONStatus[T](status)`      | Render query result as JSON with custom status                         |
-| `Redirect(url)`                    | Redirect after success (HX-Redirect for HTMX, HTTP redirect otherwise) |
-| `Trigger(event)`                   | Fire HTMX client-side event on success                                 |
-| `TriggerWithDetail(event, detail)` | Fire HTMX event with JSON detail data                                  |
-| `PushURL(url)`                     | Push URL into browser history                                          |
-
-### Notifications
-
-Convenience wrappers around `TriggerWithDetail` with a standard `{level, message}` payload:
-
-| Option                   | Description          |
-| ------------------------ | -------------------- |
-| `NotifySuccess(message)` | Success notification |
-| `NotifyError(message)`   | Error notification   |
-| `NotifyWarning(message)` | Warning notification |
-| `NotifyInfo(message)`    | Info notification    |
-
-All use the default `"showMessage"` event. For custom event names, use the `NotifyWithEvent` builder:
-
-```go
-app.Command("CreateUser",
-    cqrshtmx.NotifyWithEvent("showToast").Success("User created"),
-)
-```
-
-Client-side JS:
-
-```js
-document.body.addEventListener("showMessage", function (evt) {
-	showNotification(evt.detail.level, evt.detail.message);
-});
-```
-
-### Per-Handler Timeout
-
-Override the global `Config.Timeout` per handler:
-
-```go
-app.Command("SlowOperation",
-    cqrshtmx.WithTimeout(30*time.Second),
-    cqrshtmx.DecodeJSON(mapper),
-)
-```
-
-### Per-Handler Options
-
-| Option                    | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `WithMaxBodySize(n)`      | Override `Config.MaxBodySize` per handler              |
-| `WithSuccessStatus(code)` | Custom success status (default 204; e.g., 201 Created) |
-| `RequireMethod(method)`   | Reject wrong HTTP methods with 405                     |
-| `OnError(fn)`             | Per-handler error callback after App-level handler     |
-
-### Convenience Helpers
-
-| Helper                                   | Description                                  |
-| ---------------------------------------- | -------------------------------------------- |
-| `App.HealthHandler()`                    | 200/503 JSON health check for load balancers |
-| `App.HasCommands()` / `App.HasQueries()` | Report dispatcher availability               |
-| `MustNew(cfg)`                           | Panics on error — for init-time setup        |
-| `IsAuthenticated(r)`                     | Checks for non-zero UserID in context        |
-
-## HTMX Request Context
-
-`HTMXMiddleware` parses all HTMX headers once and stores them in context:
-
-```go
-handler := cqrshtmx.Chain(
-    cqrshtmx.HTMXMiddleware,
-    app.Middleware(),
-)(mux)
-```
-
-### HTMXRequest Struct
-
-```go
-h := cqrshtmx.HTMXFromContext(r.Context())
-h.IsHTMX           // bool
-h.IsBoosted        // bool
-h.IsHistoryRestore // bool
-h.Target           // string
-h.TriggerID        // string
-h.TriggerName      // string
-h.Prompt           // string
-h.CurrentURL       // string
-h.RenderPartial()  // bool — IsHTMX && !IsHistoryRestore
-```
-
-### Standalone Accessors (work with or without middleware)
-
-```go
-cqrshtmx.IsHTMXRequest(r)    // bool
-cqrshtmx.IsBoosted(r)        // bool
-cqrshtmx.IsHistoryRestore(r) // bool
-cqrshtmx.RenderPartial(r)    // bool — partial vs full page
-cqrshtmx.HTMXTarget(r)       // string
-cqrshtmx.HTMXTrigger(r)      // string
-cqrshtmx.HTMXTriggerName(r)  // string
-cqrshtmx.HTMXPrompt(r)       // string
-cqrshtmx.HTMXCurrentURL(r)   // string
-```
-
-## Partial Rendering (HTMX)
-
-Every HTMX handler needs the same branching: render a fragment for HTMX requests, a full page for regular navigation. These helpers eliminate that boilerplate.
-
-### For CQRS Query Handlers (templ)
-
-```go
-app.Query("ListUsers", decoder,
-    cqrshtmx.RenderPartialOrFull(
-        func(users []*User) cqrshtmx.TemplComponent { return userListPartial(users) },
-        func(users []*User) cqrshtmx.TemplComponent { return usersPage(users) },
-    ),
-)
-```
-
-History-restore requests (`HX-History-Restore-Request`) automatically render the full page.
-
-### For CQRS Query Handlers (non-templ)
-
-```go
-app.Query("ListUsers", decoder,
-    cqrshtmx.RenderPartialOrFullFunc(
-        func(w http.ResponseWriter, _ *http.Request, result any) error { /* partial HTML */ },
-        func(w http.ResponseWriter, _ *http.Request, result any) error { /* full page */ },
-    ),
-)
-```
-
-### For Non-CQRS Routes
-
-```go
-mux.HandleFunc("GET /items", func(w http.ResponseWriter, r *http.Request) {
-    items := loadItems()
-    _ = cqrshtmx.RenderTemplComponent(w, r, itemsPartial(items), itemsPage(items))
-})
-```
-
-### Custom Predicates
-
-```go
-app.Query("GetProfile", decoder,
-    cqrshtmx.RenderIf(
-        func(r *http.Request) bool { return cqrshtmx.HTMXTarget(r) == "#avatar" },
-        avatarPartial,
-        fullProfile,
-    ),
-)
-```
-
-### Out-of-Band Swaps
-
-```go
-html := cqrshtmx.OOBHTML("notifications", "<div>1 new</div>")
-// <div id="notifications" hx-swap-oob="true"><div>1 new</div></div>
-
-html := cqrshtmx.OOBHTML("list", "<li>item</li>", cqrshtmx.SwapBeforeEnd)
-// <div id="list" hx-swap-oob="beforeend"><li>item</li></div>
-```
-
-## HTMX Response Builder
-
-Build HTMX-aware responses with fluent chaining:
-
-```go
-resp := cqrshtmx.NewResponse(w, r)
-resp.Trigger("userCreated").
-    PushURL("/users/1").
-    Retarget("#user-list").
-    Reswap(cqrshtmx.SwapInnerHTML).
-    NotifySuccess("User created").
-    Apply()
-```
-
-### Methods
-
-| Method                            | Header Set                            |
-| --------------------------------- | ------------------------------------- |
-| `PushURL(url)`                    | `HX-Push-Url`                         |
-| `ReplaceURL(url)`                 | `HX-Replace-Url`                      |
-| `Redirect(url)`                   | `HX-Redirect` (HTMX) or HTTP redirect |
-| `Refresh()`                       | `HX-Refresh`                          |
-| `Location(url)`                   | `HX-Location`                         |
-| `Reswap(strategy)`                | `HX-Reswap`                           |
-| `Retarget(selector)`              | `HX-Retarget`                         |
-| `Reselect(selector)`              | `HX-Reselect`                         |
-| `Trigger(event)`                  | `HX-Trigger`                          |
-| `TriggerAfterSwap(event)`         | `HX-Trigger-After-Swap`               |
-| `TriggerAfterSettle(event)`       | `HX-Trigger-After-Settle`             |
-| `TriggerWithDetail(name, detail)` | `HX-Trigger` (JSON)                   |
-| `NotifySuccess(message)`          | `HX-Trigger` (JSON notification)      |
-| `NotifyError(message)`            | `HX-Trigger` (JSON notification)      |
-| `NotifyWarning(message)`          | `HX-Trigger` (JSON notification)      |
-| `NotifyInfo(message)`             | `HX-Trigger` (JSON notification)      |
-
-### Swap Strategies
-
-`SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`
-
-## SSE (Server-Sent Events)
-
-First-class SSE support for the HTMX SSE extension (`hx-ext="sse"`).
-Protocol types (`Event`, `Stream`, `EventID`) come from [`go-sse`](https://github.com/larsartmann/go-sse); cqrs-htmx adds the CQRS-coupled `Broadcaster` and `JournalSSEStore`.
-
-```go
-import "github.com/larsartmann/go-sse"
-
-// Start an SSE stream (go-sse)
-stream := sse.NewStream(w, r)
-_ = stream.Send(sse.Event{
-    Event: "todoUpdated",
-    Data:  "<div id='todos'><ul><li>Buy milk</li></ul></div>",
-})
-
-// Fan-out to multiple clients (cqrs-htmx Broadcaster)
-broadcaster := cqrshtmx.NewBroadcaster()
-ch := broadcaster.Subscribe()
-broadcaster.Broadcast(sse.Event{Event: "update", Data: html})
-
-// Bridge to CQRS: broadcast SSE on successful command dispatch
-app, _ := cqrshtmx.New(cqrshtmx.Config{
-    AfterDispatch: broadcaster.BroadcastOnSuccess("itemUpdated", ""),
-})
-
-// Broadcast StructuredError (RFC 7807) on dispatch failure
-errApp, _ := cqrshtmx.New(cqrshtmx.Config{
-    AfterDispatch: broadcaster.BroadcastOnError("commandError"),
-})
-
-// Prevent reverse proxies from killing idle connections
-go stream.Heartbeat(stream.Context(), 15*time.Second)
-
-// Reconnection support (SSE spec — go-sse)
-lastID := sse.LastEventIDFromRequest(r)
-sse.Replay(stream, eventStore, lastID)
-```
-
-Client-side:
-
-```html
-<div hx-ext="sse" sse-connect="/events" sse-swap="todoUpdated">
-	<!-- content swapped here -->
-</div>
-```
-
-### SSE API
-
-Protocol types come from [go-sse](https://github.com/larsartmann/go-sse); cqrs-htmx adds the CQRS-coupled building blocks.
-
-**go-sse** (`github.com/larsartmann/go-sse`):
-
-| Type / Function                     | Description                                                                       |
-| ----------------------------------- | --------------------------------------------------------------------------------- |
-| `sse.Event`                         | Event struct: `Event`, `Data`, `ID`, `Retry`                                      |
-| `sse.WriteEvent(w, event)`          | Write a single SSE event to any `io.Writer`                                       |
-| `sse.NewStream(w, r)`               | Create a managed SSE connection (correct headers, flush, context-aware lifecycle) |
-| `stream.Send(event)`                | Send event to connected client                                                    |
-| `stream.SendData(name, data)`       | Shorthand for raw string content events                                           |
-| `stream.LastEventID()`              | Client's last event ID (for reconnection)                                         |
-| `stream.Close()`                    | Graceful shutdown                                                                 |
-| `stream.Heartbeat(ctx, interval)`   | Send SSE comment-frame pings to prevent proxy idle kills                          |
-| `stream.OnDisconnect(fn)`           | Register cleanup callback fired on `Close()`                                      |
-| `sse.LastEventIDFromRequest(r)`     | Extract `Last-Event-ID` from request                                              |
-| `sse.EventStore`                    | Interface for reconnection replay (`EventsSince(id)`)                             |
-| `sse.Replay(stream, store, lastID)` | Replay missed events to reconnecting client                                       |
-
-**cqrs-htmx** (CQRS-coupled):
-
-| Type / Function                   | Description                                                                      |
-| --------------------------------- | -------------------------------------------------------------------------------- |
-| `NewBroadcaster()`                | Thread-safe fan-out hub                                                          |
-| `broadcaster.Subscribe()`         | Get a receiver channel                                                           |
-| `broadcaster.Unsubscribe(ch)`     | O(1) unsubscribe via channel identity                                            |
-| `broadcaster.Broadcast(event)`    | Non-blocking send to all subscribers (drops to slow consumers)                   |
-| `broadcaster.SubscriberCount()`   | Active subscriber count                                                          |
-| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch                       |
-| `BroadcastOnSuccessFunc(fn)`      | `AfterDispatchHook` with dynamic event generation                                |
-| `BroadcastOnError(eventName)`     | `AfterDispatchHook` that broadcasts StructuredError on dispatch failure          |
-| `BroadcastOnErrorFunc(fn)`        | `AfterDispatchHook` with dynamic error event generation                          |
-| `NewStructuredError(err, r)`      | RFC 7807 error payload with type/title/status/detail/instance. `.JSON()` for SSE |
-| `NewJournalSSEStore(...)`         | Production `sse.EventStore` backed by a go-cqrs-lite event journal               |
-
-> **Note:** The WebSocket helpers were removed in v5 (ADR 0046). The library is SSE-only now. Consumers needing bi-directional transport should use SSE for server→client and POST endpoints for client→server, or integrate a dedicated WebSocket library directly (the library intentionally avoids pulling in `gorilla/websocket` or similar).
-
-## Embedded HTMX JavaScript
-
-Embed HTMX v2.0.10 (minified, ~51KB) directly in your binary — no CDN dependency:
-
-```go
-// Serve embedded HTMX JS
-mux.Handle("/static/htmx.js", cqrshtmx.HTMXScriptHandler())
-
-// Generate script tag for templates
-cqrshtmx.HTMXScriptTag("/static/htmx.js")
-// => <script src="/static/htmx.js"></script>
-
-// Check version
-cqrshtmx.HTMXVersion() // "2.0.10"
-```
-
-`HTMXScriptHandler` sets `Content-Type: text/javascript`, long-lived `Cache-Control` (1 year, immutable), and `ETag` with `If-None-Match` support for 304 responses.
-
-### Embedded HTMX Extensions
-
-The library embeds the 2 HTMX extensions that pair with its server-side building blocks (the WS extension was removed in v5 alongside the WS transport — see ADR 0046):
-
-| Extension          | Version            | Server-side counterpart                        |
-| ------------------ | ------------------ | ---------------------------------------------- |
-| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `sse.Stream`, `Broadcaster`, `JournalSSEStore` |
-| `HTMXExtIdiomorph` | idiomorph 0.7.4    | Morph-swap for SSE partial updates             |
-
-```go
-// Serve individual extension
-mux.Handle("/ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
-
-// Or serve both as a single bundle (one HTTP request)
-mux.Handle("/ext/bundle.js",
-    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph))
-```
-
-Same caching headers (ETag, Cache-Control 1yr immutable, 304). Load after htmx core in your layout.
-
-## templ Integration
-
-First-class support for [templ](https://templ.guide) without importing it as a dependency.
-Uses duck-typing — any type with `Render(ctx context.Context, w io.Writer) error` works.
-
-```go
-// Render a fixed component
-app.Query("GetPage",
-    cqrshtmx.RenderTempl(myPageComponent()),
-)
-
-// Map query result to a component
-app.Query("ListUsers",
-    cqrshtmx.DecodeJSONQuery(mapper),
-    cqrshtmx.RenderTemplResult(func(result []*User) cqrshtmx.TemplComponent {
-        return userListView(result)
-    }),
-)
-```
-
-Works seamlessly with [templ-components](https://github.com/larsartmann/templ-components).
-
-## Context Propagation
-
-User identity, correlation IDs, and request IDs flow automatically from HTTP → CQRS metadata.
-All ID types are **strongly-typed** wrappers around [ULID](https://github.com/oklog/ulid) — collision-free, lexicographically sortable, and impossible to confuse with raw strings.
-
-```go
-// User ID
-userID := cqrshtmx.MustParseUserID("01HK1549P84T9XF8R94E960633")
-ctx := cqrshtmx.WithUserID(r.Context(), userID)
-retrieved := cqrshtmx.UserIDFromContext(ctx)
-
-// Correlation ID (auto-extracted from X-Correlation-ID header)
-cid := cqrshtmx.MustParseCorrelationID("01HK154ANGZHV2ZW0X3SKSNEN2")
-ctx = cqrshtmx.WithCorrelationID(ctx, cid)
-corrID := cqrshtmx.CorrelationIDFromContext(ctx)
-
-// Request ID
-reqID := cqrshtmx.NewRequestID()
-ctx = cqrshtmx.WithRequestID(ctx, reqID)
-
-// Build event options from context (includes user ID + correlation ID)
-opts := cqrshtmx.EventOptionsFromContext(ctx)
-evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, payload, opts...)
-
-// Generate new random IDs
-newID  := cqrshtmx.NewUserID()
-newCID := cqrshtmx.NewCorrelationID()
-newRID := cqrshtmx.NewRequestID()
-```
-
-### Why ULID?
-
-- **Collision-free keys** — 48-bit timestamp + 80-bit randomness
-- **Lexicographic sortability** — time-ordered without a central coordinator
-- **Type safety** — impossible to pass an arbitrary string where a valid ID is required
-- **Consistency** — event metadata, context values, and Casbin subjects all use the same representation
-
-`ContextEnrichmentMiddleware` silently drops non-ULID values from `X-Correlation-ID` headers (and `UserIDExtractor` outputs that fail parsing). Use `NewUserID()` / `NewCorrelationID()` to generate valid IDs, or `ParseUserID()` / `ParseCorrelationID()` for safe parsing from external input.
-
-## Error Mapping
-
-CQRS error families automatically map to HTTP status codes:
-
-| CQRS Family    | HTTP Status               |
-| -------------- | ------------------------- |
-| Rejection      | 400 Bad Request           |
-| Conflict       | 409 Conflict              |
-| Corruption     | 500 Internal Server Error |
-| Transient      | 503 Service Unavailable   |
-| Infrastructure | 503 Service Unavailable   |
-
-Auth errors map specially:
-
-- `ErrUnauthorized` → 401
-- `ErrForbidden` → 403
-
-### Error Handlers
-
-The default error handler writes plain text and redirects HTMX auth errors to the login page. For JSON APIs:
-
-```go
-app, _ := cqrshtmx.New(cqrshtmx.Config{
-    ErrorHandler: cqrshtmx.JSONErrorHandlerWithRedirect,
-    LoginRedirect: "/auth/signin",
-})
-```
-
-| Handler                                       | Format     | Login Redirect                              |
-| --------------------------------------------- | ---------- | ------------------------------------------- |
-| `DefaultErrorHandler`                         | Plain text | `/login`                                    |
-| `DefaultErrorHandlerWithRedirect`             | Plain text | Custom                                      |
-| `DefaultErrorHandlerWithRequestID`            | Plain text | `/login` (includes request_id when present) |
-| `DefaultErrorHandlerWithRedirectAndRequestID` | Plain text | Custom (includes request_id when present)   |
-| `JSONErrorHandler`                            | JSON       | `/login`                                    |
-| `JSONErrorHandlerWithRedirect`                | JSON       | Custom                                      |
-| `MapError(err)`                               | —          | Returns HTTP status code for any CQRS error |
-
-### Login Redirect
-
-Configure per-App. For HTMX requests with auth errors, the handler sets `HX-Redirect` instead of returning an error body:
-
-```go
-app, _ := cqrshtmx.New(cqrshtmx.Config{
-    LoginRedirect: "/auth/signin",
-})
-```
-
-## Middleware
-
-```go
-// Context enrichment (applied once to your router)
-mux := app.Middleware()(router)
-
-// HTMX header parsing (applied once, stores in context)
-mux := cqrshtmx.HTMXMiddleware(mux)
-
-// Panic recovery (catches panics, logs stack trace, writes 500)
-mux := cqrshtmx.RecoveryMiddleware(mux)
-// Or use App.RecoverHandler() for App-configured error handling:
-mux := app.RecoverHandler()(mux)
-
-// Standalone Casbin authorization middleware
-mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
-    enforcer, "admin", "access",
-    userIDExtractor,
-)(handler))
-
-// Chain multiple middleware
-chained := cqrshtmx.Chain(
-    httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
-    cqrshtmx.RecoveryMiddleware,
-    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
-    cqrshtmx.HTMXMiddleware,
-    app.Middleware(),
-)(mux)
-```
-
-### Request Logging
-
-Log every request with method, path, status, duration, and context IDs:
-
-```go
-// Plain text or custom format
-handler := cqrshtmx.RequestLogging(nil, func(line string) {
-    log.Println(line)
-})(mux)
-
-// Structured JSON
-handler := cqrshtmx.RequestLogging(cqrshtmx.JSONLogFormatter, func(line string) {
-    log.Println(line)
-})(mux)
-
-// slog integration (recommended for production)
-handler := cqrshtmx.RequestLoggingSlog(slog.Default())(mux)
-```
-
-### CSRF Protection
-
-Double-submit cookie CSRF protection with HTMX awareness. Uses [`justinas/nosurf`](https://github.com/justinas/nosurf) internally for token generation and origin validation. Validates `X-CSRF-Token` header (or form field) on state-changing methods:
-
-```go
-handler := httputil.CSRFMiddleware(httputil.CSRFConfig{
-    CookieName: "csrf_token",
-    HeaderName: "X-CSRF-Token",
-    MaxAge:     24 * time.Hour,
-    Secure:     true,
-    SameSite:   http.SameSiteLaxMode,
-})
-```
-
-**CSRFConfig fields:**
-
-| Field            | Default          | Description                            |
-| ---------------- | ---------------- | -------------------------------------- |
-| `CookieName`     | `"csrf_token"`   | Cookie name                            |
-| `HeaderName`     | `"X-CSRF-Token"` | Header/field name to validate          |
-| `FieldName`      | `"csrf_token"`   | Form field name                        |
-| `MaxAge`         | 24h              | Token lifetime                         |
-| `Secure`         | false            | Set `true` in production (HTTPS only)  |
-| `SameSite`       | `Lax`            | Cross-site cookie policy               |
-| `Domain`         | `""`             | Cookie domain (host-only by default)   |
-| `Path`           | `"/"`            | Cookie path                            |
-| `TrustedOrigins` | `nil`            | Additional trusted origins             |
-| `ErrorHandler`   | 403 plain text   | Custom error handler for CSRF failures |
-
-**HTMX Integration:**
-
-```html
-<!-- Set token globally for all HTMX requests -->
-<body hx-headers='{"X-CSRF-Token":"{{ .CSRFToken }}"}'></body>
-```
-
-```go
-// Pass token to templates from handler
-token := httputil.CSRFTokenFromContext(r.Context())
-
-// Or use Response builder
-resp := cqrshtmx.NewResponse(w, r)
-resp.CSRFToken(token).Apply()
-```
-
-**Template Helpers** (for HTML/templ):
-
-```go
-data := map[string]any{
-    "CSRFMeta":      httputil.CSRFTokenHTMLMeta(r),     // <meta name="csrf-token" content="...">
-    "CSRFHXHeaders": httputil.CSRFTokenHXHeaders(r),    // hx-headers='{"X-CSRF-Token":"..."}'
-    "CSRFFormField": httputil.CSRFTokenFormField(r),    // <input type="hidden" name="..." value="...">
-    "CSRFToken":     httputil.CSRFTokenFromContext(r.Context()),
-}
-```
-
-**Auto-inject token** (no handler changes needed):
-
-```go
-handler := cqrshtmx.Chain(
-    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
-    httputil.CSRFResponseHeaderMiddleware, // auto-sets X-CSRF-Token on every response
-    cqrshtmx.HTMXMiddleware,
-    app.Middleware(),
-)(mux)
-```
-
-**Per-handler CSRF** (instead of global middleware):
-
-```go
-app.Command("CreateUser",
-    cqrshtmx.CSRFProtect(httputil.CSRFConfig{}),
-    cqrshtmx.DecodeJSON(...),
-)
-```
-
-### Rate Limiting
-
-Token-bucket rate limiter per key. Global rate limit when `KeyExtractor` is nil:
-
-```go
-handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
-    Limit:        100,          // requests per Window
-    Window:       time.Minute,
-    Burst:        10,           // max burst (zero defaults to Limit)
-    KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
-})(mux)
-```
-
-**RateLimiterConfig fields:**
-
-| Field              | Default       | Description                                              |
-| ------------------ | ------------- | -------------------------------------------------------- |
-| `Limit`            | 100           | Requests per `Window`                                    |
-| `Window`           | 1 minute      | Rate window                                              |
-| `Burst`            | = `Limit`     | Max burst size                                           |
-| `KeyExtractor`     | nil (global)  | `func(*http.Request) string`; nil = single global bucket |
-| `TTL`              | 10 minutes    | Idle limiter eviction time                               |
-| `MaxKeys`          | 0 (unbounded) | Cap on tracked keys; oldest evicted via min-heap         |
-| `OnAllowed`        | nil           | Hook called on allowed requests                          |
-| `OnRejected`       | nil           | Hook called on rejected requests (includes retry-after)  |
-| `RejectionHandler` | default 429   | Custom handler for rejected requests                     |
-
-**Per-IP rate limiting** — use `KeyExtractorFromRemoteAddr`. Behind reverse proxies, use `ClientIP(r)` which respects `X-Forwarded-For` and `X-Real-IP`.
-
-**Exempt requests** — return `""` from `KeyExtractor` to skip rate limiting for that request.
-
-### Security Headers
-
-Defense-in-depth headers on every response. Recommended for all production deployments:
-
-```go
-handler := httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())(mux)
-```
-
-Defaults: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
-
-For custom headers:
-
-```go
-handler := httputil.SecurityHeaders(httputil.SecurityHeadersConfig{
-    ContentSecurityPolicy:   "default-src 'self'",
-    StrictTransportSecurity: "max-age=31536000; includeSubDomains",
-    PermissionsPolicy:       "camera=(), microphone=(), geolocation=()",
-    Custom: map[string]string{
-        "X-Custom-Header": "value",
-    },
-})(mux)
-```
-
-## Utilities
-
-### WriteJSON
-
-Encode and write JSON responses in one call:
-
-```go
-if err := cqrshtmx.WriteJSON(w, http.StatusOK, user); err != nil {
-    // handle encode error
-}
-```
-
-### ClientIP
-
-Extract client IP from `X-Forwarded-For` → `X-Real-IP` → `RemoteAddr`:
-
-```go
-ip := cqrshtmx.ClientIP(r)
-```
-
-**Warning:** trusts proxy headers without validation. Only use behind a trusted reverse proxy that strips/overwrites these headers.
-
-## User Management (`usermgmt`)
-
-An independent submodule with **passwordless** authentication (WebAuthn/Passkeys), event-sourced CQRS, RBAC via Casbin, and session management:
+Try it:
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt/v4
+curl -X POST localhost:8080/items -d '{"name":"Buy milk"}'
+curl localhost:8080/items
 ```
 
-### Setup (v4 Provider Injection)
+The full-featured version of this example — SSE live updates, typed endpoints, pagination, actor metadata — is [`examples/basic`](examples/basic/README.md). For the whole stack (identity, admin panel, dashboard, login page) in one call, see [setup](#ready-made-uis--the-one-call-setup).
 
-In v4, auth strategies are injected as providers. Import only the sub-modules you need:
+## The composition model
+
+The whole API is one `App`, configured once, that turns dispatchers into handlers. Each endpoint is a command/query type plus a list of `HandlerOption`s that run as a pipeline:
 
 ```go
-import (
-    "log/slog"
-    "time"
-
-    "github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-    "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4" // optional: passkeys
-)
-
-// Create a WebAuthn provider
-wa, err := webauthn.New(webauthn.Config{
-    RPID:          "example.com",
-    RPDisplayName: "My App",
-    RPOrigins:     []string{"https://example.com"},
-})
-if err != nil {
-    log.Fatal(err)
-}
-
-// Create service with provider injected
-svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-    WebAuthn: wa, // inject the provider — nil if not needed
-    SessionTTL: 24 * time.Hour,
-    Logger:     slog.Default(),
-    Lockout:    usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
-        MaxAttempts: 5,
-        Duration:    15 * time.Minute,
-    }),
-})
-defer svc.Stop()
-
-// Create HTTP handlers
-authHandler := usermgmt.NewAuthHandler(svc, usermgmt.HandlerConfig{
-    SessionMaxAge: 86400,
-})
-
-// Register routes
-mux := http.NewServeMux()
-authHandler.RegisterRoutes(mux)
-// Routes: POST /auth/register, POST /auth/webauthn/register/begin|finish (owner-session-gated),
-//         POST /auth/webauthn/login/begin|finish, POST /auth/logout, GET /auth/me,
-//         GET /auth/credentials, DELETE /auth/credentials/{id}
-//         (session-dependent routes are self-wrapped: an enrich-only session
-//          pass runs per route, so they work with or without external session
-//          middleware and fail closed with 401 without a valid cookie)
-
-// Optional external session middleware (validates cookie, loads user into
-// context for YOUR handlers; the /auth/* routes above enrich themselves):
-handler := usermgmt.NewSessionMiddleware(svc, "session_token")(mux)
+mux.Handle("POST /widgets", app.Command("CreateWidget",
+    cqrshtmx.Authorize("widgets", "create"),         // (1) authz — gate first
+    cqrshtmx.DecodeJSON(mapToCommand),               // (2) decode body → command
+    cqrshtmx.ValidateCommand(validateWidget),         // (3) validate — after decode
+    cqrshtmx.RequestGuard(ownershipCheck),            // (3b) custom auth — after decode
+    cqrshtmx.WithSuccessStatus(201),                  // (4) response config
+    cqrshtmx.NotifySuccess("Widget created"),         // (5) side effects
+    cqrshtmx.PushURL("/widgets"),
+))
 ```
 
-### Registration & Login Flow
+**Two ordering rules:**
 
-Users register with **email only** (no password). Authentication is via WebAuthn/Passkeys:
+1. `Authorize` / `RequireAuth` first — fail fast before touching the body.
+2. `ValidateCommand` / `RequestGuard` **after** the decoder — they read the decoded value from context. Reversing the order silently skips validation.
 
-```
-1. POST /auth/register              → create account (email only), get session cookie
-2. POST /auth/webauthn/register/begin  → get credential creation challenge (owner-session-gated)
-3. POST /auth/webauthn/register/finish → verify attestation, persist credential (owner-session-gated)
-4. POST /auth/webauthn/login/begin     → get assertion challenge
-5. POST /auth/webauthn/login/finish    → verify assertion, create session
-```
+**HandlerOption families:** authorization (`Authorize`, `RequireAuth`, `RequestGuard`), decoding (`DecodeJSON`/`DecodeForm`/`DecodeJSONQuery`/`DecodeFormQuery` + typed variants + request-aware variants), validation (`ValidateCommand`, `ValidateQuery`), rendering (`RenderJSON[T]`, `RenderTempl`, `RenderTemplResult[T]`, `RenderPartialOrFull`, `Redirect`, custom `Render`), HTMX effects (`PushURL`, `Trigger`, `TriggerWithDetail`, `Notify*`, `Reswap`/`Retarget` via the response builder), and per-handler config (`WithSuccessStatus`, `WithTimeout`, `WithMaxBodySize`, `RequireMethod`, `OnError`, `CSRFProtect`, `WithOpenAPI`).
 
-The enrollment ceremonies (2–3) enforce the **owner-match rule**: 401 without
-a session, 403 when the `user_id` they name is not the session user. The
-flow above works because step 1 already set the session cookie (same-origin
-fetches carry it). Headless/admin enrollment uses the service-level API
-(`BeginRegistration`/`FinishRegistration`); there is no HTTP opt-out.
-
-Finish endpoints read `user_id` from the URL query param (`?user_id=...`), since the request body contains the WebAuthn attestation/assertion response.
-
-### Service Methods
-
-| Method                                                                   | Description                                                                    |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| `Register(ctx, RegisterRequest)` → `(*RegisterResponse, error)`          | Create user (email only), assign default roles, create session                 |
-| `BeginRegistration(ctx, userID)` → `(*BeginRegistrationResponse, error)` | Start WebAuthn credential registration                                         |
-| `FinishRegistration(ctx, userID, r, credentialName)` → `error`           | Complete credential registration                                               |
-| `BeginLogin(ctx, email)` → `(*BeginLoginResponse, error)`                | Start WebAuthn login ceremony                                                  |
-| `FinishLogin(ctx, userID, r)` → `(*FinishLoginResponse, error)`          | Complete login, create session                                                 |
-| `Logout(ctx, token)` → `error`                                           | Delete session                                                                 |
-| `Authenticate(ctx, token)` → `(*User, error)`                            | Validate session, return user                                                  |
-| `Authorize(ctx, sub, dom, obj, act)` → `error`                           | Check RBAC policy                                                              |
-| `GetUser(ctx, id)` → `(*User, error)`                                    | Find user by ID                                                                |
-| `DisplayName(ctx, userID string)` → `string`                             | Render label: display name → email → ""; accepts bare and `user:`-prefixed ids |
-| `UpdateRoles(ctx, userID, roles, domain)` → `error`                      | Atomically update user's roles                                                 |
-| `ChangeEmail(ctx, userID, newEmail)` → `error`                           | Change user's email                                                            |
-| `ChangeDisplayName(ctx, userID, newName)` → `error`                      | Change user's display name                                                     |
-| `DeleteUser(ctx, userID, reason)` → `error`                              | Soft-delete user (tombstone), revoke sessions                                  |
-| `AddCredential(ctx, userID, cred)` → `error`                             | Add WebAuthn credential                                                        |
-| `RemoveCredential(ctx, userID, credID)` → `error`                        | Remove WebAuthn credential                                                     |
-| `Authz()` → `*Authz`                                                     | Access underlying RBAC engine                                                  |
-| `ReadModel()` → `*UserReadModel`                                         | Access read model directly                                                     |
-| `Stop()`                                                                 | Gracefully shutdown background resources                                       |
-
-### Input Validation
-
-`RegisterRequest` has a `Validate()` method:
+**Middleware order** (outer → inner): recovery & security headers first; then your **session** middleware; then **CSRF**; then **HTMX**; then `app.Middleware()` (context enrichment). The non-negotiable trio is `CSRF → HTMX → enrichment`:
 
 ```go
-req := usermgmt.RegisterRequest{
-    ID:          usermgmt.NewUserID(ulid),
-    Email:       "user@example.com",
-    DisplayName: "Alice",
-}
-if err := req.Validate(); err != nil {
-    // handle validation error
-}
+handler := cqrshtmx.Chain(
+    cqrshtmx.RecommendedSecurityMiddleware(), // headers + CSP nonce + recovery
+    sessionMW,                                 // your session middleware
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    cqrshtmx.HTMXMiddleware,                  // parses HX-* headers once
+    app.Middleware(),                          // request/correlation IDs, user context
+)(mux)
 ```
 
-Checks: valid email, required ID, display name length ≤ 100. Trims whitespace on `Email` and `DisplayName` in-place.
+`App` itself is configured through `Config` — dispatchers, `Enforcer`, `UserIDExtractor`, `LoginRedirect`, dispatch `Timeout`, `MaxBodySize`, `ErrorHandler`, `BeforeDispatch`/`AfterDispatch` hooks, and `ServiceName` for event metadata.
 
-### Domain Events
+## Choose your integration path
 
-Optional `EventHandler` callback receives events for audit logging, analytics, or side effects:
+```
+Do you need CQRS dispatch (command/query endpoints)?
+├─ NO  →  PATH 0: Building blocks only (middleware, SSE, errors, HTMX — no App)
+└─ YES →  Does the app need user accounts / authentication?
+          ├─ NO  →  PATH A: root App only (CQRS + HTMX endpoints)
+          └─ YES →  Do you want ready-made UIs?
+                    ├─ NO  →  PATH B: root App + usermgmt Service + AuthHandler
+                    └─ YES →  PATH C: setup.New() — everything wired in one call
+                               (or usermgmt + adminui mounted by hand)
+```
+
+| Path | You write | The library provides |
+| ---- | ---------- | -------------------- |
+| **0** | HTTP handlers | `Chain`, recovery + security middleware, request logging, SSE building blocks, `MapError`, `WriteJSON`, HTMX helpers, embedded htmx.js |
+| **A** | Domain commands/queries + route table | Everything above + `app.Command`/`app.Query` pipelines, authz, error mapping, context enrichment |
+| **B** | + auth config | Everything above + event-sourced `usermgmt.Service`, `/auth/*` routes, session middleware, RBAC, SQL stores |
+| **C** | + a `setup.Config` | Everything above + admin panel, ES dashboard, login page, `/health`, middleware ordering, graceful shutdown |
+
+Realtime (SSE, frontend sync) composes onto any path. Persistence composes onto any path — pass a `*sql.DB` or a go-cqrs-lite store.
+
+The decision guide with full tradeoffs is [docs/guides/setup-vs-hand-wiring.md](docs/guides/setup-vs-hand-wiring.md); the complete wiring manual is [docs/guides/fullstack-wiring.md](docs/guides/fullstack-wiring.md).
+
+## The modules
+
+Independent Go modules under one repo — import only what you use.
+
+| Module                                             | Import path                                         | What it gives you                                                                                                                                    |
+| -------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **root**                                           | `github.com/larsartmann/cqrs-htmx/v4`               | The `App` builder, `HandlerOption`s, middleware, context IDs, error→HTTP mapping, SSE + `transport/` surface, frontend sync, OpenAPI builder, EventCatalog, embedded htmx.js |
+| [identity-model](identity-model/README.md)         | `…/cqrs-htmx/identity-model/v4`                     | Pure domain types: branded IDs, 21 event payloads, 20 commands, fold functions, Casbin-backed Authz engine — zero IO                                   |
+| [usermgmt](usermgmt/README.md)                     | `…/cqrs-htmx/usermgmt/v4`                           | Event-sourced identity `Service` (register/login/logout/me, roles, tenants, bots), `/auth/*` HTTP handlers, SQL + in-memory stores, session middleware  |
+| [usermgmt/webauthn](usermgmt/README.md)            | `…/cqrs-htmx/usermgmt/webauthn/v4`                  | WebAuthn passkeys — inject as `ServiceConfig.WebAuthn`                                                                                               |
+| [usermgmt/totp](usermgmt/README.md)                | `…/cqrs-htmx/usermgmt/totp/v4`                      | TOTP MFA — inject as `ServiceConfig.TOTP`                                                                                                            |
+| [usermgmt/oauth2](usermgmt/README.md)              | `…/cqrs-htmx/usermgmt/oauth2/v4`                    | OAuth2/OIDC login incl. public PKCE clients — inject as `ServiceConfig.OAuth2`                                                                        |
+| [adminui](adminui/README.md)                       | `…/cqrs-htmx/adminui/v4`                            | Ready-made admin panel: users, tenants, members, audit log — role-gated write actions over a `*usermgmt.Service`                                       |
+| [dashboardui](dashboardui/README.md)               | `…/cqrs-htmx/dashboardui/v4`                         | Ready-made event-store observability: projection health, event catalog, live SSE, time-travel — read-only by default                                   |
+| [loginpage](loginpage/README.md)                   | `…/cqrs-htmx/loginpage/v4`                          | Ready-made passwordless login page (templ + Tailwind, CSP-nonce hooks)                                                                                |
+| [setup](setup/README.md)                           | `…/cqrs-htmx/setup/v4`                              | One-call composition root: stores + service + all three UIs + `/health` + middleware ordering + graceful `Run`                                         |
+| [datastar](datastar/README.md)                     | `…/cqrs-htmx/datastar/v4`                           | DataStar adapter: script serving, signal decoding, SSE builder — depends only on go-datastar + go-sse                                                  |
+| [health](health/README.md)                         | `…/cqrs-htmx/health/v4`                             | go-health bridge: liveness/readiness probes and a dashboard over projection health                                                                    |
+| [auditlog](auditlog/README.md)                     | `…/cqrs-htmx/auditlog/v4`                           | samber-do-auditlog bridge with a live SSE viewer — zero cqrs-htmx deps                                                                                |
+| [systemadapter](systemadapter/README.md)           | `…/cqrs-htmx/systemadapter/v4`                       | Bridge into go-cqrs-lite `system.New()` + metaengine auto-projections ([guide](docs/guides/leveraging-system-metaengine.md))                           |
+
+Dependency direction is strict: identity-model is the pure domain source of truth; usermgmt re-exports it; the root module never imports usermgmt; UI modules sit on top; nothing depends on the UI/setup/bridge modules.
+
+## Realtime: SSE and offline sync
+
+Realtime is building blocks, not a server — you own the HTTP handler, the library gives you the stream and the fan-out:
 
 ```go
-usermgmt.EventHandler(func(userID usermgmt.UserID, evt any) {
-    switch e := evt.(type) {
-    case usermgmt.UserRegisteredEvent:
-        slog.Info("user registered", "email", e.Email)
-    case usermgmt.RolesUpdatedEvent:
-        slog.Info("roles updated", "roles", e.Roles, "domain", e.Domain)
+broadcaster := cqrshtmx.NewBroadcaster() // wraps *sse.Broadcaster[sse.Event]
+
+// Bridge CQRS → SSE: broadcast after successful dispatch
+app := cqrshtmx.MustNew(cqrshtmx.Config{
+    Commands:      cmdDisp,
+    AfterDispatch: broadcaster.BroadcastOnSuccess("itemCreated", ""),
+})
+
+mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
+    stream := sse.NewStream(w, r)
+    defer stream.Close()
+    ch := broadcaster.Subscribe()
+    defer broadcaster.Unsubscribe(ch)
+    stream.Send(sse.Event{Event: "connected", Data: "ok"})
+    for {
+        select {
+        case <-stream.Context().Done():
+            return
+        case evt, ok := <-ch:
+            if !ok || stream.Send(evt) != nil {
+                return
+            }
+        }
     }
 })
 ```
 
-Events are panic-safe — handler errors are logged but never propagate to the caller.
-
-### Authz (RBAC Engine)
-
-Domain-aware Casbin RBAC with typed constants:
-
-```go
-authz, _ := usermgmt.NewAuthz()
-
-// Check permission
-allowed, _ := authz.Enforce(userID.String(), "acme", "documents", "read")
-
-// Query roles
-roles, _ := authz.RolesForUser(userID.String(), "acme")
-
-// Atomic policy update
-authz.Apply(usermgmt.PolicyUpdate{
-    AddPolicies:    []usermgmt.Policy{{...}},
-    RemovePolicies: []usermgmt.Policy{{...}},
-    AddGroups:      []usermgmt.GroupPolicy{{...}},
-    RemoveGroups:   []usermgmt.GroupPolicy{{...}},
-})
-
-// Bridge to parent cqrs-htmx Enforcer interface
-enforcer := authz.AsEnforcer()
+```html
+<div hx-ext="sse" sse-connect="/events" sse-swap="itemCreated">
+    <!-- content swapped here -->
+</div>
 ```
 
-### Predefined Constants
+- For **event-sourced streams**, use the canonical `transport/` surface: `transport.ServeDomainEvents` + `DomainEventToSSE` envelope + `WithSSEFilter`/`WithSSEMaxReplay` (replay caps, permission filtering; envelope bytes are golden-pinned against drift).
+- For **durable replay**, `JournalSSEStore` adapts any go-cqrs-lite journal into an `sse.EventStore` for reconnecting clients.
+- For **offline-capable clients**, the frontend sync protocol ([ADR-0056](docs/adr/0056-frontend-sync-protocol.md)): `SyncPullHandler` serves cursor-based, permission-filtered event pulls (payloads included, ETag/304 re-polls, backend-reset detection); `App.SyncPushHandler()` accepts batched commands and answers per-command `confirmed`/`rejected` outcomes — each envelope replays the exact pipeline its single-command endpoint registered. The embedded JS client (`window.cqrsSync`) handles the IndexedDB queue and event cache. Runnable walkthrough: [`examples/sync-demo`](examples/sync-demo/README.md).
+- **Slow consumers** are dropped, never blocked — pair with idempotency middleware and the ACK protocol when you need delivery guarantees.
 
-| Type     | Values                                             |
-| -------- | -------------------------------------------------- |
-| `Action` | `ActionExecute`, `ActionRead`, `ActionAll`         |
-| `Effect` | `EffectAllow`, `EffectDeny`                        |
-| `Role`   | `RoleAdmin`, `RoleUser`, `RoleViewer`, `RoleOwner` |
+WebSocket transport was removed in v5 (ADR 0046) — SSE covers the same use cases with simpler reconnect semantics. See [docs/guides/sse-and-datastar.md](docs/guides/sse-and-datastar.md) and [docs/guides/frontend-sync.md](docs/guides/frontend-sync.md).
 
-### Account Lockout
+## Error handling
 
-Configurable failed-login tracking with automatic expiry:
+CQRS error families map to HTTP status codes through one function — your domain layer classifies errors once, every transport gets correct statuses:
+
+| CQRS family    | HTTP status             |
+| -------------- | ----------------------- |
+| Rejection      | 400 Bad Request         |
+| Conflict       | 409 Conflict            |
+| Corruption     | 500 Internal Server Error |
+| Transient      | 503 Service Unavailable |
+| Infrastructure | 503 Service Unavailable |
+
+Auth sentinels: `ErrUnauthorized` → 401, `ErrForbidden` → 403, `ErrValidation` → 400, `ErrMethodNotAllowed` → 405, `ErrRequestTooLarge` → 413.
+
+Plug in the response format you want via `Config.ErrorHandler`:
+
+- `JSONErrorHandler` / `JSONErrorHandlerWithRedirect` — `{"error": "...", "status": 409, "code": "battle.exists"}`
+- `ProblemDetailsErrorHandler` — RFC 7807 `application/problem+json`
+- `DefaultErrorHandler*` — plain text, with HTMX-aware `HX-Redirect` to `Config.LoginRedirect` on auth errors
+
+`MapError(err)` returns the status for any error; `NewStructuredError(err, r)` builds the RFC 7807 payload for SSE error events.
+
+## Ready-made UIs & the one-call setup
+
+Three UI panels ship as independent modules. They answer different questions, so most apps mount several:
+
+| Module                                 | Question it answers            | Write ops            | Wired to                              |
+| -------------------------------------- | ------------------------------ | -------------------- | ------------------------------------- |
+| [adminui](adminui/README.md)           | "Who uses my app?"             | Yes (role-gated)     | `*usermgmt.Service`                   |
+| [dashboardui](dashboardui/README.md)   | "How is my event store doing?" | Read-only by default | go-cqrs-lite introspection interfaces |
+| [loginpage](loginpage/README.md)       | "How do users sign in?"        | No (auth UX)         | `*usermgmt.Service`                   |
+
+adminui = identity operations (users, tenants, members, audit log); dashboardui = event-store observability (journal, aggregates, projections, DLQ, snapshots). They are complementary, not alternatives.
+
+The [`setup`](setup/README.md) module composes everything — shared stores, the usermgmt service with your auth strategies, all three panels, a projection-aware `/health`, and correct middleware ordering — in one call:
 
 ```go
-lockout := usermgmt.NewAccountLockout(usermgmt.LockoutConfig{
-    MaxAttempts: 5,
-    Duration:    15 * time.Minute,
+bundle, err := setup.New(setup.Config{
+    Title: "My App",
+    TOTP:  totp.New(totp.Config{Issuer: "MyApp"}), // auth strategies you inject
 })
-
-// Integrated into Service via ServiceConfig.Lockout
-// Automatic cleanup: lockout.EvictStale() removes expired entries
-```
-
-### Session Store
-
-```go
-type SessionStore interface {
-    Create(ctx context.Context, userID UserID, ttl time.Duration) (*Session, error)
-    Find(ctx context.Context, token string) (*Session, error)
-    Delete(ctx context.Context, token string) error
-    DeleteByUserID(ctx context.Context, userID UserID) error
+if err != nil {
+    log.Fatal(err)
+}
+// Mount, serve with safe timeouts, drain gracefully on SIGINT.
+if err := bundle.Run(context.Background(), ":8080"); err != nil {
+    log.Fatal(err)
 }
 ```
 
-Default: `InMemorySessionStore` (with `EvictExpired()` cleanup). Implement this interface for Redis, SQL, or other backends.
+| Route          | Panel          | Access                       |
+| -------------- | -------------- | ---------------------------- |
+| `/auth/*`      | Auth API       | mixed (ceremonies gated, see [ADR-0055](docs/adr/0055-owner-session-gated-credential-ceremonies.md)) |
+| `/admin/*`     | Admin panel    | session + CSRF (401 without) |
+| `/dashboard/*` | ES dashboard   | session-gated (401 without)  |
+| `/sse`         | Shared SSE     | session-gated (opt-in)       |
+| `/health`      | Readiness      | public (503 while draining)  |
+| `/`            | Login page     | public                       |
 
-### CSRF & Rate Limiting on Auth Endpoints
+Adopt your own `*usermgmt.Service` (`Config.Service`), override the full `ServiceConfig`, or stay with the flattened convenience fields — the full config surface is in [setup/README.md](setup/README.md).
 
-Wire `cqrs-htmx` middleware around the usermgmt auth handler:
+## Examples
 
-```go
-handler := cqrshtmx.Chain(
-    httputil.CSRFMiddleware(httputil.CSRFConfig{Secure: true}),
-    cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
-        Limit:        10,
-        Window:       time.Minute,
-        Burst:        3,
-        KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
-    }),
-)(mux)
-```
+Runnable, tested programs in [`examples/`](examples/):
 
-This protects WebAuthn ceremony endpoints from CSRF attacks and credential stuffing.
+| Example                                                                       | Shows                                                                                      |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`basic`](examples/basic/README.md)                                           | Minimal CQRS + HTMX + SSE app with actor metadata and typed endpoints                      |
+| [`setup-demo`](examples/setup-demo/README.md)                                 | The one-call full stack (`setup.New` → `bundle.Run`)                                        |
+| [`admin-demo`](examples/admin-demo/)                                          | Admin panel showcase with all identity operations                                          |
+| [`dashboard-demo`](examples/dashboard-demo/)                                  | Event-store observability dashboard                                                        |
+| [`sync-demo`](examples/sync-demo/README.md)                                   | Offline sync protocol end-to-end (pull, batched push, offline reads, OpenAPI)              |
+| [`datastar-demo`](examples/datastar-demo/README.md)                           | Real-time todo app via the DataStar adapter (SSE + signals)                                |
+| [`middleware-demo`](examples/middleware-demo/README.md)                       | Dispatch middleware composition (retry, circuit breaker, metrics, tracing)                  |
+| [`middleware-showcase`](examples/middleware-showcase/)                        | All httputil HTTP middleware composed into one validated stack                             |
+| [`observability-demo`](examples/observability-demo/README.md)                 | OTel tracing + Prometheus metrics proofs                                                   |
+| [`async-startup-demo`](examples/async-startup-demo/README.md)                 | Zero-downtime restarts: bind HTTP while projections replay                                 |
+| [`samber-do-demo`](examples/samber-do-demo/README.md)                         | samber/do v2 dependency injection best practice                                            |
+| [`system-demo`](examples/system-demo/)                                        | go-cqrs-lite `system.New` integration via systemadapter                                    |
+| [`catalog-demo`](examples/catalog-demo/README.md)                             | Catalog doc-server example                                                                  |
 
-### Strongly-Typed UserID
+Each runs with `go run .` from its directory and opens on a documented port.
 
-All user IDs in the submodule use `usermgmt.UserID` — a branded type via [`go-branded-id`](https://github.com/larsartmann/go-branded-id) (`brandid.ID[userBrand, string]`):
+## Documentation
 
-```go
-uid := usermgmt.NewUserID("01HK1549P84T9XF8R94E960633")
-uid.String() // "User:01HK1549P84T9XF8R94E960633" (brand-prefixed)
-uid.Get()    // "01HK1549P84T9XF8R94E960633"       (raw ULID, for cqrs-htmx bridge)
-```
+**Start here**
 
-### User Context
+- [Full-Stack Wiring Guide](docs/guides/fullstack-wiring.md) — the integration manual: setup SDK, manual wiring, feature flags, persistence, middleware ordering
+- [setup vs Hand-Wiring](docs/guides/setup-vs-hand-wiring.md) — which integration path, with tradeoffs
+- [Production Readiness Guide](docs/guides/production-readiness.md) — the single checklist for going to production
+- [Leveraging go-cqrs-lite](docs/guides/leveraging-go-cqrs-lite.md) — dispatch middleware, OTel/Prometheus, signing/encryption, sagas, schema evolution
 
-```go
-// Set user in context (done by SessionMiddleware)
-ctx := usermgmt.WithUser(r.Context(), user)
+**Identity & auth**
 
-// Retrieve
-user, ok := usermgmt.UserFromContext(ctx)
-user = usermgmt.UserFromContextOr(ctx, fallback)
+- [Provider Implementation Guide](docs/guides/provider-implementation.md) — implement your own auth strategy
+- [Auth Provider Fault Tolerance](docs/guides/auth-provider-fault-tolerance.md) — degradation when providers fail
+- [Actors and the Audit Trail](docs/guides/actor-and-audit-trail.md) — who did what, proven by event metadata
 
-// Bridge to cqrs-htmx UserIDExtractor
-func extractor(r *http.Request) (cqrshtmx.UserID, error) {
-    return cqrshtmx.MustParseUserID(usermgmt.UserIDFromRequest(r)), nil // reads from context, returns string
-}
-```
+**Realtime & sync**
 
-## Architecture
+- [SSE and Datastar Broadcaster Guide](docs/guides/sse-and-datastar.md) — hub sharing, ACK protocol, transport comparison
+- [Datastar Integration](docs/guides/datastar-integration.md) — signals, SSE builder, EventBridge
+- [Frontend Sync Protocol](docs/guides/frontend-sync.md) — offline reads, batched command push, conflict outcomes
 
-```
-cqrs-htmx/
-├── app.go              # App builder, Config, Command(), Query(), lifecycle hooks
-├── handler.go          # Command/query dispatch handlers
-├── options_types.go    # HandlerOption type, TemplComponent interface
-├── options_decode.go   # DecodeJSON[T], DecodeJSONQuery[T], DecodeForm[T] decoders
-├── options_htmx.go     # HTMX-aware error handling, response application
-├── options_json.go     # RenderJSON[T], RenderJSONStatus[T], pagination, RequireMethod
-├── options_render.go   # Render, RenderTempl, Redirect, Trigger, PushURL
-├── options_validate.go # ValidateCommand, ValidateQuery, WithTimeout, WithMaxBodySize
-├── response.go         # HTMX response builder (fluent API), ContentType constants
-├── authz.go            # Enforcer interface, Authorize, RequireAuth, AuthorizeMiddleware
-├── context.go          # UserID, CorrelationID, RequestID — strongly-typed context helpers
-├── errors.go           # CQRS error → HTTP status mapping, sentinels, error handlers
-├── htmx.go             # HTMXRequest struct, accessors, swap strategies
-├── htmx_embed.go       # Embedded HTMX v2.0.10 JS (minified)
-├── htmx_serve.go       # HTMXScriptHandler, HTMXScriptTag, HTMXVersion, serveJS helper
-├── htmx_extensions.go  # Embedded HTMX extensions (SSE/WS/idiomorph), HTMXExtensionHandler, HTMXExtensionsHandler
-├── notify.go           # Notification HandlerOptions, NotifyWithEvent builder
-├── middleware.go        # ContextEnrichmentMiddleware, HTMXMiddleware, Chain
-├── csrf_config.go      # CSRFConfig, defaults, Validate()
-├── csrf_context.go     # Token context helpers (get/set)
-├── csrf_middleware.go  # CSRFMiddleware, double-submit validation
-├── csrf_handler.go     # CSRFProtect (per-handler CSRF)
-├── csrf_helpers.go     # CSRFTokenHTMLMeta, CSRFTokenHXHeaders, CSRFTokenFormField
-├── decoder.go          # Body reading, form/JSON decoding, MaxBodySize
-├── httputil.go         # WriteJSON, ClientIP (delegates to larsartmann/httputil)
-├── logging.go          # RequestLogging, RequestLoggingSlog, StatusRecorder
-├── ratelimit_config.go     # RateLimiterConfig
-├── ratelimit_middleware.go # RateLimiterMiddleware, token bucket, min-heap eviction
-├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
-├── recovery.go         # RecoveryMiddleware (package-level), App.RecoverHandler()
-├── sse_broadcaster.go  # Broadcaster, ServeSSE, BroadcastOnSuccess/OnError CQRS bridge
-├── sse_event.go        # Deprecated re-exports of go-sse types (sse.Event, WriteEvent, etc.)
-├── sse_store.go        # Deprecated re-exports (SSEEventStore, ReplayEvents → sse.EventStore, sse.Replay)
-├── event_store_sse.go  # JournalSSEStore — production sse.EventStore backed by event journal
-├── usermgmt/           # User management submodule (independent Go module)
-│   ├── id.go               # Branded UserID type (go-branded-id)
-│   ├── authz_types.go      # Authz wrapper, AsEnforcer bridge
-│   ├── authz_policies.go   # Apply, AddGroupPolicy, AddPolicy
-│   ├── authz_roles.go      # RolesForUser, ImplicitRolesForUser
-│   ├── es_constants.go     # Event-sourced aggregate + event + command type constants
-│   ├── es_events.go        # 22 event payload types (re-exported from identity-model)
-│   ├── es_commands.go      # 19 command types (re-exported from identity-model)
-│   ├── es_state.go         # UserState + foldUser() pure function
-│   ├── es_decide.go        # 19 pure decide functions
-│   ├── es_dispatch.go      # RegisterCommands — wires commands to decider.Repository
-│   ├── es_setup.go         # DefaultEventSourcedSetup, UserDecider
-│   ├── es_readmodel.go     # UserReadModel projection + email index
-│   ├── es_casbin_projection.go  # CasbinProjection — derives policies from events
-│   ├── es_projection_setup.go   # StartProjections orchestration
-│   ├── service_core.go     # Service struct, ServiceConfig, NewService
-│   ├── service_register.go # Service.Register
-│   ├── service_login.go    # Service.Logout/Authenticate/Authorize
-│   ├── service_misc.go     # GetUser, UpdateRoles, ChangeEmail, etc.
-│   ├── credential.go       # WebAuthnCredential type
-│   ├── credential_http.go  # Credential listing/removal HTTP handlers
-│   ├── webauthn_service.go # BeginRegistration/FinishRegistration/BeginLogin/FinishLogin (provider-based)
-│   ├── webauthn_http.go    # HTTP handlers for WebAuthn ceremony endpoints
-│   ├── webauthn_adapter.go # Adapts domain User → webauthn.User interface
-│   ├── webauthn_session.go # WebAuthnSessionTTL + in-memory challenge store
-│   ├── user.go             # Immutable User read model
-│   ├── store.go            # SessionStore interface + InMemorySessionStore
-│   ├── events.go           # EventHandler callback + notification event structs
-│   ├── http.go             # AuthHandler (register, logout, me, webauthn endpoints)
-│   ├── middleware.go       # NewSessionMiddleware, user context helpers
-│   ├── lockout.go          # AccountLockout (configurable attempts + duration)
-│   ├── errors.go           # Sentinel errors
-│   ├── totp/               # TOTP MFA sub-module (pquerna/otp)
-│   ├── webauthn/           # WebAuthn sub-module (go-webauthn)
-│   └── oauth2/             # OAuth2/OIDC sub-module (golang.org/x/oauth2 + coreos/go-oidc)
-├── identity-model/     # Pure domain types — IDs, events, commands, fold functions, Authz engine (ADR 0043)
-├── adminui/             # Admin Dashboard UI (templ + HTMX, independent Go module)
-├── loginpage/          # Ready-made passwordless login page (templ + HTMX, independent Go module)
-├── health/             # Optional go-health bridge: K8s probes + dashboard over projection health (independent Go module)
-├── dashboardui/        # CQRS/ES observability dashboard (HTMX + Tailwind v4, independent Go module)
-├── datastar/           # Optional Datastar frontend adapter (script serving, signals, SSE, replay, event bridge)
-├── integration_test/   # Cross-module integration tests (independent Go module)
-└── examples/
-    ├── basic/           # Minimal cqrs-htmx consumer example
-    ├── datastar-demo/   # Real-time todo app using the datastar adapter module (SSE + signals)
-    ├── catalog-demo/    # Catalog doc-server example
-    ├── admin-demo/      # Runnable admin panel showcase
-    └── dashboard-demo/  # CQRS/ES observability dashboard demo
-```
+**Event store & projections**
 
-### Ready-Made UI Modules
+- [Consistency Model](docs/guides/consistency-model.md) — read-your-writes, eventual consistency boundaries
+- [Async Projection Startup](docs/guides/async-projection-startup.md) — zero-downtime restarts
+- [Projection Health Monitoring](docs/guides/projection-health-monitoring.md) — status endpoints and alerting
+- [Event Replay and Projection Rebuild](docs/guides/event-replay-and-rebuild.md) + [Rebuild Runbook](docs/guides/rebuild-projection-runbook.md)
+- [Declarative Projections](docs/guides/declarative-projections.md) — from ProjectionLayer to `system.New()`
+- [Event Store Storage Health](docs/guides/event-store-storage-health.md) and [MySQL Setup](docs/guides/mysql-setup.md)
+- [Leveraging system/metaengine](docs/guides/leveraging-system-metaengine.md)
 
-Three ready-made UIs ship as independent modules. They answer different
-questions, so most apps mount several:
+**HTTP layer**
 
-| Module                               | Question it answers            | Write ops            | Wired to                              |
-| ------------------------------------ | ------------------------------ | -------------------- | ------------------------------------- |
-| [adminui](adminui/README.md)         | "Who uses my app?"             | Yes (role-gated)     | `*usermgmt.Service`                   |
-| [dashboardui](dashboardui/README.md) | "How is my event store doing?" | Read-only by default | go-cqrs-lite introspection interfaces |
-| [loginpage](loginpage/README.md)     | "How do users sign in?"        | No (auth UX)         | `*usermgmt.Service`                   |
+- [Leveraging httputil](docs/guides/leveraging-httputil.md) — CSRF, rate limiting, CORS, compression, Server-Timing
+- [CSRF TrustedProxies Production Setup](docs/guides/csrf-trusted-proxies.md)
+- [Dispatch Middleware Ordering](docs/guides/dispatch-middleware-ordering.md)
 
-adminui = identity operations (users, tenants, members, audit log);
-dashboardui = event-store observability (journal, aggregates, projections,
-DLQ, snapshots). They are complementary, not alternatives:
-[setup/v4](setup/README.md) mounts all three behind correct middleware in one call.
+**Reference**
 
-## Optional Sub-Packages
+- [Event Catalog Guide](docs/guides/event-catalog-guide.md) — publishing your event schemas
+- [ADR index](docs/adr/INDEX.md) — the _why_ behind each design decision
+- API reference: [pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 
-### API Documentation Generation
+## Versioning & migrations
 
-API documentation (OpenAPI, AsyncAPI, D2 diagrams, EventCatalog) is now provided by **go-cqrs-lite/catalog v4** directly:
+The current major is **v4** (module paths carry `/v4`). WebSocket transport is removed in v5 — the tree is already SSE-only, and [docs/guides/v5-removal-inventory.md](docs/guides/v5-removal-inventory.md) lists every removal.
+
+A dry-run-by-default codemod rewrites consumer code off deprecated APIs (httputil re-exports, go-sse shims, deprecated aliases), deriving its symbol tables from the version in your module graph so it can never drift:
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/catalog/v4
+go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest ./...   # dry run
+go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest -apply ./...
 ```
 
-```go
-import (
-    "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
-)
-
-b := simple.New("User Service", "1.0.0")
-simple.Command[RegisterUserCmd](b, "register-user")
-cat := b.Build()
-
-mux.Handle("/docs/openapi.json", docserver.NewDocsServer(...).OpenAPISpec())
-```
-
-See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite/tree/master/catalog) for full documentation.
-
-## Dependencies
-
-Pinned versions live in [go.mod](go.mod); go-cqrs-lite ships per-module
-version trains, so exact versions are intentionally not repeated here.
-
-| Dependency            | Purpose                                                                           |
-| --------------------- | --------------------------------------------------------------------------------- |
-| go-cqrs-lite          | CQRS command/query dispatch, event sourcing, pagination                           |
-| casbin/casbin/v3      | Authorization                                                                     |
-| go-error-family       | Error classification                                                              |
-| go-sse                | SSE protocol writer, broadcaster, replay                                          |
-| larsartmann/httputil  | CSRF, Server-Timing, rate limiting, ClientIP, security headers, compression, CORS |
-| go-datastar           | DataStar frontend adapter protocol (optional `datastar` module)                   |
-| go-branded-id         | Branded types (usermgmt)                                                          |
-| go-playground/form/v4 | Form decoding                                                                     |
-| templ-components      | UI component library (adminui, dashboardui)                                       |
-
-**Optional sub-module dependencies** (only import the auth strategies you need; versions live in each sub-module's go.mod):
-
-| Sub-module           | Dependency          | Purpose                                |
-| -------------------- | ------------------- | -------------------------------------- |
-| usermgmt/totp/v4     | pquerna/otp         | TOTP MFA (RFC 6238)                    |
-| usermgmt/webauthn/v4 | go-webauthn         | WebAuthn/Passkey authentication        |
-| usermgmt/oauth2/v4   | golang.org/x/oauth2 | OAuth2 authorization code + PKCE       |
-| usermgmt/oauth2/v4   | coreos/go-oidc/v3   | OIDC discovery + ID token verification |
+Migration guides: [v2→v3](docs/migrations/v2-to-v3.md) · [v3→v4](docs/migrations/v3-to-v4.md) · [v4→v5](docs/migrations/v4-to-v5.md)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for build/test/lint commands, code style, and PR checklist.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for build/test/lint commands, code style, and the PR checklist.
 
 A pre-push hook enforces CI parity at the push boundary (release-train strict + version-drift strict). Install it once per clone: `bash scripts/tools/install-git-hooks.sh`. If a push is blocked, the hook output names the gate and its fix — resolve it rather than pushing with `--no-verify`.
 
