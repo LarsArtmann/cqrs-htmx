@@ -52,6 +52,10 @@ _Unresolved decisions that block a release or a direction. These route here (not
 
 27. **go.work fleet-local replaces: tracked, overlay, or untracked? (opened 2026-10-01, W0–W3 §e/§g3.)** The tracked go.work carries ~35 machine-local replace targets (`/home/lars/projects/...` — the fleet sibling layout that cannot exist on a CI runner). The new `check-workspace-build` gate tolerates them BY DESIGN (it builds a consumer view with path-replaces filtered), but that is a compromise, not a decision. Options: (a) keep as-is with the gate filtering (current), (b) move them to an untracked fleet overlay selected via `GOWORK=<custom>`, (c) revisit at the v5 window. Which way does the fleet standardize? (Source: `docs/status/archived/2026-10-01_10-30_pareto-w0-w3-train-gates-erraudit-status.md` §g3.)
 28. **Credential 4× duplication: intentional boundary set, or sprawl to consolidate? (opened 2026-10-05, branching-flow analysis; report §g2.)** Four declarations of the same WebAuthn credential shape — `CredentialCore` (`identity-model/credential.go:7`), `CredentialView` (`systemadapter/views.go:35`), `credentialData` (`usermgmt/webauthn/provider.go:65`), `webAuthnUserCred` (`usermgmt/webauthn_service.go:21`); shared fields `AAGUID, AttestationType, BackupEligible, BackupState, ID, PublicKey, SignCount, Transports`. The domain intent — "are these the same concept or four facets?" (Published-Language vs anti-corruption boundary) — is an owner call; the field sets and boundary roles are visible, the intent is not. Input: the decision memo tracked in TODO_LIST (R11). No code before this is answered (plan guard rail).
+29. **Per-module CI test matrix vs the sequential `test` job (opened 2026-10-17, 09-34 report §g3).** The sequential submodule job has now masked-then-revealed module reds twice (gotcha 40: the adminui deferral masked systemadapter's red ~1 day; healing adminui revealed 16 failing tests that had been sitting invisible). A per-module `strategy.matrix` on the test job makes one module's red visible without healing another first, at the cost of runner minutes (~28 modules fan out; lint already runs per-module, so the shape is precedented). Recommendation: escalate on the next CI touch. (Source: `docs/status/2026-10-17_09-34_pareto-plan-push-saga-inherited-systemadapter-red.md` §e2/§g3.)
+30. **Reference-catalogue home: `docs/reference/handler-options.md` or pkg.go.dev-canonical? (opened 2026-10-17, owner Q3.)** The old README's complete HandlerOption / CSRF-field / rate-limit-field / Service-method / SSE-API / response-builder tables were dropped in the 2026-10-17 rewrite (right call for a sales page) — their content now lives nowhere complete. Decision packet: `docs/proposals/2026-10-17_reference-catalogue-packet.md` (inventory + GO/NO-GO criteria). Build only on GO.
+31. **README demo asset: screenshot/GIF or code-only? (opened 2026-10-17, owner Q1.)** Recommendation (recorded, not executed): code-only + the README quick-start compile gate — screenshots of UI panels go stale on every redesign, while the gate proves the stronger claim (the quick start compiles) mechanically. The conversion call is the owner's. Gates plan task M14.
+32. **Old-anchor deep links: HTML `<a id>` stubs for the ~10 pre-rewrite headings, or accept the break? (opened 2026-10-17, plan M13.)** Recommendation: accept the break — the repo predates broad external linking, GitHub rewrites anchors on every heading edit anyway, and stubs are one small commit if a real inbound link ever surfaces. Anchor list lives in the reference-catalogue packet's annex.
 
 ## Upstream Adoption & Scale
 
@@ -273,6 +277,18 @@ _ROI-gated follow-ups from the 2026-10-05 branching-flow analysis + ratchet sess
 - **Docs/process micros:** domain-language entry for "credential" boundaries (blocked on OQ28); add `branching-flow` to the devShell if it becomes load-bearing for more than one gate; `contextguard` as a standalone cheap gate (currently 0 findings — ride the ratchet instead unless it drifts); verify `dupe` cross-module matches are real, not walk artifacts.
 
 ---
+
+## Documentation polish ideas (raw — 2026-10-17 harvest from the README-rewrite tail)
+
+_Nothing here is scheduled; graduate to TODO_LIST when a consumer signal or a docs-wave picks it up._
+
+- **GitHub social preview image** for link unfurls (og:image) — the repo has none.
+- **"Add persistence in 3 lines" teaser** after the quick start (one SQL-store snippet + link to the persistence guide).
+- **`docs/README.md` landing page** for the docs tree (the guides index currently lives only inside the root README).
+- **README FAQ** distilled from the skill's gotcha list (validation-after-decode, module suffixes, htmx double-load) — or explicitly keep gotchas in docs only.
+- **Coverage / module-count badges** — needs a CI publishing endpoint; likely not worth the plumbing.
+- **Claim-lint script** automating the quarterly README↔FEATURES sweep (grep feature bullets for guide links, assert each named symbol exists in source) — lightweight, fleet-reusable shape.
+- **Native-English tone pass** over the module READMEs for voice consistency.
 
 ## Not Planned
 
