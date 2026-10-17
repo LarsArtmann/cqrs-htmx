@@ -218,10 +218,10 @@ github.com/larsartmann/go-atomic-write v0.6.0 h1:+f7NE8pEe4Fqb6u+2sCtB9dOWWfgwjd
 github.com/larsartmann/go-atomic-write v0.6.0/go.mod h1:2Mj3sw25Lx5dN3WjOC6O/p9nGxcU/jjn977CanerqcU=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=
 github.com/larsartmann/go-branded-id v0.7.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
-github.com/larsartmann/go-codec v0.3.1 h1:9025JGvz7CVbfDgUVLIWfmg117683XZ5D2wUXhXsSr4=
-github.com/larsartmann/go-codec v0.3.1/go.mod h1:OYx+M0nVF+7xR0bjQdVJwF4ROFRskyg5spMsOMl1F80=
-github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.8.0 h1:7xSLU6mAxyJ16b9eL4GR0/kiojC1bukpGa3ofUecO1Q=
-github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.8.0/go.mod h1:nbgRr7u1ZLugH4xvPQQkP0oMPUzj3Zx5/hUWneijrvM=
+github.com/larsartmann/go-codec v0.3.2 h1:6josVkKRls+9CrXkH8AyCS4uOgJ0oIOvPMl4XFrPpk0=
+github.com/larsartmann/go-codec v0.3.2/go.mod h1:nDkfIZOg49OrpIbZE1fXpQZ6Mmyho35NprMMB3Cq+a8=
+github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.9.0 h1:rsf/71lKUUIiNEhVZicbAkjdxKlXLL6a7cdb7G9B93s=
+github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.9.0/go.mod h1:mR760B+Y1sRklembPAo0F6nzDpL7nch3XG//IGty/y0=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 h1:yakAjC4K02sVvudipDP/fhLfSXDuo5rnNBY+hDou34Y=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2/go.mod h1:7TQ7fSd6bRqd7lYSTDMPIDCDZtzU/r3KqivP9m1M7gk=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 h1:wL7o9VtwmIxudrTD70UROY8zLf2WbQgJO/YRSGQX0JY=
