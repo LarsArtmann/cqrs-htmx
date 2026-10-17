@@ -4,7 +4,7 @@
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
-[![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](https://github.com/larsartmann/templ-components)
+[![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](docs/goth-stack.md)
 
 **CQRS + event sourcing for server-rendered Go apps — wired to HTTP and HTMX in one declarative line per endpoint.**
 
@@ -32,6 +32,7 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 > for templ + HTMX + Tailwind v4) and
 > [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) (event sourcing core)
 > for a complete server-rendered Go web stack with zero framework lock-in.
+> The stack, piece by piece: [docs/goth-stack.md](docs/goth-stack.md).
 
 ## Why
 

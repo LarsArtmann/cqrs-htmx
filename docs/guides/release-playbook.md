@@ -56,7 +56,7 @@ item below caught something CI found the hard way):
 2. `bash scripts/checks/check-large-files.sh --all` — 15 local seconds vs an
    8-minute CI round trip (the 19.5 MB daemon-committed binary class).
 3. The docs gates when the diff touches markdown: `nix run .#check-docs-links`
-   + `nix run .#check-docs-freshness`.
+   - `nix run .#check-docs-freshness`.
 4. `nix run .#check-modules` when the machine is quiet enough — it is the
    local twin of CI's `checks` job.
 
