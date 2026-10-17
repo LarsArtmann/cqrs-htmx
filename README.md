@@ -393,18 +393,14 @@ Three UI panels ship as independent modules. They answer different questions, so
 
 adminui = identity operations (users, tenants, members, audit log); dashboardui = event-store observability (journal, aggregates, projections, DLQ, snapshots). They are complementary, not alternatives.
 
-The [`setup`](setup/README.md) module composes everything — shared stores, the usermgmt service with your auth strategies, all three panels, a projection-aware `/health`, and correct middleware ordering — in one call:
+The [`setup`](setup/README.md) module composes everything — shared stores, the usermgmt service with your auth strategies, all three panels, a projection-aware `/health`, and correct middleware ordering — in one call (full quick start with imports and error handling: [setup/README.md](setup/README.md)):
 
 ```go
 bundle, err := setup.New(setup.Config{
     Title: "My App",
     TOTP:  totp.New(totp.Config{Issuer: "MyApp"}), // auth strategies you inject
 })
-if err != nil {
-    log.Fatal(err)
-}
-// Mount, serve with safe timeouts, drain gracefully on SIGINT.
-if err := bundle.Run(context.Background(), ":8080"); err != nil {
+if err := bundle.Run(context.Background(), ":8080"); err != nil { // safe timeouts + graceful SIGINT drain
     log.Fatal(err)
 }
 ```
@@ -491,7 +487,7 @@ Each runs with `go run .` from its directory and opens on a documented port.
 
 The current major is **v4** (module paths carry `/v4`). WebSocket transport is removed in v5 — the tree is already SSE-only, and [docs/guides/v5-removal-inventory.md](docs/guides/v5-removal-inventory.md) lists every removal.
 
-A dry-run-by-default codemod rewrites consumer code off deprecated APIs (httputil re-exports, go-sse shims, deprecated aliases), deriving its symbol tables from the version in your module graph so it can never drift:
+A dry-run-by-default codemod rewrites consumer code off deprecated APIs (httputil re-exports, go-sse shims, deprecated aliases), deriving its symbol tables from the version in your module graph so it can never drift (rule table and usage: [the migration guide's codemod section](docs/migrations/v4-to-v5.md#the-cqrs-htmx-upgrade-codemod)):
 
 ```bash
 go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest ./...   # dry run

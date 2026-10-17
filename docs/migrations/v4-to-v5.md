@@ -237,6 +237,41 @@ heartbeat, event filtering).
 
 ---
 
+## The `cqrs-htmx-upgrade` codemod
+
+Most of this migration is mechanical, and the mechanical part is automated.
+The codemod rewrites consumer code off the deprecated APIs:
+
+| Rule | Rewrites                                                        | Notes                                              |
+| ---- | --------------------------------------------------------------- | -------------------------------------------------- |
+| R1   | root httputil re-exports (CSRF, rate limiting, Server-Timing, security headers) | → the `github.com/larsartmann/httputil` package |
+| R2   | root go-sse re-export shims (SSE event/store types)             | → `github.com/larsartmann/go-sse`                  |
+| R3   | raw-broadcaster constructors (`NewBroadcasterFromRaw` → `NewBroadcasterFromHub`) | remaining `.Raw()` call sites are REPORTED for manual migration (type-ambiguous to rewrite safely) |
+| R9   | usermgmt deprecated type aliases                                | → `identity-model`                                 |
+| R10  | usermgmt deprecated var/const re-exports                        | → `identity-model`                                 |
+
+The R1/R2/R9/R10 symbol tables are **not hardcoded**: they are derived at run
+time from the alias declarations of the cqrs-htmx version present in *your*
+module graph (`go list -m`), so the codemod can never drift from whatever
+version you have installed.
+
+```bash
+# Dry run (default): a report of every planned edit, nothing written.
+go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest ./...
+
+# Write the rewrites:
+go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest -apply ./...
+
+# Print every planned edit verbosely:
+go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest -v ./...
+```
+
+Paths default to `.`. Always run the dry run first and review the report;
+non-mechanical rewrites are never guessed — they are reported for manual
+migration (per-symbol recipes above).
+
+---
+
 ## Why WebSocket Was Removed
 
 The bi-directional capability WebSocket offered was never exercised by any
