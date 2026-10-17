@@ -32,7 +32,7 @@ GOWORK=off go mod tidy && GOWORK=off go build ./... && GOWORK=off go vet ./...
   whose go.mod carries placeholder pseudo-version requires
   (`vX.Y.Z-00010101000000-000000000000` — templ-components v1.20.0) is
   UNCONSUMABLE: every downstream sweep dies with a misleading `unknown
-  revision`. bump-dep now pre-flights every module it is about to bump via
+revision`. bump-dep now pre-flights every module it is about to bump via
   `scripts/checks/check-family-release-consumable.sh` (proxy fetch, root +
   same-family submodule walk) and aborts with "upstream release … is
   unconsumable (placeholder sub-requires)" BEFORE touching anything. Run the

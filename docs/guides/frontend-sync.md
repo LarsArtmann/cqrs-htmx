@@ -39,15 +39,16 @@ mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 
 ```html
 <body data-sync-pull-url="/sync/pull" data-sync-push-url="/sync/push">
-  <div data-sync-status="idle">Synced</div>          <!-- indicator: idle|ok|pending -->
-  <div data-sync-target>
-    <form hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend"
-          data-sync-command-type="CreateItem">        <!-- opts into batch push -->
-      <input name="name" required>
-      <button type="submit">Add</button>
-    </form>
-  </div>
-  <script src="/sync-client.js"></script>
+	<div data-sync-status="idle">Synced</div>
+	<!-- indicator: idle|ok|pending -->
+	<div data-sync-target>
+		<form hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend" data-sync-command-type="CreateItem">
+			<!-- opts into batch push -->
+			<input name="name" required />
+			<button type="submit">Add</button>
+		</form>
+	</div>
+	<script src="/sync-client.js"></script>
 </body>
 ```
 
@@ -61,16 +62,21 @@ mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 
 ```json
 {
-  "backendId": "prod-2026-10",
-  "events": [
-    {
-      "eventId": "01J…", "type": "ItemCreated", "streamType": "item",
-      "streamId": "01J…", "version": 1, "occurredAt": "2026-10-09T02:17:55Z",
-      "payloadEncoding": "json", "payload": { "name": "grocery-list" }
-    }
-  ],
-  "nextCursor": "01J…",
-  "hasMore": false
+	"backendId": "prod-2026-10",
+	"events": [
+		{
+			"eventId": "01J…",
+			"type": "ItemCreated",
+			"streamType": "item",
+			"streamId": "01J…",
+			"version": 1,
+			"occurredAt": "2026-10-09T02:17:55Z",
+			"payloadEncoding": "json",
+			"payload": { "name": "grocery-list" }
+		}
+	],
+	"nextCursor": "01J…",
+	"hasMore": false
 }
 ```
 
@@ -85,11 +91,14 @@ mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 
 ```json
 {
-  "results": [
-    { "commandId": "offline-1", "status": "confirmed" },
-    { "commandId": "offline-2", "status": "rejected",
-      "error": { "message": "note already exists: conflict-dup", "code": "note.conflict", "family": "conflict" } }
-  ]
+	"results": [
+		{ "commandId": "offline-1", "status": "confirmed" },
+		{
+			"commandId": "offline-2",
+			"status": "rejected",
+			"error": { "message": "note already exists: conflict-dup", "code": "note.conflict", "family": "conflict" }
+		}
+	]
 }
 ```
 
@@ -133,16 +142,16 @@ A Casbin recipe: assert `enforcer.Enforce(user.ID().Get(), evt.StreamType(), "re
 The sync client exposes a small public surface on `window`:
 
 ```js
-window.cqrsSync.version   // "1.5.0" — matches cqrshtmx.SyncVersion()
-await window.cqrsSync.getEvents() // cached event feed (works offline; worker-owned IndexedDB)
-await window.cqrsSync.pull()      // force a catch-up pull; resolves when caught up
+window.cqrsSync.version; // "1.5.0" — matches cqrshtmx.SyncVersion()
+await window.cqrsSync.getEvents(); // cached event feed (works offline; worker-owned IndexedDB)
+await window.cqrsSync.pull(); // force a catch-up pull; resolves when caught up
 ```
 
 Events and resets also arrive as DOM events: `cqrshtmx:sync-events` (new cached events; also triggered through HTMX as `cqrshtmx:sync-events` on `document.body`) and on cache reset. Reuse in your own JS:
 
 ```js
 document.addEventListener("cqrshtmx:sync-events", (e) => {
-  renderFeedFrom(e.detail); // detail carries the newly cached events
+	renderFeedFrom(e.detail); // detail carries the newly cached events
 });
 ```
 

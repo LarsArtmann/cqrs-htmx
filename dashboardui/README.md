@@ -122,7 +122,7 @@ Contract (full details on `LayoutFunc`):
   content is styled by the dashboard stylesheets), and skip
   `meta.ScriptURLs`' htmx entry if your shell already loads htmx (never twice).
 - `meta.Nav` is the capability-filtered navigation (`NavLink{Href, Label,
-  Icon, Active}`) — render it, merge it into your sidebar, or drop it.
+Icon, Active}`) — render it, merge it into your sidebar, or drop it.
 - `meta.Nonce` carries the per-request CSP nonce for script tags you emit.
 - HTMX partial swaps and polled regions bypass the shell (no work needed);
   write-action toasts surface via the `dashboardui:toast` HX-Trigger event —
@@ -257,9 +257,15 @@ Every write operation (projection reset, DLQ replay/delete/purge, snapshot
 delete) emits a `dashboardui.audit` log line. Attribution is automatic:
 
 ```json
-{"msg":"dashboardui.audit","op":"dlq.replay","projection":"user-read-model",
- "result":"ok","actor_id":"user-42","actor_name":"ops@example.com",
- "request_id":"req_01HYZ..."}
+{
+	"msg": "dashboardui.audit",
+	"op": "dlq.replay",
+	"projection": "user-read-model",
+	"result": "ok",
+	"actor_id": "user-42",
+	"actor_name": "ops@example.com",
+	"request_id": "req_01HYZ..."
+}
 ```
 
 - **actor_id / actor_name** — from `ActorAuthorizer`, or from your own

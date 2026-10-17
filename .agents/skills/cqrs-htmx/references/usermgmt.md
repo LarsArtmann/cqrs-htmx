@@ -72,16 +72,16 @@ auth.RegisterRoutes(mux)   // mutates YOUR mux — you own routing
 
 Routes registered (Go 1.22+ method patterns). The auth posture is library-enforced (ADR-0055): session-dependent routes self-wrap with an enrich-only session pass (work on a bare mount, 401 without a valid cookie), and the enrollment ceremonies enforce the owner-match rule — no external session middleware required for any of them:
 
-| Method    | Path                                                                 | Notes                                                 |
-| --------- | -------------------------------------------------------------------- | ----------------------------------------------------- |
-| POST      | `/auth/register`                                                     | email-only registration; returns user + session token (sets the cookie — bootstrap for the enrollment gate) |
+| Method    | Path                                                                 | Notes                                                                                                               |
+| --------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| POST      | `/auth/register`                                                     | email-only registration; returns user + session token (sets the cookie — bootstrap for the enrollment gate)         |
 | POST      | `/auth/webauthn/register/begin` \ `/finish`                          | passkey enrollment ceremony — **owner-session-gated**: 401 without session, 403 when `user_id` targets another user |
-| POST      | `/auth/webauthn/login/begin` \ `/finish`                             | passkey login ceremony (public)                        |
-| POST      | `/auth/logout`                                                       | invalidate session                                    |
-| GET       | `/auth/me`                                                           | current user JSON (session required)                  |
-| GET       | `/auth/credentials` \ DELETE `/auth/credentials/{id}`                | manage passkeys (session required)                     |
-| (various) | `/auth/verify/*`, `/auth/totp/*`, `/auth/import/*`, `/auth/export/*` | from `RegisterVerificationTOTPRoutes` (session required, except token-based `POST /auth/email/verify`) |
-| GET       | `/auth/oauth/{provider}/begin` \ `/callback`, POST `/unlink`         | OAuth2 (when configured; unlink session-required)     |
+| POST      | `/auth/webauthn/login/begin` \ `/finish`                             | passkey login ceremony (public)                                                                                     |
+| POST      | `/auth/logout`                                                       | invalidate session                                                                                                  |
+| GET       | `/auth/me`                                                           | current user JSON (session required)                                                                                |
+| GET       | `/auth/credentials` \ DELETE `/auth/credentials/{id}`                | manage passkeys (session required)                                                                                  |
+| (various) | `/auth/verify/*`, `/auth/totp/*`, `/auth/import/*`, `/auth/export/*` | from `RegisterVerificationTOTPRoutes` (session required, except token-based `POST /auth/email/verify`)              |
+| GET       | `/auth/oauth/{provider}/begin` \ `/callback`, POST `/unlink`         | OAuth2 (when configured; unlink session-required)                                                                   |
 
 Headless/administrative enrollment uses the service-level API (`Service.BeginRegistration`/`FinishRegistration`) — there is no HTTP opt-out. For your own session-gated surfaces, setup exports `setup.RequireSession` (401/JSON) and `setup.RequireSessionRedirect(loginURL)` (303/browser), both mounted AFTER the enrich-only `bundle.SessionMiddleware()`.
 

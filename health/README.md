@@ -9,13 +9,13 @@ Consumers who do not import this module pay zero dependency cost.
 
 ## Which surface for which consumer
 
-| You want | Surface |
-| --- | --- |
-| Kubernetes liveness/readiness/startup probes for a `*usermgmt.Service`, no DI container | `health.NewProbe(svc, ...)` → `Start` → `RegisterRoutes` |
-| One probe checking DI services AND projections | `gohealth.New(injector, gohealth.WithHealthRecorder(health.Recorder(svc)))` |
-| One probe also observing DI lifecycle (samber-do-auditlog) next to projections | `gohealth.New(injector, gohealth.WithHealthRecorder(health.RecorderChain(health.Recorder(svc), auditPlugin)))` |
-| A human dashboard over any of the above | `health.NewDashboard(probe)` |
-| Only readiness on `/health` (no go-health at all) | root's `cqrshtmx.ProjectionReadinessCheck` + `ReadinessHandler`, or the `setup` module's gated `/health` |
+| You want                                                                                | Surface                                                                                                        |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Kubernetes liveness/readiness/startup probes for a `*usermgmt.Service`, no DI container | `health.NewProbe(svc, ...)` → `Start` → `RegisterRoutes`                                                       |
+| One probe checking DI services AND projections                                          | `gohealth.New(injector, gohealth.WithHealthRecorder(health.Recorder(svc)))`                                    |
+| One probe also observing DI lifecycle (samber-do-auditlog) next to projections          | `gohealth.New(injector, gohealth.WithHealthRecorder(health.RecorderChain(health.Recorder(svc), auditPlugin)))` |
+| A human dashboard over any of the above                                                 | `health.NewDashboard(probe)`                                                                                   |
+| Only readiness on `/health` (no go-health at all)                                       | root's `cqrshtmx.ProjectionReadinessCheck` + `ReadinessHandler`, or the `setup` module's gated `/health`       |
 
 Every projection check carries the shared `ProjectionStatuses()` read time as
 `duration_ns`, on every path (the recorder implements go-health's optional

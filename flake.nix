@@ -136,6 +136,16 @@
               nixfmt.enable = true;
               templ.enable = true;
               gofmt.enable = true;
+              # Markdown formatter (2026-10-17, plan M03): nixpkgs prettier —
+              # hermetic (no plugin downloads, unlike dprint), no Go
+              # involvement (the templ-wrapper trap class cannot fire).
+              # Scoped to **/*.md ONLY (never .json/.yaml — CI workflows and
+              # configs have their own canonical shapes; the first run with
+              # the bare `*.md` pattern formatted js/yaml/json across the
+              # tree and was reverted). Prose is never re-wrapped
+              # (.prettierrc proseWrap: preserve) so annotation rows and
+              # hand-wrapped tables keep their lines.
+              prettier.enable = true;
               # Aligned with the golangci-lint golines config (.golangci.yml
               # settings.golines.max-len: 120). The 2026-08-29 275-file churn
               # came from treefmt's default max-len of 100 reflowing every
@@ -147,6 +157,31 @@
             settings.formatter.golines.options = [
               "--max-len"
               "120"
+            ];
+            settings.formatter.prettier.includes = lib.mkForce [
+              "*.md"
+              "**/*.md"
+            ];
+            # Historical / append-only corpora stay byte-identical (plan
+            # guardrail: no reformatting of historical artifacts — annotation
+            # shapes, verdict tables, and append-only sections must not
+            # churn): status reports (live tail + archived), plans, research,
+            # ADRs, feedback, analysis ledgers, agents-notes narratives, the
+            # append-only CHANGELOG, and the deliberately-untidy testdata
+            # fixtures. Global excludes hide these from every formatter —
+            # safe: none of these trees carry formattable Go/nix/shell.
+            settings.global.excludes = [
+              "CHANGELOG.md"
+              "docs/adr/**"
+              "docs/agents-notes.md"
+              "docs/analysis/**"
+              "docs/architecture-understanding/**"
+              "docs/feedback/**"
+              "docs/modularization/**"
+              "docs/planning/**"
+              "docs/research/**"
+              "docs/status/**"
+              "scripts/testdata/**"
             ];
             # treefmt-nix's templ module wraps templ with nixpkgs' DEFAULT go
             # (1.26.x). Since the fleet re-pin moved the module floors to

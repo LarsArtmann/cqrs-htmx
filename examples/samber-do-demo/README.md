@@ -8,20 +8,20 @@ cqrs-htmx is a **library**, not an application — it deliberately avoids imposi
 
 ## Patterns Demonstrated
 
-| Pattern                        | File                                 | What it shows                                                       |
-| ------------------------------ | ------------------------------------ | ------------------------------------------------------------------- |
-| Composition root with cleanup  | `container.go` `NewContainer`        | `do.NewWithOpts` wrapped with returned cleanup function            |
-| Eager foundation values        | `container.go` `ProvideValue`        | `AppConfig` registered eagerly                                      |
-| Lazy singletons                | `container.go` `Provide`             | `*usermgmt.Service`, `*cqrshtmx.App`                               |
-| Interface consumption          | `container.go` `do.As` + `InvokeAs`  | Concrete `*totp.Provider` consumed as `identitymodel.TOTPProvider`  |
-| Lifecycle adapter              | `container.go` `serviceLifecycle`    | Third-party `Close()` adapted to `ShutdownerWithContextAndError`    |
-| Native lifecycle services      | `container.go` probe + dashboard     | `*gohealth.Probe`/`*Dashboard` implement `do.Shutdowner` themselves |
-| Eager start of the health surface | `container.go` `probe.Start`/`dash.Start` | Started at boot so the dashboard shows real state (never an empty-green page) |
-| Typed accessors                | `container.go` `Container.Service()` | Centralized resolution instead of raw `do.Invoke`                   |
-| Test container with overrides  | `container_test.go`                  | `do.OverrideNamed` on the CONCRETE service (deterministic)          |
-| Singleton verification         | `container_test.go`                  | Asserts same instance on repeated invocations                       |
-| Shutdown verification          | `container_test.go`                  | Cleanup function calls `Close()` via lifecycle adapter              |
-| Health-truth regression tests  | `container_test.go`                  | Probe cache non-empty; `/healthz`//`readyz`//`startupz` serve real verdicts; dashboard renders the projection checks |
+| Pattern                           | File                                      | What it shows                                                                                                        |
+| --------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Composition root with cleanup     | `container.go` `NewContainer`             | `do.NewWithOpts` wrapped with returned cleanup function                                                              |
+| Eager foundation values           | `container.go` `ProvideValue`             | `AppConfig` registered eagerly                                                                                       |
+| Lazy singletons                   | `container.go` `Provide`                  | `*usermgmt.Service`, `*cqrshtmx.App`                                                                                 |
+| Interface consumption             | `container.go` `do.As` + `InvokeAs`       | Concrete `*totp.Provider` consumed as `identitymodel.TOTPProvider`                                                   |
+| Lifecycle adapter                 | `container.go` `serviceLifecycle`         | Third-party `Close()` adapted to `ShutdownerWithContextAndError`                                                     |
+| Native lifecycle services         | `container.go` probe + dashboard          | `*gohealth.Probe`/`*Dashboard` implement `do.Shutdowner` themselves                                                  |
+| Eager start of the health surface | `container.go` `probe.Start`/`dash.Start` | Started at boot so the dashboard shows real state (never an empty-green page)                                        |
+| Typed accessors                   | `container.go` `Container.Service()`      | Centralized resolution instead of raw `do.Invoke`                                                                    |
+| Test container with overrides     | `container_test.go`                       | `do.OverrideNamed` on the CONCRETE service (deterministic)                                                           |
+| Singleton verification            | `container_test.go`                       | Asserts same instance on repeated invocations                                                                        |
+| Shutdown verification             | `container_test.go`                       | Cleanup function calls `Close()` via lifecycle adapter                                                               |
+| Health-truth regression tests     | `container_test.go`                       | Probe cache non-empty; `/healthz`//`readyz`//`startupz` serve real verdicts; dashboard renders the projection checks |
 
 ## Running
 
@@ -33,15 +33,15 @@ GOEXPERIMENT=jsonv2 go run .
 
 ## Endpoints
 
-| Path         | What it is                                                                       |
-| ------------ | -------------------------------------------------------------------------------- |
-| `/`          | Index page                                                                       |
-| `/healthz`   | Liveness (Kubernetes) — dependency-blind, always 200 while the process serves    |
-| `/readyz`    | Readiness — 503 while projections drain or a CRITICAL projection fails; warn (200) for non-critical failures |
-| `/startupz`  | Startup latch — 503 until every critical check passed once, then 200 forever     |
-| `/health-ui` | Live health dashboard (projection checks, SSE updates)                           |
-| `/audit/`    | Live samber/do audit viewer (registrations, invocations, shutdowns, health checks) |
-| `/command/hello` | Demo command dispatch through the DI-managed dispatcher                      |
+| Path             | What it is                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| `/`              | Index page                                                                                                   |
+| `/healthz`       | Liveness (Kubernetes) — dependency-blind, always 200 while the process serves                                |
+| `/readyz`        | Readiness — 503 while projections drain or a CRITICAL projection fails; warn (200) for non-critical failures |
+| `/startupz`      | Startup latch — 503 until every critical check passed once, then 200 forever                                 |
+| `/health-ui`     | Live health dashboard (projection checks, SSE updates)                                                       |
+| `/audit/`        | Live samber/do audit viewer (registrations, invocations, shutdowns, health checks)                           |
+| `/command/hello` | Demo command dispatch through the DI-managed dispatcher                                                      |
 
 Critical projections (readiness-gating): `user-read-model`, `casbin-projection` —
 every other worker reports `warn` on failure without leaving the load-balancer

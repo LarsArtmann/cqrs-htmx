@@ -16,7 +16,7 @@ Your `git commit` lost the lock race against the daemon's own commit.
 1. **Do not retry blindly.** First check what the daemon did:
    `git log -3 --oneline && git show --stat HEAD`.
 2. **If the daemon committed your staged set** (a `chore: auto-commit …
-   (heuristic)` message containing exactly your files): you are done —
+(heuristic)` message containing exactly your files): you are done —
    content is what matters. Optionally amend the message (see rules below).
 3. **If your changes are still staged/dirty**: re-verify with
    `git status --porcelain`, then retry the commit ONCE. If the daemon

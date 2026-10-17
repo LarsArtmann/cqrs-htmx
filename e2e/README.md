@@ -45,7 +45,7 @@ pnpm run report
 > **Never `pnpm dlx playwright test`.** The dlx'd standalone runner instance
 > skews against the locally installed `@playwright/test` (same version,
 > different copies) and fails with `Playwright Test did not expect test() to
-> be called here` (hit live 2026-10-13). Every script in `package.json`
+be called here` (hit live 2026-10-13). Every script in `package.json`
 > resolves the local copy.
 
 ### One-command path (Nix)

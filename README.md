@@ -420,21 +420,21 @@ Adopt your own `*usermgmt.Service` (`Config.Service`), override the full `Servic
 
 Runnable, tested programs in [`examples/`](examples/README.md) — the index lists every demo with its port:
 
-| Example                                                       | Shows                                                                         |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [`basic`](examples/basic/README.md)                           | Minimal CQRS + HTMX + SSE app with actor metadata and typed endpoints         |
-| [`setup-demo`](examples/setup-demo/README.md)                 | The one-call full stack (`setup.New` → `bundle.Run`)                          |
-| [`admin-demo`](examples/admin-demo/README.md)                     | Admin panel showcase with all identity operations                             |
+| Example                                                         | Shows                                                                         |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [`basic`](examples/basic/README.md)                             | Minimal CQRS + HTMX + SSE app with actor metadata and typed endpoints         |
+| [`setup-demo`](examples/setup-demo/README.md)                   | The one-call full stack (`setup.New` → `bundle.Run`)                          |
+| [`admin-demo`](examples/admin-demo/README.md)                   | Admin panel showcase with all identity operations                             |
 | [`dashboard-demo`](examples/dashboard-demo/README.md)           | Event-store observability dashboard                                           |
-| [`sync-demo`](examples/sync-demo/README.md)                   | Offline sync protocol end-to-end (pull, batched push, offline reads, OpenAPI) |
-| [`datastar-demo`](examples/datastar-demo/README.md)           | Real-time todo app via the DataStar adapter (SSE + signals)                   |
-| [`middleware-demo`](examples/middleware-demo/README.md)       | Dispatch middleware composition (retry, circuit breaker, metrics, tracing)    |
+| [`sync-demo`](examples/sync-demo/README.md)                     | Offline sync protocol end-to-end (pull, batched push, offline reads, OpenAPI) |
+| [`datastar-demo`](examples/datastar-demo/README.md)             | Real-time todo app via the DataStar adapter (SSE + signals)                   |
+| [`middleware-demo`](examples/middleware-demo/README.md)         | Dispatch middleware composition (retry, circuit breaker, metrics, tracing)    |
 | [`middleware-showcase`](examples/middleware-showcase/README.md) | All httputil HTTP middleware composed into one validated stack                |
-| [`observability-demo`](examples/observability-demo/README.md) | OTel tracing + Prometheus metrics proofs                                      |
-| [`async-startup-demo`](examples/async-startup-demo/README.md) | Zero-downtime restarts: bind HTTP while projections replay                    |
-| [`samber-do-demo`](examples/samber-do-demo/README.md)         | samber/do v2 dependency injection best practice                               |
+| [`observability-demo`](examples/observability-demo/README.md)   | OTel tracing + Prometheus metrics proofs                                      |
+| [`async-startup-demo`](examples/async-startup-demo/README.md)   | Zero-downtime restarts: bind HTTP while projections replay                    |
+| [`samber-do-demo`](examples/samber-do-demo/README.md)           | samber/do v2 dependency injection best practice                               |
 | [`system-demo`](examples/system-demo/README.md)                 | go-cqrs-lite `system.New` integration via systemadapter                       |
-| [`catalog-demo`](examples/catalog-demo/README.md)             | Catalog doc-server example                                                    |
+| [`catalog-demo`](examples/catalog-demo/README.md)               | Catalog doc-server example                                                    |
 
 Each runs with `go run .` from its directory and opens on a documented port.
 

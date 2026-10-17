@@ -2,10 +2,10 @@
 
 ## Supported Versions
 
-| Version                                | Supported                                     |
-| -------------------------------------- | --------------------------------------------- |
-| Latest published tag of each v4 module | Yes — fixes ride the module's next tag        |
-| Older v4 tags, v3 and below            | No — upgrade to the newest published tags     |
+| Version                                | Supported                                 |
+| -------------------------------------- | ----------------------------------------- |
+| Latest published tag of each v4 module | Yes — fixes ride the module's next tag    |
+| Older v4 tags, v3 and below            | No — upgrade to the newest published tags |
 
 Fixes land on `master` and ship with each module's next tag; there are no
 long-term-support branches.
