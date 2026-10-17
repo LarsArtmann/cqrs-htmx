@@ -1,10 +1,16 @@
 # cqrs-htmx
 
+**One line per endpoint.** CQRS + event sourcing wired to HTMX — Casbin auth, CSRF, rate limiting, and SSE built in. Everything optional, zero framework lock-in.
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
 [![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](https://github.com/larsartmann/templ-components)
+
+```bash
+go get github.com/larsartmann/cqrs-htmx/v4
+```
 
 Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` in one line per endpoint. HTMX responses, Casbin authorization, CSRF, rate limiting, SSE, and event-sourced user management come built-in — but nothing is forced on you. Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), etc.), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you.
 
