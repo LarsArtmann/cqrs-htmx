@@ -8,6 +8,10 @@
 
 **CQRS + event sourcing for server-rendered Go apps — wired to HTTP and HTMX in one declarative line per endpoint.**
 
+```bash
+go get github.com/larsartmann/cqrs-htmx/v4
+```
+
 Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` and stop writing glue: request decoding, Casbin authorization, validation, HTMX response headers, partial-vs-full rendering, error-to-status mapping, and SSE fan-out are all `HandlerOption`s. Event-sourced user management (passkeys, OAuth2, TOTP), a ready-made admin panel, an event-store observability dashboard, and a one-call full-stack setup exist as optional modules — entirely out of your way until you want them.
 
 Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), …), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you, and never enforces a default you might disagree with.
