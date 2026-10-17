@@ -1,61 +1,57 @@
-
-*~
-._*
-/admin-demo
-# (adminui, loginpage, dashboardui) so consumers import them directly
-!adminui/*_templ.go
-audit-log.*
-# Auto-managed by buildflow. Edit outside these markers; this block is regenerated on `buildflow --fix`.
-/basic
 # Binaries
-build/
-# Build artifacts
-# Build artifacts (root-level compiled binaries)
-## Buildflow artifacts
-# <<< buildflow-managed (.gitignore) <<<
-# >>> buildflow-managed (.gitignore) >>>
-# Buildflow pre-commit resume state (regenerated on every buildflow run)
-/.buildflow-resume.json
-.buildflow-workflow-baseline.json
-.cache/
-/catalog-demo
-.coverage
-/coverage
-/cqrs-htmx
-/cqrs-htmx-upgrade
-cython_debug/
-/dashboard-demo
-!dashboardui/*_templ.go
-## Databases
-/datastar-demo
-*.db
-*.db-shm
-*.db-wal
-# Dependencies
-.direnv/
-dist/
+*.exe
+*.exe~
 *.dll
-.docusaurus/
-.DS_Store
+*.so
 *.dylib
+/cqrs-htmx-upgrade
+/work/bin/
+
+# Test binary
+*.test
+
+# Output
+*.out
+*.prof
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vendor (not used)
+vendor/
+# Test coverage
+/coverage
+# Build artifacts (root-level compiled binaries)
+/cqrs-htmx
+/basic
+/datastar-demo
+/catalog-demo
+/admin-demo
+/dashboard-demo
+/middleware-demo
+/observability-demo
 /e2e/server/server
-## Editors and ides
-*.egg
-*.egg-info/
-ehthumbs.db
-.env
-.env.*.local
-.env.local
-.envrc
-.eslintcache
+/samber-do-demo
+# Dependencies
+node_modules/
+# Sensitive files
+*.db
+
 # Example binaries
-examples/admin-demo/admin-demo
-examples/async-startup-demo/async-startup-demo
 examples/basic/basic
+examples/datastar-demo/datastar-demo
 examples/catalog-demo/catalog-demo
 examples/catalog-demo/eventcatalog/
+examples/admin-demo/admin-demo
 examples/dashboard-demo/dashboard-demo
-examples/datastar-demo/datastar-demo
+examples/async-startup-demo/async-startup-demo
 examples/middleware-demo/middleware-demo
 examples/middleware-showcase/middleware-showcase
 examples/observability-demo/observability-demo
@@ -63,76 +59,96 @@ examples/samber-do-demo/samber-do-demo
 examples/setup-demo/setup-demo
 examples/sync-demo/sync-demo
 examples/system-demo/system-demo
-*.exe
-*.exe~
+# Nix build output
+/result
 # Generated reports (buildflow coverage / jscpd / lint output)
+/reports/
+/report/
+# Buildflow pre-commit resume state (regenerated on every buildflow run)
+/.buildflow-resume.json
+# Build artifacts
+/v3
+# Templ generated files are gitignored EXCEPT in modules that commit them
+# (adminui, loginpage, dashboardui) so consumers import them directly
+# without running the templ code generator.
+*_templ.go
+!adminui/*_templ.go
+!loginpage/*_templ.go
+!dashboardui/*_templ.go
+
+# >>> buildflow-managed (.gitignore) >>>
+# Auto-managed by buildflow. Edit outside these markers; this block is regenerated on `buildflow --fix`.
+
+## Secrets and environment
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+## Databases
+*.db-shm
+*.db-wal
+
+## Operating systems
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+## Editors and ides
+*~
+
+## Logs and temporaries
+*.log
+*.tmp
+*.temp
+
+## Buildflow artifacts
+audit-log.*
+workflow-audit-log.*
+.buildflow-workflow-baseline.json
+
 ## Go
 go.work
 go.work.sum
-htmlcov/
-.hypothesis/
-# IDE
-.idea/
-.ipynb_checkpoints/
-## Javascript and typescript
-*.key
-*.log
-!loginpage/*_templ.go
-## Logs and temporaries
-/middleware-demo
-.mypy_cache/
-.next/
-## Nix
-# Nix build output
-node_modules/
-.nox/
-.nuxt/
-/observability-demo
-## Operating systems
-# OS
-*.out
-# Output
-.parcel-cache/
-*.pem
-.pnpm-debug.log*
-pnpm-debug.log*
-*.prof
-__pycache__/
-*.py[cod]
-.pytest_cache/
-## Python
-/report/
-/reports/
-/result
-result-*
-.ruff_cache/
-/samber-do-demo
-## Secrets and environment
-# Sensitive files
-*.so
-.Spotlight-V100
-*.swo
-*.swp
-*.temp
-# Templ generated files are gitignored EXCEPT in modules that commit them
-*_templ.go
-*.test
-# Test binary
-# Test coverage
-Thumbs.db
-*.tmp
-.tox/
-.Trashes
-*.tsbuildinfo
-/v3
 /v4
-vendor/
-# Vendor (not used)
-.venv/
-venv/
-.vscode/
-# without running the templ code generator.
-/work/bin/
-workflow-audit-log.*
+
+## Nix
+result-*
+.envrc
+.direnv/
+
+## Javascript and typescript
+dist/
+build/
+*.tsbuildinfo
+.next/
+.nuxt/
+.docusaurus/
+.eslintcache
+.cache/
+.parcel-cache/
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
+
+## Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.ipynb_checkpoints/
+.hypothesis/
+cython_debug/
+.coverage
+htmlcov/
+# <<< buildflow-managed (.gitignore) <<<
