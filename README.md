@@ -276,12 +276,12 @@ Do you need CQRS dispatch (command/query endpoints)?
                                (or usermgmt + adminui mounted by hand)
 ```
 
-| Path | You write | The library provides |
-| ---- | ---------- | -------------------- |
-| **0** | HTTP handlers | `Chain`, recovery + security middleware, request logging, SSE building blocks, `MapError`, `WriteJSON`, HTMX helpers, embedded htmx.js |
-| **A** | Domain commands/queries + route table | Everything above + `app.Command`/`app.Query` pipelines, authz, error mapping, context enrichment |
-| **B** | + auth config | Everything above + event-sourced `usermgmt.Service`, `/auth/*` routes, session middleware, RBAC, SQL stores |
-| **C** | + a `setup.Config` | Everything above + admin panel, ES dashboard, login page, `/health`, middleware ordering, graceful shutdown |
+| Path  | You write                             | The library provides                                                                                                                   |
+| ----- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **0** | HTTP handlers                         | `Chain`, recovery + security middleware, request logging, SSE building blocks, `MapError`, `WriteJSON`, HTMX helpers, embedded htmx.js |
+| **A** | Domain commands/queries + route table | Everything above + `app.Command`/`app.Query` pipelines, authz, error mapping, context enrichment                                       |
+| **B** | + auth config                         | Everything above + event-sourced `usermgmt.Service`, `/auth/*` routes, session middleware, RBAC, SQL stores                            |
+| **C** | + a `setup.Config`                    | Everything above + admin panel, ES dashboard, login page, `/health`, middleware ordering, graceful shutdown                            |
 
 Realtime (SSE, frontend sync) composes onto any path. Persistence composes onto any path — pass a `*sql.DB` or a go-cqrs-lite store.
 
@@ -291,22 +291,22 @@ The decision guide with full tradeoffs is [docs/guides/setup-vs-hand-wiring.md](
 
 Independent Go modules under one repo — import only what you use.
 
-| Module                                             | Import path                                         | What it gives you                                                                                                                                    |
-| -------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **root**                                           | `github.com/larsartmann/cqrs-htmx/v4`               | The `App` builder, `HandlerOption`s, middleware, context IDs, error→HTTP mapping, SSE + `transport/` surface, frontend sync, OpenAPI builder, EventCatalog, embedded htmx.js |
-| [identity-model](identity-model/README.md)         | `…/cqrs-htmx/identity-model/v4`                     | Pure domain types: branded IDs, 21 event payloads, 20 commands, fold functions, Casbin-backed Authz engine — zero IO                                   |
-| [usermgmt](usermgmt/README.md)                     | `…/cqrs-htmx/usermgmt/v4`                           | Event-sourced identity `Service` (register/login/logout/me, roles, tenants, bots), `/auth/*` HTTP handlers, SQL + in-memory stores, session middleware  |
-| [usermgmt/webauthn](usermgmt/README.md)            | `…/cqrs-htmx/usermgmt/webauthn/v4`                  | WebAuthn passkeys — inject as `ServiceConfig.WebAuthn`                                                                                               |
-| [usermgmt/totp](usermgmt/README.md)                | `…/cqrs-htmx/usermgmt/totp/v4`                      | TOTP MFA — inject as `ServiceConfig.TOTP`                                                                                                            |
-| [usermgmt/oauth2](usermgmt/README.md)              | `…/cqrs-htmx/usermgmt/oauth2/v4`                    | OAuth2/OIDC login incl. public PKCE clients — inject as `ServiceConfig.OAuth2`                                                                        |
-| [adminui](adminui/README.md)                       | `…/cqrs-htmx/adminui/v4`                            | Ready-made admin panel: users, tenants, members, audit log — role-gated write actions over a `*usermgmt.Service`                                       |
-| [dashboardui](dashboardui/README.md)               | `…/cqrs-htmx/dashboardui/v4`                         | Ready-made event-store observability: projection health, event catalog, live SSE, time-travel — read-only by default                                   |
-| [loginpage](loginpage/README.md)                   | `…/cqrs-htmx/loginpage/v4`                          | Ready-made passwordless login page (templ + Tailwind, CSP-nonce hooks)                                                                                |
-| [setup](setup/README.md)                           | `…/cqrs-htmx/setup/v4`                              | One-call composition root: stores + service + all three UIs + `/health` + middleware ordering + graceful `Run`                                         |
-| [datastar](datastar/README.md)                     | `…/cqrs-htmx/datastar/v4`                           | DataStar adapter: script serving, signal decoding, SSE builder — depends only on go-datastar + go-sse                                                  |
-| [health](health/README.md)                         | `…/cqrs-htmx/health/v4`                             | go-health bridge: liveness/readiness probes and a dashboard over projection health                                                                    |
-| [auditlog](auditlog/README.md)                     | `…/cqrs-htmx/auditlog/v4`                           | samber-do-auditlog bridge with a live SSE viewer — zero cqrs-htmx deps                                                                                |
-| [systemadapter](systemadapter/README.md)           | `…/cqrs-htmx/systemadapter/v4`                       | Bridge into go-cqrs-lite `system.New()` + metaengine auto-projections ([guide](docs/guides/leveraging-system-metaengine.md))                           |
+| Module                                     | Import path                           | What it gives you                                                                                                                                                            |
+| ------------------------------------------ | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **root**                                   | `github.com/larsartmann/cqrs-htmx/v4` | The `App` builder, `HandlerOption`s, middleware, context IDs, error→HTTP mapping, SSE + `transport/` surface, frontend sync, OpenAPI builder, EventCatalog, embedded htmx.js |
+| [identity-model](identity-model/README.md) | `…/cqrs-htmx/identity-model/v4`       | Pure domain types: branded IDs, 21 event payloads, 20 commands, fold functions, Casbin-backed Authz engine — zero IO                                                         |
+| [usermgmt](usermgmt/README.md)             | `…/cqrs-htmx/usermgmt/v4`             | Event-sourced identity `Service` (register/login/logout/me, roles, tenants, bots), `/auth/*` HTTP handlers, SQL + in-memory stores, session middleware                       |
+| [usermgmt/webauthn](usermgmt/README.md)    | `…/cqrs-htmx/usermgmt/webauthn/v4`    | WebAuthn passkeys — inject as `ServiceConfig.WebAuthn`                                                                                                                       |
+| [usermgmt/totp](usermgmt/README.md)        | `…/cqrs-htmx/usermgmt/totp/v4`        | TOTP MFA — inject as `ServiceConfig.TOTP`                                                                                                                                    |
+| [usermgmt/oauth2](usermgmt/README.md)      | `…/cqrs-htmx/usermgmt/oauth2/v4`      | OAuth2/OIDC login incl. public PKCE clients — inject as `ServiceConfig.OAuth2`                                                                                               |
+| [adminui](adminui/README.md)               | `…/cqrs-htmx/adminui/v4`              | Ready-made admin panel: users, tenants, members, audit log — role-gated write actions over a `*usermgmt.Service`                                                             |
+| [dashboardui](dashboardui/README.md)       | `…/cqrs-htmx/dashboardui/v4`          | Ready-made event-store observability: projection health, event catalog, live SSE, time-travel — read-only by default                                                         |
+| [loginpage](loginpage/README.md)           | `…/cqrs-htmx/loginpage/v4`            | Ready-made passwordless login page (templ + Tailwind, CSP-nonce hooks)                                                                                                       |
+| [setup](setup/README.md)                   | `…/cqrs-htmx/setup/v4`                | One-call composition root: stores + service + all three UIs + `/health` + middleware ordering + graceful `Run`                                                               |
+| [datastar](datastar/README.md)             | `…/cqrs-htmx/datastar/v4`             | DataStar adapter: script serving, signal decoding, SSE builder — depends only on go-datastar + go-sse                                                                        |
+| [health](health/README.md)                 | `…/cqrs-htmx/health/v4`               | go-health bridge: liveness/readiness probes and a dashboard over projection health                                                                                           |
+| [auditlog](auditlog/README.md)             | `…/cqrs-htmx/auditlog/v4`             | samber-do-auditlog bridge with a live SSE viewer — zero cqrs-htmx deps                                                                                                       |
+| [systemadapter](systemadapter/README.md)   | `…/cqrs-htmx/systemadapter/v4`        | Bridge into go-cqrs-lite `system.New()` + metaengine auto-projections ([guide](docs/guides/leveraging-system-metaengine.md))                                                 |
 
 Dependency direction is strict: identity-model is the pure domain source of truth; usermgmt re-exports it; the root module never imports usermgmt; UI modules sit on top; nothing depends on the UI/setup/bridge modules.
 
@@ -344,7 +344,7 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 
 ```html
 <div hx-ext="sse" sse-connect="/events" sse-swap="itemCreated">
-    <!-- content swapped here -->
+	<!-- content swapped here -->
 </div>
 ```
 
@@ -359,13 +359,13 @@ WebSocket transport was removed in v5 (ADR 0046) — SSE covers the same use cas
 
 CQRS error families map to HTTP status codes through one function — your domain layer classifies errors once, every transport gets correct statuses:
 
-| CQRS family    | HTTP status             |
-| -------------- | ----------------------- |
-| Rejection      | 400 Bad Request         |
-| Conflict       | 409 Conflict            |
+| CQRS family    | HTTP status               |
+| -------------- | ------------------------- |
+| Rejection      | 400 Bad Request           |
+| Conflict       | 409 Conflict              |
 | Corruption     | 500 Internal Server Error |
-| Transient      | 503 Service Unavailable |
-| Infrastructure | 503 Service Unavailable |
+| Transient      | 503 Service Unavailable   |
+| Infrastructure | 503 Service Unavailable   |
 
 Auth sentinels: `ErrUnauthorized` → 401, `ErrForbidden` → 403, `ErrValidation` → 400, `ErrMethodNotAllowed` → 405, `ErrRequestTooLarge` → 413.
 
@@ -381,11 +381,11 @@ Plug in the response format you want via `Config.ErrorHandler`:
 
 Three UI panels ship as independent modules. They answer different questions, so most apps mount several:
 
-| Module                                 | Question it answers            | Write ops            | Wired to                              |
-| -------------------------------------- | ------------------------------ | -------------------- | ------------------------------------- |
-| [adminui](adminui/README.md)           | "Who uses my app?"             | Yes (role-gated)     | `*usermgmt.Service`                   |
-| [dashboardui](dashboardui/README.md)   | "How is my event store doing?" | Read-only by default | go-cqrs-lite introspection interfaces |
-| [loginpage](loginpage/README.md)       | "How do users sign in?"        | No (auth UX)         | `*usermgmt.Service`                   |
+| Module                               | Question it answers            | Write ops            | Wired to                              |
+| ------------------------------------ | ------------------------------ | -------------------- | ------------------------------------- |
+| [adminui](adminui/README.md)         | "Who uses my app?"             | Yes (role-gated)     | `*usermgmt.Service`                   |
+| [dashboardui](dashboardui/README.md) | "How is my event store doing?" | Read-only by default | go-cqrs-lite introspection interfaces |
+| [loginpage](loginpage/README.md)     | "How do users sign in?"        | No (auth UX)         | `*usermgmt.Service`                   |
 
 adminui = identity operations (users, tenants, members, audit log); dashboardui = event-store observability (journal, aggregates, projections, DLQ, snapshots). They are complementary, not alternatives.
 
@@ -405,14 +405,14 @@ if err := bundle.Run(context.Background(), ":8080"); err != nil {
 }
 ```
 
-| Route          | Panel          | Access                       |
-| -------------- | -------------- | ---------------------------- |
-| `/auth/*`      | Auth API       | mixed (ceremonies gated, see [ADR-0055](docs/adr/0055-owner-session-gated-credential-ceremonies.md)) |
-| `/admin/*`     | Admin panel    | session + CSRF (401 without) |
-| `/dashboard/*` | ES dashboard   | session-gated (401 without)  |
-| `/sse`         | Shared SSE     | session-gated (opt-in)       |
-| `/health`      | Readiness      | public (503 while draining)  |
-| `/`            | Login page     | public                       |
+| Route          | Panel        | Access                                                                                               |
+| -------------- | ------------ | ---------------------------------------------------------------------------------------------------- |
+| `/auth/*`      | Auth API     | mixed (ceremonies gated, see [ADR-0055](docs/adr/0055-owner-session-gated-credential-ceremonies.md)) |
+| `/admin/*`     | Admin panel  | session + CSRF (401 without)                                                                         |
+| `/dashboard/*` | ES dashboard | session-gated (401 without)                                                                          |
+| `/sse`         | Shared SSE   | session-gated (opt-in)                                                                               |
+| `/health`      | Readiness    | public (503 while draining)                                                                          |
+| `/`            | Login page   | public                                                                                               |
 
 Adopt your own `*usermgmt.Service` (`Config.Service`), override the full `ServiceConfig`, or stay with the flattened convenience fields — the full config surface is in [setup/README.md](setup/README.md).
 
@@ -420,21 +420,21 @@ Adopt your own `*usermgmt.Service` (`Config.Service`), override the full `Servic
 
 Runnable, tested programs in [`examples/`](examples/):
 
-| Example                                                                       | Shows                                                                                      |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`basic`](examples/basic/README.md)                                           | Minimal CQRS + HTMX + SSE app with actor metadata and typed endpoints                      |
-| [`setup-demo`](examples/setup-demo/README.md)                                 | The one-call full stack (`setup.New` → `bundle.Run`)                                        |
-| [`admin-demo`](examples/admin-demo/)                                          | Admin panel showcase with all identity operations                                          |
-| [`dashboard-demo`](examples/dashboard-demo/)                                  | Event-store observability dashboard                                                        |
-| [`sync-demo`](examples/sync-demo/README.md)                                   | Offline sync protocol end-to-end (pull, batched push, offline reads, OpenAPI)              |
-| [`datastar-demo`](examples/datastar-demo/README.md)                           | Real-time todo app via the DataStar adapter (SSE + signals)                                |
-| [`middleware-demo`](examples/middleware-demo/README.md)                       | Dispatch middleware composition (retry, circuit breaker, metrics, tracing)                  |
-| [`middleware-showcase`](examples/middleware-showcase/)                        | All httputil HTTP middleware composed into one validated stack                             |
-| [`observability-demo`](examples/observability-demo/README.md)                 | OTel tracing + Prometheus metrics proofs                                                   |
-| [`async-startup-demo`](examples/async-startup-demo/README.md)                 | Zero-downtime restarts: bind HTTP while projections replay                                 |
-| [`samber-do-demo`](examples/samber-do-demo/README.md)                         | samber/do v2 dependency injection best practice                                            |
-| [`system-demo`](examples/system-demo/)                                        | go-cqrs-lite `system.New` integration via systemadapter                                    |
-| [`catalog-demo`](examples/catalog-demo/README.md)                             | Catalog doc-server example                                                                  |
+| Example                                                       | Shows                                                                         |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [`basic`](examples/basic/README.md)                           | Minimal CQRS + HTMX + SSE app with actor metadata and typed endpoints         |
+| [`setup-demo`](examples/setup-demo/README.md)                 | The one-call full stack (`setup.New` → `bundle.Run`)                          |
+| [`admin-demo`](examples/admin-demo/)                          | Admin panel showcase with all identity operations                             |
+| [`dashboard-demo`](examples/dashboard-demo/)                  | Event-store observability dashboard                                           |
+| [`sync-demo`](examples/sync-demo/README.md)                   | Offline sync protocol end-to-end (pull, batched push, offline reads, OpenAPI) |
+| [`datastar-demo`](examples/datastar-demo/README.md)           | Real-time todo app via the DataStar adapter (SSE + signals)                   |
+| [`middleware-demo`](examples/middleware-demo/README.md)       | Dispatch middleware composition (retry, circuit breaker, metrics, tracing)    |
+| [`middleware-showcase`](examples/middleware-showcase/)        | All httputil HTTP middleware composed into one validated stack                |
+| [`observability-demo`](examples/observability-demo/README.md) | OTel tracing + Prometheus metrics proofs                                      |
+| [`async-startup-demo`](examples/async-startup-demo/README.md) | Zero-downtime restarts: bind HTTP while projections replay                    |
+| [`samber-do-demo`](examples/samber-do-demo/README.md)         | samber/do v2 dependency injection best practice                               |
+| [`system-demo`](examples/system-demo/)                        | go-cqrs-lite `system.New` integration via systemadapter                       |
+| [`catalog-demo`](examples/catalog-demo/README.md)             | Catalog doc-server example                                                    |
 
 Each runs with `go run .` from its directory and opens on a documented port.
 
@@ -478,6 +478,7 @@ Each runs with `go run .` from its directory and opens on a documented port.
 **Reference**
 
 - [Event Catalog Guide](docs/guides/event-catalog-guide.md) — publishing your event schemas
+- [Hybrid templ-components Adoption](docs/guides/hybrid-templ-components-adoption.md) — mixing library UI components with hand-written templ
 - [ADR index](docs/adr/INDEX.md) — the _why_ behind each design decision
 - API reference: [pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 
