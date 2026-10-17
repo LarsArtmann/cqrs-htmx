@@ -12,7 +12,7 @@ cqrs-htmx already leans heavily on go-cqrs-lite for the event-sourced core (`eve
 
 | go-cqrs-lite module              | Status in cqrs-htmx                              | How to leverage                                                                                                  |
 | -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `middleware` (27 factories)      | 🟡 **Undocumented, fully usable**                | `dispatcher.Use(middleware.CommandRetry(...))` — see [§1](#1-dispatch-middleware--the-1-undocumented-capability) |
+| `middleware` (every factory)    | 🟡 **Undocumented, fully usable**                | `dispatcher.Use(middleware.CommandRetry(...))` — see [§1](#1-dispatch-middleware--the-1-undocumented-capability) |
 | `otel` + `prometheus`            | 🟡 **Hooks exist, OTel/Prom wiring is on you**   | [§2](#2-opentelemetry--prometheus)                                                                               |
 | `scheduling` (durable timers)    | 🔴 **Not used**                                  | [§3](#3-durable-deadline-scheduling)                                                                             |
 | `signing` / `encryption`         | 🟢 **Exposed** via `ServiceConfig` hooks         | [§4](#4-event-signing--encryption)                                                                               |

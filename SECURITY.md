@@ -143,3 +143,9 @@ Baseline practices every consumer deployment should apply.
 | golang.org/x/time/rate | Rate limiting   | Low (Go x/ repo)           |
 
 Run `govulncheck ./...` regularly to detect known vulnerabilities in dependencies.
+
+## Reporting a Vulnerability
+
+Report privately via GitHub security advisories:
+<https://github.com/LarsArtmann/cqrs-htmx/security/advisories/new>.
+Please do not open public issues for suspected vulnerabilities.
