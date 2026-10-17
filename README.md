@@ -59,7 +59,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 **Identity & access**
 
 - **Event-sourced user management** — the [`usermgmt`](usermgmt/README.md) module: register/login/logout/me, sessions, roles, tenants, bots, account lockout, audit log; SQL stores for SQLite, Postgres, and MySQL
-- **Passwordless auth** — WebAuthn/passkeys by default; [TOTP MFA](usermgmt/totp/README.md) and [OAuth2/OIDC](usermgmt/oauth2/README.md) as independent sub-modules (import only what you need — zero auth deps in core)
+- **Passwordless auth** — WebAuthn/passkeys by default; [TOTP MFA](usermgmt/totp/) and [OAuth2/OIDC](usermgmt/oauth2/) as independent sub-modules (import only what you need — zero auth deps in core)
 - **Casbin authorization** — `Authorize(resource, action)` gates dispatch; domain/tenant-aware RBAC with a projection that derives policies from identity events
 - **Actor + audit chain built-in** — every event carries who acted (user/bot/system), impersonation chains, and correlation/request IDs, auto-derived from the HTTP session ([guide](docs/guides/actor-and-audit-trail.md))
 
@@ -136,7 +136,7 @@ type itemStore struct {
 func (s *itemStore) add(name string) item {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	it := item{ID: id.NewStreamID().String(), Name: name}
+	it := item{ID: id.NewStreamID().Get(), Name: name}
 	s.items = append(s.items, it)
 	return it
 }
