@@ -93,6 +93,7 @@ GOMOD
 # the fence must compile the way a consumer's module would.
 export GOWORK=off
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/../lib/go-cache-env.sh" >/dev/null 2>&1 || true
 
 build_log="$TMP/build.log"

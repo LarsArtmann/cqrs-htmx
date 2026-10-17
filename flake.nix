@@ -1156,6 +1156,8 @@
                     bash scripts/checks/check-docs-freshness.sh
                     bash scripts/selftests/test-check-docs-freshness.sh
                     bash scripts/checks/check-docs-links.sh
+                    bash scripts/checks/check-readme-quickstart.sh
+                    bash scripts/selftests/test-check-readme-quickstart.sh
                     bash scripts/checks/check-status-annotations.sh
                     bash scripts/selftests/test-check-status-annotations.sh
                     python3 scripts/checks/check-status-rows.py
@@ -1201,6 +1203,25 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-docs-links.sh
+                  '';
+                }
+              );
+            };
+
+            check-readme-quickstart = {
+              type = "app";
+              meta.description = "Compile the README quick-start fence in a throwaway consumer module (GOWORK=off, real module graph — the README-lies class dies here)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-readme-quickstart";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    export GOTOOLCHAIN=local
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-readme-quickstart.sh
                   '';
                 }
               );

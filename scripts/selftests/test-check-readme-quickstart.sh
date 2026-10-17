@@ -43,7 +43,11 @@ EOF
 
 mkreadme() { # mkreadme <dir> <body...>
   mkdir -p "$1"
-  { printf '# Fixture\n\n## Quick start\n\n'; cat; printf '\n## After\n'; } >"$1/README.md"
+  {
+    printf '# Fixture\n\n## Quick start\n\n'
+    cat
+    printf '\n## After\n'
+  } >"$1/README.md"
 }
 
 run_gate() { # run_gate <readme> -> sets out/rc
