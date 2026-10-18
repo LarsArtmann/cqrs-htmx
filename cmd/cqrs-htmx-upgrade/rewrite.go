@@ -380,11 +380,11 @@ func dropEditForSpec(
 	}
 
 	if imp.Name != nil && (imp.Name.Name == "_" || imp.Name.Name == ".") {
-		return textEdit{}, false
+		return textEdit{offset: 0, end: 0, newText: ""}, false
 	}
 
 	if remainingRefs[local] != 0 || !sourcePackages[qualToPath[local]] {
-		return textEdit{}, false
+		return textEdit{offset: 0, end: 0, newText: ""}, false
 	}
 
 	off := fset.Position(imp.Pos()).Offset
