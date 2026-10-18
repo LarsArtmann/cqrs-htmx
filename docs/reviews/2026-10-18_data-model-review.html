@@ -1095,14 +1095,17 @@
           <div class="where">transport/event_sse.go:41 vs sync_pull.go:306</div>
           <p>
             The SSE envelope (<code>EventPayload</code>) emits
-            <code>evt.StreamID().String()</code> (display form, golden-pinned, adjudicated
-            legitimate by the gotcha-25 rule); the sync pull emits
-            <code>evt.StreamID().Get()</code> (bare form). Today both produce identical
-            bytes; under the in-flight StreamMarker branding train they diverge &mdash; two
-            JS surfaces, one stream, two spellings. Not actionable now (identical bytes in
-            both worlds); when the StreamMarker train lands, either unify both on
-            <code>.Get()</code> (breaking the pinned goldens deliberately, once) or document
-            the two-form rule in the sync guide.
+            <code>evt.StreamID().String()</code> (display form, adjudicated legitimate by
+            the gotcha-25 rule; the dashboardui goldens were regenerated to carry the
+            branded form 2026-10-06); the sync pull emits
+            <code>evt.StreamID().Get()</code> (bare form). Under the workspace's local
+            go-cqrs-lite replaces the branding is already live
+            (<code>ParseUserID</code> documents the <code>"StreamMarker:"</code> prefix),
+            so in workspace mode the two JS surfaces already spell one stream two ways;
+            against published tags the bytes are still identical, so nothing
+            consumer-visible ships until the id-module change publishes. When it does:
+            either unify both on <code>.Get()</code> (breaking the pinned goldens
+            deliberately, once) or document the two-form rule in the sync guide.
           </p>
         </div>
 
@@ -1126,7 +1129,7 @@
             <tr><td>N2</td><td><span class="badge badge-low">Low</span></td><td>SyncEvent payload exclusive-or</td><td>new</td><td><span class="badge badge-low">Ride next root train</span></td></tr>
             <tr><td>N3</td><td><span class="badge badge-low">Low</span></td><td>Half-branded wire constants</td><td>new</td><td><span class="badge badge-low">Ride next root train</span></td></tr>
             <tr><td>N4</td><td><span class="badge badge-low">Low</span></td><td>Family raw string on wire</td><td>new</td><td><span class="badge badge-low">Optional polish</span></td></tr>
-            <tr><td>N5</td><td><span class="badge badge-low">Low</span></td><td>streamId form divergence (SSE vs sync)</td><td>new</td><td><span class="badge badge-low">Watch: StreamMarker train</span></td></tr>
+            <tr><td>N5</td><td><span class="badge badge-low">Low</span></td><td>streamId form divergence (SSE vs sync)</td><td>new</td><td><span class="badge badge-low">Watch: id-module publish</span></td></tr>
           </tbody>
         </table>
 
@@ -1242,7 +1245,7 @@
             </tr>
             <tr>
               <td>Watch N5 instead of acting</td>
-              <td>Both forms produce identical bytes today; the divergence only exists under the unbuilt StreamMarker train.</td>
+              <td>Identical bytes against published tags; under workspace replaces the branded display form is already live, so the split is visible in workspace mode only. Adjudicate when the id-module change publishes.</td>
               <td>Unifying on <code>.Get()</code> now &mdash; breaks golden-pinned envelope bytes for a hypothetical.</td>
             </tr>
           </tbody>
@@ -1260,9 +1263,9 @@
             <strong>Do not validate what you cannot reject.</strong> If a future consumer
             decodes <code>SyncEvent</code> strictly, both-set payloads must be an error,
             not a best-effort merge. &mdash;
-            <strong>Do not "fix" N5 early.</strong> The goldens pin the SSE envelope bytes;
-            touching <code>.String()</code> before the StreamMarker train exists buys a
-            broken golden and nothing else.
+            <strong>Do not "fix" N5 early.</strong> The goldens pin the SSE envelope bytes
+            (to the branded display form, since 2026-10-06); touching <code>.String()</code>
+            before the id-module branding publishes buys a broken golden and nothing else.
           </p>
         </div>
 
@@ -1291,7 +1294,7 @@
         <div class="migration-step">
           <div class="migration-num">4</div>
           <div class="migration-content">
-            <h4>At the StreamMarker train: adjudicate N5 once</h4>
+            <h4>At the id-module branding publish: adjudicate N5 once</h4>
             <p>Unify both wire surfaces on <code>.Get()</code> (regenerate the two dashboardui page goldens deliberately, line-diffed) or write the two-form rule into <code>docs/guides/frontend-sync.md</code>.</p>
           </div>
         </div>

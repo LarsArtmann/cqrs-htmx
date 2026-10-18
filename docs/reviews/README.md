@@ -20,4 +20,4 @@ If a specific review makes a claim that is actively dangerous if believed today 
 
 ## File count
 
-23 files. Most concentrated in 2026-05 and 2026-06 when the codebase was actively stabilizing pre-v4 release.
+27 HTML review files (+ 2 markdown companions). Concentrated in 2026-05/06 (pre-v4 stabilization) with recurring data-model/architecture series episodes since.
