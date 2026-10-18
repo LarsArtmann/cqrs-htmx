@@ -1,13 +1,9 @@
-// Package datastar provides a DataStar adapter for cqrs-htmx applications.
-//
-// This module wraps [go-datastar] and [go-sse] to provide:
-//   - Broadcaster: fan-out SSE patches using sse.Broadcaster[sse.Event]
-//   - EventBridge: declarative CQRS event → Patch mapping
-//   - Re-exports of common go-datastar types for single-import convenience
-//
 // Patches are first-class values implementing [godatastar.Patch] (Event() sse.Event).
 // This means they can be stored, filtered, replayed, and broadcast using go-sse's
 // Broadcaster, EventStore, SubscribeFilter, and Shutdown infrastructure.
+//
+// (Package doc continues in doc.go — the Broadcaster itself moved upstream to
+// go-datastar/broadcast; this module keeps only deprecated aliases.)
 //
 // [go-datastar]: https://github.com/LarsArtmann/go-datastar
 // [go-sse]: https://github.com/LarsArtmann/go-sse

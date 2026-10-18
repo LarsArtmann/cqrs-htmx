@@ -57,7 +57,13 @@ func (u *User) HasCredential(credID []byte) bool {
 }
 
 // MarshalJSON serializes the user with a credential_count field.
+// A nil user marshals to null (mirrors encoding/json's nil-pointer rule —
+// without this, len(u.Credentials) nil-derefs).
 func (u *User) MarshalJSON() ([]byte, error) {
+	if u == nil {
+		return []byte("null"), nil
+	}
+
 	type Alias User
 	return marshalJSONOrWrap(&struct {
 		*Alias

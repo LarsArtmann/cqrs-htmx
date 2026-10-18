@@ -176,7 +176,7 @@ func FoldUser(
 			return state, err
 		}
 		next.TOTPEnabled = true
-		next.TOTPSecret = p.Secret
+		next.TOTPSecret = slices.Clone(p.Secret)
 
 	case EventTOTPDisabled:
 		next.TOTPEnabled = false
@@ -282,6 +282,11 @@ func FoldTenant(
 		next.DisplayName = p.DisplayName
 		next.Suspended = false
 		next.Deleted = false
+		// Clear tombstone/suspension reasons too: a recreated tenant must not
+		// inherit the previous incarnation's reasons (FoldUser resets the
+		// whole state; TenantState.IsValid would reject the stale reasons).
+		next.SuspendReason = ""
+		next.DeleteReason = ""
 
 	case EventTenantSuspended:
 		p, err := UnmarshalPayload[TenantSuspendedPayload](evt)
@@ -332,7 +337,7 @@ func FoldBot(
 		scopes := slices.Clone(p.Scopes)
 		next.Name = p.Name
 		next.OwnerID = p.OwnerID
-		next.TokenHash = p.TokenHash
+		next.TokenHash = slices.Clone(p.TokenHash)
 		next.Scopes = scopes
 		next.Deleted = false
 

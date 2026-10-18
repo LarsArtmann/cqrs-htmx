@@ -1,0 +1,1353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+    <div class="top-bar">
+      <span>DATA MODEL REVIEW &middot; EPISODE 3</span>
+      <span>2026-10-18</span>
+      <span>cqrs-htmx &middot; identity-model v4 + ADR-0056 sync surface</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">00 Summary</a>
+          <a href="#series">01 Series Context</a>
+          <a href="#catalog">02 Problem Catalog</a>
+          <a href="#model">03 Go Data Model</a>
+          <a href="#composition">04 Composition in Action</a>
+          <a href="#validation">05 Validation Layer</a>
+          <a href="#decisions">06 Decision Log</a>
+          <a href="#antipatterns">07 Anti-Patterns</a>
+          <a href="#roadmap">08 Migration Roadmap</a>
+          <a href="#conclusion">09 Conclusion</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Data Model Review &middot; Architecture Deep-Dive</div>
+          <h1>identity-model &amp; the ADR-0056 Sync Wire</h1>
+          <p class="hero-subtitle">
+            Episode 3 of the series: re-verifying the exemplary domain core, auditing the
+            new frontend-sync data model, and closing the loop on episode 2's findings.
+            Are impossible states unrepresentable &mdash; on the wire as well as in the domain?
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#series">Series Context</a></li>
+            <li><a href="#catalog">Problem Catalog</a></li>
+            <li><a href="#model">Go Data Model</a></li>
+            <li><a href="#composition">Composition in Action</a></li>
+            <li><a href="#validation">Validation Layer</a></li>
+            <li><a href="#decisions">Decision Log</a></li>
+            <li><a href="#antipatterns">Anti-Patterns</a></li>
+            <li><a href="#roadmap">Migration Roadmap</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">85</div>
+            <div class="stat-label">identity-model types (28 files)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Critical / High findings</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">9</div>
+            <div class="stat-label">Low findings (4 carried, 5 new)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Hazard resolved since ep. 2 (ActorID)</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Verdict: still exemplary (4.5/5) &mdash; the sync wire is honest, with two coherence gaps</h4>
+          <p>
+            The domain core re-verified clean: branded IDs, constructor-enforced validation,
+            closed unions, zero pointer-as-state (swept across identity-model, usermgmt read
+            models, sync, transport, setup, systemadapter &mdash; one <code>*string</code> in
+            setup path normalization, which is iteration, not state). Episode 2's four Low
+            findings are all still present and all still correctly triaged as no-action
+            (external protocol mirrors). The new ADR-0056 sync surface follows the right
+            pattern &mdash; <em>opaque at the JSON boundary, typed at the parse boundary</em>
+            (cursor validated via <code>id.ParseEventID</code>, encoding honestly degraded to
+            <code>opaque</code>) &mdash; but its two DTO unions (status/error,
+            payload/payloadB64) are enforced by producer convention only, and its vocabulary
+            constants are half-branded.
+          </p>
+        </div>
+
+        <h2 id="series"><span class="num">01</span>Series Context</h2>
+        <p>
+          This is episode 3 of a continuing series:
+          <a href="2026-07-19_05-03_data-model-review.html">episode 1 (2026-07-19)</a>
+          catalogued the model and recommended the closed-union pattern (now visible in
+          <code>SessionOrigin</code>, <code>authMode</code>);
+          <a href="2026-08-05_data-model-review.html">episode 2 (2026-08-05)</a> scored
+          identity-model 4.5/5 with four Low findings and the verdict "no action required on
+          the domain core." Since then three things changed: the ActorID consolidation
+          (ADR-0111) removed episode-era hazards, the frontend sync protocol (ADR-0056)
+          added the largest new wire surface since the SSE envelope, and the StreamID
+          display-form rule (gotcha 25) made wire-form choices load-bearing. This episode
+          audits exactly those deltas.
+        </p>
+
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>ActorID consolidation (ADR-0111) &mdash; hazard resolved</strong>
+              <span>
+                <code>NewActorID(string)</code> (which accepted anything, including a
+                display-form <code>"StreamMarker:&hellip;"</code> string) is gone. Today:
+                five kinds (User/Bot/System/Service/Unknown) via
+                <code>NewActorID(kind, raw)</code>, strict <code>ParseActorID("kind:raw")</code>
+                returning an error, unexported fields. The closed union got tighter while
+                gaining expressiveness.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Cursor: opaque on the wire, typed at the parse boundary</strong>
+              <span>
+                <code>?after=</code> is a bare string in the URL, but the server re-parses it
+                with <code>id.ParseEventID</code> (ULID-validated) and rejects garbage with a
+                400 (<code>sync_pull.go:225</code>). This is exactly the right division: the
+                wire stays stringly for JS, the Go boundary stays typed.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Honest encoding degradation</strong>
+              <span>
+                When an event's stamp promises JSON but its bytes are not valid JSON (the
+                metadata-only <code>WithEncoding</code> trap), the pull reports
+                <code>payloadEncoding: "opaque"</code> and base64-carries the bytes instead of
+                promising a framing the bytes cannot keep. The wire never lies.
+              </span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Error model (P12) solved at the source</strong>
+              <span>
+                identity-model's sentinels are <code>errorfamily</code>-constructed
+                (<code>NewRejection</code>/<code>NewConflict</code>) with stable codes and no
+                HTTP dependency &mdash; consumers get <code>errors.Is</code> plus a typed
+                retry contract across module boundaries.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="catalog"><span class="num">02</span>Problem Catalog</h2>
+        <p>
+          All nine findings are Low. None blocks a release train. Four are carried open
+          from episode 2 (re-verified this episode at the exact same lines); five are new,
+          all on the ADR-0056 sync surface.
+        </p>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; Carried</span>
+          <h3>L1 &mdash; ExternalAccountCore.Provider is plain string</h3>
+          <div class="where">identity-model/external_account.go:8</div>
+          <p>
+            The OAuth2 provider name ("google", "github", &hellip;) is untyped. Episode 2
+            recommended a typed enum <em>or</em> accepting an open consumer-defined set; the
+            second reading won by inaction, and it remains defensible &mdash; providers are
+            consumer-configured, so a closed enum would be wrong. What would still help:
+            a <code>Valid()</code>-style normalization helper at the linking boundary.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; Carried</span>
+          <h3>L2 &mdash; Session.Token is plain string</h3>
+          <div class="where">identity-model/session.go:15</div>
+          <p>
+            A security primitive as a raw field. Mitigations remain: constant-time
+            comparison (<code>TokenMatches</code>, <code>subtle.ConstantTimeCompare</code>),
+            generated-not-parsed lifecycle. Branding (<code>type SessionToken string</code>)
+            is still the cheap hardening if the field ever grows a second stringly sibling.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; Carried</span>
+          <h3>L3 / L4 &mdash; CredentialCore.AttestationType string, Transports []string</h3>
+          <div class="where">identity-model/credential.go:10-11</div>
+          <p>
+            WebAuthn protocol mirrors; the real validation lives in usermgmt/webauthn.
+            Carried open, unchanged, still no-action. Defensive copying on construct/clone
+            (<code>append([]string(nil), &hellip;)</code>) is correctly done.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; New</span>
+          <h3>N1 &mdash; SyncPushResult status/error union enforced by convention only</h3>
+          <div class="where">sync_push.go:57-62</div>
+          <p>
+            <code>confirmed</code> should imply <code>Error == nil</code> and
+            <code>rejected</code> should imply a non-nil <code>Error</code> &mdash; but both
+            incoherent combinations are representable, and nothing validates them on parse.
+            Today the only producer is the library itself (safe by construction:
+            <code>dispatchSyncPushEnvelope</code> / <code>rejectedSyncPushResult</code>), so
+            this is a consumer-parsing hardening item, not a live bug.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Typed status + a coherence-checking <code>UnmarshalJSON</code> (see &sect;03).
+            Wire bytes unchanged.
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; New</span>
+          <h3>N2 &mdash; SyncEvent Payload/PayloadB64 exclusive-or by convention only</h3>
+          <div class="where">sync_pull.go:31-52</div>
+          <p>
+            "Exactly one of Payload/PayloadB64 is set" is a comment, not a type.
+            <code>newSyncEvent</code> honors it by construction (both clear paths return
+            immediately), and encoding-honesty is even degraded correctly &mdash; but a Go
+            consumer decoding a response can represent both-set and neither-set. Same class
+            as N1, same fix shape.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; New</span>
+          <h3>N3 &mdash; Half-branded wire vocabulary</h3>
+          <div class="where">sync_pull.go:321,328 &middot; sync_push.go:27-30</div>
+          <p>
+            <code>SyncPayloadEncodingOpaque</code> is a named constant, but its sibling
+            value <code>"json"</code> appears as bare literals at the two comparison sites,
+            and <code>SyncPushStatusConfirmed/Rejected</code> are untyped string constants.
+            A typo in any literal compiles fine and silently breaks protocol semantics.
+            Typed constants cost nothing and change zero wire bytes.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; New</span>
+          <h3>N4 &mdash; SyncPushError.Family re-encodes a typed concept as raw string</h3>
+          <div class="where">sync_push.go:48-52</div>
+          <p>
+            The field is the client's retry contract ("rejection"/"conflict" permanent,
+            "transient" retry, "corruption"/"infrastructure" drop-and-log) &mdash; a
+            faithful re-encoding of <code>errorfamily.Family</code>, which exists, is
+            typed, and is already a dependency of this very file. The server converts via
+            <code>family.String()</code> (with an unknown&rarr;Rejection fallback). For the
+            JS client a string is right; for Go consumers parsing responses, a typed
+            mirror with <code>Valid()</code> would carry the documented contract into the
+            type system.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Low &middot; Watch</span>
+          <h3>N5 &mdash; Two client-facing wire surfaces disagree on streamId form</h3>
+          <div class="where">transport/event_sse.go:41 vs sync_pull.go:306</div>
+          <p>
+            The SSE envelope (<code>EventPayload</code>) emits
+            <code>evt.StreamID().String()</code> (display form, golden-pinned, adjudicated
+            legitimate by the gotcha-25 rule); the sync pull emits
+            <code>evt.StreamID().Get()</code> (bare form). Today both produce identical
+            bytes; under the in-flight StreamMarker branding train they diverge &mdash; two
+            JS surfaces, one stream, two spellings. Not actionable now (identical bytes in
+            both worlds); when the StreamMarker train lands, either unify both on
+            <code>.Get()</code> (breaking the pinned goldens deliberately, once) or document
+            the two-form rule in the sync guide.
+          </p>
+        </div>
+
+        <h2>Issue Table</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Severity</th>
+              <th>Finding</th>
+              <th>Episode</th>
+              <th>Disposition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>L1</td><td><span class="badge badge-low">Low</span></td><td>Provider plain string</td><td>2 &rarr; 3</td><td><span class="badge badge-low">Open (accepted)</span></td></tr>
+            <tr><td>L2</td><td><span class="badge badge-low">Low</span></td><td>Session.Token plain string</td><td>2 &rarr; 3</td><td><span class="badge badge-low">Open (accepted)</span></td></tr>
+            <tr><td>L3</td><td><span class="badge badge-low">Low</span></td><td>AttestationType plain string</td><td>2 &rarr; 3</td><td><span class="badge badge-low">Open (accepted)</span></td></tr>
+            <tr><td>L4</td><td><span class="badge badge-low">Low</span></td><td>Transports []string</td><td>2 &rarr; 3</td><td><span class="badge badge-low">Open (accepted)</span></td></tr>
+            <tr><td>N1</td><td><span class="badge badge-low">Low</span></td><td>SyncPushResult status/error coherence</td><td>new</td><td><span class="badge badge-low">Ride next root train</span></td></tr>
+            <tr><td>N2</td><td><span class="badge badge-low">Low</span></td><td>SyncEvent payload exclusive-or</td><td>new</td><td><span class="badge badge-low">Ride next root train</span></td></tr>
+            <tr><td>N3</td><td><span class="badge badge-low">Low</span></td><td>Half-branded wire constants</td><td>new</td><td><span class="badge badge-low">Ride next root train</span></td></tr>
+            <tr><td>N4</td><td><span class="badge badge-low">Low</span></td><td>Family raw string on wire</td><td>new</td><td><span class="badge badge-low">Optional polish</span></td></tr>
+            <tr><td>N5</td><td><span class="badge badge-low">Low</span></td><td>streamId form divergence (SSE vs sync)</td><td>new</td><td><span class="badge badge-low">Watch: StreamMarker train</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="model"><span class="num">03</span>Go Data Model</h2>
+        <p>
+          The redesign for N1&ndash;N3 is deliberately small: brand the vocabulary, enforce
+          the two unions at the parse boundary. Nothing here changes a single wire byte.
+        </p>
+        <pre><code><span class="tok-comment">// N3: brand the wire vocabulary (wire bytes identical &mdash; a typed string</span>
+<span class="tok-comment">// marshals to the same JSON as its untyped twin).</span>
+<span class="tok-keyword">type</span> <span class="tok-type">SyncPushStatus</span> <span class="tok-type">string</span>
+
+<span class="tok-keyword">const</span> (
+	<span class="tok-type">SyncPushStatusConfirmed</span> <span class="tok-type">SyncPushStatus</span> = <span class="tok-string">"confirmed"</span>
+	<span class="tok-keyword">SyncPushStatusRejected</span>  <span class="tok-type">SyncPushStatus</span> = <span class="tok-string">"rejected"</span>
+)
+
+<span class="tok-keyword">func</span> (s <span class="tok-type">SyncPushStatus</span>) <span class="tok-func">Valid</span>() <span class="tok-type">bool</span> {
+	<span class="tok-keyword">return</span> s == <span class="tok-type">SyncPushStatusConfirmed</span> || s == <span class="tok-type">SyncPushStatusRejected</span>
+}
+
+<span class="tok-comment">// N1: the union becomes unrepresentable-at-parse &mdash; a confirmed result</span>
+<span class="tok-comment">// carrying an error (or a rejected one without) fails decode.</span>
+<span class="tok-keyword">func</span> (r *<span class="tok-type">SyncPushResult</span>) <span class="tok-func">UnmarshalJSON</span>(data []<span class="tok-type">byte</span>) <span class="tok-type">error</span> {
+	<span class="tok-keyword">type</span> plain <span class="tok-type">SyncPushResult</span> <span class="tok-comment">// avoid recursion</span>
+	<span class="tok-keyword">var</span> p plain
+	<span class="tok-keyword">if</span> <span class="tok-builtin">err</span> := json.<span class="tok-func">Unmarshal</span>(data, &amp;p); <span class="tok-builtin">err</span> != <span class="tok-builtin">nil</span> {
+		<span class="tok-keyword">return</span> <span class="tok-builtin">err</span>
+	}
+	<span class="tok-keyword">if</span> !<span class="tok-type">SyncPushStatus</span>(p.Status).<span class="tok-func">Valid</span>() {
+		<span class="tok-keyword">return</span> event.<span class="tok-func">Newf</span>(<span class="tok-string">"cqrshtmx.sync.push.status_invalid"</span>, <span class="tok-string">"unknown sync push status %q"</span>, p.Status)
+	}
+	<span class="tok-keyword">if</span> (p.Status == <span class="tok-type">SyncPushStatusConfirmed</span>) != (p.Error == <span class="tok-builtin">nil</span>) {
+		<span class="tok-keyword">return</span> event.<span class="tok-func">Newf</span>(<span class="tok-string">"cqrshtmx.sync.push.result_incoherent"</span>, <span class="tok-string">"status %q contradicts error presence"</span>, p.Status)
+	}
+	*r = <span class="tok-type">SyncPushResult</span>(p)
+	<span class="tok-keyword">return</span> <span class="tok-builtin">nil</span>
+}</code></pre>
+        <p>
+          N2 gets the same treatment on <code>SyncEvent</code>: decode into a shadow
+          struct, reject <em>both-set</em> and <em>neither-set</em> payload fields, and
+          reject <code>PayloadEncoding == "json"</code> with an empty
+          <code>Payload</code>. The producer side is already safe by construction &mdash;
+          the parse side stops trusting the server.
+        </p>
+
+        <h2 id="composition"><span class="num">04</span>Composition in Action</h2>
+        <div class="compare-header">
+          <div class="compare-before">Before (today, sync_push.go)</div>
+          <div class="compare-after">After (N1 + N3)</div>
+        </div>
+        <div class="compare-row">
+          <div>
+            <pre><code><span class="tok-comment">// Untyped status; nil-ness is a</span>
+<span class="tok-comment">// convention readers must know.</span>
+<span class="tok-keyword">type</span> <span class="tok-type">SyncPushResult</span> <span class="tok-keyword">struct</span> {
+	CommandID <span class="tok-type">string</span>  <span class="tok-string">`json:"commandId"`</span>
+	Status    <span class="tok-type">string</span>  <span class="tok-string">`json:"status"`</span>
+	Error     *<span class="tok-type">SyncPushError</span> <span class="tok-string">`json:"error,omitempty"`</span>
+}
+<span class="tok-comment">// Status: "confirmed", Error: &amp;e &mdash; compiles.</span></code></pre>
+          </div>
+          <div>
+            <pre><code><span class="tok-comment">// Typed status; coherence checked</span>
+<span class="tok-comment">// at the only place it can break:</span>
+<span class="tok-comment">// the parse boundary.</span>
+<span class="tok-keyword">type</span> <span class="tok-type">SyncPushResult</span> <span class="tok-keyword">struct</span> {
+	CommandID <span class="tok-type">string</span>          <span class="tok-string">`json:"commandId"`</span>
+	Status    <span class="tok-type">SyncPushStatus</span>  <span class="tok-string">`json:"status"`</span>
+	Error     *<span class="tok-type">SyncPushError</span>   <span class="tok-string">`json:"error,omitempty"`</span>
+}
+<span class="tok-comment">// Incoherent decode &rarr; error, not a lie.</span></code></pre>
+          </div>
+        </div>
+
+        <h2 id="validation"><span class="num">05</span>Validation Layer</h2>
+        <p>
+          How invalid states are (or become) unrepresentable, layer by layer:
+        </p>
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Mechanism</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Domain values</td><td><code>ParseEmail</code>, <code>ParseUserID</code>, <code>ParseActorID</code>, <code>ParseEventID</code> &mdash; constructors validate, zero values unrepresentable or explicitly synthetic</td><td><span class="badge badge-fixed">Solved</span></td></tr>
+            <tr><td>Domain state</td><td><code>TenantState{Suspended bool, SuspendReason string}</code>, closed unions (<code>SessionOrigin</code>, kind-discriminated <code>ActorID</code>)</td><td><span class="badge badge-fixed">Solved</span></td></tr>
+            <tr><td>Wire in</td><td>Sync cursor <code>id.ParseEventID</code> (400 on garbage), push batch ceiling <code>MaxSyncPushBatch</code>, per-envelope size discipline</td><td><span class="badge badge-fixed">Solved</span></td></tr>
+            <tr><td>Wire out (producer)</td><td><code>newSyncEvent</code> / <code>rejectedSyncPushResult</code> construct by convention &mdash; safe today</td><td><span class="badge badge-fixed">Safe by construction</span></td></tr>
+            <tr><td>Wire in (consumer parse)</td><td>Status/error and payload exclusive-or coherence</td><td><span class="badge badge-low">Gap &mdash; N1/N2</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="decisions"><span class="num">06</span>Decision Log</h2>
+        <table>
+          <thead>
+            <tr><th>Decision</th><th>Rationale</th><th>Rejected alternative</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Keep wire DTO fields as strings</td>
+              <td>The primary sync client is JS; Go enums buy it nothing. Validation belongs at parse time, not in the field type.</td>
+              <td>Branded <code>StreamID</code>/<code>EventID</code> wire types &mdash; would force every Go consumer through constructors for data the server already validated.</td>
+            </tr>
+            <tr>
+              <td>Typed constants + <code>UnmarshalJSON</code> coherence</td>
+              <td>Zero wire-byte change, drift-proof literals, incoherent decode becomes an error. Rides a normal root train.</td>
+              <td>Full interface-union result types (<code>ConfirmedResult</code>/<code>RejectedResult</code>) &mdash; over-models a wire DTO whose only Go consumer is tests.</td>
+            </tr>
+            <tr>
+              <td>Carry L1&ndash;L4 as accepted</td>
+              <td>All four mirror external protocol vocabularies (OAuth2, WebAuthn) the domain does not own; the strategy modules validate.</td>
+              <td>Typing them now &mdash; churn in published identity-model for zero consumer-visible safety.</td>
+            </tr>
+            <tr>
+              <td>Watch N5 instead of acting</td>
+              <td>Both forms produce identical bytes today; the divergence only exists under the unbuilt StreamMarker train.</td>
+              <td>Unifying on <code>.Get()</code> now &mdash; breaks golden-pinned envelope bytes for a hypothetical.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="antipatterns"><span class="num">07</span>Anti-Patterns</h2>
+        <div class="card card-problem">
+          <h4>Traps to avoid when hardening the sync DTOs</h4>
+          <p>
+            <strong>Do not brand the wire strings themselves.</strong> The finding is about
+            the <em>vocabulary constants</em> and <em>parse-time coherence</em>, not the
+            field types. Replacing <code>StreamID string</code> with a branded type on a
+            wire DTO re-imports the domain into every client-side parse for no safety the
+            server has not already provided. &mdash;
+            <strong>Do not validate what you cannot reject.</strong> If a future consumer
+            decodes <code>SyncEvent</code> strictly, both-set payloads must be an error,
+            not a best-effort merge. &mdash;
+            <strong>Do not "fix" N5 early.</strong> The goldens pin the SSE envelope bytes;
+            touching <code>.String()</code> before the StreamMarker train exists buys a
+            broken golden and nothing else.
+          </p>
+        </div>
+
+        <h2 id="roadmap"><span class="num">08</span>Migration Roadmap</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Brand the sync vocabulary (N3) &mdash; rides the next root train</h4>
+            <p><code>type SyncPushStatus string</code> + constants; a <code>syncPayloadEncoding</code> internal enum replacing the bare <code>"json"</code> literals. Verify: existing sync tests byte-identical responses.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Coherence-checking decode (N1, N2)</h4>
+            <p><code>UnmarshalJSON</code> on <code>SyncPushResult</code> and <code>SyncEvent</code> with table-driven tests for the four incoherent shapes. Verify: golden response bytes unchanged; new decode tests red&rarr;green.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Optional: typed family mirror (N4)</h4>
+            <p><code>SyncPushFamily</code> with <code>Valid()</code> + <code>Retryable()</code> so Go consumers inherit the documented retry contract. Only if a Go sync client ever materializes.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>At the StreamMarker train: adjudicate N5 once</h4>
+            <p>Unify both wire surfaces on <code>.Get()</code> (regenerate the two dashboardui page goldens deliberately, line-diffed) or write the two-form rule into <code>docs/guides/frontend-sync.md</code>.</p>
+          </div>
+        </div>
+
+        <h2 id="conclusion"><span class="num">09</span>Conclusion</h2>
+        <div class="card card-solution">
+          <p>
+            "The domain core answered episode 2's question &mdash; impossible states
+            unrepresentable &mdash; with a yes, and the sync wire answers the harder
+            follow-up honestly: strings on the wire where JS needs strings, typed
+            validation at every boundary Go controls. What remains is to make the wire's
+            two-by-two unions fail loudly when parsed, not silently when read."
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-10-18 &middot; data-model-review skill &middot; episode 3 of
+          3 &middot; all file:line claims verified against source this session
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

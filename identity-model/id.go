@@ -69,8 +69,9 @@ func strippedBrandPrefix(s string) string {
 }
 
 // MustParseUserID converts a ULID string to a UserID, panicking on invalid input.
+// Like [ParseUserID], it tolerates (and strips) a leading brand prefix.
 func MustParseUserID(s string) UserID {
-	uid, err := id.ParseUserID(s)
+	uid, err := ParseUserID(s)
 	if err != nil {
 		panic(
 			fmt.Sprintf("identitymodel.MustParseUserID(%q): %v", s, err),

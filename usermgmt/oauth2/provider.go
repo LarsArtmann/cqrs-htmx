@@ -244,24 +244,19 @@ func (p *Provider) FinishLogin(ctx context.Context, providerName, code, pkceVeri
 	prov, err := p.get(providerName)
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "oauth2.finish_login", "finish login").
-			WithContext("provider", providerName).
-			WithContext("code", code).
-			WithContext("pkce_verifier", pkceVerifier)
+			WithContext("provider", providerName)
 	}
 
 	info, _, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
 	if err != nil {
 		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "oauth2.finish_login", "finish login").
-			WithContext("provider", providerName).
-			WithContext("pkce_verifier", pkceVerifier)
+			WithContext("provider", providerName)
 	}
 
 	data, err := json.Marshal(info)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "oauth2.marshal_userinfo", "marshal user info").
-			WithContext("provider", providerName).
-			WithContext("code", code).
-			WithContext("pkce_verifier", pkceVerifier)
+			WithContext("provider", providerName)
 	}
 	return data, nil
 }
@@ -280,24 +275,19 @@ func (p *Provider) FinishLoginWithToken(
 	prov, err := p.get(providerName)
 	if err != nil {
 		return nil, "", errorfamily.WrapRejection(err, "oauth2.finish_login_with_token", "finish login with token").
-			WithContext("provider", providerName).
-			WithContext("code", code).
-			WithContext("pkce_verifier", pkceVerifier)
+			WithContext("provider", providerName)
 	}
 
 	info, rawIDToken, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
 	if err != nil {
 		return nil, "", errorfamily.Wrapf(err, errorfamily.Classify(err), "oauth2.finish_login_with_token", "finish login with token").
-			WithContext("provider", providerName).
-			WithContext("pkce_verifier", pkceVerifier)
+			WithContext("provider", providerName)
 	}
 
 	data, err := json.Marshal(info)
 	if err != nil {
 		return nil, "", errorfamily.WrapInfrastructure(err, "oauth2.marshal_userinfo", "marshal user info").
-			WithContext("provider", providerName).
-			WithContext("code", code).
-			WithContext("pkce_verifier", pkceVerifier)
+			WithContext("provider", providerName)
 	}
 	return data, rawIDToken, nil
 }
@@ -309,9 +299,10 @@ func (p *initializedProvider) exchangeAndExtractUser(
 		ctx, code, oauth2.VerifierOption(pkceVerifier),
 	)
 	if err != nil {
-		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.token_exchange", "exchange code").
-			WithContext("code", code).
-			WithContext("pkce_verifier", pkceVerifier)
+		// No code/pkce_verifier context: both are live credentials (RFC
+		// 7636 §7.1) — a code+verifier pair read from the logs of a failed
+		// exchange can still be redeemed.
+		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.token_exchange", "exchange code")
 	}
 
 	if p.oidcProvider != nil {
