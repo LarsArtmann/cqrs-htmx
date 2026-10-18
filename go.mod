@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/form/v4 v4.5.0
 	github.com/larsartmann/go-codec v0.3.2
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (record/v4 trails event/command; detector compares one module's max — cqrs-lint 4.8.1 anchors the finding on the block's first family require)
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
@@ -44,7 +44,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.42.0 // indirect

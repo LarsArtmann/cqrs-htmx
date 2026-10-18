@@ -28,8 +28,8 @@ github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuR
 github.com/larsartmann/go-branded-id v0.7.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-codec v0.3.2 h1:6josVkKRls+9CrXkH8AyCS4uOgJ0oIOvPMl4XFrPpk0=
 github.com/larsartmann/go-codec v0.3.2/go.mod h1:nDkfIZOg49OrpIbZE1fXpQZ6Mmyho35NprMMB3Cq+a8=
-github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 h1:wL7o9VtwmIxudrTD70UROY8zLf2WbQgJO/YRSGQX0JY=
-github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1/go.mod h1:pjEmaHSxZ+c5j6Xo6qXTJNnyBGEe/WhEaEjU+lLi6IA=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 h1:H/3KnPHJvPDeDHsbwaJFKVNmrFRlibVr20mA26d74VI=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1/go.mod h1:cX77pw9xkdxrEDkbQknfkShlehVkk04WJFE88jbxCJM=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 h1:19mLTKKDCLrwUDWYVBQptOAai+AOs9/2HzzuO/Gchy0=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2/go.mod h1:YMXWKgNJdM3bNOrgwoER/C2XYUDpXVZpFqJYco34K6U=
 github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0 h1:MrUxIzpUjz1y/lTR5l/fRVdZPVORSz23ks+lsF/a+LE=
@@ -46,8 +46,8 @@ github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 h1:YtlkO7+wTXNTzskWbqf2xKAZ
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2/go.mod h1:JFGAWfaNItRWzmUBog4Q3aZOhSGmtWHeP55pBlPE0g0=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0 h1:pzCw5kzvI9AALmANtgvnr3mFfXhv6176usldX4aPvxM=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0/go.mod h1:JjcPnOXEGmYvLTvIJm94mS0aj2PiFOENSJSYlaZkynw=
-github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 h1:wUB01/0p6iDDyQ5XAnQEYgL1c6/SgxJnGUfFoO/z4NA=
-github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2/go.mod h1:of3SGHkLFeRGvOoIYcDT2+aoZGjkXVHC91rHibTAiT8=
+github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 h1:0pvOQNTZ4ft6UsRA8X01+l+AqELTkW2vKpNa/ZugmTk=
+github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0/go.mod h1:xPlRbFNmRk6ym58R2IGy4d8yLysx2G1t8udljtH310w=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX2xkBd8FPen7hDraHFfVsMFhFdZs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
 github.com/larsartmann/go-datastar v0.6.2 h1:jmfiddveCW0zi1j2064zQDhFAZaRfjRQZmhWmVT6w3U=
