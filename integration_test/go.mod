@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
-	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
