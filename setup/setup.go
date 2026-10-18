@@ -363,6 +363,14 @@ func (b *Bundle) cleanup() {
 		b.Dashboard.Close()
 	}
 
+	// SSE resources (broadcaster hubs, the bridge-done channel) are created
+	// by attachSSE BEFORE later attach steps can fail — without closing them
+	// here, a failure after attachSSE leaks the goroutine-backed hubs and the
+	// EventBus subscription forever (closeSSEDone/closeSSEBroadcasters are
+	// nil-safe and idempotent).
+	closeSSEDone(b)
+	closeSSEBroadcasters(b)
+
 	if b.ownsService && b.Service != nil {
 		_ = b.Service.Close() //cqrs-lint:ignore(C023,C015) cleanup path: creation error is primary; Close errors are secondary
 	}

@@ -37,12 +37,13 @@ import (
 	"github.com/larsartmann/go-sse"
 )
 
-// Server timeout posture for the e2e server (mirrors setup.Bundle's HTTP
-// server defaults; SSE endpoints need generous write windows).
+// Server timeout posture for the e2e server. ReadHeader/Read/Idle timeouts
+// mirror setup.Bundle's HTTP server defaults; there is deliberately NO
+// WriteTimeout — a write timeout kills every SSE stream mid-flight (setup's
+// Run paths disable it for exactly this reason).
 const (
 	e2eReadHeaderTimeout = 5 * time.Second
 	e2eReadTimeout       = 10 * time.Second
-	e2eWriteTimeout      = 30 * time.Second
 	e2eIdleTimeout       = 60 * time.Second
 )
 

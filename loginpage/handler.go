@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -74,15 +75,18 @@ func (p PageData) soleOAuthBeginURL() string {
 }
 
 // faviconURI returns an inline SVG data-URI favicon using the brand initial
-// and accent color. Returns templ.SafeURL to bypass templ's URL sanitizer
-// (which rejects data: URIs by default).
+// and accent color. The SVG is percent-encoded because data-URI content
+// ends at the first '#': the raw fill color (e.g. `#4f46e5`) would truncate
+// the URI at the fragment boundary and no favicon would render. Returns
+// templ.SafeURL to bypass templ's URL sanitizer (which rejects data: URIs
+// by default).
 func (p PageData) faviconURI() templ.SafeURL {
 	svg := "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>" +
 		"<rect width='100' height='100' rx='20' fill='" + p.Accent + "'/>" +
 		"<text x='50' y='70' font-size='60' text-anchor='middle' fill='white'" +
 		" font-family='sans-serif' font-weight='bold'>" + firstRune(p.Brand) +
 		"</text></svg>"
-	return templ.SafeURL("data:image/svg+xml," + svg)
+	return templ.SafeURL("data:image/svg+xml," + url.QueryEscape(svg))
 }
 
 // endpointConfig is injected as JSON into the page so the client-side JS knows

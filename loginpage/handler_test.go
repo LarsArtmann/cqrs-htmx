@@ -267,9 +267,11 @@ func TestServeHTTP_AccentColorApplied(t *testing.T) {
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
 	// templ HTML-escapes the SafeURL (single quotes become &#39;), so assert
-	// the fragments that survive escaping: the data URI scheme and the color.
+	// the fragments that survive escaping: the data URI scheme and the
+	// percent-encoded color ('#' would truncate the data URI at the fragment
+	// boundary — it MUST arrive as %23).
 	assertContains(t, body, "data:image/svg+xml", "accent color data URI missing from the SVG favicon")
-	assertContains(t, body, "#ff0000", "accent color not applied in the SVG favicon")
+	assertContains(t, body, "%23ff0000", "accent color not applied (percent-encoded) in the SVG favicon")
 }
 
 func TestServeHTTP_CustomCSSPath(t *testing.T) {
@@ -488,10 +490,13 @@ func TestFaviconURI(t *testing.T) {
 	if !strings.Contains(string(uri), "data:image/svg+xml") {
 		t.Error("favicon should be an SVG data URI")
 	}
-	if !strings.Contains(string(uri), "fill='#ff0000'") {
+	if strings.Contains(string(uri), "#") {
+		t.Error("raw '#' truncates a data URI at the fragment boundary — the SVG must be percent-encoded")
+	}
+	if !strings.Contains(string(uri), "fill%3D%27%23ff0000%27") {
 		t.Error("favicon should use the accent color")
 	}
-	if !strings.Contains(string(uri), ">A<") {
+	if !strings.Contains(string(uri), "%3EA%3C") {
 		t.Error("favicon should use the brand initial")
 	}
 }
