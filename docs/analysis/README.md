@@ -10,6 +10,7 @@ only on **NEW** findings.
 | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`branching-flow-baseline.sarif`](./branching-flow-baseline.sarif) | Minified SARIF, one entry per frozen finding (229 at 2026-10-08 — re-pinned from 666 after the M17–M26 panel rewrites + dedup rounds dissolved 449 findings, +59 new branding-advice findings accepted under existing verdicts (see the amendment log)). |
 | [`triage-decisions.md`](./triage-decisions.md)                     | The verdict ledger: every analyzer class, its count, its reject/fix verdict, and the reason. Read this before "fixing" a baseline finding.                                                                                                                                                                           |
+| [`dedup-acceptance.md`](./dedup-acceptance.md)                     | The art-dupl acceptance ledger: clone groups kept as intentional boilerplate, each with a written reason (moved here from the repo root, 2026-10-18).                                                                                                                                                              |
 
 ## The gate
 

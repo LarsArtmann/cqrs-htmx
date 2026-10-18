@@ -255,7 +255,9 @@
                 # BuildFlow pre-commit hook formatters/linters
                 pkgs.shfmt # shell scripts (scripts/*.sh)
                 pkgs.nixfmt # flake.nix
-                pkgs.dprint # markdown-format
+                # dprint removed 2026-10-18: markdown formatting belongs to
+                # treefmt/prettier (programs above, plan M03); dprint.json and
+                # this devShell binary were dead config after the switch.
                 pkgs.prettier # YAML/JSON/CSS/config files
                 pkgs.biome # JS/TS files (admin.js, login.js, sync-*.js)
                 pkgs.codespell # spell check across all files

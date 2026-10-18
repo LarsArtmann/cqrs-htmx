@@ -555,7 +555,7 @@ func TestPage_AllAuthMethods(t *testing.T) {
 func TestFaviconURI_EmptyBrand(t *testing.T) {
 	data := PageData{Brand: "", Accent: "#000"}
 	uri := data.faviconURI()
-	if !strings.Contains(string(uri), ">?<") {
+	if !strings.Contains(string(uri), "%3E%3F%3C") {
 		t.Error("empty brand should show '?' as favicon initial")
 	}
 }

@@ -304,7 +304,6 @@ func main() {
 		Handler:           mux,
 		ReadHeaderTimeout: e2eReadHeaderTimeout,
 		ReadTimeout:       e2eReadTimeout,
-		WriteTimeout:      e2eWriteTimeout,
 		IdleTimeout:       e2eIdleTimeout,
 	}
 
