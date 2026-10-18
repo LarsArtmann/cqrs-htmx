@@ -351,41 +351,56 @@ func dropImportSpecs(
 				continue
 			}
 
-			local := defaultPackageName(strings.Trim(imp.Path.Value, `"`))
-			if imp.Name != nil {
-				local = imp.Name.Name
+			if drop, ok := dropEditForSpec(fset, src, lineEnd, lineStart, gen, imp, qualToPath, remainingRefs); ok {
+				drops = append(drops, drop)
 			}
-
-			// Blank and dot imports are never drop candidates: `_` registers
-			// side effects the rewrite must preserve, and `.` binds every
-			// exported name (remainingRefs["."] never counts them — dropping
-			// the line would break every bare identifier in the file).
-			if imp.Name != nil && (imp.Name.Name == "_" || imp.Name.Name == ".") {
-				continue
-			}
-
-			if remainingRefs[local] != 0 || !sourcePackages[qualToPath[local]] {
-				continue
-			}
-
-			off := fset.Position(imp.Pos()).Offset
-			end := lineEnd(fset.Position(imp.End()).Offset)
-
-			// Single-spec, unparenthesized decls carry the `import` keyword
-			// on the same line: drop the whole declaration.
-			if !gen.Lparen.IsValid() {
-				off = lineStart(fset.Position(gen.Pos()).Offset)
-			}
-
-			if next := end + 1; next <= len(src) {
-				end = next // consume the newline too
-			}
-
-			drops = append(drops, textEdit{off, end, ""})
 		}
 	}
 
 	return drops
+}
+
+// dropEditForSpec computes the line-wise drop edit for one import spec.
+// Returns ok=false when the spec must stay (still referenced, not a source
+// package, or a blank/dot import — `_` registers side effects the rewrite
+// must preserve, and `.` binds every exported name).
+func dropEditForSpec(
+	fset *token.FileSet,
+	src string,
+	lineEnd func(int) int,
+	lineStart func(int) int,
+	gen *ast.GenDecl,
+	imp *ast.ImportSpec,
+	qualToPath map[string]string,
+	remainingRefs map[string]int,
+) (textEdit, bool) {
+	local := defaultPackageName(strings.Trim(imp.Path.Value, `"`))
+	if imp.Name != nil {
+		local = imp.Name.Name
+	}
+
+	if imp.Name != nil && (imp.Name.Name == "_" || imp.Name.Name == ".") {
+		return textEdit{}, false
+	}
+
+	if remainingRefs[local] != 0 || !sourcePackages[qualToPath[local]] {
+		return textEdit{}, false
+	}
+
+	off := fset.Position(imp.Pos()).Offset
+	end := lineEnd(fset.Position(imp.End()).Offset)
+
+	// Single-spec, unparenthesized decls carry the `import` keyword
+	// on the same line: drop the whole declaration.
+	if !gen.Lparen.IsValid() {
+		off = lineStart(fset.Position(gen.Pos()).Offset)
+	}
+
+	if next := end + 1; next <= len(src) {
+		end = next // consume the newline too
+	}
+
+	return textEdit{off, end, ""}, true
 }
 
 func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textEdit, inserts []textEdit) {
@@ -420,32 +435,8 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 
 			if anchor >= d.offset && anchor <= d.end {
 				// The anchor line is dropped: fuse — replace instead of
-				// insert+delete. The replacement must account for what the
-				// drop range already preserves: a parenthesized spec's range
-				// starts AFTER the line's leading indent (keep it, add none);
-				// a whole-declaration drop (single-line, unparenthesized
-				// `import "path"`) removes the `import` keyword itself, so the
-				// replacement has to open a fresh import block — emitting bare
-				// spec lines there produced unparseable output.
-				body := strings.TrimLeft(strings.TrimPrefix(lines.String(), "\n"), "\t")
-
-				replacement := ""
-				if strings.HasPrefix(strings.TrimLeft(src[d.offset:d.end], " \t"), "import") {
-					replacement = "import (\n\t" + body + "\n)\n"
-				} else {
-					indent := ""
-					if lineStart(d.offset) >= d.offset {
-						indent = "\t"
-					}
-
-					replacement = indent + body + "\n"
-				}
-
-				*d = textEdit{
-					d.offset,
-					d.end,
-					replacement,
-				}
+				// insert+delete.
+				d.newText = fusedImportReplacement(src, *d, lines.String(), lineStart)
 
 				return
 			}
@@ -477,6 +468,28 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 	block.WriteString(")")
 
 	*drops = append(*drops, textEdit{insertAt, insertAt, block.String()})
+}
+
+// fusedImportReplacement builds the text a fused drop is replaced with. The
+// replacement must account for what the drop range already preserves: a
+// parenthesized spec's range starts AFTER the line's leading indent (keep it,
+// add none); a whole-declaration drop (single-line, unparenthesized
+// `import "path"`) removes the `import` keyword itself, so the replacement
+// has to open a fresh import block — emitting bare spec lines there produced
+// unparseable output.
+func fusedImportReplacement(src string, d textEdit, lines string, lineStart func(int) int) string {
+	body := strings.TrimLeft(strings.TrimPrefix(lines, "\n"), "\t")
+
+	if strings.HasPrefix(strings.TrimLeft(src[d.offset:d.end], " \t"), "import") {
+		return "import (\n\t" + body + "\n)\n"
+	}
+
+	indent := ""
+	if lineStart(d.offset) >= d.offset {
+		indent = "\t"
+	}
+
+	return indent + body + "\n"
 }
 
 func defaultQualFor(importPath string) string {
