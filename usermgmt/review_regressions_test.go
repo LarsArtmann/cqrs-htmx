@@ -95,26 +95,25 @@ func TestFinishOAuthLogin_UnverifiedEmailDoesNotLink(t *testing.T) {
 
 	registerTestUser(t, svc, "victim", "victim@example.com")
 
-	resp, err := runTestOAuth2Login(t.Context(), svc, "github")
+	_, err = runTestOAuth2Login(t.Context(), svc, "github")
 	if err != nil {
 		t.Fatalf("FinishOAuthLogin: %v", err)
 	}
 
 	// The attacker lands on a NEWLY provisioned account, not the victim's.
-	if resp.User.Email == "victim@example.com" && svc.readModel.Count() == 1 {
-		t.Fatal("unverified-email identity was linked to the existing victim account")
-	}
 	if got := svc.readModel.Count(); got != 2 {
 		t.Errorf("read model count = %d, want 2 (new account, no linking)", got)
+	}
+	linked, ok := svc.readModel.FindByExternalAccount("github", "attacker-sub")
+	if !ok {
+		t.Fatal("attacker account not found — expected a newly provisioned account")
 	}
 	victim, ok := svc.readModel.FindByEmail("victim@example.com")
 	if !ok {
 		t.Fatal("victim not found")
 	}
-	for _, ea := range svc.readUserExternalAccounts(victim.ID) {
-		if ea.Provider == "github" && ea.Subject == "attacker-sub" {
-			t.Fatal("attacker external account linked to victim")
-		}
+	if victim.ID == linked.ID {
+		t.Fatal("unverified-email identity was linked to the existing victim account")
 	}
 }
 
@@ -122,13 +121,14 @@ func TestFinishOAuthLogin_UnverifiedEmailDoesNotLink(t *testing.T) {
 // slice-bounds panic.
 func TestAuditLog_RecentNonPositive(t *testing.T) {
 	a := NewAuditLog()
-	if err := a.Record(makeEvent(t, eventUserRegistered, 1, UserRegisteredPayload{
+	evt := makeEvent(t, eventUserRegistered, 1, UserRegisteredPayload{
 		SchemaVersion: currentSchemaVersion,
 		Email:         "audit@example.com",
 		DisplayName:   "Audit",
 		Roles:         []Role{RoleUser},
-	})); err != nil {
-		t.Fatalf("Record: %v", err)
+	})
+	if err := a.Handle(context.Background(), evt); err != nil {
+		t.Fatalf("Handle: %v", err)
 	}
 
 	for _, n := range []int{-1, 0} {
