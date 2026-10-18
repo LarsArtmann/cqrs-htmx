@@ -34,12 +34,7 @@ func (s *Spec) Schema(name string, schema *Schema) *Spec {
 // (Get, Post, ...) is constructed with the Get/Post/... constructors. If the
 // path already exists, operations are merged into the existing PathItem.
 func (s *Spec) Path(path string, operations ...*opBuilder) *Spec {
-	item := s.Paths[path]
-
-	if item == nil {
-		item = &PathItem{}
-		s.Paths[path] = item
-	}
+	item := s.pathItem(path)
 
 	for _, op := range operations {
 		op.apply(item)
@@ -70,6 +65,20 @@ func (s *Spec) PathOp(path string, operation Operation) *Spec {
 	(&opBuilder{method: operation.HTTPMethod, op: &operation}).apply(item)
 
 	return s
+}
+
+// pathItem returns the PathItem for path, creating and registering an empty
+// one when absent. Shared by Path and PathOp — the get-or-create contract
+// (existing operations are merged, never replaced) lives in exactly one place.
+func (s *Spec) pathItem(path string) *PathItem {
+	item := s.Paths[path]
+
+	if item == nil {
+		item = &PathItem{}
+		s.Paths[path] = item
+	}
+
+	return item
 }
 
 // --- operation constructors ---

@@ -123,6 +123,11 @@ var _ = Describe("the overview page", func() {
 			"the library region announces content changes politely")
 		Expect(html).To(ContainSubstring(`hx-swap="outerHTML"`),
 			"the partial must re-render the region itself or polling dies after one refresh")
+		Expect(html).To(ContainSubstring(`hx-target="this"`),
+			"the poll must not inherit the boost wrapper's #main-content target")
+		Expect(html).To(ContainSubstring(`hx-select="unset"`),
+			"the poll must not inherit the boost wrapper's hx-select: the partial has no #main-content, "+
+				"an inherited select swaps an empty fragment into #main-content and blanks the page")
 	})
 
 	It("links recent events to their detail pages", func() {
