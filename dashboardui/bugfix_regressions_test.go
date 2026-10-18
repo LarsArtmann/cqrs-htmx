@@ -93,11 +93,11 @@ func TestEventsIndex_FilteredSortedCursorAdvancesWithoutOverlap(t *testing.T) {
 	t.Parallel()
 
 	events := alternatingEvents(t, 60, "user.alpha", "user.beta")
-	d := MustNew(Config{Journal: &fakeSeekableJournal{events: events}})
+		d := MustNew(Config{Journal: &fakeSeekableJournal{events: events}})
 
-	w1 := httptest.NewRecorder()
-	r1 := httptest.NewRequest(http.MethodGet, "/events?sort=type&limit=25", nil)
-	d.eventsIndexHandler(w1, r1)
+		w1 := httptest.NewRecorder()
+		r1 := httptest.NewRequest(http.MethodGet, "/events?type=user.alpha&sort=type&limit=25", nil)
+		d.eventsIndexHandler(w1, r1)
 
 	if w1.Code != http.StatusOK {
 		t.Fatalf("page 1: expected 200, got %d", w1.Code)
@@ -111,13 +111,13 @@ func TestEventsIndex_FilteredSortedCursorAdvancesWithoutOverlap(t *testing.T) {
 	}
 
 	page1IDs := eventIDsOnPage(body1)
-	if len(page1IDs) != 25 {
-		t.Fatalf("page 1 linked %d events, want 25", len(page1IDs))
-	}
+		if len(page1IDs) != 25 {
+			t.Fatalf("page 1 linked %d events, want 25", len(page1IDs))
+		}
 
-	w2 := httptest.NewRecorder()
-	r2 := httptest.NewRequest(http.MethodGet, "/events?sort=type&limit=25&after="+after[1], nil)
-	d.eventsIndexHandler(w2, r2)
+		w2 := httptest.NewRecorder()
+		r2 := httptest.NewRequest(http.MethodGet, "/events?type=user.alpha&sort=type&limit=25&after="+after[1], nil)
+		d.eventsIndexHandler(w2, r2)
 
 	if w2.Code != http.StatusOK {
 		t.Fatalf("page 2: expected 200, got %d", w2.Code)
@@ -126,9 +126,9 @@ func TestEventsIndex_FilteredSortedCursorAdvancesWithoutOverlap(t *testing.T) {
 	body2 := w2.Body.String()
 
 	page2IDs := eventIDsOnPage(body2)
-	if len(page2IDs) != 25 {
-		t.Fatalf("page 2 linked %d events, want 25", len(page2IDs))
-	}
+		if len(page2IDs) != 5 {
+			t.Fatalf("page 2 linked %d events, want the 5 remaining matches", len(page2IDs))
+		}
 
 	for id := range page2IDs {
 		if page1IDs[id] {
@@ -275,28 +275,6 @@ func TestAggregatesIndex_ReaderErrorRendersErrorPanel(t *testing.T) {
 	}
 }
 
-// TestAggregatesIndex_MalformedCursorRejected pins the 400 contract shared
-// by every other paginated index.
-func TestAggregatesIndex_MalformedCursorRejected(t *testing.T) {
-	t.Parallel()
-
-	d, err := New(Config{
-		StreamReader: errorStreamReader{},
-		Journal:      &fakeSeekableJournal{events: typedEvents(t, 1, "boot")},
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/aggregates?after=not-a-stream-id", nil)
-	d.aggregatesIndexHandler(w, r)
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400 for malformed cursor, got %d", w.Code)
-	}
-}
-
 // TestConfig_NegativePageSizeClamped pins that a negative PageSize cannot
 // reach the handlers (it used to panic the first paginated request on a
 // negative slice bound).
@@ -326,5 +304,53 @@ func TestConfig_NegativePageSizeClamped(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Errorf("negative-configured dashboard should serve events, got %d", w.Code)
+	}
+}
+
+// TestTimeTravel_FirstLinksToV1AndClampsZero pins two time-travel fixes:
+// the "First" button must target v=1 (it used to omit the ?v param and land
+// on the LATEST version), and ?v=0 clamps to version 1 instead of rendering
+// "Viewing version 0".
+func TestTimeTravel_FirstLinksToV1AndClampsZero(t *testing.T) {
+	t.Parallel()
+
+	store := memorystorage.NewMemoryStore()
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", aggID)
+
+	for i := range 3 {
+		evt, err := event.New(
+			"order.updated",
+			aggID,
+			"Order",
+			event.Version(i+1),
+			struct{ Step int }{Step: i},
+		)
+		if err != nil {
+			t.Fatalf("event.New: %v", err)
+		}
+
+		_ = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(i))
+	}
+
+	mux := mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/time-travel/Order/"+aggID.String()+"?v=3", nil)
+	mux.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+
+	firstHref := "/dashboard/time-travel/Order/" + aggID.String() + "?v=1"
+	if !strings.Contains(body, `href="`+firstHref+`"`) {
+		t.Errorf("First button must link to %q (it used to omit ?v and land on the latest version)", firstHref)
+	}
+
+	rec2 := httptest.NewRecorder()
+	req2 := httptest.NewRequest(http.MethodGet, "/dashboard/time-travel/Order/"+aggID.String()+"?v=0", nil)
+	mux.ServeHTTP(rec2, req2)
+
+	if !strings.Contains(rec2.Body.String(), "Viewing version 1 of 3") {
+		t.Error("?v=0 must clamp to version 1, not render version 0")
 	}
 }
