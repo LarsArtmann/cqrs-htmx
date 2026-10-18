@@ -820,9 +820,7 @@ func TestServeDomainEvents_PanickingFilterPredicateDoesNotKillReplay(t *testing.
 		{Event: "safe", Data: "fine", ID: sse.NewEventID("id-2")},
 	}
 
-	var calls int32
 	pred := func(evt sse.Event) bool {
-		_ = calls
 		if evt.Event == "boom" {
 			panic("consumer predicate bug")
 		}
