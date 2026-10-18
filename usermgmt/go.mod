@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0
