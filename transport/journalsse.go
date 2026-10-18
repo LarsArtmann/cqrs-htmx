@@ -134,12 +134,14 @@ func (s *JournalSSEStore) eventsAfterSeekable(
 	lastID sse.EventID,
 ) ([]sse.Event, error) {
 	afterID := id.EventID{}
+
 	if lastID.Get() != "" {
 		parsed, err := id.ParseEventID(lastID.Get())
 		if err != nil {
 			// Invalid cursor — treat as "not found" rather than a store error.
 			return nil, nil //nolint:nilerr // intentional: invalid cursor is recoverable, not a store failure
 		}
+
 		afterID = parsed
 	}
 
@@ -201,6 +203,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(
 	if lastID.Get() == "" {
 		// No cursor — return the last maxReplay events.
 		limit := s.replayLimit()
+
 		start := 0
 		if limit > 0 && len(events) > limit {
 			start = len(events) - limit
