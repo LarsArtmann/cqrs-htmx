@@ -6,7 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **Overview no longer blanks a split second after load:** the projection-health PolledRegion inherited the layout wrapper's `data-hx-target="#main-content"` + `data-hx-select="#main-content"` (htmx resolves both through the ancestor chain for every ajax element); its poll response contains no `#main-content`, so htmx swapped an EMPTY fragment into `#main-content` — the whole overview vanished on the first SSE refresh trigger. The region now pins `hx-target="this"` + `hx-select="unset"` (htmx's documented inheritance neutralizer), verified against the embedded htmx 2.0.10 source.
+- **Overview "Recent Events" shows the newest events, newest first:** journal reads from a zero cursor return the OLDEST events, so the card permanently showed the first events ever written. `core.LoadTailEvents` pages the journal keeping a rolling tail; the overview lists the newest `RecentEventsLimit` events first and the Events stat is an exact total (was capped at "500+").
+- **CSV/JSON export ships the NEWEST exportLimit matching events** (the head read exported the oldest 10k and silently dropped everything recent), and **export links carry the active filter/sort params** so an export matches what the user is looking at instead of the whole journal.
+- **The sorted-only events window shows the whole scan window:** a pageSize truncation ran before the window clamp, cutting the "first 500 events" view to the page size and stranding the tail behind a disabled pagination bar.
+- **Filter+sort pagination no longer overlaps:** the Next cursor was taken from the POST-sort slice (an arbitrary journal position); it now comes from the pre-sort journal-order tail, so pages advance without duplicates.
+- **Non-seekable Journal fallbacks honor the `after` cursor** (events, filtered events, commands, queries): the fallback re-read from the head on every request, so the Next link re-served page one forever.
+- **Event-detail prev/next navigation works past the first 500 events:** the neighbor scan now pages the whole journal instead of only the head batch.
+- **Time-travel "First" links to `?v=1`** (it omitted the param and landed on the LATEST version) and **`?v=0` clamps to version 1** instead of rendering "Viewing version 0".
+- **A failing aggregates reader surfaces a 500 error panel** instead of the "No aggregates" empty state with 200 (an outage must not masquerade as an empty store); the after cursor is parsed through the shared 400 path like every sibling index.
+- **Negative `Config.PageSize` is clamped to the default:** it used to pass validation and panic the first paginated request on a negative slice bound.
+- **The SSE `visibilitychange` reconnect is gated on the live indicator:** without an EventBus the old handler opened an EventSource against an unregistered route on tab refocus and retried the 404 forever.
+- **Overview stream links render as plain text without the EventSource capability** (the `/aggregates/{type}/{id}` routes only register with it — the links used to open the styled 404 page).
+- **Test fakes honor the SeekableJournal contract** (after cursor + read limit); the old head-slicing fakes masked the cursor bugs above and would loop any future paged scan.
 
 ## [v4.13.3] - 2026-10-11
 
