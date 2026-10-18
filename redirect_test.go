@@ -47,6 +47,7 @@ func TestHTMXRedirect(t *testing.T) {
 		if got := rec.Header().Get("Hx-Redirect"); got != "/dashboard" {
 			t.Errorf("Hx-Redirect = %q, want /dashboard", got)
 		}
+
 		if rec.Code != http.StatusOK {
 			t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
 		}
@@ -61,6 +62,7 @@ func TestHTMXRedirect(t *testing.T) {
 		if got := rec.Header().Get("Location"); got != "/dashboard" {
 			t.Errorf("Location = %q, want /dashboard", got)
 		}
+
 		if rec.Code != http.StatusSeeOther {
 			t.Errorf("status = %d, want %d", rec.Code, http.StatusSeeOther)
 		}
