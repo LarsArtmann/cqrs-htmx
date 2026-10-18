@@ -171,6 +171,14 @@ func (d *Dashboard) loadFilteredEvents(
 	return core.LoadFilteredEvents(ctx, d.config.coreConfig(), after, filter, pageSize)
 }
 
+func (d *Dashboard) loadTailEvents(
+	ctx context.Context,
+	filter eventFilter,
+	limit int,
+) ([]event.Event, int, error) {
+	return core.LoadTailEvents(ctx, d.config.coreConfig(), filter, limit)
+}
+
 func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
 	return core.LoadEventByID(ctx, d.config.coreConfig(), eventID)
 }

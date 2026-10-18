@@ -51,23 +51,28 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasNext := len(events) > pageSize
+	hasNext := !windowed && len(events) > pageSize
 	if hasNext {
 		events = events[:pageSize]
 	}
 
 	if windowed {
-		// loadFilteredEvents returns up to limit+1 for HasMore detection;
-		// the window shows exactly filterScanLimit.
+		// The windowed branch loads up to filterScanLimit+1 events; the whole
+		// window is shown (no pageSize cut — that would strand every event
+		// past page one behind a disabled pagination bar), minus the +1
+		// HasMore probe event.
 		events = events[:min(len(events), filterScanLimit)]
 	}
 
-	sortEvents(events, sortBy)
-
+	// The Next cursor must come from the PRE-SORT journal-order tail: the
+	// sorted slice's last element is an arbitrary journal position, and a
+	// cursor taken from it re-serves overlapping pages.
 	var nextCursor string
 	if hasNext && len(events) > 0 {
 		nextCursor = events[len(events)-1].ID().String()
 	}
+
+	sortEvents(events, sortBy)
 
 	state := paginationState{
 		HasNext:     hasNext,
@@ -92,8 +97,10 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // exportEvents writes the filtered event journal in a non-HTML export format
-// (CSV or JSON). The window is the most recent exportLimit events; HTML is
-// routed to the paginated index view by the caller instead.
+// (CSV or JSON). The window is the NEWEST exportLimit matching events (the
+// journal is paged once keeping a rolling tail — a head read would export
+// the OLDEST events and silently drop everything recent); HTML is routed to
+// the paginated index view by the caller instead.
 func (d *Dashboard) exportEvents(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -101,7 +108,7 @@ func (d *Dashboard) exportEvents(
 	filters eventFilter,
 	sortBy sortState,
 ) {
-	events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
+	events, _, err := d.loadTailEvents(r.Context(), filters, exportLimit)
 	if err != nil {
 		d.renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
 

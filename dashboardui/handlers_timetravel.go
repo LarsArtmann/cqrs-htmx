@@ -55,6 +55,10 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 		requestedVersion = maxVersion
 	}
 
+	if requestedVersion < event.Version(1) {
+		requestedVersion = event.Version(1)
+	}
+
 	eventsToVersion, err := d.config.EventSource.LoadToVersion(r.Context(), ref, requestedVersion)
 	if err != nil {
 		d.renderError(w, r, http.StatusInternalServerError, "failed to load version")

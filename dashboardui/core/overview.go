@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
@@ -148,21 +147,15 @@ func FetchOverview(
 		}
 	}
 
-	if cfg.SeekableJournal != nil {
-		events, err := cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, OverviewCountLimit)
+	if cfg.SeekableJournal != nil || cfg.Journal != nil {
+		// Reading from a zero cursor yields the FIRST n events, not the
+		// newest — LoadTailEvents pages the journal keeping a rolling tail,
+		// so the overview always reflects the latest commits and the total
+		// is exact.
+		tail, total, err := LoadTailEvents(ctx, cfg, EventFilter{}, RecentEventsLimit)
 		if err == nil {
-			stats.RecentEvents = recentEventsFrom(events)
-
-			stats.TotalEvents = strconv.Itoa(len(events))
-			if len(events) >= OverviewCountLimit {
-				stats.TotalEvents += "+"
-			}
-		}
-	} else if cfg.Journal != nil {
-		events, err := cfg.Journal.ReadAll(ctx)
-		if err == nil {
-			stats.TotalEvents = strconv.Itoa(len(events))
-			stats.RecentEvents = recentEventsFrom(events)
+			stats.TotalEvents = strconv.Itoa(total)
+			stats.RecentEvents = recentEventsFrom(tail)
 		}
 	}
 
@@ -174,14 +167,16 @@ func FetchOverview(
 	return stats
 }
 
-// recentEventsFrom projects at most RecentEventsLimit committed events into
-// the display shape used by the overview card.
+// recentEventsFrom projects the newest RecentEventsLimit committed events
+// into the display shape, NEWEST FIRST (the input arrives in ascending
+// journal order — the overview card lists the latest event at the top).
 func recentEventsFrom(events []event.Event) []RecentEvent {
-	recent := make([]RecentEvent, 0, min(len(events), RecentEventsLimit))
-	for i, evt := range events {
-		if i >= RecentEventsLimit {
-			break
-		}
+	n := min(len(events), RecentEventsLimit)
+
+	recent := make([]RecentEvent, 0, n)
+
+	for i := len(events) - 1; i >= len(events)-n; i-- {
+		evt := events[i]
 
 		recent = append(recent, RecentEvent{
 			Time:       evt.OccurredAt().Format(time.RFC3339),

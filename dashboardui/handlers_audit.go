@@ -13,6 +13,38 @@ import (
 
 // ===== Command/Query Audit =====
 
+// commandsAfter seeks a ReadAll result past the cursor. The non-seekable
+// fallback must honor the after cursor or the Next link re-serves page one
+// forever; a cursor that no longer exists restarts from the head.
+func commandsAfter(cmds []*command.PersistedCommand, after id.CommandID) []*command.PersistedCommand {
+if after == (id.CommandID{}) {
+	return cmds
+}
+
+for i, cmd := range cmds {
+	if cmd.ID() == after {
+		return cmds[i+1:]
+	}
+}
+
+return cmds
+}
+
+// queriesAfter is the query-journal twin of commandsAfter.
+func queriesAfter(queries []*query.PersistedQuery, after id.RequestID) []*query.PersistedQuery {
+if after == (id.RequestID{}) {
+	return queries
+}
+
+for i, qry := range queries {
+	if qry.ID() == after {
+		return queries[i+1:]
+	}
+}
+
+return queries
+}
+
 //
 //nolint:cyclop,dupl // export branching; deliberate parallel twin — see queriesIndexHandler
 func (d *Dashboard) commandsIndexHandler(
@@ -24,10 +56,18 @@ func (d *Dashboard) commandsIndexHandler(
 	if format := parseFormat(r); format != formatHTML {
 		var cmds []*command.PersistedCommand
 
+		var err error
+
 		if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
-			cmds, _ = seekable.ReadFrom(r.Context(), id.CommandID{}, exportLimit)
+			cmds, err = seekable.ReadFrom(r.Context(), id.CommandID{}, exportLimit)
 		} else if d.config.CommandJournal != nil {
-			cmds, _ = d.config.CommandJournal.ReadAll(r.Context())
+			cmds, err = d.config.CommandJournal.ReadAll(r.Context())
+		}
+
+		if err != nil {
+			d.renderError(w, r, http.StatusInternalServerError, "failed to load commands for export")
+
+			return
 		}
 
 		switch format {
@@ -62,6 +102,7 @@ func (d *Dashboard) commandsIndexHandler(
 			cmds, err = seekable.ReadFrom(r.Context(), after, pageSize+1)
 		} else {
 			cmds, err = d.config.CommandJournal.ReadAll(r.Context())
+			cmds = commandsAfter(cmds, after)
 		}
 
 		if err != nil {
@@ -107,10 +148,18 @@ func (d *Dashboard) queriesIndexHandler(
 	if format := parseFormat(r); format != formatHTML {
 		var queries []*query.PersistedQuery
 
+		var err error
+
 		if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
-			queries, _ = seekable.ReadQueriesFrom(r.Context(), id.RequestID{}, exportLimit)
+			queries, err = seekable.ReadQueriesFrom(r.Context(), id.RequestID{}, exportLimit)
 		} else if d.config.QueryJournal != nil {
-			queries, _ = d.config.QueryJournal.ReadAllQueries(r.Context())
+			queries, err = d.config.QueryJournal.ReadAllQueries(r.Context())
+		}
+
+		if err != nil {
+			d.renderError(w, r, http.StatusInternalServerError, "failed to load queries for export")
+
+			return
 		}
 
 		switch format {
@@ -145,6 +194,7 @@ func (d *Dashboard) queriesIndexHandler(
 			queries, err = seekable.ReadQueriesFrom(r.Context(), after, pageSize+1)
 		} else {
 			queries, err = d.config.QueryJournal.ReadAllQueries(r.Context())
+			queries = queriesAfter(queries, after)
 		}
 
 		if err != nil {

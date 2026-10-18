@@ -109,17 +109,7 @@ func isValidAccentColor(color string) bool {
 
 // isHexDigits reports whether s is non-empty and entirely ASCII hex digits.
 func isHexDigits(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, r := range s {
-		if !strings.ContainsRune("0123456789abcdefABCDEF", r) {
-			return false
-		}
-	}
-
-	return true
+	return s != "" && onlyRunes(s, "0123456789abcdefABCDEF")
 }
 
 // onlyNumericColorComponents reports whether s contains only the characters
@@ -127,12 +117,13 @@ func isHexDigits(s string) bool {
 // digits, dot, percent, sign, comma, space, and the modern-syntax slash.
 // Letters, quotes, braces, and every other byte are rejected.
 func onlyNumericColorComponents(s string) bool {
-	if strings.TrimSpace(s) == "" {
-		return false
-	}
+	return strings.TrimSpace(s) != "" && onlyRunes(s, "0123456789.,%+-/ \t")
+}
 
+// onlyRunes reports whether every rune in s appears in charset.
+func onlyRunes(s, charset string) bool {
 	for _, r := range s {
-		if !strings.ContainsRune("0123456789.,%+-/ \t", r) {
+		if !strings.ContainsRune(charset, r) {
 			return false
 		}
 	}

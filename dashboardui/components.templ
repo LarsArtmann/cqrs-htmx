@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
@@ -242,4 +243,14 @@ templ formatLinksNav(basePath, path string) {
 // plain relativeTime() helper — out of scope per the adoption plan.
 templ snapshotRelativeTime(nonce string, t time.Time) {
 	@display.RelativeTime(display.RelativeTimeProps{Time: t, Nonce: nonce})
+}
+
+// eventTimelineCells renders the three event columns shared by the aggregate
+// timeline and time-travel tables: version, typed link to the event detail
+// page, and occurred-at. One place owns the cell markup and the timestamp
+// format so the two tables cannot drift.
+templ eventTimelineCells(basePath string, evt event.Event) {
+	<td class="cell-emph">{ evt.Version().String() }</td>
+	<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
+	<td class="mono">{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
 }
