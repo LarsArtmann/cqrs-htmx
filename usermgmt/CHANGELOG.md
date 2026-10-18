@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **2026-10-18 full-code-review wave (report `docs/reviews/2026-10-18_08-25_full-code-review.html`).** (a) The user read model mirrors `FoldUser`'s TOTP reset on `EmailChanged` — the divergence locked users into an undisableable second factor (login demanded TOTP, `DisableTOTP` saw the fold's disabled state and emitted nothing, `EnableTOTP` rejected). (b) OAuth2 email-match linking is gated on `EmailVerified` (unverified user-controllable emails linking to existing accounts = pre-account-takeover, NIST 800-63B; unverified identities now auto-provision). (c) `ErrUserIDExists` maps 409 Conflict (was 404 — a duplicate-ID conflict is not Not Found). (d) `AuditLog.Recent(n<=0)` returns empty instead of panicking; the session sweeper's stop func is once-guarded (second call used to panic on close-of-closed-channel). (e) Swallowed read-model misses after link/register in OAuth2 login return the `read_model_missing` transient error instead of a nil-deref panic. (f) The oauth2 submodule no longer echoes authorization codes / PKCE verifiers into error contexts (live credentials, RFC 7636 §7.1).
 
 ## [v4.14.3] - 2026-10-11
 

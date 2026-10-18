@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Favicon data-URI percent-encoding (2026-10-18 full-code-review wave).** The inline SVG favicon carried the raw accent color (`fill='#4f46e5'`) unencoded — data-URI content ends at the first `#`, so every hex accent (the default!) truncated the URI at the fragment boundary and no favicon ever rendered. The SVG is now `url.QueryEscape`-encoded; tests pin `%23` and reject any raw `#`.
+
 ## [v4.13.0] - 2026-10-14
 
 ### Added
