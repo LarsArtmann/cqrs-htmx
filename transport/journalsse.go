@@ -133,42 +133,56 @@ func (s *JournalSSEStore) eventsAfterSeekable(
 	ctx context.Context,
 	lastID sse.EventID,
 ) ([]sse.Event, error) {
-	if lastID.Get() == "" {
-		// No cursor — return the most recent events (consistent with fullScan path).
-		// We can't use ReadFrom(zero, limit) because that returns the FIRST N,
-		// not the last N. So we ReadAll and slice the tail.
-		events, err := s.journal.ReadAll(ctx)
+	afterID := id.EventID{}
+	if lastID.Get() != "" {
+		parsed, err := id.ParseEventID(lastID.Get())
+		if err != nil {
+			// Invalid cursor — treat as "not found" rather than a store error.
+			return nil, nil //nolint:nilerr // intentional: invalid cursor is recoverable, not a store failure
+		}
+		afterID = parsed
+	}
+
+	// Tail semantics: the replay cap must deliver the MOST RECENT n events
+	// after the cursor, not the first n. ReadFrom is forward-only and returns
+	// the OLDEST events first, so passing the cap as the ReadFrom limit would
+	// deliver [cursor+1, cursor+limit] and then jump to live — silently and
+	// permanently dropping everything in between. Paged reads with a rolling
+	// tail keep the delivery window correct at bounded memory (≤ cap + one
+	// batch) and also replace the per-connection full ReadAll the no-cursor
+	// path previously paid.
+	limit := s.replayLimit()
+
+	var (
+		tail   []event.Event
+		cursor = afterID
+	)
+
+	for {
+		batch, err := s.seekable.ReadFrom(ctx, cursor, limit)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
-				"transport.sse.journal_readall_failed", "read all events from journal").
+				"transport.sse.journal_read_failed", "read events from journal").
 				WithContext("last_id", lastID.Get())
 		}
 
-		limit := s.replayLimit()
-
-		if limit > 0 && len(events) > limit {
-			events = events[len(events)-limit:]
+		if len(batch) == 0 {
+			break
 		}
 
-		return s.mapEvents(events), nil
+		tail = append(tail, batch...)
+		if len(tail) > limit {
+			tail = tail[len(tail)-limit:]
+		}
+
+		cursor = batch[len(batch)-1].ID()
+
+		if len(batch) < limit {
+			break
+		}
 	}
 
-	afterID, err := id.ParseEventID(lastID.Get())
-	if err != nil {
-		// Invalid cursor — treat as "not found" rather than a store error.
-		return nil, nil //nolint:nilerr // intentional: invalid cursor is recoverable, not a store failure
-	}
-
-	limit := s.replayLimit()
-
-	events, err := s.seekable.ReadFrom(ctx, afterID, limit)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"transport.sse.journal_read_failed", "read events from journal").
-			WithContext("last_id", lastID.Get())
-	}
-
-	return s.mapEvents(events), nil
+	return s.mapEvents(tail), nil
 }
 
 // eventsAfterFullScan falls back to ReadAll + in-memory filter when the
@@ -185,10 +199,11 @@ func (s *JournalSSEStore) eventsAfterFullScan(
 	}
 
 	if lastID.Get() == "" {
-		// No cursor — return the last maxReplay events
+		// No cursor — return the last maxReplay events.
+		limit := s.replayLimit()
 		start := 0
-		if s.maxReplay > 0 && len(events) > s.maxReplay {
-			start = len(events) - s.maxReplay
+		if limit > 0 && len(events) > limit {
+			start = len(events) - limit
 		}
 
 		return s.mapEvents(events[start:]), nil
@@ -204,9 +219,13 @@ func (s *JournalSSEStore) eventsAfterFullScan(
 		return nil, nil
 	}
 
+	// Tail semantics: a capped reconnect delivers the MOST RECENT n events
+	// after the cursor — head-truncating here would silently drop the gap
+	// between the delivered window and the live subscription point.
+	limit := s.replayLimit()
 	result := events[startIdx+1:]
-	if s.maxReplay > 0 && len(result) > s.maxReplay {
-		result = result[:s.maxReplay]
+	if limit > 0 && len(result) > limit {
+		result = result[len(result)-limit:]
 	}
 
 	return s.mapEvents(result), nil

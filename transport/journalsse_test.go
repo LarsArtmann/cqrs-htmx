@@ -321,3 +321,61 @@ func (j *journalOnlyStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 
 	return append(result, j.events...), nil
 }
+
+func TestJournalSSEStore_CappedReconnectKeepsTail(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	events := seedEventList(t, 10)
+	appendEvents(t, store, events)
+
+	sseStore := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
+
+	// Reconnect with a cursor at event 3 and a backlog of 7 (> cap): the cap
+	// must keep the MOST RECENT 3 events after the cursor (8, 9, 10) —
+	// head-truncation here would deliver 4, 5, 6 and silently drop 7..10.
+	cursor := events[2].ID().String()
+
+	result, err := sseStore.EventsAfter(sse.NewEventID(cursor))
+	if err != nil {
+		t.Fatalf("EventsAfter: %v", err)
+	}
+
+	if len(result) != 3 {
+		t.Fatalf("expected 3 events (tail of the backlog), got %d", len(result))
+	}
+
+	for i, wantIdx := range []int{7, 8, 9} {
+		if result[i].ID.Get() != events[wantIdx].ID().String() {
+			t.Errorf("result[%d]: expected ID %q, got %q",
+				i, events[wantIdx].ID().String(), result[i].ID.Get())
+		}
+	}
+}
+
+func TestJournalSSEStore_CappedReconnectKeepsTail_FullScanFallback(t *testing.T) {
+	t.Parallel()
+
+	events := seedEventList(t, 10)
+	store := &journalOnlyStore{events: events}
+
+	sseStore := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
+
+	cursor := events[2].ID().String()
+
+	result, err := sseStore.EventsAfter(sse.NewEventID(cursor))
+	if err != nil {
+		t.Fatalf("EventsAfter: %v", err)
+	}
+
+	if len(result) != 3 {
+		t.Fatalf("expected 3 events (tail of the backlog), got %d", len(result))
+	}
+
+	for i, wantIdx := range []int{7, 8, 9} {
+		if result[i].ID.Get() != events[wantIdx].ID().String() {
+			t.Errorf("result[%d]: expected ID %q, got %q",
+				i, events[wantIdx].ID().String(), result[i].ID.Get())
+		}
+	}
+}

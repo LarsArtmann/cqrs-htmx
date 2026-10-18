@@ -749,3 +749,112 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 		t.Fatalf("zero SSEOptions must produce no options, got %d", got)
 	}
 }
+
+func TestServeDomainEvents_FilterCapCountsMatchesOnly(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	// A burst of 8 non-matching events, then 3 matching ones. With a cap of 3
+	// applied BEFORE the filter, the entire budget would be consumed by the
+	// non-matching burst and the scoped feed would receive zero backfill.
+	events := make([]sse.Event, 0, 11)
+	for i := range 8 {
+		events = append(events, sse.Event{
+			Event: "other",
+			Data:  fmt.Sprintf("other-%d", i),
+			ID:    sse.NewEventID(fmt.Sprintf("id-o-%d", i)),
+		})
+	}
+	for i := range 3 {
+		events = append(events, sse.Event{
+			Event: "wanted",
+			Data:  fmt.Sprintf("want-%d", i),
+			ID:    sse.NewEventID(fmt.Sprintf("id-w-%d", i)),
+		})
+	}
+
+	h := ServeDomainEvents(b, &fakeSSEStore{events: events}, 0,
+		WithSSEFilter(func(evt sse.Event) bool { return evt.Event == "wanted" }),
+		WithSSEMaxReplay(3),
+	)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	for _, want := range []string{"want-0", "want-1", "want-2"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("scoped backfill missing %q — cap was consumed by non-matching events\nbody:\n%s", want, body)
+		}
+	}
+	if strings.Contains(body, "other-") {
+		t.Errorf("non-matching event leaked into filtered backfill\nbody:\n%s", body)
+	}
+}
+
+func TestServeDomainEvents_PanickingFilterPredicateDoesNotKillReplay(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	events := []sse.Event{
+		{Event: "boom", Data: "panics-the-predicate", ID: sse.NewEventID("id-1")},
+		{Event: "safe", Data: "fine", ID: sse.NewEventID("id-2")},
+	}
+
+	var calls int32
+	pred := func(evt sse.Event) bool {
+		_ = calls
+		if evt.Event == "boom" {
+			panic("consumer predicate bug")
+		}
+
+		return evt.Event == "safe"
+	}
+
+	h := ServeDomainEvents(b, &fakeSSEStore{events: events}, 0, WithSSEFilter(pred))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("handler did not return — panicking replay predicate killed the goroutine")
+	}
+
+	if !strings.Contains(rec.Body.String(), "fine") {
+		t.Errorf("non-panicking event missing from backfill\nbody:\n%s", rec.Body.String())
+	}
+}

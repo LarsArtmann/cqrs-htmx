@@ -116,6 +116,9 @@ func WithSSEFilter(pred func(sse.Event) bool) ServeDomainEventsOption {
 // the same tail semantics [NewJournalSSEStore] applies via [WithMaxReplay].
 // It works with any [sse.EventStore], including test fakes and custom
 // stores, so consumers do not need the journal-backed store just for the cap.
+// When a filter is active ([WithSSEFilter]) the cap counts MATCHING events
+// only, so a burst of non-matching events can never consume a scoped feed's
+// backfill budget.
 //
 // A value <= 0 (the default) keeps the store's own replay limit untouched.
 // When both this option and a store-level limit are set, the tighter cap wins
@@ -154,18 +157,32 @@ func (s *replayAdjustedStore) EventsAfter(lastID sse.EventID) ([]sse.Event, erro
 	return events, nil
 }
 
-// filteredEventStore adapts any [sse.EventStore] to [sse.FilteredEventStore]
-// by filtering in-memory. It is the fail-closed replay path for WithSSEFilter.
-type filteredEventStore struct {
-	inner sse.EventStore
-	match func(sse.Event) bool
+// filteredReplayStore adapts any [sse.EventStore] to
+// [sse.FilteredEventStore] for the replay path. It is the fail-closed replay
+// path for WithSSEFilter, with two handler-level adjustments applied AFTER
+// filtering so they count MATCHING events, not raw ones:
+//
+//   - the replay cap tail-truncates to the most recent maxN matches (capping
+//     before filtering would let a burst of non-matching events consume the
+//     entire budget and starve a scoped feed's backfill to zero),
+//   - the reconnect retry hint is stamped on replayed matches whose Retry
+//     is zero.
+//
+// A panicking consumer predicate is recovered and treated as a non-match,
+// mirroring go-sse's live-path guard (safePredCall) — the replay path must
+// not be the one place a bad filter kills the HTTP handler goroutine.
+type filteredReplayStore struct {
+	inner    sse.EventStore
+	match    func(sse.Event) bool
+	maxN     int
+	retryHit uint
 }
 
-func (f *filteredEventStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
+func (f *filteredReplayStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
 	return f.inner.EventsAfter(lastID) //nolint:wrapcheck // adapter propagates the store error verbatim
 }
 
-func (f *filteredEventStore) EventsAfterFiltered(
+func (f *filteredReplayStore) EventsAfterFiltered(
 	lastID sse.EventID,
 	pred func(sse.Event) bool,
 ) ([]sse.Event, error) {
@@ -177,12 +194,35 @@ func (f *filteredEventStore) EventsAfterFiltered(
 	out := make([]sse.Event, 0, len(events))
 
 	for _, evt := range events {
-		if pred(evt) {
+		if safePredCall(pred, evt) {
 			out = append(out, evt)
 		}
 	}
 
+	if f.maxN > 0 && len(out) > f.maxN {
+		out = out[len(out)-f.maxN:]
+	}
+
+	for i := range out {
+		if out[i].Retry == 0 && f.retryHit > 0 {
+			out[i].Retry = f.retryHit
+		}
+	}
+
 	return out, nil
+}
+
+// safePredCall mirrors go-sse's fanout predicate guard: a panicking consumer
+// predicate is recovered and treated as a non-match instead of propagating
+// out of the replay path into the HTTP handler goroutine.
+func safePredCall(pred func(sse.Event) bool, evt sse.Event) (match bool) {
+	defer func() {
+		if recover() != nil {
+			match = false
+		}
+	}()
+
+	return pred(evt)
 }
 
 // subscribe applies the configured filter to the live subscription (nil
@@ -208,12 +248,14 @@ func (c serveDomainEventsConfig) replayEvents(stream *sse.Stream, store sse.Even
 		return
 	}
 
-	store = &replayAdjustedStore{inner: store, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis}
-
 	lastID := stream.LastEventID()
 
 	if c.filter != nil {
-		filtered := &filteredEventStore{inner: store, match: c.filter}
+		// Filter FIRST (raw store), cap only the matches: the replay budget
+		// belongs to events the subscriber can actually receive.
+		filtered := &filteredReplayStore{
+			inner: store, match: c.filter, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis,
+		}
 
 		if _, err := sse.ReplayFiltered(stream, filtered, lastID, c.filter); err != nil {
 			slog.Warn(c.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
@@ -221,6 +263,8 @@ func (c serveDomainEventsConfig) replayEvents(stream *sse.Stream, store sse.Even
 
 		return
 	}
+
+	store = &replayAdjustedStore{inner: store, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis}
 
 	if _, err := sse.Replay(stream, store, lastID); err != nil {
 		slog.Warn(c.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
