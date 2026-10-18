@@ -64,6 +64,14 @@ func run(paths []string, table rulesTable, apply bool) (int, []fileReport, error
 		}
 
 		if apply && len(rep.edits) > 0 {
+			// Never write unparseable output: a rewrite bug must fail loudly
+			// here, not corrupt the consumer tree on disk.
+			if _, err := parser.ParseFile(
+				token.NewFileSet(), path, []byte(rep.applied), parser.SkipObjectResolution,
+			); err != nil {
+				return len(goFiles), reports, fmt.Errorf("refusing to write %s: rewritten source does not parse: %w", path, err)
+			}
+
 			info, err := os.Stat(path)
 			if err != nil {
 				return len(goFiles), reports, err
@@ -338,6 +346,14 @@ func dropImportSpecs(
 				local = imp.Name.Name
 			}
 
+			// Blank and dot imports are never drop candidates: `_` registers
+			// side effects the rewrite must preserve, and `.` binds every
+			// exported name (remainingRefs["."] never counts them — dropping
+			// the line would break every bare identifier in the file).
+			if imp.Name != nil && (imp.Name.Name == "_" || imp.Name.Name == ".") {
+				continue
+			}
+
 			if remainingRefs[local] != 0 || !sourcePackages[qualToPath[local]] {
 				continue
 			}
@@ -397,16 +413,28 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 				// insert+delete. The replacement must account for what the
 				// drop range already preserves: a parenthesized spec's range
 				// starts AFTER the line's leading indent (keep it, add none);
-				// a whole-declaration drop starts at column 0 (add one tab).
-				indent := ""
-				if lineStart(d.offset) >= d.offset {
-					indent = "\t"
+				// a whole-declaration drop (single-line, unparenthesized
+				// `import "path"`) removes the `import` keyword itself, so the
+				// replacement has to open a fresh import block — emitting bare
+				// spec lines there produced unparseable output.
+				body := strings.TrimLeft(strings.TrimPrefix(lines.String(), "\n"), "\t")
+
+				replacement := ""
+				if strings.HasPrefix(strings.TrimLeft(src[d.offset:d.end], " \t"), "import") {
+					replacement = "import (\n\t" + body + "\n)\n"
+				} else {
+					indent := ""
+					if lineStart(d.offset) >= d.offset {
+						indent = "\t"
+					}
+
+					replacement = indent + body + "\n"
 				}
 
 				*d = textEdit{
 					d.offset,
 					d.end,
-					indent + strings.TrimLeft(strings.TrimPrefix(lines.String(), "\n"), "\t") + "\n",
+					replacement,
 				}
 
 				return
