@@ -46,7 +46,7 @@ templ eventsContent(p pageData, events []event.Event, page paginationState, filt
 			@badge(fmt.Sprintf("sorted view: first %d events", filterScanLimit), display.BadgeNeutral)
 		}
 		@paginationNav(p.BasePath, "/events", page, combinedFilterSortParams(filter, sortBy))
-		@formatLinksNav(p.BasePath, "/events")
+		@formatLinksNav(p.BasePath, "/events", combinedFilterSortParams(filter, sortBy))
 	}
 }
 

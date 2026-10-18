@@ -20,7 +20,7 @@ templ overviewContent(p pageData, stats overviewStats) {
 		@projectionHealthPanel(p.BasePath, stats.Projections)
 	}
 	if len(stats.RecentEvents) > 0 {
-		@recentEventsTable(p.BasePath, stats.RecentEvents)
+		@recentEventsTable(p.BasePath, p.Caps.EventSource, stats.RecentEvents)
 	}
 }
 
@@ -103,25 +103,28 @@ templ projectionHealthRows(projs []projectionStat) {
 }
 
 // recentEventsTable builds the recent-events table for the overview page.
-templ recentEventsTable(basePath string, events []RecentEvent) {
+// Stream links need the EventSource capability (the /aggregates/{type}/{id}
+// routes only register with it); without it the stream renders as plain text
+// instead of linking to a styled 404.
+templ recentEventsTable(basePath string, canInspectStreams bool, events []RecentEvent) {
 	<h2>Recent Events</h2>
-	@rawDataTable(plainHeaders("Time", "Type", "Stream", "Version"), "", recentEventRows(basePath, events))
+	@rawDataTable(plainHeaders("Time", "Type", "Stream", "Version"), "", recentEventRows(basePath, canInspectStreams, events))
 }
 
-templ recentEventRows(basePath string, events []RecentEvent) {
+templ recentEventRows(basePath string, canInspectStreams bool, events []RecentEvent) {
 	for _, e := range events {
 		<tr>
 			<td class="mono" title={ e.Time }>{ recentEventTime(e) }</td>
 			<td><a href={ basePath + "/events/" + e.EventID }><code>{ e.Type }</code></a></td>
-			<td>@recentEventStreamCell(basePath, e)
+			<td>@recentEventStreamCell(basePath, canInspectStreams, e)
 </td>
 			<td>{ e.Version }</td>
 		</tr>
 	}
 }
 
-templ recentEventStreamCell(basePath string, e RecentEvent) {
-	if e.StreamType != "" {
+templ recentEventStreamCell(basePath string, canInspectStreams bool, e RecentEvent) {
+	if canInspectStreams && e.StreamType != "" {
 		<a href={ basePath + "/aggregates/" + e.StreamType + "/" + e.StreamID } class="mono">{ truncate(e.StreamID, eventIDWidth) }</a>
 	} else {
 		{ truncate(e.StreamID, eventIDWidth) }

@@ -346,7 +346,7 @@ const dashboardJS = `
   }
 
   document.addEventListener("visibilitychange", function() {
-    if (document.visibilityState === "visible" && (!es || es.readyState === EventSource.CLOSED)) {
+    if (indicator && document.visibilityState === "visible" && (!es || es.readyState === EventSource.CLOSED)) {
       reconnectDelay = 1000;
       connect();
     }

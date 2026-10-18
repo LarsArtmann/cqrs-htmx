@@ -100,7 +100,7 @@ templ timeTravelDetailContent(
 			if currentVersion > event.Version(1) {
 				@buttonLink(
 					"First",
-					p.BasePath+"/time-travel/"+string(ref.Type)+"/"+ref.ID.String(),
+					fmt.Sprintf("%s/time-travel/%s/%s?v=1", p.BasePath, string(ref.Type), ref.ID.String()),
 					"",
 					display.ButtonSecondary,
 					false,
@@ -139,9 +139,7 @@ templ timeTravelDetailContent(
 templ timeTravelRows(basePath string, events []event.Event) {
 	for _, evt := range events {
 		<tr>
-			<td class="cell-emph">{ evt.Version().String() }</td>
-			<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
-			<td class="mono">{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
+			@eventTimelineCells(basePath, evt)
 		</tr>
 	}
 }

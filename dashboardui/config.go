@@ -192,7 +192,10 @@ func (config Config) withDefaults() (Config, error) {
 		)
 	}
 
-	if config.PageSize == 0 {
+	// A negative PageSize would pass through and panic the first paginated
+	// request (events[:pageSize] with a negative bound), so clamp it with the
+	// zero-value default.
+	if config.PageSize <= 0 {
 		config.PageSize = core.DefaultPageSize()
 	}
 

@@ -229,12 +229,25 @@ templ pageSizeSelector(basePath, path string, state paginationState, extraParams
 }
 
 // formatLinksNav renders CSV and JSON export links for the given page path.
-templ formatLinksNav(basePath, path string) {
+// extraParams carries the active filter/sort query so an export respects
+// what the user is looking at instead of silently exporting the whole
+// journal.
+templ formatLinksNav(basePath, path, extraParams string) {
 	<div class="filter-bar">
 		<span class="muted">Export:</span>
-		@buttonLink("CSV", basePath+path+"?format=csv", "", display.ButtonSecondary, false)
-		@buttonLink("JSON", basePath+path+"?format=json", "", display.ButtonSecondary, false)
+		@exportLink("CSV", basePath+path, "format=csv", extraParams)
+		@exportLink("JSON", basePath+path, "format=json", extraParams)
 	</div>
+}
+
+templ exportLink(label, basePath, formatParam, extraParams string) {
+	{{
+		query := formatParam
+		if extraParams != "" {
+			query = extraParams + "&" + formatParam
+		}
+	}}
+	@buttonLink(label, basePath+"?"+query, "", display.ButtonSecondary, false)
 }
 
 // snapshotRelativeTime renders the library RelativeTime component (title =

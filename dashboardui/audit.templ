@@ -1,6 +1,8 @@
 package dashboardui
 
 import (
+	"time"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/templ-components/display"
@@ -28,15 +30,14 @@ templ commandsContent(p pageData, cmds []*command.PersistedCommand, page paginat
 			commandRows(p.BasePath, p.Nonce, cmds),
 		)
 		@paginationNav(p.BasePath, "/commands", page, "")
-		@formatLinksNav(p.BasePath, "/commands")
+		@formatLinksNav(p.BasePath, "/commands", "")
 	}
 }
 
 templ commandRows(basePath, nonce string, cmds []*command.PersistedCommand) {
 	for _, cmd := range cmds {
 		<tr>
-			<td>{ cmd.ReceivedAt().Format("2006-01-02 15:04:05") }</td>
-			<td><code>{ string(cmd.Type()) }</code></td>
+			@auditedTimeTypeCells(cmd.ReceivedAt(), string(cmd.Type()))
 			<td>{ string(cmd.StreamType()) }</td>
 			<td><span class="mono">{ truncate(cmd.StreamID().String(), listIDWidth) }</span> @copyButton(cmd.StreamID().String(), "", nonce)</td>
 			<td><span class="mono">{ truncate(cmd.ID().String(), eventIDWidth) }</span> @copyButton(cmd.ID().String(), "", nonce)</td>
@@ -64,19 +65,26 @@ templ queriesContent(p pageData, queries []*query.PersistedQuery, page paginatio
 			queryRows(p.BasePath, p.Nonce, queries),
 		)
 		@paginationNav(p.BasePath, "/queries", page, "")
-		@formatLinksNav(p.BasePath, "/queries")
+		@formatLinksNav(p.BasePath, "/queries", "")
 	}
 }
 
 templ queryRows(basePath, nonce string, queries []*query.PersistedQuery) {
 	for _, q := range queries {
 		<tr>
-			<td>{ q.ReceivedAt().Format("2006-01-02 15:04:05") }</td>
-			<td><code>{ string(q.Type()) }</code></td>
+			@auditedTimeTypeCells(q.ReceivedAt(), string(q.Type()))
 			<td><span class="mono">{ truncate(q.ID().String(), eventIDWidth) }</span> @copyButton(q.ID().String(), "", nonce)</td>
 			<td>@buttonLink("View", basePath+"/queries/"+q.ID().String(), "", display.ButtonSecondary, false)</td>
 		</tr>
 	}
+}
+
+// auditedTimeTypeCells renders the received-at and type columns shared by the
+// command and query audit rows. One place owns the cell markup and the
+// timestamp format so the two tables cannot drift.
+templ auditedTimeTypeCells(receivedAt time.Time, typ string) {
+	<td>{ receivedAt.Format("2006-01-02 15:04:05") }</td>
+	<td><code>{ typ }</code></td>
 }
 
 // ===== Command Detail =====

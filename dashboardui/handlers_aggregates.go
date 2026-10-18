@@ -17,23 +17,27 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 
+	after, okCursor := parseAfterCursor(d, w, r, afterCursor, id.ParseStreamID)
+	if !okCursor {
+		return
+	}
+
 	var (
 		listings []listing.StreamListing
 		hasMore  bool
 	)
 
-	if d.config.StreamReader != nil { //nolint:nestif // optional data source branching
-		opts := listing.ListOptions{Limit: uint(pageSize + 1)}
-
-		if afterCursor != "" {
-			parsed, err := id.ParseStreamID(afterCursor)
-			if err == nil {
-				opts.After = parsed
-			}
-		}
+	if d.config.StreamReader != nil {
+		opts := listing.ListOptions{Limit: uint(pageSize + 1), After: after}
 
 		page, err := d.config.StreamReader.List(r.Context(), opts)
-		if err == nil && page != nil {
+		if err != nil {
+			d.renderError(w, r, http.StatusInternalServerError, "failed to load aggregates")
+
+			return
+		}
+
+		if page != nil {
 			hasMore = len(page.Items) > pageSize
 			if hasMore {
 				listings = page.Items[:pageSize]

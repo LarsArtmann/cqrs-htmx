@@ -27,18 +27,39 @@ func (f *fakeSeekableJournal) ReadAll(_ context.Context) ([]event.Event, error) 
 
 func (f *fakeSeekableJournal) ReadFrom(
 	_ context.Context,
-	_ id.EventID,
+	after id.EventID,
 	limit int,
 ) ([]event.Event, error) {
 	if f.readErr != nil {
 		return nil, f.readErr
 	}
 
-	if limit > 0 && limit < len(f.events) {
-		return f.events[:limit], nil
+	start := 0
+	if after != (id.EventID{}) {
+		found := false
+
+		for i, evt := range f.events {
+			if evt.ID() == after {
+				start = i + 1
+				found = true
+
+				break
+			}
+		}
+
+		if !found {
+			// A pruned cursor restarts from the head, matching the contract
+			// the real journals and core.indexAfter implement.
+			start = 0
+		}
 	}
 
-	return f.events, nil
+	events := f.events[start:]
+	if limit > 0 && limit < len(events) {
+		events = events[:limit]
+	}
+
+	return events, nil
 }
 
 type fakeEventByIDLoader struct {
