@@ -70,7 +70,12 @@ func TestServeHTTP_NoAuthMethodShowsError(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
-	assertContains(t, body, "No authentication method is configured", "page should show no-auth error when no strategies are configured")
+	assertContains(
+		t,
+		body,
+		"No authentication method is configured",
+		"page should show no-auth error when no strategies are configured",
+	)
 	assertNotContains(t, body, `id="lp-login-form"`, "page should not render login form without auth methods")
 	assertNotContains(t, body, `id="loginpage-config"`, "page should not include config JS without auth methods")
 }
@@ -139,7 +144,12 @@ func TestPage_RegistrationHidden(t *testing.T) {
 		Accent:  "#4f46e5",
 		ShowReg: false,
 	})
-	assertNotContains(t, body, `id="lp-register-section"`, "registration section should be hidden when ShowReg is false")
+	assertNotContains(
+		t,
+		body,
+		`id="lp-register-section"`,
+		"registration section should be hidden when ShowReg is false",
+	)
 }
 
 func TestPage_OAuth2Buttons(t *testing.T) {
@@ -641,7 +651,12 @@ func TestServeHTTP_MaliciousCredentialNameNotInjected(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
-	assertNotContains(t, body, "</script><script>alert(1)</script>", "rendered page must not contain the raw injection payload")
+	assertNotContains(
+		t,
+		body,
+		"</script><script>alert(1)</script>",
+		"rendered page must not contain the raw injection payload",
+	)
 }
 
 func TestPage_NonceRenderedOnScripts(t *testing.T) {
@@ -800,7 +815,12 @@ func TestServeHTTP_NoOAuth2_RendersNoButtons(t *testing.T) {
 	body := rec.Body.String()
 	assertNotContains(t, body, "/auth/oauth/google/begin", "NoOAuth2 must hide auto-detected provider buttons")
 	assertNotContains(t, body, "Sign in with Google", "NoOAuth2 must hide provider labels")
-	assertContains(t, body, "No authentication method is configured", "page should render the setup notice when every method is hidden")
+	assertContains(
+		t,
+		body,
+		"No authentication method is configured",
+		"page should render the setup notice when every method is hidden",
+	)
 }
 
 func TestPage_ButtonSpinnerServerRenderedHidden(t *testing.T) {
@@ -876,7 +896,12 @@ func TestServeHTTP_AutoRedirect_ErrorParamRendersPage(t *testing.T) {
 	}
 	body := w.Body.String()
 	assertContains(t, body, "Provider said no", "page should surface the error param in the #lp-error alert")
-	assertNotContains(t, body, "red-400 hidden", "error alert must not carry the hidden class when a message is present")
+	assertNotContains(
+		t,
+		body,
+		"red-400 hidden",
+		"error alert must not carry the hidden class when a message is present",
+	)
 }
 
 func TestServeHTTP_ErrorParamSanitized(t *testing.T) {

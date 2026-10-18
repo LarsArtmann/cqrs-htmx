@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **usermgmt: `NewEventSourcedSetup` leaked a library-created event bus when `applyBusMiddleware` failed (2026-10-18).** Every later error path in the constructor closes the bus before returning (the setup never reaches the caller, so nobody else can), but the middleware-application path — the first one that runs AFTER the bus exists — returned without closing. The path now closes it like its siblings; caller-provided buses behave exactly as on the other error paths.
+
 ### Added
 
 - **loginpage + setup: OAuth2-only auto-redirect (2026-10-14).** `loginpage.Config.AutoRedirect` makes the login page answer `GET` with a 302 straight to `{AuthPrefix}/auth/oauth/{provider}/begin` when OAuth2 is the page's ONLY sign-in method (WebAuthn unconfigured, exactly one provider visible) — no intermediate button click. Multiple providers render the page normally (the visitor must choose); WebAuthn always renders the passkey form. Mutually exclusive with `NoOAuth2` (rejected at `New`). setup passes it through as `Config.LoginAutoRedirect`. Receipt also in `loginpage/CHANGELOG.md`; setup ships no module CHANGELOG per repo practice. Released 2026-10-14 as `loginpage/v4.13.0` + `setup/v4.15.0`; the same train swept the loginpage require to v4.13.0 across integration_test and the setup/async-startup demos.

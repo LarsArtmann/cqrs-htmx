@@ -38,14 +38,30 @@ func (f *fakeSeekableJournal) ReadAll(_ context.Context) ([]event.Event, error) 
 
 func (f *fakeSeekableJournal) ReadFrom(
 	_ context.Context,
-	_ id.EventID,
-	_ int,
+	after id.EventID,
+	limit int,
 ) ([]event.Event, error) {
 	if f.readErr != nil {
 		return nil, f.readErr
 	}
 
-	return f.events, nil
+	start := 0
+	if after != (id.EventID{}) {
+		for i, evt := range f.events {
+			if evt.ID() == after {
+				start = i + 1
+
+				break
+			}
+		}
+	}
+
+	events := f.events[start:]
+	if limit > 0 && limit < len(events) {
+		events = events[:limit]
+	}
+
+	return events, nil
 }
 
 type fakeEventByIDLoader struct {
@@ -181,8 +197,10 @@ func TestOverviewStats_SeekableJournalManyEvents(t *testing.T) {
 	}
 
 	stats := d.overviewStats(context.Background())
-	if stats.TotalEvents != strconv.Itoa(overviewCountLimit+1)+"+" {
-		t.Errorf("expected TotalEvents with + suffix, got %s", stats.TotalEvents)
+	// Tail scans count the whole journal, so the total is exact (the old
+	// head-read capped at "500+" and never reflected real growth).
+	if stats.TotalEvents != strconv.Itoa(overviewCountLimit+1) {
+		t.Errorf("expected exact TotalEvents %d, got %s", overviewCountLimit+1, stats.TotalEvents)
 	}
 }
 
@@ -531,14 +549,30 @@ func (f *fakeCommandJournal) ReadAll(_ context.Context) ([]*command.PersistedCom
 
 func (f *fakeCommandJournal) ReadFrom(
 	_ context.Context,
-	_ id.CommandID,
-	_ int,
+	after id.CommandID,
+	limit int,
 ) ([]*command.PersistedCommand, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
 
-	return f.cmds, nil
+	start := 0
+	if after != (id.CommandID{}) {
+		for i, cmd := range f.cmds {
+			if cmd.ID() == after {
+				start = i + 1
+
+				break
+			}
+		}
+	}
+
+	cmds := f.cmds[start:]
+	if limit > 0 && limit < len(cmds) {
+		cmds = cmds[:limit]
+	}
+
+	return cmds, nil
 }
 
 func makeTestCommand(t *testing.T) *command.PersistedCommand {

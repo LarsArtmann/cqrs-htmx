@@ -60,6 +60,8 @@ func overviewFixtures() (pageData, overviewStats) {
 		BasePath: "/dashboard",
 		Nav:      []navItem{{Label: "Overview", Href: "/dashboard/", Active: true}},
 		Nonce:    "test-nonce",
+		// The golden represents a full-capability dashboard (stream links on).
+		Caps: Capabilities{EventSource: true},
 	}
 	stats := overviewStats{
 		TotalEvents:     "1,234",
