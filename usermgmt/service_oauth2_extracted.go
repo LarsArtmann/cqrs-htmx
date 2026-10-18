@@ -242,13 +242,25 @@ func (o *OAuth2Service) matchOrCreateUser(
 		return matched, false, nil
 	}
 
+	return o.provisionLinkedUser(ctx, provider, info)
+}
+
+// provisionLinkedUser auto-registers a fresh user for the OAuth2 identity and
+// links the external account to it. The shared registration lock (when
+// MaxUsers is set) is held from the count check through the final read so a
+// concurrent Register or first-login sees the updated count once this returns.
+func (o *OAuth2Service) provisionLinkedUser(
+	ctx context.Context,
+	provider string,
+	info OAuth2UserInfo,
+) (*User, bool, error) {
 	if o.maxUsers > 0 {
-		// Hold the shared registration lock through dispatch so a concurrent
-		// Register or first-login sees the updated count once this returns.
 		o.registrationMu.Lock()
 		defer o.registrationMu.Unlock()
+
 		if o.readModel.Count() >= o.maxUsers {
 			o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
+
 			return nil, false, errorfamily.NewRejection(
 				"usermgmt.oauth2.registration_closed",
 				"registration is closed",
@@ -295,6 +307,7 @@ func (o *OAuth2Service) matchOrCreateUser(
 			userID,
 		)
 	}
+
 	return user, true, nil
 }
 
