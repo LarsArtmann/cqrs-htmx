@@ -24,7 +24,7 @@ var (
 	// ErrUserIDExists is returned when attempting to create a user with an ID that already exists.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrUserIDExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrUserIDExists, http.StatusNotFound)
+	ErrUserIDExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrUserIDExists, http.StatusConflict)
 	// ErrEmailExists is returned when attempting to register an email that is already taken.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.

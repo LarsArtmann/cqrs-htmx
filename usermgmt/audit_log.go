@@ -141,9 +141,13 @@ func (a *AuditLog) Count() int {
 }
 
 // Recent returns the last n audit entries (or all if n > len).
+// A non-positive n returns an empty slice.
 func (a *AuditLog) Recent(n int) []AuditEntry {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
+	if n <= 0 {
+		return []AuditEntry{}
+	}
 	if n >= len(a.entries) {
 		result := make([]AuditEntry, len(a.entries))
 		copy(result, a.entries)
