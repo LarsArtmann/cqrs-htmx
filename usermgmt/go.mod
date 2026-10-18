@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-idempotency v0.3.1
