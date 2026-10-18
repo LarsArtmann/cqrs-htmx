@@ -69,7 +69,13 @@ func run(paths []string, table rulesTable, apply bool) (int, []fileReport, error
 			if _, err := parser.ParseFile(
 				token.NewFileSet(), path, []byte(rep.applied), parser.SkipObjectResolution,
 			); err != nil {
-				return len(goFiles), reports, fmt.Errorf("refusing to write %s: rewritten source does not parse: %w", path, err)
+				return len(
+						goFiles,
+					), reports, fmt.Errorf(
+						"refusing to write %s: rewritten source does not parse: %w",
+						path,
+						err,
+					)
 			}
 
 			info, err := os.Stat(path)
@@ -326,7 +332,11 @@ func dropImportSpecs(
 	}
 
 	lineStart := func(offset int) int {
-		return offset - strings.IndexByte(src[:offset], '\n') - 1
+		if idx := strings.LastIndexByte(src[:offset], '\n'); idx >= 0 {
+			return idx + 1
+		}
+
+		return offset
 	}
 
 	for _, decl := range file.Decls {

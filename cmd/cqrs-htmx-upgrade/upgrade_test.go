@@ -396,3 +396,71 @@ func TestDeriveMappings_LiveModules(t *testing.T) {
 		t.Errorf("expected both R9 (types, got %d) and R10 (values, got %d) in the usermgmt table", r9, r10)
 	}
 }
+
+// TestR1_SingleLineImportStaysParseable: a file whose ONLY source-package
+// import is a single-line (unparenthesized) `import "..."` must come out
+// parseable — the fuse path used to emit the bare spec line, dropping the
+// `import` keyword and corrupting the consumer file.
+func TestR1_SingleLineImportStaysParseable(t *testing.T) {
+	dir := t.TempDir()
+
+	src := `package app
+
+import "github.com/larsartmann/cqrs-htmx/v4"
+
+func wire(mux *http.ServeMux) {
+	var cfg cqrshtmx.CSRFConfig
+	_ = cqrshtmx.CSRFMiddleware(cfg)
+}
+`
+	path := writeFile(t, dir, "app.go", src)
+
+	rep, err := planFile(path, fixtureTable())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `package app
+
+import (
+	"github.com/larsartmann/httputil"
+)
+
+func wire(mux *http.ServeMux) {
+	var cfg httputil.CSRFConfig
+	_ = httputil.CSRFMiddleware(cfg)
+}
+`
+	if rep.applied != want {
+		t.Errorf("applied:\n%s\nwant:\n%s", rep.applied, want)
+	}
+}
+
+// TestR1_BlankImportIsNeverDropped: `_` imports carry side-effect
+// registration — the rewrite must never remove their line.
+func TestR1_BlankImportIsNeverDropped(t *testing.T) {
+	dir := t.TempDir()
+
+	src := `package app
+
+import (
+	_ "github.com/larsartmann/cqrs-htmx/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+)
+
+func wire() {
+	var cfg cqrshtmx.CSRFConfig
+	_ = cqrshtmx.CSRFMiddleware(cfg)
+}
+`
+	path := writeFile(t, dir, "app.go", src)
+
+	rep, err := planFile(path, fixtureTable())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(rep.applied, `_ "github.com/larsartmann/cqrs-htmx/v4"`) {
+		t.Errorf("blank import was dropped or rewritten:\n%s", rep.applied)
+	}
+}
