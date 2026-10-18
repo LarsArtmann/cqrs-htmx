@@ -442,13 +442,8 @@ func fuseInserts(fset *token.FileSet, file *ast.File, src string, drops *[]textE
 }
 
 func defaultQualFor(importPath string) string {
-	switch importPath {
-	case httputilImportPath:
-		return "httputil"
-	case gosseImportPath:
-		return "sse"
-	case identityImportPath:
-		return "identitymodel"
+	if qual, ok := wellKnownQualifier(importPath); ok {
+		return qual
 	}
 
 	return filepath.Base(importPath)

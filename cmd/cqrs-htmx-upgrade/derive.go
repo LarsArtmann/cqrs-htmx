@@ -196,6 +196,10 @@ func importQualifierMap(file *ast.File) map[string]string {
 // carries no explicit alias — the fleet's names, stated as facts (they are
 // unknowable from the path alone).
 func defaultPackageName(importPath string) string {
+	if name, ok := wellKnownQualifier(importPath); ok {
+		return name
+	}
+
 	switch importPath {
 	case rootImportPath:
 		return "cqrshtmx"
@@ -203,15 +207,26 @@ func defaultPackageName(importPath string) string {
 		return "usermgmt"
 	case datastarImportPath:
 		return "datastar"
-	case httputilImportPath:
-		return "httputil"
-	case gosseImportPath:
-		return "sse"
-	case identityImportPath:
-		return "identitymodel"
 	}
 
 	return filepath.Base(importPath)
+}
+
+// wellKnownQualifier returns the fleet's canonical package name for import
+// paths whose name is not derivable from the path alone — the subset
+// defaultPackageName and defaultQualFor must agree on, kept in one place so
+// the two never drift when the fleet grows.
+func wellKnownQualifier(importPath string) (string, bool) {
+	switch importPath {
+	case httputilImportPath:
+		return "httputil", true
+	case gosseImportPath:
+		return "sse", true
+	case identityImportPath:
+		return "identitymodel", true
+	}
+
+	return "", false
 }
 
 // moduleDir resolves a module's local source directory via the consumer's

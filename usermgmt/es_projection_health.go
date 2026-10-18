@@ -22,10 +22,7 @@ func (s *EventSourcedSetup) EventCatalog() *cqrshtmx.EventCatalog {
 // cqrshtmx.ProjectionStatusProvider interface. This lets consumers pass the
 // setup (or Service) directly to cqrshtmx.ProjectionStatusHandler.
 func (s *EventSourcedSetup) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntry {
-	if s.projectionHost == nil {
-		return nil
-	}
-	return adaptWorkerStates(s.projectionHost.Status())
+	return projectionStatuses(s.projectionHost)
 }
 
 // RebuildProjection stops the projection host, resets the named projection's
@@ -55,10 +52,7 @@ func (svc *Service) EventCatalog() *cqrshtmx.EventCatalog {
 // ProjectionStatuses adapts the internal projectionhost.Host status to the
 // cqrshtmx.ProjectionStatusProvider interface.
 func (svc *Service) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntry {
-	if svc.projectionHost == nil {
-		return nil
-	}
-	return adaptWorkerStates(svc.projectionHost.Status())
+	return projectionStatuses(svc.projectionHost)
 }
 
 // RebuildProjection stops the projection host, resets the named projection's
@@ -122,6 +116,17 @@ func createProjectionHost(
 	projections []projection.Projection,
 ) (*projectionhost.Host, error) {
 	return startProjectionHost(ctx, journalFromStore(store), bus, cpStore, projections, 0, true)
+}
+
+// projectionStatuses is the shared body of
+// EventSourcedSetup.ProjectionStatuses and Service.ProjectionStatuses —
+// nil-safe host status adaptation (the two receivers differ only in
+// field-name casing, mirroring rebuildProjection).
+func projectionStatuses(host *projectionhost.Host) []cqrshtmx.ProjectionStatusEntry {
+	if host == nil {
+		return nil
+	}
+	return adaptWorkerStates(host.Status())
 }
 
 // adaptWorkerStates converts projectionhost.WorkerState slices to the

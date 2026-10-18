@@ -331,17 +331,22 @@ func pageProps(p PageData) layout.PageProps {
 // nonce is sanitized (base64url characters only), so templ.Raw cannot be
 // abused for attribute injection even with a hostile NonceFromRequest.
 func scriptTag(js, nonce string) string {
-	if nonce == "" {
-		return "<script>" + js + "</script>"
-	}
-	return `<script nonce="` + nonce + `">` + js + "</script>"
+	return "<script" + nonceAttr(nonce) + ">" + js + "</script>"
 }
 
 // jsonScriptTag renders the client-config JSON block with an optional nonce.
 // The JSON itself is already script-safe (see scriptSafeJSON).
 func jsonScriptTag(cfgJSON, nonce string) string {
+	return `<script id="loginpage-config" type="application/json"` + nonceAttr(nonce) + ">" + cfgJSON + "</script>"
+}
+
+// nonceAttr renders a script tag's nonce attribute for an already-sanitized
+// nonce — empty when the nonce is absent. Sanitization (base64url characters
+// only, see sanitizeNonce) is what keeps templ.Raw safe from attribute
+// injection even with a hostile NonceFromRequest.
+func nonceAttr(nonce string) string {
 	if nonce == "" {
-		return `<script id="loginpage-config" type="application/json">` + cfgJSON + "</script>"
+		return ""
 	}
-	return `<script id="loginpage-config" type="application/json" nonce="` + nonce + `">` + cfgJSON + "</script>"
+	return ` nonce="` + nonce + `"`
 }

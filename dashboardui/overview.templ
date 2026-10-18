@@ -93,7 +93,8 @@ templ projectionHealthRows(projs []projectionStat) {
 	for _, pr := range projs {
 		<tr>
 			<td>{ pr.Name }</td>
-			<td>@statusBadge(pr.StatusKind, pr.Status)</td>
+			<td>@statusBadge(pr.StatusKind, pr.Status)
+</td>
 			<td class="mono">{ pr.Lag }</td>
 			<td>{ strconv.FormatInt(pr.Processed, 10) }</td>
 			<td>{ strconv.FormatInt(pr.Errors, 10) }</td>
@@ -112,7 +113,8 @@ templ recentEventRows(basePath string, events []RecentEvent) {
 		<tr>
 			<td class="mono" title={ e.Time }>{ recentEventTime(e) }</td>
 			<td><a href={ basePath + "/events/" + e.EventID }><code>{ e.Type }</code></a></td>
-			<td>@recentEventStreamCell(basePath, e)</td>
+			<td>@recentEventStreamCell(basePath, e)
+</td>
 			<td>{ e.Version }</td>
 		</tr>
 	}

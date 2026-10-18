@@ -238,6 +238,7 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 	}
 
 	if err := applyBusMiddleware(config.PublishMiddleware, config.HandlerMiddleware, bus); err != nil {
+		closeBus(bus)
 		return nil, err
 	}
 
