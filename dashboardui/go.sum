@@ -156,8 +156,8 @@ github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 h1:adCLLEnjEguX5NunGTPVhs/
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4/go.mod h1:i/uu7dSxW6eLhx2zDZshD3hBqNqXEyKD26R1zSQpRHg=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 h1:t6+zJntr/N9ah7HEUHab3Xq5cQK5T7Tu7UqGblRZdaw=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3/go.mod h1:RzBMkLnFnOXEx5R5OVj4pRs+cYToWDQbT0BaOFMUutM=
-github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 h1:TLxR52e2An1kbrJHaf9Y8Om0f3LuwzBSFqXf7e1YIQI=
-github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3/go.mod h1:Gn1lMDrE4/lJ2zTgcyuuLVqFWCrEXiI+imrUYpBfU4c=
+github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.1 h1:9Ey4A1aSb2mX4SKkNWlR/Y5AWFIaj9+DKZFg/PO8gIc=
+github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.1/go.mod h1:Cy5re5ogjxY/3o7oJG4iRcmv/xQly6uksScd7/DdVjY=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3 h1:BU/a5PDT7sR6AcEjyTLOZhq3oyQxfpbnlWP6g+HqKe4=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3/go.mod h1:vCrxqWnbAmu80CoeNlmZ4YtlQ1PpEPJYRkHyJwpVcMs=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0 h1:0r2O5TuMIRDOlrER07m/FbAV5TieB3jnb9bWQNu+K2w=
@@ -168,8 +168,8 @@ github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 h1:q91s4+q6eoKZDXzil/WV5kTGRF
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2/go.mod h1:2tux4v9UUi/ADv6Eb3DH7xaEM58PiBreE1JPHXPC6aw=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 h1:G8gewUt+OA5ElZpG8nBy3HLx8KHuh9JZjwz8I+OiXL4=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2/go.mod h1:DH8T81EISKuU57IsXuZhV/e2wwK52VlwfH0X2SePSEE=
-github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0 h1:HWFERdNUowTm7eK3CfBjIHIov5HnxoIq4set54qY/is=
-github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0/go.mod h1:w5bTmYHvrkcONeQW+kZtNCn8hwtoqqL0XYEhKuSwqog=
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1 h1:RP1qdfYqPUafs4aRNrIWswtMhCPFozX1zGlH4qDrn8g=
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1/go.mod h1:mKqSVLDB/9fW6PXB4Y5TS+IpN49TrR2bDLfRwyGxlpk=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 h1:TQXQy2GgpoRNiMFWY4ye6sw8k/PsdJFgQEQxsM4jmNA=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1/go.mod h1:9u9VxUbAQMTV5c8rAn03Mv7INSAka+VY22UnVxK4tdc=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 h1:YtlkO7+wTXNTzskWbqf2xKAZC+HGe+gp0oejzJahqhg=
@@ -184,8 +184,8 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 h1:0pvOQNTZ4ft6UsRA8X01+l
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0/go.mod h1:xPlRbFNmRk6ym58R2IGy4d8yLysx2G1t8udljtH310w=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX2xkBd8FPen7hDraHFfVsMFhFdZs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
-github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5 h1:qm7hwql6sPBH/BKX1kZY0HYEMvtCLrpPjZpR2rHIOgQ=
-github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5/go.mod h1:bWMQuLfIYGlTEhNCOkPIk++m/047mVJ+0P6IKoHrYuo=
+github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0 h1:wZjyN4rV3nmCNUldc3ENP2Hl0Ni9SMzZjcdtiwLINz0=
+github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0/go.mod h1:zwmMFEdfkmBox2yXVWDIwv6VkA3wH0NjKh2xy4NfYFw=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.14.0 h1:MK9LY7wZzUL9Fqi3zpEtlJI4j9Ekc0FPVjP5YywhFyw=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.14.0/go.mod h1:1dEiWe+vrpmQ23J2M/LOeFL0bXq6L3O45Fc48YU1MaE=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3 h1:6MvhIwZpxMUf9bLN2qBcL4oNtk/s09se2hc4gWJCEgM=
