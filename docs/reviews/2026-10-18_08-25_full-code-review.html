@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>Full Code Review — Episode 4 (2026-10-18)</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -828,205 +828,374 @@
   <body>
     <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>FULL CODE REVIEW · EPISODE 4</span>
+      <span>2026-10-18</span>
+      <span>Crush review session (all 28 modules)</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#findings">Findings</a>
-          <a href="#issues">Issue Cards</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#plan">Plan</a>
+          <a href="#fixed">Fixed in-session</a>
+          <a href="#open">Open findings</a>
+          <a href="#verdicts">Module verdicts</a>
+          <a href="#prior">Prior-art reconciliation</a>
+          <a href="#strengths">Strengths</a>
         </nav>
       </aside>
 
       <main class="main">
-        <!-- Hero -->
         <div class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Report Type</div>
-          <h1>Report Title</h1>
+          <div class="hero-badge">Full Code Review</div>
+          <h1>Every file, every module — episode 4</h1>
           <p class="hero-subtitle">
-            One-sentence description of what this report covers.
+            All 28 workspace modules visited (707 hand-written Go files + 19 templ); ~90 findings, 25 fixed
+            in-session across 10 commits, the rest harvested into TODO_LIST.md. Continues the 2026-07-19
+            full-code-review and the SPLIT-BRAIN series; cross-references the concurrent session's
+            2026-10-18 data-model review.
           </p>
         </div>
 
-        <!-- Inline TOC (alternative to sidebar; pick one) -->
         <nav class="toc">
           <h3>Contents</h3>
           <ul>
             <li><a href="#summary">Summary</a></li>
-            <li><a href="#findings">Findings</a></li>
-            <li><a href="#issues">Issue Cards</a></li>
-            <li><a href="#proposal">Proposal</a></li>
-            <li><a href="#plan">Plan</a></li>
+            <li><a href="#fixed">Fixed in-session</a></li>
+            <li><a href="#open">Open findings</a></li>
+            <li><a href="#verdicts">Module verdicts</a></li>
+            <li><a href="#prior">Prior-art reconciliation</a></li>
+            <li><a href="#strengths">Strengths</a></li>
           </ul>
         </nav>
 
-        <!-- Stats Dashboard -->
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">42</div>
-            <div class="stat-label">Total Items</div>
+            <div class="stat-value">28 / 28</div>
+            <div class="stat-label">Modules reviewed</div>
           </div>
           <div class="stat-card stat-bad">
-            <div class="stat-value">7</div>
-            <div class="stat-label">Critical</div>
+            <div class="stat-value">3</div>
+            <div class="stat-label">Critical (all fixed)</div>
           </div>
           <div class="stat-card stat-warn">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Warnings</div>
+            <div class="stat-value">7</div>
+            <div class="stat-label">High (5 fixed, 2 queued)</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">35</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value">25</div>
+            <div class="stat-label">Fixed in-session</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">~50</div>
+            <div class="stat-label">Queued to TODO_LIST (15 rows)</div>
           </div>
         </div>
-
-        <!-- Findings as Cards -->
-        <h2 id="findings"><span class="num">01</span>Findings</h2>
 
         <div class="card card-problem">
-          <h4>Critical Issue</h4>
-          <p>Description of the problem and its impact.</p>
+          <h4>The headline bugs</h4>
+          <p>
+            Three findings could corrupt or compromise consumers: an open-redirect bypass in
+            <code>SafeRedirectPath</code> (backslash protocol-relative URLs), a codemod path in
+            <code>cqrs-htmx-upgrade</code> that emitted <em>unparseable Go</em> for single-line imports (two
+            stacked bugs: a wrong <code>lineStart</code> byte scan plus a fuse that deleted the
+            <code>import</code> keyword), and an OAuth2 pre-account-takeover vector (email-match linking
+            without <code>EmailVerified</code>). All three are fixed with regression tests.
+          </p>
+        </div>
+        <div class="card card-warning">
+          <h4>The systemic theme</h4>
+          <p>
+            Split brains between paired implementations that were never cross-checked: fold vs projection
+            (TOTP reset on email change), docs vs code ("atomic" Apply, "immutable" 1-year caches on mutable
+            content, "same audit log" claims in systemadapter), and cap-vs-filter composition in the SSE
+            replay path. Each pair was correct alone; the pair drifted.
+          </p>
         </div>
 
-        <div class="card card-solution">
-          <h4>Recommended Fix</h4>
-          <p>Description of the solution with rationale.</p>
-        </div>
-
-        <!-- Issue Cards -->
-        <h2 id="issues"><span class="num">02</span>Issue Cards</h2>
+        <h2 id="fixed"><span class="num">01</span>Fixed in-session</h2>
 
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Blocking</span>
-          <h3>Critical finding title</h3>
-          <div class="where">path/to/file.go:42-58</div>
+          <span class="severity severity-critical">Critical · Fixed</span>
+          <h3>SafeRedirectPath backslash bypass</h3>
+          <div class="where">redirect.go:31 · commit 571b9953</div>
           <p>
-            Describe the problem and cite the code or behavior that proves it.
+            <code>SafeRedirectPath("/\\/evil.com")</code> passed the guard (index 1 is a backslash, not a
+            slash) — but WHATWG URL parsing treats <code>\</code> as <code>/</code> in special schemes, so
+            browsers followed it off-site. The guard is the documented open-redirect defense for adminui,
+            dashboardui, and loginpage. Fixed by rejecting <code>/\</code> prefixes; first root-owned unit
+            tests for this security primitive (a documented 2026-07-26 process gap).
           </p>
-          <div class="callout callout-solution">
-            <strong>Fix</strong>
-            State the concrete recommended action.
-          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical · Fixed</span>
+          <h3>Codemod corrupted consumer files on single-line imports</h3>
+          <div class="where">cmd/cqrs-htmx-upgrade/rewrite.go · commit c7d23d9b</div>
+          <p>
+            Two stacked bugs on the never-tested unparenthesized-import path:
+            <code>dropImportSpecs</code>' lineStart used <code>IndexByte</code> (first newline) instead of
+            <code>LastIndexByte</code>, producing garbage drop offsets for any import not on line 1 — the
+            output began <code>p"github.com/..."</code>, the package clause eaten. Even with correct
+            offsets, the fuse replacement emitted a bare spec line, deleting the <code>import</code>
+            keyword. Fixed: true line start, whole-decl fuses open a fresh <code>import (...)</code> block,
+            blank/dot imports are never drop candidates, and <code>-apply</code> now re-parses output and
+            refuses to write unparseable files.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical · Fixed</span>
+          <h3>OAuth2 pre-account-takeover + live credentials in error contexts</h3>
+          <div class="where">usermgmt/service_oauth2_extracted.go · usermgmt/oauth2/provider.go</div>
+          <p>
+            Email-match linking ignored <code>EmailVerified</code>: any provider reporting unverified
+            user-controllable emails (GitHub noreply, generic OIDC) let an attacker link their identity to
+            the victim's account and receive a session (NIST 800-63B forbids this). Unverified identities
+            now auto-provision instead. Companion fixes: <code>matchVerifiedEmail</code> extraction also
+            killed a nil-deref shadow bug and the complexity lint regression; all
+            <code>code</code>/<code>pkce_verifier</code> echoes were stripped from error contexts (a
+            code+verifier pair read from failure logs is redeemable, RFC 7636 §7.1 — resolves owner
+            decision D10).
+          </p>
         </div>
 
         <div class="issue issue-important">
-          <span class="severity severity-important">Important</span>
-          <h3>Important finding title</h3>
-          <div class="where">path/to/another.go:12-19</div>
+          <span class="severity severity-important">High · Fixed</span>
+          <h3>TOTP read-model/fold split brain locked users out of MFA</h3>
+          <div class="where">usermgmt/es_readmodel.go:108 · commit 571b9953</div>
           <p>
-            Explain the risk and why a careful reviewer would hesitate before
-            shipping.
+            <code>FoldUser</code> resets TOTP on <code>EmailChanged</code>; the projection did not. After a
+            ChangeEmail, <code>DisableTOTP</code> saw the fold's <code>TOTPEnabled=false</code> and emitted
+            nothing — the read model kept the secret forever, login still demanded TOTP,
+            <code>EnableTOTP</code> was rejected, <code>DisableTOTP</code> silently no-oped: an undisableable
+            second factor. The projection now mirrors the fold, pinned by a regression test.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">High · Fixed</span>
+          <h3>SSE replay cap dropped events and starved scoped feeds</h3>
+          <div class="where">transport/journalsse.go · transport/serve.go · commit 0e3f33a0</div>
+          <p>
+            Three correctness bugs: (1) a capped reconnect delivered <code>[cursor+1, cursor+limit]</code>
+            then jumped to live — the gap was silently and permanently lost (head-truncation where tail
+            semantics were documented); the seekable path now pages ReadFrom with a rolling tail (also
+            killing the per-connection full ReadAll), and the full-scan fallback tail-truncates;
+            (2) <code>WithSSEFilter</code> + <code>WithSSEMaxReplay</code> composed cap-before-filter, so a
+            burst of non-matching events could zero out a scoped feed's backfill — filters now run first
+            and the cap counts only matches; (3) a panicking consumer predicate killed the replay goroutine
+            (go-sse guards the live path only) — now recovered and treated as non-match. Four regression
+            tests pin the semantics.
           </p>
         </div>
 
         <div class="issue issue-nice">
-          <span class="severity severity-nice">Nice to have</span>
-          <h3>Polish suggestion</h3>
-          <div class="where">docs/ or config</div>
+          <span class="severity severity-nice">Fixed</span>
+          <h3>The rest of the fixed wave</h3>
+          <div class="where">10 commits: 571b9953, 6d33931e, 0e3f33a0, b6791304, c7d23d9b, 75c573c0, +daemon-swept wave 3/4</div>
           <p>
-            Minor documentation gaps or future-proofing suggestions go here.
+            loginpage favicon data-URI percent-encoding (raw <code>#</code> truncated the URI at the
+            fragment boundary — no favicon ever rendered); setup <code>cleanup()</code> now closes SSE hubs
+            on creation-failure paths (goroutine + subscription leak); e2e server's 30s WriteTimeout
+            (killed every SSE stream; comment now honest); datastar-demo XSS (todo title + event user
+            escaped); admin-demo idempotency poisoning (records only on success now — honest retries
+            409'd for the full TTL); samber-do-demo off the deprecated alias;
+            <code>ErrUserIDExists</code> 404→409; <code>AuditLog.Recent(n≤0)</code> panic guard; sweeper
+            double-stop panic guard; identity-model fold-aliasing invariant violations (TOTPSecret,
+            TokenHash payload slices cloned), TenantCreated stale reasons, MustParseUserID prefix
+            tolerance, User nil-receiver MarshalJSON, the "no Casbin" doc lie, and datastar's duplicate
+            package comment.
           </p>
         </div>
 
-        <!-- Strengths -->
-        <h2>Strengths</h2>
+        <h2 id="open"><span class="num">02</span>Open findings (queued)</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">High · Open</span>
+          <h3>Casbin g2 role hierarchy is disconnected from Enforce</h3>
+          <div class="where">identity-model/authz_model.go:20</div>
+          <p>
+            User→role grants live in domain-scoped <code>g</code>; role→role hierarchy in
+            <code>g2</code>. Casbin RMs do not compose across the two, so <code>g2(r.sub, p.sub)</code>
+            never fires for a user subject — an <code>admin</code> does not inherit
+            <code>user</code>/<code>viewer</code> policies except via the admin wildcard.
+            <code>ImplicitPermissionsForUser</code> and <code>ImplicitRolesForUser</code> disagree about
+            the hierarchy (one walks only <code>g</code>, the other walks both). Fixing needs a design
+            pick (hierarchy into the same <code>g</code>, two-step matcher, or named-RM merge) — queued
+            with the analysis, not fixed blind.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">High · Open</span>
+          <h3>WebAuthn clone detection is dead: sign counter never persisted</h3>
+          <div class="where">usermgmt/webauthn/provider.go:267 + identity-model/interfaces.go:47</div>
+          <p>
+            go-webauthn's <code>FinishLogin</code> returns the updated credential (advanced
+            Authenticator.SignCount); the module discards it, the interface can't carry it, and no
+            credential-update command exists. The stored counter stays at its registration value forever,
+            so the clone check (<code>new ≤ stored</code>) can never fire — WebAuthn L3 §7.2 step 21
+            requires updating it. Same cluster: stored UP/UV flags are fabricated <code>true</code> on
+            every reload (poisons go-webauthn's UV latch used for step-up decisions); registration and
+            login challenge sessions share one key namespace (concurrent ceremonies overwrite each other).
+            Cross-module API change — queued as one coherent work item.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">High · Open</span>
+          <h3>Authz.Apply is not atomic despite its contract</h3>
+          <div class="where">identity-model/authz_policies.go:8</div>
+          <p>
+            Sequential adds/removes with early return on first error and no rollback: a failed batch leaves
+            the enforcer partially mutated — stuck grants or revocations in an authorization engine. Fix:
+            staged copy + swap (casbin <code>e.Copy()</code>), or stop claiming atomicity.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Medium · Open</span>
+          <h3>systemadapter's declarative path is not the equivalence it claims</h3>
+          <div class="where">systemadapter/queries.go:167 · declarations.go:552 · views.go:86</div>
+          <p>
+            Three divergences from the legacy path whose deprecation note claims "the same": the Enforce
+            ladder grants viewer→read/user→write where legacy Casbin grants those roles nothing
+            (migration silently widens permissions); the audit Action vocabulary drifts from
+            <code>usermgmt.AuditAction*</code> constants; declarative audit entries drop ActorID entirely
+            — "who did it" is a compliance regression. Must be fixed (or loudly documented) before the v5
+            retirement of <code>NewProjectionLayer</code>.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Medium · Open</span>
+          <h3>RunWithAppkit silently drops the bundle's health composition</h3>
+          <div class="where">setup/run_appkit.go:77-92</div>
+          <p>
+            appkit's default health endpoints win the longest-prefix match; the bundle's
+            <code>HealthPath</code> mount — the one carrying <code>Config.HealthChecks</code> and the
+            <code>sse-hub</code> built-in — is unreachable inside the <code>/</code> catch-all.
+            A consumer who validated HealthChecks at New gets zero effect on this serve path.
+            Companion queued items: config.go god-file split (1186 lines, five hand-maintained path
+            lists), LoginRedirect default not following a customized AdminPath.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Queued</span>
+          <h3>Twelve more grouped rows</h3>
+          <div class="where">TODO_LIST.md § "2026-10-18 full-code-review harvest"</div>
+          <p>
+            Root contract-honesty pass (ack error broadcast, immutable-cache-on-mutable-content, nil
+            fail-open readiness, shallow "copies", form case-collisions, silent Validate no-ops,
+            missing Deprecated markers); openapi validity + non-JSON bodies; dashboardui leftovers
+            (accent nonce, DLQ doc claim, dead sorted-view window); loginpage NewPageData nonce/theme;
+            adminui unvalidated accent (split brain with the other two modules); usermgmt medium tails
+            (TenantDeleted policy leak, RebuildProjection 30s drain + stopped-service-on-timeout, cookie
+            TTL split brain, lockout growth); identity-model type-safety tails (GenerateUserID ordering,
+            TenantID dual encoding, Exists() semantics, g2 seeding under custom models, Transient
+            misconfigurations); transport/auditlog/health/datastar small tails; file-size splits.
+          </p>
+        </div>
+
+        <h2 id="verdicts"><span class="num">03</span>Module verdicts</h2>
+        <table>
+          <thead>
+            <tr><th>Module</th><th>Verdict</th><th>Worst finding</th><th>State</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>root (core)</td><td>A− · dispatch/response pipeline is exemplary</td><td>SafeRedirectPath bypass</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>root (peripheral)</td><td>B+ · gate ordering + SSE lifecycle sound</td><td>Contract honesty gaps (9)</td><td><span class="badge badge-low">Queued</span></td></tr>
+            <tr><td>identity-model</td><td>B · folds/crypto sound, Casbin engine has 2 real defects</td><td>g2 hierarchy disconnected</td><td><span class="badge badge-high">Open</span></td></tr>
+            <tr><td>usermgmt</td><td>B · disciplined errors, 3 security/correctness bugs</td><td>OAuth2 pre-account-takeover</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>usermgmt/webauthn</td><td>B− · ceremonies delegated correctly</td><td>Sign counter discarded</td><td><span class="badge badge-high">Open</span></td></tr>
+            <tr><td>usermgmt/oauth2</td><td>B+ · PKCE correct on every flow</td><td>Live secrets in error contexts</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>usermgmt/totp</td><td>A− · constant-time verified</td><td>Negative-window config nit</td><td><span class="badge badge-low">Queued</span></td></tr>
+            <tr><td>setup</td><td>B+ · validation family airtight</td><td>cleanup SSE leak / appkit health</td><td><span class="badge badge-fixed">1 fixed, 1 queued</span></td></tr>
+            <tr><td>systemadapter</td><td>B− · surface drift-free, semantics diverge</td><td>Enforce equivalence false</td><td><span class="badge badge-high">Open</span></td></tr>
+            <tr><td>transport</td><td>B · wire format golden-pinned</td><td>Replay cap data loss ×2</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>openapi</td><td>B− · clean single-JSON subset</td><td>Silent invalid specs / JSON-only bodies</td><td><span class="badge badge-low">Queued</span></td></tr>
+            <tr><td>adminui</td><td>B+ · gating + fragment contracts solid</td><td>Unvalidated raw accent style</td><td><span class="badge badge-low">Queued</span></td></tr>
+            <tr><td>dashboardui</td><td>B− · worst offender pre-session</td><td>Recent-events oldest-first</td><td><span class="badge badge-fixed">Fixed (concurrent session)</span></td></tr>
+            <tr><td>loginpage</td><td>B+ · validation story genuinely good</td><td>favicon # truncation</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>health</td><td>A− · no split brain, no race, no leak</td><td>nil-guard nit</td><td><span class="badge badge-low">Queued</span></td></tr>
+            <tr><td>auditlog</td><td>B · wiring correct</td><td>No shutdown story in mounted mode</td><td><span class="badge badge-low">Queued</span></td></tr>
+            <tr><td>datastar</td><td>B+ · decode robust, aliases correct</td><td>Duplicate package doc</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>cmd/cqrs-htmx-upgrade</td><td>B · architecture solid, one corrupting path</td><td>Single-line import corruption</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>examples / e2e</td><td>B · current API, split-brained idioms</td><td>XSS in the DataStar recipe</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>integration_test</td><td>A · published-module discipline throughout</td><td>—</td><td><span class="badge badge-fixed">Clean</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="prior"><span class="num">04</span>Prior-art reconciliation</h2>
+        <div class="card card-solution">
+          <h4>Episode 3 (2026-07-19) findings — status after this review</h4>
+          <p>
+            #12 (applyQueryResponse unbounded ctx) verified <strong>resolved</strong>:
+            <code>dispatchRequest:136</code> passes <code>r.WithContext(timeoutCtx)</code> into respond.
+            #8 (enrichUserID returns anonymous on extractor failure) stands as documented-deliberate
+            (rationale comment in code). #5 (ServiceConfig god object) still open — queued. #7/#13 moved
+            upstream with httputil. SPLIT-BRAIN.html: 7 fixed / 3 documented skips — all three skips
+            re-confirmed still-present and still reasonable (User.Email string, dual Casbin abstraction,
+            RateLimitConfig facade). loginpage 2026-10-04: all six findings remain fixed; its three
+            follow-ups still ride TODO_LIST.
+          </p>
+        </div>
+        <div class="card card-warning">
+          <h4>Concurrent sessions — attribution note</h4>
+          <p>
+            A sibling session fixed dashboardui's recent-events/fallback-pagination/aggregates findings
+            mid-review (heuristic commits 762a9c7b..8bb1ffee, with its own regression tests) and produced
+            today's data-model review. Those findings are credited to it here and verified green; the
+            daemon interleaved several of this session's commits (documented behavior, gotcha 4) — all
+            content landed, attribution is in the commit messages.
+          </p>
+        </div>
+
+        <h2 id="strengths"><span class="num">05</span>Strengths</h2>
         <div class="strengths">
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Specific strength</strong>
-              <span>Explain why it matters and what it enables.</span>
+              <strong>The dispatch pipeline is genuinely excellent</strong>
+              <span>handler.go's single-source-of-truth ordering (guards → decode → nil-check → requestGuard → timeout → dispatch → respond), the timeout-context propagation, and the SHAPE-LOCKED structural interface twins with behavioral drift tests — textbook.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Security posture in depth</strong>
+              <span>S256 PKCE on every OAuth2 flow, constant-time TOTP, delegated WebAuthn ceremony validation, fail-closed SSE filters, and honest redaction defaults in the error handler. The bugs found were composition bugs, not missing defenses.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Route gating verified clean everywhere</strong>
+              <span>Every adminui write route role-gated; dashboardui's route table fails closed; auth route posture mechanized by check-session-route-wrappers. Zero bypasses found across 28 modules.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Error-family discipline</strong>
+              <span>No stdlib error constructors in non-test code anywhere; family→HTTP mapping centralized; the erraudit closure held at 0 criticals. Rare and valuable at this scale.</span>
             </div>
           </div>
         </div>
 
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Before/After Comparison -->
-        <h2 id="proposal">Before / After</h2>
-        <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
-        </div>
-        <div class="compare-row">
-          <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
-          </div>
-          <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
-          </div>
-        </div>
-
-        <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├──
-          <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
-        </div>
-
-        <!-- Numbered Steps -->
-        <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
-        <div class="migration-step">
-          <div class="migration-num">1</div>
-          <div class="migration-content">
-            <h4>Add generic type parameter</h4>
-            <p>Update the function signature to accept a type parameter.</p>
-          </div>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">2</div>
-          <div class="migration-content">
-            <h4>Update all call sites</h4>
-            <p>Pass explicit types at each call site for type safety.</p>
-          </div>
-        </div>
-
         <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code
-          where noted
+          Generated 2026-10-18 &middot; Episode 4 of the full-code-review series &middot; Unfixed findings
+          live in TODO_LIST.md § 2026-10-18 harvest &middot; All fixes verified by per-module build/vet/test;
+          full battery in the session log
         </footer>
       </main>
     </div>
