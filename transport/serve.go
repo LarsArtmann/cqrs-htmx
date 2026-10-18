@@ -188,7 +188,7 @@ func (f *filteredReplayStore) EventsAfterFiltered(
 ) ([]sse.Event, error) {
 	events, err := f.inner.EventsAfter(lastID)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // adapter propagates the store error verbatim
+		return nil, err //nolint:wrapcheck,erraudit // HELPER: inner EventStore wraps attach last_id context (JournalSSEStore)
 	}
 
 	out := make([]sse.Event, 0, len(events))

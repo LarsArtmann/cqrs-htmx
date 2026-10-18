@@ -221,7 +221,13 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 	for _, e := range edits {
 		if e.offset < 0 || e.end > len(out) || e.offset > e.end {
 			//nolint:err113 // CLI: terminal invariant diagnostic, not a library API error
-			return rep, fmt.Errorf("internal: bad edit range [%d,%d) for %s (len %d)", e.offset, e.end, path, len(out))
+			return rep, fmt.Errorf( //nolint:erraudit // FP: path is already in the message; the qualifier map adds no diagnostic value
+				"internal: bad edit range [%d,%d) for %s (len %d)",
+				e.offset,
+				e.end,
+				path,
+				len(out),
+			)
 		}
 
 		out = out[:e.offset] + e.newText + out[e.end:]
