@@ -14,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 // alternatingEvents builds n events alternating between two types so the
@@ -93,11 +94,11 @@ func TestEventsIndex_FilteredSortedCursorAdvancesWithoutOverlap(t *testing.T) {
 	t.Parallel()
 
 	events := alternatingEvents(t, 60, "user.alpha", "user.beta")
-		d := MustNew(Config{Journal: &fakeSeekableJournal{events: events}})
+	d := MustNew(Config{Journal: &fakeSeekableJournal{events: events}})
 
-		w1 := httptest.NewRecorder()
-		r1 := httptest.NewRequest(http.MethodGet, "/events?type=user.alpha&sort=type&limit=25", nil)
-		d.eventsIndexHandler(w1, r1)
+	w1 := httptest.NewRecorder()
+	r1 := httptest.NewRequest(http.MethodGet, "/events?type=user.alpha&sort=type&limit=25", nil)
+	d.eventsIndexHandler(w1, r1)
 
 	if w1.Code != http.StatusOK {
 		t.Fatalf("page 1: expected 200, got %d", w1.Code)
@@ -111,13 +112,13 @@ func TestEventsIndex_FilteredSortedCursorAdvancesWithoutOverlap(t *testing.T) {
 	}
 
 	page1IDs := eventIDsOnPage(body1)
-		if len(page1IDs) != 25 {
-			t.Fatalf("page 1 linked %d events, want 25", len(page1IDs))
-		}
+	if len(page1IDs) != 25 {
+		t.Fatalf("page 1 linked %d events, want 25", len(page1IDs))
+	}
 
-		w2 := httptest.NewRecorder()
-		r2 := httptest.NewRequest(http.MethodGet, "/events?type=user.alpha&sort=type&limit=25&after="+after[1], nil)
-		d.eventsIndexHandler(w2, r2)
+	w2 := httptest.NewRecorder()
+	r2 := httptest.NewRequest(http.MethodGet, "/events?type=user.alpha&sort=type&limit=25&after="+after[1], nil)
+	d.eventsIndexHandler(w2, r2)
 
 	if w2.Code != http.StatusOK {
 		t.Fatalf("page 2: expected 200, got %d", w2.Code)
@@ -126,9 +127,9 @@ func TestEventsIndex_FilteredSortedCursorAdvancesWithoutOverlap(t *testing.T) {
 	body2 := w2.Body.String()
 
 	page2IDs := eventIDsOnPage(body2)
-		if len(page2IDs) != 5 {
-			t.Fatalf("page 2 linked %d events, want the 5 remaining matches", len(page2IDs))
-		}
+	if len(page2IDs) != 5 {
+		t.Fatalf("page 2 linked %d events, want the 5 remaining matches", len(page2IDs))
+	}
 
 	for id := range page2IDs {
 		if page1IDs[id] {

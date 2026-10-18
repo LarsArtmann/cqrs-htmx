@@ -46,6 +46,7 @@ func (f *fakeSeekableJournal) ReadFrom(
 	}
 
 	start := 0
+
 	if after != (id.EventID{}) {
 		for i, evt := range f.events {
 			if evt.ID() == after {
@@ -557,6 +558,7 @@ func (f *fakeCommandJournal) ReadFrom(
 	}
 
 	start := 0
+
 	if after != (id.CommandID{}) {
 		for i, cmd := range f.cmds {
 			if cmd.ID() == after {

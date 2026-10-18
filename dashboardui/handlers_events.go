@@ -51,26 +51,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasNext := !windowed && len(events) > pageSize
-	if hasNext {
-		events = events[:pageSize]
-	}
-
-	if windowed {
-		// The windowed branch loads up to filterScanLimit+1 events; the whole
-		// window is shown (no pageSize cut — that would strand every event
-		// past page one behind a disabled pagination bar), minus the +1
-		// HasMore probe event.
-		events = events[:min(len(events), filterScanLimit)]
-	}
-
-	// The Next cursor must come from the PRE-SORT journal-order tail: the
-	// sorted slice's last element is an arbitrary journal position, and a
-	// cursor taken from it re-serves overlapping pages.
-	var nextCursor string
-	if hasNext && len(events) > 0 {
-		nextCursor = events[len(events)-1].ID().String()
-	}
+	hasNext, events, nextCursor := pageEvents(events, pageSize, windowed)
 
 	sortEvents(events, sortBy)
 
@@ -94,6 +75,35 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderPage(w, r, eventsPage(p, events, state, filters, sortBy))
+}
+
+// pageEvents applies the pagination cut and derives the Next cursor.
+// hasNext reports whether more rows follow; the windowed sorted view shows
+// the WHOLE scan window instead (a pageSize cut there would strand every
+// event past page one behind a disabled pagination bar). The cursor comes
+// from the PRE-SORT journal-order tail — the sorted slice's last element is
+// an arbitrary journal position, and a cursor taken from it re-serves
+// overlapping pages.
+func pageEvents(
+	events []event.Event,
+	pageSize int,
+	windowed bool,
+) (bool, []event.Event, string) {
+	hasNext := !windowed && len(events) > pageSize
+	if hasNext {
+		events = events[:pageSize]
+	}
+
+	if windowed {
+		events = events[:min(len(events), filterScanLimit)]
+	}
+
+	var nextCursor string
+	if hasNext && len(events) > 0 {
+		nextCursor = events[len(events)-1].ID().String()
+	}
+
+	return hasNext, events, nextCursor
 }
 
 // exportEvents writes the filtered event journal in a non-HTML export format

@@ -35,6 +35,7 @@ func (f *fakeSeekableJournal) ReadFrom(
 	}
 
 	start := 0
+
 	if after != (id.EventID{}) {
 		found := false
 

@@ -17,32 +17,32 @@ import (
 // fallback must honor the after cursor or the Next link re-serves page one
 // forever; a cursor that no longer exists restarts from the head.
 func commandsAfter(cmds []*command.PersistedCommand, after id.CommandID) []*command.PersistedCommand {
-if after == (id.CommandID{}) {
-	return cmds
-}
-
-for i, cmd := range cmds {
-	if cmd.ID() == after {
-		return cmds[i+1:]
+	if after == (id.CommandID{}) {
+		return cmds
 	}
-}
 
-return cmds
+	for i, cmd := range cmds {
+		if cmd.ID() == after {
+			return cmds[i+1:]
+		}
+	}
+
+	return cmds
 }
 
 // queriesAfter is the query-journal twin of commandsAfter.
 func queriesAfter(queries []*query.PersistedQuery, after id.RequestID) []*query.PersistedQuery {
-if after == (id.RequestID{}) {
-	return queries
-}
-
-for i, qry := range queries {
-	if qry.ID() == after {
-		return queries[i+1:]
+	if after == (id.RequestID{}) {
+		return queries
 	}
-}
 
-return queries
+	for i, qry := range queries {
+		if qry.ID() == after {
+			return queries[i+1:]
+		}
+	}
+
+	return queries
 }
 
 //

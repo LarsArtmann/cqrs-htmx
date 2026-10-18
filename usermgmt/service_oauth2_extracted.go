@@ -233,12 +233,28 @@ func (o *OAuth2Service) matchOrCreateUser(
 		return existing, false, nil
 	}
 
-	if user, found := o.readModel.FindByEmail(info.Email); found {
-		if err := o.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
-			return nil, false, err
+	// Email-match linking is gated on EmailVerified: linking an external
+	// identity to an existing account by an unverified, user-controllable
+	// email (GitHub noreply, generic OIDC) is a pre-account-takeover vector
+	// (NIST 800-63B forbids linking on unverified email). Unverified emails
+	// fall through to subject-only matching / auto-registration instead.
+	if info.EmailVerified {
+		if user, found := o.readModel.FindByEmail(info.Email); found {
+			if err := o.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
+				return nil, false, err
+			}
+			user, ok := o.readModel.FindByUserID(user.ID)
+			if !ok {
+				return nil, false, withUserIDContext(
+					errorfamily.NewTransient(
+						"usermgmt.oauth2.read_model_missing",
+						"oauth2 user not in read model after email-match link",
+					),
+					user.ID,
+				)
+			}
+			return user, false, nil
 		}
-		user, _ = o.readModel.FindByUserID(user.ID)
-		return user, false, nil
 	}
 
 	if o.maxUsers > 0 {
@@ -284,7 +300,16 @@ func (o *OAuth2Service) matchOrCreateUser(
 			WithContextAny("user_id", user.ID).WithContext("provider", provider)
 	}
 
-	user, _ = o.readModel.FindByID(aggID)
+	user, ok = o.readModel.FindByID(aggID)
+	if !ok {
+		return nil, false, withUserIDContext(
+			errorfamily.NewTransient(
+				"usermgmt.oauth2.read_model_missing",
+				"oauth2 user not in read model after register+link",
+			),
+			userID,
+		)
+	}
 	return user, true, nil
 }
 

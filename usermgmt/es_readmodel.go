@@ -119,6 +119,13 @@ func (m *UserReadModel) handleEmailChanged(_ id.StreamID, evt event.Event) error
 		}
 		u.Email = p.Email
 		u.EmailVerified = false
+		// Mirror FoldUser (identity-model/fold.go EventEmailChanged): an
+		// email change resets TOTP. Without this the read model keeps
+		// TOTPEnabled=true while the aggregate fold already disabled it,
+		// leaving the user locked into an undisableable second factor
+		// (DisableTOTP sees the fold's TOTPEnabled=false and emits nothing).
+		u.TOTPEnabled = false
+		u.TOTPSecret = nil
 		u.UpdatedAt = evt.OccurredAt()
 		if _, exists := m.emails[p.Email]; !exists {
 			m.emails[p.Email] = aggID
