@@ -226,6 +226,7 @@ func (s *JournalSSEStore) eventsAfterFullScan(
 	// after the cursor — head-truncating here would silently drop the gap
 	// between the delivered window and the live subscription point.
 	limit := s.replayLimit()
+
 	result := events[startIdx+1:]
 	if limit > 0 && len(result) > limit {
 		result = result[len(result)-limit:]

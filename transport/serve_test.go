@@ -767,6 +767,7 @@ func TestServeDomainEvents_FilterCapCountsMatchesOnly(t *testing.T) {
 			ID:    sse.NewEventID(fmt.Sprintf("id-o-%d", i)),
 		})
 	}
+
 	for i := range 3 {
 		events = append(events, sse.Event{
 			Event: "wanted",
@@ -804,6 +805,7 @@ func TestServeDomainEvents_FilterCapCountsMatchesOnly(t *testing.T) {
 			t.Errorf("scoped backfill missing %q — cap was consumed by non-matching events\nbody:\n%s", want, body)
 		}
 	}
+
 	if strings.Contains(body, "other-") {
 		t.Errorf("non-matching event leaked into filtered backfill\nbody:\n%s", body)
 	}

@@ -215,7 +215,10 @@ func (f *filteredReplayStore) EventsAfterFiltered(
 // safePredCall mirrors go-sse's fanout predicate guard: a panicking consumer
 // predicate is recovered and treated as a non-match instead of propagating
 // out of the replay path into the HTTP handler goroutine.
-func safePredCall(pred func(sse.Event) bool, evt sse.Event) (match bool) { //nolint:nonamedreturns // recover-and-skip needs the named return to convert panics into non-matches
+func safePredCall(
+	pred func(sse.Event) bool,
+	evt sse.Event,
+) (match bool) { //nolint:nonamedreturns // recover needs named return
 	defer func() {
 		if recover() != nil {
 			match = false
