@@ -26,8 +26,8 @@ var (
 	eventExternalAccountLinked   = identitymodel.EventExternalAccountLinked
 	eventExternalAccountUnlinked = identitymodel.EventExternalAccountUnlinked
 
-	eventLoginSucceeded     = identitymodel.EventLoginSucceeded     //nolint:gosec // event type name, not credential
-	eventLoginFailed        = identitymodel.EventLoginFailed        //nolint:gosec // event type name, not credential
+	eventLoginSucceeded     = identitymodel.EventLoginSucceeded //nolint:gosec // event type name, not credential
+	eventLoginFailed        = identitymodel.EventLoginFailed    //nolint:gosec // event type name, not credential
 	eventRegistrationClosed = identitymodel.EventRegistrationClosed
 
 	aggregateTypeAuth = identitymodel.AggregateTypeAuth

@@ -71,19 +71,19 @@ type errorClassifier func(err error, userID UserID, kv ...string) error
 // registrationMu may be nil, in which case the count check is advisory only.
 // store + bus carry the auth audit journal; pass the Service's values.
 func NewOAuth2Service(
-provider OAuth2Provider,
-states OAuth2StateStore,
-stateTTL time.Duration,
-maxUsers int,
-registrationMu *sync.Mutex,
-readModel *UserReadModel,
-dispatcher dispatcher,
-sessions SessionStore,
-sessionTTL time.Duration,
-logger *slog.Logger,
-classifyError errorClassifier,
-store event.Store,
-bus event.Bus,
+	provider OAuth2Provider,
+	states OAuth2StateStore,
+	stateTTL time.Duration,
+	maxUsers int,
+	registrationMu *sync.Mutex,
+	readModel *UserReadModel,
+	dispatcher dispatcher,
+	sessions SessionStore,
+	sessionTTL time.Duration,
+	logger *slog.Logger,
+	classifyError errorClassifier,
+	store event.Store,
+	bus event.Bus,
 ) *OAuth2Service {
 	if provider == nil {
 		return nil

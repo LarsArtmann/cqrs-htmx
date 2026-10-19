@@ -25,8 +25,8 @@ const (
 	EventExternalAccountLinked   event.Type = "ExternalAccountLinked"
 	EventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
 
-	EventLoginSucceeded     event.Type = "LoginSucceeded"     //nolint:gosec // event type name, not credential
-	EventLoginFailed        event.Type = "LoginFailed"        //nolint:gosec // event type name, not credential
+	EventLoginSucceeded     event.Type = "LoginSucceeded" //nolint:gosec // event type name, not credential
+	EventLoginFailed        event.Type = "LoginFailed"    //nolint:gosec // event type name, not credential
 	EventRegistrationClosed event.Type = "RegistrationClosed"
 
 	EventMemberAdded        event.Type = "MemberAdded"

@@ -87,7 +87,12 @@ func appendAuthAuditEvent(
 
 // journalLoginSuccess records a successful authentication. Failures are
 // logged, never propagated (see appendAuthAuditEvent).
-func (s *Service) journalLoginSuccess(ctx context.Context, userID UserID, method identitymodel.AuthMethod, provider string) {
+func (s *Service) journalLoginSuccess(
+	ctx context.Context,
+	userID UserID,
+	method identitymodel.AuthMethod,
+	provider string,
+) {
 	s.journalAuthEvent(ctx, eventLoginSucceeded,
 		identitymodel.LoginSucceededPayload{
 			SchemaVersion: currentSchemaVersion,
@@ -100,7 +105,13 @@ func (s *Service) journalLoginSuccess(ctx context.Context, userID UserID, method
 // journalLoginFailure records a failed authentication for a KNOWN user.
 // The reason MUST be a bounded [identitymodel.AuthFailureReason] class —
 // never raw provider or ceremony error text.
-func (s *Service) journalLoginFailure(ctx context.Context, userID UserID, method identitymodel.AuthMethod, reason identitymodel.AuthFailureReason, provider string) {
+func (s *Service) journalLoginFailure(
+	ctx context.Context,
+	userID UserID,
+	method identitymodel.AuthMethod,
+	reason identitymodel.AuthFailureReason,
+	provider string,
+) {
 	s.journalAuthEvent(ctx, eventLoginFailed,
 		identitymodel.LoginFailedPayload{
 			SchemaVersion: currentSchemaVersion,
@@ -137,7 +148,12 @@ func (o *OAuth2Service) journalLoginSuccess(ctx context.Context, userID UserID, 
 		id.NewUserActor(userID))
 }
 
-func (o *OAuth2Service) journalLoginFailure(ctx context.Context, userID UserID, reason identitymodel.AuthFailureReason, provider string) {
+func (o *OAuth2Service) journalLoginFailure(
+	ctx context.Context,
+	userID UserID,
+	reason identitymodel.AuthFailureReason,
+	provider string,
+) {
 	if userID.IsZero() {
 		return // no attributable user — deliberately not journalled
 	}

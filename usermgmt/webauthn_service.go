@@ -206,7 +206,13 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 
 	if len(user.Credentials) == 0 {
 		s.logger.Debug("usermgmt: login failed – no credentials", "email", email)
-		s.journalLoginFailure(ctx, user.ID, identitymodel.AuthMethodWebAuthN, identitymodel.AuthFailureNoCredentials, "")
+		s.journalLoginFailure(
+			ctx,
+			user.ID,
+			identitymodel.AuthMethodWebAuthN,
+			identitymodel.AuthFailureNoCredentials,
+			"",
+		)
 
 		return nil, ErrNoCredentials
 	}
@@ -274,7 +280,13 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		}
 		s.logger.Warn("usermgmt: finish login ceremony failed",
 			"user_id", userID, "email", user.Email, "error", err)
-		s.journalLoginFailure(ctx, userID, identitymodel.AuthMethodWebAuthN, identitymodel.AuthFailureCeremonyFailed, "")
+		s.journalLoginFailure(
+			ctx,
+			userID,
+			identitymodel.AuthMethodWebAuthN,
+			identitymodel.AuthFailureCeremonyFailed,
+			"",
+		)
 
 		return nil, errorfamily.NewRejection("usermgmt.webauthn.login_failed",
 			"credential login failed").WithCause(err)
