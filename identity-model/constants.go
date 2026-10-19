@@ -10,6 +10,7 @@ const (
 	AggregateTypeMembership event.StreamType = "Membership"
 	AggregateTypeTenant     event.StreamType = "Tenant"
 	AggregateTypeBot        event.StreamType = "Bot"
+	AggregateTypeAuth       event.StreamType = "Auth"
 
 	EventUserRegistered          event.Type = "UserRegistered"
 	EventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat
@@ -23,6 +24,10 @@ const (
 	EventTOTPDisabled            event.Type = "TOTPDisabled"
 	EventExternalAccountLinked   event.Type = "ExternalAccountLinked"
 	EventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
+
+	EventLoginSucceeded     event.Type = "LoginSucceeded"     //nolint:gosec // event type name, not credential
+	EventLoginFailed        event.Type = "LoginFailed"        //nolint:gosec // event type name, not credential
+	EventRegistrationClosed event.Type = "RegistrationClosed"
 
 	EventMemberAdded        event.Type = "MemberAdded"
 	EventMemberRolesChanged event.Type = "MemberRolesChanged"

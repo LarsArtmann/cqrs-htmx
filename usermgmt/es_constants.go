@@ -24,6 +24,12 @@ var (
 	eventExternalAccountLinked   = identitymodel.EventExternalAccountLinked
 	eventExternalAccountUnlinked = identitymodel.EventExternalAccountUnlinked
 
+	eventLoginSucceeded     = identitymodel.EventLoginSucceeded     //nolint:gosec // event type name, not credential
+	eventLoginFailed        = identitymodel.EventLoginFailed        //nolint:gosec // event type name, not credential
+	eventRegistrationClosed = identitymodel.EventRegistrationClosed
+
+	aggregateTypeAuth = identitymodel.AggregateTypeAuth
+
 	eventMemberAdded        = identitymodel.EventMemberAdded
 	eventMemberRolesChanged = identitymodel.EventMemberRolesChanged
 	eventMemberRemoved      = identitymodel.EventMemberRemoved
@@ -92,6 +98,16 @@ var allTenantEventTypes = []event.Type{
 var allBotEventTypes = []event.Type{
 	eventBotRegistered,
 	eventBotDeleted,
+}
+
+// allAuthEventTypes lists the auth audit event types (LoginSucceeded,
+// LoginFailed, RegistrationClosed). They live on dedicated Auth-typed
+// streams, never on user streams — the user read model intentionally does
+// not subscribe to them; the AuditLog does.
+var allAuthEventTypes = []event.Type{
+	eventLoginSucceeded,
+	eventLoginFailed,
+	eventRegistrationClosed,
 }
 
 var currentSchemaVersion = identitymodel.CurrentSchemaVersion
