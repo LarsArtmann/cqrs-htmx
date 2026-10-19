@@ -29,6 +29,8 @@ _(the 2026-10-04 identity-auth-hardening wave shipped: usermgmt v4.14.0 + setup 
 
 ---
 
+- [ ] **Open-issue sweep execution (opened 2026-10-19, plan [`docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md`](docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md)).** 11 open GitHub issues: #28 (`WithRequestFilter` `1909bda8`) + #29 (`TailReader` `4b679996`) code-done push-pending; #13/#21/#22/#27/#31 verified ALREADY FIXED in tree (close-with-evidence only); #23 auth-audit journal events ~40% on `wip/issue-23-auth-audit` (`95122fc8` — identity-model payloads + append helper; wiring/tests/`identity-model v4.13.0` mini-train missing); #18/#19 not started; #20/#25 verdict comments owed. 24 medium / 92 fine tasks in the plan; P0 tail = push + 7 closes + the #23 train.
+
 ## P2 — Medium impact (tooling & quality)
 
 - [ ] ~~**Document the two-catalogs distinction (EventCatalog ≠ go-cqrs-lite/catalog/v4) where consumers look.**~~ DONE 2026-10-12 at `46ed1cec` (push `563b8dc8..98c3fd6e`): guide See Also + Serving rewritten with the distinction note + demo/research-note links; `setup/README.md` EventCatalogPath naming note; `examples/catalog-demo/main.go` doc-comment links. Plan: [`docs/planning/2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md`](docs/planning/2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md) (A1/G5–G8); map + rationale: `docs/research/2026-10-12_catalog-v4-integration-map.md`.
