@@ -15,7 +15,7 @@ import (
 // envelope-level evolution a declaration to add ops to.
 const envelopeSchemaVersion = 1
 
-// EventSchemas declares all 21 identity-model event types for
+// EventSchemas declares all 24 identity-model event types for
 // [system.DomainConfig.Schema] at their current envelope schema versions,
 // with zero upcast ops — the declaration, not the wiring, is the point:
 // every read path through system.New now runs the compiled (currently
@@ -56,5 +56,10 @@ func EventSchemas() []cqrsschema.EventSchema {
 		// Bot events
 		cqrsschema.Event(identitymodel.EventBotRegistered, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventBotDeleted, envelopeSchemaVersion),
+
+		// Auth audit events (cqrs-htmx#23) — dedicated Auth streams.
+		cqrsschema.Event(identitymodel.EventLoginSucceeded, envelopeSchemaVersion),
+		cqrsschema.Event(identitymodel.EventLoginFailed, envelopeSchemaVersion),
+		cqrsschema.Event(identitymodel.EventRegistrationClosed, envelopeSchemaVersion),
 	}
 }
