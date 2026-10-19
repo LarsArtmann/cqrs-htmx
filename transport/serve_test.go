@@ -3,6 +3,7 @@ package transport
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -856,5 +857,210 @@ func TestServeDomainEvents_PanickingFilterPredicateDoesNotKillReplay(t *testing.
 
 	if !strings.Contains(rec.Body.String(), "fine") {
 		t.Errorf("non-panicking event missing from backfill\nbody:\n%s", rec.Body.String())
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_PerRequestScoping(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	derive := func(r *http.Request) (func(sse.Event) bool, error) {
+		typ := r.URL.Query().Get("type")
+		if typ == "" {
+			return nil, nil
+		}
+
+		return func(evt sse.Event) bool { return strings.Contains(evt.Data, `"type":"`+typ+`"`) }, nil
+	}
+
+	h := ServeDomainEvents(b, nil, 0, WithRequestFilter(derive))
+
+	runStream := func(typ string) (*httptest.ResponseRecorder, context.CancelFunc, chan struct{}) {
+		ctx, cancel := context.WithCancel(context.Background())
+		req := httptest.NewRequest(http.MethodGet, "/events?type="+typ, nil).WithContext(ctx)
+		rec := httptest.NewRecorder()
+		done := make(chan struct{})
+
+		go func() {
+			h.ServeHTTP(rec, req)
+			close(done)
+		}()
+
+		return rec, cancel, done
+	}
+
+	recUser, cancelUser, doneUser := runStream("user")
+	recTenant, cancelTenant, doneTenant := runStream("tenant")
+
+	time.Sleep(50 * time.Millisecond)
+
+	// One broadcast fan-outs to both streams — each must see only its own
+	// derived-filter matches.
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"user","n":1}`})
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"tenant","n":2}`})
+
+	time.Sleep(50 * time.Millisecond)
+	cancelUser()
+	cancelTenant()
+	<-doneUser
+	<-doneTenant
+
+	for _, tc := range []struct {
+		name string
+		body *httptest.ResponseRecorder
+		want string
+		not  string
+	}{
+		{name: "user stream", body: recUser, want: `"type":"user"`, not: `"type":"tenant"`},
+		{name: "tenant stream", body: recTenant, want: `"type":"tenant"`, not: `"type":"user"`},
+	} {
+		if !strings.Contains(tc.body.Body.String(), tc.want) {
+			t.Errorf("%s must receive its matching event\nbody:\n%s", tc.name, tc.body.Body.String())
+		}
+
+		if strings.Contains(tc.body.Body.String(), tc.not) {
+			t.Errorf("%s must NOT receive the other stream's event\nbody:\n%s", tc.name, tc.body.Body.String())
+		}
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_LiveDuringReplayExactlyOnce(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	store := &blockingSSEStore{
+		events: []sse.Event{
+			{Event: "domain", Data: `{"type":"user","n":1}`, ID: sse.NewEventID("1")},
+			{Event: "domain", Data: `{"type":"other","n":2}`, ID: sse.NewEventID("2")},
+		},
+		started: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+
+	derive := func(r *http.Request) (func(sse.Event) bool, error) {
+		typ := r.URL.Query().Get("type")
+
+		return func(evt sse.Event) bool { return strings.Contains(evt.Data, `"type":"`+typ+`"`) }, nil
+	}
+
+	h := ServeDomainEvents(b, store, 0, WithRequestFilter(derive))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events?type=user", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	<-store.started
+
+	// Broadcast DURING the replay window: the subscribe-before-replay order
+	// must deliver it exactly once, and only because it matches the derived
+	// filter.
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"user","n":3}`})
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"user","n":4}`})
+	close(store.release)
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("handler did not return")
+	}
+
+	body := rec.Body.String()
+
+	if got := strings.Count(body, `"n":3`); got != 1 {
+		t.Errorf("live event during replay must land exactly once, got %d\nbody:\n%s", got, body)
+	}
+
+	if strings.Contains(body, `"n":2`) {
+		t.Errorf("non-matching replayed event must be filtered from backfill\nbody:\n%s", body)
+	}
+
+	if !strings.Contains(body, `"n":1`) || !strings.Contains(body, `"n":4`) {
+		t.Errorf("matching replay + live events missing\nbody:\n%s", body)
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_DerivationError_BadRequest(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	derive := func(r *http.Request) (func(sse.Event) bool, error) {
+		if r.URL.Query().Get("bad") != "" {
+			return nil, errors.New("unknown filter param")
+		}
+
+		return nil, nil
+	}
+
+	h := ServeDomainEvents(b, nil, 0, WithRequestFilter(derive))
+
+	req := httptest.NewRequest(http.MethodGet, "/events?bad=1", nil)
+	rec := httptest.NewRecorder()
+
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("derivation error must abort with 400, got %d", rec.Code)
+	}
+
+	if !strings.Contains(rec.Body.String(), "unknown filter param") {
+		t.Errorf("400 body should carry the derivation error, got %q", rec.Body.String())
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_NilFallsBackToConstructionFilter(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	derive := func(_ *http.Request) (func(sse.Event) bool, error) { return nil, nil }
+	match := func(evt sse.Event) bool { return evt.Event == "wanted" }
+
+	h := ServeDomainEvents(b, nil, 0, WithSSEFilter(match), WithRequestFilter(derive))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	b.Broadcast(sse.Event{Event: "wanted", Data: "yes"})
+	b.Broadcast(sse.Event{Event: "unwanted", Data: "no"})
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, "yes") || strings.Contains(body, "no") {
+		t.Errorf("(nil, nil) derivation must fall back to WithSSEFilter\nbody:\n%s", body)
 	}
 }

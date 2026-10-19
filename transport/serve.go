@@ -16,6 +16,7 @@ type serveDomainEventsConfig struct {
 	logPrefix          string
 	unavailableMessage string
 	filter             func(sse.Event) bool
+	requestFilter      RequestFilterFunc
 	maxReplay          int
 }
 
@@ -45,6 +46,12 @@ type SSEOptions struct {
 	// events (see [WithSSEFilter]). Nil disables filtering.
 	Filter func(sse.Event) bool
 
+	// RequestFilter derives the filter per request (see
+	// [WithRequestFilter]). When both are set, a request whose derivation
+	// returns a predicate uses it; the construction-time Filter applies
+	// only where the derivation returns nil.
+	RequestFilter RequestFilterFunc
+
 	// MaxReplay caps the number of replayed/backfilled events per
 	// connection (see [WithSSEMaxReplay]). Values <= 0 keep the store's own
 	// replay limit.
@@ -67,6 +74,10 @@ func (o SSEOptions) Options() []ServeDomainEventsOption {
 
 	if o.Filter != nil {
 		opts = append(opts, WithSSEFilter(o.Filter))
+	}
+
+	if o.RequestFilter != nil {
+		opts = append(opts, WithRequestFilter(o.RequestFilter))
 	}
 
 	if o.MaxReplay > 0 {
@@ -109,6 +120,42 @@ const DefaultRetryHintMillis uint = 5000
 // nil (the default) means no filtering: every event reaches every subscriber.
 func WithSSEFilter(pred func(sse.Event) bool) ServeDomainEventsOption {
 	return func(c *serveDomainEventsConfig) { c.filter = pred }
+}
+
+// RequestFilterFunc derives a per-request event filter for
+// [WithRequestFilter]. Returning an error aborts the request with 400 Bad
+// Request before any stream is opened — use it to reject malformed filter
+// input (unknown query params, unparsable values). Returning a nil predicate
+// with a nil error means "no per-request filter"; the construction-time
+// [WithSSEFilter] (if any) applies to such requests.
+type RequestFilterFunc func(r *http.Request) (pred func(sse.Event) bool, err error)
+
+// WithRequestFilter derives the SSE filter PER REQUEST instead of at
+// construction time, so filter dimensions that live in the request (query
+// params like ?types=&channels=&guilds=, headers, path values) can scope
+// both stream paths:
+//
+//	h := transport.ServeDomainEvents(hub, store, 15*time.Second,
+//	    transport.WithRequestFilter(func(r *http.Request) (func(sse.Event) bool, error) {
+//	        typ := r.URL.Query().Get("type")
+//	        if typ == "" {
+//	            return nil, nil // unfiltered (or falls back to WithSSEFilter)
+//	        }
+//	        return func(evt sse.Event) bool { return strings.Contains(evt.Data, typ) }, nil
+//	    }))
+//
+// The live path subscribes via [sse.Broadcaster.SubscribeFilter] with the
+// derived predicate; the replay path wraps the store so only matching
+// events are delivered, with the [WithSSEMaxReplay] cap counting MATCHING
+// events (filter runs before truncation, so a capped reconnect delivers
+// the newest N matching events — the same semantics as [WithSSEFilter]).
+//
+// A derivation error aborts the request with 400 Bad Request before any
+// stream is opened. When both this option and [WithSSEFilter] are set, a
+// non-nil derived predicate wins for that request; (nil, nil) falls back
+// to the construction-time filter.
+func WithRequestFilter(derive RequestFilterFunc) ServeDomainEventsOption {
+	return func(c *serveDomainEventsConfig) { c.requestFilter = derive }
 }
 
 // WithSSEMaxReplay caps the number of events replayed/backfilled per
@@ -230,47 +277,53 @@ func safePredCall(
 
 // subscribe applies the configured filter to the live subscription (nil
 // filter = unfiltered Subscribe).
-func (c serveDomainEventsConfig) subscribe(b *sse.Broadcaster[sse.Event]) <-chan sse.Event {
-	if c.filter != nil {
-		return b.SubscribeFilter(c.filter)
+func subscribe(b *sse.Broadcaster[sse.Event], filter func(sse.Event) bool) <-chan sse.Event {
+	if filter != nil {
+		return b.SubscribeFilter(filter)
 	}
 
 	return b.Subscribe()
 }
 
 // replayEvents writes the journal backfill to the stream, honoring the
-// configured filter. A nil store means live-only (no backfill).
+// per-request filter. A nil store means live-only (no backfill).
 //
 // Replayed events whose Retry is zero carry the handler's reconnect hint
 // ([DefaultRetryHintMillis]) — a client whose original retry frame was lost
 // (proxy buffering, page reload mid-stream) re-learns the cadence from the
 // backfill itself, and per the SSE spec the field simply persists for the
 // connection.
-func (c serveDomainEventsConfig) replayEvents(stream *sse.Stream, store sse.EventStore) {
+func replayEvents(
+	stream *sse.Stream,
+	store sse.EventStore,
+	filter func(sse.Event) bool,
+	maxReplay int,
+	logPrefix string,
+) {
 	if store == nil {
 		return
 	}
 
 	lastID := stream.LastEventID()
 
-	if c.filter != nil {
+	if filter != nil {
 		// Filter FIRST (raw store), cap only the matches: the replay budget
 		// belongs to events the subscriber can actually receive.
 		filtered := &filteredReplayStore{
-			inner: store, match: c.filter, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis,
+			inner: store, match: filter, maxN: maxReplay, retryHit: DefaultRetryHintMillis,
 		}
 
-		if _, err := sse.ReplayFiltered(stream, filtered, lastID, c.filter); err != nil {
-			slog.Warn(c.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
+		if _, err := sse.ReplayFiltered(stream, filtered, lastID, filter); err != nil {
+			slog.Warn(logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
 		}
 
 		return
 	}
 
-	store = &replayAdjustedStore{inner: store, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis}
+	store = &replayAdjustedStore{inner: store, maxN: maxReplay, retryHit: DefaultRetryHintMillis}
 
 	if _, err := sse.Replay(stream, store, lastID); err != nil {
-		slog.Warn(c.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
+		slog.Warn(logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
 	}
 }
 
@@ -289,12 +342,13 @@ func (c serveDomainEventsConfig) replayEvents(stream *sse.Stream, store sse.Even
 //
 // If broadcaster is nil, the handler responds 503 (Service Unavailable) per
 // request. If store is nil, replay/backfill is skipped (live-only feed). If
-// heartbeat is non-positive, heartbeats are disabled.
+// heartbeat is non-positive, heartbeats are disabled. A [WithRequestFilter]
+// derivation error responds 400 (Bad Request) before any stream is opened.
 //
 // Subscribe is called BEFORE replay so live events buffer in the channel while
 // replay writes to the stream — no event is lost during the replay window.
-// With [WithSSEFilter], both the subscription and the replay deliver only
-// matching events.
+// With [WithSSEFilter] or a per-request [WithRequestFilter] predicate, both
+// the subscription and the replay deliver only matching events.
 func ServeDomainEvents(
 	broadcaster *sse.Broadcaster[sse.Event],
 	store sse.EventStore,
@@ -318,6 +372,24 @@ func ServeDomainEvents(
 			return
 		}
 
+		// Resolve the filter for THIS request: a derived predicate wins;
+		// (nil, nil) falls back to the construction-time filter. A derivation
+		// error aborts before any stream is opened.
+		filter := cfg.filter
+
+		if cfg.requestFilter != nil {
+			pred, err := cfg.requestFilter(r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+
+				return
+			}
+
+			if pred != nil {
+				filter = pred
+			}
+		}
+
 		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
 
@@ -329,12 +401,12 @@ func ServeDomainEvents(
 
 		// Subscribe BEFORE replay to avoid missing events during the replay
 		// window — live events buffer in the channel while replay writes.
-		ch := cfg.subscribe(broadcaster)
+		ch := subscribe(broadcaster, filter)
 		defer broadcaster.Unsubscribe(ch)
 
 		_ = stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"})
 
-		cfg.replayEvents(stream, store)
+		replayEvents(stream, store, filter, cfg.maxReplay, cfg.logPrefix)
 
 		// Heartbeat runs alongside the event loop. Derive a cancellable
 		// context and join the goroutine before this handler returns: a
