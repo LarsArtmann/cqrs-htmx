@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.13.0] - 2026-10-19
+
+### Added
+
+- **Auth audit event vocabulary (cqrs-htmx#23):** `AggregateTypeAuth` stream type plus three event types — `LoginSucceeded`, `LoginFailed`, `RegistrationClosed` — with payload structs (`LoginSucceededPayload{Method,Provider}`, `LoginFailedPayload{Method,Reason,Provider}`, `RegistrationClosedPayload{SchemaVersion}`) and two bounded vocabularies: `AuthMethod` (webauthn | totp | oauth2) and `AuthFailureReason` (no_credentials, ceremony_failed, code_invalid, state_invalid, provider_mismatch, token_exchange, no_email). These are SECURITY AUDIT facts, not user state: emitters place each event on its OWN Auth-typed stream so login volume never grows the user aggregate, and reason classes are coarse by contract — never raw provider error text, never secrets. Additive; no existing event, fold, or payload changes.
+
 ### Fixed
 
 - **Fold-aliasing invariant violations + guards (2026-10-18 full-code-review wave).** `FoldUser`'s `TOTPSecret` and `FoldBot`'s `TokenHash` retained payload-owned `[]byte` slices despite the package's own "every slice taken from a payload is defensively copied at the fold site" invariant (`doc.go`) — both now `slices.Clone`. `TenantCreated` clears stale `SuspendReason`/`DeleteReason` (a recreated tenant inherited its previous incarnation's reasons and failed `IsValid`). `MustParseUserID` routes through the brand-prefix-tolerant `ParseUserID` (previously panicked where its non-Must sibling succeeded). `User.MarshalJSON` marshals a nil receiver as `null` (previously nil-deref'd on `len(u.Credentials)`).

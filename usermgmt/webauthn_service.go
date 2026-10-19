@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -204,6 +205,13 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 
 	if len(user.Credentials) == 0 {
 		s.logger.Debug("usermgmt: login failed – no credentials", "email", email)
+		s.journalLoginFailure(
+			ctx,
+			user.ID,
+			identitymodel.AuthMethodWebAuthN,
+			identitymodel.AuthFailureNoCredentials,
+		)
+
 		return nil, ErrNoCredentials
 	}
 
@@ -265,13 +273,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	}
 
 	if err := s.webauthn.FinishLogin(ctx, userJSON, body, sessionData); err != nil {
-		if s.lockout != nil {
-			s.lockout.RecordFailure(user.Email)
-		}
-		s.logger.Warn("usermgmt: finish login ceremony failed",
-			"user_id", userID, "email", user.Email, "error", err)
-		return nil, errorfamily.NewRejection("usermgmt.webauthn.login_failed",
-			"credential login failed").WithCause(err)
+		return nil, s.finishLoginFailed(ctx, userID, user, err)
 	}
 
 	s.webauthnSessions.Delete(sessionKey)
@@ -287,6 +289,33 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		)
 	}
 
+	s.journalLoginSuccess(ctx, userID, identitymodel.AuthMethodWebAuthN)
 	s.logger.Info("usermgmt: login successful", "user_id", userID, "email", user.Email)
 	return &FinishLoginResponse{User: user, Session: sess}, nil
+}
+
+// finishLoginFailed handles a failed WebAuthn login ceremony: lockout
+// accounting, the warn log, the auth-audit journal entry (cqrs-htmx#23),
+// and the rejection the caller returns.
+func (s *Service) finishLoginFailed(
+	ctx context.Context,
+	userID UserID,
+	user *User,
+	cause error,
+) error {
+	if s.lockout != nil {
+		s.lockout.RecordFailure(user.Email)
+	}
+
+	s.logger.Warn("usermgmt: finish login ceremony failed",
+		"user_id", userID, "email", user.Email, "error", cause)
+	s.journalLoginFailure(
+		ctx,
+		userID,
+		identitymodel.AuthMethodWebAuthN,
+		identitymodel.AuthFailureCeremonyFailed,
+	)
+
+	return errorfamily.NewRejection("usermgmt.webauthn.login_failed",
+		"credential login failed").WithCause(cause)
 }

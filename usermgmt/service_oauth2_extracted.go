@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -43,6 +44,12 @@ type OAuth2Service struct {
 	sessionTTL    time.Duration
 	logger        *slog.Logger
 	classifyError errorClassifier
+
+	// store + bus carry the auth audit journal (cqrs-htmx#23): the
+	// OAuth2Service journals login outcomes and registration-closed probes
+	// through the same appendAuthAuditEvent path as the core Service.
+	store event.Store
+	bus   event.Bus
 }
 
 // dispatcher is the subset of *command.Dispatcher that sub-services need.
@@ -62,6 +69,7 @@ type errorClassifier func(err error, userID UserID, kv ...string) error
 // same values the core Service was built with (ServiceConfig.MaxUsers and the
 // Service's registration mutex) so both flows enforce one shared user limit.
 // registrationMu may be nil, in which case the count check is advisory only.
+// store + bus carry the auth audit journal; pass the Service's values.
 func NewOAuth2Service(
 	provider OAuth2Provider,
 	states OAuth2StateStore,
@@ -74,6 +82,8 @@ func NewOAuth2Service(
 	sessionTTL time.Duration,
 	logger *slog.Logger,
 	classifyError errorClassifier,
+	store event.Store,
+	bus event.Bus,
 ) *OAuth2Service {
 	if provider == nil {
 		return nil
@@ -93,6 +103,8 @@ func NewOAuth2Service(
 		sessionTTL:     sessionTTL,
 		logger:         logger,
 		classifyError:  classifyError,
+		store:          store,
+		bus:            bus,
 	}
 }
 
@@ -179,6 +191,8 @@ func (o *OAuth2Service) FinishLogin(
 		o.logAuth("oauth_login", user.ID, "provider", provider)
 	}
 
+	o.journalLoginSuccess(ctx, user.ID, provider)
+
 	return &FinishOAuthLoginResponse{User: user, Session: session}, nil
 }
 
@@ -260,6 +274,7 @@ func (o *OAuth2Service) provisionLinkedUser(
 
 		if o.readModel.Count() >= o.maxUsers {
 			o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
+			o.journalRegistrationClosed(ctx)
 
 			return nil, false, errorfamily.NewRejection(
 				"usermgmt.oauth2.registration_closed",
