@@ -109,6 +109,15 @@ type Config struct {
 	// Title is the brand text in the sidebar and browser tab.
 	Title string
 
+	// EmptyStateCopy overrides the empty-state panel text per surface, for
+	// hosts that brand their observability voice. Keys are the typed
+	// [EmptyStateKey] constants; values merge FIELD-WISE over the upstream
+	// defaults, so an override that sets only Message keeps the default
+	// title. A nil map renders byte-identical upstream copy. Unknown keys
+	// are rejected by [New]/[Config.Validate] — the compiler cannot catch a
+	// mistyped map key.
+	EmptyStateCopy map[EmptyStateKey]EmptyStateCopy
+
 	// BasePath is the URL prefix the dashboard is mounted under.
 	BasePath string
 
@@ -216,6 +225,10 @@ func (config Config) withDefaults() (Config, error) {
 		config.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
 	}
 
+	if err := validateEmptyStateCopy(config.EmptyStateCopy); err != nil {
+		return config, err
+	}
+
 	config = config.withPayloadRenderingDefaults()
 
 	return config, nil
@@ -316,6 +329,10 @@ type pageData struct {
 	// shell is the consumer-provided layout ([Config.Layout]); nil when the
 	// built-in document shell should render.
 	shell LayoutFunc
+
+	// empty carries the resolved empty-state copy (upstream defaults merged
+	// with Config.EmptyStateCopy overrides); templ panels read it per key.
+	empty map[EmptyStateKey]EmptyStateCopy
 }
 
 // StreamRefFromID constructs an id.StreamRef from type + ID strings.
