@@ -86,17 +86,11 @@ func appendAuthAuditEvent(
 
 // journalLoginSuccess records a successful authentication. Failures are
 // logged, never propagated (see appendAuthAuditEvent).
-func (s *Service) journalLoginSuccess(
-	ctx context.Context,
-	userID UserID,
-	method identitymodel.AuthMethod,
-	provider string,
-) {
+func (s *Service) journalLoginSuccess(ctx context.Context, userID UserID, method identitymodel.AuthMethod) {
 	s.journalAuthEvent(ctx, eventLoginSucceeded,
 		identitymodel.LoginSucceededPayload{
 			SchemaVersion: currentSchemaVersion,
 			Method:        method,
-			Provider:      provider,
 		},
 		id.NewUserActor(userID))
 }
@@ -109,14 +103,12 @@ func (s *Service) journalLoginFailure(
 	userID UserID,
 	method identitymodel.AuthMethod,
 	reason identitymodel.AuthFailureReason,
-	provider string,
 ) {
 	s.journalAuthEvent(ctx, eventLoginFailed,
 		identitymodel.LoginFailedPayload{
 			SchemaVersion: currentSchemaVersion,
 			Method:        method,
 			Reason:        reason,
-			Provider:      provider,
 		},
 		id.NewUserActor(userID))
 }
@@ -135,33 +127,15 @@ func (s *Service) journalAuthEvent(ctx context.Context, evtType event.Type, payl
 }
 
 // The OAuth2 sub-service mirrors (a separate struct sharing the core
-// Service's dependencies — its wrappers carry provider-qualified methods
-// and skip failures with no attributable user).
+// Service's dependencies — its success wrapper carries the provider name).
+// OAuth2 login FAILURES have no attributable user today (state/token/email
+// checks run before any user is matched), so there is no failure wrapper:
+// adding one is a single appendAuthAuditEvent call when that changes.
 func (o *OAuth2Service) journalLoginSuccess(ctx context.Context, userID UserID, provider string) {
 	appendAuthAuditEvent(ctx, o.logger, o.store, o.bus, eventLoginSucceeded,
 		identitymodel.LoginSucceededPayload{
 			SchemaVersion: currentSchemaVersion,
 			Method:        identitymodel.AuthMethodOAuth2,
-			Provider:      provider,
-		},
-		id.NewUserActor(userID))
-}
-
-func (o *OAuth2Service) journalLoginFailure(
-	ctx context.Context,
-	userID UserID,
-	reason identitymodel.AuthFailureReason,
-	provider string,
-) {
-	if userID.IsZero() {
-		return // no attributable user — deliberately not journalled
-	}
-
-	appendAuthAuditEvent(ctx, o.logger, o.store, o.bus, eventLoginFailed,
-		identitymodel.LoginFailedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Method:        identitymodel.AuthMethodOAuth2,
-			Reason:        reason,
 			Provider:      provider,
 		},
 		id.NewUserActor(userID))

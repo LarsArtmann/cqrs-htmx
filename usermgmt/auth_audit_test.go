@@ -58,7 +58,7 @@ func TestAuthAudit_LoginSuccessJournaled(t *testing.T) {
 	svc := newAuditTestService(t)
 	userID := id.NewUserID()
 
-	svc.journalLoginSuccess(context.Background(), userID, identitymodel.AuthMethodWebAuthN, "")
+	svc.journalLoginSuccess(context.Background(), userID, identitymodel.AuthMethodWebAuthN)
 
 	events := journalEventsByType(t, svc, eventLoginSucceeded)
 	if len(events) != 1 {
@@ -96,7 +96,6 @@ func TestAuthAudit_LoginFailureCarriesReasonClassOnly(t *testing.T) {
 		userID,
 		identitymodel.AuthMethodTOTP,
 		identitymodel.AuthFailureCodeInvalid,
-		"",
 	)
 
 	events := journalEventsByType(t, svc, eventLoginFailed)
@@ -163,13 +162,12 @@ func TestAuthAudit_BestEffortOnStoreFailure(t *testing.T) {
 	t.Cleanup(func() { _ = svc.Close() })
 
 	// MUST NOT panic or propagate: audit complements auth, never gates it.
-	svc.journalLoginSuccess(context.Background(), id.NewUserID(), identitymodel.AuthMethodWebAuthN, "")
+	svc.journalLoginSuccess(context.Background(), id.NewUserID(), identitymodel.AuthMethodWebAuthN)
 	svc.journalLoginFailure(
 		context.Background(),
 		id.NewUserID(),
 		identitymodel.AuthMethodTOTP,
 		identitymodel.AuthFailureCodeInvalid,
-		"",
 	)
 	svc.journalRegistrationClosed(context.Background())
 

@@ -210,7 +210,6 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 			user.ID,
 			identitymodel.AuthMethodWebAuthN,
 			identitymodel.AuthFailureNoCredentials,
-			"",
 		)
 
 		return nil, ErrNoCredentials
@@ -290,7 +289,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		)
 	}
 
-	s.journalLoginSuccess(ctx, userID, identitymodel.AuthMethodWebAuthN, "")
+	s.journalLoginSuccess(ctx, userID, identitymodel.AuthMethodWebAuthN)
 	s.logger.Info("usermgmt: login successful", "user_id", userID, "email", user.Email)
 	return &FinishLoginResponse{User: user, Session: sess}, nil
 }
@@ -315,7 +314,6 @@ func (s *Service) finishLoginFailed(
 		userID,
 		identitymodel.AuthMethodWebAuthN,
 		identitymodel.AuthFailureCeremonyFailed,
-		"",
 	)
 
 	return errorfamily.NewRejection("usermgmt.webauthn.login_failed",
