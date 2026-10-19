@@ -14,7 +14,7 @@ import (
 
 // benchSeedJournal appends count events to a fresh memory journal and returns
 // it together with the event ID at the midpoint (a realistic reconnect cursor).
-func benchSeedJournal(b *testing.B, count int) (*memory.MemoryStore, sse.EventID) {
+func benchSeedJournal(b *testing.B, count int) (*memory.MemoryStore, sse.EventID, []event.Event) {
 	b.Helper()
 
 	store := memory.NewMemoryStore()
@@ -47,7 +47,7 @@ func benchSeedJournal(b *testing.B, count int) (*memory.MemoryStore, sse.EventID
 
 	mid := events[count/2]
 
-	return store, sse.NewEventID(mid.ID().String())
+	return store, sse.NewEventID(mid.ID().String()), events
 }
 
 // BenchmarkJournalSSEStore_EventsAfter measures the replay-read cost on large
@@ -56,7 +56,7 @@ func benchSeedJournal(b *testing.B, count int) (*memory.MemoryStore, sse.EventID
 // and the reconnect replay from a midpoint cursor.
 func BenchmarkJournalSSEStore_EventsAfter(b *testing.B) {
 	b.Run("first-connect", func(b *testing.B) {
-		store, _ := benchSeedJournal(b, 10_000)
+		store, _, _ := benchSeedJournal(b, 10_000)
 		sseStore := NewJournalSSEStore(store, DomainEventToSSE)
 
 		b.ReportAllocs()
@@ -75,7 +75,7 @@ func BenchmarkJournalSSEStore_EventsAfter(b *testing.B) {
 	})
 
 	b.Run("reconnect-midpoint", func(b *testing.B) {
-		store, cursor := benchSeedJournal(b, 10_000)
+		store, cursor, _ := benchSeedJournal(b, 10_000)
 		sseStore := NewJournalSSEStore(store, DomainEventToSSE)
 
 		b.ReportAllocs()
@@ -92,4 +92,44 @@ func BenchmarkJournalSSEStore_EventsAfter(b *testing.B) {
 			}
 		}
 	})
+
+	b.Run("first-connect-tail-reader", func(b *testing.B) {
+		store, _, events := benchSeedJournal(b, 10_000)
+		sseStore := NewJournalSSEStore(tailJournal{MemoryStore: store, tail: events}, DomainEventToSSE)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		for b.Loop() {
+			events, err := sseStore.EventsAfter(sse.EventID{})
+			if err != nil {
+				b.Fatalf("EventsAfter: %v", err)
+			}
+
+			if len(events) != DefaultMaxReplay {
+				b.Fatalf("tail connect must return exactly DefaultMaxReplay, got %d", len(events))
+			}
+		}
+	})
+}
+
+// tailJournal models a journal whose storage answers tail reads from an
+// index (the SQL `ORDER BY position DESC LIMIT n` shape): ReadLastN costs
+// O(n) regardless of journal depth. Comparing the first-connect sub-benches
+// pins the O(maxReplay) contract from cqrs-htmx#29.
+type tailJournal struct {
+	*memory.MemoryStore
+	tail []event.Event
+}
+
+func (t tailJournal) ReadLastN(_ context.Context, n int) ([]event.Event, error) {
+	events := t.tail
+	if len(events) > n {
+		events = events[len(events)-n:]
+	}
+
+	result := make([]event.Event, len(events))
+	copy(result, events)
+
+	return result, nil
 }

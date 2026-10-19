@@ -33,13 +33,38 @@ type EventToSSEMapper func(evt event.Event) sse.Event
 // ReadFrom), EventsAfter uses it for efficient cursor-based replay. Otherwise
 // it falls back to [event.Journal.ReadAll] and filters in-memory.
 //
+// A journal that also implements [TailReader] (ReadLastN) serves first-
+// connect backfill directly from the tail at O(maxReplay) — no journal
+// scan. Detection is structural; SQL-backed journals implement it as
+// `ORDER BY position DESC LIMIT n`.
+//
 // All methods are safe for concurrent access (the underlying journal must also
 // be safe for concurrent access, which all go-cqrs-lite stores are).
 type JournalSSEStore struct {
-	journal   event.Journal
-	seekable  event.SeekableJournal // non-nil if the journal supports ReadFrom
-	mapper    EventToSSEMapper
-	maxReplay int // <= 0 = DefaultMaxReplay
+	journal    event.Journal
+	seekable   event.SeekableJournal // non-nil if the journal supports ReadFrom
+	tailReader TailReader            // non-nil if the journal supports ReadLastN
+	mapper     EventToSSEMapper
+	maxReplay  int // <= 0 = DefaultMaxReplay
+}
+
+// TailReader is an optional [event.Journal] capability that answers
+// empty-cursor (first-connect) reads with the newest n events DIRECTLY, so a
+// fresh SSE connect costs O(n) instead of O(journal). Without it, a fresh
+// connect pages forward through the whole journal (bounded memory, but every
+// historical event is still read once); a multi-GB journal pays that on
+// every dashboard open.
+//
+// The returned events MUST be the newest min(n, len) events in ASCENDING
+// journal order — the same ordering [event.Journal.ReadAll] and
+// [event.SeekableJournal.ReadFrom] use. A SQL-backed journal implements it
+// as `SELECT ... ORDER BY position DESC LIMIT n` (then reversed), which the
+// planner answers from the tail index without touching history.
+//
+// The interface is satisfied by the journal passed to [NewJournalSSEStore];
+// detection is structural, so no option or constructor change is needed.
+type TailReader interface {
+	ReadLastN(ctx context.Context, n int) ([]event.Event, error)
 }
 
 // JournalSSEStoreOption configures a JournalSSEStore.
@@ -93,6 +118,10 @@ func NewJournalSSEStore(
 		s.seekable = seekable
 	}
 
+	if tail, ok := journal.(TailReader); ok {
+		s.tailReader = tail
+	}
+
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -103,7 +132,9 @@ func NewJournalSSEStore(
 // EventsAfter returns events with IDs strictly after the given lastID, ordered
 // ascending by event ID. This implements [sse.EventStore].
 //
-// If lastID is empty, returns the most recent events (up to maxReplay).
+// If lastID is empty, returns the most recent events (up to maxReplay). When
+// the journal implements [TailReader], the tail is served directly at
+// O(maxReplay); otherwise the journal is paged/scanned and the tail kept.
 // If lastID is not found, returns an empty slice.
 //
 // Returns an error if the underlying journal read fails. Invalid cursor IDs
@@ -111,11 +142,36 @@ func NewJournalSSEStore(
 func (s *JournalSSEStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
 	ctx := context.Background()
 
+	if lastID.Get() == "" && s.tailReader != nil {
+		return s.eventsAfterTail(ctx)
+	}
+
 	if s.seekable != nil {
 		return s.eventsAfterSeekable(ctx, lastID)
 	}
 
 	return s.eventsAfterFullScan(ctx, lastID)
+}
+
+// eventsAfterTail serves a fresh connect (no cursor) from the journal's
+// [TailReader] capability — the O(maxReplay) read path. The result is
+// defensively tail-truncated even though the contract bounds the return to
+// n events: an over-delivering implementation must not widen the replay
+// window past the configured cap.
+func (s *JournalSSEStore) eventsAfterTail(ctx context.Context) ([]sse.Event, error) {
+	limit := s.replayLimit()
+
+	events, err := s.tailReader.ReadLastN(ctx, limit)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			"transport.sse.journal_tail_read_failed", "read newest events from journal")
+	}
+
+	if len(events) > limit {
+		events = events[len(events)-limit:]
+	}
+
+	return s.mapEvents(events), nil
 }
 
 // replayLimit returns the configured replay cap, defaulting to
