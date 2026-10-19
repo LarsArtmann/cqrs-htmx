@@ -94,16 +94,19 @@ func buildCatalog() *catalog.Catalog {
 	simple.Command[CreateOrderCommand](
 		b, "create-order",
 		simple.WithOperation("POST", "/orders"),
+		catalog.Owners("lars"),
 		catalog.WithSummary("Place a new order"),
 	)
 
 	// Events — the persisted payloads are the real contract.
 	simple.Event[OrderCreatedEvent](
 		b, "order.created", catalog.Sends,
+		catalog.Owners("lars"),
 		catalog.WithSummary("An order was placed"),
 	)
 	simple.Event[OrderCancelledEvent](
 		b, "order.cancelled", catalog.Sends,
+		catalog.Owners("lars"),
 		catalog.WithSummary("An order was cancelled"),
 	)
 
@@ -111,6 +114,7 @@ func buildCatalog() *catalog.Catalog {
 	simple.Query[GetOrderQuery](
 		b, "get-order",
 		simple.WithOperation("GET", "/orders/{id}"),
+		catalog.Owners("lars"),
 		catalog.WithSummary("Retrieve an order by ID"),
 	)
 
