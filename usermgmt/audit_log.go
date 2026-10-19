@@ -45,8 +45,8 @@ const (
 	AuditActionEmailVerified      = "email_verified"
 	AuditActionTOTPEnabled        = "totp_enabled"
 	AuditActionTOTPDisabled       = "totp_disabled"
-	AuditActionLoginSucceeded     = "login_succeeded" //nolint:gosec // audit action label, not a credential
-	AuditActionLoginFailed        = "login_failed"    //nolint:gosec // audit action label, not a credential
+	AuditActionLoginSucceeded     = "login_succeeded"
+	AuditActionLoginFailed        = "login_failed"
 	AuditActionRegistrationClosed = "registration_closed"
 )
 

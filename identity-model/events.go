@@ -157,12 +157,12 @@ const (
 type AuthFailureReason string
 
 const (
-	AuthFailureNoCredentials  AuthFailureReason = "no_credentials"  //nolint:gosec // reason class label, not a credential
-	AuthFailureCeremonyFailed AuthFailureReason = "ceremony_failed" //nolint:gosec // reason class label, not a credential
-	AuthFailureCodeInvalid    AuthFailureReason = "code_invalid"    //nolint:gosec // reason class label, not a credential
-	AuthFailureStateInvalid   AuthFailureReason = "state_invalid"   //nolint:gosec // reason class label, not a credential
+	AuthFailureNoCredentials  AuthFailureReason = "no_credentials"
+	AuthFailureCeremonyFailed AuthFailureReason = "ceremony_failed"
+	AuthFailureCodeInvalid    AuthFailureReason = "code_invalid"
+	AuthFailureStateInvalid   AuthFailureReason = "state_invalid"
 	AuthFailureProviderMismat AuthFailureReason = "provider_mismatch"
-	AuthFailureTokenExchange  AuthFailureReason = "token_exchange" //nolint:gosec // reason class label, not a credential
+	AuthFailureTokenExchange  AuthFailureReason = "token_exchange"
 	AuthFailureNoEmail        AuthFailureReason = "no_email"
 )
 
