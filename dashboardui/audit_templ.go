@@ -71,8 +71,8 @@ func commandsContent(p pageData, cmds []*command.PersistedCommand, page paginati
 		if len(cmds) == 0 {
 			templ_7745c5c3_Err = emptyStatePanel(
 				icons.Clipboard,
-				"No commands recorded",
-				"Commands will appear here as they are dispatched.",
+				p.empty[EmptyStateCommands].Title,
+				p.empty[EmptyStateCommands].Message,
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -266,8 +266,8 @@ func queriesContent(p pageData, queries []*query.PersistedQuery, page pagination
 		if len(queries) == 0 {
 			templ_7745c5c3_Err = emptyStatePanel(
 				icons.Search,
-				"No queries recorded",
-				"Queries will appear here as they are executed.",
+				p.empty[EmptyStateQueries].Title,
+				p.empty[EmptyStateQueries].Message,
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

@@ -19,8 +19,8 @@ templ commandsContent(p pageData, cmds []*command.PersistedCommand, page paginat
 	if len(cmds) == 0 {
 		@emptyStatePanel(
 			icons.Clipboard,
-			"No commands recorded",
-			"Commands will appear here as they are dispatched.",
+			p.empty[EmptyStateCommands].Title,
+			p.empty[EmptyStateCommands].Message,
 		)
 	} else {
 		<h2>Command Audit</h2>
@@ -54,8 +54,8 @@ templ queriesContent(p pageData, queries []*query.PersistedQuery, page paginatio
 	if len(queries) == 0 {
 		@emptyStatePanel(
 			icons.Search,
-			"No queries recorded",
-			"Queries will appear here as they are executed.",
+			p.empty[EmptyStateQueries].Title,
+			p.empty[EmptyStateQueries].Message,
 		)
 	} else {
 		<h2>Query Audit</h2>

@@ -221,8 +221,8 @@ func timeTravelIndexPage(p pageData, listings []listing.StreamListing, page pagi
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = streamListingPage(p, listings, page, streamListPageConfig{
 			subtitle:   "Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.",
-			emptyTitle: "No aggregates found",
-			emptyMsg:   "Configure a StreamReader to list aggregates for time-travel inspection.",
+			emptyTitle: p.empty[EmptyStateTimeTravelAggregates].Title,
+			emptyMsg:   p.empty[EmptyStateTimeTravelAggregates].Message,
 			pagePath:   "/time-travel",
 			linkPath:   "/time-travel",
 			linkText:   "Inspect",

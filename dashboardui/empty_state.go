@@ -1,5 +1,7 @@
 package dashboardui
 
+import "maps"
+
 // The empty-state copy surface (cqrs-htmx#19): every static empty-state
 // panel in the dashboard carries upstream copy keyed by an EmptyStateKey.
 // Hosts override per key via Config.EmptyStateCopy; field-wise merging
@@ -106,12 +108,10 @@ func validateEmptyStateCopy(overrides map[EmptyStateKey]EmptyStateCopy) error {
 func (config Config) resolveEmptyStates() map[EmptyStateKey]EmptyStateCopy {
 	resolved := make(map[EmptyStateKey]EmptyStateCopy, len(defaultEmptyStates))
 
-	for k, def := range defaultEmptyStates {
-		resolved[k] = def
-	}
+	maps.Copy(resolved, defaultEmptyStates)
 
-	for k, override := range config.EmptyStateCopy {
-		merged := resolved[k]
+	for key, override := range config.EmptyStateCopy {
+		merged := resolved[key]
 
 		if override.Title != "" {
 			merged.Title = override.Title
@@ -121,7 +121,7 @@ func (config Config) resolveEmptyStates() map[EmptyStateKey]EmptyStateCopy {
 			merged.Message = override.Message
 		}
 
-		resolved[k] = merged
+		resolved[key] = merged
 	}
 
 	return resolved

@@ -71,7 +71,7 @@ func projectionsContent(p pageData, projs []projectionStat) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(projs) == 0 {
-			templ_7745c5c3_Err = emptyStatePanel(icons.ArrowPath, "No projections registered", "").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = emptyStatePanel(icons.ArrowPath, p.empty[EmptyStateProjections].Title, p.empty[EmptyStateProjections].Message).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

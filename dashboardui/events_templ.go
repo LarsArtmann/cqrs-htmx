@@ -79,8 +79,8 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 			if filter.Active() {
 				templ_7745c5c3_Err = emptyStatePanel(
 					icons.Search,
-					"No matching events",
-					"No events match the current filters. Try adjusting or clearing them.",
+					p.empty[EmptyStateEventsFiltered].Title,
+					p.empty[EmptyStateEventsFiltered].Message,
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -88,8 +88,8 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 			} else {
 				templ_7745c5c3_Err = emptyStatePanel(
 					icons.QueueList,
-					"No events yet",
-					"Events will appear here as they are committed to the store.",
+					p.empty[EmptyStateEvents].Title,
+					p.empty[EmptyStateEvents].Message,
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err

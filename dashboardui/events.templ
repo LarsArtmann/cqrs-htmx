@@ -20,14 +20,14 @@ templ eventsContent(p pageData, events []event.Event, page paginationState, filt
 		if filter.Active() {
 			@emptyStatePanel(
 				icons.Search,
-				"No matching events",
-				"No events match the current filters. Try adjusting or clearing them.",
+				p.empty[EmptyStateEventsFiltered].Title,
+				p.empty[EmptyStateEventsFiltered].Message,
 			)
 		} else {
 			@emptyStatePanel(
 				icons.QueueList,
-				"No events yet",
-				"Events will appear here as they are committed to the store.",
+				p.empty[EmptyStateEvents].Title,
+				p.empty[EmptyStateEvents].Message,
 			)
 		}
 	} else {

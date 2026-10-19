@@ -72,8 +72,8 @@ func dlqIndexContent(p pageData, links []dlqProjectionLink) templ.Component {
 		if len(links) == 0 {
 			templ_7745c5c3_Err = emptyStatePanel(
 				icons.BugAnt,
-				"Dead-Letter Queue",
-				"No projections registered. Dead letters will appear here when projection errors occur.",
+				p.empty[EmptyStateDeadLetters].Title,
+				p.empty[EmptyStateDeadLetters].Message,
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

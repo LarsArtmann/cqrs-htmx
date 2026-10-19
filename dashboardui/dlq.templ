@@ -19,8 +19,8 @@ templ dlqIndexContent(p pageData, links []dlqProjectionLink) {
 	if len(links) == 0 {
 		@emptyStatePanel(
 			icons.BugAnt,
-			"Dead-Letter Queue",
-			"No projections registered. Dead letters will appear here when projection errors occur.",
+			p.empty[EmptyStateDeadLetters].Title,
+			p.empty[EmptyStateDeadLetters].Message,
 		)
 	} else {
 		@display.PageHeader(display.PageHeaderProps{

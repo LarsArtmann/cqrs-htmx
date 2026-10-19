@@ -19,7 +19,7 @@ templ projectionsPage(p pageData, projs []projectionStat) {
 
 templ projectionsContent(p pageData, projs []projectionStat) {
 	if len(projs) == 0 {
-		@emptyStatePanel(icons.ArrowPath, "No projections registered", "")
+		@emptyStatePanel(icons.ArrowPath, p.empty[EmptyStateProjections].Title, p.empty[EmptyStateProjections].Message)
 	} else {
 		<h2>Projections</h2>
 		@rawDataTable(

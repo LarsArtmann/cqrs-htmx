@@ -16,8 +16,8 @@ import (
 templ snapshotsIndexPage(p pageData, listings []listing.StreamListing, page paginationState) {
 	@streamListingPage(p, listings, page, streamListPageConfig{
 		subtitle:   "Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.",
-		emptyTitle: "No aggregates found",
-		emptyMsg:   "Configure a StreamReader to browse snapshots by aggregate.",
+		emptyTitle: p.empty[EmptyStateSnapshotAggregates].Title,
+		emptyMsg:   p.empty[EmptyStateSnapshotAggregates].Message,
 		pagePath:   "/snapshots",
 		linkPath:   "/snapshots",
 		linkText:   "View",
@@ -33,7 +33,7 @@ templ snapshotMissingPage(p pageData, streamType, streamID string) {
 }
 
 templ snapshotEmptyPage(p pageData) {
-	@layout(p, emptyStatePanel(icons.ArchiveBox, "No snapshot", ""))
+	@layout(p, emptyStatePanel(icons.ArchiveBox, p.empty[EmptyStateSnapshots].Title, p.empty[EmptyStateSnapshots].Message))
 }
 
 templ snapshotDetailPage(p pageData, ref id.StreamRef, snap *snapshot.Snapshot, stateText string) {
