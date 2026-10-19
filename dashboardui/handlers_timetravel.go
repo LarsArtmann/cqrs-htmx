@@ -36,7 +36,18 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 
 	if len(allEvents) == 0 {
 		p := d.page("Time Travel: "+string(ref.Type), "/time-travel", r)
-		renderPage(w, r, layout(p, emptyStatePanel(icons.Inbox, p.empty[EmptyStateTimeTravelEvents].Title, p.empty[EmptyStateTimeTravelEvents].Message)))
+		renderPage(
+			w,
+			r,
+			layout(
+				p,
+				emptyStatePanel(
+					icons.Inbox,
+					p.empty[EmptyStateTimeTravelEvents].Title,
+					p.empty[EmptyStateTimeTravelEvents].Message,
+				),
+			),
+		)
 
 		return
 	}

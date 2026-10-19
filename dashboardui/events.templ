@@ -55,8 +55,9 @@ templ eventsTableRows(basePath, nonce string, events []event.Event) {
 		<tr>
 			<td>{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
 			<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
-			<td><span class="mono">{ truncate(evt.StreamID().String(), listIDWidth) }</span> @copyButton(evt.StreamID().String(), "", nonce)
-</td>
+			<td>
+				<span class="mono">{ truncate(evt.StreamID().String(), listIDWidth) }</span> @copyButton(evt.StreamID().String(), "", nonce)
+			</td>
 			<td>{ string(evt.StreamType()) }</td>
 			<td>{ evt.Version().String() }</td>
 		</tr>
@@ -92,11 +93,13 @@ templ eventDetailPage(p pageData, evt event.Event, prevID, nextID string, payloa
 
 templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payload []byte) {
 	<div class="page-header">
-		<h2><code>{ string(evt.Type()) }</code> @badge(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral)
-@encodingBadge(string(evt.Encoding()))
-</h2>
-		<div class="page-subtitle mono">{ evt.ID().String() } @copyButton(evt.ID().String(), "", p.Nonce)
-</div>
+		<h2>
+			<code>{ string(evt.Type()) }</code> @badge(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral)
+			@encodingBadge(string(evt.Encoding()))
+		</h2>
+		<div class="page-subtitle mono">
+			{ evt.ID().String() } @copyButton(evt.ID().String(), "", p.Nonce)
+		</div>
 		if prevID != "" || nextID != "" {
 			<div class="filter-bar section-gap">
 				if prevID != "" {
