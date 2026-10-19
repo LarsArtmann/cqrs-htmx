@@ -97,6 +97,15 @@ type Config struct {
 	// DefaultPayloadRenderer is used (JSON/CBOR pretty-print).
 	PayloadRenderer PayloadRenderer
 
+	// PayloadTypes routes per-event-type rendering through typed renderers
+	// registered via RegisterPayloadType(In). It is consulted BEFORE
+	// PayloadRenderer for registered types only. If nil, the package
+	// default registry (DefaultPayloadTypes) is used — startup-time
+	// RegisterPayloadType calls are honored with zero config. Set an
+	// explicit empty registry (NewPayloadTypeRegistry) to ignore the
+	// package registry entirely.
+	PayloadTypes *PayloadTypeRegistry
+
 	// Title is the brand text in the sidebar and browser tab.
 	Title string
 
@@ -205,6 +214,10 @@ func (config Config) withDefaults() (Config, error) {
 
 	if config.PayloadRenderer == nil {
 		config.PayloadRenderer = DefaultPayloadRenderer{}
+	}
+
+	if config.PayloadTypes == nil {
+		config.PayloadTypes = DefaultPayloadTypes()
 	}
 
 	if config.SSEHeartbeatInterval == 0 {

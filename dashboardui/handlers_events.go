@@ -157,5 +157,5 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 	prevID, nextID := d.findEventNeighbors(r.Context(), eventID)
 
 	p := d.page("Event: "+truncate(string(evt.Type()), eventTypeWidth), "/events", r)
-	renderPage(w, r, eventDetailPage(p, evt, prevID, nextID, payloadBytes(d.config.PayloadRenderer, evt)))
+	renderPage(w, r, eventDetailPage(p, evt, prevID, nextID, payloadBytes(d.config, evt)))
 }

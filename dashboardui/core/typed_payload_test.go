@@ -55,11 +55,10 @@ func TestTypedRegistry_UnregisteredFallsThroughToRenderer(t *testing.T) {
 	}
 }
 
-func TestTypedRegistry_RegisteredTypeWinsOverRenderer(t *testing.T) {
+func TestRenderPayload_DefaultRegistryWinsOverRenderer(t *testing.T) {
 	t.Parallel()
 
-	reg := NewPayloadTypeRegistry()
-	RegisterPayloadTypeIn(reg, "demo.named", markerRenderer{marker: "TYPED"})
+	RegisterPayloadType("demo.named", markerRenderer{marker: "TYPED"})
 
 	evt := typedTestEvent(t, "demo.named", demoPayload{Name: "file", Count: 7})
 
@@ -80,11 +79,6 @@ func TestTypedRegistry_DecodeMismatchFallsBack(t *testing.T) {
 	if _, ok := reg.Render(evt.Type(), evt.Payload(), evt.Encoding()); ok {
 		t.Error("array bytes must not decode into a struct payload; typed path must report failure")
 	}
-
-	got := string(RenderPayload(stubUntyped{out: "UNTYPED"}, evt))
-	if got != "UNTYPED" {
-		t.Errorf("RenderPayload = %q, want fallback after decode mismatch", got)
-	}
 }
 
 func TestTypedRegistry_ReRegistrationReplaces(t *testing.T) {
@@ -96,9 +90,9 @@ func TestTypedRegistry_ReRegistrationReplaces(t *testing.T) {
 
 	evt := typedTestEvent(t, "demo.replace", demoPayload{Name: "x", Count: 0})
 
-	got := string(RenderPayload(stubUntyped{out: "UNTYPED"}, evt))
-	if got != "SECOND:x:0" {
-		t.Errorf("RenderPayload = %q, want the last registration to win", got)
+	got, ok := reg.Render(evt.Type(), evt.Payload(), evt.Encoding())
+	if !ok || string(got) != "SECOND:x:0" {
+		t.Errorf("Render = %q ok=%v, want the last registration to win", got, ok)
 	}
 }
 

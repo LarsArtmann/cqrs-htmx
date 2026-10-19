@@ -40,9 +40,14 @@ func monoSpan(s string) string {
 	return "<span class=\"mono\">" + s + "</span>"
 }
 
-// payloadBytes renders an event's payload through the configured renderer.
-func payloadBytes(renderer PayloadRenderer, evt event.Event) []byte {
-	return renderPayload(renderer, evt)
+// payloadBytes renders an event's payload: the typed registry first (only
+// for registered types), then the configured renderer.
+func payloadBytes(config Config, evt event.Event) []byte {
+	if out, ok := config.PayloadTypes.Render(evt.Type(), evt.Payload(), evt.Encoding()); ok {
+		return out
+	}
+
+	return renderPayload(config.PayloadRenderer, evt)
 }
 
 // combinedFilterSortParams joins the filter and sort query params preserved

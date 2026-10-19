@@ -69,6 +69,13 @@ func (reg *PayloadTypeRegistry) Render(evtType event.Type, payload []byte, encod
 // defaultPayloadTypes backs the package-level RegisterPayloadType.
 var defaultPayloadTypes = NewPayloadTypeRegistry()
 
+// DefaultPayloadTypes returns the package registry behind
+// RegisterPayloadType. Configs with a nil PayloadTypes resolve to it, so
+// startup-time registrations work without any config.
+func DefaultPayloadTypes() *PayloadTypeRegistry {
+	return defaultPayloadTypes
+}
+
 // RegisterPayloadType registers a typed renderer for evtType in the
 // package default registry, which RenderPayload consults BEFORE the
 // configured PayloadRenderer. Registration is process-global: the
