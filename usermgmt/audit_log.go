@@ -25,6 +25,9 @@ type AuditEntry struct {
 	UserID      UserID      `json:"user_id,omitzero"`
 	Email       string      `json:"email,omitempty"`
 	Action      string      `json:"action"`
+	// Detail carries the failure reason class for login_failed entries
+	// (bounded identitymodel.AuthFailureReason); empty otherwise.
+	Detail string `json:"detail,omitzero"`
 }
 
 // Audit action constants — the stable vocabulary recorded in AuditEntry.Action.
@@ -39,6 +42,9 @@ const (
 	AuditActionEmailVerified      = "email_verified"
 	AuditActionTOTPEnabled        = "totp_enabled"
 	AuditActionTOTPDisabled       = "totp_disabled"
+	AuditActionLoginSucceeded     = "login_succeeded"     //nolint:gosec // audit action label, not a credential
+	AuditActionLoginFailed        = "login_failed"        //nolint:gosec // audit action label, not a credential
+	AuditActionRegistrationClosed = "registration_closed"
 )
 
 // AuditLog is a projection that records all user-related events as audit entries.
@@ -56,7 +62,7 @@ func NewAuditLog() *AuditLog {
 
 func (*AuditLog) Name() string { return "audit-log" }
 
-func (*AuditLog) EventTypes() []event.Type { return allUserEventTypes }
+func (*AuditLog) EventTypes() []event.Type { return allAuditedEventTypes }
 
 func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 	a.mu.Lock()
@@ -76,6 +82,15 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 	// UserID would create invalid references in the audit trail.
 	if uid, ok := ActorIDAsUserID(evt.Metadata().ActorID); ok {
 		entry.UserID = uid
+	}
+
+	// login_failed entries carry the bounded reason class as Detail —
+	// decoded from the payload, never from raw error text.
+	if evt.Type() == eventLoginFailed {
+		var p identitymodel.LoginFailedPayload
+		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
+			entry.Detail = string(p.Reason)
+		}
 	}
 
 	a.entries = append(a.entries, entry)
@@ -105,6 +120,12 @@ func auditActionFor(t event.Type) string {
 		return AuditActionTOTPEnabled
 	case eventTOTPDisabled:
 		return AuditActionTOTPDisabled
+	case eventLoginSucceeded:
+		return AuditActionLoginSucceeded
+	case eventLoginFailed:
+		return AuditActionLoginFailed
+	case eventRegistrationClosed:
+		return AuditActionRegistrationClosed
 	default:
 		return string(t)
 	}

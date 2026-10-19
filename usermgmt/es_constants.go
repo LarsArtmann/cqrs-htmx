@@ -1,6 +1,8 @@
 package usermgmt
 
 import (
+	"slices"
+
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -109,5 +111,11 @@ var allAuthEventTypes = []event.Type{
 	eventLoginFailed,
 	eventRegistrationClosed,
 }
+
+// allAuditedEventTypes is every event type the AuditLog subscribes to: the
+// user lifecycle plus the auth audit journal (cqrs-htmx#23). slices.Concat
+// keeps the two source lists untouched (append would alias their backing
+// array).
+var allAuditedEventTypes = slices.Concat(allUserEventTypes, allAuthEventTypes)
 
 var currentSchemaVersion = identitymodel.CurrentSchemaVersion
