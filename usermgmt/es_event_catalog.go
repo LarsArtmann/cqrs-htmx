@@ -5,9 +5,9 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
-// DefaultEventCatalog builds a cqrshtmx.EventCatalog populated with all 21
-// event types across the four aggregates (User, Membership, Tenant, Bot).
-// Consumers can serve this catalog at an HTTP endpoint (e.g.
+// DefaultEventCatalog builds a cqrshtmx.EventCatalog populated with all 24
+// event types across the five aggregates (User, Membership, Tenant, Bot,
+// Auth). Consumers can serve this catalog at an HTTP endpoint (e.g.
 // GET /events/catalog) so that projection builders can discover the event
 // schema without reading the source code.
 func DefaultEventCatalog() *cqrshtmx.EventCatalog {
@@ -16,6 +16,7 @@ func DefaultEventCatalog() *cqrshtmx.EventCatalog {
 	registerMembershipEvents(catalog)
 	registerTenantEvents(catalog)
 	registerBotEvents(catalog)
+	registerAuthEvents(catalog)
 	return catalog
 }
 
@@ -291,6 +292,47 @@ func registerBotEvents(catalog *cqrshtmx.EventCatalog) {
 		PayloadFields: []cqrshtmx.PayloadField{
 			{Name: "schema_version", Type: "int", Required: true},
 			{Name: "reason", Type: "string"},
+		},
+	})
+}
+
+//nolint:exhaustruct // descriptions are intentional; field lists are illustrative
+func registerAuthEvents(catalog *cqrshtmx.EventCatalog) {
+	sv := identitymodel.CurrentSchemaVersion
+
+	//cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
+	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(identitymodel.EventLoginSucceeded),
+		Aggregate:     string(identitymodel.AggregateTypeAuth),
+		SchemaVersion: sv,
+		Description:   "A login succeeded (auth audit journal; one dedicated Auth stream per event)",
+		PayloadFields: []cqrshtmx.PayloadField{
+			{Name: "schema_version", Type: "int", Required: true},
+			{Name: "method", Type: "AuthMethod", Required: true},
+			{Name: "provider", Type: "string"},
+		},
+	})
+
+	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(identitymodel.EventLoginFailed),
+		Aggregate:     string(identitymodel.AggregateTypeAuth),
+		SchemaVersion: sv,
+		Description:   "A known-user login failed with a bounded reason class (never raw error text or secrets)",
+		PayloadFields: []cqrshtmx.PayloadField{
+			{Name: "schema_version", Type: "int", Required: true},
+			{Name: "method", Type: "AuthMethod", Required: true},
+			{Name: "reason", Type: "AuthFailureReason", Required: true},
+			{Name: "provider", Type: "string"},
+		},
+	})
+
+	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(identitymodel.EventRegistrationClosed),
+		Aggregate:     string(identitymodel.AggregateTypeAuth),
+		SchemaVersion: sv,
+		Description:   "A registration attempt was rejected because registration is closed",
+		PayloadFields: []cqrshtmx.PayloadField{
+			{Name: "schema_version", Type: "int", Required: true},
 		},
 	})
 }

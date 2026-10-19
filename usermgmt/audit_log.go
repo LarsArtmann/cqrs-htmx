@@ -2,12 +2,15 @@ package usermgmt
 
 import (
 	"context"
+	"encoding/json/v2"
 	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
 // AuditEntry represents a single auditable action derived from events.
