@@ -191,6 +191,8 @@ func (o *OAuth2Service) FinishLogin(
 		o.logAuth("oauth_login", user.ID, "provider", provider)
 	}
 
+	o.journalLoginSuccess(ctx, user.ID, provider)
+
 	return &FinishOAuthLoginResponse{User: user, Session: session}, nil
 }
 
@@ -272,6 +274,7 @@ func (o *OAuth2Service) provisionLinkedUser(
 
 		if o.readModel.Count() >= o.maxUsers {
 			o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
+			o.journalRegistrationClosed(ctx)
 
 			return nil, false, errorfamily.NewRejection(
 				"usermgmt.oauth2.registration_closed",
