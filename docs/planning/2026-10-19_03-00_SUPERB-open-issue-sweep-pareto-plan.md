@@ -1,7 +1,9 @@
 # SUPERB Pareto Plan — Open-Issue Sweep: finish, publish, and close all 11 GitHub issues
 
+> **PROCESSED (2026-10-19):** executed to the close-comment tail across two sessions. #13/#21/#22/#27/#31 closed with evidence + #20/#25 verdict comments (earlier session); #28 `1909bda8` + #29 `4b679996` pushed; #23 LANDED via the identity-model v4.13.0 mini-train (auth-audit journal merged, every consumer swept, train gate 0/0/0) with the ADR-0038 ceiling fixed by the `authAuditor` collaborator extraction; #18 TypedPayloadRenderer + #19 EmptyStateCopy implemented with tests/README/CHANGELOG. Drift bills paid: branching-flow +5 re-pinned (triage amendment), 21→24 event-count sweep across 7 docs, C005 `DecodePayloadAuto`, docs-status link fix. Remaining at hand-off: the five close comments on the green run + `origin/wip/issue-23-auth-audit` deletion. Execution status lives in `TODO_LIST.md` (P1 sweep row) + the status reports.
+
 > **Filed:** 2026-10-19 03:00 CEST · **Session:** issue-sweep continuation (same night as `1909bda8`/`4b679996`/`981b00ed`)
-> **Status:** PLAN — awaiting owner approval for full execution (skill: full-execution mode starts after approval)
+> **Status:** EXECUTED — 1%+4%+20% tiers landed; closes pending the green run (see PROCESSED above)
 > **Scope:** all work to take the 11 open GitHub issues to CLOSED with verified evidence, published code, and green CI — plus the honest tail that remains.
 
 ---
