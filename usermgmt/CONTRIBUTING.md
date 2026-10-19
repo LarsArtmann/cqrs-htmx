@@ -25,7 +25,7 @@ nix run .#lint   # covers root + usermgmt + adminui
 All state changes are **events** persisted to an event store. State is reconstructed by folding events.
 
 - **20 commands** embed `*command.BasicCommand` (ADR-0032) — structurally guarantees unique command IDs
-- **21 event types** across 4 aggregates: User, Membership, Tenant, Bot
+- **24 event types** across 5 aggregates: User, Membership, Tenant, Bot, Auth
 - **Pure domain layer**: `fold*()` reconstructs state, `decide*()` validates guards and emits events
 - **Write path**: Service → CommandDispatcher → DeciderRepository.Execute (load → fold → decide → save → publish)
 - **Read path**: Service queries `UserReadModel` projection

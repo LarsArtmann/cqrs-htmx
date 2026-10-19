@@ -16,15 +16,15 @@ go-cqrs-lite provides two powerful modules that cqrs-htmx consumers can benefit 
 - **`system/`** — A deployer-driven composition root. `system.New(ctx, domain, deployment)` auto-wires event store, command/query dispatchers, event bus, snapshot store, projection host, and lifecycle management. Separates domain code (`DomainConfig`) from infrastructure decisions (`DeploymentConfig`).
 - **`metaengine/`** — A cost-based storage planner. You declare queries + fold functions; the engine auto-plans indexes, ADTs (Map/Set/Counter/Graph/Log), and engine assignments. The `projectionadapter` bridges events into typed projection stores.
 
-The **`systemadapter/`** submodule bridges cqrs-htmx's identity-model domain (4 aggregates, 20 commands, 21 events) into the `system.New()` API with three exports:
+The **`systemadapter/`** submodule bridges cqrs-htmx's identity-model domain (5 aggregates, 20 commands, 24 events) into the `system.New()` API with three exports:
 
 | Export                     | Purpose                                                                                                         |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `DomainConfig()`           | Pre-wires all deciders + commands + TypeDecoder into a `system.DomainConfig`                                    |
-| `EventTypeDecoder()`       | Maps all 21 event types to their payload structs for `projectionadapter`                                        |
+| `EventTypeDecoder()`       | Maps all 24 event types to their payload structs for `projectionadapter`                                        |
 | `DomainConfig(opts...)`    | Pre-wires deciders + commands + TypeDecoder + declarative projections; options carry checkpoint/DLQ/host tuning |
 | `Recommended*Deployment()` | Memory / SQLite / split-SQLite deployment presets                                                               |
-| `EventTypeDecoder()`       | Maps all 21 event types to their payload structs for `projectionadapter`                                        |
+| `EventTypeDecoder()`       | Maps all 24 event types to their payload structs for `projectionadapter`                                        |
 | `NewProjectionLayer(sys)`  | **Deprecated** (pre-declarative): read models, Casbin authz, audit log on a dedicated host                      |
 
 ## Quick Start
@@ -40,7 +40,7 @@ ctx := context.Background()
 // 1. Pick a deployment preset (or hand-write system.DeploymentConfig)
 deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db")
 
-// 2. Get pre-wired domain config (all 20 commands, 4 deciders, 21 event
+// 2. Get pre-wired domain config (all 20 commands, 4 deciders, 24 event
 //    decodings, AND the declarative projections — read models, authz, audit)
 domain := systemadapter.DomainConfig(
     systemadapter.WithCheckpointStore(durableCheckpoints), // optional
