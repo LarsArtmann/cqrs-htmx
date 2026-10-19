@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json/v2"
 	"sync"
 	"time"
 
@@ -89,8 +88,7 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 	// login_failed entries carry the bounded reason class as Detail —
 	// decoded from the payload, never from raw error text.
 	if evt.Type() == eventLoginFailed {
-		var p identitymodel.LoginFailedPayload
-		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
+		if p, err := event.DecodePayloadAuto[identitymodel.LoginFailedPayload](evt); err == nil {
 			entry.Detail = string(p.Reason)
 		}
 	}

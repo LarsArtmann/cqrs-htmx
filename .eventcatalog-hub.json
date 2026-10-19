@@ -10,5 +10,15 @@
     "work/out/cqrs-htmx/eventcatalog",
     "-export-only"
   ],
-  "tree": "work/out/cqrs-htmx/eventcatalog"
+  "tree": "work/out/cqrs-htmx/eventcatalog",
+  "lint": {
+    "export": [
+      "work/bin/catalog-demo",
+      "-eventcatalog",
+      "work/lint/cqrs-htmx",
+      "-export-only",
+      "-plain"
+    ],
+    "tree": "work/lint/cqrs-htmx"
+  }
 }
