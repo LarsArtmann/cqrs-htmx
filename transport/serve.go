@@ -275,6 +275,26 @@ func safePredCall(
 	return pred(evt)
 }
 
+// resolveFilter derives the filter for ONE request: a non-nil derived
+// predicate wins; (nil, nil) falls back to the construction-time filter. A
+// derivation error aborts the request before any stream is opened.
+func (c serveDomainEventsConfig) resolveFilter(r *http.Request) (func(sse.Event) bool, error) {
+	if c.requestFilter == nil {
+		return c.filter, nil
+	}
+
+	pred, err := c.requestFilter(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if pred == nil {
+		return c.filter, nil
+	}
+
+	return pred, nil
+}
+
 // subscribe applies the configured filter to the live subscription (nil
 // filter = unfiltered Subscribe).
 func subscribe(b *sse.Broadcaster[sse.Event], filter func(sse.Event) bool) <-chan sse.Event {
@@ -359,6 +379,7 @@ func ServeDomainEvents(
 		logPrefix:          "transport",
 		unavailableMessage: "SSE not available",
 		filter:             nil,
+		requestFilter:      nil,
 		maxReplay:          0,
 	}
 	for _, opt := range opts {
@@ -372,22 +393,13 @@ func ServeDomainEvents(
 			return
 		}
 
-		// Resolve the filter for THIS request: a derived predicate wins;
-		// (nil, nil) falls back to the construction-time filter. A derivation
-		// error aborts before any stream is opened.
-		filter := cfg.filter
+		// Resolve the filter for THIS request; a derivation error aborts
+		// with 400 before any stream is opened.
+		filter, err := cfg.resolveFilter(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 
-		if cfg.requestFilter != nil {
-			pred, err := cfg.requestFilter(r)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-
-				return
-			}
-
-			if pred != nil {
-				filter = pred
-			}
+			return
 		}
 
 		stream := sse.NewStream(w, r)

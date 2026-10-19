@@ -386,6 +386,7 @@ func TestJournalSSEStore_CappedReconnectKeepsTail_FullScanFallback(t *testing.T)
 // counts which read paths a fresh connect actually takes.
 type tailReaderStore struct {
 	*memory.MemoryStore
+
 	tailCalls int
 	lastN     int
 	tailErr   error
@@ -400,7 +401,7 @@ func (t *tailReaderStore) ReadLastN(ctx context.Context, n int) ([]event.Event, 
 		return nil, t.tailErr
 	}
 
-	all, err := t.MemoryStore.ReadAll(ctx)
+	all, err := t.ReadAll(ctx)
 	if err != nil {
 		return nil, err
 	}

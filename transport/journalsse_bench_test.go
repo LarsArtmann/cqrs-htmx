@@ -119,6 +119,7 @@ func BenchmarkJournalSSEStore_EventsAfter(b *testing.B) {
 // pins the O(maxReplay) contract from cqrs-htmx#29.
 type tailJournal struct {
 	*memory.MemoryStore
+
 	tail []event.Event
 }
 
