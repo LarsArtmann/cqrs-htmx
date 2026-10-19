@@ -5,9 +5,8 @@ import (
 	"sync"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // defaultTOTPPendingTTL is the default time-to-live for pending TOTP secrets

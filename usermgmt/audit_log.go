@@ -6,11 +6,10 @@ import (
 	"sync"
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
-
-	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
 // AuditEntry represents a single auditable action derived from events.
@@ -101,37 +100,31 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 	return nil
 }
 
+// auditActions maps each audited event type to its stable action vocabulary.
+// Table-driven: the vocabulary grows with the event catalog without growing
+// branching complexity.
+var auditActions = map[event.Type]string{ //nolint:gochecknoglobals // table-driven vocabulary, single package-private map
+	eventUserRegistered:     AuditActionRegister,
+	eventRolesUpdated:       AuditActionRolesUpdated,
+	eventEmailChanged:       AuditActionEmailChanged,
+	eventDisplayNameChanged: AuditActionDisplayNameChanged,
+	eventUserDeleted:        AuditActionUserDeleted,
+	eventCredentialAdded:    AuditActionCredentialAdded,
+	eventCredentialRemoved:  AuditActionCredentialRemoved,
+	eventEmailVerified:      AuditActionEmailVerified,
+	eventTOTPEnabled:        AuditActionTOTPEnabled,
+	eventTOTPDisabled:       AuditActionTOTPDisabled,
+	eventLoginSucceeded:     AuditActionLoginSucceeded,
+	eventLoginFailed:        AuditActionLoginFailed,
+	eventRegistrationClosed: AuditActionRegistrationClosed,
+}
+
 func auditActionFor(t event.Type) string {
-	switch t {
-	case eventUserRegistered:
-		return AuditActionRegister
-	case eventRolesUpdated:
-		return AuditActionRolesUpdated
-	case eventEmailChanged:
-		return AuditActionEmailChanged
-	case eventDisplayNameChanged:
-		return AuditActionDisplayNameChanged
-	case eventUserDeleted:
-		return AuditActionUserDeleted
-	case eventCredentialAdded:
-		return AuditActionCredentialAdded
-	case eventCredentialRemoved:
-		return AuditActionCredentialRemoved
-	case eventEmailVerified:
-		return AuditActionEmailVerified
-	case eventTOTPEnabled:
-		return AuditActionTOTPEnabled
-	case eventTOTPDisabled:
-		return AuditActionTOTPDisabled
-	case eventLoginSucceeded:
-		return AuditActionLoginSucceeded
-	case eventLoginFailed:
-		return AuditActionLoginFailed
-	case eventRegistrationClosed:
-		return AuditActionRegistrationClosed
-	default:
-		return string(t)
+	if action, ok := auditActions[t]; ok {
+		return action
 	}
+
+	return string(t)
 }
 
 // Entries returns a copy of all audit entries, ordered chronologically.

@@ -4,11 +4,10 @@ import (
 	"context"
 	"log/slog"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-
-	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
 // The auth audit journal (cqrs-htmx#23): successful and failed logins and

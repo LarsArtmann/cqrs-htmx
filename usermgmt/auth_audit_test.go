@@ -7,12 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-
-	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
 // newAuditTestService builds a Service on the default in-memory store for
@@ -25,7 +24,7 @@ func newAuditTestService(t *testing.T) *Service {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	t.Cleanup(func() { svc.Close() })
+	t.Cleanup(func() { _ = svc.Close() })
 
 	return svc
 }
@@ -161,7 +160,7 @@ func TestAuthAudit_BestEffortOnStoreFailure(t *testing.T) {
 		t.Fatalf("NewService: %v", err)
 	}
 
-	t.Cleanup(func() { svc.Close() })
+	t.Cleanup(func() { _ = svc.Close() })
 
 	// MUST NOT panic or propagate: audit complements auth, never gates it.
 	svc.journalLoginSuccess(context.Background(), id.NewUserID(), identitymodel.AuthMethodWebAuthN, "")
