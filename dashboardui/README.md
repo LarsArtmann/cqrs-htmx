@@ -190,6 +190,8 @@ type Config struct {
     EventBus         event.Bus              // enables SSE live updates
 
     PayloadRenderer  PayloadRenderer        // custom payload formatting
+    PayloadTypes     *PayloadTypeRegistry   // typed per-event-type rendering (nil = package registry)
+    EmptyStateCopy   map[EmptyStateKey]EmptyStateCopy // per-panel empty-state copy overrides
     Title            string                 // sidebar brand text
     BasePath         string                 // URL prefix (default: /dashboard)
     AccentColor      string                 // CSS highlight color
@@ -710,7 +712,7 @@ The dashboard follows the same pattern as `adminui/`:
 - `detail_items.go` — Definition-item and small data builders shared by the
   templates
 - `layout.go` — Embedded CSS/JS assets, icon-name mapping
-- `payload.go` — PayloadRenderer interface and default implementation
+- `payload.go` — PayloadRenderer + TypedPayloadRenderer[P] registry and the default implementation
 - `sse.go` — SSE event bridge (event bus to broadcaster)
 
 Rendering is full templ (see the Styling section above); every handler threads
