@@ -31,6 +31,13 @@ type PayloadRenderer = core.PayloadRenderer
 // DefaultPayloadRenderer is the default payload renderer.
 type DefaultPayloadRenderer = core.DefaultPayloadRenderer
 
+// TypedPayloadRenderer formats a decoded domain payload for one event
+// type; register it with RegisterPayloadType.
+type TypedPayloadRenderer[P any] = core.TypedPayloadRenderer[P]
+
+// PayloadTypeRegistry maps event types to typed renderers.
+type PayloadTypeRegistry = core.PayloadTypeRegistry
+
 // Unexported aliases used internally by the rendering layer.
 type (
 	projectionStat    = core.ProjectionStat
@@ -74,6 +81,23 @@ func humanByteSize(bytes int) string {
 
 func renderPayload(r PayloadRenderer, evt event.Event) []byte {
 	return core.RenderPayload(r, evt)
+}
+
+// NewPayloadTypeRegistry returns an empty typed-renderer registry.
+func NewPayloadTypeRegistry() *core.PayloadTypeRegistry {
+	return core.NewPayloadTypeRegistry()
+}
+
+// RegisterPayloadType registers a typed renderer for evtType in the
+// package default registry; RenderPayload consults it before the
+// configured PayloadRenderer.
+func RegisterPayloadType[P any](evtType event.Type, r TypedPayloadRenderer[P]) {
+	core.RegisterPayloadType(evtType, r)
+}
+
+// RegisterPayloadTypeIn is RegisterPayloadType for an explicit registry.
+func RegisterPayloadTypeIn[P any](reg *core.PayloadTypeRegistry, evtType event.Type, r TypedPayloadRenderer[P]) {
+	core.RegisterPayloadTypeIn(reg, evtType, r)
 }
 
 func prettyJSON(raw []byte) string {
