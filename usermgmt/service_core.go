@@ -436,6 +436,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 			config.MaxUsers, &svc.registrationMu,
 			svc.readModel, svc.dispatcher, svc.sessions, svc.sessionTTL, svc.logger,
 			svc.classifyDispatchError,
+			svc.store, svc.bus,
 		)
 	}
 
