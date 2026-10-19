@@ -161,7 +161,7 @@ func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
 	}
 }
 
-func TestEventTypeDecoder_All21EventTypesRegistered(t *testing.T) {
+func TestEventTypeDecoder_All24EventTypesRegistered(t *testing.T) {
 	decoder := systemadapter.EventTypeDecoder()
 
 	expectedTypes := []string{
@@ -186,6 +186,9 @@ func TestEventTypeDecoder_All21EventTypesRegistered(t *testing.T) {
 		string(identitymodel.EventTenantDeleted),
 		string(identitymodel.EventBotRegistered),
 		string(identitymodel.EventBotDeleted),
+		string(identitymodel.EventLoginSucceeded),
+		string(identitymodel.EventLoginFailed),
+		string(identitymodel.EventRegistrationClosed),
 	}
 
 	registered := make(map[string]bool)
