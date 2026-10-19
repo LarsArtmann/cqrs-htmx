@@ -130,11 +130,13 @@ func TestTypedRegistry_ConcurrentRegisterAndRender(t *testing.T) {
 
 		go func(i int) {
 			defer wg.Done()
+
 			RegisterPayloadTypeIn(reg, "demo.race", markerRenderer{marker: "R" + strconv.Itoa(i)})
 		}(i)
 
 		go func() {
 			defer wg.Done()
+
 			reg.Render(evt.Type(), evt.Payload(), evt.Encoding())
 		}()
 	}
@@ -163,6 +165,7 @@ func TestTypedRegistry_UnregisteredKeepsDefaultPrettyJSON(t *testing.T) {
 
 	got := string(RenderPayload(DefaultPayloadRenderer{}, evt))
 	want := "{\n  \"name\": \"p\",\n  \"count\": 3\n}"
+
 	if got != want {
 		t.Errorf("RenderPayload = %q, want default pretty JSON %q", got, want)
 	}

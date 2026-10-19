@@ -212,6 +212,20 @@ func (config Config) withDefaults() (Config, error) {
 		config.PageSize = core.MaxPageSize()
 	}
 
+	if config.SSEHeartbeatInterval == 0 {
+		config.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
+	}
+
+	config = config.withPayloadRenderingDefaults()
+
+	return config, nil
+}
+
+// withPayloadRenderingDefaults fills the payload display seam: the untyped
+// renderer falls back to pretty-print, the typed registry to the package
+// registry (startup-time RegisterPayloadType calls then work with zero
+// config).
+func (config Config) withPayloadRenderingDefaults() Config {
 	if config.PayloadRenderer == nil {
 		config.PayloadRenderer = DefaultPayloadRenderer{}
 	}
@@ -220,11 +234,7 @@ func (config Config) withDefaults() (Config, error) {
 		config.PayloadTypes = DefaultPayloadTypes()
 	}
 
-	if config.SSEHeartbeatInterval == 0 {
-		config.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
-	}
-
-	return config, nil
+	return config
 }
 
 // navItem represents a sidebar navigation entry.

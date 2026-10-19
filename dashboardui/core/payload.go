@@ -37,7 +37,7 @@ type PayloadTypeRegistry struct {
 
 // NewPayloadTypeRegistry returns an empty registry.
 func NewPayloadTypeRegistry() *PayloadTypeRegistry {
-	return &PayloadTypeRegistry{entries: make(map[event.Type]payloadRenderFunc)}
+	return &PayloadTypeRegistry{mu: sync.RWMutex{}, entries: make(map[event.Type]payloadRenderFunc)}
 }
 
 // Render renders payload with the typed renderer registered for evtType.
@@ -67,6 +67,8 @@ func (reg *PayloadTypeRegistry) Render(evtType event.Type, payload []byte, encod
 }
 
 // defaultPayloadTypes backs the package-level RegisterPayloadType.
+//
+//nolint:gochecknoglobals // package registry is the documented extension point (database/sql-driver pattern)
 var defaultPayloadTypes = NewPayloadTypeRegistry()
 
 // DefaultPayloadTypes returns the package registry behind
@@ -112,6 +114,10 @@ func typedRender[P any](r TypedPayloadRenderer[P]) payloadRenderFunc {
 				return nil, errorfamily.WrapCorruption(err,
 					"dashboardui.payload.typed_decode_failed", "decode CBOR payload into registered type")
 			}
+
+		case codec.EncodingRaw:
+			return nil, errorfamily.NewCorruption(
+				"dashboardui.payload.typed_encoding_unsupported", "no typed decode for raw payload encoding")
 
 		default:
 			return nil, errorfamily.NewCorruption(
