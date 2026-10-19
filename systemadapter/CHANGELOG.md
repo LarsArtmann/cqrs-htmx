@@ -4,7 +4,9 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Added
+
+- **`EventTypeDecoder` maps the three identity-model v4.13.0 auth audit events** (`LoginSucceeded`, `LoginFailed`, `RegistrationClosed`) so `system.New()` projection hosts decode them for metaengine fold handlers. Registration count 21 -> 24.
 
 ## [v4.12.4] - 2026-10-11
 

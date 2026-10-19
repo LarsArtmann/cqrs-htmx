@@ -107,6 +107,37 @@ For bot traffic, derive the actor from the authenticated token
 - **samber-do-auditlog** — the `auditlog/v4` bridge (`WithAuditLog`) serves the
   same trail through a live SSE viewer; see that module's README.
 
+## Auth audit journal (LoginSucceeded / LoginFailed / RegistrationClosed)
+
+Since 2026-10-19 (cqrs-htmx#23), authentication outcomes themselves are
+journalled as durable events — closing the "who logged in, when, and how
+often was registration probed after closing" gap that session rows
+(deliberately ephemeral) cannot answer.
+
+Three identity-model event types: `LoginSucceeded`, `LoginFailed` (with a
+bounded `AuthFailureReason` class — never raw error text, never secrets),
+`RegistrationClosed`. Emitted by `usermgmt`: WebAuthn finish-login
+success/ceremony-failure and begin-login no-credentials, TOTP `VerifyTOTP`
+outcomes, OAuth2 finish-login success (provider-qualified), and both
+`MaxUsers` registration rejections.
+
+Design invariants (why it looks the way it does):
+
+- **One event, one dedicated Auth-typed stream.** Login volume must never
+  grow the user aggregate (every command folds it), and failed-login
+  journaling must never hand an attacker a way to bloat a victim's stream.
+  The acting user rides the payload and the event's `ActorID` metadata.
+- **Best-effort appends.** An audit-store outage logs loudly but NEVER
+  fails a login — audit complements auth, it does not gate it.
+- **Known users only.** Login failures for unknown identifiers are not
+  journalled (no stream to attribute them to; unauthenticated journaling
+  would be an unbounded journal-write vector). Request logs and the
+  rate-limit counters cover that noise.
+- **`AuditLog` folds them** (`login_succeeded` / `login_failed` /
+  `registration_closed` actions; the failure's reason class lands in
+  `AuditEntry.Detail`), and `DefaultEventCatalog` publishes all three
+  schemas (24 events across five aggregates).
+
 ## Checklist
 
 - [ ] Authenticated HTTP: nothing to do (auto-derived).
