@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`RegisterPayloadType[P]` — typed payload rendering (cqrs-htmx#18):** register a `TypedPayloadRenderer[P]` per event type and the event detail/DLQ panels render through it with the payload already decoded into your struct — no more raw-JSON field sniffing in `PayloadRenderer` implementations, and a renamed payload field is a compile-time break instead of a silent fallback to pretty-JSON. The typed registry is consulted before the configured `PayloadRenderer` for registered types only (unregistered types keep the untyped renderer or the default pretty-print); decode mismatches degrade to the untyped chain so display survives schema drift. `Config.PayloadTypes` routes through an explicit registry (nil = the package registry, so startup-time `RegisterPayloadType` calls need zero config; an explicit empty registry ignores it). Unset config renders byte-for-byte as before.
+- **`Config.EmptyStateCopy` — per-panel empty-state copy (cqrs-htmx#19):** ten typed `EmptyStateKey` surfaces (`events`, `events-filtered`, `commands`, `queries`, `projections`, `snapshots`, `dead-letters`, `timetravel-events`, `timetravel-aggregates`, `snapshot-aggregates`) with field-wise merge over the upstream defaults — override only what you rebrand, a nil map renders byte-identical copy, and unknown keys are rejected at `New`. Dynamic empty states that interpolate record identifiers stay non-brandable by design.
+
 ### Fixed
 
 - **Overview no longer blanks a split second after load:** the projection-health PolledRegion inherited the layout wrapper's `data-hx-target="#main-content"` + `data-hx-select="#main-content"` (htmx resolves both through the ancestor chain for every ajax element); its poll response contains no `#main-content`, so htmx swapped an EMPTY fragment into `#main-content` — the whole overview vanished on the first SSE refresh trigger. The region now pins `hx-target="this"` + `hx-select="unset"` (htmx's documented inheritance neutralizer), verified against the embedded htmx 2.0.10 source.

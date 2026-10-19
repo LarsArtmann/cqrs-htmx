@@ -288,6 +288,63 @@ type PayloadRenderer interface {
 The default renderer pretty-prints JSON and decodes CBOR to JSON. No consumer
 domain types are needed.
 
+### Typed Payload Rendering
+
+When sniffing raw JSON field sets is the price of a good summary, register a
+typed renderer instead — the payload arrives decoded into YOUR struct, and a
+renamed field becomes a compile-time break, not a silent fallback to
+pretty-JSON:
+
+```go
+type filePayload struct {
+    Name string `json:"name"`
+    Size int64  `json:"size"`
+}
+
+type fileSummary struct{}
+
+func (fileSummary) RenderTyped(p filePayload, _ codec.Encoding) ([]byte, error) {
+    return []byte(fmt.Sprintf("%s (%s)", p.Name, humanize(p.Size))), nil
+}
+
+func main() {
+    dashboardui.RegisterPayloadType("file.uploaded.v1", fileSummary{})
+    // ... New(Config{...}) — no other wiring; unset Config.PayloadTypes
+    // routes through the same package registry.
+}
+```
+
+The typed registry is consulted BEFORE `PayloadRenderer`, for registered event
+types only — unregistered types keep your untyped renderer (or the default
+pretty-print). Decode mismatches (schema drift) degrade to the untyped chain
+instead of failing the render. For test isolation or per-tenant hosts, pass an
+explicit `Config.PayloadTypes = dashboardui.NewPayloadTypeRegistry()` and
+register via `RegisterPayloadTypeIn`.
+
+### Empty-State Copy
+
+Every static empty-state panel carries brand-overridable copy keyed by a typed
+`EmptyStateKey` (`events`, `commands`, `queries`, `dead-letters`, ...). Set
+only what you rebrand; empty fields keep the upstream defaults, and a nil map
+renders byte-identical upstream copy:
+
+```go
+dashboardui.New(dashboardui.Config{
+    // ...
+    EmptyStateCopy: map[dashboardui.EmptyStateKey]dashboardui.EmptyStateCopy{
+        dashboardui.EmptyStateCommands: {
+            Title:   "Quiet",
+            Message: "Commands will show up here once your app dispatches one.",
+        },
+    },
+})
+```
+
+Unknown keys are rejected at `New` — the compiler cannot catch a mistyped map
+key. Dynamic empty states that interpolate record identifiers (a missing
+snapshot for a specific stream, per-projection dead-letter lists) are not
+brandable.
+
 ## SSE Live Updates
 
 When `EventBus` is configured, the dashboard:
