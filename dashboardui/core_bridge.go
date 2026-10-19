@@ -88,6 +88,11 @@ func NewPayloadTypeRegistry() *core.PayloadTypeRegistry {
 	return core.NewPayloadTypeRegistry()
 }
 
+// DefaultPayloadTypes returns the package registry behind RegisterPayloadType.
+func DefaultPayloadTypes() *core.PayloadTypeRegistry {
+	return core.DefaultPayloadTypes()
+}
+
 // RegisterPayloadType registers a typed renderer for evtType in the
 // package default registry; RenderPayload consults it before the
 // configured PayloadRenderer.
