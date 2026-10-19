@@ -27,22 +27,22 @@ import (
 // them would hand unauthenticated traffic an unbounded journal-write
 // vector). They remain visible through request logs and rate-limit counters.
 
-// appendAuthAuditEvent persists one auth audit event on a fresh Auth stream
-// and publishes it to the bus. The append is BEST-EFFORT by design: auth
-// audit complements authentication, it must never gate a successful login
-// (an audit-store outage must not turn into an auth outage) — failures are
-// logged loudly instead of propagated. Package-level because both the core
-// Service and the OAuth2Service (a separate struct sharing dependencies)
-// emit auth events.
-func appendAuthAuditEvent(
-	ctx context.Context,
-	logger *slog.Logger,
-	store event.Store,
-	bus event.Bus,
-	evtType event.Type,
-	payload any,
-	actor id.ActorID,
-) {
+// authAuditor journals auth audit events as a focused collaborator, not as
+// *Service methods: the ADR-0038 method ceiling forces new concerns onto
+// their own types, and both the core Service and the OAuth2Service (a
+// separate struct sharing dependencies) emit auth events.
+type authAuditor struct {
+	logger *slog.Logger
+	store  event.Store
+	bus    event.Bus
+}
+
+// append persists one auth audit event on a fresh Auth stream and publishes
+// it to the bus. The append is BEST-EFFORT by design: auth audit complements
+// authentication, it must never gate a successful login (an audit-store
+// outage must not turn into an auth outage) — failures are logged loudly
+// instead of propagated.
+func (a authAuditor) append(ctx context.Context, evtType event.Type, payload any, actor id.ActorID) {
 	streamID := id.NewStreamID()
 
 	opts := []event.Option{event.WithCodec(codec.JSONCodec{})}
@@ -60,34 +60,34 @@ func appendAuthAuditEvent(
 		opts...,
 	)
 	if err != nil {
-		logger.Warn("usermgmt: auth audit event not persisted (build)",
+		a.logger.Warn("usermgmt: auth audit event not persisted (build)",
 			"event_type", string(evtType), "error", err)
 
 		return
 	}
 
 	ref := id.StreamRef{ID: streamID, Type: aggregateTypeAuth}
-	if err := store.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
-		logger.Warn("usermgmt: auth audit event not persisted (save)",
+	if err := a.store.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
+		a.logger.Warn("usermgmt: auth audit event not persisted (save)",
 			"event_type", string(evtType), "error", err)
 
 		return
 	}
 
-	if bus != nil {
-		if err := bus.Publish(ctx, evt); err != nil {
+	if a.bus != nil {
+		if err := a.bus.Publish(ctx, evt); err != nil {
 			// Persisted but not published — projections miss one audit
 			// entry; the journal itself (the durable record) has it.
-			logger.Warn("usermgmt: auth audit event not published",
+			a.logger.Warn("usermgmt: auth audit event not published",
 				"event_type", string(evtType), "error", err)
 		}
 	}
 }
 
-// journalLoginSuccess records a successful authentication. Failures are
-// logged, never propagated (see appendAuthAuditEvent).
-func (s *Service) journalLoginSuccess(ctx context.Context, userID UserID, method identitymodel.AuthMethod) {
-	s.journalAuthEvent(ctx, eventLoginSucceeded,
+// loginSuccess records a successful authentication. Failures are logged,
+// never propagated (see append).
+func (a authAuditor) loginSuccess(ctx context.Context, userID UserID, method identitymodel.AuthMethod) {
+	a.append(ctx, eventLoginSucceeded,
 		identitymodel.LoginSucceededPayload{
 			SchemaVersion: currentSchemaVersion,
 			Method:        method,
@@ -95,16 +95,16 @@ func (s *Service) journalLoginSuccess(ctx context.Context, userID UserID, method
 		id.NewUserActor(userID))
 }
 
-// journalLoginFailure records a failed authentication for a KNOWN user.
-// The reason MUST be a bounded [identitymodel.AuthFailureReason] class —
-// never raw provider or ceremony error text.
-func (s *Service) journalLoginFailure(
+// loginFailure records a failed authentication for a KNOWN user. The reason
+// MUST be a bounded [identitymodel.AuthFailureReason] class — never raw
+// provider or ceremony error text.
+func (a authAuditor) loginFailure(
 	ctx context.Context,
 	userID UserID,
 	method identitymodel.AuthMethod,
 	reason identitymodel.AuthFailureReason,
 ) {
-	s.journalAuthEvent(ctx, eventLoginFailed,
+	a.append(ctx, eventLoginFailed,
 		identitymodel.LoginFailedPayload{
 			SchemaVersion: currentSchemaVersion,
 			Method:        method,
@@ -113,36 +113,25 @@ func (s *Service) journalLoginFailure(
 		id.NewUserActor(userID))
 }
 
-// journalRegistrationClosed records a registration attempt that was rejected
+// registrationClosed records a registration attempt that was rejected
 // because registration is closed. The probe carries no user identity (the
 // would-be user does not exist); the event's actor stays zero.
-func (s *Service) journalRegistrationClosed(ctx context.Context) {
-	s.journalAuthEvent(ctx, eventRegistrationClosed,
+func (a authAuditor) registrationClosed(ctx context.Context) {
+	a.append(ctx, eventRegistrationClosed,
 		identitymodel.RegistrationClosedPayload{SchemaVersion: currentSchemaVersion},
 		id.ActorID{})
 }
 
-func (s *Service) journalAuthEvent(ctx context.Context, evtType event.Type, payload any, actor id.ActorID) {
-	appendAuthAuditEvent(ctx, s.logger, s.store, s.bus, evtType, payload, actor)
-}
-
-// The OAuth2 sub-service mirrors (a separate struct sharing the core
-// Service's dependencies — its success wrapper carries the provider name).
-// OAuth2 login FAILURES have no attributable user today (state/token/email
-// checks run before any user is matched), so there is no failure wrapper:
-// adding one is a single appendAuthAuditEvent call when that changes.
-func (o *OAuth2Service) journalLoginSuccess(ctx context.Context, userID UserID, provider string) {
-	appendAuthAuditEvent(ctx, o.logger, o.store, o.bus, eventLoginSucceeded,
+// oauth2LoginSuccess is loginSuccess with the OAuth2 provider name. OAuth2
+// login FAILURES have no attributable user today (state/token/email checks
+// run before any user is matched), so there is no failure variant: adding
+// one is a single append call when that changes.
+func (a authAuditor) oauth2LoginSuccess(ctx context.Context, userID UserID, provider string) {
+	a.append(ctx, eventLoginSucceeded,
 		identitymodel.LoginSucceededPayload{
 			SchemaVersion: currentSchemaVersion,
 			Method:        identitymodel.AuthMethodOAuth2,
 			Provider:      provider,
 		},
 		id.NewUserActor(userID))
-}
-
-func (o *OAuth2Service) journalRegistrationClosed(ctx context.Context) {
-	appendAuthAuditEvent(ctx, o.logger, o.store, o.bus, eventRegistrationClosed,
-		identitymodel.RegistrationClosedPayload{SchemaVersion: currentSchemaVersion},
-		id.ActorID{})
 }

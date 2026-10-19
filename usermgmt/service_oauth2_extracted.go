@@ -45,11 +45,10 @@ type OAuth2Service struct {
 	logger        *slog.Logger
 	classifyError errorClassifier
 
-	// store + bus carry the auth audit journal (cqrs-htmx#23): the
+	// audit carries the auth audit journal (cqrs-htmx#23): the
 	// OAuth2Service journals login outcomes and registration-closed probes
-	// through the same appendAuthAuditEvent path as the core Service.
-	store event.Store
-	bus   event.Bus
+	// through the same best-effort append path as the core Service.
+	audit authAuditor
 }
 
 // dispatcher is the subset of *command.Dispatcher that sub-services need.
@@ -103,8 +102,7 @@ func NewOAuth2Service(
 		sessionTTL:     sessionTTL,
 		logger:         logger,
 		classifyError:  classifyError,
-		store:          store,
-		bus:            bus,
+		audit:          authAuditor{logger: logger, store: store, bus: bus},
 	}
 }
 
@@ -191,7 +189,7 @@ func (o *OAuth2Service) FinishLogin(
 		o.logAuth("oauth_login", user.ID, "provider", provider)
 	}
 
-	o.journalLoginSuccess(ctx, user.ID, provider)
+	o.audit.oauth2LoginSuccess(ctx, user.ID, provider)
 
 	return &FinishOAuthLoginResponse{User: user, Session: session}, nil
 }
@@ -274,7 +272,7 @@ func (o *OAuth2Service) provisionLinkedUser(
 
 		if o.readModel.Count() >= o.maxUsers {
 			o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
-			o.journalRegistrationClosed(ctx)
+			o.audit.registrationClosed(ctx)
 
 			return nil, false, errorfamily.NewRejection(
 				"usermgmt.oauth2.registration_closed",

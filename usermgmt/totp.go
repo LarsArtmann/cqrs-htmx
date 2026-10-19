@@ -101,13 +101,13 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 // deliberately do NOT journal: they are not login attempts.
 func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) error {
 	if err := s.requireValidTOTP(userID, code, "totp_verify_failed"); err != nil {
-		s.journalLoginFailure(ctx, userID, identitymodel.AuthMethodTOTP, identitymodel.AuthFailureCodeInvalid)
+		s.authAudit.loginFailure(ctx, userID, identitymodel.AuthMethodTOTP, identitymodel.AuthFailureCodeInvalid)
 
 		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.totp.verify_failed", "totp verify failed").WithContextAny("user_id", userID)
 	}
 
-	s.journalLoginSuccess(ctx, userID, identitymodel.AuthMethodTOTP)
+	s.authAudit.loginSuccess(ctx, userID, identitymodel.AuthMethodTOTP)
 	s.logAuth(statusTOTPVerified, userID)
 	return nil
 }

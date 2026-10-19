@@ -41,6 +41,7 @@ type Service struct {
 	lockout                  LockoutStore
 	bus                      event.Bus
 	store                    event.Store
+	authAudit                authAuditor
 	webauthn                 WebAuthnProvider
 	webauthnSessions         WebAuthnSessionStore
 	stopWebAuthnEviction     func()
@@ -372,6 +373,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		lockout:             config.Lockout,
 		bus:                 setup.Bus,
 		store:               setup.Store,
+		authAudit:           authAuditor{logger: logger, store: setup.Store, bus: setup.Bus},
 		auditLog:            config.AuditLog,
 		projectionHost:      setup.projectionHost,
 		checkpointStore:     setup.checkpointStore,

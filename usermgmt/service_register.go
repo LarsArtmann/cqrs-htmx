@@ -71,7 +71,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		s.registrationMu.Lock()
 		defer s.registrationMu.Unlock()
 		if s.readModel.Count() >= s.maxUsers {
-			s.journalRegistrationClosed(ctx)
+			s.authAudit.registrationClosed(ctx)
 
 			return nil, withUserIDContext(
 				errorfamily.NewRejection("usermgmt.registration_closed", "registration is closed").
