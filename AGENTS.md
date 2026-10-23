@@ -4,6 +4,8 @@
 
 Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin authorization. Framework-agnostic — works with `net/http`, Gin, Chi, etc.
 
+> **Start here:** [`CURRENT_FOCUS.md`](CURRENT_FOCUS.md) names the ONE active thread and its "done when" line. [`TODO_LIST.md`](TODO_LIST.md) holds everything that waits; closed history lives in `docs/status/` and is not part of the reading path.
+
 > **Long-form notes:** dated histories, incident narratives, and version-drift war stories live in [`docs/agents-notes.md`](docs/agents-notes.md) (the verbatim archive of this file's former 120 KB self). This file is the distilled, enduring core — when they disagree, this file and the tree win.
 
 ## Quick Reference
