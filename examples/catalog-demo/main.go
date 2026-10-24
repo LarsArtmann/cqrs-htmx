@@ -73,6 +73,17 @@ type GetOrderQuery struct {
 	ID string `json:"id" doc:"Order identifier to look up" example:"ord_456"`
 }
 
+// demoBadge is the canonical demo marker (amber chip, dark text), the
+// same look catalog.MarkDemo() stamps; swap this file to a single
+// b.InnerBuilder().MarkDemo() call once the catalog dependency ships it.
+func demoBadge() catalog.Badge {
+	return catalog.Badge{
+		Content:         "Demo",
+		BackgroundColor: "#f59e0b",
+		TextColor:       "#1f2937",
+	}
+}
+
 // buildCatalog wires up the documentation for the Order Service.
 func buildCatalog() *catalog.Catalog {
 	b := simple.New(
@@ -82,13 +93,18 @@ func buildCatalog() *catalog.Catalog {
 	// Owner-of-record for the federation hub (catalog.home.lan): the service
 	// page links to this user, and the hub renders owner cards from it. Uses
 	// the inner builder (published-catalog API — simple.WithServiceOwners
-	// ships with the next catalog release).
+	// ships with the next catalog release). The demo source marks the user
+	// record as example data in the hub's users surface (EC users have no
+	// badges; source is the rendered provenance field).
 	b.InnerBuilder().AddUser(catalog.User{
-		ID:    "lars",
-		Name:  "Lars Artmann",
-		Email: "git@lars.software",
+		ID:     "lars",
+		Name:   "Lars Artmann",
+		Email:  "git@lars.software",
+		Source: &catalog.Source{Provider: "demo"},
 	})
-	b.InnerBuilder().ConfigureService("order-service", catalog.ServiceOwners("lars"))
+	b.InnerBuilder().ConfigureService(
+		"order-service", catalog.ServiceOwners("lars"), catalog.ServiceBadges(demoBadge()),
+	)
 
 	// Commands — describe the HTTP request shapes.
 	simple.Command[CreateOrderCommand](
@@ -96,6 +112,7 @@ func buildCatalog() *catalog.Catalog {
 		simple.WithOperation("POST", "/orders"),
 		catalog.Owners("lars"),
 		catalog.WithSummary("Place a new order"),
+		catalog.MsgBadges(demoBadge()),
 	)
 
 	// Events — the persisted payloads are the real contract.
@@ -103,11 +120,13 @@ func buildCatalog() *catalog.Catalog {
 		b, "order.created", catalog.Sends,
 		catalog.Owners("lars"),
 		catalog.WithSummary("An order was placed"),
+		catalog.MsgBadges(demoBadge()),
 	)
 	simple.Event[OrderCancelledEvent](
 		b, "order.cancelled", catalog.Sends,
 		catalog.Owners("lars"),
 		catalog.WithSummary("An order was cancelled"),
+		catalog.MsgBadges(demoBadge()),
 	)
 
 	// Queries — read-side request shapes.
@@ -116,6 +135,7 @@ func buildCatalog() *catalog.Catalog {
 		simple.WithOperation("GET", "/orders/{id}"),
 		catalog.Owners("lars"),
 		catalog.WithSummary("Retrieve an order by ID"),
+		catalog.MsgBadges(demoBadge()),
 	)
 
 	return b.Build()
