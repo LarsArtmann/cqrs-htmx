@@ -70,7 +70,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
