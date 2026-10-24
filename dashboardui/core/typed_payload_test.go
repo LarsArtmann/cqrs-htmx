@@ -179,9 +179,11 @@ func TestTypedRegistry_UnregisteredKeepsDefaultPrettyJSON(t *testing.T) {
 	if err := json.Unmarshal([]byte(got), &gotFields); err != nil {
 		t.Fatalf("RenderPayload returned invalid JSON (%v): %q", err, got)
 	}
+
 	if err := json.Unmarshal([]byte(`{"name":"p","count":3}`), &wantFields); err != nil {
 		t.Fatalf("fixture is not valid JSON: %v", err)
 	}
+
 	if !reflect.DeepEqual(gotFields, wantFields) {
 		t.Errorf("RenderPayload decoded = %v, want %v (raw %q)", gotFields, wantFields, got)
 	}
