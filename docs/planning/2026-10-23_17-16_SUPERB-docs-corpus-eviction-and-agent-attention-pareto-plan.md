@@ -1,7 +1,14 @@
 # SUPERB plan: docs-corpus eviction + agent-attention recovery
 
+> **SUPERSEDED FOR EXECUTION (2026-10-24).** Execution order and scope now live in
+> [`2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md`](2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md),
+> which also corrects two numbers this file got wrong (71 live reports was 57 markdown + 14 HTML;
+> 76 archived link targets was 9). This file remains authoritative for its **measured evidence**
+> (§1–§4) and for the design rationale of the five milestones that were executed from it
+> (`fc182d43`, `09ce9671`). Do not execute from this file.
+
 **Created:** 2026-10-23 17:16 CEST
-**Status:** PLAN ONLY. Nothing in this document has been executed yet except where marked `[VERIFIED]`.
+**Status:** SUPERSEDED for execution; evidence and rationale still current. Nothing in this document has been executed except the five milestones recorded in the master plan.
 **Predecessor:** [`docs/status/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md`](../status/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md)
 **Trigger:** "the project is getting too big and the agents can't concentrate on what's important anymore."
 **Rejected alternative:** extracting `identity-model/`, `usermgmt/`, `dashboardui/`, `adminui/` into separate repos. See §2.1 for why.

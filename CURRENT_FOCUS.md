@@ -11,7 +11,8 @@
 **Shrink the documentation corpus so a fresh session can find what matters.**
 43% of this repository was closed historical documentation (695 files / 189k lines) and the
 first file every session opened had an 86%-dead "High impact" section. Plan:
-[`docs/planning/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md`](docs/planning/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md).
+[`docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md`](docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md)
+(supersedes the 2026-10-23 plan for execution order; that file keeps the measured evidence).
 
 **Done when:** `docs/status/` + `docs/planning/` + `docs/reviews/` + `docs/brainstorming/`
 hold ≤25 live files, the evicted history has a manifest with a restore command, `TODO_LIST.md`
