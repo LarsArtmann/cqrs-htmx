@@ -1,8 +1,14 @@
 # Status: samber/do × health SUPERB execution — phases 2–5 complete, push reconciling
 
+> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md`](../2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 > **Date:** 2026-10-09 18:10 CEST
-> **Input:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) (annotated in place) · Phase-1 status [`2026-10-09_17-19`](2026-10-09_17-19_SUPERB-execution-phase1-status.md)
-> **Predecessors:** review [`2026-10-08_samber-do-v2-health-checks-deep-review.md`](../research/2026-10-08_samber-do-v2-health-checks-deep-review.md) (now with Outcome Annex) · self-critique [`2026-10-09_16-21`](2026-10-09_16-21_samber-do-health-deep-review-session.md)
+> **Input:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) (annotated in place) · Phase-1 status [`2026-10-09_17-19`](2026-10-09_17-19_SUPERB-execution-phase1-status.md)
+> **Predecessors:** review [`2026-10-08_samber-do-v2-health-checks-deep-review.md`](../../research/2026-10-08_samber-do-v2-health-checks-deep-review.md) (now with Outcome Annex) · self-critique [`2026-10-09_16-21`](../2026-10-09_16-21_samber-do-health-deep-review-session.md)
 
 ## a) What is DONE (this session, phases 2–5 + boot proofs)
 
@@ -58,4 +64,4 @@ The handoff's "OverrideNamed on an already-invoked do.As alias is nondeterminist
 
 Rebase + push per §e once the tree is quiet (`nix run .#wait-tree-quiet`); then the health train rider when the owner cuts the next train.
 
-*Point-in-time snapshot per [`docs/status/README.md`](README.md). Items resolved later get inline strikethrough + a dated `> ANNOTATED` blockquote, never a rewrite.*
+*Point-in-time snapshot per [`docs/status/README.md`](../README.md). Items resolved later get inline strikethrough + a dated `> ANNOTATED` blockquote, never a rewrite.*

@@ -1,8 +1,14 @@
 # Status: SUPERB Execution — samber/do × Health (Phase 0+1 done, 2–5 pending)
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md`](../2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 > **Session:** 2026-10-09 16:52 → 17:19 CEST (SUPERB dispatch: plan → execute → commit/push)
-> **Plan:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) — 18 medium tasks (T1–T18), 50 fine tasks (f01–f50).
-> **Prior snapshot:** [`2026-10-09_16-21_samber-do-health-deep-review-session.md`](2026-10-09_16-21_samber-do-health-deep-review-session.md) (review + self-critique; its §g questions are decided in the plan §0).
+> **Plan:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) — 18 medium tasks (T1–T18), 50 fine tasks (f01–f50).
+> **Prior snapshot:** [`2026-10-09_16-21_samber-do-health-deep-review-session.md`](../2026-10-09_16-21_samber-do-health-deep-review-session.md) (review + self-critique; its §g questions are decided in the plan §0).
 
 ---
 

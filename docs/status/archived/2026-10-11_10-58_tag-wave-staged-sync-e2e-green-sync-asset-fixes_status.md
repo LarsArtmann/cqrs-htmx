@@ -1,5 +1,11 @@
 # Tag Wave Staged, Sync E2E Green, Two v1.5.0 Sync Defects Fixed — Session Status
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md`](../2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 **Date:** 2026-10-11 10:58 CEST
 **Scope:** resuming from `2026-10-11_06-39_postwave-alignment-push-ci-fix-toolchain-battery_status.md` (same SUPERB plan). This session: owner answered the 3 parked questions → executed the release chain to the wave boundary.
 **Baseline at start:** HEAD `3377b818`, tree clean, v4.14.0 tag NOT cut (owner Q1 pending).

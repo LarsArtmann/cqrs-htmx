@@ -1,6 +1,12 @@
 # Status — SUPERB round executed (20/20 tasks), preflight refuses the foreign wave
 
-**Date:** 2026-10-09 ~04:15 CEST · **Branch:** master (local ahead of origin; push gated on the GCL wave, see TODO push-window row) · **Plan:** [`docs/planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md`](../planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md) (annotated in place)
+> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-09_15-38_brutal-self-review-superb-round-20-tasks_status.md`](../2026-10-09_15-38_brutal-self-review-superb-round-20-tasks_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
+**Date:** 2026-10-09 ~04:15 CEST · **Branch:** master (local ahead of origin; push gated on the GCL wave, see TODO push-window row) · **Plan:** [`docs/planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md`](../../planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md) (annotated in place)
 
 ## a) Executive summary
 

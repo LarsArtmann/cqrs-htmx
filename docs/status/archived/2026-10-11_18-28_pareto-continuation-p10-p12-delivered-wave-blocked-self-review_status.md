@@ -1,5 +1,11 @@
 # Pareto Continuation: P10–P12 Delivered, Wave Still Blocked — Brutal Self-Review & Status
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-11_18-40_wave-blocker-disproven-sibling-held-p15-repro_status.md`](../2026-10-11_18-40_wave-blocker-disproven-sibling-held-p15-repro_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 **Date:** 2026-10-11 18:28 CEST
 **Scope:** the 11:42→18:28 execution session (this session only): resumed the postwave SUPERB plan after the 10-58 report's staging; delivered q3-capture, P11, P10+e-1, P19, P22, P23, a round-21 archive slice, and P12. No wave cut (still blocked on go-cqrs-lite dedup).
 **Format note:** `.md` at the operator's explicit demand — the `status-report`/`brutal-self-review` skills are HTML-canonical (flagged per contract, same override as the 10-10 21-09 report).

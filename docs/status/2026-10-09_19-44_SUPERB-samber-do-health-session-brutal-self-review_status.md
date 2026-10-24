@@ -1,7 +1,7 @@
 # Status: samber/do × health SUPERB execution — full session self-review & comprehensive update
 
 > **Date:** 2026-10-09 19:44 CEST
-> **Scope:** this session only (resumed from the Phase-1 handoff ~17:20, closed at 19:44). Predecessors: review [`2026-10-08_samber-do-v2-health-checks-deep-review.md`](../research/2026-10-08_samber-do-v2-health-checks-deep-review.md) + Outcome Annex · plan [`2026-10-09_16-52`](../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) (annotated) · Phase-1 status [`17-19`](2026-10-09_17-19_SUPERB-execution-phase1-status.md) · execution status [`18-10`](2026-10-09_18-10_SUPERB-samber-do-health-execution-phases-2-5_status.md) (annotated).
+> **Scope:** this session only (resumed from the Phase-1 handoff ~17:20, closed at 19:44). Predecessors: review [`2026-10-08_samber-do-v2-health-checks-deep-review.md`](../research/2026-10-08_samber-do-v2-health-checks-deep-review.md) + Outcome Annex · plan [`2026-10-09_16-52`](../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) (annotated) · Phase-1 status [`17-19`](archived/2026-10-09_17-19_SUPERB-execution-phase1-status.md) · execution status [`18-10`](archived/2026-10-09_18-10_SUPERB-samber-do-health-execution-phases-2-5_status.md) (annotated).
 
 ## a) FULLY DONE (verified, this session)
 

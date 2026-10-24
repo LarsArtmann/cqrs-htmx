@@ -1,5 +1,11 @@
 # Status: Wave Completion — 13/14 Tags Cut, adminui Deferral Proven, Battery 73/73, Upstream Mid-Session Alignment (2026-10-13 15:49 → 19:30)
 
+> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md`](../2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 > **ANNOTATED 2026-10-13 (follow-up session):** the tooling tail landed same-day — §c3/§e2 (Playwright invocation fixed in-repo), §c4-partial/§e3/§f6 (`push-and-watch.sh` shipped), §e5/§f7 (`verify-remote-tags.sh` shipped), §e1/§f4 (battery wired as train-preflight stage 6), §c9/§e8/§f9 (war stories appended to agents-notes), §e7/§f10 (playbook §4a codified). Struck inline below. Still open: §f1/§f2 (adminui — templ-components #405 unreleased), §f5 (go-appkit lane), wave-tag.sh, the local post-wave battery (§c5), §f8.
 
 > **Repo state at writing:** HEAD `b1a175f2`, tree clean, **everything pushed** (`6751af01..b1a175f2` was the last of FOUR pushes, each through the strict pre-push gates). **Master CI is red in exactly 4 jobs — all adminui-only** (lint adminui / Test adminui submodule / Module isolation / Build adminui): ~~the documented, self-healing deferral class~~ CORRECTED 2026-10-14: masking, not healing — the sequential `test` job aborted BEFORE systemadapter's leg executed, so "every other job green" was job-level-true but step-level-false; healing adminui exposed 16 hidden declarative-test failures (22-33 report §d1). Every other job — e2e, integration_test, all examples, usermgmt, setup, dashboardui, root — green on the final run. Local strict train gate 866 requires / 0 unpublished / 0 lag.
@@ -73,14 +79,14 @@
 |---|------|--------|--------|----------|--------|
 | 1 | Cut **adminui v4.12.4** when templ-components ships #405: sweep adminui → new tag, remove the 5-line go.work bridge, rebuild BOTH CSS bundles same-change, cut, flip CHANGELOG blob to 14/14, verify CI greens | **Critical** | S (once unblocked) | Release | this session §b1 |
 | 2 | **Expedite/coordinate templ-components #405 release** (foreign session's train; v1.22.0 published, Children merged in their local HEAD) — every hour it waits, master shows 4 red jobs | **Critical** | S | Cross-repo | this session §b2 |
-| 3 | ~~**Fix the documented Playwright invocation** (package.json `test:local`, config comment, browser-path doc; optionally chromium auto-detect)~~ DONE (follow-up) | High | S | Quality | this session §d2 |
-| 4 | ~~**Wire the e2e battery into `train-preflight`** so a wave cannot start without its declared gate~~ DONE (follow-up) | High | M | Process | this session §d1/§e1 |
+| ~~3~~ | ~~**Fix the documented Playwright invocation** (package.json `test:local`, config comment, browser-path doc; optionally chromium auto-detect)~~ DONE (follow-up) | ~~High~~ | ~~S~~ | ~~Quality~~ | ~~this session §d2~~ |
+| ~~4~~ | ~~**Wire the e2e battery into `train-preflight`** so a wave cannot start without its declared gate~~ DONE (follow-up) | ~~High~~ | ~~M~~ | ~~Process~~ | ~~this session §d1/§e1~~ |
 | 5 | **go-appkit lane** (Q3 mine): catalog v4.7.1→v4.8.0 in their `docs`+`integration`, their gates, docs README pointer, their train — quiesce first | High | M/L | Cross-repo | carried, staged |
-| 6 | ~~**`push-and-watch.sh` with `--workflow ci.yml` filter** + red-triage hint~~ DONE (follow-up) | High | S | Process | this session §d5 |
-| 7 | ~~**`scripts/tools/verify-remote-tags.sh`** (peeled-ref audit, count-printed, nonzero on mismatch)~~ DONE (follow-up) | Medium | S | Tooling | this session §d3 |
+| ~~6~~ | ~~**`push-and-watch.sh` with `--workflow ci.yml` filter** + red-triage hint~~ DONE (follow-up) | ~~High~~ | ~~S~~ | ~~Process~~ | ~~this session §d5~~ |
+| ~~7~~ | ~~**`scripts/tools/verify-remote-tags.sh`** (peeled-ref audit, count-printed, nonzero on mismatch)~~ DONE (follow-up) | ~~Medium~~ | ~~S~~ | ~~Tooling~~ | ~~this session §d3~~ |
 | 8 | **Local post-wave battery**: `nix run .#test` + `.#check-modules` + `.#coverage-gate` (setup's T5 grew its surface; coverage never re-measured) | High | M | Quality | this session §c5 |
-| 9 | ~~**Record today's war stories in `docs/agents-notes.md`** (dlx trap, stale-file rollback, wrong-run watch, upstream mid-session alignment)~~ DONE (follow-up) | Medium | S | Docs | this session §c9 |
-| 10 | ~~**Release playbook §4a**: codify "refresh-cache immediately before every push; rc=3 → look for a fresh upstream tag first"~~ DONE (follow-up) | Medium | S | Docs | this session §e7 |
+| ~~9~~ | ~~**Record today's war stories in `docs/agents-notes.md`** (dlx trap, stale-file rollback, wrong-run watch, upstream mid-session alignment)~~ DONE (follow-up) | ~~Medium~~ | ~~S~~ | ~~Docs~~ | ~~this session §c9~~ |
+| ~~10~~ | ~~**Release playbook §4a**: codify "refresh-cache immediately before every push; rc=3 → look for a fresh upstream tag first"~~ DONE (follow-up) | ~~Medium~~ | ~~S~~ | ~~Docs~~ | ~~this session §e7~~ |
 | 11 | **Commit-first-then-amend ordering experiment** (settle the 0% message-win-rate) | Medium | S | Process | carried §f39 |
 | 12 | **`wave-tag.sh`** (verify-tag → refresh → bump-dep → commit, one command; fold in the `github.com/` prefix trap doc) | Medium | M | Tooling | carried §f16 |
 | 13 | **Daemon-doctrine decision memo to owner** (accept-capture-amend as default + propose daemon-hold feature) | Medium | S | Process | carried §f18 |

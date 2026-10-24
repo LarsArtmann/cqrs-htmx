@@ -1,5 +1,11 @@
 # Status: Family Alignment ×3 (one completed by hand upstream), Two Gate Bugs Fixed, systemadapter Red Root-Caused to an Unpublished Upstream Fix (2026-10-14 ~19:45 → 20:50)
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-14_20-54_wave-tail-execution-gate-bugs-systemadapter-root-cause-self-review_status.md`](../2026-10-14_20-54_wave-tail-execution-gate-bugs-systemadapter-root-cause-self-review_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 > **Repo state at writing:** HEAD `63a68d65`, tree clean, **everything pushed** (push `5de476f2..63a68d65` through the strict pre-push gates). **CI run `38615886386`: 16/17 jobs green — sole red `test` at the systemadapter leg** (the known upstream-blocked red; the run's step list shows the gotcha-40 masking LIVE: `Test health`/`Test auditlog`/all coverage legs `-` never ran). Local: check-modules ALL GREEN, coverage 14/15 legs green (health 100%, auditlog 100%, dashboardui/core 85.8%), strict train gate 866/0/0.
 
 ## a) FULLY DONE

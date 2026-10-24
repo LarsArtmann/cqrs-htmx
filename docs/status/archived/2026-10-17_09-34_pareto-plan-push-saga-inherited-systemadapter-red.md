@@ -1,5 +1,11 @@
 # Status Report 2026-10-17 09:34 — Pareto Plan, Push Saga, Inherited systemadapter Red
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md`](../2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 **Session segment:** 09:02–09:34 (continues `2026-10-17_08-55_readme-rewrite-self-review.md`). Scope: the pareto-planning dispatch (plan file + table reports + commit + push) and everything the push uncovered. No unrelated research.
 
 **TL;DR:** Plan written and pushed (22 medium + 69 fine tasks). The "simple push" became a five-commit repair wave: machine-overload hook failure at load 110 → daemon races → 27 train-lag entries swept to 0 → push rejected by a concurrent session's README commit (rebased, their intent folded in) → 19.5 MB stray binary untracked (CI large-file guard red since Oct 15) → my own `.gitignore sort -u` damage caught and restored. Final CI: **2 of 3 inherited red jobs healed** (checks ✓, module-architecture ✓); `test` still red — **pre-existing systemadapter declarative failures, proven present before any of my changes** (foreign 04:30 run has the identical signature).

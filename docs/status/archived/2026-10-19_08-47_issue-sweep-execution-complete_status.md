@@ -1,5 +1,11 @@
 # Status — open-issue sweep EXECUTION COMPLETE (all closes posted, master green)
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-19_12-18_issue-sweep-self-review-and-next-50_status.md`](../2026-10-19_12-18_issue-sweep-self-review-and-next-50_status.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 > **Point in time:** 2026-10-19 08:47 CEST · **HEAD:** master `c4745247` = origin/master, **CI GREEN** (run [39211056076](https://github.com/LarsArtmann/cqrs-htmx/actions/runs/39211056076) — every job ✓: checks incl. Service-method + domain-count + codegen + link gates, 13 lint legs, test + all 10 coverage legs, build, security, module-architecture)
 > **Prior:** `docs/status/2026-10-19_04-38_issue-sweep-execution-train-complete_status.md` (mini-train session) · Plan: `docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md` (PROCESSED-annotated)
 

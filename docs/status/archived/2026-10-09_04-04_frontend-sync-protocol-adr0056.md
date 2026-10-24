@@ -1,5 +1,11 @@
 # Frontend Sync Protocol (ADR-0056) — LiveStore/Axon-Inspired CQRS-to-Frontend
 
+> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-09_05-17_frontend-sync-protocol-completion-and-self-review.md`](../2026-10-09_05-17_frontend-sync-protocol-completion-and-self-review.md) (same series, later in the
+> session). The successor re-covers every section with the outcome, so nothing here is a
+> unique open item. Strike depth: supersession verdict (round-18 precedent for
+> series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
+
+
 **Date:** 2026-10-09 04:04
 **Scope:** This session only — the "bring go-cqrs-lite CQRS/ES to the frontend" request (offline support, distributed conflict resolution, permission- and cache-aware), inspired by LiveStore + Axon.
 **Series:** episode 2 of the offline-sync series (episode 1 = 2026-06-27 brainstorming → ADR-0023/0029/0040/0042).
