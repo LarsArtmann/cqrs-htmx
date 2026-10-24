@@ -97,12 +97,12 @@ alive=0
 for f in docs/status/archived/keep-me.md docs/status/archived/README.md docs/status/ARCHIVE_KEEP.txt; do
   [ -e "$R/$f" ] || alive=1
 done
-[ "$alive" -eq 0 ] && ok "6-keeps-survive" || bad "6-keeps-survive" "a keep entry was removed"
+if [ "$alive" -eq 0 ]; then ok "6-keeps-survive"; else bad "6-keeps-survive" "a keep entry was removed"; fi
 gone=0
 for f in docs/status/archived/drop-one.md docs/status/archived/drop-two.md docs/planning/archived/drop-three.md docs/feedback/processed/drop-four.md; do
   [ -e "$R/$f" ] && gone=1
 done
-[ "$gone" -eq 0 ] && ok "6-targets-removed" || bad "6-targets-removed" "a target survived"
+if [ "$gone" -eq 0 ]; then ok "6-targets-removed"; else bad "6-targets-removed" "a target survived"; fi
 
 # 7. idempotent
 out=$(run "$R")

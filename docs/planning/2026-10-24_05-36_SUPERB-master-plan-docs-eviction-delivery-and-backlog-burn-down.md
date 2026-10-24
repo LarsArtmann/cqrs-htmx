@@ -138,20 +138,20 @@ Impact: **C**ritical / **H**igh / **M**edium / **L**ow. Value: **Ag** future age
 
 | ID | Milestone | Impact | Effort | Value | Depends | Verify |
 | --- | --- | --- | ---: | --- | --- | --- |
-| S12 | Eviction manifest + `ARCHIVE_EVICTED.md` restore command | C | 30m | Hu | — | `check-docs-links` |
+| S12 | **DONE** (`26f1d746`) eviction manifest + `docs/ARCHIVE_EVICTED.md` + `scripts/tools/evict-archive.sh` (dry-run default, refuses stale/empty keep-list) | C | 30m | Hu | — | `check-docs-links` |
 | S13 | Evict `docs/status/archived/` minus the 9 linked targets | C | 60m | Ag | S11, S12 | `check-docs-links` + count |
 | S14 | Evict `docs/planning/archived/` + 4 single-file archives | H | 30m | Ag | S11, S12 | `check-docs-links` + count |
-| S11 | Scratch-tree dry run: all 6 doc gates against the proposed evicted tree | C | 60m | Ag | — | 6× rc=0 |
+| S11 | **DONE** (`26f1d746`) scratch-worktree dry run: 6/6 gates green; measured keep-set is **13**, not 9 | C | 60m | Ag | — | 6× rc=0 |
 | S05 | Annotate + archive the live status tail 57 md → ≤3 | C | 100m | Ag | — | `check-docs-tail-budget --strict` |
 | S15 | Adjudicate the 9 live→archived link targets (keep or rewrite to the manifest) | H | 45m | Hu | S13 | `check-docs-links` |
 | S16 | Supersession triage of the 18 live planning files | M | 60m | Hu | — | `check-docs-links` |
-| S04b | Replace `docs/status/README.md` counts with derived/absent values | C | 30m | Hu | — | re-read + `check-docs-freshness` |
+| S04b | **DONE** (`ca92d01e`) `docs/status/README.md` counts are derived commands; sweep log moved to the archive manifest | C | 30m | Hu | — | re-read + `check-docs-freshness` |
 | S06 | **DONE** (`fc182d43`) backlog header + 36 dead rows + P1 re-rank + `CURRENT_FOCUS.md` | C | 210m | Ag | — | 5 gates rc=0 |
 | S06b | Promote the tail gate to `--strict` in `check-modules` + CI | H | 20m | Ag | S05 | `nix run .#check-modules` |
-| S07 | Gate: zero `[x]` rows (+ planted-failure fixture) | H | 40m | Ag | S06 | self-test red on fixture |
-| S08 | Gate: zero struck-title rows (+ fixture) | H | 30m | Ag | S06 | self-test red on fixture |
-| S09 | Gate: no section >30% dead (+ fixture) | H | 30m | Ag | S06 | self-test red on fixture |
-| S10 | Gates: header ≤300 chars, section-death, and wiring all four into flake + CI + docs | H | 85m | Ag | S07–S09 | `nix run .#check-modules` |
+| S07 | **DONE** (`26f1d746`) zero-`[x]` rule + planted fixture (consolidated into `check-todo-hygiene.sh`) | H | 40m | Ag | S06 | self-test red on fixture |
+| S08 | **DONE** (`26f1d746`) zero-struck-title rule + fixture (same script) | H | 30m | Ag | S06 | self-test red on fixture |
+| S09 | **DONE** (`26f1d746`) >30%-dead-section rule + fixture (same script) | H | 30m | Ag | S06 | self-test red on fixture |
+| S10 | **DONE** (`26f1d746`) header discipline (total <1,500 / paragraph ≤300), 10-case self-test, flake app, `check-modules` stage, CI step, AGENTS row | H | 85m | Ag | S07–S09 | `nix run .#check-modules` |
 
 ### Lane B — Attention surface
 
@@ -744,3 +744,7 @@ bash scripts/checks/check-release-train.sh --strict-lag 0   # rc=3, 65 lag
 | 2026-10-24 | unplanned, found in the lane | (a) `dashboardui/core` had an ordering-dependent JSON assertion that flaked CI under `encoding/json/v2` — fixed to a semantic comparison; (b) the systemadapter declarative red (P1, a week old) was already fixed upstream and pinned 2026-10-19, so its row is closed; (c) local `nix run .#lint` uses golangci-lint 2.15.0 while CI pins 2.14.0, producing twelve `wrapcheck` false positives — recorded as a TODO row |
 
 **Upstream treadmill evidence (why S01 is not a one-shot):** three separate waves published while this session ran (templ-components v1.24.0 at 05:53, the go-cqrs-lite cluster at 06:44, `system` v4.15.4 at 07:05). A gate that demands zero lag is only green between publications. That is the argument for S50 (`check-upstream-treadmill.sh`) and for running the alignment immediately before a push, never hours before.
+| 2026-10-24 | S04b (derived counts) | **DONE** — `ca92d01e`. Every count in `docs/status/README.md` is now the command that derives it; the sweep log moved to `docs/status/archived/README.md` so history survives without a number that rots. |
+| 2026-10-24 | S07–S10 (gates) | **DONE** — `26f1d746`. One `check-todo-hygiene.sh` enforces all four rules with a 10-case fixture self-test (one planted failure per rule), wired into flake apps, `check-modules`, and CI. |
+| 2026-10-24 | S11 (scratch dry run) | **DONE** — `26f1d746`. A detached worktree with the 578 removals applied passes all six doc gates. The first run found one broken link (`…_23-20` → `…_22-34`); the measured keep-set grew from the plan's 9 to **13**. |
+| 2026-10-24 | S12 (manifest + tool) | **DONE** — `26f1d746`. `docs/ARCHIVE_EVICTED.md` records the keep-set, the counts, the dry-run verdict, the restore command, and the execution checklist; `scripts/tools/evict-archive.sh` is the one command (dry-run default, `--apply --yes` to act, refuses stale/empty keep-lists). **Q2 still gates the deletion itself.** |

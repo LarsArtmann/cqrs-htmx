@@ -1143,6 +1143,7 @@
                         "status-rows-normalize-self-test:bash scripts/selftests/test-normalize-status-rows.sh"
                         "todo-hygiene:bash scripts/checks/check-todo-hygiene.sh"
                         "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
+                        "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
@@ -1204,6 +1205,7 @@
                     bash scripts/selftests/test-normalize-status-rows.sh
                     bash scripts/checks/check-todo-hygiene.sh
                     bash scripts/selftests/test-check-todo-hygiene.sh
+                    bash scripts/selftests/test-evict-archive.sh
                     bash scripts/selftests/test-bump-dep.sh
                     bash scripts/checks/check-session-route-wrappers.sh
                     bash scripts/selftests/test-check-session-route-wrappers.sh

@@ -27,6 +27,10 @@ Each report in this tree captures what someone knew at the end of a work session
 | `docs/feedback/processed/`         | Processed feedback documents                                                               |
 | `docs/architecture-understanding/` | Generated self-contained HTML architecture reports (see "HTML corpus" below)                |
 
+> **Archive eviction (prepared 2026-10-24, owner-gated).** 578 of the 591 files under the archive
+> directories are unreferenced closed history. The measured keep-set, the dry-run verdict, and the
+> one-command removal/restore flow live in [`../ARCHIVE_EVICTED.md`](../ARCHIVE_EVICTED.md).
+
 `docs/status/archived/` is the ONLY archive directory — the older duplicate `docs/status/archive/` (a 92-file split-brain) was merged into it and removed.
 
 ## Annotation convention

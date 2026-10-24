@@ -771,6 +771,11 @@ jobs:
       - name: TODO hygiene gate self-test
         run: bash scripts/selftests/test-check-todo-hygiene.sh
 
+      # The owner-gated archive eviction's tool: proves the keep-list protects
+      # cited files and that the removal is exact and idempotent (no deletion).
+      - name: Archive eviction tool self-test
+        run: bash scripts/selftests/test-evict-archive.sh
+
       # bump-dep.sh discovery self-test (block + single-line require forms,
       # $ anchor, testdata skip) — the 9b3c2e18 regex-gap regression guard.
       - name: bump-dep self-test
