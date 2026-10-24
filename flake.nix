@@ -1146,6 +1146,8 @@
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
                         "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
                         "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
+                        "corpus-budget-ratchet:bash scripts/checks/check-docs-corpus-budget.sh --ratchet"
+                        "corpus-budget-self-test:bash scripts/selftests/test-check-docs-corpus-budget.sh"
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
@@ -1210,6 +1212,8 @@
                     bash scripts/selftests/test-evict-archive.sh
                     bash scripts/selftests/test-archive-status.sh
                     bash scripts/checks/check-docs-tail-budget.sh --ratchet
+                    bash scripts/checks/check-docs-corpus-budget.sh --ratchet
+                    bash scripts/selftests/test-check-docs-corpus-budget.sh
                     bash scripts/selftests/test-bump-dep.sh
                     bash scripts/checks/check-session-route-wrappers.sh
                     bash scripts/selftests/test-check-session-route-wrappers.sh
@@ -1497,6 +1501,45 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-docs-tail-budget.sh
+                  '';
+                }
+              );
+            };
+
+            check-docs-corpus-budget = {
+              type = "app";
+              meta.description = "Ratchet on the whole docs corpus (markdown lines under docs/), baseline in docs/CORPUS_BASELINE; --ratchet fails on growth, --update-baseline justifies deliberate growth, --files prints per-directory counts";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-docs-corpus-budget";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-docs-corpus-budget.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-docs-corpus-budget = {
+              type = "app";
+              meta.description = "Fixture self-test for check-docs-corpus-budget.sh (9 cases: at/over/below baseline, missing, malformed, update, report mode, files table, empty tree)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-docs-corpus-budget";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-docs-corpus-budget.sh
                   '';
                 }
               );

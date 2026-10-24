@@ -766,6 +766,15 @@ jobs:
       - name: Docs status tail-budget self-test
         run: bash scripts/selftests/test-check-docs-tail-budget.sh
 
+      # Whole-corpus ratchet: markdown lines under docs/ against
+      # docs/CORPUS_BASELINE. Deliberate growth is allowed but must bump the
+      # baseline in the same commit, so the corpus cannot drift quietly.
+      - name: Docs corpus budget ratchet
+        run: bash scripts/checks/check-docs-corpus-budget.sh --ratchet
+
+      - name: Docs corpus budget self-test
+        run: bash scripts/selftests/test-check-docs-corpus-budget.sh
+
       # TODO_LIST hygiene gate: four rules that each caught a real drift class
       # (planted `[x]` rows, dead struck-title rows, a >30%-dead section, the
       # 8 KB session-diary header) plus its fixture self-test.

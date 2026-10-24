@@ -23,3 +23,6 @@ nix run .#check-modules                         # 3. is the tree green before I 
 2. Commit at the milestone boundary — never batch two milestones.
 3. If the live status tail grew, archive a replaced report and lower
    `docs/status/TAIL_BASELINE` in the same commit (the ratchet gate fails otherwise).
+4. Same rule for the whole corpus: markdown under `docs/` past `docs/CORPUS_BASELINE`
+   fails `check-docs-corpus-budget --ratchet`, so either shrink something or bump the
+   baseline in the commit that justifies the growth.
