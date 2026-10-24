@@ -730,3 +730,17 @@ bash scripts/checks/check-release-train.sh --strict-lag 0   # rc=3, 65 lag
 - Does not attempt the four-module repo extraction (§7 Q1).
 - Does not re-litigate the 36 already-deleted `TODO_LIST` rows.
 - Does not pretend Lane D's 44 `NOW` items fit in one session: they are ordered, sized, and independent.
+
+---
+
+## Appendix D — execution log
+
+| Date | Milestone | Outcome |
+| --- | --- | --- |
+| 2026-10-24 | S06 (Phase A of the predecessor) | backlog header retired, 36 dead rows removed, P1 re-ranked, `CURRENT_FOCUS.md` created — `fc182d43`, `09ce9671` |
+| 2026-10-24 | S01 alignment wave | **DONE** — three upstream waves were consumed in one session (`id` v4.7.3, `systemscenario` v4.2.1, `system` v4.15.4, `event` v4.15.2, `metaengine` v4.20.0, `projectionadapter` v4.6.2, `sqliteengine` v4.6.0, `catalog` v4.10.0, `schema` v4.7.1, `otel` v4.5.3, `prometheus` v4.3.4, `stack` v4.5.1, `go-output` v0.38.7, `templ-components` v1.24.0). Final gate: 867 requires, 0 unpublished, 0 lag. |
+| 2026-10-24 | S02 push + CI watch | **DONE** — `52e0b0b6` pushed through the strict pre-push gates; CI run `40064355158` **green: 17 success, 0 failure, 1 skipped** (`architecture-gate`, opt-out by design) |
+| 2026-10-24 | S03 supersession banner | **DONE** — the 2026-10-23 plan is marked SUPERSEDED-for-execution and keeps its evidence |
+| 2026-10-24 | unplanned, found in the lane | (a) `dashboardui/core` had an ordering-dependent JSON assertion that flaked CI under `encoding/json/v2` — fixed to a semantic comparison; (b) the systemadapter declarative red (P1, a week old) was already fixed upstream and pinned 2026-10-19, so its row is closed; (c) local `nix run .#lint` uses golangci-lint 2.15.0 while CI pins 2.14.0, producing twelve `wrapcheck` false positives — recorded as a TODO row |
+
+**Upstream treadmill evidence (why S01 is not a one-shot):** three separate waves published while this session ran (templ-components v1.24.0 at 05:53, the go-cqrs-lite cluster at 06:44, `system` v4.15.4 at 07:05). A gate that demands zero lag is only green between publications. That is the argument for S50 (`check-upstream-treadmill.sh`) and for running the alignment immediately before a push, never hours before.
