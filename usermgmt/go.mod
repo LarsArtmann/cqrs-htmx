@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-idempotency v0.3.1
-	github.com/larsartmann/httputil v1.5.0
+	github.com/larsartmann/httputil v1.6.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0
 	modernc.org/sqlite v1.60.1
 	pgregory.net/rapid v1.3.0
