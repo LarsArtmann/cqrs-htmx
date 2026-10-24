@@ -1,0 +1,23 @@
+# Archive eviction keep-list
+#
+# Every path here survives the eviction: a living document cites it, or the
+# docs gates need it. `scripts/tools/evict-archive.sh` removes everything
+# else under a `archived/` or `processed/` directory.
+#
+# Re-derive this list (do NOT hand-add) with the walk documented in
+# `docs/status/ARCHIVE_EVICTED.md` § How the list was derived.
+#
+# --- direct living-doc citations ---
+docs/planning/archived/2026-06-21_07-31_identity-model-redesign-pareto.md
+docs/planning/archived/2026-06-21_08-23_membership-wiring-execution.md
+docs/planning/archived/2026-06-28_09-38_offline-first-command-sync.md
+docs/planning/archived/2026-08-30_appkit-foldin-revalidation.md
+docs/planning/archived/2026-08-30_upstream-issue-drafts.md
+docs/status/archived/2026-06-21_07-58_identity-redesign-brutal-self-review.md
+docs/status/archived/2026-10-05_14-59_branching-flow-full-analysis.md
+docs/status/archived/2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md
+docs/status/archived/2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md
+# --- transitive citations (kept archive files link to these) ---
+docs/status/archived/2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md
+docs/status/archived/2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md
+docs/status/archived/2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md
