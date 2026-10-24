@@ -183,7 +183,7 @@ Impact: **C**ritical / **H**igh / **M**edium / **L**ow. Value: **Ag** future age
 | S31 | identity-model HIGH pair: `g2` hierarchy disconnected; `Authz.Apply` non-atomic | C | 100m | Co | — | new tests + `.#test-identity-model` |
 | S32 | WebAuthn sign-counter never persisted (clone detection dead) + UP/UV fabrication + challenge namespace | C | 100m | Co | — | webauthn suite + new command |
 | S33 | root exported-contract honesty pass (9 sub-items) | H | 100m | Co | — | `.#test-root` + goldens |
-| S30 | Open-issue sweep close-out (5 closes + branch delete + plan annotate) | H | 30m | Hu | S02 | `gh issue list --state open` |
+| S30 | **DONE** (verified 2026-10-24) open-issue sweep: #23/#28/#29/#18/#19 all CLOSED on 2026-10-19, `wip/issue-23-auth-audit` gone, only #25 open (demand-gated) | H | 30m | Hu | S02 | `gh issue list --state open` |
 | S37 | usermgmt medium tails (6 sub-items) | H | 100m | Co | — | `.#test-usermgmt` |
 | S42 | systemadapter declarative fidelity: Enforce ladder, audit vocabulary, dropped ActorID | H | 90m | Co | S01 | declarative suite |
 | S38 | identity-model type-safety tails (7 sub-items) | H | 90m | Co | — | fold/marshal tests |

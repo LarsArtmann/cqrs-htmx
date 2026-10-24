@@ -18,8 +18,6 @@
 
 ## P1 — High impact (do these next)
 
-- [~] **Open-issue sweep close-out.** 2026-10-19 execution closed 7 issues with evidence and shipped the rest: #23 auth-audit journal (identity-model v4.13.0), #28/#29 (`WithRequestFilter`/`TailReader`), #18/#19 (dashboardui payload registry + empty-state copy). **Next:** on the next green `ci.yml` run close #23/#28/#29/#18/#19, delete `origin/wip/issue-23-auth-audit`, annotate the plan. Plan: [`docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md`](docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md).
-
 - [ ] **identity-model HIGH design pair** — Casbin `g2` hierarchy never fires for user subjects (`authz_model.go:20`) and `Authz.Apply` is not atomic despite its doc claim (`authz_policies.go:8`). **Next:** pick the hierarchy mechanism, then convert `Apply` to copy-and-swap. Detail: § [2026-10-18 full-code-review harvest](#2026-10-18-full-code-review-harvest-episode-4-report-docsreviews2026-10-18_08-25_full-code-reviewhtml).
 
 - [ ] **root exported-contract honesty pass** — 9 mechanical sub-items (SSE raw-error broadcast, `immutable` caching on mutable content, fail-open readiness, unescaped OOB HTML, …). Detail: same harvest section.

@@ -28,14 +28,19 @@ the high-frequency surface).
 
 ## The next thread (start immediately after)
 
-**Close the open-issue sweep.** Five issues are shipped but not closed (#23/#28/#29/#18/#19);
-`origin/wip/issue-23-auth-audit` still exists. Plan:
-[`docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md`](docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md).
+**identity-model HIGH design pair.** Casbin `g2` role links never fire for user subjects
+(`authz_model.go:20`), and `Authz.Apply` is not atomic despite its doc claim
+(`authz_policies.go:8`). Plan: master plan S31.
 
-**Done when:** `gh issue list --state open` shows only issues opened after 2026-10-19, and the
-`wip/` branch is gone from origin.
+**Done when:** a user granted `admin` inherits `user`/`viewer` in an Enforce test, and a failing
+batch in `Apply` leaves the enforcer unchanged (partial-failure test).
 
 ## Resolved since the last update
+
+**The open-issue sweep is closed — it was already closed when this file was written.** #23/#28/#29/
+#18/#19 were all closed on 2026-10-19, `origin/wip/issue-23-auth-audit` is gone, and the only open
+issue is #25 (demand-gated by design). Verified 2026-10-24 with `gh issue view <n> --json state`.
+The P1 TODO row that asked for this was stale from birth; it has been deleted.
 
 **The systemadapter declarative red is gone.** It was the module-CI red for a week: ten
 `Declarative__`/`Harness_` tests failed with `system: not found` because published
