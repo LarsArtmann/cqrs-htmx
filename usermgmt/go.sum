@@ -204,8 +204,8 @@ github.com/larsartmann/go-sse/ssetest v0.5.0 h1:6QQ9rURjqScKfkV8BmpNdoMSW5pxsNVs
 github.com/larsartmann/go-sse/ssetest v0.5.0/go.mod h1:mTBSF8nBmmw3Eb7DOKWqgmp0B1unUOFcjt6WGdUJT0o=
 github.com/larsartmann/httputil v1.5.0 h1:mormohXn9dAsUOqiDEYVuwbAwX2ioU9yxHwSuVlQ2bI=
 github.com/larsartmann/httputil v1.5.0/go.mod h1:PzJsA7wSHRpAMD65MJd5YhIz50nGbBhJocuT8jkDbgs=
-github.com/larsartmann/httputil/server_timing v1.0.2 h1:x2J4vLsqHDYi9VbeMabLKlTXFnBgcKFV7LKdNXuMfG0=
-github.com/larsartmann/httputil/server_timing v1.0.2/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
+github.com/larsartmann/httputil/server_timing v1.0.3 h1:V1ypfid9TvWznr/qH3p+1uH8034goI3lSwyqIrl6KCY=
+github.com/larsartmann/httputil/server_timing v1.0.3/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
 github.com/lithammer/shortuuid/v3 v3.0.7/go.mod h1:vMk8ke37EmiewwolSO1NLW8vP4ZaKlRuDIi8tWWmAts=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=
