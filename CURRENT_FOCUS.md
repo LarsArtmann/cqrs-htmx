@@ -27,13 +27,13 @@ carries zero dead rows, and the four new hygiene gates run in `check-modules` + 
 **Done when:** `gh issue list --state open` shows only issues opened after 2026-10-19, and the
 `wip/` branch is gone from origin.
 
-## The blocked thread (watch, do not start)
+## Resolved since the last update
 
-**The systemadapter declarative red** — the single module-CI red. Root cause is fixed but
-untagged upstream (`metaengine/projectionadapter/v4`, commit `b30156686` on go-cqrs-lite master).
-
-**Done when:** upstream publishes the tag, this repo re-pins it, and
-`nix run .#test-systemadapter` is green.
+**The systemadapter declarative red is gone.** It was the module-CI red for a week: ten
+`Declarative__`/`Harness_` tests failed with `system: not found` because published
+`metaengine/projectionadapter` keyed views with the display form of a stream ID. The upstream fix
+was published and pinned here on 2026-10-19 (`99e0df63`, v4.6.1); the hermetic suite is green
+(`GOWORK=off go test ./... -race`). Nothing left to watch.
 
 ## Ground rules that keep this honest
 

@@ -20,8 +20,6 @@
 
 - [~] **Open-issue sweep close-out.** 2026-10-19 execution closed 7 issues with evidence and shipped the rest: #23 auth-audit journal (identity-model v4.13.0), #28/#29 (`WithRequestFilter`/`TailReader`), #18/#19 (dashboardui payload registry + empty-state copy). **Next:** on the next green `ci.yml` run close #23/#28/#29/#18/#19, delete `origin/wip/issue-23-auth-audit`, annotate the plan. Plan: [`docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md`](docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md).
 
-- [ ] **systemadapter declarative suite red — the only module-CI red (blocked upstream).** 10 `Declarative__`/`Harness_` tests fail `system: not found`; root-caused 2026-10-14 to published `metaengine/projectionadapter/v4 v4.5.3` keying views with `StreamID.String()` (display form) while `system.Get` asks for the bare `.Get()` form. The fix is committed on go-cqrs-lite master (`b30156686`) but untagged. **Next:** watch upstream for the `projectionadapter` tag, then re-pin and run `nix run .#test-systemadapter`.
-
 - [ ] **identity-model HIGH design pair** — Casbin `g2` hierarchy never fires for user subjects (`authz_model.go:20`) and `Authz.Apply` is not atomic despite its doc claim (`authz_policies.go:8`). **Next:** pick the hierarchy mechanism, then convert `Apply` to copy-and-swap. Detail: § [2026-10-18 full-code-review harvest](#2026-10-18-full-code-review-harvest-episode-4-report-docsreviews2026-10-18_08-25_full-code-reviewhtml).
 
 - [ ] **root exported-contract honesty pass** — 9 mechanical sub-items (SSE raw-error broadcast, `immutable` caching on mutable content, fail-open readiness, unescaped OOB HTML, …). Detail: same harvest section.
