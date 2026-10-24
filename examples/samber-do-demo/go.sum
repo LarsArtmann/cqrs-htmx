@@ -256,8 +256,8 @@ github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5
 github.com/larsartmann/go-ndjson v0.0.1/go.mod h1:ueEJJ39Jei+zfPCEx455kpunYWZf/pkwn7HqETHrQkU=
 github.com/larsartmann/go-output v0.38.7 h1:U6+bAttbScCmy8izcBQ4tLEQ5yYVHXjioAWJ5yocAA4=
 github.com/larsartmann/go-output v0.38.7/go.mod h1:9k8vw0V/M3vt+1qSkcQTcjBCXoyYPK8RUI/Xzx/YCSQ=
-github.com/larsartmann/go-output/d2 v0.38.5 h1:ZiJuCdXOEweG9sc8s3xBUse4F6drUhKJJCOWzyH2HhU=
-github.com/larsartmann/go-output/d2 v0.38.5/go.mod h1:ZPUSiCeGc+TyOfUqia0gYde/zTOUjh3bVOQYR9b1KjM=
+github.com/larsartmann/go-output/d2 v0.38.7 h1:kXPMLAYvBZQFx1tTe6Rig50YJuhQWce/4XozLwGNK6M=
+github.com/larsartmann/go-output/d2 v0.38.7/go.mod h1:Mc/vBRMi4CrAbcSGFBXxAEgxOhhXF6y+dl3Pv8UIzx4=
 github.com/larsartmann/go-output/daghtml v0.38.7 h1:X0cAJ/4FkG7B30YnE3gb6XPGj5FS4gr5Lt/w7NJ6ArE=
 github.com/larsartmann/go-output/daghtml v0.38.7/go.mod h1:AIJjGy8TLJ7RsmmgxWrUA3Uii5mBeUtKvVnp2rsjwMk=
 github.com/larsartmann/go-output/delimited v0.38.7 h1:SGi7W2FfS9tWDBTfrH2Ct2SjdfBeO4xDQLMwBJ/iHA4=
