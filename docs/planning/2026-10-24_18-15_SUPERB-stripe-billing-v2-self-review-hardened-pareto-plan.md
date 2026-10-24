@@ -2,6 +2,7 @@
 
 **Created:** 2026-10-24 18:15 CEST
 **Status:** PLAN — proposed, NOT started. **Not the active thread** ([CURRENT_FOCUS.md](../../CURRENT_FOCUS.md) unchanged; owner-gated like everything in this lane).
+**Amended (same day, evening):** +**S25 metrics lane** — CLV/MRR/churn delivery to consumer apps via projections + typed queries + SSE (§2.5, owner ask "data like CLTV back to my apps"). 26 milestones / 104 tasks / ≈30.7 h.
 **Supersedes:** [`2026-10-24_17-32_SUPERB-stripe-billing-bounded-context-pareto-plan.md`](2026-10-24_17-32_SUPERB-stripe-billing-bounded-context-pareto-plan.md) (v1) **for execution order and task definitions**. v1 stays authoritative for its decision evidence (its §2 anchors, the Stripe-docs verification log) — do not re-derive those.
 **Predecessor:** the brutal self-review of v1 (session turn, 2026-10-24): 8 findings, all fixed here (§1).
 **Trigger:** "CREATE A SUPERB PLAN!" + the standing plan-format contract (Pareto tiers → milestone table 30–100 min → fine table ≤12 min → mermaid graph → commit+push).
@@ -54,11 +55,26 @@ Seat updates are *requests*: the billing decider clamps to the processor's plan 
 
 S00 produces two artifacts and nothing else: (a) the demand evidence file path or an explicit park decision, (b) the MoR decision record. Until both exist, S01+ is frozen — matching how ADR-0050 treats its tiers.
 
+### 2.5 Metrics lane (added same day on owner ask: "data like CLTV back to my apps")
+
+Doctrine: **events carry settled facts; metrics are disposable projections.** `PaymentReceived` carries `amount_minor` + ISO currency (the settled fact from `invoice.paid`); Stripe stays the ledger — we keep the facts we need to reason. CLV/MRR/ARPU/churn/seat-utilization are folds over those facts, never aggregate state:
+
+| Metric | Computation shape | Surface |
+| --- | --- | --- |
+| CLV per tenant | exact running-sum scalar view (sqlite/turso materialized view, O(1)) | typed query + adminui card + `ServeSSE` live tick |
+| MRR / active counts | state snapshot folded by period; point-in-time = fold-to-journal-position | query + adminui card |
+| Churn cohorts, dunning funnel | group-by-history via metaengine planned tables (no live scans) | query |
+| ARPU, seat utilization | derived off the same views | query |
+
+Delivery is through surfaces the library already has: `query.RegisterTyped` handlers behind the existing Casbin posture (tenant admin sees own CLV, platform owner sees all), `metaengine.ServeSSE[V]` for live read-model push, ADR-0056 sync (permission-filtered), and the S20 adminui panel. New metric = one projection + one query handler; full history backfills via journal replay; formula disputes (gross-vs-net CLV) version the projection, never the events.
+
+Hard traps: CAC is external input (never fabricated from billing events); FX conversion happens at the projection with dated rates — rates never enter the journal; ship named metric variants (`clv_gross_realized`) and document them in the event/metric catalog; refunds/disputes flow through the fold so realized metrics drop honestly.
+
 ## 3. Pareto decomposition (v2)
 
 - **1% → 51%:** unchanged from v1 — the honest state machine (S03–S06), now with bounded seen-refs and processor-agnostic naming baked in from the first type definition.
 - **4% → 64%:** the money door (S08–S11) + **both** choreography directions (S07) — dunning lands AND seats stay truthful.
-- **20% → 80%:** consumer surface (S12–S16).
+- **20% → 80%:** consumer surface (S12–S16) **+ the metrics lane (S25)** — CLV/MRR/churn data back into consumer apps.
 - **Other 20% → 100%:** permanence (S17–S24), where the boundary gate now carries the portability proof.
 
 ## 4. Comprehensive plan — 25 milestones (S00–S24), 30–100 min each (≈ 29.2 h)
@@ -90,10 +106,11 @@ S00 produces two artifacts and nothing else: (a) the demand evidence file path o
 | S22 | Release train (both modules; gotchas 5/6/27; preflight; coverage thresholds in flake) | 100% | High | 60m | S15, S18 | `check-release-train --strict-lag 0` green |
 | S23 | Docs inventory: FEATURES/CHANGELOG/AGENTS 29→31, gotcha entries, TODO retirements | 100% | Medium | 45m | S16 | doc gates green |
 | S24 | E2E Playwright billing flow (webhook simulator fixtures) | 100% | Medium | 90m | S20 | `nix run .#e2e` green |
+| S25 | **Metrics lane**: amount-bearing `PaymentReceived` facts → CLV/MRR/churn/ARPU projections (§2.5), typed query handlers behind Casbin, `ServeSSE` live push, metric definitions in catalog, adminui cards | 20% | High ("data back to apps") | 90m | S03, S14 | query + live-update tests green; rebuild-from-journal test green |
 
-**Totals:** 25 milestones · **1,750 min ≈ 29.2 h** (+110 min vs v1: the two gate/design fixes bought with the review).
+**Totals:** 26 milestones · **1,840 min ≈ 30.7 h** (+200 min vs v1: gate/design fixes + the metrics lane).
 
-## 5. Fine breakdown — every task ≤ 12 min (97 tasks)
+## 5. Fine breakdown — every task ≤ 12 min (104 tasks)
 
 | ID | Task | Est | Ms |
 | ---: | --- | ---: | --- |
@@ -194,8 +211,15 @@ S00 produces two artifacts and nothing else: (a) the demand evidence file path o
 | F95 | e2e billing spec (simulator fixtures) | 12m | S24 |
 | F96 | e2e run + flake triage | 12m | S24 |
 | F97 | Post-wave: park-or-continue decision vs kill criteria §8 | 10m | S24 |
+| F98 | Extend `PaymentReceived` payload (`amount_minor`, currency) + scenario fixture | 12m | S25 |
+| F99 | CLV projection: per-tenant running sum (scalar view) + rebuild test | 12m | S25 |
+| F100 | MRR/active snapshot projection by period + point-in-time fold test | 12m | S25 |
+| F101 | Churn-cohort + dunning-funnel planned tables + queries | 12m | S25 |
+| F102 | Typed query handlers + RegisterTyped + tenant-scoping authz test | 12m | S25 |
+| F103 | `ServeSSE[V]` live-metric stream + live-update test | 12m | S25 |
+| F104 | Metric definitions into the catalog + guide section + catalog test | 10m | S25 |
 
-**Totals:** 97 tasks · ≈ 16.2 h of the 29.2 h; remainder is verification loops, review rework, gate reds (budgeted at milestone level).
+**Totals:** 104 tasks · ≈ 17.6 h of the 30.7 h; remainder is verification loops, review rework, gate reds (budgeted at milestone level).
 
 ## 6. Execution graph
 
@@ -209,11 +233,12 @@ flowchart TD
     S06 --> S07["derivers: suspend/reactivate AND seats/cancel"]
     S02 --> S08[stripe adapter + gateway] --> S09[webhook ACL] --> S10[idempotent dispatch] --> S11[adversarial tests]
   end
-  subgraph T3["Tier 20% - consumer surface (S12-S16)"]
+  subgraph T3["Tier 20% - consumer surface (S12-S16 + S25)"]
     S09 --> S12[checkout + portal]
     S06 --> S13[WithBilling wrap] --> S14[entitlement read model] --> S15[guide + catalog]
     S12 --> S16[billing-demo]
     S14 --> S16
+    S14 --> S25["metrics: CLV/MRR/churn + queries + SSE"]
   end
   subgraph T4["Tier 100% - permanence (S17-S24)"]
     S14 --> S17[reconciliation]
@@ -236,6 +261,7 @@ Inherits v1 §7 in full (decider purity, default-keyFn trap, ErrDuplicate→2xx,
 2. **The vocabulary ban is one-way only**: `billing/stripe` may say Stripe everywhere; `billing-model` may say it nowhere. Do not "fix" a violation by renaming gateway-facing fields in the adapter.
 3. **Seen-refs compaction must never become a background job** — it is a fold invariant. If someone proposes a janitor goroutine, re-read §2.2.
 4. **Seat updates never call the gateway synchronously** (D6 both directions): identity commands must not wait on billing I/O; quantity sync rides the next outbound reconciliation.
+5. **Metrics never touch the gateway, and rates never touch the journal** (§2.5): amounts are facts, FX conversion and formula versions live in projections; a metric that needs a synchronous processor call is designed wrong.
 
 ## 8. Kill criteria & done-when
 
@@ -254,6 +280,7 @@ Identical to v1 §8 (module tests, `.#test`, `.#lint`, `.#check-cqrs-lint`, `.#c
 
 ## 10. Errata / verification log
 
+- 2026-10-24 (evening): +S25 metrics lane added on owner ask ("data like CLTV and co back to my apps"); graph re-validated with `mmdc` in the same change.
 - 2026-10-24: v1's mermaid graph validated post-hoc (`mmdc` render, 228 KB SVG). **This file's graph was validated BEFORE commit** (same tool).
 - 2026-10-24: v1 findings 1–8 (brutal self-review, session turn) → fixes mapped in §1; findings 1,3,4,6 changed design, not just tasks.
 - 2026-10-24: BuildFlow `nix-fmt` tmpdir-loop repro: `buildflow history --step nix-fmt --last-error` (5 consecutive identical failures; root cause string: `could not find [go.mod] in /tmp/buildflow-roundtrip-*`). TODO row added in this commit (close-the-loop state c→b).
