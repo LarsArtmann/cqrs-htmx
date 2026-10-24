@@ -14,21 +14,21 @@ measured, and the removal is one reviewed command.
 Twelve files survive because a living document cites them (or a kept archive file does, one hop
 out); every archive `README.md` survives because it is the pass manifest.
 
-| #   | File                                                                                     | Cited by                                                    |
-| --- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 1   | `docs/planning/archived/2026-06-21_07-31_identity-model-redesign-pareto.md`              | `docs/adr/0015-identity-model-redesign.md`                  |
-| 2   | `docs/planning/archived/2026-06-21_08-23_membership-wiring-execution.md`                 | `docs/adr/0015-identity-model-redesign.md`                  |
-| 3   | `docs/planning/archived/2026-06-28_09-38_offline-first-command-sync.md`                  | `docs/adr/0023-command-sync.md`                             |
-| 4   | `docs/planning/archived/2026-08-30_appkit-foldin-revalidation.md`                        | `docs/planning/2026-08-30_gated-work-index.md`              |
-| 5   | `docs/planning/archived/2026-08-30_upstream-issue-drafts.md`                             | `docs/planning/2026-08-30_gated-work-index.md`              |
-| 6   | `docs/status/archived/2026-06-21_07-58_identity-redesign-brutal-self-review.md`          | `docs/adr/0015-identity-model-redesign.md`                  |
-| 7   | `docs/status/archived/2026-10-05_14-59_branching-flow-full-analysis.md`                  | `docs/analysis/triage-decisions.md`                         |
-| 8   | `docs/status/archived/2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md` | the live hardening plan                                     |
-| 9   | `docs/status/archived/2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md`           | `docs/status/2026-10-07_00-15_…` (live until the tail pass) |
-| 10  | `docs/status/archived/2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`             | transitive: #8 links to it                                  |
-| 11  | `docs/status/archived/2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md`                | transitive: #9 links to it                                  |
-| 12  | `docs/status/archived/2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md`     | transitive: #11 links to it                                 |
-| 13  | every `archived/README.md`                                                               | the bulk-pass manifest (gate-exempt, kept by pattern)       |
+| #   | File                                                                                     | Cited by                                                                       |
+| --- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 1   | `docs/planning/archived/2026-06-21_07-31_identity-model-redesign-pareto.md`              | `docs/adr/0015-identity-model-redesign.md`                                     |
+| 2   | `docs/planning/archived/2026-06-21_08-23_membership-wiring-execution.md`                 | `docs/adr/0015-identity-model-redesign.md`                                     |
+| 3   | `docs/planning/archived/2026-06-28_09-38_offline-first-command-sync.md`                  | `docs/adr/0023-command-sync.md`                                                |
+| 4   | `docs/planning/archived/2026-08-30_appkit-foldin-revalidation.md`                        | `docs/planning/2026-08-30_gated-work-index.md`                                 |
+| 5   | `docs/planning/archived/2026-08-30_upstream-issue-drafts.md`                             | `docs/planning/2026-08-30_gated-work-index.md`                                 |
+| 6   | `docs/status/archived/2026-06-21_07-58_identity-redesign-brutal-self-review.md`          | `docs/adr/0015-identity-model-redesign.md`                                     |
+| 7   | `docs/status/archived/2026-10-05_14-59_branching-flow-full-analysis.md`                  | `docs/analysis/triage-decisions.md`                                            |
+| 8   | `docs/status/archived/2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md` | the live hardening plan                                                        |
+| 9   | `docs/status/archived/2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md`           | `docs/status/archived/2026-10-07_00-15_…` (round-23 archived it; sibling link) |
+| 10  | `docs/status/archived/2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`             | transitive: #8 links to it                                                     |
+| 11  | `docs/status/archived/2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md`                | transitive: #9 links to it                                                     |
+| 12  | `docs/status/archived/2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md`     | transitive: #11 links to it                                                    |
+| 13  | every `archived/README.md`                                                               | the bulk-pass manifest (gate-exempt, kept by pattern)                          |
 
 The machine-readable list is [`ARCHIVE_KEEP.txt`](status/ARCHIVE_KEEP.txt).
 

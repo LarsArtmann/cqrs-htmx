@@ -62,6 +62,7 @@ Read [the successor's b) section](2026-10-02_00-00_new.md#b-done).
 EOF
   printf '# Successor\n\n## b) Done\n' >"$r/docs/status/2026-10-02_00-00_new.md"
   printf '# plan\n' >"$r/docs/planning/x.md"
+  printf '# notes\n\nSee the [old report](status/2026-10-01_00-00_old.md).\n' >"$r/docs/notes.md"
   (
     cd "$r" || exit 1
     git init -q .
@@ -98,6 +99,7 @@ if grep -q '(\.\./2026-10-02_00-00_new\.md)' "$NEW"; then ok "2-rebased-live-lin
 if grep -q '(\.\./\.\./planning/x\.md)' "$NEW"; then ok "2-rebased-parent-link"; else bad "2-rebased-parent-link" "$(grep plan "$NEW")"; fi
 if grep -q 're-covers the arc with the outcome' "$R/docs/status/archived/README.md"; then ok "2-manifest-row"; else bad "2-manifest-row" "no row"; fi
 if grep -q 'ARCHIVE — superseded' "$R/docs/status/archived/README.md"; then ok "2-manifest-classification"; else bad "2-manifest-classification" "no classification"; fi
+if grep -q '(status/archived/2026-10-01_00-00_old\.md)' "$R/docs/notes.md"; then ok "2-inbound-link"; else bad "2-inbound-link" "$(cat "$R/docs/notes.md")"; fi
 
 # 3. anchor survives
 R="$WORK/case3"
@@ -185,6 +187,20 @@ printf '2026-10-02_00-00_new.md\t2026-10-01_00-00_old.md\tx\tobsolete\n' >"$WORK
 out=$(run "$R" --apply "$WORK/spec12.tsv")
 rc=$?
 if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q "verdict must be"; then ok "12-refuse-bad-verdict"; else bad "12-refuse-bad-verdict" "rc=$rc $out"; fi
+
+# 13. fix_moved_links --dry-run reports without writing
+R="$WORK/case13"
+make_repo "$R"
+printf '# notes\n\nSee the [old report](status/2026-10-01_00-00_old.md).\n' >"$R/docs/notes.md"
+git -C "$R" mv docs/status/2026-10-01_00-00_old.md docs/status/archived/2026-10-01_00-00_old.md
+out=$(python3 "$SCRIPT_DIR/../tools/fix_moved_links.py" "$R" \
+  docs/status/2026-10-01_00-00_old.md docs/status/archived/2026-10-01_00-00_old.md --dry-run 2>&1)
+rc=$?
+if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q "would fix" && grep -q '(status/2026-10-01_00-00_old\.md)' "$R/docs/notes.md"; then
+  ok "13-fix-moved-links-dry-run"
+else
+  bad "13-fix-moved-links-dry-run" "rc=$rc $out"
+fi
 
 echo "archive-status self-test: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

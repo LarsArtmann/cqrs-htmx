@@ -1,6 +1,10 @@
 # Status: SUPERB session — M06/F22 closure (found+fixed a real sqlite bug), M16 shipped, two commit collisions survived
 
-**Date:** 2026-10-07 00:15 CEST · **Plan:** [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) · **Predecessor:** [23-23 brutal review](archived/2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md) (archived during this session by the concurrent docs session)
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md`](2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md), which resumes this exact session, and the day's later reports close the plan's remaining milestones (02-57 records M20–M26 done, 03-45 closes M27). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
+
+**Date:** 2026-10-07 00:15 CEST · **Plan:** [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) · **Predecessor:** [23-23 brutal review](2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md) (archived during this session by the concurrent docs session)
 
 **Scope of this session:** close the F22 gap the brutal review exposed, run the admitted GCL verification gaps, then begin the M16–M27 lane. Executed: F22 (+ a real engine fix it forced), gap verification, docs annotation, M16 in full. Stopped per user instruction for this report.
 

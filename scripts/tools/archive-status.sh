@@ -271,6 +271,20 @@ PY
     "$PASS" "$report" "$class_label" "$(basename "$successor")" "$successor_rel" "$reason" >>"$ARCHIVE_DIR/README.md"
 done
 
+# Phase B2: re-point INBOUND links to the moved files across the whole repo.
+# Moving one file breaks every citation of it elsewhere (live docs, archived
+# siblings, the manifest rows just written). rebase_links.py only fixes the
+# moved file's own links, so this pass closes the class that round-22 left with
+# 20 broken links.
+move_pairs=()
+for i in "${!reports[@]}"; do
+  move_pairs+=("docs/status/${reports[$i]}" "docs/status/archived/${reports[$i]}")
+done
+if ! python3 "$SCRIPT_DIR/fix_moved_links.py" "$ROOT" "${move_pairs[@]}"; then
+  echo "✗ archive-status: inbound-link re-point failed (files moved; fix links by hand)" >&2
+  exit 1
+fi
+
 # Phase C: gates over the mutated tree. Skipped only by the fixture self-test
 # (a fixture root has no scripts/checks; production runs always gate).
 gate_failed=0

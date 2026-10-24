@@ -1,5 +1,9 @@
 # SUPERB M27 Battery — 9 Reds Triaged, 7 Fixed, Alignment Sweeps Partial (2026-10-07 03:45)
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-07_06-02_push-unblock-release-train-completion.md`](2026-10-07_06-02_push-unblock-release-train-completion.md), which resolves the four remaining alignment sweeps and the train lag this report left partial (push 4d0eeacb..eda06ff1, full hermetic battery green). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
+
 Session scope: finishing **M27** (verification battery, F100–F102) of
 `docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`,
 after M20–M26 landed complete last session (see

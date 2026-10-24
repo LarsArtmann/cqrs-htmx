@@ -1,5 +1,9 @@
 # Status: Push Unblock + Release-Train Completion (root v4.13.2 / systemadapter v4.12.3 waves)
 
+> **ANNOTATED 2026-10-24** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
+> The next session in the same arc is [`2026-10-07_07-21_ci-repair-round-status.md`](../2026-10-07_07-21_ci-repair-round-status.md), which is the next round in the same push/CI arc and carries the patch-train debt this report opened.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 > **Point-in-time report (2026-10-07 06:02 CEST).** Session window ≈ 04:25–06:02 CEST.
 > Co-existed with a **parallel session** working the same tree (the `art-dupl-t1-round2`
 > asset-dedup train — see its own 04-03/04-08 reports). This report covers MY session's

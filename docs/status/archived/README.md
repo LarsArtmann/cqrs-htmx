@@ -48,3 +48,26 @@ passed. The live tail went 58 → 44 and `docs/status/TAIL_BASELINE` was lowered
 Not in this pass: the remaining 44 live reports. They are NOT bulk-archived — a report lands here
 only when its items are resolved or its series has a successor. The ratchet gate now forbids the
 tail from growing, so the rest can follow in verified batches.
+## Round-23 archive manifest (2026-10-24)
+
+Scope: the 2026-10-07 SUPERB hardening chain (five sequential sessions), the samber/do x health review
+series, the 2026-10-14 BuildFlow-red triage, and the 2026-10-17 README rewrite. Every successor was read
+before it was named: 02-57 records M20-M26 done, 03-45 finishes the M27 battery, 06-02 resolves the four
+missing alignment sweeps, 07-21 carries the patch-train debt, 19-44 is the samber/do x health self-review,
+00-07 carries the 21-44 section-f rows, and 10-41 harvested 08-55's section-f list (M01) and shipped the
+quick-start gate it recommended (M02). One file is classified `resolved` (06-02: every item green, only the
+debt it opened is carried by its successor). Produced by `scripts/tools/archive-status.sh`: row gate before
+each move, dated blockquote plus relative-link re-base after it, and every inbound citation re-pointed
+repo-wide. Tail 45 to 37; `TAIL_BASELINE` lowered in the same commit.
+
+| Pass | File | Classification | Deciding reason |
+| --- | --- | --- | --- |
+
+| round-23 (2026-10-24) | `2026-10-07_00-15_SUPERB-m06-f22-closure-m16-assets-commit-collisions.md` | ARCHIVE — superseded | [`2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md`](2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md) resumes this exact session, and the day's later reports close the plan's remaining milestones (02-57 records M20–M26 done, 03-45 closes M27) |
+| round-23 (2026-10-24) | `2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md` | ARCHIVE — superseded | [`2026-10-07_02-57_SUPERB-m20-m27-session-m20-m26-done-battery-80pct-foreign-interference.md`](2026-10-07_02-57_SUPERB-m20-m27-session-m20-m26-done-battery-80pct-foreign-interference.md) records M20–M26 executed and 26 of the plan's 27 milestones done, leaving no forward list from the M17–M19 session |
+| round-23 (2026-10-24) | `2026-10-07_02-57_SUPERB-m20-m27-session-m20-m26-done-battery-80pct-foreign-interference.md` | ARCHIVE — superseded | [`2026-10-07_03-45_SUPERB-m27-battery-reds-triaged-sweeps-partial.md`](2026-10-07_03-45_SUPERB-m27-battery-reds-triaged-sweeps-partial.md) finishes the M27 battery this report left at 80 percent (9 reds triaged, 7 fixed) |
+| round-23 (2026-10-24) | `2026-10-07_03-45_SUPERB-m27-battery-reds-triaged-sweeps-partial.md` | ARCHIVE — superseded | [`2026-10-07_06-02_push-unblock-release-train-completion.md`](2026-10-07_06-02_push-unblock-release-train-completion.md) resolves the four remaining alignment sweeps and the train lag this report left partial (push 4d0eeacb..eda06ff1, full hermetic battery green) |
+| round-23 (2026-10-24) | `2026-10-07_06-02_push-unblock-release-train-completion.md` | ARCHIVE — resolved | [`2026-10-07_07-21_ci-repair-round-status.md`](../2026-10-07_07-21_ci-repair-round-status.md) is the next round in the same push/CI arc and carries the patch-train debt this report opened |
+| round-23 (2026-10-24) | `2026-10-09_16-21_samber-do-health-deep-review-session.md` | ARCHIVE — superseded | [`2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md`](../2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md) is the same samber/do x health series' full-session self-review, covering the SUPERB execution this review seeded |
+| round-23 (2026-10-24) | `2026-10-14_21-44_buildflow-red-triage-go-fix-exhaustruct-split-brain-transport-sse-flake_status.md` | ARCHIVE — superseded | [`2026-10-15_00-07_buildflow-red-release-train-fixes_status.md`](../2026-10-15_00-07_buildflow-red-release-train-fixes_status.md) is the next BuildFlow-red session and carries this report's remaining items as its own prior §f rows (exhaustruct_v5 alignment, gate re-verify) |
+| round-23 (2026-10-24) | `2026-10-17_08-55_readme-rewrite-self-review.md` | ARCHIVE — superseded | [`2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md`](../2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md) harvested every §f item of this report into routed TODO/ROADMAP rows (M01) and shipped the quick-start gate it recommended (M02) |

@@ -1,5 +1,9 @@
 # Status: BuildFlow Red Triage — Transient go-fix Reads Unmasked a Real Tool Split-Brain (go fix vs exhaustruct), the SSE Fan-Out Test Flake Root-Caused and Made Deterministic, Skips Vindicated (2026-10-14 ~21:00 → 21:45)
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-15_00-07_buildflow-red-release-train-fixes_status.md`](../2026-10-15_00-07_buildflow-red-release-train-fixes_status.md), which is the next BuildFlow-red session and carries this report's remaining items as its own prior §f rows (exhaustruct_v5 alignment, gate re-verify). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
+
 > **Repo state at writing:** HEAD `f1bb0aa1` (daemon heuristic; tree clean except one FOREIGN in-flight diff: `M loginpage/handler.go` — authored by the concurrent session, untouched by this one, per gotcha 4). Local ref shows `origin/master..HEAD` = 0 ahead, i.e. a concurrent session PUSHED master including this session's daemon-captured fixes — remote state not independently fetched/verified this session. **Concurrent activity was heavy all session**: two daemon commits (21:05 `04407856` dep-update sweep + flake.lock, 21:10 `e247ae5a` modernize-fixer sweep + go.sum reverts) raced this session's BuildFlow run and are the root cause of one of the three pasted failures.
 
 > **Session input:** the user pasted a BuildFlow run with 3 failures (`go-fix`, `go-fix [usermgmt]`, `test-race`), 10 config skips flagged as "very sus", a `DISCOVERY DEGRADED` nix note, and 9 unavailable tools. Scope guard honored: no research beyond this session's run and observations.

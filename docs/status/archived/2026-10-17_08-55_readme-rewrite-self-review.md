@@ -1,5 +1,9 @@
 # Status Report 2026-10-17 08:55 — README Rewrite & Self-Review
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md`](../2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md), which harvested every §f item of this report into routed TODO/ROADMAP rows (M01) and shipped the quick-start gate it recommended (M02). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
+
 **Session scope:** the "make README.md superb" task (single session, ~2026-10-17 08:30–08:55). This report covers only what that session did, verified, broke, and noticed in passing. No other repo state was researched.
 
 **TL;DR:** README rewritten 1266 → 507 lines from a drifting reference manual into a verified sales page. Quick start compiled AND smoke-tested live. All docs gates green. Work captured by the auto-commit daemon in `554c6d0f`, `f6657873`, `0db4635f`. Three honest mistakes made and fixed mid-session (two broken links shipped to disk, a known-gotcha violation, three wasted test cycles on occupied ports).

@@ -1564,7 +1564,7 @@
 
             test-archive-status = {
               type = "app";
-              meta.description = "Fixture self-test for archive-status.sh + rebase_links.py (20 assertions: dry run, move+annotate+re-base+manifest, anchor survival, resolved verdict, baseline ratchet-down, 7 refusals)";
+              meta.description = "Fixture self-test for archive-status.sh + rebase_links.py (22 assertions: dry run, move+annotate+re-base+manifest, inbound-citation re-point, anchor survival, resolved verdict, baseline ratchet-down, 7 refusals)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "test-archive-status";

@@ -1,5 +1,9 @@
 # SUPERB M17–M19 executed: versionz, audit actor, Config.Validate — plus a daemon-race compile incident
 
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-07_02-57_SUPERB-m20-m27-session-m20-m26-done-battery-80pct-foreign-interference.md`](2026-10-07_02-57_SUPERB-m20-m27-session-m20-m26-done-battery-80pct-foreign-interference.md), which records M20–M26 executed and 26 of the plan's 27 milestones done, leaving no forward list from the M17–M19 session. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
+
 > STATUS REPORT · 2026-10-07 01:08 CEST · session resumed from `2026-10-07_00-15_SUPERB-m06-f22-closure-m16-assets-commit-collisions.md`
 > Chain: `docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md` (27 M-tasks; M01–M16 + F22 done before this session)
 
