@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.3
 	github.com/larsartmann/httputil v1.5.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
