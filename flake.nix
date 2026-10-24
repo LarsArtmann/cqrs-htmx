@@ -1144,6 +1144,7 @@
                         "todo-hygiene:bash scripts/checks/check-todo-hygiene.sh"
                         "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
+                        "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
                         "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
@@ -1207,6 +1208,7 @@
                     bash scripts/checks/check-todo-hygiene.sh
                     bash scripts/selftests/test-check-todo-hygiene.sh
                     bash scripts/selftests/test-evict-archive.sh
+                    bash scripts/selftests/test-archive-status.sh
                     bash scripts/checks/check-docs-tail-budget.sh --ratchet
                     bash scripts/selftests/test-bump-dep.sh
                     bash scripts/checks/check-session-route-wrappers.sh
@@ -1534,6 +1536,49 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-todo-hygiene.sh
+                  '';
+                }
+              );
+            };
+
+            archive-status = {
+              type = "app";
+              meta.description = "One atomic, gated docs/status archive pass: row-gate, git mv, dated SUPERSEDED blockquote, link re-base, manifest row, baseline ratchet-down (dry run by default)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "archive-status";
+                  runtimeInputs = [
+                    pkgs.bash
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.git
+                    pkgs.python3
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/archive-status.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-archive-status = {
+              type = "app";
+              meta.description = "Fixture self-test for archive-status.sh + rebase_links.py (20 assertions: dry run, move+annotate+re-base+manifest, anchor survival, resolved verdict, baseline ratchet-down, 7 refusals)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-archive-status";
+                  runtimeInputs = [
+                    pkgs.bash
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.git
+                    pkgs.python3
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-archive-status.sh
                   '';
                 }
               );

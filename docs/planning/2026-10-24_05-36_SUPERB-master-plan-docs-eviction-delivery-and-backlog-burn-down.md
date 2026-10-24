@@ -2,6 +2,8 @@
 
 **Created:** 2026-10-24 05:36 CEST
 **Status:** PLAN OF RECORD. Five milestones are already executed (marked `DONE` with commit refs). Everything else is unstarted.
+
+> **Measured corrections (2026-10-24, S11/S12).** The plan's own counts were hand-written and rotted the same way the corpus did. Measured: **578** files to evict (not 582; 591 archive files minus a 13-file keep-set) and **13** keep targets (not 9: 9 direct citations + 3 transitive + the archive manifests). Negative file/line totals below are therefore approximate. Evidence: [`docs/ARCHIVE_EVICTED.md`](../ARCHIVE_EVICTED.md) and `docs/status/ARCHIVE_KEEP.txt`.
 **Supersedes:** [`2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md`](2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md) for **execution order**. That file stays authoritative for its **measured evidence** (§1–§4) and for Phase A's design rationale.
 **Predecessors:** [`docs/status/2026-10-23_17-09_...`](../status/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md) · [`docs/status/2026-10-24_05-28_...`](../status/2026-10-24_05-28_docs-corpus-eviction-phase-a-executed-push-blocked_status.md)
 **Trigger:** "GET SHIT DONE… MAKE SURE TO CREATE A VERY COMPREHENSIVE PLAN FIRST… It should include ALL TODOS!"
@@ -23,7 +25,7 @@ This plan therefore has **5 lanes**, and every one of the 71 open `TODO_LIST` en
 | Lane | Name | Milestones | Effort | Delivers |
 | --- | --- | --- | ---: | --- |
 | 0 | Delivery (outward) | S01–S03 | 110 min | the tree actually ships; CI green |
-| A | Corpus truth | S04–S16 | 700 min | counts honest, tail calm, 582 files evicted, gates that prevent regrowth |
+| A | Corpus truth | S04–S16 | 700 min | counts honest, tail calm, 578 files evicted, gates that prevent regrowth |
 | B | Attention surface | S17–S20 | 220 min | `AGENTS.md` split, gotcha index, orientation block, session-start runbook |
 | C | Corpus tail to 100% | S21–S29 | 470 min | research triage, verified `VERSIONING`/`DOMAIN_LANGUAGE`, corpus budget gate, repo memo |
 | D | Code backlog | S30–S58 | 2,010 min | every verified-open finding in the backlog burn-down |
@@ -87,9 +89,9 @@ Closes D4 **and** D5 = the last two truth defects. After this block the corpus s
 
 ### 2.3 The 20% that delivers ~80%
 
-**+6 milestones · ~520 cumulative minutes: S11 (scratch dry-run) → S12 (manifest + restore command) → S13/S14 (evict 582 files) → S15 (adjudicate the 9 link targets) → S16 (planning triage).**
+**+6 milestones · ~520 cumulative minutes: S11 (scratch dry-run) → S12 (manifest + restore command) → S13/S14 (evict 578 files) → S15 (adjudicate the 13 keep targets) → S16 (planning triage).**
 
-Delivers Axis V: **−582 files, −~186,000 lines (−42% of the repo)**. This is the single largest outcome in the plan and it is 15% of total effort — i.e. the strict 20/80 rule holds *better* here than in the previous plan, because eviction is mostly mechanical volume work with a small, well-understood risk surface (9 citations).
+Delivers Axis V: **−582 files, −~186,000 lines (−42% of the repo)**. This is the single largest outcome in the plan and it is 15% of total effort — i.e. the strict 20/80 rule holds *better* here than in the previous plan, because eviction is mostly mechanical volume work with a small, measured risk surface (13 citations, 12 of them files).
 
 ### 2.4 The remaining 80% to reach 100%
 
@@ -571,7 +573,7 @@ L0.S02 -> LD.S42
 | Gate | Question | Blocks | Fallback if unanswered |
 | --- | --- | --- | --- |
 | Q1 | Is the four-module extraction abandoned or deferred? | S26 (and S24/S25 become blocking) | S26 ships as a no-verdict memo citing the 2026-10-18 KEEP-ALL proposal |
-| Q2 | Where do the 582 evicted files go: delete+manifest / sibling repo / in-tree index? | S13–S15 | **Nothing is removed.** S11/S12 still land, so the eviction is one command away |
+| Q2 | Where do the 578 evicted files go: delete+manifest / sibling repo / in-tree index? | S13–S15 | **Nothing is removed.** S11/S12 still land, so the eviction is one command away |
 | Q3 | Is the docs initiative still the active thread? | S19, `CURRENT_FOCUS.md` | `CURRENT_FOCUS.md` keeps the current wording; S19 is skipped |
 | Q4 | Which of D1–D17 in `TODO_LIST.md` are decided? | S55 | Each ships with its recorded recommendation and a "awaiting" state |
 

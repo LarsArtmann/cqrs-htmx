@@ -780,6 +780,11 @@ jobs:
       - name: Archive eviction tool self-test
         run: bash scripts/selftests/test-evict-archive.sh
 
+      # The archive-pass ritual: row gate BEFORE the move, link re-base AFTER it,
+      # manifest row + baseline ratchet-down in the same run (17 assertions).
+      - name: Archive status tool self-test
+        run: bash scripts/selftests/test-archive-status.sh
+
       # bump-dep.sh discovery self-test (block + single-line require forms,
       # $ anchor, testdata skip) — the 9b3c2e18 regex-gap regression guard.
       - name: bump-dep self-test
