@@ -17,14 +17,14 @@ Each report in this tree captures what someone knew at the end of a work session
 
 | Path                               | Contents                                                                                    |
 | ---------------------------------- | ------------------------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; 46 live as of 2026-10-17 — full-tail ANNOTATE sweep owed, see TODO_LIST) |
-| `docs/status/archived/`            | 473 archived session reports (2026-05-03 → 2026-10-17); bulk-pass manifest in `archived/README.md`                                         |
-| `docs/status/*.html`               | 14 generated HTML report artifacts (see "HTML corpus" below)                                |
+| `docs/status/*.md`                 | The unarchived tail — newest session reports only. **Counts are derived, never written here; run the command in "File counts" below.** |
+| `docs/status/archived/`            | Closed history — every archived session report. Counts derived (see below); bulk-pass manifest in `archived/README.md` |
+| `docs/status/*.html`               | Generated HTML report artifacts (see "HTML corpus" below)                                   |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`                             |
 | `docs/reviews/archived/`           | Archived review documents                                                                   |
-| `docs/modularization/archived/`    | Archived module-assessment documents                                                        |
-| `docs/plans/archived/`             | Archived implementation plans                                                               |
-| `docs/feedback/processed/`         | Processed feedback documents                                                                |
+| `docs/modularization/archived/`    | Archived module-assessment documents                                                       |
+| `docs/plans/archived/`             | Archived implementation plans                                                              |
+| `docs/feedback/processed/`         | Processed feedback documents                                                               |
 | `docs/architecture-understanding/` | Generated self-contained HTML architecture reports (see "HTML corpus" below)                |
 
 `docs/status/archived/` is the ONLY archive directory — the older duplicate `docs/status/archive/` (a 92-file split-brain) was merged into it and removed.
@@ -110,9 +110,28 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: **46 unarchived reports** (the 2026-10-11→17 tail — round-19 full-tail archive owed, tracked in TODO_LIST) + README + 14 HTML artifacts.
-- `docs/status/archived/`: **473 archived reports** (2026-05-03 → 2026-10-17).
-- The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), 2026-09-21 (the 34-report tail), 2026-09-22 (the 8-report superb-plan tail + the plan itself), 2026-10-01 round-13 (the 22-report 09-22→09-30 tail — every report annotated with a dated blockquote + evidence-backed inline strikes, open items routed to TODO_LIST/ROADMAP, then archived), 2026-10-01 round-14 (the 10-01 pair — the 02:59 BuildFlow-recovery and 06:36 round-13 reports got W0–W3-receipt top-up blockquotes + inline strikes for everything the train/gate/erraudit sessions then resolved, then archived; the same pass triaged the six 2026-08-30 planning files — upstream-asks draft archived, gated-work index + cqrs-lint distribution draft annotated, three live owner-gated decisions confirmed leave-in-place — and confirmed the HTML corpus keep-in-place decision), and **2026-10-04 round-17 (the 13-report 10-01→10-04 tail — every report annotated with a dated blockquote + evidence strikes, open items verified against the tree (CI run 37178906141: test green on published pins; master red on exactly one job — the loginpage 7/5 dep budget) and routed to TODO_LIST/ROADMAP, then archived; the two `docs/drafts/2026-10-04-signing-cloneevent-encoding*` files got RESOLVED-SHIPPED blockquotes and stay in place)**, and **2026-10-06 round-18 (the 17-report 10-04→10-06 tail — every report annotated with a dated blockquote + evidence strikes verified against the tree (the identity-auth-hardening wave tags, the 11-module sweep train, push `e2f6be27`, CI green 37392674249, the M01–M15 hardening execution across three sibling sessions) and routed to TODO_LIST/ROADMAP, then archived; the six 2026-08-30/09-23 planning files re-confirmed: 3 annotated, 3 owner-gated LEAVE-IN-PLACE; the HTML corpus keep-in-place decision re-honored)**. Of the 467 archived reports, **102 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and the rest predate annotation entirely (legacy-exempt). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
+Counts are **derived, never hand-maintained** (killed by docs-health round 22, 2026-10-24 — the
+previous table claimed a number 11 short of reality and stayed wrong for a week).
+
+```bash
+# live markdown reports — exactly what the tail-budget gate counts
+ls docs/status/*.md | grep -v 'README.md' | wc -l
+
+# generated HTML artifacts (exempt from annotation and freshness gates)
+ls docs/status/*.html | wc -l
+
+# closed history, all passes
+find docs/status/archived -name '*.md' | wc -l
+
+# the live tail against its budget (exit 1 under --strict)
+bash scripts/checks/check-docs-tail-budget.sh
+```
+
+The complete per-pass manifest lives in [`archived/README.md`](archived/README.md); the round
+manifests below are the in-place records of the largest passes. Gate 1
+(`check-status-annotations.sh`) enforces the current-convention era (reports dated 2026-09-09
+onward); Gate 2 (`check-status-rows.py`) keeps table-row shapes honest. Anything older than the
+epoch is legacy-exempt by design.
 
 ### Round-17 archive manifest (2026-10-04)
 
