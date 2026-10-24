@@ -89,7 +89,18 @@ func (a *Authz) UsersForRole(role Role, domain TenantID) ([]string, error) {
 		)
 	}
 
-	return u, nil
+	// The domain-scoped role manager also carries the role-to-role hierarchy
+	// edges, so Casbin can report a role name as if it were a subject. Users
+	// are the only valid subjects here.
+	users := make([]string, 0, len(u))
+	for _, subject := range u {
+		if Role(subject).Valid() {
+			continue
+		}
+		users = append(users, subject)
+	}
+
+	return users, nil
 }
 
 // RolesForActor returns the direct roles assigned to an actor in a tenant.

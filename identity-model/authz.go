@@ -45,7 +45,12 @@ func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
 		}
 	}
 
+	authz := &Authz{enforcer: e}
+
 	for _, g := range resolved.Groups {
+		if err := authz.ensureRoleHierarchy(g.Domain); err != nil {
+			return nil, err
+		}
 		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
 			return nil, wrapGroupError(err, "add", g)
 		}
@@ -60,7 +65,7 @@ func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
 		}
 	}
 
-	return &Authz{enforcer: e}, nil
+	return authz, nil
 }
 
 // Enforce checks whether the subject is allowed to perform the action on the

@@ -90,7 +90,8 @@ type EnforceResult struct {
 	Action       Action
 }
 
-// PolicyUpdate is a batch of policy and group changes to apply atomically.
+// PolicyUpdate is a batch of policy and group changes applied atomically:
+// if one operation fails, every already-applied operation is rolled back.
 type PolicyUpdate struct {
 	AddGroups      []GroupPolicy
 	RemoveGroups   []GroupPolicy

@@ -18,8 +18,6 @@
 
 ## P1 — High impact (do these next)
 
-- [ ] **identity-model HIGH design pair** — Casbin `g2` hierarchy never fires for user subjects (`authz_model.go:20`) and `Authz.Apply` is not atomic despite its doc claim (`authz_policies.go:8`). **Next:** pick the hierarchy mechanism, then convert `Apply` to copy-and-swap. Detail: § [2026-10-18 full-code-review harvest](#2026-10-18-full-code-review-harvest-episode-4-report-docsreviews2026-10-18_08-25_full-code-reviewhtml).
-
 - [ ] **root exported-contract honesty pass** — 9 mechanical sub-items (SSE raw-error broadcast, `immutable` caching on mutable content, fail-open readiness, unescaped OOB HTML, …). Detail: same harvest section.
 
 - [~] **Cross-repo hardening wave tails (dashboardui + systemadapter + docs lanes).** Phase 1 exploit-class fixes and M01–M26 are DONE (plan annotated in place); the open tails are the GCL row (P2) and the coverage-gate re-run (battery row). Plan: [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md).

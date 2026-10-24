@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **Role hierarchy now fires, and `Authz.Apply` is atomic as documented.** Casbin keeps one role manager per role definition, so the `g2` edges `NewAuthz` seeded never composed with the domain-scoped `g` grants that assign roles: a user granted `user` was denied what `viewer` allows (admin only looked correct because the seed policy gives it `*/*/*`). The hierarchy is mirrored into `g` per domain by `EnsureRoleHierarchy` (called from `AddGroupPolicy`, `Apply`, and `NewAuthz`; idempotent, replay-safe, tenant-scoped), and `UsersForRole` no longer reports role names as subjects. `Apply` now rolls the whole batch back when one operation fails instead of leaving earlier operations committed. Consumers listing `GroupPolicies()` should count grants by non-role subjects: the hierarchy edges are rows too.
 
 ## [v4.13.0] - 2026-10-19
 
