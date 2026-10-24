@@ -1,7 +1,7 @@
 # SUPERB plan: Stripe billing bounded context — Pareto plan
 
 **Created:** 2026-10-24 17:32 CEST
-**Status:** PLAN — proposed, NOT started. **Not the active thread** ([CURRENT_FOCUS.md](../../CURRENT_FOCUS.md) is unchanged; promotion is an owner call — one thread at a time).
+**Status:** SUPERSEDED for execution order and task definitions by [`2026-10-24_18-15_SUPERB-stripe-billing-v2-self-review-hardened-pareto-plan.md`](2026-10-24_18-15_SUPERB-stripe-billing-v2-self-review-hardened-pareto-plan.md) (v2, same day — 8-finding self-review fixes: demand gate, seat sync, bounded seen-refs, MoR decision, kill criteria, vocabulary purity). This file stays authoritative for its decision evidence (§2 anchors, Stripe-docs verification log §9). Not started.
 **Trigger:** architecture session 2026-10-24 ("integrate the CQRS/ES identity system with Stripe") + "MAKE SURE TO CREATE A VERY COMPREHENSIVE PLAN FIRST… It should include ALL TODOS!"
 **Sources:** the session conversation (4 rounds: shape → Stripe-official-docs check → CQRS-purist review → idempotency deep-dive); Stripe official docs fetched 2026-10-24 (`docs.stripe.com/webhooks`, `docs.stripe.com/webhooks/best-practices`); verified source anchors in this repo and go-cqrs-lite/go-idempotency checkouts.
 
