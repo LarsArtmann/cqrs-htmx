@@ -1144,6 +1144,7 @@
                         "todo-hygiene:bash scripts/checks/check-todo-hygiene.sh"
                         "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
+                        "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
@@ -1206,6 +1207,7 @@
                     bash scripts/checks/check-todo-hygiene.sh
                     bash scripts/selftests/test-check-todo-hygiene.sh
                     bash scripts/selftests/test-evict-archive.sh
+                    bash scripts/checks/check-docs-tail-budget.sh --ratchet
                     bash scripts/selftests/test-bump-dep.sh
                     bash scripts/checks/check-session-route-wrappers.sh
                     bash scripts/selftests/test-check-session-route-wrappers.sh
@@ -1462,7 +1464,7 @@
 
             check-docs-tail-budget = {
               type = "app";
-              meta.description = "ADVISORY: warn when the live docs/status/*.md tail exceeds 3 reports (--strict to exit 1). Deliberately not a blocking check-modules stage";
+              meta.description = "Live docs/status/*.md tail: advisory vs the absolute budget of 3, --strict exits 1, --ratchet is the blocking mode wired into check-modules + CI (fails on growth past docs/status/TAIL_BASELINE)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-docs-tail-budget";

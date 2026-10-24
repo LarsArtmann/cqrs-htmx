@@ -90,12 +90,14 @@ bash scripts/selftests/test-normalize-status-rows.sh
 bash scripts/selftests/test-status-table-equivalence.sh
 ```
 
-A third, **advisory** gate keeps the live tail honest: `scripts/checks/check-docs-tail-budget.sh`
-warns (exit 0) when `docs/status/*.md` (excluding this README) exceeds 3 reports,
-so a growing tail surfaces at sweep boundary instead of being re-discovered.
-It is deliberately **not** a blocking `check-modules` stage — a mid-session tail
-of two or three reports is legitimate. `--strict` exits 1 for a manual/train-time
-check. Fixture self-test: `bash scripts/selftests/test-check-docs-tail-budget.sh`.
+A third gate keeps the live tail honest in two modes. The absolute target is 3 reports
+(`docs/status/*.md`, excluding this README); `--strict` exits 1 against it for a manual check.
+The **blocking** mode is `--ratchet`: it reads `docs/status/TAIL_BASELINE` and fails when the
+tail grows past it, so the corpus can only ratchet down — a new report must replace an archived
+one, and archiving must lower the baseline in the same commit. That is what turns "the tail grew
+for weeks while the gate printed a warning" into a red build. Both modes run in `check-modules`
+and CI. Fixture self-test (10 cases incl. ratchet at/over/below/missing/malformed baseline):
+`bash scripts/selftests/test-check-docs-tail-budget.sh`.
 
 Ambient `python3` is the contract for Gate 2 (CI runners ship it); the flake apps
 (`nix run .#check-status-rows` / `.#test-status-rows` / `.#normalize-status-rows`

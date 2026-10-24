@@ -757,8 +757,12 @@ jobs:
       - name: Status row normalize self-test
         run: bash scripts/selftests/test-normalize-status-rows.sh
 
-      # Advisory tail-budget gate (non-blocking by design; a mid-session
-      # docs/status tail is legitimate) plus its fixture self-test.
+      # Live status tail: the absolute budget is still the goal (advisory),
+      # but growth past docs/status/TAIL_BASELINE is a hard failure — the
+      # corpus can only ratchet down now. Plus the fixture self-test.
+      - name: Docs status tail ratchet
+        run: bash scripts/checks/check-docs-tail-budget.sh --ratchet
+
       - name: Docs status tail-budget self-test
         run: bash scripts/selftests/test-check-docs-tail-budget.sh
 
