@@ -1141,6 +1141,8 @@
                         "status-rows:python3 scripts/checks/check-status-rows.py"
                         "status-rows-self-test:bash scripts/selftests/test-check-status-rows.sh"
                         "status-rows-normalize-self-test:bash scripts/selftests/test-normalize-status-rows.sh"
+                        "todo-hygiene:bash scripts/checks/check-todo-hygiene.sh"
+                        "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
@@ -1200,6 +1202,8 @@
                     python3 scripts/checks/check-status-rows.py
                     bash scripts/selftests/test-check-status-rows.sh
                     bash scripts/selftests/test-normalize-status-rows.sh
+                    bash scripts/checks/check-todo-hygiene.sh
+                    bash scripts/selftests/test-check-todo-hygiene.sh
                     bash scripts/selftests/test-bump-dep.sh
                     bash scripts/checks/check-session-route-wrappers.sh
                     bash scripts/selftests/test-check-session-route-wrappers.sh
@@ -1487,6 +1491,45 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-docs-tail-budget.sh
+                  '';
+                }
+              );
+            };
+
+            check-todo-hygiene = {
+              type = "app";
+              meta.description = "Four TODO_LIST.md hygiene rules: no [x] rows, no struck-title rows, no section >30% dead, header <1500 chars with no paragraph >300";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-todo-hygiene";
+                  runtimeInputs = [
+                    pkgs.gawk
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-todo-hygiene.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-todo-hygiene = {
+              type = "app";
+              meta.description = "Fixture self-test for check-todo-hygiene.sh (10 cases: clean/[x]/struck-title/inline-strike/section-death/long-paragraph/header-total/missing/empty/verbose)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-todo-hygiene";
+                  runtimeInputs = [
+                    pkgs.gawk
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-todo-hygiene.sh
                   '';
                 }
               );

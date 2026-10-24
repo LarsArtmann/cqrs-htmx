@@ -762,6 +762,15 @@ jobs:
       - name: Docs status tail-budget self-test
         run: bash scripts/selftests/test-check-docs-tail-budget.sh
 
+      # TODO_LIST hygiene gate: four rules that each caught a real drift class
+      # (planted `[x]` rows, dead struck-title rows, a >30%-dead section, the
+      # 8 KB session-diary header) plus its fixture self-test.
+      - name: TODO hygiene gate
+        run: bash scripts/checks/check-todo-hygiene.sh
+
+      - name: TODO hygiene gate self-test
+        run: bash scripts/selftests/test-check-todo-hygiene.sh
+
       # bump-dep.sh discovery self-test (block + single-line require forms,
       # $ anchor, testdata skip) — the 9b3c2e18 regex-gap regression guard.
       - name: bump-dep self-test
