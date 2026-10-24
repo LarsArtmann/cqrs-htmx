@@ -147,7 +147,7 @@ Impact: **C**ritical / **H**igh / **M**edium / **L**ow. Value: **Ag** future age
 | S16 | Supersession triage of the 18 live planning files | M | 60m | Hu | — | `check-docs-links` |
 | S04b | **DONE** (`ca92d01e`) `docs/status/README.md` counts are derived commands; sweep log moved to the archive manifest | C | 30m | Hu | — | re-read + `check-docs-freshness` |
 | S06 | **DONE** (`fc182d43`) backlog header + 36 dead rows + P1 re-rank + `CURRENT_FOCUS.md` | C | 210m | Ag | — | 5 gates rc=0 |
-| S06b | Promote the tail gate to `--strict` in `check-modules` + CI | H | 20m | Ag | S05 | `nix run .#check-modules` |
+| S06b | **DONE** (`3a93447d`) `--ratchet` mode: blocking on growth past `docs/status/TAIL_BASELINE` (better than the planned binary flip — the tail cannot regrow while it is swept down); 10-case self-test | H | 20m | Ag | S05 | `nix run .#check-modules` |
 | S07 | **DONE** (`26f1d746`) zero-`[x]` rule + planted fixture (consolidated into `check-todo-hygiene.sh`) | H | 40m | Ag | S06 | self-test red on fixture |
 | S08 | **DONE** (`26f1d746`) zero-struck-title rule + fixture (same script) | H | 30m | Ag | S06 | self-test red on fixture |
 | S09 | **DONE** (`26f1d746`) >30%-dead-section rule + fixture (same script) | H | 30m | Ag | S06 | self-test red on fixture |
@@ -157,10 +157,10 @@ Impact: **C**ritical / **H**igh / **M**edium / **L**ow. Value: **Ag** future age
 
 | ID | Milestone | Impact | Effort | Value | Depends | Verify |
 | --- | --- | --- | ---: | --- | --- | --- |
-| S17 | Split `AGENTS.md` (145 lines) into a ≤80-line core + 4 per-module files | H | 100m | Ag | S10 | `check-docs-links` + line count |
-| S18 | Extract the 29 gotchas into `docs/gotchas.md` with stable anchors + one-line index | H | 60m | Ag | S17 | every cross-reference resolves |
-| S19 | 5-line orientation block at the very top of `AGENTS.md` | H | 30m | Ag | S06 | re-read + no contradiction with `CURRENT_FOCUS` |
-| S20 | `docs/runbooks/session-start.md` (3 commands) + prove `agents-notes.md` is not auto-loaded | M | 30m | Ag | S19 | `grep` proves absence |
+| S17 | **PARTIAL** (`e352383e`) `AGENTS.md` 147→127 by extracting 40 gotchas + orientation; the 4-module split is DEFERRED (remaining blocks are the high-frequency surface; Crush does not auto-load nested AGENTS files) | H | 100m | Ag | S10 | `check-docs-links` + line count |
+| S18 | **DONE** (`e352383e`) **40** gotchas extracted verbatim to `docs/gotchas.md` with `#gotcha-N` anchors + a two-column index | H | 60m | Ag | S17 | every cross-reference resolves |
+| S19 | **DONE** (`e352383e`) 5-line orientation block at the top of `AGENTS.md` | H | 30m | Ag | S06 | re-read + no contradiction with `CURRENT_FOCUS` |
+| S20 | **DONE** (`e352383e`) `docs/runbooks/session-start.md` — 3 commands, what is/isn't auto-loaded, finish checklist | M | 30m | Ag | S19 | `grep` proves absence |
 
 ### Lane C — Corpus tail to 100%
 
@@ -748,3 +748,6 @@ bash scripts/checks/check-release-train.sh --strict-lag 0   # rc=3, 65 lag
 | 2026-10-24 | S07–S10 (gates) | **DONE** — `26f1d746`. One `check-todo-hygiene.sh` enforces all four rules with a 10-case fixture self-test (one planted failure per rule), wired into flake apps, `check-modules`, and CI. |
 | 2026-10-24 | S11 (scratch dry run) | **DONE** — `26f1d746`. A detached worktree with the 578 removals applied passes all six doc gates. The first run found one broken link (`…_23-20` → `…_22-34`); the measured keep-set grew from the plan's 9 to **13**. |
 | 2026-10-24 | S12 (manifest + tool) | **DONE** — `26f1d746`. `docs/ARCHIVE_EVICTED.md` records the keep-set, the counts, the dry-run verdict, the restore command, and the execution checklist; `scripts/tools/evict-archive.sh` is the one command (dry-run default, `--apply --yes` to act, refuses stale/empty keep-lists). **Q2 still gates the deletion itself.** |
+| 2026-10-24 | S06b (tail ratchet) | **DONE** — `3a93447d`. The plan's binary flip would have redded the build at 44 live reports; the ratchet forbids growth now and forces the baseline down with every archive. |
+| 2026-10-24 | S05 (batch 1) | **PARTIAL** — 58 → 44. 14 series-internal reports archived, each naming its successor; 7 pre-existing PARTIAL rows normalized before the gate; links re-based. The remaining 44 need the same per-batch verification — no bulk archive. |
+| 2026-10-24 | S18–S20 (attention surface) | **DONE** — `e352383e`. 40 gotchas → `docs/gotchas.md` (stable anchors), 5-line orientation block, `docs/runbooks/session-start.md`. `AGENTS.md` 147 → 127 lines. S17's 4-module split is deferred with the reason recorded inline. |

@@ -18,6 +18,14 @@ first file every session opened had an 86%-dead "High impact" section. Plan:
 hold ≤25 live files, the evicted history has a manifest with a restore command, `TODO_LIST.md`
 carries zero dead rows, and the four new hygiene gates run in `check-modules` + CI.
 
+**Progress (2026-10-24):** counts in `docs/status/README.md` are derived, not hand-maintained;
+`check-todo-hygiene` + the tail **ratchet** + the eviction tool are wired into `check-modules`
+and CI; the eviction is measured (578 files, 13 kept) and one command away
+([`docs/ARCHIVE_EVICTED.md`](docs/ARCHIVE_EVICTED.md), waiting on Q2); the tail went 58 → 44 via
+14 superseded reports. Remaining: the rest of the tail, the eviction itself, the AGENTS module
+split (deferred: the always-loaded file is already 147 → 127 lines and the remaining blocks are
+the high-frequency surface).
+
 ## The next thread (start immediately after)
 
 **Close the open-issue sweep.** Five issues are shipped but not closed (#23/#28/#29/#18/#19);
