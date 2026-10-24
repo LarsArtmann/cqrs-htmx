@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.1
 	//cqrs-lint:ignore(V003) v4.0.1 IS the latest published tag; detector compares against the core module version — false positive
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3

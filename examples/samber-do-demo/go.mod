@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-health v0.7.0
 	github.com/larsartmann/go-health-dashboard v0.11.0
