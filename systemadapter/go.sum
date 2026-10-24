@@ -204,10 +204,10 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 h1:8I2PL2aKyfnXlkNMY/Qdb+SSHkot7ae+/wMUaQrQi1M=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1/go.mod h1:Pdmn759mqJEaBpEe12lqlzueG3Rx+PY7XTLZt7OGCew=
-github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.1 h1:HbVlZKjTxQeXkhar1OTPNaV4j3l/UmZ/bnbIw0wuM+s=
-github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.1/go.mod h1:BofG5x4X/wFbsHse5AphjnABEDmkvTKnIRKa9WBTVPc=
-github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.2.0 h1:bzlVd6IGiubMOlJcJp13i760A04LYeNy5CkXkYwxe0Q=
-github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.2.0/go.mod h1:ipCNhOB4aXx40UZwMmuS0eAa1etbBBHsa9AM2SceSS0=
+github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.2 h1:nf31b0bwHzZ01M+//w8vsdDT1a2IT1NrvP+N6yFco28=
+github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.2/go.mod h1:kOSDtUGcl2VhiEY1rpc4FWjzv8fFZev22WUEAzUxYsg=
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.2.1 h1:QVNFRR8KN/CxETwOJr4l9SRiYiIoMPF/YPgqlG1Z2us=
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.2.1/go.mod h1:44QfZ1erWZcSwIyIErkcRx5ltSkV/JLULqRYhh4r1lI=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3 h1:6MvhIwZpxMUf9bLN2qBcL4oNtk/s09se2hc4gWJCEgM=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3/go.mod h1:UO3RXsNhk/wo6EAdm3jzjtjJRN4JkeviTvco4sJffmg=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4 h1:pjLtfnaGP1L2xssLxK+zrgagDSZ1gPinUYhyMMLbGQA=
