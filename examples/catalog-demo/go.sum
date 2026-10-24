@@ -66,8 +66,8 @@ github.com/larsartmann/go-etag/entitytag v0.6.1 h1:tBr+hR4dqks75SY+pqmUNHUajzOG6
 github.com/larsartmann/go-etag/entitytag v0.6.1/go.mod h1:e09zrSYF6RS8c0IzxZnI1HZQw15gIgwlyp3zerGv+bI=
 github.com/larsartmann/go-etag/server v0.6.1 h1:JVguufBCoLSj83bHM1FqgfSEYc2x1E31kL/Gt1pESHY=
 github.com/larsartmann/go-etag/server v0.6.1/go.mod h1:o3VNBhO58/5rIm0qaU3jLsgRPyjTcaMBtfbHm0lphJk=
-github.com/larsartmann/httputil v1.5.0 h1:mormohXn9dAsUOqiDEYVuwbAwX2ioU9yxHwSuVlQ2bI=
-github.com/larsartmann/httputil v1.5.0/go.mod h1:PzJsA7wSHRpAMD65MJd5YhIz50nGbBhJocuT8jkDbgs=
+github.com/larsartmann/httputil v1.6.0 h1:btLwwHkCX3a++A5ZJectRVZGYUTURNuW2+eJBp9ZgBs=
+github.com/larsartmann/httputil v1.6.0/go.mod h1:cTwWBcrhMpoi70C2dy/Q7k13rYqI5Kg6xUXJV92H4t8=
 github.com/larsartmann/httputil/server_timing v1.0.2 h1:x2J4vLsqHDYi9VbeMabLKlTXFnBgcKFV7LKdNXuMfG0=
 github.com/larsartmann/httputil/server_timing v1.0.2/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
 github.com/larsartmann/templ-components v1.24.0 h1:bQnW7HixjlaSucsn3ctZbVYfJVFmsqh2/Nk1o29ykGo=

@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-health v0.7.0
 	github.com/larsartmann/go-health-dashboard v0.11.0
-	github.com/larsartmann/httputil v1.5.0
+	github.com/larsartmann/httputil v1.6.0
 	github.com/larsartmann/samber-do-auditlog v0.11.0
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
