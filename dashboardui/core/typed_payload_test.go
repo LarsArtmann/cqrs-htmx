@@ -1,7 +1,10 @@
 package core
 
 import (
+	"encoding/json/v2"
+	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 
@@ -164,9 +167,22 @@ func TestTypedRegistry_UnregisteredKeepsDefaultPrettyJSON(t *testing.T) {
 	evt := typedTestEvent(t, "demo.pretty", demoPayload{Name: "p", Count: 3})
 
 	got := string(RenderPayload(DefaultPayloadRenderer{}, evt))
-	want := "{\n  \"name\": \"p\",\n  \"count\": 3\n}"
 
-	if got != want {
-		t.Errorf("RenderPayload = %q, want default pretty JSON %q", got, want)
+	// encoding/json/v2 does not sort object members, so the fallback's field
+	// order is not stable across runs (it flaked CI on 2026-10-24). Pin the
+	// pretty-printed shape and the decoded content, never the byte order.
+	if !strings.Contains(got, "\n  ") {
+		t.Errorf("RenderPayload = %q, want indented JSON", got)
+	}
+
+	var gotFields, wantFields map[string]any
+	if err := json.Unmarshal([]byte(got), &gotFields); err != nil {
+		t.Fatalf("RenderPayload returned invalid JSON (%v): %q", err, got)
+	}
+	if err := json.Unmarshal([]byte(`{"name":"p","count":3}`), &wantFields); err != nil {
+		t.Fatalf("fixture is not valid JSON: %v", err)
+	}
+	if !reflect.DeepEqual(gotFields, wantFields) {
+		t.Errorf("RenderPayload decoded = %v, want %v (raw %q)", gotFields, wantFields, got)
 	}
 }
