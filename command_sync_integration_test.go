@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/go-sse/ssetest"
@@ -263,10 +264,14 @@ func TestIntegration_ACK_RejectedOverSSE(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	// Simulate a failed dispatch
-	dispatchErr := errors.New("email already exists")
+	// Simulate a failed dispatch. A rejection-family error is the client
+	// contract and its detail must survive the broadcast; an unclassified
+	// error is sanitized to the family default (the SafeDetail rule — the
+	// broadcast reaches every connected SSE client).
+	dispatchErr := errorfamily.NewRejection("email_taken", "email already exists")
 	hook := bc.BroadcastOnAck()
 	hook(t.Context(), makeAckRequest("cmd-rejected-002"), dispatchErr)
+	hook(t.Context(), makeAckRequest("cmd-rejected-003"), errors.New("db exploded: internal dsn"))
 
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
@@ -286,7 +291,23 @@ func TestIntegration_ACK_RejectedOverSSE(t *testing.T) {
 	}
 
 	if !strings.Contains(last.Data(), "email already exists") {
-		t.Errorf("expected error message, got: %s", last.Data())
+		t.Errorf("expected rejection detail in broadcast, got: %s", last.Data())
+	}
+
+	readEvents2, err := readUntilMatch(ctx, sr, func(evt ssetest.Event) bool {
+		return evt.Type == "sync:ack" && strings.Contains(evt.Data(), "cmd-rejected-003")
+	})
+	if err != nil {
+		t.Fatalf("read SSE (bare error): %v", err)
+	}
+
+	bare := readEvents2[len(readEvents2)-1].Data()
+	if strings.Contains(bare, "db exploded") || strings.Contains(bare, "internal dsn") {
+		t.Errorf("unclassified error leaked internals to every SSE client: %s", bare)
+	}
+
+	if !strings.Contains(bare, "\"status\":\"rejected\"") {
+		t.Errorf("expected rejected status for the bare error, got: %s", bare)
 	}
 }
 

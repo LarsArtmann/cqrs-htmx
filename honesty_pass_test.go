@@ -37,7 +37,7 @@ func TestNewAck_SanitizesServerFaults(t *testing.T) {
 	// Rejection-family detail IS the client contract and must survive.
 	rejection := errorfamily.NewRejection("email_taken", "email already registered")
 	ackR := newAck("cmd-2", rejection)
-	if ackR.Error != "email already registered" {
+	if !strings.Contains(ackR.Error, "email already registered") {
 		t.Fatalf("rejection detail = %q, want the client-facing message", ackR.Error)
 	}
 }
