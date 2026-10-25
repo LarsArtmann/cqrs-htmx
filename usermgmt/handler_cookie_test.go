@@ -1,7 +1,6 @@
 package usermgmt
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"testing"
 )

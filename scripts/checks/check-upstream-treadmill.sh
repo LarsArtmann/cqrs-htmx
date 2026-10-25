@@ -101,8 +101,12 @@ fetch_repo_tags() { # <repo> — populate REPO_TAGS_* ; never exits on failure
   fi
 
   local url="https://github.com/larsartmann/${repo}.git"
+  # Intentional word-splitting into an array so the default AND the
+  # TREADMILL_FETCH_TAGS_CMD override both split into command + flags.
+  # shellcheck disable=SC2206
+  local fetch_cmd=(${TREADMILL_FETCH_TAGS_CMD:-git ls-remote --tags})
   local tags
-  if ! tags=$("${TREADMILL_FETCH_TAGS_CMD:-git ls-remote --tags}" "$url" 2>/dev/null |
+  if ! tags=$("${fetch_cmd[@]}" "$url" 2>/dev/null |
     sed -e 's|.*refs/tags/||' -e 's/\^{}$//' | sort -u); then
     REPO_TAGS_OK[$repo]=false
     REPO_TAGS_LIST[$repo]=""

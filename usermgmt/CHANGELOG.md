@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **TenantDeleted now cascades Casbin policies (S37a; 2026-10-25 plan W01).** Deleting a tenant previously called `RemoveAllRolesForUser(tenantStreamID)` — which removes NOTHING, because the tenant never appears as a grant subject; its members do. Members of a deleted tenant kept their authorization. The casbin projection now enumerates every `g` row in the tenant's domain (member grants AND the mirrored role-hierarchy edges) and removes them via `RemoveAllRolesInDomain` per subject. Authorization cleanup no longer depends on the best-effort `RemoveMember` dispatches: when one of those fails during `DeleteTenant`, the failure is counted and summarized in one warning line (previously only per-member log lines), and the cascade still removes the policy.
+- **Failed projection rebuilds no longer leave the service with zero live projections (S37b).** `RebuildProjection` stops the host before resetting; a `Reset` or host-create failure used to return with the stopped host still installed — projections went permanently stale until another manual rebuild. A recovery host now starts from the existing checkpoints (projections are idempotent, replay converges) and the original error is still returned; if recovery itself fails, a combined `usermgmt.rebuild.recovery_failed` Infrastructure error names both failures.
+- **Account lockout is fixed-expiry and `EvictStale` matches its doc (S37d; owner verdict 2026-10-25).** A lock now expires `Duration` after the ORIGINAL lock: failures arriving while a lock is active neither extend it nor count toward the next window (previously every probe re-extended `lockedAt`, so a prober could keep an account locked indefinitely). `EvictStale` now also sweeps abandoned attempt counters (last failure older than `Duration`, never locked) — previously only `lockedAt` was swept and the doc's promise about attempt counters was false, so probed-but-never-locked emails grew the map without bound.
+- **The empty-journal fallback warns (S37f).** A store that does not implement `event.Journal` silently gave the projection host an EMPTY in-memory journal — projections replayed nothing and rebuilds saw no history. The fallback now logs a warning naming the store type at startup/rebuild time. Behavior unchanged for journal-capable stores and the dev/test wrappers the fallback exists for.
+- **Session-cookie Max-Age pinned by test (S37c).** The cookie's `Max-Age` defaults to the session TTL (24h) and an explicit `HandlerConfig.SessionMaxAge` wins — behavior was already correct; the pin test keeps it that way.
+
 ## [v4.16.0] - 2026-10-25
 
 ### Added
