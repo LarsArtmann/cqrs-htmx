@@ -1,6 +1,6 @@
 # Plan round 2: SUPERB Lane-D plan, the red-master rescue train, and the push
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_09-45_wave-r-rescue-executed_status.md`](../2026-10-25_09-45_wave-r-rescue-executed_status.md), which Wave R executed its plan; the three owner questions carried to the new report §g. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_09-45_wave-r-rescue-executed_status.md`](2026-10-25_09-45_wave-r-rescue-executed_status.md), which Wave R executed its plan; the three owner questions carried to the new report §g. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 

@@ -1,11 +1,15 @@
 # Status: Wave R executed — red-master rescue, S32 proof (found a real bug), D04 in flight
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_10-15_green-tree-receipt_status.md`](../2026-10-25_10-15_green-tree-receipt_status.md), which Wave R closed and CI green on pushed HEAD; g1 answered by D04 execution; g2/g3 carried to the successor. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Written:** 2026-10-25 09:45 CET · **Supersedes:**
-[`2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md`](archived/2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md)
+[`2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md`](2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md)
 and
-[`2026-10-25_07-43_credential-use-sign-counter-persistence_status.md`](archived/2026-10-25_07-43_credential-use-sign-counter-persistence_status.md)
+[`2026-10-25_07-43_credential-use-sign-counter-persistence_status.md`](2026-10-25_07-43_credential-use-sign-counter-persistence_status.md)
 (their open items are carried here).
-**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
+**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
 **Tree:** clean, master **ahead 11, unpushed** — CI has NOT seen this session's work yet (R05 pending).
 
 ## §a FULLY DONE this session (all committed locally)

@@ -8,30 +8,31 @@
 
 ## The active thread
 
-**Execute the CI-rescue + Lane-D completion plan (Wave R done, Wave D next).**
+**Execute Wave D of the 08-05 plan (Wave R is DONE — tree green on pushed HEAD `a5183fff`, CI `40179492715` all-success).**
 Plan of record:
 [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
 (the 06-20 file keeps the per-milestone scope text for D01–D15).
 
-**Done when:** CI green on a pushed HEAD; the four ratchets (tail, corpus,
-branching-flow, domain counts) green in the same run; master-plan Appendix D
-reconciled; every TODO_LIST row executed or carrying a dated verdict.
+**Done when:** master-plan Appendix D reconciled; every TODO_LIST row
+executed or carrying a dated verdict; the four ratchets (tail, corpus,
+branching-flow, domain counts) green in the same run; CI green on the
+final pushed HEAD.
 
-**Progress (2026-10-25):** Wave R executed — the four CI-red causes fixed at the
-source (root lint 44→0 via errorfamily conversion + openapi static sentinels;
-root coverage 88.1→91.8; branching-flow re-pinned 168→179 with a dated ledger
-row; domain counts already green), the S32 proof tests written (and they caught
-a REAL gap: `RecordCredentialUse` was never registered in systemadapter's
-DomainConfig — fixed, usermgmt v4.16.0 carries the export, strict train 0/0/0),
-S32 receipts landed. Remaining: R04 full battery → R05 push + CI watch → R06
-receipt, then Wave D (D01 receipt, D04 golangci verdict, D02 docs/doctrine,
-D03 tooling, D05–D16).
+**Progress (2026-10-25 10:15):** Wave R + D04 CLOSED — R01–R03 receipts
+landed earlier (S32 proof tests caught and fixed the unwired
+systemadapter registration; usermgmt v4.16.0), D04 executed (golangci
+**2.15.0 everywhere**: the 189 wrapcheck findings on the sanctioned
+`go-error-family` layer are `ignore-package-globs`'d in all 15
+wrapcheck-enabled configs; CI pin moved up to match the flake), the full
+battery green (test rc=0 · lint rc=0 · coverage-gate PASS ·
+check-modules 55/55), pushed through strict gates, CI terminal green.
+Receipt: [`docs/status/2026-10-25_10-15_green-tree-receipt_status.md`](docs/status/2026-10-25_10-15_green-tree-receipt_status.md).
 
 ## The next thread (start immediately after)
 
-**Wave D, in the plan's order: D01 (delivery receipt: Appendix D + CHANGELOG
-receipts S35/S41/S44 + S27 TODO harvest) → D04 (golangci alignment verdict) →
-D02 (docs & doctrine) → D03 (tooling) → D05–D09 (code-fidelity wave) →
+**Wave D remainder, in the plan's order: D01 (delivery receipt: Appendix D +
+CHANGELOG receipts S35/S41/S44 + S27 TODO harvest) → D02 (docs & doctrine:
+S45/S52/S53/S54) → D03 (tooling: S47/S48) → D05–D09 (code-fidelity wave) →
 D10–D16.** Everything is micro-brokened in the plan's §4.2 tables.
 
 **Done when:** each milestone's verify command is green and its rows/receipts
