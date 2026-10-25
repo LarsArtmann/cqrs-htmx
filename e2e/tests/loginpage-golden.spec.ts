@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 /**
  * loginpage full-page render golden (plan W10 / D11 / S57): pins the
@@ -35,6 +35,7 @@ test("login page full render golden", async ({ page }) => {
     .replace(/name="csrf-token" content="[^"]*"/g, 'name="csrf-token" content="<CSRF>"');
 
   if (process.env.WRITE_GOLDEN === "1") {
+    mkdirSync(dirname(GOLDEN_PATH), { recursive: true });
     writeFileSync(GOLDEN_PATH, normalized + "\n");
     test.skip(true, "golden written — review the diff and commit");
   }
