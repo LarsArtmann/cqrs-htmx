@@ -28,12 +28,16 @@ the high-frequency surface).
 
 ## The next thread (start immediately after)
 
-**identity-model HIGH design pair.** Casbin `g2` role links never fire for user subjects
-(`authz_model.go:20`), and `Authz.Apply` is not atomic despite its doc claim
-(`authz_policies.go:8`). Plan: master plan S31.
+**WebAuthn sign-counter persistence (master plan S32).** The stored sign counter is
+never updated (`webauthn/provider.go:267` discards go-webauthn's updated credential),
+so clone detection is dead; stored UP/UV flags are fabricated `true` on reload; and
+registration/login challenge sessions share one key namespace. Plan: master plan S32
+(t32.1–t32.7); the identity-model HIGH pair (former next thread) is DONE
+(`8e7b2174`, CHANGELOG [Unreleased]).
 
-**Done when:** a user granted `admin` inherits `user`/`viewer` in an Enforce test, and a failing
-batch in `Apply` leaves the enforcer unchanged (partial-failure test).
+**Done when:** a successful login updates the persisted credential sign counter
+(round-trip test), a counter regression is rejected, UP/UV flags survive reload
+honestly, and `reg:`/`login:` challenge namespaces cannot collide.
 
 ## Resolved since the last update
 
