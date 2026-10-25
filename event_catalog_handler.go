@@ -30,8 +30,9 @@ func serializeToImmutableHandler(s jsonSerializer, errCode, errMsg string) (http
 }
 
 // EventCatalogHandler returns an http.HandlerFunc that serves the given
-// event catalog as indented JSON with a 1-year immutable Cache-Control and
-// an FNV-1a ETag, mirroring [OpenAPISpecHandler].
+// event catalog as indented JSON with an ETag-driven `Cache-Control: no-cache`
+// (every unchanged fetch is a 304; a changed catalog is refetched — see
+// serveImmutableJSON), mirroring [OpenAPISpecHandler].
 //
 // The catalog is serialized eagerly when this function is called, so any
 // serialization error surfaces once at startup. The returned handler holds
@@ -72,7 +73,11 @@ type immutableJSONServer struct {
 
 func serveImmutableJSON(w http.ResponseWriter, r *http.Request, tag string, data []byte) {
 	w.Header().Set("Content-Type", ContentTypeJSON)
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	// The bytes are an immutable snapshot, but the URL is not versioned: a new
+	// process or an edited catalog/spec changes the content under the same URL.
+	// "no-cache" forces revalidation while the ETag keeps every unchanged fetch
+	// a 304 — a 1-year immutable directive would pin clients to stale specs.
+	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("ETag", tag)
 
 	if current, ok := etag.ParseETag(tag); ok && etag.MatchesIfNoneMatch(current, r.Header.Get("If-None-Match")) {

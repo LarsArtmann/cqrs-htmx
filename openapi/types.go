@@ -68,6 +68,119 @@ type Operation struct {
 	HTTPMethod string `json:"-"`
 }
 
+// Clone returns a deep copy of the operation: every slice, map, and pointer
+// reachable from it is duplicated, so mutating the copy cannot reach the
+// original. Handlers that expose collected operations (e.g.
+// cqrshtmx.App.OpenAPIRoutes) use this to keep their internal state isolated.
+func (o Operation) Clone() Operation {
+	c := o
+	c.Tags = cloneStrings(o.Tags)
+	c.Parameters = cloneParameters(o.Parameters)
+	if o.RequestBody != nil {
+		rb := *o.RequestBody
+		rb.Content = cloneContent(o.RequestBody.Content)
+		c.RequestBody = &rb
+	}
+
+	if o.Responses != nil {
+		c.Responses = make(map[int]*Response, len(o.Responses))
+		for code, resp := range o.Responses {
+			if resp == nil {
+				c.Responses[code] = nil
+
+				continue
+			}
+
+			rc := *resp
+			rc.Headers = cloneHeaders(resp.Headers)
+			rc.Content = cloneContent(resp.Content)
+			c.Responses[code] = &rc
+		}
+	}
+
+	return c
+}
+
+func cloneStrings(in []string) []string {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]string, len(in))
+	copy(out, in)
+
+	return out
+}
+
+func cloneParameters(in []Parameter) []Parameter {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]Parameter, len(in))
+	for i, p := range in {
+		pc := p
+		if p.Schema != nil {
+			sc := p.Schema.Clone()
+			pc.Schema = &sc
+		}
+
+		out[i] = pc
+	}
+
+	return out
+}
+
+func cloneHeaders(in map[string]*Header) map[string]*Header {
+	if in == nil {
+		return nil
+	}
+
+	out := make(map[string]*Header, len(in))
+	for name, h := range in {
+		if h == nil {
+			out[name] = nil
+
+			continue
+		}
+
+		hc := *h
+		if h.Schema != nil {
+			sc := h.Schema.Clone()
+			hc.Schema = &sc
+		}
+
+		out[name] = &hc
+	}
+
+	return out
+}
+
+func cloneContent(in map[string]*MediaType) map[string]*MediaType {
+	if in == nil {
+		return nil
+	}
+
+	out := make(map[string]*MediaType, len(in))
+	for ct, mt := range in {
+		if mt == nil {
+			out[ct] = nil
+
+			continue
+		}
+
+		mc := *mt
+		if mt.Schema != nil {
+			sc := mt.Schema.Clone()
+			mc.Schema = &sc
+		}
+
+		out[ct] = &mc
+	}
+
+	return out
+}
+
 // Parameter is a path, query, header, or cookie parameter.
 type Parameter struct {
 	Name        string   `json:"name"`

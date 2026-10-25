@@ -78,7 +78,12 @@ var projectionDrainReady = map[string]struct{}{
 func ProjectionReadinessCheck(provider ProjectionStatusProvider) NamedCheck {
 	return NewNamedCheck("projections", func() error {
 		if provider == nil {
-			return nil
+			// Fail closed: a nil provider wired into a readiness gate is a
+			// wiring bug, and reporting healthy would green-light traffic with
+			// no evidence that projections ever drained. The sibling status
+			// handler fails closed for the same reason.
+			return errorfamily.NewInfrastructure("projection.readiness.nil_provider",
+				"ProjectionReadinessCheck: status provider is nil — readiness cannot be evaluated")
 		}
 
 		var draining []string

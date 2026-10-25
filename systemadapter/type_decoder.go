@@ -40,6 +40,9 @@ func EventTypeDecoder() *projectionadapter.TypeDecoder {
 		projectionadapter.Register[identitymodel.CredentialRemovedPayload](
 			identitymodel.EventCredentialRemoved, identitymodel.CredentialRemovedPayload{},
 		),
+		projectionadapter.Register[identitymodel.CredentialUsedPayload](
+			identitymodel.EventCredentialUsed, identitymodel.CredentialUsedPayload{},
+		),
 		projectionadapter.Register[identitymodel.EmailVerifiedPayload](
 			identitymodel.EventEmailVerified, identitymodel.EmailVerifiedPayload{},
 		),

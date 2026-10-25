@@ -22,6 +22,8 @@ type (
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	RemoveCredentialCmd = identitymodel.RemoveCredentialCmd
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	RecordCredentialUseCmd = identitymodel.RecordCredentialUseCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	VerifyEmailCmd = identitymodel.VerifyEmailCmd
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	EnableTOTPCmd = identitymodel.EnableTOTPCmd
@@ -61,6 +63,11 @@ func NewAddCredentialCmd(aggID id.StreamID, cred WebAuthnCredential) *AddCredent
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewRemoveCredentialCmd(aggID id.StreamID, credID []byte) *RemoveCredentialCmd {
 	return identitymodel.NewRemoveCredentialCmd(aggID, credID)
+}
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func NewRecordCredentialUseCmd(aggID id.StreamID, use CredentialUse) *RecordCredentialUseCmd {
+	return identitymodel.NewRecordCredentialUseCmd(aggID, use)
 }
 
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.

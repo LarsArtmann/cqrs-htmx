@@ -63,6 +63,59 @@ type Schema struct {
 	Ref string `json:"$ref,omitempty"`
 }
 
+// Clone returns a deep copy of the schema (Properties, Items, Required, and
+// Enum are duplicated). Schemas appear inside cloned operations; the deep copy
+// keeps consumer mutations from reaching collected spec state.
+func (s Schema) Clone() Schema {
+	c := s
+	c.Properties = cloneSchemaMap(s.Properties)
+	c.Required = cloneStrings(s.Required)
+	c.Enum = cloneAnySlice(s.Enum)
+
+	if s.Items != nil {
+		ic := s.Items.Clone()
+		c.Items = &ic
+	}
+
+	if ap, ok := s.AdditionalProperties.(*Schema); ok && ap != nil {
+		ac := ap.Clone()
+		c.AdditionalProperties = &ac
+	}
+
+	return c
+}
+
+func cloneSchemaMap(in map[string]*Schema) map[string]*Schema {
+	if in == nil {
+		return nil
+	}
+
+	out := make(map[string]*Schema, len(in))
+	for name, s := range in {
+		if s == nil {
+			out[name] = nil
+
+			continue
+		}
+
+		sc := s.Clone()
+		out[name] = &sc
+	}
+
+	return out
+}
+
+func cloneAnySlice(in []any) []any {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]any, len(in))
+	copy(out, in)
+
+	return out
+}
+
 // String returns a schema with type "string".
 func String() *Schema { return &Schema{Type: "string"} }
 

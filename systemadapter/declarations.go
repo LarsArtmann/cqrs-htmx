@@ -260,6 +260,7 @@ func userLookup() metaengine.QueryDecl[system.LookupInput[string], UserView] {
 		updateDisplayNameChanged(),
 		updateCredentialAdded(),
 		updateCredentialRemoved(),
+		updateCredentialUsed(),
 		updateEmailVerified(),
 		updateTOTPEnabled(),
 		updateTOTPDisabled(),
@@ -277,6 +278,7 @@ func userScan() metaengine.QueryDecl[system.ScanInput, UserView] {
 		updateDisplayNameChanged(),
 		updateCredentialAdded(),
 		updateCredentialRemoved(),
+		updateCredentialUsed(),
 		updateEmailVerified(),
 		updateTOTPEnabled(),
 		updateTOTPDisabled(),
@@ -345,6 +347,27 @@ func updateCredentialAdded() metaengine.Fold {
 				BackupState:     e.Payload.BackupState,
 				Name:            e.Payload.Name,
 			})
+			prev.UpdatedAt = e.OccurredAt
+			return prev
+		},
+	)
+}
+
+func updateCredentialUsed() metaengine.Fold {
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventCredentialUsed),
+		projectionadapter.EventWithID[identitymodel.CredentialUsedPayload]{},
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.CredentialUsedPayload], prev UserView) UserView {
+			for i := range prev.Credentials {
+				if !bytes.Equal(prev.Credentials[i].ID, e.Payload.CredentialID) {
+					continue
+				}
+				prev.Credentials[i].SignCount = e.Payload.SignCount
+				prev.Credentials[i].UserPresent = e.Payload.UserPresent
+				prev.Credentials[i].UserVerified = e.Payload.UserVerified
+				prev.Credentials[i].BackupState = e.Payload.BackupState
+				break
+			}
 			prev.UpdatedAt = e.OccurredAt
 			return prev
 		},
@@ -561,6 +584,8 @@ func auditLogScan() metaengine.QueryDecl[system.ScanInput, AuditEntryView] {
 			identitymodel.CredentialAddedPayload{}, "add_credential"),
 		auditFold(string(identitymodel.EventCredentialRemoved),
 			identitymodel.CredentialRemovedPayload{}, "remove_credential"),
+		auditFold(string(identitymodel.EventCredentialUsed),
+			identitymodel.CredentialUsedPayload{}, "credential_used"),
 		auditFold(string(identitymodel.EventEmailVerified),
 			identitymodel.EmailVerifiedPayload{}, "verify_email"),
 		auditFold(string(identitymodel.EventTOTPEnabled),

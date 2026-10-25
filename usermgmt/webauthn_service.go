@@ -285,8 +285,13 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
 	}
 
-	if err := s.webauthn.FinishLogin(ctx, userJSON, body, sessionData); err != nil {
+	credJSON, err := s.webauthn.FinishLogin(ctx, userJSON, body, sessionData)
+	if err != nil {
 		return nil, s.finishLoginFailed(ctx, userID, user, err)
+	}
+
+	if err := s.recordCredentialUse(ctx, userID, credJSON); err != nil {
+		return nil, err
 	}
 
 	s.webauthnSessions.Delete(sessionKey)
@@ -305,6 +310,39 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	s.authAudit.loginSuccess(ctx, userID, identitymodel.AuthMethodWebAuthN)
 	s.logger.Info("usermgmt: login successful", "user_id", userID, "email", user.Email)
 	return &FinishLoginResponse{User: user, Session: sess}, nil
+}
+
+// recordCredentialUse persists the credential state a successful assertion
+// produced. It is not optional bookkeeping: the stored signature counter is the
+// high-water mark the next login is compared against, so skipping this leaves
+// clone detection permanently blind. A regressed counter surfaces here as a
+// conflict from the decider, which fails the login.
+func (s *Service) recordCredentialUse(ctx context.Context, userID UserID, credJSON []byte) error {
+	var used webAuthnUserCred
+	if err := json.Unmarshal(credJSON, &used); err != nil {
+		return errorfamily.NewInfrastructure("usermgmt.webauthn.unmarshal_credential",
+			"unmarshal logged-in credential").WithCause(err)
+	}
+
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return errorfamily.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed",
+			"convert userID").WithContextAny("user_id", userID)
+	}
+
+	if err := s.dispatcher.Dispatch(ctx, NewRecordCredentialUseCmd(aggID, CredentialUse{
+		CredentialID: used.ID,
+		SignCount:    used.SignCount,
+		UserPresent:  used.UserPresent,
+		UserVerified: used.UserVerified,
+		BackupState:  used.BackupState,
+	})); err != nil {
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.webauthn.credential_use_failed", "record credential use").
+			WithContextAny("user_id", userID)
+	}
+
+	return nil
 }
 
 // finishLoginFailed handles a failed WebAuthn login ceremony: lockout

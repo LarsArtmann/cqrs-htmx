@@ -34,6 +34,14 @@ func (testWebAuthnProvider) BeginLogin(_ context.Context, _ []byte) ([]byte, []b
 	return testWebAuthnOptions, testWebAuthnSession, nil
 }
 
-func (testWebAuthnProvider) FinishLogin(_ context.Context, _, _, _ []byte) error {
-	return nil
+// testWebAuthnUsedCredential is the canned credential state FinishLogin
+// returns: the registered test credential with an advanced signature counter.
+// The Service persists it through CredentialUsed, so the JSON shape must match
+// exactly what the real provider emits.
+var testWebAuthnUsedCredential = []byte(
+	`{"id":"dGVzdA==","public_key":"dGVzdA==","attestation_type":"none","sign_count":1,"user_present":true,"user_verified":true}`,
+)
+
+func (testWebAuthnProvider) FinishLogin(_ context.Context, _, _, _ []byte) ([]byte, error) {
+	return testWebAuthnUsedCredential, nil
 }

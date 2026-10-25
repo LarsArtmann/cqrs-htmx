@@ -39,6 +39,8 @@ type CredentialView struct {
 	Transports      []string `json:"transports,omitempty"`
 	AAGUID          []byte   `json:"aaguid,omitempty"`
 	SignCount       uint32   `json:"sign_count"`
+	UserPresent     bool     `json:"user_present,omitempty"`
+	UserVerified    bool     `json:"user_verified,omitempty"`
 	BackupEligible  bool     `json:"backup_eligible"`
 	BackupState     bool     `json:"backup_state"`
 	Name            string   `json:"name,omitempty"`
