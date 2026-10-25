@@ -173,58 +173,42 @@ func TestFoldMembership_AcceptsPrefixedTenantID(t *testing.T) {
 	}
 }
 
+// livenessState is the shared Exists/IsActive surface every aggregate state
+// exposes (S38c); the helper below keeps the per-aggregate assertions
+// duplicate-free.
+type livenessState interface {
+	Exists() bool
+	IsActive() bool
+}
+
+func assertLiveness(t *testing.T, name string, state livenessState, wantExists, wantIsActive bool) {
+	t.Helper()
+
+	t.Run(name, func(t *testing.T) {
+		if got := state.Exists(); got != wantExists {
+			t.Errorf("Exists() = %v, want %v", got, wantExists)
+		}
+
+		if got := state.IsActive(); got != wantIsActive {
+			t.Errorf("IsActive() = %v, want %v", got, wantIsActive)
+		}
+	})
+}
+
 // TestUserState_IsActive pins the S38c additive split: Exists stays true for
 // deleted users (they have history), IsActive is the write-path liveness gate.
 func TestUserState_IsActive(t *testing.T) {
-	cases := []struct {
-		name         string
-		state        UserState
-		wantExists   bool
-		wantIsActive bool
-	}{
-		{name: "zero state", state: UserState{}, wantExists: false, wantIsActive: false},
-		{name: "registered", state: UserState{Email: "a@b.c"}, wantExists: true, wantIsActive: true},
-		{name: "deleted user still exists", state: UserState{Email: "a@b.c", Deleted: true}, wantExists: true, wantIsActive: false},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if got := tc.state.Exists(); got != tc.wantExists {
-				t.Errorf("Exists() = %v, want %v", got, tc.wantExists)
-			}
-
-			if got := tc.state.IsActive(); got != tc.wantIsActive {
-				t.Errorf("IsActive() = %v, want %v", got, tc.wantIsActive)
-			}
-		})
-	}
+	assertLiveness(t, "zero state", UserState{}, false, false)
+	assertLiveness(t, "registered", UserState{Email: "a@b.c"}, true, true)
+	assertLiveness(t, "deleted user still exists", UserState{Email: "a@b.c", Deleted: true}, true, false)
 }
 
 // TestBotState_IsActive pins the S38c uniform vocabulary: BotState.Exists
 // already folds the Deleted tombstone, so IsActive mirrors it exactly.
 func TestBotState_IsActive(t *testing.T) {
-	cases := []struct {
-		name         string
-		state        BotState
-		wantExists   bool
-		wantIsActive bool
-	}{
-		{name: "zero state", state: BotState{}, wantExists: false, wantIsActive: false},
-		{name: "registered", state: BotState{Name: "deploy-bot"}, wantExists: true, wantIsActive: true},
-		{name: "deleted folds into Exists", state: BotState{Name: "deploy-bot", Deleted: true}, wantExists: false, wantIsActive: false},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if got := tc.state.Exists(); got != tc.wantExists {
-				t.Errorf("Exists() = %v, want %v", got, tc.wantExists)
-			}
-
-			if got := tc.state.IsActive(); got != tc.wantIsActive {
-				t.Errorf("IsActive() = %v, want %v", got, tc.wantIsActive)
-			}
-		})
-	}
+	assertLiveness(t, "zero state", BotState{}, false, false)
+	assertLiveness(t, "registered", BotState{Name: "deploy-bot"}, true, true)
+	assertLiveness(t, "deleted folds into Exists", BotState{Name: "deploy-bot", Deleted: true}, false, false)
 }
 
 // TestTenantState_IsActive pins the pre-existing tenant split (S38c context):
