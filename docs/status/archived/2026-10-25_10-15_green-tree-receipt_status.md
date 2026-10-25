@@ -1,6 +1,6 @@
 # Status: Green tree — Wave R closed, D04 executed, CI green on pushed HEAD
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md`](../2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md), which superseded by the Wave D continuation receipt (Wave R + D04 story carried in one line; owner-gate tables carried). Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md`](2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md), which superseded by the Wave D continuation receipt (Wave R + D04 story carried in one line; owner-gate tables carried). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 

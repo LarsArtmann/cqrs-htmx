@@ -1,8 +1,12 @@
 # Status: Wave D resume — D01 closed (co-owned with the sibling session), D03 landed, D05 in analysis; concurrent session detected on D02
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md`](../2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md), which W01 executed its section-1 remainder (S37 closed end-to-end); round-28 receipt supersedes. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Written:** 2026-10-25 10:37 CET · **Session:** "READ, UNDERSTAND, RESEARCH, REFLECT… Execute and Verify… Repeat until done" against the 08-05 plan's Wave D (Wave R + D04 were already closed by the prior continuation — pushed HEAD `a5183fff`, CI `40179492715` all-success).
-**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md) (per-milestone scope: the 06-20 file; S-item detail: the 10-24 master plan t-tables).
-**Supersedes:** [`2026-10-25_10-15_green-tree-receipt_status.md`](archived/2026-10-25_10-15_green-tree-receipt_status.md) (Wave R + D04 story unchanged — carried here in one line: battery 4× rc=0, pushed through strict gates, CI terminal green, D04 = golangci 2.15.0 everywhere; its §g owner-gate tables are carried below).
+**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md) (per-milestone scope: the 06-20 file; S-item detail: the 10-24 master plan t-tables).
+**Supersedes:** [`2026-10-25_10-15_green-tree-receipt_status.md`](2026-10-25_10-15_green-tree-receipt_status.md) (Wave R + D04 story unchanged — carried here in one line: battery 4× rc=0, pushed through strict gates, CI terminal green, D04 = golangci 2.15.0 everywhere; its §g owner-gate tables are carried below).
 
 ## §a FULLY DONE this session (committed)
 
