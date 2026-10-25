@@ -11,6 +11,8 @@ type (
 	WebAuthnCredential = identitymodel.WebAuthnCredential
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	CredentialCore = identitymodel.CredentialCore
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	CredentialUse = identitymodel.CredentialUse
 )
 
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.

@@ -163,6 +163,33 @@ func FoldUser(
 		}
 		next.Credentials = filtered
 
+	case EventCredentialUsed:
+		p, err := UnmarshalPayload[CredentialUsedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		found := false
+		for i := range next.Credentials {
+			if !bytes.Equal(next.Credentials[i].ID, p.CredentialID) {
+				continue
+			}
+			next.Credentials[i] = next.Credentials[i].ApplyUse(CredentialUse{
+				CredentialID: p.CredentialID,
+				SignCount:    p.SignCount,
+				UserPresent:  p.UserPresent,
+				UserVerified: p.UserVerified,
+				BackupState:  p.BackupState,
+			})
+			found = true
+			break
+		}
+		if !found {
+			return state, errorfamily.NewCorruption(
+				"identity.credential_used.unknown_credential",
+				"CredentialUsed event for a credential the stream never added",
+			)
+		}
+
 	case EventEmailVerified:
 		_, err := UnmarshalPayload[EmailVerifiedPayload](evt)
 		if err != nil {

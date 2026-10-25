@@ -45,7 +45,11 @@ type WebAuthnProvider interface {
 	BeginLogin(ctx context.Context, userJSON []byte) (options, sessionData []byte, err error)
 
 	// FinishLogin completes the authentication ceremony.
-	FinishLogin(ctx context.Context, userJSON, body, sessionData []byte) error
+	// Returns the credential state the assertion produced (signature counter and
+	// flags) as JSON. The Service records it so clone detection survives
+	// restarts: the counter must be compared against the LAST assertion, not
+	// against registration.
+	FinishLogin(ctx context.Context, userJSON, body, sessionData []byte) (credentialJSON []byte, err error)
 }
 
 // OAuth2Provider defines the OAuth2/OIDC authentication contract.

@@ -20,6 +20,7 @@ var (
 	eventUserDeleted             = identitymodel.EventUserDeleted
 	eventCredentialAdded         = identitymodel.EventCredentialAdded
 	eventCredentialRemoved       = identitymodel.EventCredentialRemoved
+	eventCredentialUsed          = identitymodel.EventCredentialUsed
 	eventEmailVerified           = identitymodel.EventEmailVerified
 	eventTOTPEnabled             = identitymodel.EventTOTPEnabled
 	eventTOTPDisabled            = identitymodel.EventTOTPDisabled
@@ -50,6 +51,7 @@ var (
 	cmdDeleteUser            = identitymodel.CmdDeleteUser
 	cmdAddCredential         = identitymodel.CmdAddCredential
 	cmdRemoveCredential      = identitymodel.CmdRemoveCredential
+	cmdRecordCredentialUse   = identitymodel.CmdRecordCredentialUse
 	cmdVerifyEmail           = identitymodel.CmdVerifyEmail
 	cmdEnableTOTP            = identitymodel.CmdEnableTOTP
 	cmdDisableTOTP           = identitymodel.CmdDisableTOTP
@@ -77,6 +79,7 @@ var allUserEventTypes = []event.Type{
 	eventUserDeleted,
 	eventCredentialAdded,
 	eventCredentialRemoved,
+	eventCredentialUsed,
 	eventEmailVerified,
 	eventTOTPEnabled,
 	eventTOTPDisabled,
