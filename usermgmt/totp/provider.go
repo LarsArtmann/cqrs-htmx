@@ -33,14 +33,17 @@ type Provider struct {
 	window int
 }
 
-// New creates a TOTP provider with the given configuration.
+// New creates a TOTP provider with the given configuration. A negative
+// Window is clamped to the default (1): ValidateCode widens the acceptance
+// window via uint(Skew), where a negative value silently becomes a
+// multi-billion-step (multi-year) skew instead of an error.
 func New(config Config) *Provider {
 	issuer := config.Issuer
 	if issuer == "" {
 		issuer = "cqrs-htmx"
 	}
 	window := config.Window
-	if window == 0 {
+	if window <= 0 {
 		window = 1
 	}
 	return &Provider{issuer: issuer, window: window}

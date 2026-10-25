@@ -169,6 +169,15 @@ func (o *OAuth2Service) FinishLogin(
 		return nil, errorfamily.NewRejection("usermgmt.oauth_no_email",
 			"OAuth2 provider did not return an email address").WithContext("provider", provider)
 	}
+	if info.Subject == "" {
+		// The bundled oauth2 module already rejects this at extraction; the
+		// check here guards custom OAuth2Provider implementations, whose
+		// empty subject would degrade the external-account identity key to
+		// email-only matching.
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "no_subject")
+		return nil, errorfamily.NewRejection("usermgmt.oauth_no_subject",
+			"OAuth2 provider did not return a subject (sub) claim").WithContext("provider", provider)
+	}
 	info.Email = strings.ToLower(strings.TrimSpace(info.Email))
 
 	user, created, err := o.matchOrCreateUser(ctx, provider, info)
