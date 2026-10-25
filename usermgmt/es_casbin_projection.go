@@ -219,8 +219,6 @@ func (p *CasbinProjection) removeAllRolesInDomain(subject, domain, errContext st
 // GroupPolicies view and cleared one by one. Idempotent: a domain without
 // rows is a no-op, which keeps at-least-once redelivery harmless.
 func (p *CasbinProjection) removeAllRolesForDomain(domain string) error {
-	domainID := NewTenantID(domain)
-
 	groups, err := p.authz.GroupPolicies()
 	if err != nil {
 		return errorfamily.WrapInfrastructure(

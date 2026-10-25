@@ -91,18 +91,49 @@ func rebuildProjection(
 		)
 	}
 
+	// Past this point the old host is STOPPED: any subsequent failure must
+	// still leave the service with a live host (projections are idempotent,
+	// replaying from existing checkpoints converges), never at zero.
 	if err := (*hostPtr).Reset(ctx, name); err != nil {
-		return err
+		return recoverProjectionHost(ctx, hostPtr, store, bus, cpStore, projections, err)
 	}
 
 	host, err := createProjectionHost(ctx, store, bus, cpStore, projections)
 	if err != nil {
-		return err
+		return recoverProjectionHost(ctx, hostPtr, store, bus, cpStore, projections, err)
 	}
 
 	*hostPtr = host
 
 	return nil
+}
+
+// recoverProjectionHost restarts a projection host after a rebuild step
+// failed post-Stop, so the service is never left with zero live projections.
+// The original cause is returned unchanged when recovery succeeds (the
+// rebuild still failed — callers must see that); when recovery ALSO fails a
+// combined Infrastructure error names both, because that state (projections
+// down, no auto-restart) is the one operators must act on immediately.
+func recoverProjectionHost(
+	ctx context.Context,
+	hostPtr **projectionhost.Host,
+	store event.Store,
+	bus event.Subscriber,
+	cpStore event.CheckpointStore,
+	projections []projection.Projection,
+	cause error,
+) error {
+	host, recErr := createProjectionHost(ctx, store, bus, cpStore, projections)
+	if recErr == nil {
+		*hostPtr = host
+		return cause
+	}
+
+	return errorfamily.WrapInfrastructure(
+		recErr,
+		"usermgmt.rebuild.recovery_failed",
+		"rebuild failed AND the recovery host could not start — projections are DOWN",
+	).WithCause(cause)
 }
 
 // createProjectionHost converts an event.Store to a journal and delegates to

@@ -159,6 +159,27 @@ func TestService_RebuildProjection_UnknownProjection(t *testing.T) {
 
 	err = svc.RebuildProjection(context.Background(), "nonexistent-projection")
 	if err == nil {
-		t.Error("RebuildProjection with unknown name should return error")
+		t.Fatal("RebuildProjection with unknown name should return error")
+	}
+
+	// S37b: the rebuild failed AFTER the host was stopped — the service must
+	// recover with a live host instead of sitting at zero live projections.
+	statuses := svc.ProjectionStatuses()
+	if len(statuses) == 0 {
+		t.Fatal("projection statuses empty after failed rebuild — service left with no live projections")
+	}
+
+	live := 0
+	for _, s := range statuses {
+		if s.Status == "live" || s.Status == "running" {
+			live++
+		}
+	}
+	if live == 0 {
+		var summary []string
+		for _, s := range statuses {
+			summary = append(summary, s.Name+"="+s.Status)
+		}
+		t.Fatalf("no live projections after failed rebuild (states: %v)", summary)
 	}
 }
