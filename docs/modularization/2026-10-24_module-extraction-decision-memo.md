@@ -14,10 +14,16 @@ Should `cqrs-htmx` split into two repositories by audience — a "library" repo
    [`2026-10-18_PROPOSAL.html`](2026-10-18_PROPOSAL.html) — re-measured every
    boundary: **"boundaries are correct — zero merges, zero splits, zero
    reorganizes."** The 29-module DAG is the assessed optimum, not accretion.
-2. **Coupling, measured the right way (2026-10-24, master plan S24):** of the
-   300 most recent commits touching `dashboardui/` (spanning 2026-09-19 →
-   2026-10-25), **0% also touched root-package files** in the same commit. The
-   UI modules already evolve independently of the core — a split would buy no
+2. **Coupling, measured the right way (corrected 2026-10-25, master plan
+   S24):** of the 78 `dashboardui/`-touching commits in the last-500-commits
+   window, **2.6% also touched root-package files** (2/78); across the full
+   history it is 10.1% (67/663), early co-evolution era included. (The
+   original "0% of 300" claim was a measurement artifact — a pathspec-filtered
+   `git log -- dashboardui/` cannot list root files, so co-change was
+   invisible by construction; the correct command and both windows are
+   recorded in
+   [`../drafts/2026-10-25_docs-truth-quartet-s22-s26.md`](../drafts/2026-10-25_docs-truth-quartet-s22-s26.md).)
+   The UI modules already evolve independently of the core — a split would buy no
    decoupling that the module boundaries don't already enforce.
 3. **The cost side is structural:** 29 modules publish as a family train with
    per-module tags, cross-module replaces, and a strict release-train gate
