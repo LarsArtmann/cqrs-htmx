@@ -129,6 +129,25 @@ func (b *Bundle) mountEventFeeds(mux *http.ServeMux) {
 	}
 }
 
+// bundleReadinessChecks composes the readiness check set: projection drain
+// gate, shared-hub check, then consumer checks ([Config.HealthChecks]) — the
+// ONE composition used by both the mounted readiness handler and appkit's
+// ReadyCheck, so RunWithAppkit cannot silently drop consumer checks or the
+// hub check the way a projection-only adapter did.
+func (b *Bundle) bundleReadinessChecks() []cqrshtmx.NamedCheck {
+	checks := make([]cqrshtmx.NamedCheck, 0, 2+len(b.config.HealthChecks))
+
+	if b.Service != nil {
+		checks = append(checks, cqrshtmx.ProjectionReadinessCheck(b.Service))
+	}
+
+	if b.Broadcaster != nil {
+		checks = append(checks, cqrshtmx.HubReadinessCheck(b.Broadcaster))
+	}
+
+	return append(checks, b.config.HealthChecks...)
+}
+
 // healthHandler builds a readiness check handler that verifies all projection
 // workers have caught up and none have failed. It returns 503 while any
 // projection is still draining its initial journal backlog (essential for
@@ -140,17 +159,7 @@ func (b *Bundle) mountEventFeeds(mux *http.ServeMux) {
 // ONE probe surface: their own checks (with per-check Timeout) report in the
 // same response body and can flip it to 503 exactly like the built-ins.
 func (b *Bundle) healthHandler() http.HandlerFunc {
-	checks := make([]cqrshtmx.NamedCheck, 0, 2+len(b.config.HealthChecks))
-
-	if b.Service != nil {
-		checks = append(checks, cqrshtmx.ProjectionReadinessCheck(b.Service))
-	}
-
-	if b.Broadcaster != nil {
-		checks = append(checks, cqrshtmx.HubReadinessCheck(b.Broadcaster))
-	}
-
-	checks = append(checks, b.config.HealthChecks...)
+	checks := b.bundleReadinessChecks()
 
 	if len(checks) == 0 {
 		return cqrshtmx.ReadinessHandler()
