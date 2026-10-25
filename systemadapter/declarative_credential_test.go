@@ -25,12 +25,10 @@ func TestDeclarative_CredentialUsedLiftsSignCount(t *testing.T) {
 	)))
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddCredentialCmd(
 		userStreamID, identitymodel.WebAuthnCredential{
-			CredentialCore: identitymodel.CredentialCore{
-				ID:              []byte{0x01},
-				PublicKey:       []byte{0x02},
-				AttestationType: "none",
-				SignCount:       5,
-			},
+			ID:              []byte{0x01},
+			PublicKey:       []byte{0x02},
+			AttestationType: "none",
+			SignCount:       5,
 		},
 	)))
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRecordCredentialUseCmd(
