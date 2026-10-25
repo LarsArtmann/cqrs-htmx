@@ -46,6 +46,13 @@ preflight-detectable.
 Offline coverage: `nix run .#test-train-preflight` (stub fixtures; also a
 check-modules + CI stage).
 
+**Mandate (adopted 2026-10-25, master plan S52).** This command — or a
+recorded per-stage reason for every skip — is part of EVERY train, not a
+gold-standard option. A wave that ships without a preflight receipt owns
+the burden of proof for every red CI finds afterward (the 2026-10-25
+morning tags: three cut on a tree whose webauthn suite did not compile —
+exactly the class stage 4 exists to catch).
+
 **Non-train pushes (docs waves, dependency sweeps) — the mini-preflight.**
 `train-preflight` is the gold standard whenever load allows; when it is
 disproportionate, run at least this (the 2026-10-17 push-saga receipt — every
