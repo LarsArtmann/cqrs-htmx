@@ -8,10 +8,14 @@
 
 ## The active thread
 
-**Execute Wave D of the 08-05 plan (Wave R is DONE — tree green on pushed HEAD `a5183fff`, CI `40179492715` all-success).**
+**Execute Wave D (Wave R is DONE — tree green on pushed HEAD `a5183fff`, CI `40179492715` all-success).**
 Plan of record:
-[`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
-(the 06-20 file keeps the per-milestone scope text for D01–D15).
+[`docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md`](docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md)
+(supersedes 08-05 for execution order; the 06-20 file keeps the per-milestone
+scope text for D01–D15). Two-session lane split (binding):
+[`docs/planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md`](docs/planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md)
+— sibling executes W01–W08/W10/W11/W14/W15 (module code), this docs session
+executes W09/W13/W16/W17-verdicts + the quartet + sync tails.
 
 **Done when:** master-plan Appendix D reconciled; every TODO_LIST row
 executed or carrying a dated verdict; the four ratchets (tail, corpus,
