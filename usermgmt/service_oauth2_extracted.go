@@ -106,6 +106,14 @@ func NewOAuth2Service(
 	}
 }
 
+// nonceBeginner is the additive OIDC-nonce capability of the bundled
+// oauth2 provider. Providers that implement it get nonce-bound ID tokens;
+// others fall back to the PKCE-only baseline.
+type nonceBeginner interface {
+	BeginLoginWithNonce(ctx context.Context, providerName, state string) (redirectURL, pkceVerifier, nonce string, err error)
+	FinishLoginWithNonce(ctx context.Context, providerName, code, pkceVerifier, nonce string) (userInfoJSON []byte, err error)
+}
+
 // BeginLogin starts the OAuth2 login flow for the given provider.
 func (o *OAuth2Service) BeginLogin(ctx context.Context, provider string) (*BeginOAuthLoginResponse, error) {
 	state, err := generateOAuth2State()
@@ -113,13 +121,28 @@ func (o *OAuth2Service) BeginLogin(ctx context.Context, provider string) (*Begin
 		return nil, errorfamily.NewTransient("usermgmt.oauth2.generate_state", "generate oauth2 state").WithCause(err)
 	}
 
-	redirectURL, pkceVerifier, nonce, err := o.provider.BeginLogin(ctx, provider, state)
+	nonceStore, nonceCapable := o.states.(NonceStateStore)
+	if beginner, ok := o.provider.(nonceBeginner); ok && nonceCapable {
+		redirectURL, pkceVerifier, nonce, err := beginner.BeginLoginWithNonce(ctx, provider, state)
+		if err != nil {
+			return nil, errorfamily.NewTransient("usermgmt.oauth2.begin_login", "oauth2 begin login").
+				WithCause(err).WithContext("provider", provider)
+		}
+		if err := nonceStore.SaveWithNonce(state, provider, pkceVerifier, nonce, o.stateTTL); err != nil {
+			return nil, errorfamily.NewTransient("usermgmt.oauth2.save_state", "save oauth2 state").
+				WithCause(err).WithContext("provider", provider)
+		}
+		o.logAuth("oauth_login_begin", UserID{}, "provider", provider)
+		return &BeginOAuthLoginResponse{RedirectURL: redirectURL}, nil
+	}
+
+	redirectURL, pkceVerifier, err := o.provider.BeginLogin(ctx, provider, state)
 	if err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.oauth2.begin_login", "oauth2 begin login").
 			WithCause(err).WithContext("provider", provider)
 	}
 
-	if err := o.states.Save(state, provider, pkceVerifier, nonce, o.stateTTL); err != nil {
+	if err := o.states.Save(state, provider, pkceVerifier, o.stateTTL); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.oauth2.save_state", "save oauth2 state").
 			WithCause(err).WithContext("provider", provider)
 	}
@@ -139,7 +162,13 @@ func (o *OAuth2Service) FinishLogin(
 	ctx context.Context,
 	provider, code, state string,
 ) (*FinishOAuthLoginResponse, error) {
-	storedProvider, pkceVerifier, nonce, err := o.states.Consume(state)
+	nonceStore, nonceCapable := o.states.(NonceStateStore)
+	beginner, providerNonceCapable := o.provider.(nonceBeginner)
+	if nonceCapable && providerNonceCapable {
+		return o.finishLoginWithNonce(ctx, provider, code, state, nonceStore, beginner)
+	}
+
+	storedProvider, pkceVerifier, err := o.states.Consume(state)
 	if err != nil {
 		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
 		return nil, errorfamily.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state").
@@ -151,13 +180,56 @@ func (o *OAuth2Service) FinishLogin(
 			"oauth2 provider mismatch between state and callback").WithContext("provider", provider)
 	}
 
-	userInfoJSON, err := o.provider.FinishLogin(ctx, provider, code, pkceVerifier, nonce)
+	userInfoJSON, err := o.provider.FinishLogin(ctx, provider, code, pkceVerifier)
 	if err != nil {
 		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
 		return nil, errorfamily.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token").
 			WithContext("provider", provider)
 	}
 
+	return o.completeLogin(ctx, provider, userInfoJSON)
+}
+
+// finishLoginWithNonce is the nonce-bound FinishLogin path used when both the
+// provider and the state store implement the additive nonce capability: a
+// mismatched or missing id_token nonce claim is rejected at verification
+// (OIDC Core §3.1.3.7).
+func (o *OAuth2Service) finishLoginWithNonce(
+	ctx context.Context,
+	provider, code, state string,
+	nonceStore NonceStateStore,
+	beginner nonceBeginner,
+) (*FinishOAuthLoginResponse, error) {
+	storedProvider, pkceVerifier, nonce, err := nonceStore.ConsumeWithNonce(state)
+	if err != nil {
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
+		return nil, errorfamily.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state").
+			WithContext("provider", provider)
+	}
+	if storedProvider != provider {
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "provider_mismatch")
+		return nil, errorfamily.WrapRejection(ErrOAuthInvalidState, "usermgmt.oauth.provider_mismatch",
+			"oauth2 provider mismatch between state and callback").WithContext("provider", provider)
+	}
+
+	userInfoJSON, err := beginner.FinishLoginWithNonce(ctx, provider, code, pkceVerifier, nonce)
+	if err != nil {
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token").
+			WithContext("provider", provider)
+	}
+
+	return o.completeLogin(ctx, provider, userInfoJSON)
+}
+
+// completeLogin is the shared FinishLogin tail: user-info validation,
+// account linking / auto-registration, session creation, and audit. Both the
+// PKCE-only and the nonce-bound paths converge here.
+func (o *OAuth2Service) completeLogin(
+	ctx context.Context,
+	provider string,
+	userInfoJSON []byte,
+) (*FinishOAuthLoginResponse, error) {
 	var info OAuth2UserInfo
 	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
 		return nil, errorfamily.NewInfrastructure("usermgmt.oauth.userinfo_unmarshal", "unmarshal user info").
