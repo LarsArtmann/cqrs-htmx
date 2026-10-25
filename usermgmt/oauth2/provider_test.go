@@ -1101,3 +1101,151 @@ func TestProvider_Names_Multiple_Sorted(t *testing.T) {
 		}
 	}
 }
+
+// --- S39/w03.6: empty-subject rejection + OIDC nonce ---
+
+func TestProvider_FinishLogin_EmptySubjectRejected(t *testing.T) {
+	provCfg := newFakeOAuth2Server(t, map[string]any{
+		"email": "nosub@example.com",
+		"name":  "No Subject",
+	})
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{"github": provCfg},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, _ := p.BeginLogin(context.Background(), "github", "state")
+	_, err = p.FinishLogin(context.Background(), "github", "test-auth-code", pkceVerifier)
+	if err == nil {
+		t.Fatal("FinishLogin with neither sub nor id: expected rejection, got nil")
+	}
+	if !strings.Contains(err.Error(), "oauth2.empty_subject") &&
+		!strings.Contains(err.Error(), "neither a subject") {
+		t.Errorf("expected empty-subject rejection, got: %v", err)
+	}
+}
+
+func TestProvider_FinishLogin_OIDC_EmptySubjectRejected(t *testing.T) {
+	oidc := newFakeOIDCServer(t)
+	oidc.claims = map[string]any{
+		"sub":            "",
+		"email":          "nosub@example.com",
+		"email_verified": true,
+	}
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{"google": oidc.providerConfig()},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, _ := p.BeginLogin(context.Background(), "google", "state")
+	_, err = p.FinishLogin(context.Background(), "google", "test-auth-code", pkceVerifier)
+	if err == nil {
+		t.Fatal("OIDC FinishLogin with empty sub: expected rejection, got nil")
+	}
+}
+
+func TestBeginLoginWithNonce_EmbedsNonceInURL(t *testing.T) {
+	oidc := newFakeOIDCServer(t)
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{"google": oidc.providerConfig()},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	redirectURL, _, nonce, err := p.BeginLoginWithNonce(context.Background(), "google", "state-123")
+	if err != nil {
+		t.Fatalf("BeginLoginWithNonce: %v", err)
+	}
+	if nonce == "" {
+		t.Fatal("BeginLoginWithNonce must return a non-empty nonce")
+	}
+
+	parsed, err := url.Parse(redirectURL)
+	if err != nil {
+		t.Fatalf("parse redirect URL: %v", err)
+	}
+	if got := parsed.Query().Get("nonce"); got != nonce {
+		t.Errorf("authorization URL nonce = %q, want the returned nonce %q", got, nonce)
+	}
+	if got := parsed.Query().Get("state"); got != "state-123" {
+		t.Errorf("authorization URL state = %q, want %q", got, "state-123")
+	}
+}
+
+func TestProvider_FinishLoginWithNonce_MatchSucceeds(t *testing.T) {
+	oidc := newFakeOIDCServer(t)
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{"google": oidc.providerConfig()},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, nonce, err := p.BeginLoginWithNonce(context.Background(), "google", "state")
+	if err != nil {
+		t.Fatalf("BeginLoginWithNonce: %v", err)
+	}
+	oidc.claims["nonce"] = nonce
+
+	userInfoJSON, err := p.FinishLoginWithNonce(
+		context.Background(), "google", "test-auth-code", pkceVerifier, nonce,
+	)
+	if err != nil {
+		t.Fatalf("FinishLoginWithNonce with matching nonce: %v", err)
+	}
+
+	var info userInfo
+	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
+		t.Fatalf("unmarshal userInfo: %v", err)
+	}
+	if info.Subject != "oidc-sub-123" {
+		t.Errorf("Subject = %q, want %q", info.Subject, "oidc-sub-123")
+	}
+}
+
+func TestProvider_FinishLoginWithNonce_MismatchRejected(t *testing.T) {
+	oidc := newFakeOIDCServer(t)
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{"google": oidc.providerConfig()},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, nonce, err := p.BeginLoginWithNonce(context.Background(), "google", "state")
+	if err != nil {
+		t.Fatalf("BeginLoginWithNonce: %v", err)
+	}
+
+	cases := map[string]map[string]any{
+		"different nonce": {"nonce": "attacker-chosen-nonce"},
+		"missing nonce":   {},
+	}
+	for name, claims := range cases {
+		oidc.claims["nonce"] = claims["nonce"]
+		if _, ok := claims["nonce"]; !ok {
+			delete(oidc.claims, "nonce")
+		}
+
+		_, err := p.FinishLoginWithNonce(
+			context.Background(), "google", "test-auth-code", pkceVerifier, nonce,
+		)
+		if err == nil {
+			t.Fatalf("FinishLoginWithNonce with %s: expected rejection, got nil", name)
+		}
+		if !strings.Contains(err.Error(), "oauth2.nonce_mismatch") &&
+			!strings.Contains(err.Error(), "nonce does not match") {
+			t.Errorf("FinishLoginWithNonce with %s: expected nonce_mismatch, got: %v", name, err)
+		}
+	}
+}
