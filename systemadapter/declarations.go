@@ -660,7 +660,9 @@ func auditKey(streamID, eventType string, occurredAt time.Time) string {
 // attaches no actors (system.Execute drops the context) — records written by
 // an enriching writer against the same store (the usermgmt service path wires
 // event.ActorEnricher) replay through these folds with their actors intact.
-func newAuditEntryView(rec record.Record, eventType, aggregateID string, occurredAt time.Time, action string) AuditEntryView {
+func newAuditEntryView(
+	rec record.Record, eventType, aggregateID string, occurredAt time.Time, action string,
+) AuditEntryView {
 	view := AuditEntryView{
 		EventType:   eventType,
 		AggregateID: aggregateID,
