@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-health v0.7.0
-	github.com/larsartmann/go-health-dashboard v0.11.0
+	github.com/larsartmann/go-health-dashboard v0.12.0
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
 )
@@ -14,6 +14,7 @@ require (
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1070 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/go-playground/form/v4 v4.5.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
