@@ -56,8 +56,8 @@ func TestEventsIndex_SortedViewIsAWindow(t *testing.T) {
 
 	body := w.Body.String()
 
-	if !strings.Contains(body, "sorted view: first 500 events") {
-		t.Error("expected the sorted-window truncation badge")
+	if !strings.Contains(body, "sorted view: newest 60 events (scan cap 500)") {
+		t.Errorf("expected the sorted-window badge to tell the ACTUAL window size (60 events, not the 500 cap)")
 	}
 
 	if strings.Contains(body, "after=") {
