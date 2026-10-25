@@ -370,6 +370,7 @@ func TestNewPageData_PopulatesNonceAndTheme(t *testing.T) {
 	svc := newTestService(t)
 
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	//nolint:gosec // G124: simulates an incoming request cookie, never a Set-Cookie; test-only
 	r.AddCookie(&http.Cookie{Name: "theme", Value: ThemeDark})
 
 	data, err := NewPageData(Config{
