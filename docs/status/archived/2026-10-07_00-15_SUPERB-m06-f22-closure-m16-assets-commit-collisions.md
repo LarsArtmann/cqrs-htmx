@@ -1,6 +1,6 @@
 # Status: SUPERB session — M06/F22 closure (found+fixed a real sqlite bug), M16 shipped, two commit collisions survived
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md`](2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md), which resumes this exact session, and the day's later reports close the plan's remaining milestones (02-57 records M20–M26 done, 03-45 closes M27). Strike depth:
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by `2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md`, which resumes this exact session, and the day's later reports close the plan's remaining milestones (02-57 records M20–M26 done, 03-45 closes M27). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
 

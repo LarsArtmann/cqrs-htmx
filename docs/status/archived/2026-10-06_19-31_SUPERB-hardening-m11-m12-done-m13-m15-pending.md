@@ -5,7 +5,7 @@
 > preflight; took the signature break with a Changed receipt; disabled both
 > **ANNOTATED 2026-10-06 (docs-health round 18)** — fully superseded and closed by the 21:35 completion report: M13, M14, M15 all shipped, tested, and receipted (`44bc4d48`, `7d3eabb6`, `99be51de`); the three open questions below were answered by execution exactly as predicted (proceeded gated on preflight; `core.ListStreamsPaged` shipped as a CHANGELOG-Changed breaking signature; both prev and next disabled in sorted mode). Struck below: §b2, §c1–c3.
 > prev and next in sorted mode). Live picture:
-> [`2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`](2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md).
+> `2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`.
 
 **Created:** 2026-10-06 19:31 · **Scope:** execution status of
 [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md)

@@ -1,6 +1,6 @@
 # Status: CI-Repair Round (mod-tidy residue + StreamID pin ratchet → master green)
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md`](2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md), which the 3-module train was cut 2026-10-08 and the tidy-residue class re-owned; train-preflight adoption and loginpage coverage micro are TODO rows. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by `2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md`, which the 3-module train was cut 2026-10-08 and the tidy-residue class re-owned; train-preflight adoption and loginpage coverage micro are TODO rows. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 

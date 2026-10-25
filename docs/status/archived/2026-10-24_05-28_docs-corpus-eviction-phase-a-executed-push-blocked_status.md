@@ -1,6 +1,6 @@
 # Status — docs-corpus eviction, Phase A executed; push still blocked
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_11-40_docs-truth-gates-ratchet-and-httputil-unblock_status.md`](2026-10-24_11-40_docs-truth-gates-ratchet-and-httputil-unblock_status.md), which its blocked push is resolved (master plan Lane 0, CI green run 40064355158); milestones M6-M30 live in the master plan Appendix D. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by `2026-10-24_11-40_docs-truth-gates-ratchet-and-httputil-unblock_status.md`, which its blocked push is resolved (master plan Lane 0, CI green run 40064355158); milestones M6-M30 live in the master plan Appendix D. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 

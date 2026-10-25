@@ -1,6 +1,6 @@
 # SUPERB Session Status — M20–M26 Executed, M27 Battery 80% (foreign-session interference), Plan 26/27 Milestones Done
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-07_03-45_SUPERB-m27-battery-reds-triaged-sweeps-partial.md`](2026-10-07_03-45_SUPERB-m27-battery-reds-triaged-sweeps-partial.md), which finishes the M27 battery this report left at 80 percent (9 reds triaged, 7 fixed). Strike depth:
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by `2026-10-07_03-45_SUPERB-m27-battery-reds-triaged-sweeps-partial.md`, which finishes the M27 battery this report left at 80 percent (9 reds triaged, 7 fixed). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
 

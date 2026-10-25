@@ -1,6 +1,6 @@
 # Status: module-extraction question → doc-corpus audit → self-review
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_05-28_docs-corpus-eviction-phase-a-executed-push-blocked_status.md`](2026-10-24_05-28_docs-corpus-eviction-phase-a-executed-push-blocked_status.md), which its 50-item list and 3 owner questions were harvested into the 10-23 plan then superseded by the 2026-10-24 master plan (g1-g3 = §7 Q1-Q3; f-list = S01-S58). Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by `2026-10-24_05-28_docs-corpus-eviction-phase-a-executed-push-blocked_status.md`, which its 50-item list and 3 owner questions were harvested into the 10-23 plan then superseded by the 2026-10-24 master plan (g1-g3 = §7 Q1-Q3; f-list = S01-S58). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 
