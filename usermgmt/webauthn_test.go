@@ -49,7 +49,7 @@ func TestWebAuthn_BeginRegistration_WithSessionStored(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BeginRegistration: %v", err)
 	}
-	_, err = svc.webauthnSessions.Get(NewUserID("u1").Get().String())
+	_, err = svc.webauthnSessions.Get(registrationSessionPrefix + NewUserID("u1").Get().String())
 	if err != nil {
 		t.Errorf("expected session data stored, got: %v", err)
 	}
