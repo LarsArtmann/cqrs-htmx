@@ -167,3 +167,48 @@ func TestOpenAPISpecHandler_ConcurrentRequestsAreSafe(t *testing.T) {
 
 	wg.Wait()
 }
+
+// TestOpenAPISpecHandler_RestartStableETag pins the deterministic-serialization
+// contract end to end (S43): two specs with identical content but differently
+// ordered internal maps must serialize to identical bytes and therefore derive
+// the same ETag — before the canonical marshaler, encoding/json/v2's
+// unsorted-map output churned the ETag on every process restart.
+func TestOpenAPISpecHandler_RestartStableETag(t *testing.T) {
+	t.Parallel()
+
+	specA := sampleSpec()
+
+	specB := sampleSpec()
+	shuffled := make(map[string]*openapi.PathItem, len(specB.Paths))
+	for p, item := range specB.Paths { //nolint:gocritic // iteration order IS the variable under test
+		shuffled[p] = item
+	}
+	specB.Paths = shuffled
+
+	ha, errA := cqrshtmx.OpenAPISpecHandler(specA)
+	if errA != nil {
+		t.Fatalf("handler A: %v", errA)
+	}
+
+	hb, errB := cqrshtmx.OpenAPISpecHandler(specB)
+	if errB != nil {
+		t.Fatalf("handler B: %v", errB)
+	}
+
+	wa, wb := httptest.NewRecorder(), httptest.NewRecorder()
+	ha(wa, httptest.NewRequest(http.MethodGet, "/openapi.json", nil))
+	hb(wb, httptest.NewRequest(http.MethodGet, "/openapi.json", nil))
+
+	if wa.Header().Get("ETag") == "" {
+		t.Fatal("handler A set no ETag")
+	}
+
+	if wa.Header().Get("ETag") != wb.Header().Get("ETag") {
+		t.Fatalf("ETag churned across identical specs: %q vs %q — serialization is not deterministic",
+			wa.Header().Get("ETag"), wb.Header().Get("ETag"))
+	}
+
+	if wa.Body.String() != wb.Body.String() {
+		t.Fatal("body bytes differ across identical specs — serialization is not deterministic")
+	}
+}
