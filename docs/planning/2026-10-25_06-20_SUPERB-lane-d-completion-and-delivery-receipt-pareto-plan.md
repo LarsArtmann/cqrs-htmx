@@ -1,5 +1,9 @@
 # SUPERB plan: Lane D completion — code backlog, tooling, and the delivery receipt
 
+> **SUPERSEDED 2026-10-25 (execution order + micro-task granularity) by**
+> [`2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
+> — this file remains authoritative for the per-milestone scope text of D01–D15 and for the owner-gate section.
+
 **Created:** 2026-10-25 06:20 CEST · **Trigger:** "GET SHIT DONE — comprehensive plan first" (round 2)
 **Scope:** EVERYTHING still open after the 2026-10-24/25 execution wave — the master plan's
 open Lane D milestones, its S27/S28 close-out, and the TODO rows opened or carried since.
