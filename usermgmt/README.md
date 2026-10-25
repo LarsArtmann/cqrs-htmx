@@ -92,6 +92,45 @@ Commands (21): `RegisterUser`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`,
 All 21 are registered both on the usermgmt dispatcher and in
 `systemadapter.DomainConfig()` for `system.New()` consumers.
 
+## Consuming domain events
+
+There is no callback API — the legacy `EventHandler` was removed. Consumers
+subscribe to the service's event bus directly:
+
+```go
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{ /* ... */ })
+defer svc.Close()
+
+svc.EventBus().Subscribe(func(evt event.Event) {
+    switch evt.Type() {
+    case identitymodel.EventCredentialUsed:
+        var p identitymodel.CredentialUsedPayload
+        _ = json.Unmarshal(evt.Payload(), &p) // SignCount, UserPresent, UserVerified...
+    case identitymodel.EventUserDeleted:
+        // react to deletion (cleanup, notifications, ...)
+    }
+})
+```
+
+- **Where events come from:** every dispatched command appends its events to
+  the journal and publishes them on the bus (`Service.EventBus()`; bring your
+  own via `ServiceConfig.EventBus`, default is watermill-backed). Handler
+  ordering across subscribers is not guaranteed — treat handlers as
+  projections, not orchestrations.
+- **Payload types:** every event's payload struct is re-exported from this
+  package (`usermgmt.CredentialUsedPayload`, `usermgmt.UserDeletedPayload`, …)
+  and aliased 1:1 to `identity-model`, the domain source of truth. The full
+  schema set is served by `DefaultEventCatalog()`.
+- **Replay instead of live-only:** for rebuildable state prefer projecting
+  from the journal (`Service.Journal()`, or the declarative
+  `systemadapter` path) — the bus is at-least-once and in-memory by default;
+  the journal is the durable record.
+- **Relationship to the audit trail:** the built-in audit log is itself a
+  projection of these events (see `Service.AuditLog()`); you are consuming
+  the same published language it folds. Auth-audit events (`LoginSucceeded`,
+  `LoginFailed`, `RegistrationClosed`) ride their own Auth-typed streams and
+  are appended best-effort.
+
 ## Development
 
 ```bash
