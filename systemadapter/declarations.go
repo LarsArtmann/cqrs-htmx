@@ -639,9 +639,12 @@ func loginFailedAuditFold() metaengine.Fold {
 
 	return metaengine.OnRecordTyped(eventType,
 		projectionadapter.EventWithID[identitymodel.LoginFailedPayload]{},
-		func(rec record.Record, e projectionadapter.EventWithID[identitymodel.LoginFailedPayload]) (string, AuditEntryView) {
+		func(
+			rec record.Record, e projectionadapter.EventWithID[identitymodel.LoginFailedPayload],
+		) (string, AuditEntryView) {
 			view := newAuditEntryView(rec, eventType, e.ID, e.OccurredAt, usermgmt.AuditActionLoginFailed)
 			view.Detail = string(e.Payload.Reason)
+
 			return auditKey(e.ID, eventType, e.OccurredAt), view
 		})
 }
