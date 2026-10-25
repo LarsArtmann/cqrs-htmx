@@ -56,12 +56,19 @@ func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
 		}
 	}
 
-	for _, h := range DefaultRoleHierarchy() {
-		if _, err := e.AddNamedGroupingPolicy("g2", string(h.From), string(h.To)); err != nil {
-			return nil, errorfamily.Wrapf(
-				err, event.Transient, "casbin_error",
-				"seed role hierarchy g2(%s, %s)", h.From, h.To,
-			)
+	// Seed the default role hierarchy only when the model actually declares a
+	// g2 role-definition section: AddNamedGroupingPolicy errors against a
+	// missing section, so a custom model without g2 must not be force-fed the
+	// default hierarchy (S38d). model.Model is map[string]AssertionMap; the
+	// double index is a safe read even when the "g" section is absent.
+	if _, hasG2 := m["g"]["g2"]; hasG2 {
+		for _, h := range DefaultRoleHierarchy() {
+			if _, err := e.AddNamedGroupingPolicy("g2", string(h.From), string(h.To)); err != nil {
+				return nil, errorfamily.Wrapf(
+					err, event.Transient, "casbin_error",
+					"seed role hierarchy g2(%s, %s)", h.From, h.To,
+				)
+			}
 		}
 	}
 

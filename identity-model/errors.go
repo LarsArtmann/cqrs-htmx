@@ -53,8 +53,11 @@ var (
 		"usermgmt.enforcer_not_initialized", "authorization enforcer not initialized",
 	)
 	// ErrEmailVerificationNotConfigured is returned when email verification is
-	// used without being configured in ServiceConfig.
-	ErrEmailVerificationNotConfigured error = errorfamily.NewTransient(
+	// used without being configured in ServiceConfig. Rejection (S38e): a
+	// missing deployment configuration is permanent for this deployment —
+	// answering 503 Transient would tell clients a retry can help when it
+	// cannot.
+	ErrEmailVerificationNotConfigured error = errorfamily.NewRejection(
 		"usermgmt.email_verification_not_configured", "email verification is not configured",
 	)
 	// ErrInvalidVerificationToken is returned when a verification token is
@@ -69,8 +72,9 @@ var (
 		"usermgmt.email_already_verified",
 		"email is already verified",
 	)
-	// ErrTOTPNotConfigured is returned when TOTP MFA is used without being configured.
-	ErrTOTPNotConfigured error = errorfamily.NewTransient("usermgmt.totp_not_configured", "TOTP is not configured")
+	// ErrTOTPNotConfigured is returned when TOTP MFA is used without being
+	// configured. Rejection (S38e): permanent for this deployment, not retryable.
+	ErrTOTPNotConfigured error = errorfamily.NewRejection("usermgmt.totp_not_configured", "TOTP is not configured")
 	// ErrTOTPAlreadyEnabled is returned when TOTP setup is requested for a user who already has it.
 	ErrTOTPAlreadyEnabled error = errorfamily.NewConflict(
 		"usermgmt.totp_already_enabled",
@@ -85,8 +89,9 @@ var (
 		"usermgmt.totp_setup_expired",
 		"TOTP setup has expired, please try again",
 	)
-	// ErrOAuthNotConfigured is returned when OAuth2 is used without being configured.
-	ErrOAuthNotConfigured error = errorfamily.NewTransient("usermgmt.oauth_not_configured", "OAuth2 is not configured")
+	// ErrOAuthNotConfigured is returned when OAuth2 is used without being
+	// configured. Rejection (S38e): permanent for this deployment, not retryable.
+	ErrOAuthNotConfigured error = errorfamily.NewRejection("usermgmt.oauth_not_configured", "OAuth2 is not configured")
 	// ErrOAuthProviderNotFound is returned when the requested provider is not configured.
 	ErrOAuthProviderNotFound error = errorfamily.NewRejection(
 		"usermgmt.oauth_provider_not_found",

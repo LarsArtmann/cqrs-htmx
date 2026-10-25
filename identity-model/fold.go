@@ -23,8 +23,18 @@ type UserState struct {
 }
 
 // Exists reports whether the user has been registered (has at least one event).
+// It stays true after UserDeleted: a deleted user still HAS history. Use
+// [UserState.IsActive] for the write-path liveness gate instead.
 func (s UserState) Exists() bool {
 	return s.Email != ""
+}
+
+// IsActive reports whether the user is usable: registered and not deleted.
+// Deciders gate commands on this (not on Exists) so tombstoned streams stop
+// accepting writes. Additive (S38c): every existing Exists() semantic is
+// unchanged.
+func (s UserState) IsActive() bool {
+	return s.Exists() && !s.Deleted
 }
 
 // MembershipState is the aggregate state for a Membership (actor+tenant pair).
@@ -35,7 +45,9 @@ type MembershipState struct {
 	Removed  bool
 }
 
-// Exists reports whether the membership has been added (has at least one event).
+// Exists reports whether the membership is currently in effect: MemberRemoved
+// folds to Removed=true and Exists() goes false. Unlike UserState, no
+// IsActive split is needed — Exists already carries the liveness semantics.
 func (s MembershipState) Exists() bool {
 	return !s.ActorID.IsZero() && !s.Removed
 }
@@ -88,9 +100,18 @@ type BotState struct {
 	Deleted   bool
 }
 
-// Exists reports whether the bot has been registered (has at least one event).
+// Exists reports whether the bot has been registered and not deleted. The
+// Deleted tombstone is already folded here, so no separate IsActive split is
+// required; [BotState.IsActive] exists as the uniform-vocabulary alias.
 func (s BotState) Exists() bool {
 	return s.Name != "" && !s.Deleted
+}
+
+// IsActive reports whether the bot is usable. BotState.Exists already folds
+// the Deleted tombstone, so this is the uniform alias letting callers write
+// `state.IsActive()` across every aggregate (S38c).
+func (s BotState) IsActive() bool {
+	return s.Exists()
 }
 
 // FoldUser applies an event to the current UserState, returning the new state.
@@ -238,8 +259,12 @@ func FoldMembership(
 		if err != nil {
 			return state, err
 		}
+		tenantID, err := ParseTenantID(p.TenantID)
+		if err != nil {
+			return state, err
+		}
 		next.ActorID = NewActorID(kind, p.ActorID)
-		next.TenantID = NewTenantID(p.TenantID)
+		next.TenantID = tenantID
 		next.Roles = roles
 		next.Removed = false
 
