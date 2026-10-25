@@ -106,8 +106,8 @@ func (stubWebAuthnProvider) BeginLogin(context.Context, []byte) ([]byte, []byte,
 	return nil, nil, nil
 }
 
-func (stubWebAuthnProvider) FinishLogin(context.Context, []byte, []byte, []byte) error {
-	return nil
+func (stubWebAuthnProvider) FinishLogin(context.Context, []byte, []byte, []byte) ([]byte, error) {
+	return []byte(`{"id":"","sign_count":0}`), nil
 }
 
 // stubOAuth2Provider satisfies identitymodel.OAuth2Provider plus the optional
