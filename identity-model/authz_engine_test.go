@@ -15,21 +15,22 @@ func newTestAuthz(t *testing.T) *Authz {
 	return a
 }
 
-// userActorPair returns a deterministic UserID and a matching ActorID for the
-// same raw value. The UserID string is what Casbin stores as the group-policy
-// subject; the ActorID uses the raw value so RolesForActor hashes it to the
-// same UserID string.
-func userActorPair(raw string) (UserID, ActorID) {
-	uid := NewUserID(raw)
-	return uid, NewActorID(ActorUser, raw)
+// userActorPair returns a distinct UserID and its matching ActorID. The
+// UserID string is what Casbin stores as the group-policy subject; the
+// ActorID's raw value IS the ULID, so RolesForActor's strict parse resolves
+// the same identity (S38g: non-ULID labels previously relied on the
+// deprecated hash-masking NewUserID path).
+func userActorPair() (UserID, ActorID) {
+	uid := GenerateUserID()
+	return uid, ActorIDFromUser(uid)
 }
 
 func TestAuthz_Enforce(t *testing.T) {
 	a := newTestAuthz(t)
 
-	uid, _ := userActorPair("u1")
-	uid2, _ := userActorPair("u2")
-	uid3, _ := userActorPair("u3")
+	uid, _ := userActorPair()
+	uid2, _ := userActorPair()
+	uid3, _ := userActorPair()
 
 	// Seed: u1 is super_admin in tenant-a, u3 is admin in tenant-a.
 	if err := a.AddGroupPolicy(
@@ -87,7 +88,7 @@ func TestAuthz_EnforceAny(t *testing.T) {
 
 func TestAuthz_EnforceEx(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	if err := a.AddGroupPolicy(
 		GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"},
 	); err != nil {
@@ -107,8 +108,8 @@ func TestAuthz_EnforceEx(t *testing.T) {
 
 func TestAuthz_Authorize(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
-	uid2, _ := userActorPair("u2")
+	uid, _ := userActorPair()
+	uid2, _ := userActorPair()
 	if err := a.AddGroupPolicy(
 		GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"},
 	); err != nil {
@@ -136,7 +137,7 @@ func TestAuthz_AsEnforcer(t *testing.T) {
 
 func TestAuthz_Apply(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	update := PolicyUpdate{
 		AddGroups: []GroupPolicy{{Subject: uid.String(), Role: RoleAdmin, Domain: "tenant-a"}},
 		AddPolicies: []Policy{
@@ -198,7 +199,7 @@ func TestAuthz_AddRemovePolicy(t *testing.T) {
 
 func TestAuthz_AddRemoveGroupPolicy(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	g := GroupPolicy{Subject: uid.String(), Role: RoleUser, Domain: "tenant-a"}
 	if err := a.AddGroupPolicy(g); err != nil {
 		t.Fatalf("AddGroupPolicy: %v", err)
@@ -233,7 +234,7 @@ func TestAuthz_AddRemoveGroupPolicy(t *testing.T) {
 
 func TestAuthz_RemoveAllRolesForUser(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	for _, domain := range []string{"tenant-a", "tenant-b"} {
 		if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: domain}); err != nil {
 			t.Fatalf("add group: %v", err)
@@ -255,7 +256,7 @@ func TestAuthz_RemoveAllRolesForUser(t *testing.T) {
 
 func TestAuthz_RemoveAllRolesInDomain(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tidA := NewTenantID("tenant-a")
 	tidB := NewTenantID("tenant-b")
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tidA.Get()}); err != nil {
@@ -295,7 +296,7 @@ func TestAuthz_PoliciesAndGroupPolicies_Uninitialized(t *testing.T) {
 
 func TestAuthz_RolesForUser(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
 		t.Fatalf("add group: %v", err)
@@ -311,7 +312,7 @@ func TestAuthz_RolesForUser(t *testing.T) {
 
 func TestAuthz_ImplicitRolesForUser(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
 		t.Fatalf("add group: %v", err)
@@ -327,7 +328,7 @@ func TestAuthz_ImplicitRolesForUser(t *testing.T) {
 
 func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 	// Add a domain-scoped policy for the admin role so ImplicitPermissionsForUser
 	// finds it (Casbin matches domain exactly, not via wildcard).
@@ -350,7 +351,7 @@ func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
 
 func TestAuthz_DomainsForUser(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: "tenant-a"}); err != nil {
 		t.Fatalf("add group: %v", err)
 	}
@@ -368,7 +369,7 @@ func TestAuthz_DomainsForUser(t *testing.T) {
 
 func TestAuthz_UsersForRole(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
 		t.Fatalf("add group: %v", err)
@@ -391,7 +392,7 @@ func TestAuthz_UsersForRole(t *testing.T) {
 
 func TestAuthz_RolesForActor(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, aid := userActorPair("u1")
+	uid, aid := userActorPair()
 	tid := NewTenantID("tenant-a")
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
 		t.Fatalf("add group: %v", err)
@@ -407,7 +408,7 @@ func TestAuthz_RolesForActor(t *testing.T) {
 
 func TestAuthz_ImplicitRolesForActor(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, aid := userActorPair("u1")
+	uid, aid := userActorPair()
 	tid := NewTenantID("tenant-a")
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
 		t.Fatalf("add group: %v", err)
@@ -422,7 +423,7 @@ func TestAuthz_ImplicitRolesForActor(t *testing.T) {
 }
 
 func TestAuthz_NewAuthz_WithConfig(t *testing.T) {
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	a, err := NewAuthz(EnforcerConfig{
 		ModelString: DefaultRBACModel,
 		Policies:    DefaultPolicies(),
@@ -445,7 +446,7 @@ func TestAuthz_RolesForActor_NonUserActorsReturnNil(t *testing.T) {
 	tid := NewTenantID("tenant-a")
 
 	// Seed a user with admin so we know the enforcer is populated.
-	uid, userAid := userActorPair("seed-user")
+	uid, userAid := userActorPair()
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
 		t.Fatalf("add group: %v", err)
 	}
@@ -484,7 +485,7 @@ func TestAuthz_ImplicitRolesForActor_NonUserActorsReturnNil(t *testing.T) {
 	a := newTestAuthz(t)
 	tid := NewTenantID("tenant-a")
 
-	uid, userAid := userActorPair("seed-user2")
+	uid, userAid := userActorPair()
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
 		t.Fatalf("add group: %v", err)
 	}

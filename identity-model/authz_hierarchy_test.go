@@ -15,7 +15,7 @@ import (
 
 func TestAuthz_RoleHierarchy_UserInheritsViewer(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 
 	if err := a.AddPolicy(Policy{
@@ -46,7 +46,7 @@ func TestAuthz_RoleHierarchy_UserInheritsViewer(t *testing.T) {
 
 func TestAuthz_RoleHierarchy_IsNotDownward(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 
 	if err := a.AddPolicy(Policy{
@@ -69,7 +69,7 @@ func TestAuthz_RoleHierarchy_IsNotDownward(t *testing.T) {
 
 func TestAuthz_RoleHierarchy_OwnerIsOutsideTheChain(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 
 	if err := a.AddPolicy(Policy{
@@ -92,7 +92,7 @@ func TestAuthz_RoleHierarchy_OwnerIsOutsideTheChain(t *testing.T) {
 
 func TestAuthz_RoleHierarchy_IsDomainScoped(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tidA := NewTenantID("tenant-a")
 	tidB := NewTenantID("tenant-b")
 
@@ -148,7 +148,7 @@ func TestAuthz_EnsureRoleHierarchy_Uninitialized(t *testing.T) {
 
 func TestAuthz_UsersForRole_ExcludesRoleSubjects(t *testing.T) {
 	a := newTestAuthz(t)
-	uid, _ := userActorPair("u1")
+	uid, _ := userActorPair()
 	tid := NewTenantID("tenant-a")
 
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleUser, Domain: tid.Get()}); err != nil {
