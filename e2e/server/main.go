@@ -202,6 +202,10 @@ func main() {
 		log.Fatalf("dashboardui.New: %v", err)
 	}
 
+	if err := mountLoginPage(mux); err != nil {
+		log.Fatalf("mountLoginPage: %v", err)
+	}
+
 	seedDashboard(dstore, host, deadStore)
 	dash.Mount(mux, "/dashboard/")
 
