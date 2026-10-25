@@ -1,6 +1,7 @@
 package identitymodel
 
 import (
+	"slices"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -154,8 +155,8 @@ func applyRemovePolicy(m policyMutator, applied *[]undoOp, p Policy) error {
 // annotated when the rollback itself could not complete.
 func rollback(m policyMutator, applied []undoOp, cause error) error {
 	var failed []string
-	for i := len(applied) - 1; i >= 0; i-- {
-		if err := applied[i].apply(m); err != nil {
+	for _, a := range slices.Backward(applied) {
+		if err := a.apply(m); err != nil {
 			failed = append(failed, err.Error())
 		}
 	}

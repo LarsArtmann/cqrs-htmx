@@ -2,6 +2,7 @@ package identitymodel
 
 import (
 	"errors"
+	"slices"
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -266,11 +267,5 @@ func TestApplyPolicyUpdate_SuccessKeepsEverything(t *testing.T) {
 }
 
 func containsRole(roles []Role, want Role) bool {
-	for _, r := range roles {
-		if r == want {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(roles, want)
 }
