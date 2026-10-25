@@ -63,6 +63,21 @@ func cssNamedColors() map[string]struct{} {
 	}
 }
 
+// accentStyleTag builds the per-instance inline style tag carrying the
+// validated accent color, with the page's CSP nonce (adminui's accentStyleTag
+// is the reference). Without the nonce attribute, nonce-CSP consumers drop
+// the tag and lose the accent silently.
+func accentStyleTag(p pageData) string {
+	nonce := strings.ReplaceAll(p.Nonce, `"`, "")
+
+	nonceAttr := ""
+	if nonce != "" {
+		nonceAttr = ` nonce="` + nonce + `"`
+	}
+
+	return `<style` + nonceAttr + `>:root{--accent:` + esc(p.Accent) + `;}</style>`
+}
+
 // isValidAccentColor reports whether color is a CSS color literal the
 // dashboard is willing to interpolate into its inline :root style block:
 // #hex (3/4/6/8 digits), rgb()/rgba()/hsl()/hsla() with numeric components,
