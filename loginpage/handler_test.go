@@ -361,6 +361,42 @@ func TestNewPageData_WithCSRF(t *testing.T) {
 	}
 }
 
+// TestNewPageData_PopulatesNonceAndTheme pins S36: Option B (consumer-owned
+// layout via NewPageData) must render with the same request-scoped context
+// as the handler path — pre-fix, Nonce and Theme were never populated, so
+// the embedded scripts were dead under the recommended nonce-CSP and SSR
+// theming was lost.
+func TestNewPageData_PopulatesNonceAndTheme(t *testing.T) {
+	svc := newTestService(t)
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	r.AddCookie(&http.Cookie{Name: "theme", Value: ThemeDark})
+
+	data, err := NewPageData(Config{
+		Service: svc,
+		NonceFromRequest: func(*http.Request) string {
+			return "nonce-123<script>" // hostile nonce — must be sanitized
+		},
+		ThemeFromRequest: func(req *http.Request) string {
+			theme, _ := req.Cookie("theme")
+			if theme == nil {
+				return ""
+			}
+			return theme.Value
+		},
+	}, r)
+	if err != nil {
+		t.Fatalf("NewPageData: %v", err)
+	}
+
+	if data.Nonce != "nonce-123script" {
+		t.Errorf("Nonce = %q, want sanitized %q", data.Nonce, "nonce-123script")
+	}
+	if data.Theme != ThemeDark {
+		t.Errorf("Theme = %q, want %q", data.Theme, ThemeDark)
+	}
+}
+
 func TestSafeRedirectPath(t *testing.T) {
 	tests := []struct{ in, want string }{
 		{"", "/"},

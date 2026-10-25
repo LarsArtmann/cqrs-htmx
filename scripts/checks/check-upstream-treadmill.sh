@@ -267,6 +267,14 @@ for repo in $repos; do
   fetch_repo_tags "$repo"
 
   if [ "${REPO_TAGS_OK[$repo]:-false}" != true ]; then
+    if [ "${CI:-false}" = "true" ]; then
+      # House rule (check-release-train): ls-remote failures downgrade to
+      # warnings under CI — a runner network blip must not spuriously red
+      # master. Locally they stay exit-4 loud.
+      echo "  WARN: cannot list tags of $repo (ls-remote failed; CI advisory)"
+      unset 'FETCH_FAILED[$repo]'
+      continue
+    fi
     echo "repo $repo: CANNOT VERIFY — tag fetch failed (cache ${CACHE_DIR}/$repo.tags absent or stale)" >&2
     continue # totals will surface the failure
   fi

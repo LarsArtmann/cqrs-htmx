@@ -93,7 +93,7 @@ run_tool "$MOD" v4.99.0
 report "$([ "$RC" -eq 0 ] && echo 0 || echo 1)" "WT1 dry-run exits 0 (got $RC)"
 report "$(echo "$OUT" | grep -q 'guards (verify-tag --dry-run)' && echo 0 || echo 1)" "WT1 guards leg ran for real"
 report "$(echo "$OUT" | grep -q '\[dry-run\] push:' && echo 0 || echo 1)" "WT1 push leg printed as a command"
-report "$(grep -c '^git push' "$LOG" | grep -q '^0$' && echo 0 || echo 1)" "WT1 dry-run called NO real push"
+report "$([ "$(grep -c '^git push' "$LOG")" = "0" ] && echo 0 || echo 1)" "WT1 dry-run called NO real push"
 
 # --- WT2: dry-run, guards refuse ------------------------------------------------
 make_stub verify-tag 1

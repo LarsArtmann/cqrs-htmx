@@ -550,6 +550,24 @@ jobs:
       - name: Release train self-test
         run: bash scripts/selftests/test-check-release-train.sh
 
+      # Upstream dependency treadmill (S50): per-(repo, tag-prefix) lag for
+      # every NON-cqrs-htmx larsartmann dependency — advisory on lag (an
+      # upstream moving is normal), structural on unknown prefixes / non-
+      # exempt pseudo pins (the A5 bad-awk + sqliteengine-prefix silent-failure
+      # class). Shares the release-train tag cache; ls-remote failures
+      # downgrade to warnings under CI (same rule as the train gate above).
+      - name: Upstream treadmill check (advisory)
+        run: bash scripts/checks/check-upstream-treadmill.sh
+
+      - name: Upstream treadmill self-test
+        run: bash scripts/selftests/test-check-upstream-treadmill.sh
+
+      # The tag rhythm as one command (S51): dry-run by default, refuse on
+      # any red leg; the offline stub self-test is the coverage (order,
+      # refusals, module-path anchor, carrier report).
+      - name: wave-tag self-test
+        run: bash scripts/selftests/test-wave-tag.sh
+
       # GOPRIVATE VCS-cache health (local-machine corruption class: a bare
       # repo under GOMODCACHE/cache/vcs losing its origin breaks hermetic
       # builds with load-error-shaped failures). CI runners resolve via the

@@ -1134,6 +1134,9 @@
                         "version-drift:bash scripts/checks/check-version-drift.sh --strict"
                         "release-train:bash scripts/checks/check-release-train.sh"
                         "release-train-self-test:bash scripts/selftests/test-check-release-train.sh"
+                        "upstream-treadmill:bash scripts/checks/check-upstream-treadmill.sh"
+                        "upstream-treadmill-self-test:bash scripts/selftests/test-check-upstream-treadmill.sh"
+                        "wave-tag-self-test:bash scripts/selftests/test-wave-tag.sh"
                         "vcs-cache:bash scripts/checks/check-vcs-cache.sh"
                         "vcs-cache-self-test:bash scripts/selftests/test-check-vcs-cache.sh"
                         "css-bundles:bash scripts/checks/check-css-bundles.sh"
@@ -1210,6 +1213,9 @@
                     bash scripts/selftests/test-check-workspace-build.sh
                     bash scripts/checks/check-version-drift.sh --strict
                     bash scripts/checks/check-release-train.sh
+                    bash scripts/checks/check-upstream-treadmill.sh
+                    bash scripts/selftests/test-check-upstream-treadmill.sh
+                    bash scripts/selftests/test-wave-tag.sh
                     bash scripts/checks/check-vcs-cache.sh
                     bash scripts/selftests/test-check-vcs-cache.sh
                     bash scripts/checks/check-css-bundles.sh
@@ -2119,6 +2125,87 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-release-train.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            check-upstream-treadmill = {
+              type = "app";
+              meta.description = "How far behind is every larsartmann UPSTREAM dependency (go-cqrs-lite, httputil, templ-components, ...): per (repo, tag-prefix) lag table, advisory by default, --strict-lag N to gate; unknown prefixes and non-exempt pseudo pins are structural errors (the A5/sqliteengine silent-failure class); shares the release-train tag cache";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-upstream-treadmill";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                    pkgs.findutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-upstream-treadmill.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-upstream-treadmill = {
+              type = "app";
+              meta.description = "Fixture self-test for check-upstream-treadmill.sh (offline: seeded tag cache + recording fetch stub — aligned/lag/strict/unknown-prefix/sqliteengine-trap/loud-fetch-failure/pseudo-exempt/self-skip/disagree/warm-cache/nested-prefix)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-upstream-treadmill";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-upstream-treadmill.sh
+                  '';
+                }
+              );
+            };
+
+            wave-tag = {
+              type = "app";
+              meta.description = "The release tag rhythm as one command: verify-tag guards → push → tag+push (poisoned-tag protocol) → release-train --refresh-cache --strict-lag 0 → bump-dep consumer sweep (--commit --lint) → carrier re-tag report/cascade. Dry-run by default; --execute runs it; any red leg refuses";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "wave-tag";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/wave-tag.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-wave-tag = {
+              type = "app";
+              meta.description = "Fixture self-test for wave-tag.sh (offline recording stubs: dry-run touches nothing, guard/push/train/sweep refusals stop the rhythm, strict leg order, module-path $ anchor, carrier next-patch report, usage errors)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-wave-tag";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-wave-tag.sh
                   '';
                 }
               );
