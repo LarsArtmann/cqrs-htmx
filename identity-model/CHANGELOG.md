@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Strict branded-ID reconstruction (S38 a/b):** `ParseTenantID`/`ParseBotID` — the strict counterparts to `NewTenantID`/`NewBotID`. They strip exactly one leading display prefix (`Tenant:`/`Bot:`) and reject empty or whitespace-padded values (Rejection family) — the ambiguous forms that would otherwise silently become distinct identities. `FoldMembership` now reconstructs `TenantID` through `ParseTenantID`, so journaled events with ambiguous tenant references are rejected at replay time. `GenerateUserID` preserves ULID time-ordering (minted later ⇒ sorts later across millisecond boundaries; pinned by test).
+
+- **`UserState.IsActive`/`BotState.IsActive` (S38c, additive):** the uniform write-path liveness gate — `Exists() && !Deleted` for users (a deleted user still HAS history, so `Exists` keeps its "has events" meaning), the existing-tombstone mirror for bots. `MembershipState.Exists` already folds `Removed`, so no split was needed there; documented on the type.
+
+### Changed
+
+- **`NotConfigured` errors are now Rejection, not Transient (S38e):** `ErrEmailVerificationNotConfigured`, `ErrTOTPNotConfigured`, and `ErrOAuthNotConfigured` answer 400-class instead of 503 — a missing deployment configuration is permanent for this deployment, and a retryable signal would tell clients a retry can help when it cannot. Consumers mapping error families to HTTP statuses see the correction; none of the in-tree suites pinned the old 503s.
+
+- **Command slice accessors return copies (S38f):** `RegisterUserCmd.Roles`, `RemoveCredentialCmd.CredentialID`, `EnableTOTPCmd.Secret`, `AddMemberCmd.Roles`, `UpdateMemberRolesCmd.Roles`, `RegisterBotCmd.TokenHash`, `RegisterBotCmd.Scopes` now return `slices.Clone` — mutating a returned slice can no longer write through to the command (commands are immutable once constructed; the TOTP secret and bot token hash are credential material).
+
+### Fixed
+
+- **`NewAuthz` no longer seeds `g2` into custom models without a `g2` section (S38d):** `AddNamedGroupingPolicy("g2", ...)` errors against an undeclared section, so a consumer model without `g2` failed construction. Seeding is now guarded (and extracted into `seedDefaultRoleHierarchy`); default-model behavior is unchanged.
+
+- **Role resolution for actors is strict (S38g):** `RolesForActor`/`ImplicitRolesForActor` and `ActorIDAsUserID` parse actor identifiers through `ParseUserID` instead of the deprecated hash-masking `NewUserID` — a non-ULID subject now surfaces as a parse failure instead of silently colliding with an unrelated synthetic user.
+
 ## [v4.14.0] - 2026-10-25
 
 ### Added
