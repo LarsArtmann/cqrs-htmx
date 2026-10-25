@@ -110,7 +110,13 @@ func (a *Authz) RolesForActor(actorID ActorID, tenantID TenantID) ([]Role, error
 	if actorID.Kind() != ActorUser {
 		return nil, nil
 	}
-	return a.RolesForUser(NewUserID(actorID.String()), tenantID)
+
+	uid, err := ParseUserID(actorID.Raw())
+	if err != nil {
+		return nil, err
+	}
+
+	return a.RolesForUser(uid, tenantID)
 }
 
 // ImplicitRolesForActor returns all roles assigned to an actor in a tenant,
@@ -121,5 +127,11 @@ func (a *Authz) ImplicitRolesForActor(actorID ActorID, tenantID TenantID) ([]Rol
 	if actorID.Kind() != ActorUser {
 		return nil, nil
 	}
-	return a.ImplicitRolesForUser(NewUserID(actorID.String()), tenantID)
+
+	uid, err := ParseUserID(actorID.Raw())
+	if err != nil {
+		return nil, err
+	}
+
+	return a.ImplicitRolesForUser(uid, tenantID)
 }
