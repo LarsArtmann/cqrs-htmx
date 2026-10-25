@@ -1,6 +1,7 @@
 package cqrshtmx_test
 
 import (
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -179,10 +180,10 @@ func TestOpenAPISpecHandler_RestartStableETag(t *testing.T) {
 	specA := sampleSpec()
 
 	specB := sampleSpec()
+
 	shuffled := make(map[string]*openapi.PathItem, len(specB.Paths))
-	for p, item := range specB.Paths { //nolint:gocritic // iteration order IS the variable under test
-		shuffled[p] = item
-	}
+	maps.Copy(shuffled, specB.Paths)
+
 	specB.Paths = shuffled
 
 	ha, errA := cqrshtmx.OpenAPISpecHandler(specA)

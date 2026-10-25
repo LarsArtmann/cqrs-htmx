@@ -111,7 +111,7 @@ type Operation struct {
 // original. Handlers that expose collected operations (e.g.
 // cqrshtmx.App.OpenAPIRoutes) use this to keep their internal state isolated.
 func (o *Operation) Clone() Operation {
-	c := o
+	c := *o
 	c.Tags = cloneStrings(o.Tags)
 	c.Parameters = cloneParameters(o.Parameters)
 

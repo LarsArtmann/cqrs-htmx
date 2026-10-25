@@ -5,8 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"errors"
-	"fmt"
 	"hash/fnv"
 	"net/http"
 	"strconv"

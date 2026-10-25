@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/go-sse/ssetest"
 )

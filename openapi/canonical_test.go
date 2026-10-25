@@ -70,6 +70,7 @@ func shuffleSpecMaps(s *Spec, rng *rand.Rand) {
 	shuffled := map[string]*PathItem{}
 
 	rng.Shuffle(len(paths), func(i, j int) { paths[i], paths[j] = paths[j], paths[i] })
+
 	for _, p := range paths {
 		shuffled[p] = s.Paths[p]
 	}
@@ -85,6 +86,7 @@ func shuffleSpecMaps(s *Spec, rng *rand.Rand) {
 	schemas := map[string]*Schema{}
 
 	rng.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
+
 	for _, n := range names {
 		schemas[n] = s.Components.Schemas[n]
 	}
@@ -150,8 +152,9 @@ func TestSpecJSON_NestedPropertiesSorted(t *testing.T) {
 
 	out := string(data)
 
-	if strings.Index(out, `"aa"`) >= strings.Index(out, `"mm"`) ||
-		strings.Index(out, `"mm"`) >= strings.Index(out, `"zz"`) {
+	idxAA, idxMM, idxZZ := strings.Index(out, `"aa"`), strings.Index(out, `"mm"`), strings.Index(out, `"zz"`)
+
+	if !(idxAA < idxMM && idxMM < idxZZ) {
 		t.Errorf("properties not sorted:\n%s", out)
 	}
 }

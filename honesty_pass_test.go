@@ -8,10 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/cqrs-htmx/v4/openapi"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-
-	"github.com/larsartmann/cqrs-htmx/v4/openapi"
 )
 
 // The 2026-10-24 exported-contract honesty pass (master plan S33) pins one test
@@ -26,6 +25,7 @@ func TestNewAck_SanitizesServerFaults(t *testing.T) {
 
 	internal := errorfamily.NewInfrastructure("db.explode", "postgres://secret@db.internal:5432 users table missing")
 	ack := newAck("cmd-1", internal)
+
 	if strings.Contains(ack.Error, "postgres://") || strings.Contains(ack.Error, "db.internal") {
 		t.Fatalf("ack broadcast leaks internals: %q", ack.Error)
 	}
@@ -37,6 +37,7 @@ func TestNewAck_SanitizesServerFaults(t *testing.T) {
 	// Rejection-family detail IS the client contract and must survive.
 	rejection := errorfamily.NewRejection("email_taken", "email already registered")
 	ackR := newAck("cmd-2", rejection)
+
 	if !strings.Contains(ackR.Error, "email already registered") {
 		t.Fatalf("rejection detail = %q, want the client-facing message", ackR.Error)
 	}

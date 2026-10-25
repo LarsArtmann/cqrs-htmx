@@ -69,7 +69,7 @@ type Schema struct {
 // Enum are duplicated). Schemas appear inside cloned operations; the deep copy
 // keeps consumer mutations from reaching collected spec state.
 func (s *Schema) Clone() Schema {
-	c := s
+	c := *s
 	c.Properties = cloneSchemaMap(s.Properties)
 	c.Required = cloneStrings(s.Required)
 	c.Enum = cloneAnySlice(s.Enum)

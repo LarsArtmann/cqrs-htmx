@@ -76,6 +76,7 @@ func TestPath_DoubleMethodRegistrationPanics(t *testing.T) {
 	defer func() {
 		r := recover()
 		msg, ok := r.(string)
+
 		if !ok || !strings.Contains(msg, "already registered") {
 			t.Fatalf("expected a double-registration panic, got %v", r)
 		}
@@ -92,6 +93,7 @@ func TestResponse_MultipleMediaTypesPanic(t *testing.T) {
 	defer func() {
 		r := recover()
 		msg, ok := r.(string)
+
 		if !ok || !strings.Contains(msg, "ResponseWithContent") {
 			t.Fatalf("expected a pointer to ResponseWithContent, got %v", r)
 		}

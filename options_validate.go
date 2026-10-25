@@ -20,7 +20,7 @@ func validateDispatch[T any](
 		if original == nil {
 			// A validator registered before any decoder could never run: it
 			// would wrap nil. Historically this warned and silently skipped,
-		// which hid the dead validator until it mattered. This is a
+			// which hid the dead validator until it mattered. This is a
 			// registration-order bug in consumer code — fail fast, at
 			// registration, where the stack trace points at the offender.
 			panic("cqrs-htmx: " + label + " applied before a decoder — apply it after DecodeJSON/DecodeForm")

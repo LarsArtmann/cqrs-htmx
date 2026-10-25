@@ -93,7 +93,8 @@ func TestSyncWire_ZeroByteChange(t *testing.T) {
 		t.Fatalf("marshal event: %v", err)
 	}
 
-	if !strings.Contains(string(evt), `"payloadEncoding":"json"`) || !strings.Contains(string(evt), `"payload":{"a":1}`) {
+	if !strings.Contains(string(evt), `"payloadEncoding":"json"`) ||
+		!strings.Contains(string(evt), `"payload":{"a":1}`) {
 		t.Fatalf("event wire drifted: %s", evt)
 	}
 }
