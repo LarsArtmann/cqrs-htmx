@@ -142,7 +142,7 @@ A Casbin recipe: assert `enforcer.Enforce(user.ID().Get(), evt.StreamType(), "re
 The sync client exposes a small public surface on `window`:
 
 ```js
-window.cqrsSync.version; // "1.5.0" — matches cqrshtmx.SyncVersion()
+window.cqrsSync.version; // "1.6.0" — matches cqrshtmx.SyncVersion()
 await window.cqrsSync.getEvents(); // cached event feed (works offline; worker-owned IndexedDB)
 await window.cqrsSync.pull(); // force a catch-up pull; resolves when caught up
 ```
@@ -159,11 +159,50 @@ The SharedWorker stays a **coordinator, not a proxy** (ADR-0029): tabs own their
 
 A runnable version of everything on this page — offline queue, batched push, filtered pull, conflict rejection, the OpenAPI contract — lives at [`examples/sync-demo/`](../../examples/sync-demo/) (its README has a 2-minute offline walkthrough).
 
+## Local persistence: the IndexedDB schema and the v1→v2 upgrade
+
+The SharedWorker owns one IndexedDB database per origin: `cqrshtmx-sync`.
+
+| Version | Stores | Purpose |
+| --- | --- | --- |
+| **v1** (ADR-0040, sync assets ≤ 1.4.x) | `commands` (keyPath `commandId`) | The offline command queue: `{commandId, envelope, queuedAt, retries}` |
+| **v2** (ADR-0056, 1.5.0+) | + `events` (keyPath `eventId`), + `meta` (out-of-line key `"state"`) | The pulled-event cache and the `{cursor, backendId}` sync state |
+
+**Upgrade path (automatic):** the worker opens the database at `DB_VERSION = 2`. A v1 database upgrades in place in `onupgradeneeded` — the two new stores are created, and the v1 pending commands are preserved untouched (retry counts included; the usual TTL/retry limits keep applying). Fresh databases create all three stores at version 2 in the same handler. No data migration runs: v1 records are forward-compatible by shape. This path is pinned by the protocol test suite (`sync/jstests/sync-worker.test.js`, run through the Go wrapper): v1-seeded upgrade boot, pending-command survival, and fresh full-schema boot.
+
+**Downgrade protection:** IndexedDB refuses to open a higher-version database at a lower version, so a stale v1 worker (an old cached asset after a rollback) gets a `VersionError`, warns, and degrades to in-memory mode — the v2 data stays intact on disk and is picked back up by the next v2 worker. A v2 worker opening a v1 database is the supported direction; the reverse never corrupts.
+
+**Cursor monotonicity (1.6.0):** the worker refuses to persist a cursor that would move **backwards** on the same backend (cursors are event-ID ULIDs and order lexicographically, so string compare is the ordering). Two tabs racing pulls can deliver responses out of order; persisting the stale one would silently rewind every future pull. The stale batch's events still land (puts are idempotent by `eventId`), the `sync:events` broadcast carries the kept cursor, and the refusal logs the pinned line
+
+```
+[sync-worker] cursor regression refused: kept <cursor>, rejected <cursor>
+```
+
+A `backendId` change is the one legitimate rewind (new backend, new cursor space) and is exempt — it also wipes the event cache per the reset semantics above.
+
+## Batch budgets and timeouts
+
+Every knob in the shipped assets is a compile-time constant; the numbers:
+
+| Constant | Value | Where | Meaning |
+| --- | --- | --- | --- |
+| `MaxSyncPushBatch` | 100 | server (`sync_push.go`) | Hard cap per `POST /sync/push`; exceeding it rejects the whole request (400, `cqrshtmx.sync.push.too_large`) |
+| `PULL_PAGE_LIMIT` | 500 | client | Events requested per pull page |
+| `PULL_MAX_PAGES` | 20 | client | Pages per catch-up pull → ≤ 10,000 events per pull cycle |
+| `MAX_RETRIES` | 10 | worker | Flush attempts before a command is declared `dead` |
+| `RETRY_TTL_MS` | 24 h | worker | Age limit before a command is declared `dead` |
+| `STAGGER_MS` / cap | 100 ms / 2 s | worker | Pacing for classic per-command replay (batched push goes out as one request) |
+
+**The >100 sharp edge, honestly:** the worker batches **all** queued typed commands into **one** push. An offline session that queues more than `MaxSyncPushBatch` commands produces a batch the server rejects wholesale; every command then burns one retry per flush cycle and surfaces as `dead` after `MAX_RETRIES`. If your users can realistically exceed 100 queued commands, budget for it on the consumer side (chunk the flush in a copied asset, or surface queue depth via the `pending` broadcasts before it grows that large).
+
+**Timeouts:** neither asset sets explicit fetch or EventSource timeouts — browser defaults govern (a hung push is treated like offline: commands stay queued). To enforce stricter deadlines, copy the assets, add an `AbortController` budget, and serve them via `SyncWorkerHandlerWith(customJS, "1.0.0-custom")` / `SyncClientHandlerWith(customJS, "1.0.0-custom")` — the version string is your cache-busting knob, and the Go/JS version-drift test does not apply to custom copies.
+
 ## Security notes
 
 - **Mount behind your middleware**: session (outside CSRF), CSRF (protects the outer POST once — inner envelopes are not independently reachable), security headers as usual.
 - **Payload exposure is deliberate**: the pull endpoint is the one surface that emits event payloads. If your events carry PII, the filter is mandatory, not optional.
 - **5xx redaction**: push errors from server failures are `SafeDetail`-redacted — no internals leak to the client.
+- **CSP**: both assets are external scripts with no inline code and no `eval`, but three directives must line up. (1) `script-src` must allow the two script URLs (a nonce-only policy that permits just inline scripts blocks them — list the URLs or `"self"`). (2) The SharedWorker load is governed by `worker-src` (falling back to `child-src` → `script-src` → `default-src`) — allow the worker URL, and note the client derives it from the client script's own `src` unless you override it with `data-sync-worker-url`, so keep both URLs consistent under your policy. (3) `connect-src` must cover `/sync/pull`, `/sync/push`, and your SSE endpoint (`data-sse-url`) — both `fetch` and `EventSource` count as connects. `RecommendedSecurityMiddleware`'s per-request nonce covers inline scripts you emit yourself; it does not automatically allow-list the sync assets.
 
 ## What's NOT included (by design)
 

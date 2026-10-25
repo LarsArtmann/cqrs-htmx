@@ -56,7 +56,7 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.5.0";
+  const VERSION = "1.6.0";
 
   // --- Configuration constants ---
   // To customize: copy this file, change values, serve via SyncWorkerHandlerWith.
@@ -378,8 +378,10 @@
 
   /**
    * Cache pulled events: persist each event (put — idempotent by eventId),
-   * advance the cursor, and detect backend resets (backendId changed → wipe
-   * the cache first, then store the fresh batch, and tell every tab).
+   * advance the cursor (never backwards — monotonicity guard; a backend
+   * reset is the one exempt rewind), and detect backend resets (backendId
+   * changed → wipe the cache first, then store the fresh batch, and tell
+   * every tab).
    * @param {string} cursor - Next pull cursor from the server response.
    * @param {string} backendId - Backend identity from the server response.
    * @param {Array<Object>} events - Pulled events (wire shape from /sync/pull).
@@ -390,6 +392,26 @@
     return getSyncState().then((state) => {
       const resetDetected =
         backendId !== "" && state.backendId !== "" && backendId !== state.backendId;
+
+      // Monotonicity: two tabs racing pulls can deliver responses out of
+      // order, so a slower tab's response can carry a cursor BELOW the
+      // already-persisted one (cursors are event-ID ULIDs — they order
+      // lexicographically). Persisting it would silently rewind every
+      // future pull to re-read (or re-filter) old events. Refuse: keep the
+      // newer cursor, still cache the events (put is idempotent by
+      // eventId), and report the kept cursor. A backendId reset legitimately
+      // rewinds the cursor (new backend, new cursor space) — exempt.
+      const cursorRegression =
+        !resetDetected && state.cursor !== "" && cursor !== "" && cursor < state.cursor;
+      const effectiveCursor = cursorRegression ? state.cursor : cursor;
+
+      if (cursorRegression) {
+        // Pinned by jstests ("refuses a regressing cursor"); keep the text
+        // stable — it is the field-diagnosis line for rewind reports.
+        console.warn(
+          "[sync-worker] cursor regression refused: kept " + state.cursor + ", rejected " + cursor,
+        );
+      }
 
       return new Promise((resolve) => {
         try {
@@ -405,7 +427,7 @@
             eventsStore.put(events[i]);
           }
 
-          if (cursor) {
+          if (cursor && !cursorRegression) {
             // META_STORE has no keyPath (out-of-line keys): put() MUST carry
             // the key as the second argument — a keyless put on an out-of-line
             // store throws DataError synchronously, which would swallow the
@@ -413,7 +435,7 @@
             // (observed live: events cached, meta forever empty).
             metaStore.put(
               {
-                cursor: cursor,
+                cursor: effectiveCursor,
                 backendId: backendId || state.backendId,
               },
               META_KEY,
@@ -424,7 +446,11 @@
             if (resetDetected) {
               broadcast({ type: "sync:reset" });
             }
-            broadcast({ type: "sync:events", cursor: cursor, count: (events || []).length });
+            broadcast({
+              type: "sync:events",
+              cursor: effectiveCursor,
+              count: (events || []).length,
+            });
             resolve(resetDetected);
           };
           tx.onerror = () => resolve(false);

@@ -5,7 +5,10 @@
 // deterministic IndexedDB shim and talk to it over fake MessagePorts — the
 // same seam a browser uses. Both v1.5.0 defects (keyless meta put dropping
 // cursor persistence; backend-reset wipe semantics) are pinned here in
-// milliseconds instead of Playwright battery runs.
+// milliseconds instead of Playwright battery runs. v1.6.0 adds the v1→v2
+// schema-upgrade boot pins (in-place upgrade, pending-command survival, fresh
+// full-schema boot) and the cursor-monotonicity guard pin (regression refused
+// on the same backend, rewind allowed across a backendId reset).
 //
 // Run via the Go wrapper (js_worker_test.go) or directly:
 //   node --test ./jstests/sync-worker.test.js   (from sync/)
@@ -183,14 +186,21 @@ class FakeIndexedDB {
 // protocol through fake ports.
 // ---------------------------------------------------------------------------
 
-function loadWorker() {
+function loadWorker(options) {
+  const opts = options && options.idb ? options : {};
   const workerSrc = fs.readFileSync(path.join(__dirname, "..", "sync-worker.js"), "utf8");
-  const idb = new FakeIndexedDB();
+  const idb = opts.idb || new FakeIndexedDB();
+  const warns = [];
 
   const sandbox = {
     indexedDB: idb,
     navigator: { onLine: true },
-    console: { warn: () => {}, log: () => {} },
+    console: {
+      warn: function () {
+        warns.push(Array.prototype.join.call(arguments, " "));
+      },
+      log: function () {},
+    },
     setTimeout,
     clearTimeout,
     Date,
@@ -213,6 +223,7 @@ function loadWorker() {
 
   return {
     idb,
+    warns,
     ports: [],
 
     connect() {
@@ -288,7 +299,7 @@ async function askWorker(worker, message, wantedType) {
 // Tests
 // ---------------------------------------------------------------------------
 
-test("hello registers the tab, answers connectivity, and reports an empty queue", async (t) => {
+test("hello registers the tab, answers connectivity, and reports an empty queue", async () => {
   const worker = loadWorker();
   const port = worker.connect();
   port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
@@ -301,8 +312,8 @@ test("hello registers the tab, answers connectivity, and reports an empty queue"
   assert.equal(pending.count, 0);
 });
 
-test("enqueue persists a typed command and it flushes as ONE retry-batch", async (t) => {
-  const worker = loadWorker(t);
+test("enqueue persists a typed command and it flushes as ONE retry-batch", async () => {
+  const worker = loadWorker();
   const port = worker.connect();
   port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
   await drain();
@@ -344,8 +355,8 @@ test("enqueue persists a typed command and it flushes as ONE retry-batch", async
   assert.equal(after.count, 1, "ack must remove exactly its command");
 });
 
-test("enqueue without a valid envelope is refused (poison guard)", async (t) => {
-  const worker = loadWorker(t);
+test("enqueue without a valid envelope is refused (poison guard)", async () => {
+  const worker = loadWorker();
   const port = worker.connect();
   port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
   await drain();
@@ -355,8 +366,8 @@ test("enqueue without a valid envelope is refused (poison guard)", async (t) => 
   assert.equal(dead.commandId, "cmd-x");
 });
 
-test("cache-events persists cursor + backendId (the v1.5.0 keyless-put defect pin)", async (t) => {
-  const worker = loadWorker(t);
+test("cache-events persists cursor + backendId (the v1.5.0 keyless-put defect pin)", async () => {
+  const worker = loadWorker();
   const port = worker.connect();
   port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
   await drain();
@@ -379,8 +390,8 @@ test("cache-events persists cursor + backendId (the v1.5.0 keyless-put defect pi
   assert.equal(state.backendId, "backend-A", "backendId must survive the write");
 });
 
-test("cached events read back offline and survive reconnect (persistence)", async (t) => {
-  const worker = loadWorker(t);
+test("cached events read back offline and survive reconnect (persistence)", async () => {
+  const worker = loadWorker();
   const port = worker.connect();
   port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
   await drain();
@@ -414,8 +425,8 @@ test("cached events read back offline and survive reconnect (persistence)", asyn
   );
 });
 
-test("backendId change wipes the cache and broadcasts sync:reset, keeping the queue", async (t) => {
-  const worker = loadWorker(t);
+test("backendId change wipes the cache and broadcasts sync:reset, keeping the queue", async () => {
+  const worker = loadWorker();
   const port = worker.connect();
   port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
   await drain();
@@ -443,4 +454,143 @@ test("backendId change wipes the cache and broadcasts sync:reset, keeping the qu
 
   const pending = port.messages.filter((m) => m.type === "pending").pop();
   assert.equal(pending.count, 1, "the command queue must SURVIVE a backend reset");
+});
+
+// ---------------------------------------------------------------------------
+// v1 → v2 schema upgrade (v1.6.0): a 1.4.x database (commands store only,
+// ADR-0040) must upgrade in place when the v2 worker opens it — events + meta
+// stores created via onupgradeneeded, the pending v1 command preserved.
+// ---------------------------------------------------------------------------
+
+function seedV1Database(idb) {
+  const legacy = new FakeDB("cqrshtmx-sync");
+  legacy.version = 1;
+  legacy.createObjectStore("commands", { keyPath: "commandId" });
+  legacy.stores.get("commands").data.set("legacy-cmd", {
+    commandId: "legacy-cmd",
+    envelope: envelope(),
+    queuedAt: Date.now(),
+    retries: 0,
+  });
+  idb.databases.set("cqrshtmx-sync", legacy);
+}
+
+test("boot upgrades a v1 database to v2 in place, preserving the pending command", async () => {
+  const idb = new FakeIndexedDB();
+  seedV1Database(idb);
+  const worker = loadWorker({ idb });
+  const port = worker.connect();
+  port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
+  await drain();
+
+  const db = worker.idb.databases.get("cqrshtmx-sync");
+  assert.equal(db.version, 2, "the v1 database must be upgraded to DB_VERSION 2");
+  assert.ok(db.objectStoreNames.contains("commands"), "the v1 commands store must survive");
+  assert.ok(db.objectStoreNames.contains("events"), "the upgrade must create the events store");
+  assert.ok(db.objectStoreNames.contains("meta"), "the upgrade must create the meta store");
+
+  // Hello's flush can run before openDB's promise settles (db still null →
+  // in-memory path reports 0); the boot flush after the upgrade reports the
+  // surviving v1 command — wait for THAT one.
+  const pending = await waitFor(
+    port.messages,
+    (m) => m.type === "pending" && m.count === 1,
+    "pending count 1 for the surviving v1 command",
+  );
+  assert.equal(pending.count, 1, "the v1 pending command must be counted after the upgrade");
+  assert.ok(
+    !port.messages.some((m) => m.type === "dead"),
+    "the v1 pending command must not be evicted by the upgrade boot",
+  );
+  assert.ok(
+    db.stores.get("commands").data.has("legacy-cmd"),
+    "the v1 pending command record must survive the upgrade",
+  );
+});
+
+test("fresh boot creates the full v2 schema (all three stores, no upgrade path)", async () => {
+  const worker = loadWorker();
+  const port = worker.connect();
+  port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
+  await drain();
+
+  const db = worker.idb.databases.get("cqrshtmx-sync");
+  assert.equal(db.version, 2, "a fresh database is created at DB_VERSION 2");
+  for (const storeName of ["commands", "events", "meta"]) {
+    assert.ok(
+      db.objectStoreNames.contains(storeName),
+      "a fresh DB must create the " + storeName + " store",
+    );
+  }
+  const pending = await waitFor(port.messages, (m) => m.type === "pending", "pending count");
+  assert.equal(pending.count, 0, "a fresh DB has an empty queue");
+});
+
+// ---------------------------------------------------------------------------
+// Cursor monotonicity (v1.6.0): the persisted cursor must never move
+// backwards on the same backend (ULID cursors order lexicographically); a
+// backendId reset legitimately rewinds it (new backend, new cursor space).
+// ---------------------------------------------------------------------------
+
+test("refuses a regressing cursor on the same backend, allows the rewind across a backend reset", async () => {
+  const worker = loadWorker();
+  const port = worker.connect();
+  port.onmessage({ data: { type: "hello", tabId: "tab-1" } });
+  await drain();
+
+  const high = "01JDZZZZZZZZZZZZZZZZZZZZZZZ";
+  const low = "01JDAAAAAAAAAAAAAAAAAAAAAAZ";
+  assert.ok(low < high, "fixture sanity: the low cursor must sort below the high one");
+
+  port.onmessage({
+    data: {
+      type: "cache-events",
+      cursor: high,
+      backendId: "backend-A",
+      events: [{ eventId: "e1", type: "Note.created" }],
+    },
+  });
+  await waitFor(port.messages, (m) => m.type === "sync:events", "first cache write");
+
+  // A racing tab delivers a STALE response: lower cursor, same backend.
+  port.onmessage({
+    data: {
+      type: "cache-events",
+      cursor: low,
+      backendId: "backend-A",
+      events: [{ eventId: "e0", type: "Note.created" }],
+    },
+  });
+  await drain();
+
+  const broadcasts = port.messages.filter((m) => m.type === "sync:events");
+  assert.equal(broadcasts.length, 2, "the refused write must still broadcast (honest count)");
+  assert.equal(
+    broadcasts[1].cursor,
+    high,
+    "the broadcast must carry the KEPT cursor, not the regressed one",
+  );
+
+  const state = await askWorker(worker, { type: "get-state" }, "sync-state");
+  assert.equal(state.cursor, high, "the persisted cursor must NOT regress");
+  assert.ok(
+    worker.warns.some((w) => w.indexOf("cursor regression refused") !== -1),
+    "the pinned regression log line must fire: " + JSON.stringify(worker.warns),
+  );
+
+  // The stale batch's events still land (idempotent puts by eventId).
+  const read = await askWorker(worker, { type: "get-events" }, "events");
+  assert.equal(
+    read.events.map((e) => e.eventId).join(","),
+    "e0,e1",
+    "the stale batch's events must still be cached",
+  );
+
+  // A backendId reset legitimately rewinds the cursor (exempt from the guard).
+  port.onmessage({
+    data: { type: "cache-events", cursor: low, backendId: "backend-B", events: [] },
+  });
+  await waitFor(port.messages, (m) => m.type === "sync:reset", "reset on backend change");
+  const after = await askWorker(worker, { type: "get-state" }, "sync-state");
+  assert.equal(after.cursor, low, "a backend reset must be allowed to rewind the cursor");
 });

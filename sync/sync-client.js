@@ -31,7 +31,7 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.5.0";
+  const VERSION = "1.6.0";
 
   // --- Sync protocol endpoints (ADR-0056) ---
   // Pull (reads): cursor-based event batches cached in the worker. Push
