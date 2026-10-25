@@ -481,7 +481,7 @@ func ServeDomainEvents(
 // before the handler returns matters twice over: a heartbeat write racing
 // handler teardown is a data race, and net/http forbids touching the
 // ResponseWriter after return.
-func startHeartbeat(stream *sse.Stream, parent context.Context, heartbeat time.Duration) (join func()) {
+func startHeartbeat(stream *sse.Stream, parent context.Context, heartbeat time.Duration) func() {
 	hbCtx, hbCancel := context.WithCancel(parent)
 	hbDone := make(chan struct{})
 

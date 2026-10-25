@@ -61,7 +61,8 @@ func WithAuditLog(auditCfg auditlog.Config, viewerCfg live.Config) (*Setup, erro
 //
 // Returns ctx.Err() when the context fires before the drain completes.
 func (s *Setup) Shutdown(ctx context.Context) error {
-	return s.Viewer.Shutdown(ctx) //nolint:wrapcheck // passthrough: caller checks ctx.Err() sentinels (context.Canceled)
+	//nolint:wrapcheck // passthrough: caller checks ctx.Err() sentinels (context.Canceled)
+	return s.Viewer.Shutdown(ctx)
 }
 
 // SignalComplete marks the container lifecycle as finished: SSE handlers
