@@ -416,8 +416,8 @@ type Config struct {
 	// panel. Return a non-nil error to deny access (HTTP 403). When nil, the
 	// default role-based authorizer is used.
 	AdminMode       adminui.Mode
-	TenantID        usermgmt.TenantID
-	AdminAuthorizer func(user *usermgmt.User) error
+	TenantID        identitymodel.TenantID
+	AdminAuthorizer func(user *identitymodel.User) error
 
 	// DashboardAuthorizer decides whether an authenticated request may use the
 	// CQRS dashboard (runs after the session gate). Return a non-nil error to

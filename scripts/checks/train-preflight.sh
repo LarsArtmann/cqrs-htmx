@@ -14,7 +14,7 @@
 #                     window (bounded; env WAIT_TREE_QUIET_MAX_WAIT honored)
 #   2. surprise     — preflight-tree-check: dirty tree / foreign fresh commit /
 #                     commit-velocity burst
-#   3. lint         — nix run .#lint (workspace golangci-lint)
+#   3. lint         — nix run .#lint (per-module golangci-lint across workspace modules)
 #   4. tests        — nix run .#test (hermetic race battery, CI-parity:
 #                     flake goApp exports GOWORK=off)
 #   5. train        — check-release-train --refresh-cache --strict-lag 0

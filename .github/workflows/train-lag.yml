@@ -27,4 +27,5 @@ jobs:
 
       - name: Train-lag report
         run: |
+          set -o pipefail
           bash scripts/checks/train-lag-report.sh | tee "$GITHUB_STEP_SUMMARY"

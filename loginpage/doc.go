@@ -13,7 +13,7 @@
 //   - Browser WebAuthn detection (graceful fallback for unsupported browsers)
 //   - RFC 7807 error parsing (extracts title from Problem Details JSON)
 //   - Accessibility (aria-live on error regions for screen readers)
-//   - Zero external asset requests (CSS and JS inlined via go:embed)
+//   - JS inlined via go:embed; CSS is consumer-compiled Tailwind via Config.CSSPath
 //
 // # Quick start
 //
