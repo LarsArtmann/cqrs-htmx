@@ -13,7 +13,7 @@
 //				Summary("Create a new item").
 //				Tag("items").
 //				JSONBody(openapi.Object(
-//					openapi.Prop("name", openapi.String().MinLength(1)),
+//				openapi.Prop("name", openapi.String().WithMinLength(1)),
 //				)).
 //				Response(201, "Created"),
 //		).

@@ -58,8 +58,10 @@ type Schema struct {
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
 
 	// Ref is a JSON reference ($ref) into the components/schemas map, e.g.
-	// "#/components/schemas/Item". Use Ref(name) to construct one. When set,
-	// all other fields are ignored on serialization (per JSON Reference).
+	// "#/components/schemas/Item". Use Ref(name) to construct one — it sets
+	// ONLY this field. Conforming readers ignore sibling fields when $ref is
+	// present (per JSON Reference); this builder serializes whatever is set,
+	// so mixing Ref with other fields is the caller's bug.
 	Ref string `json:"$ref,omitempty"`
 }
 

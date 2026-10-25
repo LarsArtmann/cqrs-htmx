@@ -92,6 +92,12 @@ type opBuilder struct {
 }
 
 func (b *opBuilder) apply(item *PathItem) {
+	// A second registration of the same method would silently REPLACE the
+	// first operation — fail fast instead (matching PathOp's panic posture).
+	if b.op != nil && item.hasMethod(b.method) {
+		panic("openapi: method \"" + b.method + "\" already registered on this path — a second registration would silently replace the first")
+	}
+
 	switch b.method {
 	case "get":
 		item.Get = b.op
@@ -222,23 +228,37 @@ func (b *opBuilder) JSONBodyOpt(schema *Schema) *opBuilder {
 	return b
 }
 
-// Response adds a response for the given status code. The optional content
-// MediaTypes (typically produced by JSON(schema)) attach response bodies.
+// Response adds a response for the given status code. With exactly one
+// content MediaType it is keyed application/json (the conventional case —
+// pass JSON(schema)). To serve a non-JSON body, or several media types, use
+// [opBuilder.ResponseWithContent].
 func (b *opBuilder) Response(status int, description string, content ...*MediaType) *opBuilder {
 	resp := &Response{Description: description}
 
-	if len(content) > 0 {
-		resp.Content = map[string]*MediaType{}
-
-		for i, media := range content {
-			// JSON is the conventional key; for the common single-JSON-body
-			// case we use application/json explicitly.
-			resp.Content[jsonMediaType] = media
-
-			_ = i // placeholder: additional media types beyond JSON would key by their content type
-		}
+	switch len(content) {
+	case 0:
+	case 1:
+		resp.Content = map[string]*MediaType{jsonMediaType: content[0]}
+	default:
+		panic("openapi: Response: multiple content MediaTypes cannot be keyed automatically — use ResponseWithContent to name each content type")
 	}
 
+	b.op.Responses[status] = resp
+	b.lastResp = resp
+
+	return b
+}
+
+// ResponseWithContent adds a response with EXPLICIT media-type keys, e.g.
+// text/event-stream for SSE or text/html for HTMX partial responses:
+//
+//	.ResponseWithContent(200, "live feed", map[string]*openapi.MediaType{
+//		"text/event-stream": openapi.EventStream(),
+//	})
+//
+// The map is used as given; JSON(schema) remains the application/json helper.
+func (b *opBuilder) ResponseWithContent(status int, description string, content map[string]*MediaType) *opBuilder {
+	resp := &Response{Description: description, Content: content}
 	b.op.Responses[status] = resp
 	b.lastResp = resp
 

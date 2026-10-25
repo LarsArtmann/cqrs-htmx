@@ -50,6 +50,44 @@ type PathItem struct {
 	Parameters  []Parameter `json:"parameters,omitempty"`
 }
 
+// hasMethod reports whether the PathItem already carries an operation for the
+// lowercase HTTP method ("get", "post", ...). Used by the builder's
+// double-registration guard.
+func (p *PathItem) hasMethod(method string) bool {
+	switch method {
+	case "get":
+		return p.Get != nil
+	case "post":
+		return p.Post != nil
+	case "put":
+		return p.Put != nil
+	case "patch":
+		return p.Patch != nil
+	case "delete":
+		return p.Delete != nil
+	case "head":
+		return p.Head != nil
+	case "options":
+		return p.Options != nil
+	}
+
+	return false
+}
+
+// operations iterates every non-nil operation with its lowercase method name.
+// Used by Spec.Validate.
+func (p *PathItem) operations() map[string]*Operation {
+	return map[string]*Operation{
+		"get":     p.Get,
+		"post":    p.Post,
+		"put":     p.Put,
+		"patch":   p.Patch,
+		"delete":  p.Delete,
+		"head":    p.Head,
+		"options": p.Options,
+	}
+}
+
 // Operation describes a single HTTP operation on a path.
 type Operation struct {
 	Tags        []string          `json:"tags,omitempty"`
@@ -224,3 +262,26 @@ const jsonMediaType = "application/json"
 func JSON(schema *Schema) *MediaType {
 	return &MediaType{Schema: schema}
 }
+
+// eventStreamMediaType is the SSE content type.
+const eventStreamMediaType = "text/event-stream"
+
+// EventStream returns a text/event-stream MediaType — the body shape of SSE
+// endpoints (an OpenAPI Schema cannot describe the framing, so the schema is
+// nil and the description lives on the Response).
+func EventStream() *MediaType {
+	return &MediaType{}
+}
+
+// EventStreamContentType is the media-type key for SSE bodies, for use with
+// [opBuilder.ResponseWithContent].
+const EventStreamContentType = eventStreamMediaType
+
+// HTML returns a text/html MediaType for HTMX partial responses.
+func HTML(schema *Schema) *MediaType {
+	return &MediaType{Schema: schema}
+}
+
+// HTMLContentType is the media-type key for HTML bodies, for use with
+// [opBuilder.ResponseWithContent].
+const HTMLContentType = "text/html"
