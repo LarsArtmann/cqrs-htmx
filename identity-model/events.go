@@ -47,6 +47,18 @@ type CredentialRemovedPayload struct {
 	ID            []byte `json:"id"`
 }
 
+// CredentialUsedPayload records the credential state observed during one
+// successful WebAuthn assertion: the signature counter (the clone-detection
+// high-water mark) and the flags the authenticator reported.
+type CredentialUsedPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	CredentialID  []byte `json:"credential_id"`
+	SignCount     uint32 `json:"sign_count"`
+	UserPresent   bool   `json:"user_present,omitempty"`
+	UserVerified  bool   `json:"user_verified,omitempty"`
+	BackupState   bool   `json:"backup_state"`
+}
+
 type EmailVerifiedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	Email         string `json:"email"`

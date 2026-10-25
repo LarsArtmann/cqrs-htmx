@@ -19,13 +19,13 @@ Each report in this tree captures what someone knew at the end of a work session
 | ---------------------------------- | ------------------------------------------------------------------------------------------- |
 | `docs/status/*.md`                 | The unarchived tail — newest session reports only. **Counts are derived, never written here; run the command in "File counts" below.** |
 | `docs/status/archived/`            | Closed history — every archived session report. Counts derived (see below); bulk-pass manifest in `archived/README.md` |
-| `docs/status/*.html`               | Generated HTML report artifacts (see "HTML corpus" below)                                   |
+| `docs/status/*.html`               | Historical: generated HTML artifacts were evicted 2026-10-24 (see "HTML corpus policy")                                      |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`                             |
 | `docs/reviews/archived/`           | Archived review documents                                                                   |
 | `docs/modularization/archived/`    | Archived module-assessment documents                                                       |
 | `docs/plans/archived/`             | Archived implementation plans                                                              |
 | `docs/feedback/processed/`         | Processed feedback documents                                                               |
-| `docs/architecture-understanding/` | Generated self-contained HTML architecture reports (see "HTML corpus" below)                |
+| `docs/architecture-understanding/` | Generated architecture snapshots (d2/svg/HTML); uncited ones evicted 2026-10-24, the two load-bearing composability reviews remain |
 
 > **Archive eviction (prepared 2026-10-24, owner-gated).** 578 of the 591 files under the archive
 > directories are unreferenced closed history. The measured keep-set, the dry-run verdict, and the
@@ -112,7 +112,15 @@ adjudicate; scope-identity with the repo gate was verified per-file and per-line
 
 ## HTML corpus policy
 
-The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (**19 files: 14 + 5**, measured 2026-10-24; the former "~60" was never derived) are **generated, self-contained report artifacts** (styled snapshots produced for a specific session or review) and are **exempt from annotation sweeps and freshness gates**. They are deliverables, not claims to maintain: their content is superseded by the living docs, and no markdown-source counterpart is expected. Do not edit them in place; archive or regenerate instead. **Standing decision (docs-health round 14, 2026-10-01): the `docs/status/*.html` corpus (14 files as of 2026-10-24; 12 when the decision was taken) is KEEP-IN-PLACE** — archiving would be churn without information gain (they are already exempt from every gate and indexed by this README), and the TODO_LIST item that asked for the deliberate decision is closed with this line as the record.
+**Standing decision (superseded 2026-10-24):** docs-health round 14 (2026-10-01) had classified
+the generated `*.html` artifacts as KEEP-IN-PLACE. The 2026-10-24 corpus-eviction master plan
+(S21/S29) re-adjudicated: they are **generated, self-contained report artifacts** whose content
+is superseded by the living docs — 14 status HTML reports + every uncited research/architecture
+HTML snapshot were **evicted** by the same measured rule as the archive eviction (living-doc
+citation = keep; restore via [`../ARCHIVE_EVICTED.md`](../ARCHIVE_EVICTED.md)). The 12 cited
+research reports and the 2 composability reviews survive as load-bearing design rationale.
+Future generated HTML artifacts follow the same rule: cite one from a living doc if it is
+load-bearing, otherwise it is evictable closed history.
 
 ## File counts
 

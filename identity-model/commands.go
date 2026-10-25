@@ -95,6 +95,22 @@ func NewRemoveCredentialCmd(aggID id.StreamID, credID []byte) *RemoveCredentialC
 
 func (c *RemoveCredentialCmd) CredentialID() []byte { return c.credentialID }
 
+// RecordCredentialUseCmd records the credential state observed during a
+// successful WebAuthn assertion (signature counter + flags).
+type RecordCredentialUseCmd struct {
+	*command.BasicCommand
+	use CredentialUse
+}
+
+func NewRecordCredentialUseCmd(aggID id.StreamID, use CredentialUse) *RecordCredentialUseCmd {
+	return &RecordCredentialUseCmd{
+		BasicCommand: mustCommand(CmdRecordCredentialUse, aggID),
+		use:          use,
+	}
+}
+
+func (c *RecordCredentialUseCmd) Use() CredentialUse { return c.use }
+
 type VerifyEmailCmd struct {
 	*command.BasicCommand
 }
