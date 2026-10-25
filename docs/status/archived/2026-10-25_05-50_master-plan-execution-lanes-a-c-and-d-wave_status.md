@@ -1,6 +1,6 @@
 # Master plan execution: Lanes A–C complete, Lane D wave 1 delivered
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md`](../2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md), which same arc continued — the 06-52 report receipts the plan, the rescue train, and the push; every item the 05-50 report tracked is committed. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md`](2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md), which same arc continued — the 06-52 report receipts the plan, the rescue train, and the push; every item the 05-50 report tracked is committed. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-25 (2026-10-25)).**
 

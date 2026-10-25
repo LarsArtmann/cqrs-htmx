@@ -2,7 +2,7 @@
 
 **Created:** 2026-10-25 08:05 CET · **Trigger:** "figure out the 1%/4%/20%, comprehensive plan, then ≤12 min tasks, commit + push"
 **Supersedes:** [`2026-10-25_06-20_SUPERB-lane-d-completion-and-delivery-receipt-pareto-plan.md`](2026-10-25_06-20_SUPERB-lane-d-completion-and-delivery-receipt-pareto-plan.md) **for execution order and for the micro-task granularity**. The 06-20 file keeps the per-milestone scope text for D01–D15 and its owner-gate section; this file is authoritative for what runs first and for the ≤12 min breakdown of *every* milestone.
-**Predecessors:** [2026-10-24 05-36 master plan](2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md) (original sizing + evidence), [07-43 S32 session report](../status/2026-10-25_07-43_credential-use-sign-counter-persistence_status.md) (the red-state evidence this plan starts from).
+**Predecessors:** [2026-10-24 05-36 master plan](2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md) (original sizing + evidence), [07-43 S32 session report](../status/archived/2026-10-25_07-43_credential-use-sign-counter-persistence_status.md) (the red-state evidence this plan starts from).
 
 ---
 

@@ -1,5 +1,9 @@
 # Status — S32 credential-use persistence (sign counter + honest UP/UV + challenge namespacing), gate triage, and a concurrent-session collision
 
+> **ANNOTATED 2026-10-25** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+> The next session in the same arc is [`2026-10-25_09-45_wave-r-rescue-executed_status.md`](../2026-10-25_09-45_wave-r-rescue-executed_status.md), which S32 proven with receipts; red-state evidence superseded by the healing tree.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 > **Point-in-time report · 2026-10-25 07:43 CET (Sunday).** Session started as a continuation of the
 > master plan after the previous report (`2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy`),
 > whose two red gates (`module-isolation`, `branching-flow`) and uncommitted report were the first items.

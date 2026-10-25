@@ -1,9 +1,13 @@
 # Plan round 2: SUPERB Lane-D plan, the red-master rescue train, and the push
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_09-45_wave-r-rescue-executed_status.md`](../2026-10-25_09-45_wave-r-rescue-executed_status.md), which Wave R executed its plan; the three owner questions carried to the new report §g. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Written:** 2026-10-25 06:52 CET · **Supersedes:** the 2026-10-25 05-50 session receipt (same
 arc; everything it receipts is committed — this report adds the plan, the train, and the push)
 **Plan of record for the remainder:**
-[`docs/planning/2026-10-25_06-20_SUPERB-lane-d-completion-and-delivery-receipt-pareto-plan.md`](../planning/2026-10-25_06-20_SUPERB-lane-d-completion-and-delivery-receipt-pareto-plan.md)
+[`docs/planning/2026-10-25_06-20_SUPERB-lane-d-completion-and-delivery-receipt-pareto-plan.md`](../../planning/2026-10-25_06-20_SUPERB-lane-d-completion-and-delivery-receipt-pareto-plan.md)
 
 ## §a FULLY DONE this session (all pushed, strict train gate 0/0/0)
 
