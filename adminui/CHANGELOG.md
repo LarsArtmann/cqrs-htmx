@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **`Config.AccentColor` is validated at `New` against the CSS-color grammar (S36, 2026-10-25).** The accent is spliced into a raw `<style>` block (`:root{--accent:...}`), which HTML escaping cannot sanitize — a value like `red;} body{background:url(x)}` injected page rules. `New` now rejects anything outside #hex (3/4/6/8 digits), numeric `rgb()/rgba()/hsl()/hsla()`, and named CSS colors, mirroring dashboardui's grammar exactly (fail-fast chosen over sanitize-to-default: a typo'd accent should surface at construction, not silently render indigo). Pinned by `TestConfig_AccentColor_RejectsAtNew`/`AcceptsGrammar`/`DefaultStillValid`. Breaking only for configs that were injecting CSS; every legitimate color passes unchanged.
+
+- **Failed HTMX partial renders answer 500 instead of a truncated 200 (S36, 2026-10-25).** `renderPartial` logged render errors but left the response a 200 with a half-written fragment — htmx treats 200 as success and swaps the broken fragment into the DOM silently. The error path now mirrors `renderPage`'s explicit 500. Pinned by `TestRenderPartial_RenderError` (updated from the stale contract that asserted the bug).
 
 ## [v4.12.4] - 2026-10-11
 

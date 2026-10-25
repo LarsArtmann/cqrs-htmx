@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **`NewPageData` (Option B) now populates Nonce, Theme, CSRF, and the error message from the request (S36, 2026-10-25).** Consumers embedding the login form via `NewPageData` into their own layout got a `PageData` with an empty Nonce and no Theme — under the recommended nonce-CSP the embedded scripts were dead, and SSR theming was silently lost. Both construction paths (`ServeHTTP` and `NewPageData`) now share one request-scoped enrichment helper; a hostile nonce is sanitized the same way in both. Pinned by `TestNewPageData_PopulatesNonceAndTheme`.
+
 - **Favicon data-URI percent-encoding (2026-10-18 full-code-review wave).** The inline SVG favicon carried the raw accent color (`fill='#4f46e5'`) unencoded — data-URI content ends at the first `#`, so every hex accent (the default!) truncated the URI at the fragment boundary and no favicon ever rendered. The SVG is now `url.QueryEscape`-encoded; tests pin `%23` and reject any raw `#`.
 
 ## [v4.13.0] - 2026-10-14
