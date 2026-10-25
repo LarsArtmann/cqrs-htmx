@@ -178,10 +178,15 @@ func WithSSEMaxReplay(n int) ServeDomainEventsOption {
 // replay adjustments: tail-truncation to maxReplay (> 0) and the reconnect
 // retry hint stamped on replayed events whose Retry is zero. Both apply to
 // the reconnect/backfill path only — live events are untouched.
+//
+// When replayed is non-nil, the IDs of the events actually returned
+// (post-truncation — exactly what the stream writes) are recorded in it, so
+// the live pump can drop the same IDs at the replay/live seam.
 type replayAdjustedStore struct {
 	inner    sse.EventStore
 	maxN     int
 	retryHit uint
+	replayed map[string]struct{}
 }
 
 func (s *replayAdjustedStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
@@ -194,6 +199,8 @@ func (s *replayAdjustedStore) EventsAfter(lastID sse.EventID) ([]sse.Event, erro
 	if s.maxN > 0 && len(events) > s.maxN {
 		events = events[len(events)-s.maxN:]
 	}
+
+	recordReplayedIDs(s.replayed, events)
 
 	for i := range events {
 		if events[i].Retry == 0 && s.retryHit > 0 {
@@ -223,6 +230,7 @@ type filteredReplayStore struct {
 	match    func(sse.Event) bool
 	maxN     int
 	retryHit uint
+	replayed map[string]struct{}
 }
 
 func (f *filteredReplayStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
@@ -250,6 +258,8 @@ func (f *filteredReplayStore) EventsAfterFiltered(
 		out = out[len(out)-f.maxN:]
 	}
 
+	recordReplayedIDs(f.replayed, out)
+
 	for i := range out {
 		if out[i].Retry == 0 && f.retryHit > 0 {
 			out[i].Retry = f.retryHit
@@ -257,6 +267,21 @@ func (f *filteredReplayStore) EventsAfterFiltered(
 	}
 
 	return out, nil
+}
+
+// recordReplayedIDs collects the IDs of events the replay pass actually
+// writes (nil map = not recording). Unidentified events (empty ID) are
+// skipped — they cannot participate in seam dedup.
+func recordReplayedIDs(replayed map[string]struct{}, events []sse.Event) {
+	if replayed == nil {
+		return
+	}
+
+	for _, evt := range events {
+		if id := evt.ID.Get(); id != "" {
+			replayed[id] = struct{}{}
+		}
+	}
 }
 
 // safePredCall mirrors go-sse's fanout predicate guard: a panicking consumer
@@ -306,7 +331,11 @@ func subscribe(b *sse.Broadcaster[sse.Event], filter func(sse.Event) bool) <-cha
 }
 
 // replayEvents writes the journal backfill to the stream, honoring the
-// per-request filter. A nil store means live-only (no backfill).
+// per-request filter. A nil store means live-only (no backfill). The IDs of
+// the events written are recorded into replayed (when non-nil) so the live
+// pump can drop the same IDs at the replay/live seam — subscribe runs BEFORE
+// replay, so anything published during the replay window is delivered by
+// BOTH paths.
 //
 // Replayed events whose Retry is zero carry the handler's reconnect hint
 // ([DefaultRetryHintMillis]) — a client whose original retry frame was lost
@@ -319,6 +348,7 @@ func replayEvents(
 	filter func(sse.Event) bool,
 	maxReplay int,
 	logPrefix string,
+	replayed map[string]struct{},
 ) {
 	if store == nil {
 		return
@@ -331,6 +361,7 @@ func replayEvents(
 		// belongs to events the subscriber can actually receive.
 		filtered := &filteredReplayStore{
 			inner: store, match: filter, maxN: maxReplay, retryHit: DefaultRetryHintMillis,
+			replayed: replayed,
 		}
 
 		if _, err := sse.ReplayFiltered(stream, filtered, lastID, filter); err != nil {
@@ -340,7 +371,10 @@ func replayEvents(
 		return
 	}
 
-	store = &replayAdjustedStore{inner: store, maxN: maxReplay, retryHit: DefaultRetryHintMillis}
+	store = &replayAdjustedStore{
+		inner: store, maxN: maxReplay, retryHit: DefaultRetryHintMillis,
+		replayed: replayed,
+	}
 
 	if _, err := sse.Replay(stream, store, lastID); err != nil {
 		slog.Warn(logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
@@ -418,7 +452,10 @@ func ServeDomainEvents(
 
 		_ = stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"})
 
-		replayEvents(stream, store, filter, cfg.maxReplay, cfg.logPrefix)
+	// replayed holds the IDs the backfill writes; the live pump skips them
+	// (subscribe ran BEFORE replay, so the overlap window double-delivers).
+	replayed := make(map[string]struct{})
+	replayEvents(stream, store, filter, cfg.maxReplay, cfg.logPrefix, replayed)
 
 		// Heartbeat runs alongside the event loop. Derive a cancellable
 		// context and join the goroutine before this handler returns: a
@@ -447,7 +484,15 @@ func ServeDomainEvents(
 			case <-stream.Context().Done():
 				return
 			case evt, ok := <-ch:
-				if !ok || stream.Send(evt) != nil {
+				if !ok {
+					return
+				}
+				if id := evt.ID.Get(); id != "" {
+					if _, dup := replayed[id]; dup {
+						continue // already written by the replay pass
+					}
+				}
+				if stream.Send(evt) != nil {
 					return
 				}
 			}
