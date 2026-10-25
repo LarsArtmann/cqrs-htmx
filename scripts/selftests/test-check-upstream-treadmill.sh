@@ -52,9 +52,11 @@ new_fixture() {
 }
 
 run_gate() { # <fixture-dir> [args...] — echoes output; sets RC
+  # env -u CI: the LOCAL branch is the default under test; T11 covers the
+  # CI=true downgrade explicitly (selftest-env-leaks requires the strip).
   local tree="$1"
   shift
-  OUT="$(TREADMILL_ROOT="$tree" \
+  OUT="$(env -u CI TREADMILL_ROOT="$tree" \
     TRAIN_TAG_CACHE_DIR="$tree/cache" \
     TRAIN_TAG_CACHE_TTL=86400 \
     TREADMILL_FETCH_TAGS_CMD="bash $tree/fetch" \
@@ -215,6 +217,24 @@ run_gate "$work/t10"
 report "$([ "$RC" -eq 0 ] && echo 0 || echo 1)" "T10 nested prefix + single-line require exit 0 (got $RC)"
 report "$(echo "$OUT" | grep -q 'metaengine/sqliteengine/' && echo 0 || echo 1)" "T10 derives metaengine/sqliteengine/ (the trap, positive case)"
 report "$(echo "$OUT" | grep -q '\[LAG 1\]' && echo 0 || echo 1)" "T10 counts lag 1 against v4.6.1"
+
+# --- T11: CI=true downgrades fetch failure to a warning (house rule) -------------
+new_fixture t11
+mod_a t11 'module example.com/a
+go 1.27
+
+require (
+	github.com/larsartmann/go-health v0.7.0
+)'
+printf '#!/usr/bin/env bash\nexit 1\n' >"$work/t11/fetch"
+OUT="$(env CI=true TREADMILL_ROOT="$work/t11" \
+  TRAIN_TAG_CACHE_DIR="$work/t11/cache" \
+  TRAIN_TAG_CACHE_TTL=86400 \
+  TREADMILL_FETCH_TAGS_CMD="bash $work/t11/fetch" \
+  bash "$GATE" 2>&1)"
+RC=$?
+report "$([ "$RC" -eq 0 ] && echo 0 || echo 1)" "T11 CI=true fetch failure downgrades to exit 0 (got $RC)"
+report "$(echo "$OUT" | grep -q 'WARN: cannot list tags of go-health' && echo 0 || echo 1)" "T11 emits the CI advisory warning"
 
 echo ""
 echo "Results: $pass passed, $fail failed"
