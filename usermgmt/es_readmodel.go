@@ -41,6 +41,7 @@ func NewUserReadModel() *UserReadModel {
 			eventDisplayNameChanged:      (*UserReadModel).handleDisplayNameChanged,
 			eventCredentialAdded:         (*UserReadModel).handleCredentialAdded,
 			eventCredentialRemoved:       (*UserReadModel).handleCredentialRemoved,
+			eventCredentialUsed:          (*UserReadModel).handleCredentialUsed,
 			eventUserDeleted:             (*UserReadModel).handleUserDeleted,
 			eventEmailVerified:           (*UserReadModel).handleEmailVerified,
 			eventTOTPEnabled:             (*UserReadModel).handleTOTPEnabled,
@@ -182,6 +183,27 @@ func (m *UserReadModel) handleCredentialRemoved(_ id.StreamID, evt event.Event) 
 		}
 		u.Credentials = filtered
 		u.UpdatedAt = evt.OccurredAt()
+	}
+	return nil
+}
+
+func (m *UserReadModel) handleCredentialUsed(_ id.StreamID, evt event.Event) error {
+	aggID := evt.StreamID()
+	p, err := decodePayload[CredentialUsedPayload](evt, "CredentialUsed")
+	if err != nil {
+		return err
+	}
+	if u, ok := m.users[aggID]; ok {
+		if cred := findCredential(u.Credentials, p.CredentialID); cred != nil {
+			*cred = cred.ApplyUse(CredentialUse{
+				CredentialID: p.CredentialID,
+				SignCount:    p.SignCount,
+				UserPresent:  p.UserPresent,
+				UserVerified: p.UserVerified,
+				BackupState:  p.BackupState,
+			})
+			u.UpdatedAt = evt.OccurredAt()
+		}
 	}
 	return nil
 }

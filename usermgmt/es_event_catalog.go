@@ -109,6 +109,21 @@ func registerUserEvents(catalog *cqrshtmx.EventCatalog) {
 	})
 
 	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(identitymodel.EventCredentialUsed),
+		Aggregate:     string(identitymodel.AggregateTypeUser),
+		SchemaVersion: sv,
+		Description:   "A WebAuthn credential was used: the assertion's signature counter and flags were recorded",
+		PayloadFields: []cqrshtmx.PayloadField{
+			{Name: "schema_version", Type: "int", Required: true},
+			{Name: "credential_id", Type: "[]byte", Required: true},
+			{Name: "sign_count", Type: "uint32", Required: true},
+			{Name: "user_present", Type: "bool"},
+			{Name: "user_verified", Type: "bool"},
+			{Name: "backup_state", Type: "bool"},
+		},
+	})
+
+	catalog.Register(cqrshtmx.EventMetadata{
 		Type:          string(identitymodel.EventEmailVerified),
 		Aggregate:     string(identitymodel.AggregateTypeUser),
 		SchemaVersion: sv,

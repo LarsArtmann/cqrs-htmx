@@ -40,6 +40,7 @@ const (
 	AuditActionUserDeleted        = "user_deleted"
 	AuditActionCredentialAdded    = "credential_added"   //nolint:gosec // G101: audit action label, not a credential
 	AuditActionCredentialRemoved  = "credential_removed" //nolint:gosec // G101: audit action label, not a credential
+	AuditActionCredentialUsed     = "credential_used"    //nolint:gosec // G101: audit action label, not a credential
 	AuditActionEmailVerified      = "email_verified"
 	AuditActionTOTPEnabled        = "totp_enabled"
 	AuditActionTOTPDisabled       = "totp_disabled"
@@ -109,6 +110,7 @@ var auditActions = map[event.Type]string{ //nolint:gochecknoglobals // table-dri
 	eventUserDeleted:        AuditActionUserDeleted,
 	eventCredentialAdded:    AuditActionCredentialAdded,
 	eventCredentialRemoved:  AuditActionCredentialRemoved,
+	eventCredentialUsed:     AuditActionCredentialUsed,
 	eventEmailVerified:      AuditActionEmailVerified,
 	eventTOTPEnabled:        AuditActionTOTPEnabled,
 	eventTOTPDisabled:       AuditActionTOTPDisabled,

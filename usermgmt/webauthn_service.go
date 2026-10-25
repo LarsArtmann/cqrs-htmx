@@ -26,6 +26,8 @@ type webAuthnUserCred struct {
 	Transports      []string `json:"transports,omitempty"`
 	AAGUID          []byte   `json:"aaguid,omitempty"`
 	SignCount       uint32   `json:"sign_count"`
+	UserPresent     bool     `json:"user_present,omitempty"`
+	UserVerified    bool     `json:"user_verified,omitempty"`
 	BackupEligible  bool     `json:"backup_eligible"`
 	BackupState     bool     `json:"backup_state"`
 }
@@ -42,6 +44,8 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 			Transports:      c.Transports,
 			AAGUID:          c.AAGUID,
 			SignCount:       c.SignCount,
+			UserPresent:     c.UserPresent,
+			UserVerified:    c.UserVerified,
 			BackupEligible:  c.BackupEligible,
 			BackupState:     c.BackupState,
 		}
@@ -61,6 +65,15 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 
 // maxWebAuthnBodySize limits the authenticator response body to prevent abuse.
 const maxWebAuthnBodySize = 1 << 20 // 1 MB
+
+// WebAuthn ceremony sessions are keyed per ceremony. Without the prefix a
+// registration begun for a user and a login begun for the same user overwrite
+// each other's challenge in the shared session store (both keyed by user ID),
+// so whichever ceremony finishes second validates against the wrong challenge.
+const (
+	registrationSessionPrefix = "reg:"
+	loginSessionPrefix        = "login:"
+)
 
 // webauthnBeginResponse is the shared shape returned by both WebAuthn begin
 // ceremonies (registration and login): the JSON options to send to the client
@@ -103,7 +116,7 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 			WithCause(err)
 	}
 
-	sessionKey := userID.Get().String()
+	sessionKey := registrationSessionPrefix + userID.Get().String()
 	s.webauthnSessions.Save(sessionKey, sessionData)
 	s.logger.Info("usermgmt: registration ceremony begun", "user_id", userID)
 
@@ -128,7 +141,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 			WithContextAny("user_id", userID)
 	}
 
-	sessionKey := userID.Get().String()
+	sessionKey := registrationSessionPrefix + userID.Get().String()
 	sessionData, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration failed – session not found",
@@ -226,7 +239,7 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 		return nil, errorfamily.NewTransient("usermgmt.webauthn.begin_login", "begin webauthn login").WithCause(err)
 	}
 
-	sessionKey := user.ID.Get().String()
+	sessionKey := loginSessionPrefix + user.ID.Get().String()
 	s.webauthnSessions.Save(sessionKey, sessionData)
 	s.logger.Debug("usermgmt: login ceremony begun", "email", email)
 
@@ -254,7 +267,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 			WithContextAny("user_id", userID)
 	}
 
-	sessionKey := userID.Get().String()
+	sessionKey := loginSessionPrefix + userID.Get().String()
 	sessionData, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish login failed – session not found",
