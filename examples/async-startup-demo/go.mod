@@ -35,7 +35,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.4 // indirect
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.3 // indirect
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.13.0 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.14.0 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.13.0 // indirect
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1 // indirect

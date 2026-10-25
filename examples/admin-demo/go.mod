@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.4
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
