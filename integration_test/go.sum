@@ -208,8 +208,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.0 h1:nT55gRlyqmVRUTNAa
 github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.0/go.mod h1:UsxJWqFvjCkYfXCJ8TkNmEC3pIzpfIqxYjfn3xQ8zC0=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1 h1:50h3ypO0I346KBzghWNWTixhB6CAQfQpk2gnG4HDQUY=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1/go.mod h1:84IPSUojaxGSlhIkJhzTM3Jt1XmRCutvZznlop/uocY=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3 h1:6f8Q7qrozx71cRwcvnYXJR2uJYVoKXhjWdvHtHU86No=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3/go.mod h1:keyt6gydNmr6T01WxNO1XgAMh/WIN/PVjqPcP3rZSi0=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.15.0 h1:2XpYU5VPSaUynHSrF5QIDYNXNYbzIC0X/zvAbKQW+Rw=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.15.0/go.mod h1:RXv3wjpCcFWxbRS/IGRpI+wOYuIyng/ERx8UbXCDPGo=
 github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.12.1 h1:UyP9RB1FQ8UlaTEfBc668XndR0cjH4CIhiHFtgpwzIc=
 github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.12.1/go.mod h1:6wCAzpp3mkfAalpBYyU9zYIK3CLMpUz1MM1PPWyjJus=
 github.com/larsartmann/cqrs-htmx/v4 v4.14.1 h1:ZcMc6o55bnYFH8u7Ae9t8a2yxt6iLHUc70MRpWkLfFQ=

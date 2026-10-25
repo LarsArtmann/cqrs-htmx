@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.4
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.3
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-sse v0.6.2
