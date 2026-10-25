@@ -82,6 +82,13 @@ echo ""
 declare -A REPO_TAGS_OK
 declare -A REPO_TAGS_LIST
 declare -A FETCH_FAILED
+# Seed-and-unset so empty associative arrays are BOUND under set -u (bash
+# 5.x still treats a declared-but-never-assigned assoc as unbound when
+# expanded — the "line 292: FETCH_FAILED: unbound variable" class).
+for _arr in REPO_TAGS_OK REPO_TAGS_LIST FETCH_FAILED PIN PINS_ALL PIN_WHERE PIN_DISAGREE; do
+  declare -A "$_arr[__seed__]=1"
+  unset "$_arr[__seed__]"
+done
 CACHE_MAX_AGE=-1
 
 fetch_repo_tags() { # <repo> — populate REPO_TAGS_* ; never exits on failure
@@ -154,21 +161,33 @@ upstream_prefix_for() {
   fi
 }
 
-# Max published vX.Y.Z under a prefix (empty when the prefix has no tags).
+# Bare published versions (prefix STRIPPED) under a prefix, sorted. Comparing
+# bare versions — never full tags — is the whole game: sort -V on
+# "watermill/v4.7.0" vs pin "v4.7.0" ranks the prefixed tag above the pin and
+# fabricates lag; nested-module tags (event/v4/eventtest/vX) can never match
+# the anchored form. Empty when the prefix has no published tags.
+versions_for() {
+  local prefix="$1" tags="$2" t
+  while IFS= read -r t; do
+    [ -n "$t" ] || continue
+    echo "${t#"$prefix"}"
+  done < <({ grep -E "^${prefix}v[0-9]+\.[0-9]+\.[0-9]+$" <<<"$tags" || true; })
+}
+
+# Latest bare version under a prefix ("" when none).
 max_published_for() {
-  local prefix="$1" tags="$2"
-  { grep -E "^${prefix}v[0-9]+\.[0-9]+\.[0-9]+$" <<<"$tags" || true; } | sort -V | tail -1
+  versions_for "$1" "$2" | sort -V | tail -1
 }
 
 # Releases strictly greater than $pin under $prefix (the honest lag count).
 lag_count_for() {
-  local prefix="$1" tags="$2" pin="$3" t n=0
-  while IFS= read -r t; do
-    [ -n "$t" ] || continue
-    if [[ "$(printf '%s\n%s\n' "$t" "$pin" | sort -V | tail -1)" == "$t" && $t != "$pin" ]]; then
+  local v n=0
+  while IFS= read -r v; do
+    [ -n "$v" ] || continue
+    if [[ "$(printf '%s\n%s\n' "$v" "$pin" | sort -V | tail -1)" == "$v" && $v != "$pin" ]]; then
       n=$((n + 1))
     fi
-  done < <({ grep -E "^${prefix}v[0-9]+\.[0-9]+\.[0-9]+$" <<<"$tags" || true; })
+  done < <(versions_for "$1" "$2")
   echo "$n"
 }
 
