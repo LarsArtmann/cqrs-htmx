@@ -156,7 +156,8 @@ func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*Pro
 		projectionhost.WithBatchSize(projectionBatchSize),
 	)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "systemadapter.create_projection_host", "create projection host")
+		return nil, errorfamily.WrapInfrastructure(err,
+			"systemadapter.create_projection_host", "create projection host")
 	}
 
 	projections := []projection.Projection{

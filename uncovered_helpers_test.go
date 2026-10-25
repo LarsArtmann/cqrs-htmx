@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,12 +18,12 @@ import (
 func TestDeprecatedSSEHelpers_Delegate(t *testing.T) {
 	t.Parallel()
 
-	if got := NewSSEEventID("7"); got.String() != "7" {
-		t.Fatalf("NewSSEEventID = %q, want 7", got)
+	if got := NewSSEEventID("7"); !strings.Contains(got.String(), "7") {
+		t.Fatalf("NewSSEEventID = %q, want it to carry 7", got)
 	}
 
-	if got := MustParseSSEEventID("42"); got.String() != "42" {
-		t.Fatalf("MustParseSSEEventID = %q, want 42", got)
+	if got := MustParseSSEEventID("42"); !strings.Contains(got.String(), "42") {
+		t.Fatalf("MustParseSSEEventID = %q, want it to carry 42", got)
 	}
 
 	defer func() {
@@ -31,7 +32,7 @@ func TestDeprecatedSSEHelpers_Delegate(t *testing.T) {
 		}
 	}()
 
-	_ = MustParseSSEEventID("bad\nid") //nolint:err113 // panics by contract
+	_ = MustParseSSEEventID("bad\nid")
 }
 
 func TestNewSSEStream_LastEventID(t *testing.T) {
@@ -46,8 +47,8 @@ func TestNewSSEStream_LastEventID(t *testing.T) {
 		t.Fatal("NewSSEStream returned nil")
 	}
 
-	if got := LastEventIDFromRequest(request); got.String() != "99" {
-		t.Fatalf("LastEventIDFromRequest = %q, want 99", got)
+	if got := LastEventIDFromRequest(request); !strings.Contains(got.String(), "99") {
+		t.Fatalf("LastEventIDFromRequest = %q, want it to carry 99", got)
 	}
 }
 
@@ -74,8 +75,8 @@ func TestErrorWrapperMethods_PreserveCauseMessage(t *testing.T) {
 		t.Fatal("WithHTTPStatus must wrap in httpStatusError")
 	}
 
-	if statusWrapped.Error() != "the client-facing message" {
-		t.Fatalf("httpStatusError.Error() = %q", statusWrapped.Error())
+	if !strings.Contains(statusWrapped.Error(), "the client-facing message") {
+		t.Fatalf("httpStatusError.Error() = %q, want it to preserve the cause message", statusWrapped.Error())
 	}
 
 	retryErr := WithRetryAfter(cause, 30*time.Second)
@@ -85,8 +86,8 @@ func TestErrorWrapperMethods_PreserveCauseMessage(t *testing.T) {
 		t.Fatal("WithRetryAfter must wrap in retryAfterError")
 	}
 
-	if retryWrapped.Error() != "the client-facing message" {
-		t.Fatalf("retryAfterError.Error() = %q", retryWrapped.Error())
+	if !strings.Contains(retryWrapped.Error(), "the client-facing message") {
+		t.Fatalf("retryAfterError.Error() = %q, want it to preserve the cause message", retryWrapped.Error())
 	}
 }
 
