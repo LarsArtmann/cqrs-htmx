@@ -208,4 +208,3 @@ func removeMembership() metaengine.Fold {
 		projectionadapter.EventWithID[identitymodel.MemberRemovedPayload]{},
 		metaengine.Remove[MembershipView]())
 }
-

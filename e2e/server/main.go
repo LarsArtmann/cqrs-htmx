@@ -13,14 +13,9 @@ package main
 
 import (
 	"context"
-	"encoding/json/v2"
 	"flag"
-	"fmt"
-	"html"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -31,127 +26,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	"github.com/larsartmann/go-sse"
 )
 
 // Server timeout posture for the e2e server. ReadHeader/Read/Idle timeouts
-// mirror setup.Bundle's HTTP server defaults; there is deliberately NO
-// WriteTimeout — a write timeout kills every SSE stream mid-flight (setup's
-// Run paths disable it for exactly this reason).
+// mirror setup.Bundle HTTP server defaults; there is deliberately NO
+// WriteTimeout — a write timeout kills every SSE stream mid-flight (setup Run
+// paths disable it for exactly this reason).
 const (
 	e2eReadHeaderTimeout = 5 * time.Second
 	e2eReadTimeout       = 10 * time.Second
 	e2eIdleTimeout       = 60 * time.Second
 )
-
-type emptyCommandJournal struct{}
-
-func (emptyCommandJournal) ReadAll(context.Context) ([]*command.PersistedCommand, error) {
-	return nil, nil
-}
-
-type emptyQueryJournal struct{}
-
-func (emptyQueryJournal) ReadAllQueries(context.Context) ([]*query.PersistedQuery, error) {
-	return nil, nil
-}
-
-// cqrs-lint:ignore-start(A023,F001) no-op store by design: dashboard empty-state snapshot panel for e2e specs
-type emptySnapshotStore struct{}
-
-func (emptySnapshotStore) Save(context.Context, snapshot.Snapshot) error { return nil }
-func (emptySnapshotStore) Delete(context.Context, id.StreamRef) error    { return nil }
-func (emptySnapshotStore) Load(context.Context, id.StreamRef) (*snapshot.Snapshot, error) {
-	return nil, snapshot.ErrSnapshotNotFound
-}
-
-func (emptySnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.Version) (*snapshot.Snapshot, error) {
-	return nil, snapshot.ErrSnapshotNotFound
-}
-
-//cqrs-lint:ignore-end
-
-// demoProjection is a minimal projection.Projection: it processes every
-// event without error so the worker stays healthy for badge assertions.
-type demoProjection struct{}
-
-func (demoProjection) Name() string                                  { return "demo-projection" }
-func (demoProjection) Handle(_ context.Context, _ event.Event) error { return nil }
-func (demoProjection) EventTypes() []event.Type                      { return nil }
-
-// seedDashboard appends a few generic events across two streams, starts
-// the projection host, and seeds two dead-letter entries so the browser-truth
-// specs assert real tables, badges, worker states, and the DLQ count notice
-// instead of empty states.
-func seedDashboard(
-	store *memorystorage.MemoryStore,
-	host *projectionhost.Host,
-	deadStore projectionhost.DeadLetterStore,
-) {
-	ctx := context.Background()
-
-	var lastEvent event.Event
-
-	for _, streamType := range []string{"User", "Tenant"} {
-		aggID := id.NewStreamID()
-		ref := id.StreamRef{Type: id.StreamType(streamType), ID: aggID}
-
-		for v := uint64(1); v <= 2; v++ {
-			evt, eErr := event.New(
-				event.Type(streamType+".registered"),
-				aggID,
-				id.StreamType(streamType),
-				event.Version(v),
-				map[string]string{"seq": strconv.FormatUint(v, 10)},
-				event.WithSchemaVersion(1),
-			)
-			if eErr != nil {
-				log.Fatalf("event.New: %v", eErr)
-			}
-
-			if aErr := store.AppendBatch(ctx, ref, []event.Event{evt}); aErr != nil {
-				log.Fatalf("AppendBatch: %v", aErr)
-			}
-
-			lastEvent = evt
-		}
-	}
-
-	if host == nil {
-		return
-	}
-
-	if rErr := host.Register(demoProjection{}); rErr != nil {
-		log.Fatalf("host.Register: %v", rErr)
-	}
-
-	if sErr := host.Start(ctx); sErr != nil {
-		log.Fatalf("host.Start: %v", sErr)
-	}
-
-	// Deterministic DLQ seed: two poison entries for the demo projection (a
-	// failing handler + retry exhaustion would be timing-dependent; direct
-	// Store calls make the count notice assertable: "Showing 2 items.").
-	for i := 1; i <= 2; i++ {
-		entry := projectionhost.DeadLetterEntry{
-			ProjectionName: demoProjection{}.Name(),
-			EventID:        fmt.Sprintf("e2e-dlq-%d", i),
-			EventType:      lastEvent.Type().String(),
-			StreamID:       lastEvent.StreamID().String(),
-			Event:          lastEvent,
-			Error:          "synthetic e2e poison event",
-			ErrorFamily:    "corruption",
-			FailedAt:       time.Now().Add(-time.Duration(i) * time.Minute),
-		}
-
-		if dErr := deadStore.Store(ctx, entry); dErr != nil {
-			log.Fatalf("deadStore.Store: %v", dErr)
-		}
-	}
-}
 
 func main() {
 	addr := flag.String("addr", ":18923", "listen address")
@@ -235,7 +121,7 @@ func main() {
 		evt, err := event.New(event.Type("Item.synced"), aggID, itemStreamType, event.Version(1),
 			map[string]string{"name": c.ItemName()}, event.WithSchemaVersion(1))
 		if err != nil {
-			return err
+			return err //nolint:wrapcheck // e2e: raw construction error is the intended command failure
 		}
 
 		if err := syncStore.AppendBatch(
@@ -243,7 +129,7 @@ func main() {
 			ref,
 			[]event.Event{evt},
 		); err != nil { //cqrs-lint:ignore(C033) e2e: the raw store error is the intended command failure
-			return err
+			return err //nolint:wrapcheck // e2e: the raw store error is the intended command failure
 		}
 
 		store.add(c.ItemName())
@@ -254,13 +140,13 @@ func main() {
 	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: cmdDisp, AfterDispatch: ackHook})
 
 	mux.Handle("POST /api/sync-items", app.Command("SyncAddItem",
-		cqrshtmx.DecodeForm(func(f syncItemForm) (command.Command, error) {
+		cqrshtmx.DecodeForm(func(form syncItemForm) (command.Command, error) {
 			core, err := command.New("SyncAddItem", id.NewStreamID())
 			if err != nil {
-				return nil, err
+				return nil, err //nolint:wrapcheck // e2e: raw construction error is the intended decode failure
 			}
 
-			return &syncAddItemCmd{BasicCommand: *core, name: f.Name}, nil
+			return &syncAddItemCmd{BasicCommand: *core, name: form.Name}, nil
 		}),
 		cqrshtmx.WithSuccessStatus(http.StatusCreated),
 	))
@@ -314,179 +200,5 @@ func main() {
 
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
-	}
-}
-
-// --- HTML page ---
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write([]byte(indexHTML))
-}
-
-const indexHTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sync E2E Test</title>
-  <script src="/htmx.js"></script>
-</head>
-<body data-sse-url="/events" data-sync-pull-url="/sync/pull" data-sync-push-url="/sync/push">
-  <div id="sync-indicator" data-sync-status="idle">Synced</div>
-  <main>
-    <h1>Items</h1>
-    <div data-sync-target>
-      <form id="add-form" hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend">
-        <input type="text" name="name" placeholder="Item name" required autocomplete="off">
-        <button type="submit">Add</button>
-      </form>
-      <form id="sync-add-form" data-sync-command-type="SyncAddItem" hx-post="/api/sync-items" hx-target="#item-list" hx-swap="beforeend">
-        <input type="text" name="name" placeholder="Batched item" required autocomplete="off">
-        <button type="submit">Add (batched)</button>
-      </form>
-      <ul id="item-list"></ul>
-    </div>
-  </main>
-  <script src="/sync-client.js"></script>
-</body>
-</html>`
-
-// --- SSE handler ---
-
-func sseHandler(broadcaster *cqrshtmx.Broadcaster) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		stream := sse.NewStream(w, r)
-		defer func() { _ = stream.Close() }()
-
-		if f, ok := w.(http.Flusher); ok {
-			f.Flush()
-		}
-
-		ch := broadcaster.Subscribe()
-		defer broadcaster.Unsubscribe(ch)
-
-		for {
-			select {
-			case <-stream.Context().Done():
-				return
-			case evt, ok := <-ch:
-				if !ok {
-					return
-				}
-
-				if err := stream.Send(evt); err != nil {
-					return
-				}
-			}
-		}
-	}
-}
-
-// --- Items command handler ---
-
-func itemsPostHandler(store *itemStore, ackHook cqrshtmx.AfterDispatchHook) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "bad form", http.StatusBadRequest)
-
-			return
-		}
-
-		name := strings.TrimSpace(r.FormValue("name"))
-		if name == "" {
-			http.Error(w, "name required", http.StatusBadRequest)
-
-			return
-		}
-
-		store.add(name)
-
-		cmdID := cqrshtmx.CommandIDFromRequest(r)
-		if cmdID != "" {
-			ackHook(r.Context(), r, nil)
-		}
-
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, `<li data-sync-state="confirmed">%s</li>`, html.EscapeString(name))
-	}
-}
-
-// --- Debug endpoint (test assertions) ---
-
-func itemsDebugHandler(store *itemStore) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		items := store.list()
-
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.MarshalWrite(w, items)
-	}
-}
-
-// --- In-memory item store ---
-
-type itemStore struct {
-	mu    sync.Mutex
-	items []string
-}
-
-func (s *itemStore) add(name string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.items = append(s.items, name)
-}
-
-func (s *itemStore) list() []string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	out := make([]string, len(s.items))
-	copy(out, s.items)
-
-	return out
-}
-
-// --- ADR-0056 sync types: form -> typed command -> journaled event ---
-
-type syncItemForm struct {
-	Name string `json:"name"`
-}
-
-type syncAddItemCmd struct {
-	command.BasicCommand
-
-	name string
-}
-
-func (c *syncAddItemCmd) ItemName() string { return c.name }
-
-const itemStreamType = id.StreamType("Item")
-
-// seedSyncEvents gives the pull cache deterministic content on first
-// connect (the offline-reads spec reads these through
-// window.cqrsSync.getEvents() without issuing any command).
-func seedSyncEvents(store *memorystorage.MemoryStore) {
-	ctx := context.Background()
-
-	for _, name := range []string{"seed-one", "seed-two"} {
-		aggID := id.NewStreamID()
-		ref := id.StreamRef{Type: itemStreamType, ID: aggID}
-
-		evt, err := event.New(event.Type("Item.synced"), aggID, itemStreamType, event.Version(1),
-			map[string]string{"name": name}, event.WithSchemaVersion(1))
-		if err != nil {
-			log.Fatalf("event.New: %v", err)
-		}
-
-		if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
-			log.Fatalf("AppendBatch: %v", err)
-		}
 	}
 }

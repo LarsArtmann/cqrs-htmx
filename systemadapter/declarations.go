@@ -5,7 +5,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-
 // DeclarativeProjections returns all metaengine projection declarations for the
 // identity-model domain. Wire these into system.DomainConfig.Projections so
 // system.New() auto-creates the internal projection host — no separate
@@ -43,7 +42,6 @@ func DeclarativeProjections() []system.ProjectionDeclaration {
 		system.RawQuery(auditLogScan()),
 	}
 }
-
 
 // -------------------------------------------------------------------------
 // Helpers

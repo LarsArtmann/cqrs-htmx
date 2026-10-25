@@ -4,28 +4,28 @@ The four harvested docs-truth rows, each closed with evidence. Ran as the addend
 
 ## q.1 — `VERSIONING.md` claim-by-claim (S22): HOLDS
 
-| Claim | Verdict | Evidence |
-| --- | --- | --- |
-| v4 current, module suffix convention | TRUE | root `go.mod` = `cqrs-htmx/v4` |
-| go.work is the authoritative module list; examples/e2e/integration_test members-not-published | TRUE | 28 `use` entries + root = 29 modules; the three carry no published tags (treadmill's 20-repo/77-prefix world excludes them) |
-| Published-module list complete (10 bullets incl. the 3 auth strategies) | TRUE | 14 published gate modules, all named |
-| "Core `usermgmt` has zero auth-related dependencies" | TRUE | `usermgmt/go.mod` has zero totp/webauthn/oauth2 requires (verified 2026-10-25) |
-| API doc generation lives in `go-cqrs-lite/catalog/v4`, not here | TRUE | catalog v4.8.0/v4.9.0 consumed by go-appkit; no docsite in-tree |
-| v3→v4 / v4→v5 migration docs exist | TRUE | `docs/migrations/v3-to-v4.md` (+ v2-to-v3, v4-to-v5) |
+| Claim                                                                                         | Verdict | Evidence                                                                                                                    |
+| --------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------- |
+| v4 current, module suffix convention                                                          | TRUE    | root `go.mod` = `cqrs-htmx/v4`                                                                                              |
+| go.work is the authoritative module list; examples/e2e/integration_test members-not-published | TRUE    | 28 `use` entries + root = 29 modules; the three carry no published tags (treadmill's 20-repo/77-prefix world excludes them) |
+| Published-module list complete (10 bullets incl. the 3 auth strategies)                       | TRUE    | 14 published gate modules, all named                                                                                        |
+| "Core `usermgmt` has zero auth-related dependencies"                                          | TRUE    | `usermgmt/go.mod` has zero totp/webauthn/oauth2 requires (verified 2026-10-25)                                              |
+| API doc generation lives in `go-cqrs-lite/catalog/v4`, not here                               | TRUE    | catalog v4.8.0/v4.9.0 consumed by go-appkit; no docsite in-tree                                                             |
+| v3→v4 / v4→v5 migration docs exist                                                            | TRUE    | `docs/migrations/v3-to-v4.md` (+ v2-to-v3, v4-to-v5)                                                                        |
 
 No stale claims found. No edit needed.
 
 ## q.2 — `docs/DOMAIN_LANGUAGE.md` claim-by-claim (S22): HOLDS, one precision note
 
-| Claim | Verdict | Evidence |
-| --- | --- | --- |
-| 24 events (21 lifecycle + 3 auth-audit) | TRUE | Events table = 24 rows; matches identity-model payload structs |
-| 20 commands (UpdateRoles legacy-removed) | TRUE | 21 rows − 1 legacy = 20 active; matches `Cmd*` bijection gate |
-| ActorID kinds user/bot/system/service/unknown | TRUE | `identity-model/id.go:119-127` constants + tests |
-| Roles super_admin/admin/user/viewer/owner | TRUE | `RoleSuperAdmin`/`RoleViewer` et al. in `authz_roles.go` |
-| SessionOrigin sealed interface (DirectLogin/Impersonation) | TRUE | `isSessionOrigin()` marker methods |
-| Email `ParseEmail`/`MustParseEmail` | TRUE | `identity-model/email.go:18,40` |
-| EventBus "default `watermill.EventBus`" | TRUE, IMPRECISE | it is `go-cqrs-lite/watermill/v4` (the GCL package), not upstream ThreeDotsLabs — a reader could chase the wrong library; precision note recorded here rather than churning the row |
+| Claim                                                      | Verdict         | Evidence                                                                                                                                                                            |
+| ---------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 24 events (21 lifecycle + 3 auth-audit)                    | TRUE            | Events table = 24 rows; matches identity-model payload structs                                                                                                                      |
+| 20 commands (UpdateRoles legacy-removed)                   | TRUE            | 21 rows − 1 legacy = 20 active; matches `Cmd*` bijection gate                                                                                                                       |
+| ActorID kinds user/bot/system/service/unknown              | TRUE            | `identity-model/id.go:119-127` constants + tests                                                                                                                                    |
+| Roles super_admin/admin/user/viewer/owner                  | TRUE            | `RoleSuperAdmin`/`RoleViewer` et al. in `authz_roles.go`                                                                                                                            |
+| SessionOrigin sealed interface (DirectLogin/Impersonation) | TRUE            | `isSessionOrigin()` marker methods                                                                                                                                                  |
+| Email `ParseEmail`/`MustParseEmail`                        | TRUE            | `identity-model/email.go:18,40`                                                                                                                                                     |
+| EventBus "default `watermill.EventBus`"                    | TRUE, IMPRECISE | it is `go-cqrs-lite/watermill/v4` (the GCL package), not upstream ThreeDotsLabs — a reader could chase the wrong library; precision note recorded here rather than churning the row |
 
 ## q.3 — dashboardui↔root co-change, measured correctly (S24): 2.6% recent / 10.1% lifetime
 
@@ -52,4 +52,4 @@ The decision already shipped 2026-10-24 (stronger than the master plan's no-verd
 
 ---
 
-*Quartet closed 2026-10-25 (addendum §2, q.1–q.5). Verify: `nix run .#check-docs-links` green; corpus baseline bumped in the same commit.*
+_Quartet closed 2026-10-25 (addendum §2, q.1–q.5). Verify: `nix run .#check-docs-links` green; corpus baseline bumped in the same commit._

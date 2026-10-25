@@ -70,6 +70,25 @@ auth posture themselves — no external middleware required:
 Full route table: the `RegisterRoutes` godoc and the root README. Decision
 record: `docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
 
+## Projection readiness (health checks)
+
+`*Service` implements `ProjectionStatuses()` — the worker state of every
+registered projection (`idle`, `running`, `backoff`, `draining`, `live`,
+`stopped`, `failed`). Wire it into a readiness endpoint so a projection
+still replaying its journal, or one that exhausted its restart budget,
+fails the probe instead of quietly serving a degraded read model:
+
+```go
+mux.Handle("GET /readyz", cqrshtmx.ReadinessHandler(
+	cqrshtmx.ProjectionReadinessCheck(svc),
+))
+```
+
+`ServiceConfig.OnProjectionFailed` is the log-side twin: the func is
+called when a worker exhausts its restart budget. Neither is a
+constructor error by design — startup drain failures surface through
+`ProjectionStatuses()` and this hook, never from `NewService`.
+
 ## Published language (25 events / 21 commands)
 
 The identity domain's events (`identity-model` constants; `DefaultEventCatalog()`

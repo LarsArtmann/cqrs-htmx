@@ -6,7 +6,6 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-
 // Config-field display names used across the validation tables. They name
 // the field (not the route), so a rejected config names the exact key to
 // change; constants keep the three tables in sync (goconst).
@@ -77,7 +76,6 @@ func trimTrailingSlash(s string) string {
 
 	return s
 }
-
 
 // validatePathShapes rejects paths that do not start with a slash (or, for
 // LoginRedirect, a URL scheme).

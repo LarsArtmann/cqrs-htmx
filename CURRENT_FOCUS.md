@@ -12,7 +12,8 @@
 the module lane's lint red, and the module lane (W04–W15) continues.**
 Plan of record:
 [`docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md`](docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md)
-+ the 10-42/10-43 lane split (docs lane: W09/W13/W16/W17-verdicts/quartet/sync-tails — ALL DONE).
+
+- the 10-42/10-43 lane split (docs lane: W09/W13/W16/W17-verdicts/quartet/sync-tails — ALL DONE).
 
 **State:** sync tails shipped as assets v1.6.0 (`5e0fb368`); battery run green
 except lint — **7 findings, all in the sibling's W03 code** (root/transport ×5,

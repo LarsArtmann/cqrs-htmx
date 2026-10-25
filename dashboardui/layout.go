@@ -78,4 +78,3 @@ func (d *Dashboard) serveJS() http.HandlerFunc {
 func serveConstAsset(name, contentType, body string) http.HandlerFunc {
 	return cqrshtmx.ServeAsset(name, contentType, []byte(body)).ServeHTTP
 }
-

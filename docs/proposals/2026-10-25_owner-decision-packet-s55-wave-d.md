@@ -6,30 +6,30 @@ One read for every owner-gated decision in the Wave D arc: the TODO D-table (D1�
 
 `Tick = agree with the recommendation.` Rows already resolved by execution are marked and need no action.
 
-| # | Decision | Recommendation | Unblocks |
-| --- | --- | --- | --- |
-| D1 | OQ23 setup/core split (PapDashboard) | GO, conditional on their flip trigger | PapDashboard reply send |
-| D2 | OQ24 pluggable SSE envelope | NO-GO today; revisit on 2nd frozen-wire consumer | — |
-| D3 | rawIDToken LIVE-SECRET confirm | tick-to-close (executed; D10 companion also resolved `d05585e8`) | — |
-| D4 | T08 fleet cqrs-lint binary swap | approve — after D6 (pin `b06ac8add5e8`+; binary 4.16.1 is out) | gotcha-13 retirement |
-| D5 | /mnt/buildcache reclaim | urgency DOWN (69%, 66G free, 2026-10-25) — watch suffices | — |
-| D6 | cqrs-lint distribution tag (nested module) | **tag it** — the single highest-leverage tick below | D4 + strict CI gate |
-| D7 | feedback-inbox epoch + SEC move | ratify as recorded (epoch 2026-08-01) | checker build |
-| D8 | Toolchain policy (OQ26) | close as decided (fleet floor since moved to 1.27.2 — row predates) | — |
-| D9 | datastar-demo / loginpage | KEEP / closed — loginpage ADOPTED templ-components 2026-10-04 | — |
-| D10 | pkce_verifier echo | RESOLVED 2026-10-18 (`d05585e8`) | — |
-| D11 | Scorecard evidence policy | keep module-root-min (deterministic); folded into §7 watch | — |
-| D12 | Gotcha-25 grep-guard | RESOLVED 2026-10-07 (blocking stage live) | — |
-| D13 | `ParseUserID` prefix policy | KEEP generic (memo done: `docs/drafts/2026-10-07-d13-parseuserid-prefix-policy-memo.md`) | — |
-| D14 | Cut `httputil/server_timing/v1.0.2` | cut — mechanical verify-tag release, no code delta | license-scanner truth |
-| D15 | BuildFlow pre-commit tuning | approve remaining half — see §5; today's incident is the evidence | green pre-commits under load |
-| D16 | GitHub Releases per root tag | DEFER (default stands) | — |
-| D17 | gosec CI pin `@master` | pin to a tagged release at next CI touch | supply-chain hygiene |
-| R1–R3 | 10-42 §6 defaults (parallel-continue · fixed-expiry lockout · S36/S39 in scope) | ratify — all three executed and shipped | books close clean |
-| Q2 | branching-flow +12 re-pin permission | whoever hits the shared checkpoint first MAY re-pin, dated ledger row, attribution to W01 surface | green local tree |
-| Q3 | treadmill CI posture | keep PR-time advisory + add nightly strict-lag 0 workflow (early warning, zero PR tax) | next CI touch |
-| U1 | Upstream ask drafts batch (P15, event.New, cqrs-lint forms, go-output, BuildFlow ×2, journal reverse-read) | approve drafting under `docs/proposals/upstream/` + filing | W15.6 (sibling lane) |
-| U2 | ReadLastN upstream ask (go-cqrs-lite) | approve filing/track; SQL impl belongs upstream | O(n)→O(maxReplay) tails |
+| #     | Decision                                                                                                   | Recommendation                                                                                    | Unblocks                     |
+| ----- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------- |
+| D1    | OQ23 setup/core split (PapDashboard)                                                                       | GO, conditional on their flip trigger                                                             | PapDashboard reply send      |
+| D2    | OQ24 pluggable SSE envelope                                                                                | NO-GO today; revisit on 2nd frozen-wire consumer                                                  | —                            |
+| D3    | rawIDToken LIVE-SECRET confirm                                                                             | tick-to-close (executed; D10 companion also resolved `d05585e8`)                                  | —                            |
+| D4    | T08 fleet cqrs-lint binary swap                                                                            | approve — after D6 (pin `b06ac8add5e8`+; binary 4.16.1 is out)                                    | gotcha-13 retirement         |
+| D5    | /mnt/buildcache reclaim                                                                                    | urgency DOWN (69%, 66G free, 2026-10-25) — watch suffices                                         | —                            |
+| D6    | cqrs-lint distribution tag (nested module)                                                                 | **tag it** — the single highest-leverage tick below                                               | D4 + strict CI gate          |
+| D7    | feedback-inbox epoch + SEC move                                                                            | ratify as recorded (epoch 2026-08-01)                                                             | checker build                |
+| D8    | Toolchain policy (OQ26)                                                                                    | close as decided (fleet floor since moved to 1.27.2 — row predates)                               | —                            |
+| D9    | datastar-demo / loginpage                                                                                  | KEEP / closed — loginpage ADOPTED templ-components 2026-10-04                                     | —                            |
+| D10   | pkce_verifier echo                                                                                         | RESOLVED 2026-10-18 (`d05585e8`)                                                                  | —                            |
+| D11   | Scorecard evidence policy                                                                                  | keep module-root-min (deterministic); folded into §7 watch                                        | —                            |
+| D12   | Gotcha-25 grep-guard                                                                                       | RESOLVED 2026-10-07 (blocking stage live)                                                         | —                            |
+| D13   | `ParseUserID` prefix policy                                                                                | KEEP generic (memo done: `docs/drafts/2026-10-07-d13-parseuserid-prefix-policy-memo.md`)          | —                            |
+| D14   | Cut `httputil/server_timing/v1.0.2`                                                                        | cut — mechanical verify-tag release, no code delta                                                | license-scanner truth        |
+| D15   | BuildFlow pre-commit tuning                                                                                | approve remaining half — see §5; today's incident is the evidence                                 | green pre-commits under load |
+| D16   | GitHub Releases per root tag                                                                               | DEFER (default stands)                                                                            | —                            |
+| D17   | gosec CI pin `@master`                                                                                     | pin to a tagged release at next CI touch                                                          | supply-chain hygiene         |
+| R1–R3 | 10-42 §6 defaults (parallel-continue · fixed-expiry lockout · S36/S39 in scope)                            | ratify — all three executed and shipped                                                           | books close clean            |
+| Q2    | branching-flow +12 re-pin permission                                                                       | whoever hits the shared checkpoint first MAY re-pin, dated ledger row, attribution to W01 surface | green local tree             |
+| Q3    | treadmill CI posture                                                                                       | keep PR-time advisory + add nightly strict-lag 0 workflow (early warning, zero PR tax)            | next CI touch                |
+| U1    | Upstream ask drafts batch (P15, event.New, cqrs-lint forms, go-output, BuildFlow ×2, journal reverse-read) | approve drafting under `docs/proposals/upstream/` + filing                                        | W15.6 (sibling lane)         |
+| U2    | ReadLastN upstream ask (go-cqrs-lite)                                                                      | approve filing/track; SQL impl belongs upstream                                                   | O(n)→O(maxReplay) tails      |
 
 ## 1. The D6 chain is the highest-leverage tick (cqrs-lint)
 
@@ -68,15 +68,15 @@ The T01 budgets closed the deadline class (half-resolved). Today (2026-10-25 14:
 
 ## 7. S56 watch table (2026-10-25 readings)
 
-| Watch | Today | Trend | Next check |
-| --- | --- | --- | --- |
-| `/mnt/buildcache` | 69% used, 66G free | stable-vs-10-11 (59%→69%, creeping) | `df -h` before gate batteries; reclaim still owner's call (D5) |
-| Fleet upstream asks | #545 OPEN · templ pre-fix-release · BF1 live · #29 closed | unchanged | monthly, or on any upstream release |
-| Scorecard timing variance | unmeasured (low; D11 keeps root-min) | unchanged | next scorecard run |
-| Catalog cross-repo consumers | both ≥ v4.8.0 — **watch CLOSED** | resolved | none |
-| cqrs-lint binary freshness | fleet pin pre-C040-fix; 4.16.1 out | drifting until D6 | D6 verdict |
-| Upstream treadmill | worst lag 0 / 77 prefixes | green | nightly if Q3 approved |
+| Watch                        | Today                                                     | Trend                               | Next check                                                     |
+| ---------------------------- | --------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------- |
+| `/mnt/buildcache`            | 69% used, 66G free                                        | stable-vs-10-11 (59%→69%, creeping) | `df -h` before gate batteries; reclaim still owner's call (D5) |
+| Fleet upstream asks          | #545 OPEN · templ pre-fix-release · BF1 live · #29 closed | unchanged                           | monthly, or on any upstream release                            |
+| Scorecard timing variance    | unmeasured (low; D11 keeps root-min)                      | unchanged                           | next scorecard run                                             |
+| Catalog cross-repo consumers | both ≥ v4.8.0 — **watch CLOSED**                          | resolved                            | none                                                           |
+| cqrs-lint binary freshness   | fleet pin pre-C040-fix; 4.16.1 out                        | drifting until D6                   | D6 verdict                                                     |
+| Upstream treadmill           | worst lag 0 / 77 prefixes                                 | green                               | nightly if Q3 approved                                         |
 
 ---
 
-*Sources: [TODO_LIST.md](../../TODO_LIST.md) D-table + routed rows · [round-14 packet](2026-10-01_owner-decision-packet-round14-tail.md) · [T23/T18 packet](2026-10-01_t23-t18-owner-decision-packet.md) · [10-42 plan](../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md) §6/§7 · [10-43 addendum](../planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md) §3 · [14-01 status](../status/archived/2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md) §g.*
+_Sources: [TODO_LIST.md](../../TODO_LIST.md) D-table + routed rows · [round-14 packet](2026-10-01_owner-decision-packet-round14-tail.md) · [T23/T18 packet](2026-10-01_t23-t18-owner-decision-packet.md) · [10-42 plan](../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md) §6/§7 · [10-43 addendum](../planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md) §3 · [14-01 status](../status/archived/2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md) §g._

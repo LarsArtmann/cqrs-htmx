@@ -19,7 +19,6 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
-
 // Config is the single entry point for configuring a full-stack cqrs-htmx application.
 //
 // Only Title is practically required (it defaults to "cqrs-htmx" if empty).

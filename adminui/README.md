@@ -83,16 +83,16 @@ Override with your own `Config.Authorizer`, or use the helpers
 
 ## Configuration
 
-| Field         | Purpose                                        | Default    |
-| ------------- | ---------------------------------------------- | ---------- |
-| `Service`     | The backing `*usermgmt.Service`. **Required.** | —          |
-| `Title`       | Brand text in the sidebar / tab.               | `"Admin"`  |
-| `BasePath`    | URL prefix the panel is mounted under.         | `"/admin"` |
-| `Mode`        | `ModeSuperAdmin` or `ModeTenantAdmin`.         | SuperAdmin |
-| `TenantID`    | Scopes a tenant-admin panel.                   | —          |
+| Field         | Purpose                                                                         | Default    |
+| ------------- | ------------------------------------------------------------------------------- | ---------- |
+| `Service`     | The backing `*usermgmt.Service`. **Required.**                                  | —          |
+| `Title`       | Brand text in the sidebar / tab.                                                | `"Admin"`  |
+| `BasePath`    | URL prefix the panel is mounted under.                                          | `"/admin"` |
+| `Mode`        | `ModeSuperAdmin` or `ModeTenantAdmin`.                                          | SuperAdmin |
+| `TenantID`    | Scopes a tenant-admin panel.                                                    | —          |
 | `AccentColor` | Highlight color (CSS literal: #hex, rgb()/hsl(), or named; validated at `New`). | indigo     |
-| `Authorizer`  | Access-control function.                       | role-based |
-| `LogoutURL`   | "Sign out" link target. Empty hides the link.  | —          |
+| `Authorizer`  | Access-control function.                                                        | role-based |
+| `LogoutURL`   | "Sign out" link target. Empty hides the link.                                   | —          |
 
 ## What you get
 

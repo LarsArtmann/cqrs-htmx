@@ -233,4 +233,3 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	return svc, nil
 }
-

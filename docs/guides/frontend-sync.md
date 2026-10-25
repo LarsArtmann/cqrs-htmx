@@ -163,10 +163,10 @@ A runnable version of everything on this page — offline queue, batched push, f
 
 The SharedWorker owns one IndexedDB database per origin: `cqrshtmx-sync`.
 
-| Version | Stores | Purpose |
-| --- | --- | --- |
-| **v1** (ADR-0040, sync assets ≤ 1.4.x) | `commands` (keyPath `commandId`) | The offline command queue: `{commandId, envelope, queuedAt, retries}` |
-| **v2** (ADR-0056, 1.5.0+) | + `events` (keyPath `eventId`), + `meta` (out-of-line key `"state"`) | The pulled-event cache and the `{cursor, backendId}` sync state |
+| Version                                | Stores                                                               | Purpose                                                               |
+| -------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **v1** (ADR-0040, sync assets ≤ 1.4.x) | `commands` (keyPath `commandId`)                                     | The offline command queue: `{commandId, envelope, queuedAt, retries}` |
+| **v2** (ADR-0056, 1.5.0+)              | + `events` (keyPath `eventId`), + `meta` (out-of-line key `"state"`) | The pulled-event cache and the `{cursor, backendId}` sync state       |
 
 **Upgrade path (automatic):** the worker opens the database at `DB_VERSION = 2`. A v1 database upgrades in place in `onupgradeneeded` — the two new stores are created, and the v1 pending commands are preserved untouched (retry counts included; the usual TTL/retry limits keep applying). Fresh databases create all three stores at version 2 in the same handler. No data migration runs: v1 records are forward-compatible by shape. This path is pinned by the protocol test suite (`sync/jstests/sync-worker.test.js`, run through the Go wrapper): v1-seeded upgrade boot, pending-command survival, and fresh full-schema boot.
 
@@ -184,14 +184,14 @@ A `backendId` change is the one legitimate rewind (new backend, new cursor space
 
 Every knob in the shipped assets is a compile-time constant; the numbers:
 
-| Constant | Value | Where | Meaning |
-| --- | --- | --- | --- |
-| `MaxSyncPushBatch` | 100 | server (`sync_push.go`) | Hard cap per `POST /sync/push`; exceeding it rejects the whole request (400, `cqrshtmx.sync.push.too_large`) |
-| `PULL_PAGE_LIMIT` | 500 | client | Events requested per pull page |
-| `PULL_MAX_PAGES` | 20 | client | Pages per catch-up pull → ≤ 10,000 events per pull cycle |
-| `MAX_RETRIES` | 10 | worker | Flush attempts before a command is declared `dead` |
-| `RETRY_TTL_MS` | 24 h | worker | Age limit before a command is declared `dead` |
-| `STAGGER_MS` / cap | 100 ms / 2 s | worker | Pacing for classic per-command replay (batched push goes out as one request) |
+| Constant           | Value        | Where                   | Meaning                                                                                                      |
+| ------------------ | ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `MaxSyncPushBatch` | 100          | server (`sync_push.go`) | Hard cap per `POST /sync/push`; exceeding it rejects the whole request (400, `cqrshtmx.sync.push.too_large`) |
+| `PULL_PAGE_LIMIT`  | 500          | client                  | Events requested per pull page                                                                               |
+| `PULL_MAX_PAGES`   | 20           | client                  | Pages per catch-up pull → ≤ 10,000 events per pull cycle                                                     |
+| `MAX_RETRIES`      | 10           | worker                  | Flush attempts before a command is declared `dead`                                                           |
+| `RETRY_TTL_MS`     | 24 h         | worker                  | Age limit before a command is declared `dead`                                                                |
+| `STAGGER_MS` / cap | 100 ms / 2 s | worker                  | Pacing for classic per-command replay (batched push goes out as one request)                                 |
 
 **The >100 sharp edge, honestly:** the worker batches **all** queued typed commands into **one** push. An offline session that queues more than `MaxSyncPushBatch` commands produces a batch the server rejects wholesale; every command then burns one retry per flush cycle and surfaces as `dead` after `MAX_RETRIES`. If your users can realistically exceed 100 queued commands, budget for it on the consumer side (chunk the flush in a copied asset, or surface queue depth via the `pending` broadcasts before it grows that large).
 

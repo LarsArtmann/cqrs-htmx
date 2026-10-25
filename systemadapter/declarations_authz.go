@@ -217,4 +217,3 @@ func newAuditEntryView(
 
 	return view
 }
-

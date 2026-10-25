@@ -229,4 +229,3 @@ func removeUser() metaengine.Fold {
 		projectionadapter.EventWithID[identitymodel.UserDeletedPayload]{},
 		metaengine.Remove[UserView]())
 }
-

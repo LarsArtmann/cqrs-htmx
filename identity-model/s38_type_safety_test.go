@@ -142,7 +142,13 @@ func memberAddedEvent(t *testing.T, tenantID string) event.Event {
 	}
 
 	actor := ActorIDFromUser(GenerateUserID())
-	evt, evtErr := event.NewEvent(EventMemberAdded, DeriveMembershipID(actor, NewTenantID("agg")), AggregateTypeMembership, 1, payload)
+	evt, evtErr := event.NewEvent(
+		EventMemberAdded,
+		DeriveMembershipID(actor, NewTenantID("agg")),
+		AggregateTypeMembership,
+		1,
+		payload,
+	)
 	if evtErr != nil {
 		t.Fatalf("event.NewEvent: %v", evtErr)
 	}
