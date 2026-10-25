@@ -1,8 +1,12 @@
 # Round 28 — W01 landed (S37 closed end-to-end), CI-red fixed twice, W02 half done
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-22_w02-closed-w03-landed-one-receipt-missing_status.md`](../2026-10-25_15-22_w02-closed-w03-landed-one-receipt-missing_status.md), which Superseded by the round-29 receipt: W02 closed, W03 landed, all three questions restated. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Written:** 2026-10-25 13:30 CET · **Author:** module-code session (10-42 plan executor, W-lane)
-**Supersedes:** [`2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md`](archived/2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md) (its §"What remains" §1 is DONE; its §a–g analysis was executed as W01)
-**Plan of record:** [`../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md`](../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md) + the sibling's lane addendum (`824b3dba`): module code W01–W08/W10/W11/W14/W15 = this session; W09/W13/W16 + W17 verdicts = sibling session.
+**Supersedes:** [`2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md`](2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md) (its §"What remains" §1 is DONE; its §a–g analysis was executed as W01)
+**Plan of record:** [`../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md`](../../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md) + the sibling's lane addendum (`824b3dba`): module code W01–W08/W10/W11/W14/W15 = this session; W09/W13/W16 + W17 verdicts = sibling session.
 
 ---
 

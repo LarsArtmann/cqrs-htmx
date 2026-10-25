@@ -1,6 +1,6 @@
 # Status: Wave D resume — D01 closed (co-owned with the sibling session), D03 landed, D05 in analysis; concurrent session detected on D02
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md`](../2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md), which W01 executed its section-1 remainder (S37 closed end-to-end); round-28 receipt supersedes. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md`](2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md), which W01 executed its section-1 remainder (S37 closed end-to-end); round-28 receipt supersedes. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 
