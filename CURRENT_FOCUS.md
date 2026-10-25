@@ -4,53 +4,51 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-10-23 · **Owner:** Lars · **Module count:** 29 (`go.work`)
+**As of:** 2026-10-25 · **Owner:** Lars · **Module count:** 29 (`go.work`)
 
 ## The active thread
 
-**Shrink the documentation corpus so a fresh session can find what matters.**
-43% of this repository was closed historical documentation (695 files / 189k lines) and the
-first file every session opened had an 86%-dead "High impact" section. Plan:
-[`docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md`](docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md)
-(supersedes the 2026-10-23 plan for execution order; that file keeps the measured evidence).
+**Execute the CI-rescue + Lane-D completion plan (Wave R done, Wave D next).**
+Plan of record:
+[`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
+(the 06-20 file keeps the per-milestone scope text for D01–D15).
 
-**Done when:** `docs/status/` + `docs/planning/` + `docs/reviews/` + `docs/brainstorming/`
-hold ≤25 live files, the evicted history has a manifest with a restore command, `TODO_LIST.md`
-carries zero dead rows, and the four new hygiene gates run in `check-modules` + CI.
+**Done when:** CI green on a pushed HEAD; the four ratchets (tail, corpus,
+branching-flow, domain counts) green in the same run; master-plan Appendix D
+reconciled; every TODO_LIST row executed or carrying a dated verdict.
 
-**Progress (2026-10-24):** counts in `docs/status/README.md` are derived, not hand-maintained;
-`check-todo-hygiene` + the tail **ratchet** + the eviction tool are wired into `check-modules`
-and CI; the eviction is measured (578 files, 13 kept) and one command away
-([`docs/ARCHIVE_EVICTED.md`](docs/ARCHIVE_EVICTED.md), waiting on Q2); the tail went 58 → 44 via
-14 superseded reports. Remaining: the rest of the tail, the eviction itself, the AGENTS module
-split (deferred: the always-loaded file is already 147 → 127 lines and the remaining blocks are
-the high-frequency surface).
+**Progress (2026-10-25):** Wave R executed — the four CI-red causes fixed at the
+source (root lint 44→0 via errorfamily conversion + openapi static sentinels;
+root coverage 88.1→91.8; branching-flow re-pinned 168→179 with a dated ledger
+row; domain counts already green), the S32 proof tests written (and they caught
+a REAL gap: `RecordCredentialUse` was never registered in systemadapter's
+DomainConfig — fixed, usermgmt v4.16.0 carries the export, strict train 0/0/0),
+S32 receipts landed. Remaining: R04 full battery → R05 push + CI watch → R06
+receipt, then Wave D (D01 receipt, D04 golangci verdict, D02 docs/doctrine,
+D03 tooling, D05–D16).
 
 ## The next thread (start immediately after)
 
-**WebAuthn sign-counter persistence (master plan S32).** The stored sign counter is
-never updated (`webauthn/provider.go:267` discards go-webauthn's updated credential),
-so clone detection is dead; stored UP/UV flags are fabricated `true` on reload; and
-registration/login challenge sessions share one key namespace. Plan: master plan S32
-(t32.1–t32.7); the identity-model HIGH pair (former next thread) is DONE
-(`8e7b2174`, CHANGELOG [Unreleased]).
+**Wave D, in the plan's order: D01 (delivery receipt: Appendix D + CHANGELOG
+receipts S35/S41/S44 + S27 TODO harvest) → D04 (golangci alignment verdict) →
+D02 (docs & doctrine) → D03 (tooling) → D05–D09 (code-fidelity wave) →
+D10–D16.** Everything is micro-brokened in the plan's §4.2 tables.
 
-**Done when:** a successful login updates the persisted credential sign counter
-(round-trip test), a counter regression is rejected, UP/UV flags survive reload
-honestly, and `reg:`/`login:` challenge namespaces cannot collide.
+**Done when:** each milestone's verify command is green and its rows/receipts
+are committed (guardrails in the plan's §2).
 
 ## Resolved since the last update
 
-**The open-issue sweep is closed — it was already closed when this file was written.** #23/#28/#29/
-#18/#19 were all closed on 2026-10-19, `origin/wip/issue-23-auth-audit` is gone, and the only open
-issue is #25 (demand-gated by design). Verified 2026-10-24 with `gh issue view <n> --json state`.
-The P1 TODO row that asked for this was stale from birth; it has been deleted.
+**S32 (WebAuthn sign-counter persistence) is DONE and proven.** Login persists
+assertion state (`RecordCredentialUse` → `CredentialUsed`), regressions are
+conflicts, UP/UV round-trip honestly, and the proof tests exposed + fixed the
+unwired systemadapter registration (usermgmt v4.16.0). Tags: identity-model
+v4.14.0, usermgmt v4.15.0/v4.16.0, usermgmt/webauthn v4.13.0.
 
-**The systemadapter declarative red is gone.** It was the module-CI red for a week: ten
-`Declarative__`/`Harness_` tests failed with `system: not found` because published
-`metaengine/projectionadapter` keyed views with the display form of a stream ID. The upstream fix
-was published and pinned here on 2026-10-19 (`99e0df63`, v4.6.1); the hermetic suite is green
-(`GOWORK=off go test ./... -race`). Nothing left to watch.
+**The docs-corpus thread is closed.** Tail 38 → 1, 617+77 files evicted with a
+restore manifest, keep-set re-derived (49), planning triaged, TODO_LIST
+reworked. The four hygiene gates (tail, corpus, todo, archive) run in
+check-modules + CI.
 
 ## Ground rules that keep this honest
 

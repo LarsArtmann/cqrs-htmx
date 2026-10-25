@@ -183,7 +183,7 @@ Impact: **C**ritical / **H**igh / **M**edium / **L**ow. Value: **Ag** future age
 | ID | Milestone | Impact | Effort | Value | Depends | Verify |
 | --- | --- | --- | ---: | --- | --- | --- |
 | S31 | identity-model HIGH pair: `g2` hierarchy disconnected; `Authz.Apply` non-atomic | C | 100m | Co | — | new tests + `.#test-identity-model` |
-| S32 | WebAuthn sign-counter never persisted (clone detection dead) + UP/UV fabrication + challenge namespace | C | 100m | Co | — | webauthn suite + new command |
+| S32 | **DONE** (verified 2026-10-25) WebAuthn sign-counter persistence: login dispatches `RecordCredentialUse`, the decider persists `CredentialUsed` and rejects a regressed counter (conflict), UP/UV/backup flags round-trip honestly, `reg:`/`login:` session namespaces are separate. Shipped as identity-model v4.14.0 / usermgmt v4.15.0 / usermgmt/webauthn v4.13.0 + the rescue-session proof tests (`identity-model/credential_fold_test.go`, `systemadapter/declarative_credential_test.go`) that also exposed and fixed the unwired systemadapter registration (usermgmt v4.16.0) | C | 100m | Co | — | webauthn suite + new command — all green, strict train 0/0/0 |
 | S33 | root exported-contract honesty pass (9 sub-items) | H | 100m | Co | — | `.#test-root` + goldens |
 | S30 | **DONE** (verified 2026-10-24) open-issue sweep: #23/#28/#29/#18/#19 all CLOSED on 2026-10-19, `wip/issue-23-auth-audit` gone, only #25 open (demand-gated) | H | 30m | Hu | S02 | `gh issue list --state open` |
 | S37 | usermgmt medium tails (6 sub-items) | H | 100m | Co | — | `.#test-usermgmt` |
