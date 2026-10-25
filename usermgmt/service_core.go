@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -287,6 +288,19 @@ func journalFromStore(store event.Store) event.Journal {
 	if j, ok := store.(event.Journal); ok {
 		return j
 	}
+
+	// Silent-data-loss-shaped misconfiguration: a store without Journal
+	// methods gives the projection host an EMPTY journal — projections
+	// would replay nothing and rebuilds would see no history. Dev/test
+	// wrappers that embed event.Store land here intentionally; warn so
+	// production consumers find out at startup, not after their first
+	// rebuild.
+	slog.Warn(
+		"usermgmt: event store does not implement event.Journal — "+
+			"falling back to an EMPTY in-memory journal; projections will not replay. "+
+			"Use a journal-capable store (SQLite/Postgres/Pebble) in production.",
+		"store_type", fmt.Sprintf("%T", store),
+	)
 
 	//cqrs-lint:ignore(C018) dev/test fallback: consumers using journal-capable stores (SQLite/Postgres) are unaffected; wrapped stores in tests need the fallback
 	return memory.NewMemoryStore()
