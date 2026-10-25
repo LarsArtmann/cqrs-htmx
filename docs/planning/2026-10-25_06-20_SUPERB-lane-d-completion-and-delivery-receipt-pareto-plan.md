@@ -5,7 +5,7 @@
 open Lane D milestones, its S27/S28 close-out, and the TODO rows opened or carried since.
 **Predecessors:** [2026-10-24 05-36 master plan](2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md)
 (evidence + original sizing; Lanes 0/A/B/C executed — see its Appendix D and the
-[2026-10-25 05-50 session receipt](../status/2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md)).
+[2026-10-25 05-50 session receipt](../status/archived/2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md)).
 This plan **supersedes the master plan for execution order of the remaining items**; the
 master plan keeps its evidence and receipts.
 
