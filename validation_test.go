@@ -46,26 +46,22 @@ var _ = Describe("Validation HandlerOption", func() {
 			Expect(w.Body.String()).To(ContainSubstring("email is required"))
 		})
 
-		It("no-op when decoder is not set", func() {
-			var decoded bool
-
+		It("panics at registration when decoder is not set (fail fast, never a silent no-op)", func() {
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				decoded = true
-
 				return nil
 			})
 			app, err := cqrshmx.New(cqrshmx.Config{Commands: disp})
 			Expect(err).NotTo(HaveOccurred())
 
-			w := serve(app.Command(
-				"CreateUser",
-				cqrshmx.ValidateCommand(func(_ command.Command) error {
-					return errors.New("should not run")
-				}),
-			), newPostRequest("/users", ""))
-			Expect(w.code()).NotTo(Equal(http.StatusBadRequest))
-			Expect(decoded).To(BeFalse())
+			Expect(func() {
+				_ = app.Command(
+					"CreateUser",
+					cqrshmx.ValidateCommand(func(_ command.Command) error {
+						return errors.New("should not run")
+					}),
+				)
+			}).To(PanicWith(MatchRegexp(`ValidateCommand applied before a decoder`)))
 		})
 	})
 

@@ -139,9 +139,18 @@ func newFormDecoder() *form.Decoder {
 func decodeFormValues(form url.Values, target any) error {
 	// Normalize form keys to lowercase for case-insensitive matching,
 	// preserving the previous JSON round-trip's lenient field matching.
+	// A form carrying two keys that normalize to the same name (e.g. "Name"
+	// and "name") would otherwise pick a winner by map-iteration order —
+	// nondeterministic and an injection-shaped ambiguity — so it is rejected.
 	normalized := make(url.Values, len(form))
 	for k, v := range form {
-		normalized[strings.ToLower(k)] = v
+		lk := strings.ToLower(k)
+		if _, exists := normalized[lk]; exists {
+			return errorfamily.NewRejection("cqrshtmx.decode.form.ambiguous_key",
+				"form contains multiple keys that differ only by case: "+lk)
+		}
+
+		normalized[lk] = v
 	}
 
 	if err := newFormDecoder().Decode(target, normalized); err != nil {

@@ -12,21 +12,32 @@ import (
 
 // IdempotencyStore tracks command IDs that have been dispatched to prevent
 // duplicate processing.
+//
+// Deprecated: import github.com/larsartmann/go-idempotency directly; this
+// alias is removed in v5.
 type IdempotencyStore = idempotency.Store
 
 // MemoryIdempotencyStore is an in-memory IdempotencyStore with TTL-based
 // expiration and a background sweep goroutine.
+//
+// Deprecated: import github.com/larsartmann/go-idempotency directly; this
+// alias is removed in v5.
 //
 //nolint:staticcheck // SA1019: deprecated upstream but kept as the documented in-memory default (library principle: never force persistence); removal rides the v5 re-export cleanup
 type MemoryIdempotencyStore = idempotency.MemoryStore
 
 // ErrDuplicateCommand is returned when a command ID has already been processed.
 // Maps to HTTP 409 Conflict via MapError.
+//
+// Deprecated: use idempotency.ErrDuplicate directly; this alias is removed in v5.
 var ErrDuplicateCommand = idempotency.ErrDuplicate
 
 // NewMemoryIdempotencyStore creates an in-memory idempotency store and starts
 // a background goroutine that sweeps expired entries every sweepInterval.
 // Call Close() to stop the sweeper.
+//
+// Deprecated: import github.com/larsartmann/go-idempotency directly; this
+// constructor is removed in v5.
 func NewMemoryIdempotencyStore(sweepInterval time.Duration) *MemoryIdempotencyStore {
 	//nolint:staticcheck // SA1019: the in-memory store is the documented library default (library principle: never force persistence); production consumers inject their own store
 	//cqrs-lint:ignore(C026) sweepInterval is a sweeper cadence, not an entry TTL; the idempotency store manages its own TTL internally (4.8.1 anchors the finding on the return line — directive must be the first non-blank line above it)

@@ -4,12 +4,13 @@
 // handlers with automatic HTMX response building, Casbin authorization, CSRF protection,
 // rate limiting, SSE streaming, and error classification.
 //
-// Server-Timing instrumentation, CSRF core, and keyed rate limiting were
-// originally implemented here but are now thin deprecated re-exports over
-// [github.com/larsartmann/httputil]. Import httputil directly — these aliases
-// (39 symbols across csrf_reexport.go, ratelimit_reexport.go,
-// server_timing_reexport.go) will be removed in v5. See
-// docs/guides/leveraging-httputil.md for the migration table.
+// Server-Timing instrumentation, CSRF core, keyed rate limiting, and the
+// idempotency-store aliases were originally implemented here but are now thin
+// deprecated re-exports over [github.com/larsartmann/httputil] and
+// [github.com/larsartmann/go-idempotency]. Import those directly — these
+// aliases (39 symbols across csrf_reexport.go, ratelimit_reexport.go,
+// server_timing_reexport.go, plus the 4 in idempotency.go) will be removed in
+// v5. See docs/guides/leveraging-httputil.md for the migration table.
 //
 // # HTTP Middleware (CORS, Compression, Body Limits, Production Server, …)
 //
