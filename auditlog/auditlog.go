@@ -1,6 +1,8 @@
 package auditlog
 
 import (
+	"context"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 	auditlog "github.com/larsartmann/samber-do-auditlog"
 	"github.com/larsartmann/samber-do-auditlog/live"
