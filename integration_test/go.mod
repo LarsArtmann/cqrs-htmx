@@ -23,8 +23,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.4
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
@@ -35,6 +38,7 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
+	modernc.org/sqlite v1.60.1
 )
 
 require (
@@ -105,12 +109,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 // indirect
 	github.com/larsartmann/go-datastar v0.6.2 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
@@ -184,7 +185,6 @@ require (
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.60.1 // indirect
 )
 
 // dashboardui is replaced until the family train publishes the tags carrying
