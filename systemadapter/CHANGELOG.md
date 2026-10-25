@@ -6,6 +6,7 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ### Added
 
+- **`RecordCredentialUse` is registered in `DomainConfig` (21 -> 22 commands).** The usermgmt v4.15.0 sign-counter persistence shipped the command, the decide logic, and the `updateCredentialUsed` fold — but this module's command table never registered a handler, so `system.New()` consumers could not record assertion state and the declarative `UserView` kept the registration-time signature counter forever (clone detection dead on the system path). Found by the Lane-D R02 proof test (`declarative_credential_test.go`), which now pins the SignCount + UP/UV/backup lift end-to-end. Requires usermgmt v4.16.0+ (`DecideRecordCredentialUse`).
 - **`EventTypeDecoder` maps the three identity-model v4.13.0 auth audit events** (`LoginSucceeded`, `LoginFailed`, `RegistrationClosed`) so `system.New()` projection hosts decode them for metaengine fold handlers. Registration count 21 -> 24.
 
 ## [v4.12.4] - 2026-10-11

@@ -40,6 +40,15 @@ func DecideRemoveCredential(aggID id.StreamID, credentialID []byte) decider.Deci
 	return decideRemoveCredential(aggID, credentialID)
 }
 
+// DecideRecordCredentialUse is the exported version of decideRecordCredentialUse
+// for system.New() integration. Without it, the systemadapter composition could
+// not record assertion state and the declarative UserView kept the
+// registration-time signature counter forever (found by the R02 proof test,
+// 2026-10-25).
+func DecideRecordCredentialUse(aggID id.StreamID, use CredentialUse) decider.DecideFunc[UserState] {
+	return decideRecordCredentialUse(aggID, use)
+}
+
 // DecideEnableTOTP is the exported version of decideEnableTOTP for system.New() integration.
 func DecideEnableTOTP(aggID id.StreamID, secret []byte) decider.DecideFunc[UserState] {
 	return decideEnableTOTP(aggID, secret)

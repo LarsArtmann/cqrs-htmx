@@ -208,6 +208,16 @@ func registerUserCommands(sys *system.System) {
 		},
 	))
 
+	must(system.RegisterCommand[*identitymodel.RecordCredentialUseCmd, usermgmt.UserState](
+		sys, identitymodel.CmdRecordCredentialUse,
+		func(ctx context.Context, c *identitymodel.RecordCredentialUseCmd) system.Op[usermgmt.UserState] {
+			return system.Execute[usermgmt.UserState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
+				usermgmt.DecideRecordCredentialUse(c.StreamID(), c.Use()),
+			)
+		},
+	))
+
 	must(system.RegisterCommand[*identitymodel.VerifyEmailCmd, usermgmt.UserState](
 		sys, identitymodel.CmdVerifyEmail,
 		func(ctx context.Context, c *identitymodel.VerifyEmailCmd) system.Op[usermgmt.UserState] {

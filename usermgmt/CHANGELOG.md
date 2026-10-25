@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [v4.15.0] - 2026-10-25
+## [v4.16.0] - 2026-10-25
+
+### Added
+
+- **`DecideRecordCredentialUse` system export (systemadapter wiring gap, found by the R02 proof test).** The v4.15.0 sign-counter persistence shipped the `RecordCredentialUse` command and the usermgmt-internal dispatcher registration, but never the exported decide wrapper `system.New()` integrations call — so the systemadapter composition could not record assertion state and its declarative `UserView` kept the registration-time signature counter forever. The wrapper is a pure export of the existing (fully tested) `decideRecordCredentialUse`; behavior unchanged. Requires identity-model v4.14.0+ (unchanged from v4.15.0).
 
 ### Added
 
