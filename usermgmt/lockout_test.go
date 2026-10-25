@@ -146,8 +146,8 @@ func TestAccountLockout_EvictStaleSweepsAbandonedAttempts(t *testing.T) {
 	l := NewAccountLockout(LockoutConfig{MaxAttempts: 5, Duration: 10 * time.Millisecond})
 
 	l.RecordFailure("abandoned@test.com") // 1/5 attempts — never locked
-	l.RecordFailure("fresh@test.com")
 	time.Sleep(20 * time.Millisecond)
+	l.RecordFailure("fresh@test.com")
 
 	if evicted := l.EvictStale(); evicted != 1 {
 		t.Fatalf("expected exactly the abandoned counter evicted, got %d", evicted)
