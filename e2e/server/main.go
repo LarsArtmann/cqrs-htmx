@@ -121,7 +121,7 @@ func main() {
 		evt, err := event.New(event.Type("Item.synced"), aggID, itemStreamType, event.Version(1),
 			map[string]string{"name": c.ItemName()}, event.WithSchemaVersion(1))
 		if err != nil {
-			return err //nolint:wrapcheck // e2e: raw construction error is the intended command failure
+			return err
 		}
 
 		if err := syncStore.AppendBatch(

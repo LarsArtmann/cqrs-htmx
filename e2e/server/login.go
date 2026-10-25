@@ -85,6 +85,7 @@ func postLoginHandler() http.HandlerFunc {
 		user, ok := usermgmt.UserFromContext(r.Context())
 		if !ok || user == nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
+
 			return
 		}
 
