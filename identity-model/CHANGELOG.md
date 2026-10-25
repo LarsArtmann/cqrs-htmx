@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.14.0] - 2026-10-25
+
+### Added
+
+- **WebAuthn credential-use recording — the clone-detection data model.** `CredentialUse` (credential ID, signature counter, UP/UV/backup flags observed during one successful assertion), the `RecordCredentialUse` command + `CredentialUsed` event (payload carries counter + flags), `WebAuthnCredential.CounterRegressed(next)` implementing the WebAuthn L3 §7.2 step-17 clone signal (0→0 is not a regression; any non-zero count that fails to advance is), and fold/read-model support so the LAST assertion's state is what the next one compares against. Without it, clone detection compared every assertion to the registration-time counter and never fired.
+
+### Changed
+
+- **`WebAuthnProvider.FinishLogin` now returns `(credentialJSON []byte, err error)`.** The provider returns the credential state the assertion produced so the service can persist it. Technically breaking for custom implementors of the interface (the in-tree `usermgmt/webauthn` provider is updated in the same train); shipped as a minor following the v4.7.0 precedent — the interface has one official implementation and keeping clone detection dead was the greater harm.
+
 ### Fixed
 
 - **Role hierarchy now fires, and `Authz.Apply` is atomic as documented.** Casbin keeps one role manager per role definition, so the `g2` edges `NewAuthz` seeded never composed with the domain-scoped `g` grants that assign roles: a user granted `user` was denied what `viewer` allows (admin only looked correct because the seed policy gives it `*/*/*`). The hierarchy is mirrored into `g` per domain by `EnsureRoleHierarchy` (called from `AddGroupPolicy`, `Apply`, and `NewAuthz`; idempotent, replay-safe, tenant-scoped), and `UsersForRole` no longer reports role names as subjects. `Apply` now rolls the whole batch back when one operation fails instead of leaving earlier operations committed. Consumers listing `GroupPolicies()` should count grants by non-role subjects: the hierarchy edges are rows too.
