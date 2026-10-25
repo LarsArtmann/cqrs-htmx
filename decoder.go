@@ -144,13 +144,13 @@ func decodeFormValues(form url.Values, target any) error {
 	// nondeterministic and an injection-shaped ambiguity — so it is rejected.
 	normalized := make(url.Values, len(form))
 	for k, v := range form {
-		lk := strings.ToLower(k)
-		if _, exists := normalized[lk]; exists {
+		loweredKey := strings.ToLower(k)
+		if _, exists := normalized[loweredKey]; exists {
 			return errorfamily.NewRejection("cqrshtmx.decode.form.ambiguous_key",
-				"form contains multiple keys that differ only by case: "+lk)
+				"form contains multiple keys that differ only by case: "+loweredKey)
 		}
 
-		normalized[lk] = v
+		normalized[loweredKey] = v
 	}
 
 	if err := newFormDecoder().Decode(target, normalized); err != nil {

@@ -110,10 +110,11 @@ type Operation struct {
 // reachable from it is duplicated, so mutating the copy cannot reach the
 // original. Handlers that expose collected operations (e.g.
 // cqrshtmx.App.OpenAPIRoutes) use this to keep their internal state isolated.
-func (o Operation) Clone() Operation {
+func (o *Operation) Clone() Operation {
 	c := o
 	c.Tags = cloneStrings(o.Tags)
 	c.Parameters = cloneParameters(o.Parameters)
+
 	if o.RequestBody != nil {
 		rb := *o.RequestBody
 		rb.Content = cloneContent(o.RequestBody.Content)
@@ -139,81 +140,81 @@ func (o Operation) Clone() Operation {
 	return c
 }
 
-func cloneStrings(in []string) []string {
-	if in == nil {
+func cloneStrings(source []string) []string {
+	if source == nil {
 		return nil
 	}
 
-	out := make([]string, len(in))
-	copy(out, in)
+	out := make([]string, len(source))
+	copy(out, source)
 
 	return out
 }
 
-func cloneParameters(in []Parameter) []Parameter {
-	if in == nil {
+func cloneParameters(source []Parameter) []Parameter {
+	if source == nil {
 		return nil
 	}
 
-	out := make([]Parameter, len(in))
-	for i, p := range in {
-		pc := p
+	out := make([]Parameter, len(source))
+	for i, p := range source {
+		paramCopy := p
 		if p.Schema != nil {
 			sc := p.Schema.Clone()
-			pc.Schema = &sc
+			paramCopy.Schema = &sc
 		}
 
-		out[i] = pc
+		out[i] = paramCopy
 	}
 
 	return out
 }
 
-func cloneHeaders(in map[string]*Header) map[string]*Header {
-	if in == nil {
+func cloneHeaders(source map[string]*Header) map[string]*Header {
+	if source == nil {
 		return nil
 	}
 
-	out := make(map[string]*Header, len(in))
-	for name, h := range in {
-		if h == nil {
+	out := make(map[string]*Header, len(source))
+	for name, header := range source {
+		if header == nil {
 			out[name] = nil
 
 			continue
 		}
 
-		hc := *h
-		if h.Schema != nil {
-			sc := h.Schema.Clone()
-			hc.Schema = &sc
+		headerCopy := *header
+		if header.Schema != nil {
+			sc := header.Schema.Clone()
+			headerCopy.Schema = &sc
 		}
 
-		out[name] = &hc
+		out[name] = &headerCopy
 	}
 
 	return out
 }
 
-func cloneContent(in map[string]*MediaType) map[string]*MediaType {
-	if in == nil {
+func cloneContent(source map[string]*MediaType) map[string]*MediaType {
+	if source == nil {
 		return nil
 	}
 
-	out := make(map[string]*MediaType, len(in))
-	for ct, mt := range in {
-		if mt == nil {
-			out[ct] = nil
+	out := make(map[string]*MediaType, len(source))
+	for contentType, mediaType := range source {
+		if mediaType == nil {
+			out[contentType] = nil
 
 			continue
 		}
 
-		mc := *mt
-		if mt.Schema != nil {
-			sc := mt.Schema.Clone()
-			mc.Schema = &sc
+		mediaCopy := *mediaType
+		if mediaType.Schema != nil {
+			sc := mediaType.Schema.Clone()
+			mediaCopy.Schema = &sc
 		}
 
-		out[ct] = &mc
+		out[contentType] = &mediaCopy
 	}
 
 	return out

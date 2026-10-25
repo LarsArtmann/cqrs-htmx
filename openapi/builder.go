@@ -95,7 +95,8 @@ func (b *opBuilder) apply(item *PathItem) {
 	// A second registration of the same method would silently REPLACE the
 	// first operation — fail fast instead (matching PathOp's panic posture).
 	if b.op != nil && item.hasMethod(b.method) {
-		panic("openapi: method \"" + b.method + "\" already registered on this path — a second registration would silently replace the first")
+		panic("openapi: method \"" + b.method + "\" already registered on this path — " +
+			"a second registration would silently replace the first")
 	}
 
 	switch b.method {

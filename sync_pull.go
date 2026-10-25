@@ -29,7 +29,8 @@ const (
 // (the payloadEncoding wire field).
 type SyncPayloadEncoding = string
 
-// SyncPayloadEncodingJSON: Payload holds the verbatim JSON bytes.
+// SyncPayloadEncodingJSON is the encoding whose [SyncEvent.Payload] holds
+// the verbatim JSON bytes.
 const SyncPayloadEncodingJSON SyncPayloadEncoding = "json"
 
 // SyncPayloadEncodingOpaque is the PayloadEncoding reported when an event's
@@ -82,14 +83,20 @@ func (e *SyncEvent) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 
 	switch {
 	case inline && b64:
-		return errors.New("cqrshtmx.sync.event.payload_exclusive_or: both payload and payloadB64 set")
+		return errorfamily.NewCorruption("cqrshtmx.sync.event.payload_exclusive_or",
+			"both payload and payloadB64 set")
 	case !inline && !b64:
-		return errors.New("cqrshtmx.sync.event.payload_exclusive_or: neither payload nor payloadB64 set")
+		return errorfamily.NewCorruption("cqrshtmx.sync.event.payload_exclusive_or",
+			"neither payload nor payloadB64 set")
 	case inline && e.PayloadEncoding != SyncPayloadEncodingJSON:
-		return fmt.Errorf("cqrshtmx.sync.event.payload_encoding: inline payload requires encoding %q, got %q",
+		return errorfamily.Newf(errorfamily.Corruption,
+			"cqrshtmx.sync.event.payload_encoding",
+			"inline payload requires encoding %q, got %q",
 			SyncPayloadEncodingJSON, e.PayloadEncoding)
 	case !inline && e.PayloadEncoding == SyncPayloadEncodingJSON:
-		return fmt.Errorf("cqrshtmx.sync.event.payload_encoding: encoding %q requires the inline payload, got payloadB64",
+		return errorfamily.Newf(errorfamily.Corruption,
+			"cqrshtmx.sync.event.payload_encoding",
+			"encoding %q requires the inline payload, got payloadB64",
 			SyncPayloadEncodingJSON)
 	}
 

@@ -5,6 +5,17 @@ import (
 	"fmt"
 )
 
+// Validation sentinels. [Validate] wraps them with operation context, so a
+// caller can classify outcomes with errors.Is. They are package-level
+// static errors by design: this package is deliberately dependency-free
+// (see [doc]) and uses only the standard library for its errors.
+var (
+	errNilSpec              = errors.New("openapi: spec is nil")
+	errNoOperationID        = errors.New("openapi: operation has no operationId")
+	errDuplicateOperationID = errors.New("openapi: duplicate operationId")
+	errNoResponses          = errors.New("openapi: no responses — OpenAPI requires at least one (use Response or NoContent)")
+)
+
 // Validate checks the invariants OpenAPI 3.1 requires that the builder cannot
 // enforce structurally, so an invalid spec fails loudly at serialization (or
 // explicitly) instead of silently producing a spec consumers' tooling rejects:
@@ -20,7 +31,7 @@ import (
 // spec programmatically and serializing later.
 func (s *Spec) Validate() error {
 	if s == nil {
-		return errors.New("openapi: spec is nil")
+		return errNilSpec
 	}
 
 	var errs []error
@@ -32,29 +43,29 @@ func (s *Spec) Validate() error {
 			continue
 		}
 
-		for method, op := range item.operations() {
-			if op == nil {
+		for method, operation := range item.operations() {
+			if operation == nil {
 				continue
 			}
 
-			if op.OperationID == "" {
-				errs = append(errs, fmt.Errorf("openapi: %s %s: operation has no operationId", method, path))
+			if operation.OperationID == "" {
+				errs = append(errs, fmt.Errorf("%w: %s %s", errNoOperationID, method, path))
 
 				continue
 			}
 
-			if first, dup := seenIDs[op.OperationID]; dup {
+			if first, dup := seenIDs[operation.OperationID]; dup {
 				errs = append(errs, fmt.Errorf(
-					"openapi: duplicate operationId %q on %s %s (first used on %s)",
-					op.OperationID, method, path, first))
+					"%w %q on %s %s (first used on %s)",
+					errDuplicateOperationID, operation.OperationID, method, path, first))
 			} else {
-				seenIDs[op.OperationID] = method + " " + path
+				seenIDs[operation.OperationID] = method + " " + path
 			}
 
-			if len(op.Responses) == 0 {
+			if len(operation.Responses) == 0 {
 				errs = append(errs, fmt.Errorf(
-					"openapi: %s %s (%s): no responses — OpenAPI requires at least one (use Response or NoContent)",
-					method, path, op.OperationID))
+					"%w: %s %s (%s)",
+					errNoResponses, method, path, operation.OperationID))
 			}
 		}
 	}

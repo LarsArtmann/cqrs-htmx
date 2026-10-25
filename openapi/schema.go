@@ -68,7 +68,7 @@ type Schema struct {
 // Clone returns a deep copy of the schema (Properties, Items, Required, and
 // Enum are duplicated). Schemas appear inside cloned operations; the deep copy
 // keeps consumer mutations from reaching collected spec state.
-func (s Schema) Clone() Schema {
+func (s *Schema) Clone() Schema {
 	c := s
 	c.Properties = cloneSchemaMap(s.Properties)
 	c.Required = cloneStrings(s.Required)
@@ -87,13 +87,13 @@ func (s Schema) Clone() Schema {
 	return c
 }
 
-func cloneSchemaMap(in map[string]*Schema) map[string]*Schema {
-	if in == nil {
+func cloneSchemaMap(source map[string]*Schema) map[string]*Schema {
+	if source == nil {
 		return nil
 	}
 
-	out := make(map[string]*Schema, len(in))
-	for name, s := range in {
+	out := make(map[string]*Schema, len(source))
+	for name, s := range source {
 		if s == nil {
 			out[name] = nil
 
@@ -107,13 +107,13 @@ func cloneSchemaMap(in map[string]*Schema) map[string]*Schema {
 	return out
 }
 
-func cloneAnySlice(in []any) []any {
-	if in == nil {
+func cloneAnySlice(source []any) []any {
+	if source == nil {
 		return nil
 	}
 
-	out := make([]any, len(in))
-	copy(out, in)
+	out := make([]any, len(source))
+	copy(out, source)
 
 	return out
 }

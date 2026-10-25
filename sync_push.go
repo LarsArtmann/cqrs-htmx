@@ -84,14 +84,20 @@ func (r *SyncPushResult) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	switch r.Status {
 	case SyncPushStatusConfirmed:
 		if r.Error != nil {
-			return fmt.Errorf("cqrshtmx.sync.push.status_union: confirmed outcome must not carry an error (command %q)", r.CommandID)
+			return errorfamily.Newf(errorfamily.Corruption,
+				"cqrshtmx.sync.push.status_union",
+				"confirmed outcome must not carry an error (command %q)", r.CommandID)
 		}
 	case SyncPushStatusRejected:
 		if r.Error == nil {
-			return fmt.Errorf("cqrshtmx.sync.push.status_union: rejected outcome must carry an error (command %q)", r.CommandID)
+			return errorfamily.Newf(errorfamily.Corruption,
+				"cqrshtmx.sync.push.status_union",
+				"rejected outcome must carry an error (command %q)", r.CommandID)
 		}
 	default:
-		return fmt.Errorf("cqrshtmx.sync.push.status_union: unknown status %q (command %q)", r.Status, r.CommandID)
+		return errorfamily.Newf(errorfamily.Corruption,
+			"cqrshtmx.sync.push.status_union",
+			"unknown status %q (command %q)", r.Status, r.CommandID)
 	}
 
 	return nil
