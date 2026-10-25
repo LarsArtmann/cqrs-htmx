@@ -203,10 +203,10 @@ linters:
       - path: (http|verification_totp_http)\.go$
         linters:
           - contextcheck
-      - path: service_core\.go$
+      - path: service_(core|factory)\.go$
         linters:
           - cyclop
-      - path: service_core\.go$
+      - path: service_(core|factory)\.go$
         linters:
           - funlen
       - path: _test\.go
