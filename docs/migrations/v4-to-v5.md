@@ -282,3 +282,47 @@ zero proxy/CDN friction. Maintaining a second transport that offered no real
 capability gain was pure surface-area cost (~1,200 LOC + a bundled JS asset).
 
 See [ADR-0046](../adr/0046-drop-websocket-sse-only.md) for the full rationale.
+
+---
+
+## Rollout plan (Track A / Track B, master plan S54)
+
+Two independent tracks; a consumer may run either or both. Neither requires
+touching stored data.
+
+### Track A — code migration (the codemod)
+
+1. Bump module requirements to v5; run the codemod **dry run** (report only).
+2. Review the report: every `Raw()`/non-mechanical site is listed for the
+   per-symbol recipes above.
+3. `-apply`, build, run the consumer's test suite. The codemod refuses to
+   write unparseable output and rolls back on red (edit + build + vet per file).
+4. Anything it cannot rewrite mechanically lands as `// v5-upgrade: TODO`
+   markers — grep them; they are the manual residue list.
+
+### Track B — journal backward compatibility
+
+v5 readers must fold v4 journals unchanged:
+
+- All 25 identity event payload types decode from their v4 wire bytes
+  (21-event v4.13.0-era decode goldens + the S32 additions; schema-version
+  upcasters via `identity-model/upcaster.go` when the first v2 schema lands).
+- Fold-equivalence harness: fold a recorded v4 journal with v4 and v5 and
+  assert identical `UserState`/`MembershipState`/`TenantState`/`BotState`.
+- Actor/causation/correlation metadata contract unchanged (the enrichment
+  chain is version-neutral).
+
+### Compatibility matrix
+
+| Consumer state | Path | Rollback |
+| --- | --- | --- |
+| v4.14+ code, v4 journals | Track A only | `git revert` the codemod commit — no data changes |
+| pre-v4.14 journals | none needed to READ under v5 (Track B); Track A for code | same |
+| custom `WebAuthnProvider` | add the `([]byte, error)` `FinishLogin` return (v4.14+ already; see `docs/guides/provider-implementation.md`) | n/a — already shipped as minor |
+| WS-heavy consumer | per-symbol recipes §1–8 first, then Track A | revert; recipes are additive |
+
+### Rollback
+
+The migration is code-only: reverting the codemod commit (and the require
+bump) restores v4 behavior exactly. There is no journal rewrite, no store
+migration, and no config format change to undo.

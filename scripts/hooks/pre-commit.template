@@ -48,6 +48,17 @@ elif [ "$_train_rc" -ne 0 ]; then
   exit "$_train_rc"
 fi
 
+# MANUAL EDIT: Codegen-drift gate for staged .templ/_templ.go edits (S48,
+# 2026-10-25) — closes the formatter→generate chain at commit time. buildflow's
+# templ steps are excluded (version-skew class; .buildflow.yml + gotcha 35), so
+# this repo-native block is what guarantees a staged .templ edit ships with its
+# regenerated _templ.go (module-dir generation, bare FileName: is canonical).
+# Fast-path: one git call when no templ file is staged.
+# If regeneration drops this gate, restore with:
+#   scripts/tools/install-git-hooks.sh --force
+# See scripts/checks/check-templ-codegen-staged.sh (+ fixture self-test).
+bash "$(git rev-parse --show-toplevel)/scripts/checks/check-templ-codegen-staged.sh"
+
 echo "Running BuildFlow pre-commit checks (soft budget: 150s)..."
 
 START=$(date +%s)

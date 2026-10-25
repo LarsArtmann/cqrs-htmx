@@ -34,6 +34,17 @@ todo_min_severity: warning
 exclude:
   - "*.html"
   - "*.min.js"
+  # *.templ excluded from ALL buildflow formatting/generation (S48, 2026-10-25):
+  # buildflow's bundled templ binary is version-skewed from the nix-pinned one
+  # (the templ-generate skip below exists for exactly this class), so letting
+  # it format .templ while generation flows through `nix run .#gen` reopens
+  # the formatter→codegen split brain. Canonical chain: treefmt `templ fmt`
+  # (nix-pinned, offline wrapper) for formatting, module-dir `templ generate`
+  # for codegen, and the pre-commit gate check-templ-codegen-staged.sh
+  # (scripts/hooks/pre-commit.template MANUAL EDIT block) refuses a staged
+  # .templ/_templ.go pair that drifted. CI's codegen drift check stays the
+  # push-time backstop.
+  - "*.templ"
   # Committed Tailwind bundles + buildflow's orphan styles.css outputs are
   # NEVER buildflow's business: the canonical minified bundles are built by
   # the flake apps (nix run .#build-adminui-css / .#build-dashboardui-css)
