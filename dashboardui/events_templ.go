@@ -17,7 +17,7 @@ import (
 )
 
 // ===== Event Stream Browser =====
-func eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) templ.Component {
+func eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -38,7 +38,7 @@ func eventsPage(p pageData, events []event.Event, page paginationState, filter e
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = layout(p, eventsContent(p, events, page, filter, sortBy)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout(p, eventsContent(p, events, page, filter, sortBy, windowCount)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -46,7 +46,7 @@ func eventsPage(p pageData, events []event.Event, page paginationState, filter e
 	})
 }
 
-func eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) templ.Component {
+func eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -114,8 +114,8 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if sortBy.Active() {
-				templ_7745c5c3_Err = badge(fmt.Sprintf("sorted view: first %d events", filterScanLimit), display.BadgeNeutral).Render(ctx, templ_7745c5c3_Buffer)
+			if windowCount > 0 {
+				templ_7745c5c3_Err = badge(fmt.Sprintf("sorted view: newest %d events (scan cap %d)", windowCount, filterScanLimit), display.BadgeNeutral).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

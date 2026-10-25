@@ -9,11 +9,11 @@ import (
 )
 
 // ===== Event Stream Browser =====
-templ eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) {
-	@layout(p, eventsContent(p, events, page, filter, sortBy))
+templ eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) {
+	@layout(p, eventsContent(p, events, page, filter, sortBy, windowCount))
 }
 
-templ eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) {
+templ eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) {
 	@display.PageHeader(display.PageHeaderProps{Title: "Event Stream"})
 	@eventFilterBar(p.BasePath, filter)
 	if len(events) == 0 {
@@ -42,8 +42,8 @@ templ eventsContent(p pageData, events []event.Event, page paginationState, filt
 			"events-tbody",
 			eventsTableRows(p.BasePath, p.Nonce, events),
 		)
-		if sortBy.Active() {
-			@badge(fmt.Sprintf("sorted view: first %d events", filterScanLimit), display.BadgeNeutral)
+		if windowCount > 0 {
+			@badge(fmt.Sprintf("sorted view: newest %d events (scan cap %d)", windowCount, filterScanLimit), display.BadgeNeutral)
 		}
 		@paginationNav(p.BasePath, "/events", page, combinedFilterSortParams(filter, sortBy))
 		@formatLinksNav(p.BasePath, "/events", combinedFilterSortParams(filter, sortBy))

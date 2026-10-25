@@ -51,6 +51,15 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The window badge tells the truth about what the scan actually returned:
+	// the fetch above caps at filterScanLimit, but a smaller journal (or a
+	// smaller store-side cap) returns fewer — announcing the cap would claim
+	// rows that were never loaded.
+	windowCount := 0
+	if windowed {
+		windowCount = len(events)
+	}
+
 	hasNext, events, nextCursor := pageEvents(events, pageSize, windowed)
 
 	sortEvents(events, sortBy)
@@ -74,7 +83,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		state.TotalCount = ""
 	}
 
-	renderPage(w, r, eventsPage(p, events, state, filters, sortBy))
+	renderPage(w, r, eventsPage(p, events, state, filters, sortBy, windowCount))
 }
 
 // pageEvents applies the pagination cut and derives the Next cursor.
@@ -89,13 +98,12 @@ func pageEvents(
 	pageSize int,
 	windowed bool,
 ) (bool, []event.Event, string) {
+	// The windowed view shows the WHOLE fetched window (the fetch already caps
+	// at filterScanLimit); a pageSize cut there would strand every event past
+	// page one behind a disabled pagination bar.
 	hasNext := !windowed && len(events) > pageSize
 	if hasNext {
 		events = events[:pageSize]
-	}
-
-	if windowed {
-		events = events[:min(len(events), filterScanLimit)]
 	}
 
 	var nextCursor string
