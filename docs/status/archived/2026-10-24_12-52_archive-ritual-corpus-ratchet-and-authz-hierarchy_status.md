@@ -1,6 +1,6 @@
 # Status — archive ritual automated, corpus ratcheted, and the role hierarchy finally authorizes
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md`](../2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md), which this report receipts the same master-plan execution arc (Lanes A-C complete + Lane D wave 1); the 12-52 report owns nothing unique — its eviction/battery/Lane-D opens are plan milestones. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md`](2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md), which this report receipts the same master-plan execution arc (Lanes A-C complete + Lane D wave 1); the 12-52 report owns nothing unique — its eviction/battery/Lane-D opens are plan milestones. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-24 (2026-10-25)).**
 

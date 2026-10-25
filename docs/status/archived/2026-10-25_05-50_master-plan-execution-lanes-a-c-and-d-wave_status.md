@@ -1,7 +1,11 @@
 # Master plan execution: Lanes A–C complete, Lane D wave 1 delivered
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md`](../2026-10-25_06-52_lane-d-plan-and-red-master-rescue-train_status.md), which same arc continued — the 06-52 report receipts the plan, the rescue train, and the push; every item the 05-50 report tracked is committed. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-25 (2026-10-25)).**
+
 **Written:** 2026-10-25 05:50 CET · **Session:** "GET SHIT DONE — the whole TODO list" against
-the plan of record ([2026-10-24 05-36 master plan](../planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md))
+the plan of record ([2026-10-24 05-36 master plan](../../planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md))
 · **This report:** the receipt for the session's delivered milestones; supersedes
 `2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md`.
 
