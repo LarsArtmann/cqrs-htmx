@@ -25,10 +25,11 @@ type LockoutConfig struct {
 // with unique email addresses — call EvictStale periodically to remove expired lockouts
 // and abandoned attempt counters, or use a distributed store in production.
 type AccountLockout struct {
-	mu       sync.RWMutex
-	config   LockoutConfig
-	attempts map[string]uint
-	lockedAt map[string]time.Time
+	mu        sync.RWMutex
+	config    LockoutConfig
+	attempts  map[string]uint
+	attemptAt map[string]time.Time
+	lockedAt  map[string]time.Time
 }
 
 // normalizeEmail lowercases and trims whitespace from an email address.
@@ -52,9 +53,10 @@ func NewAccountLockout(config ...LockoutConfig) *AccountLockout {
 		}
 	}
 	return &AccountLockout{
-		config:   resolved,
-		attempts: make(map[string]uint),
-		lockedAt: make(map[string]time.Time),
+		config:    resolved,
+		attempts:  make(map[string]uint),
+		attemptAt: make(map[string]time.Time),
+		lockedAt:  make(map[string]time.Time),
 	}
 }
 
@@ -76,6 +78,7 @@ func (l *AccountLockout) IsLocked(email string) bool {
 				time.Since(lockedAt2) > l.config.Duration {
 				delete(l.lockedAt, normalized)
 				delete(l.attempts, normalized)
+				delete(l.attemptAt, normalized)
 			}
 		})
 		return false
@@ -92,15 +95,26 @@ func (l *AccountLockout) withLock(fn func()) {
 
 // RecordFailure increments the failure counter for the email and returns true
 // if the account has just been locked (i.e. the threshold was reached).
+//
+// A lock expires Duration after the ORIGINAL lock: failures arriving while a
+// lock is active neither extend it nor count toward the next window (owner
+// verdict 2026-10-25 — probes must not be able to keep an account locked
+// indefinitely). After expiry the counter restarts from zero.
 func (l *AccountLockout) RecordFailure(email string) bool {
 	var locked bool
 	l.withLock(func() {
 		normalized := normalizeEmail(email)
-		if lockedAt, ok := l.lockedAt[normalized]; ok && time.Since(lockedAt) > l.config.Duration {
+
+		if lockedAt, ok := l.lockedAt[normalized]; ok {
+			if time.Since(lockedAt) <= l.config.Duration {
+				return
+			}
 			delete(l.lockedAt, normalized)
 			l.attempts[normalized] = 0
 		}
+
 		l.attempts[normalized]++
+		l.attemptAt[normalized] = time.Now()
 		if l.attempts[normalized] >= l.config.MaxAttempts {
 			l.lockedAt[normalized] = time.Now()
 			locked = true
@@ -114,19 +128,32 @@ func (l *AccountLockout) Reset(email string) {
 	l.withLock(func() {
 		normalized := normalizeEmail(email)
 		delete(l.attempts, normalized)
+		delete(l.attemptAt, normalized)
 		delete(l.lockedAt, normalized)
 	})
 }
 
-// EvictStale removes expired lockouts and stale attempt counters (entries with
-// zero attempts that were never locked). Returns the number of entries evicted.
-// Call periodically to prevent unbounded memory growth in high-cardinality scenarios.
+// EvictStale removes expired lockouts and abandoned attempt counters (entries
+// whose last failure is older than Duration and which never reached a lock).
+// Returns the number of emails evicted. Call periodically to prevent
+// unbounded memory growth in high-cardinality scenarios.
 func (l *AccountLockout) EvictStale() int {
 	var evicted int
 	l.withLock(func() {
 		now := time.Now()
-		evicted = deleteExpired(l.lockedAt, func(email string, lockedAt time.Time) bool {
+		evicted += deleteExpired(l.lockedAt, func(email string, lockedAt time.Time) bool {
 			if now.Sub(lockedAt) <= l.config.Duration {
+				return false
+			}
+			delete(l.attempts, email)
+			delete(l.attemptAt, email)
+			return true
+		})
+		evicted += deleteExpired(l.attemptAt, func(email string, lastFailure time.Time) bool {
+			if _, isLocked := l.lockedAt[email]; isLocked {
+				return false
+			}
+			if now.Sub(lastFailure) <= l.config.Duration {
 				return false
 			}
 			delete(l.attempts, email)
