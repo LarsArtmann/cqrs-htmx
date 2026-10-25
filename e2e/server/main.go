@@ -106,6 +106,7 @@ func seedDashboard(
 				id.StreamType(streamType),
 				event.Version(v),
 				map[string]string{"seq": strconv.FormatUint(v, 10)},
+				event.WithSchemaVersion(1),
 			)
 			if eErr != nil {
 				log.Fatalf("event.New: %v", eErr)
@@ -228,7 +229,7 @@ func main() {
 		ref := id.StreamRef{Type: itemStreamType, ID: aggID}
 
 		evt, err := event.New(event.Type("Item.synced"), aggID, itemStreamType, event.Version(1),
-			map[string]string{"name": c.ItemName()})
+			map[string]string{"name": c.ItemName()}, event.WithSchemaVersion(1))
 		if err != nil {
 			return err
 		}
@@ -475,7 +476,7 @@ func seedSyncEvents(store *memorystorage.MemoryStore) {
 		ref := id.StreamRef{Type: itemStreamType, ID: aggID}
 
 		evt, err := event.New(event.Type("Item.synced"), aggID, itemStreamType, event.Version(1),
-			map[string]string{"name": name})
+			map[string]string{"name": name}, event.WithSchemaVersion(1))
 		if err != nil {
 			log.Fatalf("event.New: %v", err)
 		}

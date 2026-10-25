@@ -119,7 +119,7 @@ func newHandler() http.Handler {
 		streamType := id.StreamType(c.StreamTypeName())
 		aggID := id.NewStreamID()
 		evt, err := event.New(event.Type("Note.created"), aggID, streamType, event.Version(1),
-			map[string]string{"name": c.NoteName()})
+			map[string]string{"name": c.NoteName()}, event.WithSchemaVersion(1))
 		if err != nil {
 			return err
 		}
