@@ -63,9 +63,30 @@ func checkDir(dir string) []violation {
 		}
 		if d.IsDir() {
 			name := d.Name()
-			if name == "vendor" || name == "examples" || strings.HasPrefix(name, ".") {
+			// NOTE: the walk root itself is ".", whose name matches the
+			// hidden-prefix rule below and silently SkipDir'd the ENTIRE tree —
+			// the blind spot that let root-module violations through (found
+			// 2026-10-25). Never skip the walk root.
+			if name == "." {
+				return nil
+			}
+
+			// Deliberate exemptions, each narrowing the rule where it does not
+			// apply:
+			//   - vendor/examples/e2e: third-party and demo code.
+			//   - openapi: a documented dependency-free package (openapi/doc.go)
+			//     that defines static stdlib sentinels instead of family errors.
+			//   - cmd: one-shot migration CLI diagnostics printed to stderr;
+			//     family classification adds nothing (mirrors the existing
+			//     //nolint:err113 "CLI diagnostic" markers there).
+			switch {
+			case name == "vendor" || name == "examples" || name == "e2e" ||
+				name == "openapi" || name == "cmd":
+				return filepath.SkipDir
+			case strings.HasPrefix(name, "."):
 				return filepath.SkipDir
 			}
+
 			return nil
 		}
 		if !strings.HasSuffix(path, ".go") {

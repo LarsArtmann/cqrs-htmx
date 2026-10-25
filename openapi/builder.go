@@ -241,7 +241,8 @@ func (b *opBuilder) Response(status int, description string, content ...*MediaTy
 	case 1:
 		resp.Content = map[string]*MediaType{jsonMediaType: content[0]}
 	default:
-		panic("openapi: Response: multiple content MediaTypes cannot be keyed automatically — use ResponseWithContent to name each content type")
+		panic("openapi: Response: multiple content MediaTypes cannot be keyed automatically — " +
+			"use ResponseWithContent to name each content type")
 	}
 
 	b.op.Responses[status] = resp

@@ -13,8 +13,12 @@ var (
 	errNilSpec              = errors.New("openapi: spec is nil")
 	errNoOperationID        = errors.New("openapi: operation has no operationId")
 	errDuplicateOperationID = errors.New("openapi: duplicate operationId")
-	errNoResponses          = errors.New("openapi: no responses — OpenAPI requires at least one (use Response or NoContent)")
 )
+
+// errNoResponses names the fix in its message: per the OpenAPI Specification
+// an operation without a response is invalid, and [Response]/[NoContent] are
+// the constructors that provide one.
+var errNoResponses = errors.New("openapi: no responses — OpenAPI requires at least one (use Response or NoContent)")
 
 // Validate checks the invariants OpenAPI 3.1 requires that the builder cannot
 // enforce structurally, so an invalid spec fails loudly at serialization (or

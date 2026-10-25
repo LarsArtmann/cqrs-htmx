@@ -154,7 +154,9 @@ func TestSpecJSON_NestedPropertiesSorted(t *testing.T) {
 
 	idxAA, idxMM, idxZZ := strings.Index(out, `"aa"`), strings.Index(out, `"mm"`), strings.Index(out, `"zz"`)
 
-	if !(idxAA < idxMM && idxMM < idxZZ) {
+	sorted := idxAA < idxMM && idxMM < idxZZ
+
+	if !sorted {
 		t.Errorf("properties not sorted:\n%s", out)
 	}
 }
