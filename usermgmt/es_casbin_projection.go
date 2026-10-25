@@ -109,14 +109,12 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		return p.handleMembershipEvent(evt)
 
 	case eventTenantDeleted:
-		// Remove all Casbin policies in the tenant's domain (the tenant's aggregate ID).
-		// This cascades role cleanup for all members of the deleted tenant.
-		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
-			return errorfamily.WrapInfrastructure(
-				err, "usermgmt.casbin_projection.tenant_delete_failed",
-				"remove all policies for deleted tenant "+subject,
-			)
-		}
+		// The tenant's stream ID is the same string used as the Casbin
+		// domain in membership grants, so the domain-wide cascade below
+		// removes every member's role assignment in the deleted tenant —
+		// RemoveAllRolesForUser(subject) removed nothing here (the tenant
+		// never appears as a grant subject; its members do).
+		return p.removeAllRolesForDomain(subject)
 
 	case eventBotDeleted:
 		// Remove all Casbin policies for the deleted bot.
@@ -210,6 +208,44 @@ func (p *CasbinProjection) removeAllRolesInDomain(subject, domain, errContext st
 			"remove all roles for %s in %s (%s)",
 			subject, domain, errContext,
 		)
+	}
+	return nil
+}
+
+// removeAllRolesForDomain removes every group policy in the given Casbin
+// domain: member role grants AND the mirrored role-hierarchy edges (both are
+// `g` rows of the form (subject, role, domain)). Casbin has no domain-wide
+// removal API, so subjects are enumerated from this projection's own
+// GroupPolicies view and cleared one by one. Idempotent: a domain without
+// rows is a no-op, which keeps at-least-once redelivery harmless.
+func (p *CasbinProjection) removeAllRolesForDomain(domain string) error {
+	domainID := NewTenantID(domain)
+
+	groups, err := p.authz.GroupPolicies()
+	if err != nil {
+		return errorfamily.WrapInfrastructure(
+			err,
+			"usermgmt.casbin_projection.tenant_delete_failed",
+			"enumerate policies for deleted tenant "+domain,
+		)
+	}
+
+	cleared := make(map[string]struct{})
+	for _, row := range groups {
+		if len(row) != 3 || row[2] != domain {
+			continue
+		}
+		if _, done := cleared[row[0]]; done {
+			continue
+		}
+		if err := p.removeAllRolesInDomain(row[0], domain, "on tenant delete cascade"); err != nil {
+			return errorfamily.Wrapf(
+				err, event.Infrastructure,
+				"usermgmt.casbin_projection.tenant_delete_failed",
+				"cascade roles for %s in deleted tenant %s", row[0], domain,
+			)
+		}
+		cleared[row[0]] = struct{}{}
 	}
 	return nil
 }

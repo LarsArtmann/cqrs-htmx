@@ -84,18 +84,25 @@ func (s *Service) DeleteTenant(ctx context.Context, tenantID TenantID, reason st
 	if err := s.dispatcher.Dispatch(ctx, NewDeleteTenantCmd(aggID, reason)); err != nil {
 		return err //nolint:wrapcheck // decider returns typed domain errors
 	}
-	// Best-effort membership cleanup: remove all members from the deleted tenant.
+	// Best-effort membership cleanup: remove all members from the deleted
+	// tenant. Casbin policies die via the TenantDeleted cascade regardless
+	// (see CasbinProjection.removeAllRolesForDomain); these dispatches only
+	// retire the membership read-model rows.
 	s.revokeMembershipsForTenantBestEffort(ctx, tenantID)
 	return nil
 }
 
 // revokeMembershipsForTenantBestEffort removes all memberships for a tenant.
-// Errors are logged but not returned — the tenant is already deleted.
+// Per-member dispatch failures are logged and counted — never returned, the
+// tenant is already deleted — and the loop ends with one summary warning so
+// a partial cleanup is visible as a single line, not N lost ones.
 func (s *Service) revokeMembershipsForTenantBestEffort(ctx context.Context, tenantID TenantID) {
 	memberships := s.membershipReadModel.FindByTenant(tenantID.Get())
+	failed := 0
 	for _, mem := range memberships {
 		removalCmd := NewRemoveMemberCmd(mem.ActorID, tenantID)
 		if err := s.dispatcher.Dispatch(ctx, removalCmd); err != nil {
+			failed++
 			s.logger.Warn(
 				"usermgmt: failed to remove membership on tenant deletion",
 				"tenant_id", tenantID.Get(),
@@ -103,6 +110,14 @@ func (s *Service) revokeMembershipsForTenantBestEffort(ctx context.Context, tena
 				"error", err,
 			)
 		}
+	}
+	if failed > 0 {
+		s.logger.Warn(
+			"usermgmt: tenant deleted with partial membership cleanup",
+			"tenant_id", tenantID.Get(),
+			"failed_removals", failed,
+			"total_memberships", len(memberships),
+		)
 	}
 }
 
