@@ -4,7 +4,7 @@
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 
-**Date:** 2026-10-09 15:38 CEST · **Scope:** this session's execution of [`docs/planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md`](../../planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md) (annotated in place) · **Prior evidence:** `docs/status/2026-10-08_19-55_push-unblock-train-alignment-ci-green_status.md`
+**Date:** 2026-10-09 15:38 CEST · **Scope:** this session's execution of [`docs/planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md`](../../planning/archived/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md) (annotated in place) · **Prior evidence:** `docs/status/2026-10-08_19-55_push-unblock-train-alignment-ci-green_status.md`
 
 ## 0) The three answers up front (what did I forget / do wrong / leave on the table)
 

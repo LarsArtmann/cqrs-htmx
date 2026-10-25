@@ -7,7 +7,7 @@
 
 
 > **Date:** 2026-10-09 18:10 CEST
-> **Input:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) (annotated in place) · Phase-1 status [`2026-10-09_17-19`](2026-10-09_17-19_SUPERB-execution-phase1-status.md)
+> **Input:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../../planning/archived/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) (annotated in place) · Phase-1 status [`2026-10-09_17-19`](2026-10-09_17-19_SUPERB-execution-phase1-status.md)
 > **Predecessors:** review [`2026-10-08_samber-do-v2-health-checks-deep-review.md`](../../research/2026-10-08_samber-do-v2-health-checks-deep-review.md) (now with Outcome Annex) · self-critique [`2026-10-09_16-21`](2026-10-09_16-21_samber-do-health-deep-review-session.md)
 
 ## a) What is DONE (this session, phases 2–5 + boot proofs)

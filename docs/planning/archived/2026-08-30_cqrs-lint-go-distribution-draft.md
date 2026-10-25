@@ -1,5 +1,7 @@
 # Draft: Go-installable cqrs-lint distribution
 
+> **OUTCOME 2026-10-24** — SUPERSEDED 2026-10-24 — by the D6/T23 owner packet and the cqrs-lint state in AGENTS gotcha 13.
+
 **Status:** PREPARED draft, awaiting approval to publish a new artifact.
 **Prepared:** 2026-08-30 · Blocks: `check-cqrs-lint` in CI (needs a
 CI-installable binary; the Nix flake output is NixOS-only).

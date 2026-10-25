@@ -1,5 +1,7 @@
 # Options Memo — Publish templ-components Audit Verdicts Publicly?
 
+> **OUTCOME 2026-10-24** — SPENT 2026-10-24 — delivered; publishing posture lives in the round manifests.
+
 **Created:** 2026-09-23 (adoption-plan task T10)
 **Decision owner:** Lars (status-report §g-Q1/Q3 — unresolved)
 **Question:** should the dashboardui templ-components adoption-audit series

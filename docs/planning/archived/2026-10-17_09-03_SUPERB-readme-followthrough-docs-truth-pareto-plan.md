@@ -1,5 +1,7 @@
 # SUPERB Pareto Plan — README Follow-Through & Docs-Truth Wave
 
+> **OUTCOME 2026-10-24** — SUPERSEDED 2026-10-24 — M18/M20 landed; M20's quarterly ritual is the README sweep TODO row.
+
 **Created:** 2026-10-17 09:03 · **Session:** README rewrite follow-through (README went 1266 → 507 lines, all gates green, captured in `554c6d0f`…`8d62074d`)
 **Inputs:** `docs/status/2026-10-17_08-55_readme-rewrite-self-review.md` §f (45 routed items), `TODO_LIST.md` (2026-10-12 state), `ROADMAP.md` open questions, live tree verification 09:02.
 **Goal:** make the consumer-facing surface (README, sub-module/example READMEs, guides) **accurate, complete, and drift-proof** — mechanize what can lie, close what's missing, decide what's owner-gated. No verschlimmbessern: no speculative rewrites, no touching tracked work outside harvest mechanics, no reformatting of unrelated docs.

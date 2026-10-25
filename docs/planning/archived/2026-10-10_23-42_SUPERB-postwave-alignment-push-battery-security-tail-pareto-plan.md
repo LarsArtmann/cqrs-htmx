@@ -1,5 +1,7 @@
 # SUPERB — Post-Wave Alignment, Push, Battery & Security Tail Pareto Plan
 
+> **OUTCOME 2026-10-24** — SUPERSEDED 2026-10-24 — battery legs are the verification-battery TODO row.
+
 > **EXECUTION STAMP 2026-10-11** (Phase 1 + parts of 2/3): **P1 DONE** — sweeps executed (scheduling v4.7.0 `639e5958`, system v4.12.0 `9fc3aeae`) + a FRESH go-health v0.6.1 catch at push time (`3bedf6e8`, tag-diffed clean first); strict gate 847/0/0/0. **P2 DONE** — pile pushed in 2 stages (`3bedf6e8` 13 commits, then `febb8ef5` lint-fix + `3e2bf224` security after CI's first red: 6 exhaustruct findings + stdlib net/http vulns GO-2026-6603/6611/6613/6617 → fleet Go floor 1.27.1→1.27.2); CI **green run 38110505538**. **P3 DONE** — test-all ×2 green (both floors), coverage 15/15, fleet lint 0; bench refused (load 72–77). **P4 DONE-BY-DRIFT** (verified: fixes + hostile tests from the 10-06 session, now on pushed master). **P7 DONE** (`bd38452c` node:test suite 9/9). **P18 DONE** (3 ranges clean; TODO row). **P9 DONE** (this stamp + 2 report annotations + 21-09 archived + TODO harvest; live tail 26 — round-21 owed). **P5 ROUTED** — blocked: `ProjectionStatusLive` in no published root tag (gotcha 30); rides next train. P6/P8/P10–P17/P19 remain open.
 
 **Date:** 2026-10-10 23:42 CEST

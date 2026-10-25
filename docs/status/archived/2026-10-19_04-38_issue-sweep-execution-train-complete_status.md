@@ -7,7 +7,7 @@
 
 
 > **Point-in-time snapshot (2026-10-19 04:38 CEST).** Append-only per `docs/status/README.md`; absence of an inline resolution marker = open signal.
-> **Plan:** [`docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md`](../../planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md) · **Prior report:** `docs/status/2026-10-19_02-42_github-issue-sweep-fix-session_status.md`
+> **Plan:** [`docs/planning/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md`](../../planning/archived/2026-10-19_03-00_SUPERB-open-issue-sweep-pareto-plan.md) · **Prior report:** `docs/status/2026-10-19_02-42_github-issue-sweep-fix-session_status.md`
 
 ## Headline
 

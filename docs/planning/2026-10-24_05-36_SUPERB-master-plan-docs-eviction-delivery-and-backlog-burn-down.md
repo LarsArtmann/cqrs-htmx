@@ -4,7 +4,7 @@
 **Status:** PLAN OF RECORD. Five milestones are already executed (marked `DONE` with commit refs). Everything else is unstarted.
 
 > **Measured corrections (2026-10-24, S11/S12).** The plan's own counts were hand-written and rotted the same way the corpus did. Measured: **578** files to evict (not 582; 591 archive files minus a 13-file keep-set) and **13** keep targets (not 9: 9 direct citations + 3 transitive + the archive manifests). Negative file/line totals below are therefore approximate. Evidence: [`docs/ARCHIVE_EVICTED.md`](../ARCHIVE_EVICTED.md) and `docs/status/ARCHIVE_KEEP.txt`.
-**Supersedes:** [`2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md`](2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md) for **execution order**. That file stays authoritative for its **measured evidence** (§1–§4) and for Phase A's design rationale.
+**Supersedes:** [`2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md`](archived/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md) for **execution order**. That file stays authoritative for its **measured evidence** (§1–§4) and for Phase A's design rationale.
 **Predecessors:** [`docs/status/2026-10-23_17-09_...`](../status/archived/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md) · [`docs/status/2026-10-24_05-28_...`](../status/archived/2026-10-24_05-28_docs-corpus-eviction-phase-a-executed-push-blocked_status.md)
 **Trigger:** "GET SHIT DONE… MAKE SURE TO CREATE A VERY COMPREHENSIVE PLAN FIRST… It should include ALL TODOS!"
 

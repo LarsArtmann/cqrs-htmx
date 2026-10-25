@@ -7,7 +7,7 @@
 
 
 > **Session:** 2026-10-09 16:52 → 17:19 CEST (SUPERB dispatch: plan → execute → commit/push)
-> **Plan:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../../planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) — 18 medium tasks (T1–T18), 50 fine tasks (f01–f50).
+> **Plan:** [`docs/planning/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md`](../../planning/archived/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md) — 18 medium tasks (T1–T18), 50 fine tasks (f01–f50).
 > **Prior snapshot:** [`2026-10-09_16-21_samber-do-health-deep-review-session.md`](2026-10-09_16-21_samber-do-health-deep-review-session.md) (review + self-critique; its §g questions are decided in the plan §0).
 
 ---

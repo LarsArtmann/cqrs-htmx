@@ -1,5 +1,7 @@
 # SUPERB Pareto Plan — catalog/v4 Integration: Decide, Document, or Build?
 
+> **OUTCOME 2026-10-24** — SUPERSEDED 2026-10-24 — the catalog remainder is the catalog/v4 TODO row.
+
 > **Status: AWAITING OWNER APPROVAL** (planning turn only — no execution beyond bookkeeping).
 > **Created:** 2026-10-12 17:33 · **Input:** `docs/research/2026-10-12_catalog-v4-integration-map.md`
 > **Question driving this plan:** setup and go-appkit do NOT embed go-cqrs-lite/catalog —

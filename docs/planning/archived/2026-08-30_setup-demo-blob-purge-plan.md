@@ -1,5 +1,7 @@
 # Plan: Purge the setup-demo binary blob from pushed master history
 
+> **OUTCOME 2026-10-24** — SPENT 2026-10-24 — executed long ago; no living doc cites it.
+
 **Status:** PREPARED, awaiting user approval (force-push class). **Data re-verified 2026-09-22 (docs-health D4):** the pushed range `5604e810..73ff1556` carries **FOUR** >1 MB revisions of `examples/setup-demo/setup-demo` (27,532,280 + 27,532,264 + 27,526,791 + 27,500,434 B ≈ **105 MiB total** — the binary was committed, rebuilt, and recommitted before the purge). Recommendation unchanged (accepted cost); nothing pushed.
 **Prepared:** 2026-08-30 · Source: TODO_LIST P-gated item.
 

@@ -5,7 +5,7 @@
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 
 > **Point-in-time snapshot.** Session scope: executing
-> [`docs/planning/2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md`](../../planning/2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md)
+> [`docs/planning/2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md`](../../planning/archived/2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md)
 > (A1–A8 ungated tiers) — interrupted at ~90% by the discovery that **the alignment
 > push had red'ed master CI**, which became the session's real work.
 >

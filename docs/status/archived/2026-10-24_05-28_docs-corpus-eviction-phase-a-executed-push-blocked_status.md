@@ -8,7 +8,7 @@
 **Session type:** continuation of the docs-corpus eviction / agent-attention initiative
 **Predecessors:**
 [`2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md`](2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md) ·
-[`docs/planning/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md`](../../planning/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md)
+[`docs/planning/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md`](../../planning/archived/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md)
 **Trigger:** "GET SHIT DONE! The WHOLE TODO LIST!" — i.e. execute the 30-milestone plan, not just re-plan it.
 **Honest one-line verdict:** Phase A (5 of 30 milestones, ~21% of the milestone count, ~14% of the effort) is executed, verified and committed. Twenty-five milestones are untouched. The backlog is now honest; the corpus is still 43% closed history.
 

@@ -6,7 +6,7 @@
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**
 
 
-**Date:** 2026-10-09 ~04:15 CEST · **Branch:** master (local ahead of origin; push gated on the GCL wave, see TODO push-window row) · **Plan:** [`docs/planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md`](../../planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md) (annotated in place)
+**Date:** 2026-10-09 ~04:15 CEST · **Branch:** master (local ahead of origin; push gated on the GCL wave, see TODO push-window row) · **Plan:** [`docs/planning/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md`](../../planning/archived/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md) (annotated in place)
 
 ## a) Executive summary
 
