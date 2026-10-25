@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"errors"
+	"fmt"
 	"hash/fnv"
 	"net/http"
 	"strconv"
@@ -23,11 +25,18 @@ const (
 	MaxSyncPullLimit     = 1000
 )
 
+// SyncPayloadEncoding names the framing of a [SyncEvent]'s delivered bytes
+// (the payloadEncoding wire field).
+type SyncPayloadEncoding = string
+
+// SyncPayloadEncodingJSON: Payload holds the verbatim JSON bytes.
+const SyncPayloadEncodingJSON SyncPayloadEncoding = "json"
+
 // SyncPayloadEncodingOpaque is the PayloadEncoding reported when an event's
 // stamp promises JSON but its bytes are not valid JSON (the metadata-only
 // event.WithEncoding trap: event.New still CBOR-encodes map payloads). The
 // wire never promises an encoding the delivered bytes cannot keep.
-const SyncPayloadEncodingOpaque = "opaque"
+const SyncPayloadEncodingOpaque SyncPayloadEncoding = "opaque"
 
 // SyncEvent is the JSON shape of one pulled domain event: the SSE metadata
 // envelope plus the payload. Unlike the SSE envelope (metadata-only by
@@ -43,14 +52,48 @@ type SyncEvent struct {
 	OccurredAt    string `json:"occurredAt"`
 
 	// PayloadEncoding names the delivered bytes' framing. Exactly one of
-	// Payload/PayloadB64 is set: "json" → Payload holds the verbatim JSON;
-	// a codec name ("cbor") → PayloadB64 holds that codec's bytes;
-	// "opaque" ([SyncPayloadEncodingOpaque]) → the event's stamp promised
-	// JSON but the bytes are not valid JSON, so PayloadB64 carries them
-	// without a decodable-framing promise.
-	PayloadEncoding string         `json:"payloadEncoding"`
-	Payload         jsontext.Value `json:"payload,omitempty"`
-	PayloadB64      string         `json:"payloadB64,omitempty"`
+	// Payload/PayloadB64 is set: [SyncPayloadEncodingJSON] → Payload holds the
+	// verbatim JSON; a codec name ("cbor") → PayloadB64 holds that codec's
+	// bytes; [SyncPayloadEncodingOpaque] → the event's stamp promised JSON
+	// but the bytes are not valid JSON, so PayloadB64 carries them without a
+	// decodable-framing promise.
+	PayloadEncoding SyncPayloadEncoding `json:"payloadEncoding"`
+	Payload         jsontext.Value      `json:"payload,omitempty"`
+	PayloadB64      string              `json:"payloadB64,omitempty"`
+}
+
+// UnmarshalJSONFrom decodes a [SyncEvent] and enforces the payload
+// exclusive-or: exactly one of Payload/PayloadB64 is set, a JSON encoding
+// implies the inline Payload, and an inline Payload implies the JSON
+// encoding. A violated shape is a server bug or a truncated body — it fails
+// the decode instead of silently yielding a half-payload event.
+func (e *SyncEvent) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	type syncEventWire SyncEvent
+
+	var wire syncEventWire
+	if err := json.UnmarshalDecode(dec, &wire); err != nil {
+		return err //nolint:wrapcheck // decode error passes through; wire contract
+	}
+
+	*e = SyncEvent(wire)
+
+	inline := len(e.Payload) > 0
+	b64 := e.PayloadB64 != ""
+
+	switch {
+	case inline && b64:
+		return errors.New("cqrshtmx.sync.event.payload_exclusive_or: both payload and payloadB64 set")
+	case !inline && !b64:
+		return errors.New("cqrshtmx.sync.event.payload_exclusive_or: neither payload nor payloadB64 set")
+	case inline && e.PayloadEncoding != SyncPayloadEncodingJSON:
+		return fmt.Errorf("cqrshtmx.sync.event.payload_encoding: inline payload requires encoding %q, got %q",
+			SyncPayloadEncodingJSON, e.PayloadEncoding)
+	case !inline && e.PayloadEncoding == SyncPayloadEncodingJSON:
+		return fmt.Errorf("cqrshtmx.sync.event.payload_encoding: encoding %q requires the inline payload, got payloadB64",
+			SyncPayloadEncodingJSON)
+	}
+
+	return nil
 }
 
 // SyncPullResponse is the body returned by [SyncPullHandler].
@@ -318,14 +361,14 @@ func newSyncEvent(evt event.Event) SyncEvent {
 	}
 
 	payload := evt.Payload()
-	if v := jsontext.Value(payload); string(evt.Encoding()) == "json" && v.IsValid() {
+	if v := jsontext.Value(payload); string(evt.Encoding()) == SyncPayloadEncodingJSON && v.IsValid() {
 		out.Payload = v
 
 		return out
 	}
 
 	out.PayloadB64 = base64.StdEncoding.EncodeToString(payload)
-	if string(evt.Encoding()) == "json" {
+	if string(evt.Encoding()) == SyncPayloadEncodingJSON {
 		out.PayloadEncoding = SyncPayloadEncodingOpaque
 	}
 

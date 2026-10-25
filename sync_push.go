@@ -2,7 +2,9 @@ package cqrshtmx
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -19,10 +21,15 @@ import (
 // the guard exists to protect the server, not to rate-limit the client.
 const MaxSyncPushBatch = 100
 
+// SyncPushStatus is the outcome status of one pushed envelope (the status
+// wire field). The type makes the vocabulary nameable in consumer code; it
+// serializes as its plain string value.
+type SyncPushStatus string
+
 // Sync push outcome statuses (see [SyncPushResult]).
 const (
-	SyncPushStatusConfirmed = "confirmed"
-	SyncPushStatusRejected  = "rejected"
+	SyncPushStatusConfirmed SyncPushStatus = "confirmed"
+	SyncPushStatusRejected  SyncPushStatus = "rejected"
 )
 
 // SyncPushEnvelope is one queued command as sent by the offline sync client.
@@ -56,8 +63,38 @@ type SyncPushError struct {
 // via pull or SSE.
 type SyncPushResult struct {
 	CommandID string         `json:"commandId"`
-	Status    string         `json:"status"`
+	Status    SyncPushStatus `json:"status"`
 	Error     *SyncPushError `json:"error,omitempty"`
+}
+
+// UnmarshalJSONFrom decodes a [SyncPushResult] and enforces the status/error
+// union: a confirmed outcome carries no error, a rejected outcome carries
+// one. Anything else is a producer bug or a truncated body — it fails the
+// decode instead of silently yielding an outcome the client cannot act on.
+func (r *SyncPushResult) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	type syncPushResultWire SyncPushResult
+
+	var wire syncPushResultWire
+	if err := json.UnmarshalDecode(dec, &wire); err != nil {
+		return err //nolint:wrapcheck // decode error passes through; wire contract
+	}
+
+	*r = SyncPushResult(wire)
+
+	switch r.Status {
+	case SyncPushStatusConfirmed:
+		if r.Error != nil {
+			return fmt.Errorf("cqrshtmx.sync.push.status_union: confirmed outcome must not carry an error (command %q)", r.CommandID)
+		}
+	case SyncPushStatusRejected:
+		if r.Error == nil {
+			return fmt.Errorf("cqrshtmx.sync.push.status_union: rejected outcome must carry an error (command %q)", r.CommandID)
+		}
+	default:
+		return fmt.Errorf("cqrshtmx.sync.push.status_union: unknown status %q (command %q)", r.Status, r.CommandID)
+	}
+
+	return nil
 }
 
 // SyncPushResponse is the batch push response body. The endpoint answers 200
