@@ -1,6 +1,6 @@
 # Round 28 — W01 landed (S37 closed end-to-end), CI-red fixed twice, W02 half done
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-22_w02-closed-w03-landed-one-receipt-missing_status.md`](../2026-10-25_15-22_w02-closed-w03-landed-one-receipt-missing_status.md), which Superseded by the round-29 receipt: W02 closed, W03 landed, all three questions restated. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-22_w02-closed-w03-landed-one-receipt-missing_status.md`](2026-10-25_15-22_w02-closed-w03-landed-one-receipt-missing_status.md), which Superseded by the round-29 receipt: W02 closed, W03 landed, all three questions restated. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 

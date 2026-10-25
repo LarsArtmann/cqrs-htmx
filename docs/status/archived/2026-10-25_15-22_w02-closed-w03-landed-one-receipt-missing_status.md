@@ -1,6 +1,10 @@
 # Round 29: W02 closed + pushed, W03 fully executed (landed via daemon commits, CI green), one usermgmt receipt missing at interrupt
 
-**Created:** 2026-10-25 15:22 CET · **Session:** continuation of the module-code lane (10-42 plan W01–W08, W10–W12, W14–W15 + W17 battery/receipt; sibling per the `824b3dba` addendum owns W09/W13/W16 + verdicts). **Supersedes:** [`2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md`](archived/2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md) (archived same-commit; tail stays 2). **State at writing:** tree clean, origin at `471ab2b2` (sibling's 15:16 receipt on top of my daemon-banked W03 fragments); CI green on `0a527b8e` (my G124 fix, run `40197779843`) and on `3ff9e0de` (run `40198848723`); the tip commit's run may still be in flight at wait time.
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_16-45_ci-inventory-closed-w04-half-executed_status.md`](../2026-10-25_16-45_ci-inventory-closed-w04-half-executed_status.md), which W02/W03 state and the S39 receipt dangling pointer are recorded as closed in the round-30 CI-inventory report. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
+**Created:** 2026-10-25 15:22 CET · **Session:** continuation of the module-code lane (10-42 plan W01–W08, W10–W12, W14–W15 + W17 battery/receipt; sibling per the `824b3dba` addendum owns W09/W13/W16 + verdicts). **Supersedes:** [`2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md`](2026-10-25_13-30_w01-s37-closed-ci-red-fixed-w02-half_status.md) (archived same-commit; tail stays 2). **State at writing:** tree clean, origin at `471ab2b2` (sibling's 15:16 receipt on top of my daemon-banked W03 fragments); CI green on `0a527b8e` (my G124 fix, run `40197779843`) and on `3ff9e0de` (run `40198848723`); the tip commit's run may still be in flight at wait time.
 
 ## a) FULLY DONE (this session, receipts)
 
