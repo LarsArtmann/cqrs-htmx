@@ -370,8 +370,8 @@ github.com/larsartmann/go-sse/sseparse v0.2.1 h1:GHn8SFFZkMJRhLkmusJwtchgSPJV0/b
 github.com/larsartmann/go-sse/sseparse v0.2.1/go.mod h1:1Nql3y1hf9v/IVd4/26AfRilz0/OiDyF7YA2mvwwtHw=
 github.com/larsartmann/go-sse/ssetest v0.5.0 h1:6QQ9rURjqScKfkV8BmpNdoMSW5pxsNVs+ioLOqERS4k=
 github.com/larsartmann/go-sse/ssetest v0.5.0/go.mod h1:mTBSF8nBmmw3Eb7DOKWqgmp0B1unUOFcjt6WGdUJT0o=
-github.com/larsartmann/httputil v1.6.0 h1:btLwwHkCX3a++A5ZJectRVZGYUTURNuW2+eJBp9ZgBs=
-github.com/larsartmann/httputil v1.6.0/go.mod h1:cTwWBcrhMpoi70C2dy/Q7k13rYqI5Kg6xUXJV92H4t8=
+github.com/larsartmann/httputil v1.7.0 h1:UaV/0YH4dDhiCSC/901Ue1UJmfxaeBPTVeowKb31Htc=
+github.com/larsartmann/httputil v1.7.0/go.mod h1:CeA+jp3SzVZk7ve3cFhvO03alZI74V45RP9a5jPkwCw=
 github.com/larsartmann/httputil/server_timing v1.0.3 h1:V1ypfid9TvWznr/qH3p+1uH8034goI3lSwyqIrl6KCY=
 github.com/larsartmann/httputil/server_timing v1.0.3/go.mod h1:cUEEFxKMtKtSXsNDr0dRtWrso+Ch/U/gLN3QeR5Gf0g=
 github.com/larsartmann/samber-do-auditlog v0.11.0 h1:3wA194yEIESUe0CNapIceHLPpJ4u8DHj5XRmWH5qxo8=
