@@ -11,6 +11,12 @@ the Authz engine is domain logic).
 A standalone Go module containing **only types** — the domain model for event-sourced
 identity and access management:
 
+> **When to import this directly:** you normally don't. `usermgmt` re-exports
+> the payloads, commands, and folds, and that is the surface applications consume.
+> Import `identity-model` directly when you are building a sibling adapter
+> (another auth strategy, a projection sink, a codemod) or folding journals
+> without the service.
+
 - **Identifiers**: UserID, TenantID, BotID, ActorID (kind-discriminated)
 - **Value Objects**: Email (validated/normalized), WebAuthnCredential, ExternalAccount
 - **Aggregate States**: UserState, MembershipState, TenantState, BotState
@@ -20,7 +26,7 @@ identity and access management:
 - **Sessions**: Session, SessionOrigin, DirectLogin, Impersonation
 - **Errors**: Domain error sentinels (classified, no HTTP status coupling)
 - **Interfaces**: TOTPProvider, WebAuthnProvider, OAuth2Provider, store contracts
-- **Fold Functions**: Pure event-sourcing state reconstruction (foldUser, foldTenant, etc.)
+- **Fold Functions**: Pure event-sourcing state reconstruction (FoldUser, FoldTenant, etc.)
 - **Crypto**: Token generation, HMAC hashing, constant-time verification
 
 ## Module Path
@@ -72,9 +78,10 @@ model (ADR-0044), not an infrastructure afterthought.
 
 - **Errors without HTTP status**: Domain errors use `errorfamily` classification only.
   HTTP status mapping is the infrastructure layer's concern.
-- **Unexported embedding types**: `credentialCore` and `externalAccountCore` are
-  unexported but their fields are promoted and accessible through the exported types.
+- **Exported embedding cores**: `CredentialCore` and `ExternalAccountCore` are
+  embedded in their exported wrappers; their fields are promoted and accessible
+  through `WebAuthnCredential`/`ExternalAccount`.
   Use `NewCredentialFromPayload` and `NewExternalAccount` for construction.
-- **Event fold functions are pure**: `foldUser`, `foldMembership`, `foldTenant`,
-  `foldBot` are pure functions with no side effects — perfect for testing and
+- **Event fold functions are pure**: `FoldUser`, `FoldMembership`, `FoldTenant`,
+  `FoldBot` are pure functions with no side effects — perfect for testing and
   event-sourcing replay.

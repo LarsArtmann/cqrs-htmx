@@ -4,7 +4,9 @@
 #
 # For every go.mod that requires a module matching <module-pattern>, set the
 # require to <version>, then run hermetic tidy + `go mod verify` + build + vet
-# per module. Digit-safe pattern matching (the `[a-z/-]+` class once silently
+# per module (and, with --lint, hermetic golangci-lint — the leg that catches
+# linter-visible regressions a fresh require can drag in, e.g. a bumped
+# dependency whose API now trips exhaustruct/wrapcheck in the consuming module). Digit-safe pattern matching (the `[a-z/-]+` class once silently
 # skipped usermgmt/oauth2). Matches BOTH the block-require form
 # (`\tgithub.com/x v1.0.0`) AND the single-line form
 # (`require github.com/x v1.0.0`) — the 9b3c2e18 gap that needed a hand-fix
@@ -12,7 +14,7 @@
 #
 # Usage:
 #   scripts/tools/bump-dep.sh <module-substring-or-regex> <version> \
-#       [--dry-run] [--commit] [--no-verify] [--message <tpl>]
+#       [--dry-run] [--commit] [--no-verify] [--lint] [--message <tpl>]
 # Example:
 #   scripts/tools/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0
 #   scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0   # $ = exact module only
@@ -30,6 +32,10 @@
 #                 commit in-process — sweep + verification land as ONE commit
 #                 (beats the auto-commit daemon shredding them apart)
 #   --no-verify   skip the per-module `go mod verify` step (default: on)
+#   --lint        after the sweep, run hermetic golangci-lint in every bumped
+#                 module (own .golangci.yml, GOWORK=off); a lint failure fails
+#                 the sweep naming the module. BUMP_DEP_LINT overrides the
+#                 command (offline fixture self-test)
 #
 # Env:
 #   BUMP_DEP_ROOT  scan root override (fixture self-test). When set, the git
@@ -46,6 +52,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DRY=0
 COMMIT=0
 VERIFY=1
+LINT=0
+LINT_LABEL=""
 MSG_TEMPLATE=""
 positional=()
 while [ "$#" -gt 0 ]; do
@@ -53,6 +61,7 @@ while [ "$#" -gt 0 ]; do
   --dry-run) DRY=1 ;;
   --commit) COMMIT=1 ;;
   --no-verify) VERIFY=0 ;;
+  --lint) LINT=1 ;;
   --message)
     if [ "$#" -lt 2 ]; then
       echo "bump-dep: --message requires a value" >&2
@@ -70,7 +79,7 @@ done
 # the historical one-line subject.
 
 if [ "${#positional[@]}" -lt 2 ]; then
-  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify] [--message <tpl>]" >&2
+  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify] [--lint] [--message <tpl>]" >&2
   echo "  --message <tpl>: commit subject; {pattern} and {version} placeholders" >&2
   exit 2
 fi
@@ -202,6 +211,35 @@ for mod in "${mods[@]}"; do
   fi
 done
 
+# S47 lint leg: hermetic golangci-lint per bumped module, AFTER the go steps —
+# a fresh require can regress lint-visible contracts (exhaustruct shapes,
+# wrapcheck surfaces) while build+vet stay green. BUMP_DEP_LINT overrides the
+# command for the offline fixture self-test; the default is the same
+# `golangci-lint run` the flake lint app uses, resolved from the devShell PATH.
+if [ "$LINT" -eq 1 ]; then
+  LINT_CMD="${BUMP_DEP_LINT:-golangci-lint run}"
+  LINT_LABEL=" + lint green"
+  for mod in "${mods[@]}"; do
+    log="/tmp/bump-dep-lint-$(basename "$mod")-$$-$(date +%s).log"
+    echo "==> lint $mod"
+    (
+      cd "$mod" || exit 1
+      GOEXPERIMENT=jsonv2 GOWORK=off $LINT_CMD
+    ) >"$log" 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "  PASS"
+    elif [ "$rc" -eq 127 ]; then
+      echo "  FAIL (rc=127) — golangci-lint not found on PATH; run inside 'nix develop' or install 2.15.x. Log: $log"
+      fail=1
+    else
+      echo "  FAIL (lint rc=$rc) — log: $log"
+      tail -5 "$log" | sed 's/^/      /'
+      fail=1
+    fi
+  done
+fi
+
 echo ""
 if grep -rE "$MATCH_RE" --include=go.mod . 2>/dev/null | grep -v '/testdata/' | grep -v "$VERSION" | grep -q .; then
   echo "bump-dep: ABSENCE ASSERTION FAILED — stale requires remain:"
@@ -213,7 +251,7 @@ if [ "$fail" -ne 0 ]; then
   echo "bump-dep: FAILED for at least one module (see logs above)"
   exit 1
 fi
-echo "bump-dep: OK — $PATTERN at $VERSION everywhere, all modules tidy+verify+build+vet green"
+echo "bump-dep: OK — $PATTERN at $VERSION everywhere, all modules tidy+verify+build+vet green${LINT_LABEL}"
 if [ -n "$MSG_TEMPLATE" ]; then
   preview="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
   echo "bump-dep: commit subject will be: ${preview//\{version\}/$VERSION}"

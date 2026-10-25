@@ -95,20 +95,25 @@ All 21 are registered both on the usermgmt dispatcher and in
 ## Consuming domain events
 
 There is no callback API — the legacy `EventHandler` was removed. Consumers
-subscribe to the service's event bus directly:
+subscribe to the service's event bus directly (imports:
+`github.com/larsartmann/go-cqrs-lite/event/v4` as `event`,
+`github.com/larsartmann/cqrs-htmx/identity-model/v4` as `identitymodel`):
 
 ```go
 svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{ /* ... */ })
 defer svc.Close()
 
-svc.EventBus().Subscribe(func(evt event.Event) {
-    switch evt.Type() {
-    case identitymodel.EventCredentialUsed:
+_ = svc.EventBus().Subscribe(identitymodel.EventCredentialUsed,
+    func(_ context.Context, evt event.Event) error {
         var p identitymodel.CredentialUsedPayload
         _ = json.Unmarshal(evt.Payload(), &p) // SignCount, UserPresent, UserVerified...
-    case identitymodel.EventUserDeleted:
-        // react to deletion (cleanup, notifications, ...)
-    }
+        return nil
+    })
+
+// or receive every identity event:
+_ = svc.EventBus().SubscribeAll(func(_ context.Context, evt event.Event) error {
+    logger.Info("identity event", "type", evt.Type(), "stream", evt.StreamID())
+    return nil
 })
 ```
 

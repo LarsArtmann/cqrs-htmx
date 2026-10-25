@@ -177,6 +177,56 @@ else
   fail=$((fail + 1))
 fi
 
+# Case 8 (S47): the --lint leg runs per swept module and a lint failure fails
+# the sweep naming the module. Offline: a stub golangci (via BUMP_DEP_LINT)
+# fails with a planted exhaustruct-style finding when the marker file exists.
+# The fixture's go steps fail offline (no .zip in the proxy) — the lint leg
+# runs regardless, which is exactly what this case pins.
+LINT_STUB="$WORK/stub-golangci"
+mkdir -p "$WORK/stub-bin"
+cat >"$LINT_STUB" <<'EOF'
+#!/usr/bin/env bash
+# stub golangci-lint: exhaustruct finding iff the planted marker exists
+if [ -f "./.planted-lint-failure" ]; then
+  echo "main.go:12:2: exhaustruct: Pros struct is missing fields [B] (exhaustivestruct)"
+  exit 1
+fi
+exit 0
+EOF
+chmod +x "$LINT_STUB"
+touch "$WORK/a/.planted-lint-failure"
+out=$(BUMP_DEP_NO_NETWORK=1 BUMP_DEP_LINT="$LINT_STUB" run_bump 'larsartmann/exmod' v9.9.9 --lint)
+rc=$?
+if [ "$rc" -eq 1 ] &&
+  printf '%s' "$out" | grep -q "==> lint ./a" &&
+  printf '%s' "$out" | grep -q "FAIL (lint rc=1)" &&
+  printf '%s' "$out" | grep -q "exhaustruct" &&
+  printf '%s' "$out" | grep -q "FAILED for at least one module"; then
+  echo "  ok 8: --lint leg runs and a planted exhaustruct failure fails the sweep"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 8: --lint failure propagation wrong (rc=$rc); output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+rm -f "$WORK/a/.planted-lint-failure"
+
+# Case 9 (S47): with the marker gone the lint leg passes per module; the OK
+# line names lint green. (The overall run still exits 1 offline — the fixture's
+# tidy cannot resolve v9.9.9 without a .zip — so assert the lint PASS lines and
+# the absence of a lint FAIL, not the final rc.)
+out=$(BUMP_DEP_NO_NETWORK=1 BUMP_DEP_LINT="$LINT_STUB" run_bump 'larsartmann/exmod' v9.9.9 --lint)
+if printf '%s' "$out" | grep -q "==> lint ./a" &&
+  printf '%s' "$out" | grep -q "==> lint ./b" &&
+  ! printf '%s' "$out" | grep -q "FAIL (lint"; then
+  echo "  ok 9: --lint leg PASSes clean modules and reports each one"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 9: --lint pass path wrong; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
 echo ""
 if [ "$fail" -gt 0 ]; then
   echo "test-bump-dep: $fail case(s) FAILED"
