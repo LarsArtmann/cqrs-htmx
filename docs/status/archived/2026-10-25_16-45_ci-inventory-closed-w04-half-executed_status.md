@@ -1,6 +1,6 @@
 # Status — round 30: CI lint inventory closed + receipt written; W04 half-executed (2 of 7 tails landed)
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_18-28_round-31-w04-w05-w06-landed-ci-green_status.md`](../2026-10-25_18-28_round-31-w04-w05-w06-landed-ci-green_status.md), which W04 finished and W05/W06 landed since; all open questions and next lists are carried forward in the round-31 report. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_18-28_round-31-w04-w05-w06-landed-ci-green_status.md`](2026-10-25_18-28_round-31-w04-w05-w06-landed-ci-green_status.md), which W04 finished and W05/W06 landed since; all open questions and next lists are carried forward in the round-31 report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 

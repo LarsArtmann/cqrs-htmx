@@ -1,5 +1,9 @@
 # Round 31 — W04/W05/W06 landed, CI green through d4a65b0f; waiting on owner
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_19-27_round-32-train-lag-fix-w07-schema-stamps-receipts_status.md`](../2026-10-25_19-27_round-32-train-lag-fix-w07-schema-stamps-receipts_status.md), which Round-31 session report superseded by round-32 (W04-W06 receipts live in module CHANGELOGs; the 3 owner questions carried forward verbatim in section g). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Date:** 2026-10-25 18:28 CET · **Session:** round 31 (this file's author)
 **Plan of record:** `docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md`
 **Prior report:** `docs/status/2026-10-25_16-45_ci-inventory-closed-w04-half-executed_status.md` (superseded by this one, archived with it)
