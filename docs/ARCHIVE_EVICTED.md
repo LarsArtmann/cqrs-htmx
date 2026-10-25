@@ -8,15 +8,15 @@
 
 ## What was removed — 617 files
 
-| Directory                       |   Total at execution | Removed   | Kept   |
-| ------------------------------- | -------------------: | --------- | ------ |
-| `docs/status/archived/`         |                  532 | 491       | 41 + `README.md` |
-| `docs/planning/archived/`       |                  120 | 112       | 8      |
-| `docs/feedback/processed/`      |                   10 | 10        | 0      |
-| `docs/reviews/archived/`        |                    2 | 2         | 0      |
-| `docs/modularization/archived/` |                    1 | 1         | 0      |
-| `docs/plans/archived/`          |                    1 | 1         | 0      |
-| **Total**                       |                  666 | **617**   | **49** |
+| Directory                       | Total at execution | Removed | Kept             |
+| ------------------------------- | -----------------: | ------- | ---------------- |
+| `docs/status/archived/`         |                532 | 491     | 41 + `README.md` |
+| `docs/planning/archived/`       |                120 | 112     | 8                |
+| `docs/feedback/processed/`      |                 10 | 10      | 0                |
+| `docs/reviews/archived/`        |                  2 | 2       | 0                |
+| `docs/modularization/archived/` |                  1 | 1       | 0                |
+| `docs/plans/archived/`          |                  1 | 1       | 0                |
+| **Total**                       |                666 | **617** | **49**           |
 
 The prepared numbers (578 remove / 13 keep) measured the tree BEFORE the round-23 status
 archive (37 reports), the S16 planning archive (16 plans), and their citation effects. The

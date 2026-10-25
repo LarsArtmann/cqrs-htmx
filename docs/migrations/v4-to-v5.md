@@ -314,12 +314,12 @@ v5 readers must fold v4 journals unchanged:
 
 ### Compatibility matrix
 
-| Consumer state | Path | Rollback |
-| --- | --- | --- |
-| v4.14+ code, v4 journals | Track A only | `git revert` the codemod commit — no data changes |
-| pre-v4.14 journals | none needed to READ under v5 (Track B); Track A for code | same |
-| custom `WebAuthnProvider` | add the `([]byte, error)` `FinishLogin` return (v4.14+ already; see `docs/guides/provider-implementation.md`) | n/a — already shipped as minor |
-| WS-heavy consumer | per-symbol recipes §1–8 first, then Track A | revert; recipes are additive |
+| Consumer state            | Path                                                                                                          | Rollback                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| v4.14+ code, v4 journals  | Track A only                                                                                                  | `git revert` the codemod commit — no data changes |
+| pre-v4.14 journals        | none needed to READ under v5 (Track B); Track A for code                                                      | same                                              |
+| custom `WebAuthnProvider` | add the `([]byte, error)` `FinishLogin` return (v4.14+ already; see `docs/guides/provider-implementation.md`) | n/a — already shipped as minor                    |
+| WS-heavy consumer         | per-symbol recipes §1–8 first, then Track A                                                                   | revert; recipes are additive                      |
 
 ### Rollback
 

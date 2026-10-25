@@ -116,7 +116,7 @@ order_ok=$(awk '
   END {print (order ~ /G.*P.*T.*R.*S/) ? "OK" : "BAD:" order}
 ' "$LOG")
 report "$([ "$order_ok" = "OK" ] && echo 0 || echo 1)" "WT3 strict leg order guards→push→tag→train→sweep ($order_ok)"
-report "$(grep -q 'bump-dep github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4\$' "$LOG" && echo 0 || echo 1)" "WT3 sweep anchors the exact module path (\$ suffix)"
+report "$(grep -q 'bump-dep github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4\$' "$LOG" && echo 0 || echo 1)" 'WT3 sweep anchors the exact module path ($ suffix)'
 
 # --- WT4: execute, push refuses ---------------------------------------------------
 cat >"$work/git" <<EOF
@@ -130,7 +130,10 @@ EOF
 chmod +x "$work/git"
 run_tool "$MOD" v4.99.0 --execute
 report "$([ "$RC" -eq 1 ] && echo 0 || echo 1)" "WT4 push refusal exits 1 (got $RC)"
-report "$(awk '/---RUN---/{n++} n==4' "$LOG" | grep -q -- '--push' | head -1; [ "$(awk '/---RUN---/{n++} n==4' "$LOG" | grep -c -- 'verify-tag usermgmt/totp v4.99.0 --push')" = "0" ] && echo 0 || echo 1)" "WT4 tag leg NOT attempted after push refusal"
+report "$(
+  awk '/---RUN---/{n++} n==4' "$LOG" | grep -q -- '--push' | head -1
+  [ "$(awk '/---RUN---/{n++} n==4' "$LOG" | grep -c -- 'verify-tag usermgmt/totp v4.99.0 --push')" = "0" ] && echo 0 || echo 1
+)" "WT4 tag leg NOT attempted after push refusal"
 
 # --- WT5: execute, train red stops the sweep ---------------------------------------
 cat >"$work/git" <<'EOF'

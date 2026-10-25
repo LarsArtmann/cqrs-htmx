@@ -82,13 +82,9 @@ echo ""
 declare -A REPO_TAGS_OK
 declare -A REPO_TAGS_LIST
 declare -A FETCH_FAILED
-# Seed-and-unset so empty associative arrays are BOUND under set -u (bash
-# 5.x still treats a declared-but-never-assigned assoc as unbound when
-# expanded — the "line 292: FETCH_FAILED: unbound variable" class).
-for _arr in REPO_TAGS_OK REPO_TAGS_LIST FETCH_FAILED PIN PINS_ALL PIN_WHERE PIN_DISAGREE; do
-  declare -A "$_arr[__seed__]=1"
-  unset "$_arr[__seed__]"
-done
+fetch_failures=0 # scalar twin of FETCH_FAILED: ${#FETCH_FAILED[@]} on a
+# declared-but-never-assigned assoc errors under set -u (bash 5.3 — the
+# "line 292: FETCH_FAILED: unbound variable" class); a scalar count cannot.
 CACHE_MAX_AGE=-1
 
 fetch_repo_tags() { # <repo> — populate REPO_TAGS_* ; never exits on failure
@@ -118,6 +114,7 @@ fetch_repo_tags() { # <repo> — populate REPO_TAGS_* ; never exits on failure
     REPO_TAGS_OK[$repo]=false
     REPO_TAGS_LIST[$repo]=""
     FETCH_FAILED[$repo]=1
+    fetch_failures=$((fetch_failures + 1))
     return 0
   fi
 
@@ -194,8 +191,6 @@ lag_count_for() {
 # pin[repo/prefix]="vX.Y.Z" (the workspace MAX pin) · pins[repo/prefix]="all pins"
 declare -A PIN
 declare -A PINS_ALL
-declare -A PIN_WHERE
-declare -A PIN_DISAGREE
 
 structural=0
 warnings=0
@@ -251,12 +246,10 @@ for modfile in $(find "$REPO_ROOT" -name go.mod -not -path '*/vendor/*' -not -pa
       PINS_ALL[$key]="${PINS_ALL[$key]} $version"
       if [[ "$(printf '%s\n%s\n' "${PIN[$key]}" "$version" | sort -V | tail -1)" == "$version" && $version != "${PIN[$key]}" ]]; then
         PIN[$key]="$version"
-        PIN_WHERE[$key]="$moddir"
       fi
     else
       PIN[$key]="$version"
       PINS_ALL[$key]="$version"
-      PIN_WHERE[$key]="$moddir"
     fi
   done < <(grep 'github.com/larsartmann/' "$modfile" || true)
 done
@@ -273,6 +266,7 @@ for repo in $repos; do
       # master. Locally they stay exit-4 loud.
       echo "  WARN: cannot list tags of $repo (ls-remote failed; CI advisory)"
       unset 'FETCH_FAILED[$repo]'
+      fetch_failures=$((fetch_failures - 1))
       continue
     fi
     echo "repo $repo: CANNOT VERIFY — tag fetch failed (cache ${CACHE_DIR}/$repo.tags absent or stale)" >&2
@@ -309,15 +303,15 @@ for repo in $repos; do
       worst_lag=$lag
       worst_row="$repo/$prefix ($pin → $latest)"
     fi
-  done < <(for k in "${!PIN[@]}"; do [[ "${k%%/*}" == "$repo" ]] && echo "$k"; done | sort)
+  done < <(for k in "${!PIN[@]}"; do [[ ${k%%/*} == "$repo" ]] && echo "$k"; done | sort)
   echo ""
 done
 
 echo "Totals: $(echo "$repos" | grep -c .) repos · $rows upstream prefixes · worst lag $worst_lag${worst_row:+ ($worst_row)} · $warnings disagreement warning(s)"
 [ "$CACHE_MAX_AGE" -ge 0 ] && echo "  (tag cache age ${CACHE_MAX_AGE}s, TTL ${CACHE_TTL}s — shared with check-release-train)"
 
-if [ "${#FETCH_FAILED[@]}" -gt 0 ]; then
-  echo "✗ upstream treadmill: cannot verify ${#FETCH_FAILED[@]} repo(s): ${!FETCH_FAILED[*]}" >&2
+if [ "$fetch_failures" -gt 0 ]; then
+  echo "✗ upstream treadmill: cannot verify $fetch_failures repo(s): ${!FETCH_FAILED[*]}" >&2
   exit 4
 fi
 

@@ -4,12 +4,12 @@ Read-only analysis, no code (feeds ROADMAP OQ28 / the owner's keep-vs-consolidat
 
 ## The four shapes
 
-| Struct | Module | Visibility | Fields | Delta vs `CredentialCore` |
-| --- | --- | --- | ---: | --- |
-| `CredentialCore` (embedded in `WebAuthnCredential`) | identity-model | **exported, published** | 11 | — the canonical set (`ID`, `PublicKey`, `AttestationType`, `Transports`, `AAGUID`, `SignCount`, `UserPresent`, `UserVerified`, `BackupEligible`, `BackupState`, `Name`); the wrapper adds `CreatedAt` |
-| `CredentialView` | systemadapter | exported, published | 11 | **field-for-field identical** (same names, same JSON tags) |
-| `credentialData` | usermgmt/webauthn | private | 10 | minus `Name` |
-| `webAuthnUserCred` | usermgmt | private | 10 | minus `Name` (twin of `credentialData`) |
+| Struct                                              | Module            | Visibility              | Fields | Delta vs `CredentialCore`                                                                                                                                                                             |
+| --------------------------------------------------- | ----------------- | ----------------------- | -----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CredentialCore` (embedded in `WebAuthnCredential`) | identity-model    | **exported, published** |     11 | — the canonical set (`ID`, `PublicKey`, `AttestationType`, `Transports`, `AAGUID`, `SignCount`, `UserPresent`, `UserVerified`, `BackupEligible`, `BackupState`, `Name`); the wrapper adds `CreatedAt` |
+| `CredentialView`                                    | systemadapter     | exported, published     |     11 | **field-for-field identical** (same names, same JSON tags)                                                                                                                                            |
+| `credentialData`                                    | usermgmt/webauthn | private                 |     10 | minus `Name`                                                                                                                                                                                          |
+| `webAuthnUserCred`                                  | usermgmt          | private                 |     10 | minus `Name` (twin of `credentialData`)                                                                                                                                                               |
 
 A fifth partial shape exists by design: `CredentialUsedPayload` (the S32 event) carries
 `CredentialID` + `SignCount` + `UP/UV/BackupState` — an assertion fact, not a credential

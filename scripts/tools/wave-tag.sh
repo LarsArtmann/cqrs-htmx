@@ -147,10 +147,10 @@ fi
 # leg 5 — carriers: changed go.mods belonging to PUBLISHED modules need re-tags
 detect_carriers() { # echoes "<dir> <latest-tag-version>" per carrier
   local base
-  base="$(${GIT_CMD[@]} rev-parse HEAD~1 2>/dev/null)"
+  base="$("${GIT_CMD[@]}" rev-parse HEAD~1 2>/dev/null)"
   [ -n "$base" ] || return 0
   local changed t dir prefix latest
-  changed="$(${GIT_CMD[@]} diff --name-only "$base" HEAD 2>/dev/null | grep 'go\.mod$' || true)"
+  changed="$("${GIT_CMD[@]}" diff --name-only "$base" HEAD 2>/dev/null | grep 'go\.mod$' || true)"
   [ -n "$changed" ] || return 0
   while IFS= read -r t; do
     [ -n "$t" ] || continue
@@ -160,7 +160,7 @@ detect_carriers() { # echoes "<dir> <latest-tag-version>" per carrier
     [ -n "$prefix" ] && prefix="$prefix/"
     # the tags cache lives in TRAIN_TAG_CACHE_DIR (shared with the train gate)
     latest="$({ grep -E "^${prefix}v[0-9]+\.[0-9]+\.[0-9]+$" "${TRAIN_TAG_CACHE_DIR:-/tmp/cqrs-htmx-tag-cache}/cqrs-htmx.tags" 2>/dev/null || true; } | sort -V | tail -1)"
-    [ -n "$latest" ] || continue # unpublished dirs are not carriers
+    [ -n "$latest" ] || continue        # unpublished dirs are not carriers
     [ "$dir" = "$MOD_DIR" ] && continue # the module we just tagged
     echo "$dir ${latest#"$prefix"}"
   done <<<"$changed"
