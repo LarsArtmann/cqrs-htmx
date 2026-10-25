@@ -1,6 +1,6 @@
 # Status Report 2026-10-17 08:55 — README Rewrite & Self-Review
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md`](../2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md), which harvested every §f item of this report into routed TODO/ROADMAP rows (M01) and shipped the quick-start gate it recommended (M02). Strike depth:
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md`](2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md), which harvested every §f item of this report into routed TODO/ROADMAP rows (M01) and shipped the quick-start gate it recommended (M02). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
 

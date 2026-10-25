@@ -1,6 +1,6 @@
 # Status: Wave Completion — 13/14 Tags Cut, adminui Deferral Proven, Battery 73/73, Upstream Mid-Session Alignment (2026-10-13 15:49 → 19:30)
 
-> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md`](../2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md) (same series, later in the
+> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md`](2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md) (same series, later in the
 > session). The successor re-covers every section with the outcome, so nothing here is a
 > unique open item. Strike depth: supersession verdict (round-18 precedent for
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**

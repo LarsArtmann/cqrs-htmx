@@ -1,6 +1,6 @@
 # Tag Wave Staged, Sync E2E Green, Two v1.5.0 Sync Defects Fixed — Session Status
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md`](../2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md) (same series, later in the
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md`](2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md) (same series, later in the
 > session). The successor re-covers every section with the outcome, so nothing here is a
 > unique open item. Strike depth: supersession verdict (round-18 precedent for
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**

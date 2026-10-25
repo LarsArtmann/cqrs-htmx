@@ -1,6 +1,6 @@
 # Status: Wave-Tail Follow-Up — Tooling Landed, go-appkit Lane Executed, adminui Unblock Sightedin (2026-10-13 19:30 → 21:10)
 
-> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md`](../2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md) (same series, later in the
+> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md`](2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md) (same series, later in the
 > session). The successor re-covers every section with the outcome, so nothing here is a
 > unique open item. Strike depth: supersession verdict (round-18 precedent for
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**

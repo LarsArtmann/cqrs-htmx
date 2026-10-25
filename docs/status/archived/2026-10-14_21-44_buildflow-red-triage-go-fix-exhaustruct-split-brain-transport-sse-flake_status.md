@@ -1,6 +1,6 @@
 # Status: BuildFlow Red Triage — Transient go-fix Reads Unmasked a Real Tool Split-Brain (go fix vs exhaustruct), the SSE Fan-Out Test Flake Root-Caused and Made Deterministic, Skips Vindicated (2026-10-14 ~21:00 → 21:45)
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-15_00-07_buildflow-red-release-train-fixes_status.md`](../2026-10-15_00-07_buildflow-red-release-train-fixes_status.md), which is the next BuildFlow-red session and carries this report's remaining items as its own prior §f rows (exhaustruct_v5 alignment, gate re-verify). Strike depth:
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-15_00-07_buildflow-red-release-train-fixes_status.md`](2026-10-15_00-07_buildflow-red-release-train-fixes_status.md), which is the next BuildFlow-red session and carries this report's remaining items as its own prior §f rows (exhaustruct_v5 alignment, gate re-verify). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
 

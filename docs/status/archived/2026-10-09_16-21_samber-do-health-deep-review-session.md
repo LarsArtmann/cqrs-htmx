@@ -1,6 +1,6 @@
 # Status: samber/do v2 × Health Checks Deep Review Session
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md`](../2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md), which is the same samber/do x health series' full-session self-review, covering the SUPERB execution this review seeded. Strike depth:
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md`](2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md), which is the same samber/do x health series' full-session self-review, covering the SUPERB execution this review seeded. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-24 (round-23 (2026-10-24)).**
 

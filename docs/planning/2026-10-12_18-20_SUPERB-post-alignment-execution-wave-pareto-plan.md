@@ -4,7 +4,7 @@
 > execution-ready. **Created:** 2026-10-12 18:20.
 > **Supersedes for execution:** [`2026-10-12_17-33_SUPERB-catalog-v4-integration-pareto-plan.md`](2026-10-12_17-33_SUPERB-catalog-v4-integration-pareto-plan.md)
 > (its T3 tier was consumed by the 10-sweep family alignment, push `58a6a7ce..291b2c51`).
-> **Inputs:** that plan · [`docs/status/2026-10-12_18-11_catalog-v4-plan-family-alignment-push_status.md`](../status/2026-10-12_18-11_catalog-v4-plan-family-alignment-push_status.md)
+> **Inputs:** that plan · [`docs/status/2026-10-12_18-11_catalog-v4-plan-family-alignment-push_status.md`](../status/archived/2026-10-12_18-11_catalog-v4-plan-family-alignment-push_status.md)
 > (sections a–f) · the three owner questions below.
 >
 > **ANNOTATED 2026-10-12 (evening, same day):** A1 done `46ed1cec`; A2 done `46ed1cec` (stale-row strike + TODO stamp + `$`-anchor note); A5 done this session — CI watch found the `291b2c51` push had red'ed master on 2 jobs (templ codegen drift in dashboardui + exhaustruct StateShape in usermgmt, ~4h undetected), both repaired forward at `0d473d99`, and the go-cqrs-lite treadmill verified CURRENT (12 pins, no fresh tags — tail did not grow); A3 done `1bc4ce48` (verdict slot open → Q1); A4 done as preflight only (receipts `ff36c975`/`a4f28aae`/`3e2bf224` verified, `verify-tag --dry-run` ALL GUARDS PASSED — the cut itself still awaits Q2); A6 resolved as stale-gap (pre-existing `TestHTTPHandlers_ServeSpecs`, `main_test.go:50`, since `25cfd08b`; ROADMAP gap struck `1bc4ce48`). Pile pushed `563b8dc8..98c3fd6e` through strict pre-push (866 requires 0/0/0). A7 in flight; A8/A9/A10 + the root cut remain owner-gated (Q1/Q2/Q3).

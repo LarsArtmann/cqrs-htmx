@@ -1,6 +1,6 @@
 # Status — art-dupl dedup round: 8 clone groups → zero harmful duplication
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md`](../2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md) (same series, later in the
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md`](2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md) (same series, later in the
 > session). The successor re-covers every section with the outcome, so nothing here is a
 > unique open item. Strike depth: supersession verdict (round-18 precedent for
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**

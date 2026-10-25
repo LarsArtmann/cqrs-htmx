@@ -1,6 +1,6 @@
 # Status Report 2026-10-17 09:34 — Pareto Plan, Push Saga, Inherited systemadapter Red
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md`](../2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md) (same series, later in the
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md`](2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md) (same series, later in the
 > session). The successor re-covers every section with the outcome, so nothing here is a
 > unique open item. Strike depth: supersession verdict (round-18 precedent for
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**

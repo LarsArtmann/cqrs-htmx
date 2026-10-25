@@ -1,6 +1,6 @@
 # Status — SUPERB round executed (20/20 tasks), preflight refuses the foreign wave
 
-> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-09_15-38_brutal-self-review-superb-round-20-tasks_status.md`](../2026-10-09_15-38_brutal-self-review-superb-round-20-tasks_status.md) (same series, later in the
+> **ANNOTATED 2026-10-24 — SUPERSEDED** by [`2026-10-09_15-38_brutal-self-review-superb-round-20-tasks_status.md`](2026-10-09_15-38_brutal-self-review-superb-round-20-tasks_status.md) (same series, later in the
 > session). The successor re-covers every section with the outcome, so nothing here is a
 > unique open item. Strike depth: supersession verdict (round-18 precedent for
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**

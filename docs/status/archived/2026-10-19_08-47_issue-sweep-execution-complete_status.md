@@ -1,6 +1,6 @@
 # Status — open-issue sweep EXECUTION COMPLETE (all closes posted, master green)
 
-> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-19_12-18_issue-sweep-self-review-and-next-50_status.md`](../2026-10-19_12-18_issue-sweep-self-review-and-next-50_status.md) (same series, later in the
+> **ANNOTATED 2026-10-24** — ~~this report~~ **SUPERSEDED** by [`2026-10-19_12-18_issue-sweep-self-review-and-next-50_status.md`](2026-10-19_12-18_issue-sweep-self-review-and-next-50_status.md) (same series, later in the
 > session). The successor re-covers every section with the outcome, so nothing here is a
 > unique open item. Strike depth: supersession verdict (round-18 precedent for
 > series-internal reports). **ARCHIVED 2026-10-24 (round 22).**

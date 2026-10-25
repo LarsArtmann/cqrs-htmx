@@ -9,7 +9,7 @@
 
 **Created:** 2026-10-23 17:16 CEST
 **Status:** SUPERSEDED for execution; evidence and rationale still current. Nothing in this document has been executed except the five milestones recorded in the master plan.
-**Predecessor:** [`docs/status/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md`](../status/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md)
+**Predecessor:** [`docs/status/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md`](../status/archived/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md)
 **Trigger:** "the project is getting too big and the agents can't concentrate on what's important anymore."
 **Rejected alternative:** extracting `identity-model/`, `usermgmt/`, `dashboardui/`, `adminui/` into separate repos. See §2.1 for why.
 
