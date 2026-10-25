@@ -64,6 +64,7 @@ func (s *oauth2StateStore) Save(state, provider, pkceVerifier string, ttl time.D
 	s.states[state] = oauth2StateEntry{
 		provider:     provider,
 		pkceVerifier: pkceVerifier,
+		nonce:        "",
 		expiresAt:    time.Now().Add(ttl),
 	}
 	s.mu.Unlock()

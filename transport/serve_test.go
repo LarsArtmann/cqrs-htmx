@@ -1112,6 +1112,7 @@ func TestServeDomainEvents_ReplayLiveSeamNoDuplicate(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		h.ServeHTTP(rec, req)
 		close(done)

@@ -110,8 +110,13 @@ func NewOAuth2Service(
 // oauth2 provider. Providers that implement it get nonce-bound ID tokens;
 // others fall back to the PKCE-only baseline.
 type nonceBeginner interface {
-	BeginLoginWithNonce(ctx context.Context, providerName, state string) (redirectURL, pkceVerifier, nonce string, err error)
-	FinishLoginWithNonce(ctx context.Context, providerName, code, pkceVerifier, nonce string) (userInfoJSON []byte, err error)
+	BeginLoginWithNonce(ctx context.Context, providerName, state string) (
+		redirectURL, pkceVerifier, nonce string, err error,
+	)
+
+	FinishLoginWithNonce(
+		ctx context.Context, providerName, code, pkceVerifier, nonce string,
+	) (userInfoJSON []byte, err error)
 }
 
 // BeginLogin starts the OAuth2 login flow for the given provider.

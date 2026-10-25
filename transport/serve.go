@@ -464,50 +464,79 @@ func ServeDomainEvents(
 
 		_ = stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"})
 
-	// replayed holds the IDs the backfill writes; the live pump skips them
-	// (subscribe ran BEFORE replay, so the overlap window double-delivers).
-	replayed := make(map[string]struct{})
-	replayEvents(stream, store, filter, cfg.maxReplay, cfg.logPrefix, replayed)
+		// replayed holds the IDs the backfill writes; the live pump skips them
+		// (subscribe ran BEFORE replay, so the overlap window double-delivers).
+		replayed := make(map[string]struct{})
+		replayEvents(stream, store, filter, cfg.maxReplay, cfg.logPrefix, replayed)
 
-		// Heartbeat runs alongside the event loop. Derive a cancellable
-		// context and join the goroutine before this handler returns: a
-		// heartbeat write racing handler teardown is a data race, and
-		// net/http forbids touching the ResponseWriter after return.
-		hbCtx, hbCancel := context.WithCancel(r.Context())
-		hbDone := make(chan struct{})
+		joinHeartbeat := startHeartbeat(stream, r.Context(), heartbeat)
+		defer joinHeartbeat()
 
-		if heartbeat > 0 {
-			go func() {
-				defer close(hbDone)
+		pumpLiveEvents(stream, ch, replayed)
+	}
+}
 
-				stream.Heartbeat(hbCtx, heartbeat)
-			}()
-		} else {
-			close(hbDone)
-		}
+// startHeartbeat launches the stream heartbeat (when enabled) and returns a
+// join function that stops it and waits for the goroutine to exit. Joining
+// before the handler returns matters twice over: a heartbeat write racing
+// handler teardown is a data race, and net/http forbids touching the
+// ResponseWriter after return.
+func startHeartbeat(stream *sse.Stream, parent context.Context, heartbeat time.Duration) (join func()) {
+	hbCtx, hbCancel := context.WithCancel(parent)
+	hbDone := make(chan struct{})
 
-		defer func() {
-			hbCancel()
-			<-hbDone
+	if heartbeat > 0 {
+		go func() {
+			defer close(hbDone)
+
+			stream.Heartbeat(hbCtx, heartbeat)
 		}()
+	} else {
+		close(hbDone)
+	}
 
-		for {
-			select {
-			case <-stream.Context().Done():
+	return func() {
+		hbCancel()
+
+		<-hbDone
+	}
+}
+
+// pumpLiveEvents forwards live events to the stream until it closes, skipping
+// IDs the replay pass already wrote — subscribe ran BEFORE replay, so events
+// published during the replay window sit in both delivery paths.
+func pumpLiveEvents(stream *sse.Stream, ch <-chan sse.Event, replayed map[string]struct{}) {
+	for {
+		select {
+		case <-stream.Context().Done():
+			return
+
+		case evt, ok := <-ch:
+			if !ok {
 				return
-			case evt, ok := <-ch:
-				if !ok {
-					return
-				}
-				if id := evt.ID.Get(); id != "" {
-					if _, dup := replayed[id]; dup {
-						continue // already written by the replay pass
-					}
-				}
-				if stream.Send(evt) != nil {
-					return
-				}
+			}
+
+			if isReplayDuplicate(evt, replayed) {
+				continue // already written by the replay pass
+			}
+
+			if stream.Send(evt) != nil {
+				return
 			}
 		}
 	}
+}
+
+// isReplayDuplicate reports whether the event's ID was already written by
+// the replay pass. Events without an ID never deduplicate.
+func isReplayDuplicate(evt sse.Event, replayed map[string]struct{}) bool {
+	id := evt.ID.Get()
+
+	if id == "" {
+		return false
+	}
+
+	_, dup := replayed[id]
+
+	return dup
 }
