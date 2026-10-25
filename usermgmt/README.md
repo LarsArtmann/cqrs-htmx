@@ -70,6 +70,28 @@ auth posture themselves — no external middleware required:
 Full route table: the `RegisterRoutes` godoc and the root README. Decision
 record: `docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
 
+## Published language (25 events / 21 commands)
+
+The identity domain's events (`identity-model` constants; `DefaultEventCatalog()`
+serves every schema — see `docs/guides/event-catalog-guide.md`):
+
+| Aggregate | Events |
+| --- | --- |
+| User | `UserRegistered`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted`, `EmailVerified`, `TOTPEnabled`, `TOTPDisabled`, `ExternalAccountLinked`, `ExternalAccountUnlinked` |
+| User credential | `CredentialAdded`, `CredentialRemoved`, **`CredentialUsed`** (assertion state after each login: signature counter + UP/UV/backup flags — the clone-detection high-water mark, identity-model v4.14.0+) |
+| Auth audit | `LoginSucceeded`, `LoginFailed`, `RegistrationClosed` (own Auth-typed streams, best-effort append) |
+| Membership | `MemberAdded`, `MemberRolesChanged`, `MemberRemoved` |
+| Tenant | `TenantCreated`, `TenantSuspended`, `TenantReactivated`, `TenantDeleted` |
+| Bot | `BotRegistered`, `BotDeleted` |
+
+Commands (21): `RegisterUser`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`,
+`AddCredential`, `RemoveCredential`, `RecordCredentialUse`, `VerifyEmail`,
+`EnableTOTP`, `DisableTOTP`, `LinkExternalAccount`, `UnlinkExternalAccount`,
+`AddMember`, `UpdateMemberRoles`, `RemoveMember`, `CreateTenant`,
+`SuspendTenant`, `ReactivateTenant`, `DeleteTenant`, `RegisterBot`, `DeleteBot`.
+All 21 are registered both on the usermgmt dispatcher and in
+`systemadapter.DomainConfig()` for `system.New()` consumers.
+
 ## Development
 
 ```bash
