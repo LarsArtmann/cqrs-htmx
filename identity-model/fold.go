@@ -151,43 +151,17 @@ func FoldUser(
 		next.Credentials = append(next.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
 
 	case EventCredentialRemoved:
-		p, err := UnmarshalPayload[CredentialRemovedPayload](evt)
+		var err error
+		next, err = applyCredentialRemoved(next, evt)
 		if err != nil {
 			return state, err
 		}
-		filtered := make([]WebAuthnCredential, 0, len(next.Credentials))
-		for _, c := range next.Credentials {
-			if !bytes.Equal(c.ID, p.ID) {
-				filtered = append(filtered, c)
-			}
-		}
-		next.Credentials = filtered
 
 	case EventCredentialUsed:
-		p, err := UnmarshalPayload[CredentialUsedPayload](evt)
+		var err error
+		next, err = applyCredentialUsed(next, evt)
 		if err != nil {
 			return state, err
-		}
-		found := false
-		for i := range next.Credentials {
-			if !bytes.Equal(next.Credentials[i].ID, p.CredentialID) {
-				continue
-			}
-			next.Credentials[i] = next.Credentials[i].ApplyUse(CredentialUse{
-				CredentialID: p.CredentialID,
-				SignCount:    p.SignCount,
-				UserPresent:  p.UserPresent,
-				UserVerified: p.UserVerified,
-				BackupState:  p.BackupState,
-			})
-			found = true
-			break
-		}
-		if !found {
-			return state, errorfamily.NewCorruption(
-				"identity.credential_used.unknown_credential",
-				"CredentialUsed event for a credential the stream never added",
-			)
 		}
 
 	case EventEmailVerified:
@@ -397,4 +371,60 @@ func ActorKindFromString(s string) (ActorKind, error) {
 			"unknown actor kind: "+s,
 		)
 	}
+}
+
+// applyCredentialUsed applies a CredentialUsed event to the credential it
+// names. It copies the credential slice before writing: FoldUser's `next :=
+// state` is a shallow copy, so mutating an element in place would write
+// through to the caller's state and make folding impure.
+func applyCredentialUsed(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[CredentialUsedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	use := CredentialUse{
+		CredentialID: p.CredentialID,
+		SignCount:    p.SignCount,
+		UserPresent:  p.UserPresent,
+		UserVerified: p.UserVerified,
+		BackupState:  p.BackupState,
+	}
+
+	credentials := make([]WebAuthnCredential, len(state.Credentials))
+	copy(credentials, state.Credentials)
+
+	for i := range credentials {
+		if bytes.Equal(credentials[i].ID, p.CredentialID) {
+			credentials[i] = credentials[i].ApplyUse(use)
+			state.Credentials = credentials
+			return state, nil
+		}
+	}
+
+	return state, errorfamily.NewCorruption(
+		"identity.credential_used.unknown_credential",
+		"CredentialUsed event for a credential the stream never added",
+	)
+}
+
+// applyCredentialRemoved drops the credential the event names, allocating a new
+// slice so folding never writes through to the caller's state.
+func applyCredentialRemoved(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[CredentialRemovedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	filtered := make([]WebAuthnCredential, 0, len(state.Credentials))
+
+	for _, c := range state.Credentials {
+		if !bytes.Equal(c.ID, p.ID) {
+			filtered = append(filtered, c)
+		}
+	}
+
+	state.Credentials = filtered
+
+	return state, nil
 }
