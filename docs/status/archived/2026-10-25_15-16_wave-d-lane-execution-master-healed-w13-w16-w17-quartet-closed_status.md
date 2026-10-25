@@ -1,6 +1,6 @@
 # Wave D lane execution: master healed, W13/W16/W17-verdicts/quartet closed, sync tails mid-flight
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md`](../2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md), which Lane closure receipt: sync tails shipped, battery run, push held — supersedes the interim execution receipt. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md`](2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md), which Lane closure receipt: sync tails shipped, battery run, push held — supersedes the interim execution receipt. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 

@@ -33,7 +33,7 @@ usermgmt/CHANGELOG S39 receipt, then the lint fixes above (their §b2 gap).
 ## Resolved since the last update
 
 **The docs lane of Wave D is closed** (receipt:
-[`docs/status/2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md`](docs/status/2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md)):
+[`docs/status/2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md`](docs/status/archived/2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md)):
 W09 master-healing, W13 owner packet (S55+S56, on origin), W16 fixed-upstream
 verdict, W17 verdicts ×8, docs-truth quartet, sync tails s.1–s.4 (cursor
 monotonicity guard + v1→v2 upgrade pins + guide spec/budget/CSP sections).

@@ -1,6 +1,10 @@
 # Wave D lane closure: sync tails shipped as assets v1.6.0, battery run green-except-sibling-lint, push held
 
-**Created:** 2026-10-25 15:57 CET · **Session:** continuation of the docs lane (10-42 plan + 10-43 addendum). **Supersedes:** [`2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md`](archived/2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md) (archived same-commit; tail stays 2). **State at writing:** master CI green at origin tip `3ff9e0de` (run `40198848723`); 14 commits ahead (4 authored here: `47cf2308`, `dfc26bde`, `471ab2b2`, `5e0fb368`; the rest daemon-banked sibling W03 fragments + their 15-22 ritual); load avg 17–26 (down from 111–211).
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_16-02_docs-lane-done-master-red-on-sibling-lint-self-review_status.md`](../2026-10-25_16-02_docs-lane-done-master-red-on-sibling-lint-self-review_status.md), which Owner-demanded full status + self-review: same arc plus the sibling push/CI-red turn of events; supersedes the closure receipt. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
+**Created:** 2026-10-25 15:57 CET · **Session:** continuation of the docs lane (10-42 plan + 10-43 addendum). **Supersedes:** [`2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md`](2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md) (archived same-commit; tail stays 2). **State at writing:** master CI green at origin tip `3ff9e0de` (run `40198848723`); 14 commits ahead (4 authored here: `47cf2308`, `dfc26bde`, `471ab2b2`, `5e0fb368`; the rest daemon-banked sibling W03 fragments + their 15-22 ritual); load avg 17–26 (down from 111–211).
 
 ## a) FULLY DONE (this session, receipts)
 
