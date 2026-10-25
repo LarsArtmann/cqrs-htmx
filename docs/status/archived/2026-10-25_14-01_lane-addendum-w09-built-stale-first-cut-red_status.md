@@ -1,6 +1,6 @@
 # Status 2026-10-25 14:01 — lane addendum landed, W09 built, stale-first-cut red
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md`](../2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md), which W09 healed + W13/W16/W17-verdicts/quartet closed; 14-01 questions answered or carried to the successor section g. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md`](2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md), which W09 healed + W13/W16/W17-verdicts/quartet closed; 14-01 questions answered or carried to the successor section g. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 
