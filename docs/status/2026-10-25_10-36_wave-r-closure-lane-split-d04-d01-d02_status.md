@@ -1,7 +1,7 @@
 # Status: Wave R closed, D04/D01/D02 executed, lane split with the sibling session
 
 **Written:** 2026-10-25 10:36 CET · **Supersedes:**
-[`2026-10-25_10-15_green-tree-receipt_status.md`](2026-10-25_10-15_green-tree-receipt_status.md)
+[`2026-10-25_10-15_green-tree-receipt_status.md`](archived/2026-10-25_10-15_green-tree-receipt_status.md)
 (Wave R + D04 receipts there are carried; this report covers the D01/D02 execution
 and the lane division).
 **Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md) (its §8 execution receipt is current through D01).

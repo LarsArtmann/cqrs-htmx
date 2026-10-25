@@ -1,6 +1,6 @@
 # Status: Wave R executed — red-master rescue, S32 proof (found a real bug), D04 in flight
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_10-15_green-tree-receipt_status.md`](../2026-10-25_10-15_green-tree-receipt_status.md), which Wave R closed and CI green on pushed HEAD; g1 answered by D04 execution; g2/g3 carried to the successor. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_10-15_green-tree-receipt_status.md`](2026-10-25_10-15_green-tree-receipt_status.md), which Wave R closed and CI green on pushed HEAD; g1 answered by D04 execution; g2/g3 carried to the successor. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 
