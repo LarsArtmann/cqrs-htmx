@@ -5,19 +5,57 @@
 # else under a `archived/` or `processed/` directory.
 #
 # Re-derive this list (do NOT hand-add) with the walk documented in
-# `docs/status/ARCHIVE_EVICTED.md` § How the list was derived.
+# `docs/ARCHIVE_EVICTED.md` § How the list was derived.
 #
 # --- direct living-doc citations ---
 docs/planning/archived/2026-06-21_07-31_identity-model-redesign-pareto.md
 docs/planning/archived/2026-06-21_08-23_membership-wiring-execution.md
 docs/planning/archived/2026-06-28_09-38_offline-first-command-sync.md
-docs/planning/archived/2026-08-30_appkit-foldin-revalidation.md
-docs/planning/archived/2026-08-30_upstream-issue-drafts.md
+docs/planning/archived/2026-10-08_20-00_SUPERB-train-trust-and-cadence-pareto-plan.md
+docs/planning/archived/2026-10-09_16-52_SUPERB-samber-do-health-truth-and-composability-pareto-plan.md
+docs/planning/archived/2026-10-12_17-33_SUPERB-catalog-v4-integration-pareto-plan.md
+docs/planning/archived/2026-10-12_18-20_SUPERB-post-alignment-execution-wave-pareto-plan.md
+docs/planning/archived/2026-10-23_17-16_SUPERB-docs-corpus-eviction-and-agent-attention-pareto-plan.md
 docs/status/archived/2026-06-21_07-58_identity-redesign-brutal-self-review.md
 docs/status/archived/2026-10-05_14-59_branching-flow-full-analysis.md
 docs/status/archived/2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md
-docs/status/archived/2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md
-# --- transitive citations (kept archive files link to these) ---
 docs/status/archived/2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md
-docs/status/archived/2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md
 docs/status/archived/2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md
+docs/status/archived/2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md
+docs/status/archived/2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md
+docs/status/archived/2026-10-07_00-15_SUPERB-m06-f22-closure-m16-assets-commit-collisions.md
+docs/status/archived/2026-10-07_01-08_SUPERB-m17-m19-versionz-audit-actor-config-validate-daemon-incident.md
+docs/status/archived/2026-10-07_02-57_SUPERB-m20-m27-session-m20-m26-done-battery-80pct-foreign-interference.md
+docs/status/archived/2026-10-07_03-45_SUPERB-m27-battery-reds-triaged-sweeps-partial.md
+docs/status/archived/2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md
+docs/status/archived/2026-10-07_06-02_push-unblock-release-train-completion.md
+docs/status/archived/2026-10-07_07-21_ci-repair-round-status.md
+docs/status/archived/2026-10-08_19-55_push-unblock-train-alignment-ci-green_status.md
+docs/status/archived/2026-10-09_05-17_frontend-sync-protocol-completion-and-self-review.md
+docs/status/archived/2026-10-09_15-38_brutal-self-review-superb-round-20-tasks_status.md
+docs/status/archived/2026-10-09_16-21_samber-do-health-deep-review-session.md
+docs/status/archived/2026-10-09_17-19_SUPERB-execution-phase1-status.md
+docs/status/archived/2026-10-09_18-10_SUPERB-samber-do-health-execution-phases-2-5_status.md
+docs/status/archived/2026-10-09_19-44_SUPERB-samber-do-health-session-brutal-self-review_status.md
+docs/status/archived/2026-10-11_06-39_postwave-alignment-push-ci-fix-toolchain-battery_status.md
+docs/status/archived/2026-10-11_18-40_wave-blocker-disproven-sibling-held-p15-repro_status.md
+docs/status/archived/2026-10-12_05-23_train-lag-unblock-atomic-wave-ci-repair.md
+docs/status/archived/2026-10-12_18-11_catalog-v4-plan-family-alignment-push_status.md
+docs/status/archived/2026-10-12_20-01_18-20-plan-execution-wave-master-red-repair_status.md
+docs/status/archived/2026-10-13_14-41_wave-execution-owner-verdicts-templ-alignment-phantom-receipts_status.md
+docs/status/archived/2026-10-13_22-33_wave-closure-adminui-unblock-go-appkit-lane-masked-red-revealed_status.md
+docs/status/archived/2026-10-14_20-54_wave-tail-execution-gate-bugs-systemadapter-root-cause-self-review_status.md
+docs/status/archived/2026-10-15_00-07_buildflow-red-release-train-fixes_status.md
+docs/status/archived/2026-10-15_01-18_cqrs-lint-4.16.1-suppression-alignment_status.md
+docs/status/archived/2026-10-17_10-41_docs-truth-wave-execution-halfway_status.md
+docs/status/archived/2026-10-18_09-48_art-dupl-dedup-session.md
+docs/status/archived/2026-10-18_22-31_dual-skill-data-model-ep3-modularization-ep4_status.md
+docs/status/archived/2026-10-18_22-32_full-code-review-episode-4_status.md
+docs/status/archived/2026-10-19_02-12_go-cqrs-lite-family-alignment-push-fix_status.md
+docs/status/archived/2026-10-19_08-47_issue-sweep-execution-complete_status.md
+docs/status/archived/2026-10-19_12-18_issue-sweep-self-review-and-next-50_status.md
+docs/status/archived/2026-10-23_17-09_module-extraction-question-doc-corpus-audit_status.md
+docs/status/archived/2026-10-24_05-28_docs-corpus-eviction-phase-a-executed-push-blocked_status.md
+docs/status/archived/2026-10-24_11-40_docs-truth-gates-ratchet-and-httputil-unblock_status.md
+# --- archive READMEs (gate-exempt, kept by pattern) ---
+docs/status/archived/README.md
