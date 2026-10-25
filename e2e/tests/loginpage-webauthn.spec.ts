@@ -39,6 +39,10 @@ test.describe("loginpage WebAuthn", () => {
 
     // --- Registration: the page's "Create one" toggle reveals the form ---
     await page.goto("/login");
+    // The CSRF meta only exists on /login pages — capture the masked token
+    // while we are here; it stays valid for the whole cookie session.
+    const csrf = await page.locator('meta[name="csrf-token"]').getAttribute("content");
+
     await page.locator("#lp-show-register").click();
     await expect(page.locator("#lp-register-section")).not.toHaveClass(/hidden/);
 
@@ -52,7 +56,6 @@ test.describe("loginpage WebAuthn", () => {
     await expect(page).toHaveURL(/\/post-login$/);
 
     // --- Logout (clears the register-issued session so login is real) ---
-    const csrf = await page.locator('meta[name="csrf-token"]').getAttribute("content");
     await page.request.post("/auth/logout", {
       headers: { "X-CSRF-Token": csrf ?? "" },
     });

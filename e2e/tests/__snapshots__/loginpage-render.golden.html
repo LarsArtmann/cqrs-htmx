@@ -77,11 +77,23 @@
   }
 
   // ── WebAuthn option preparation ─────────────────────────────────
+  // usermgmt's begin endpoints return the browser options wrapped in a
+  // {"publicKey": {...}} envelope (the WebAuthn API's own parameter shape,
+  // pinned by usermgmt's stub and provider tests). Both preparers unwrap
+  // that envelope first, so a bare options object keeps working too.
+  function unwrapPublicKeyEnvelope(opts) {
+    if (opts && opts.publicKey && typeof opts.publicKey === "object") {
+      return opts.publicKey;
+    }
+    return opts;
+  }
+
   function prepareLoginOptions(opts) {
-    var p = Object.assign({}, opts);
-    p.challenge = b64uToBuf(opts.challenge);
-    if (opts.allowCredentials) {
-      p.allowCredentials = opts.allowCredentials.map(function (c) {
+    var src = unwrapPublicKeyEnvelope(opts);
+    var p = Object.assign({}, src);
+    p.challenge = b64uToBuf(src.challenge);
+    if (src.allowCredentials) {
+      p.allowCredentials = src.allowCredentials.map(function (c) {
         return { type: c.type, id: b64uToBuf(c.id), transports: c.transports };
       });
     }
@@ -89,13 +101,14 @@
   }
 
   function prepareRegOptions(opts) {
-    var p = Object.assign({}, opts);
-    p.challenge = b64uToBuf(opts.challenge);
-    if (opts.user) {
-      p.user = Object.assign({}, opts.user, { id: b64uToBuf(opts.user.id) });
+    var src = unwrapPublicKeyEnvelope(opts);
+    var p = Object.assign({}, src);
+    p.challenge = b64uToBuf(src.challenge);
+    if (src.user) {
+      p.user = Object.assign({}, src.user, { id: b64uToBuf(src.user.id) });
     }
-    if (opts.excludeCredentials) {
-      p.excludeCredentials = opts.excludeCredentials.map(function (c) {
+    if (src.excludeCredentials) {
+      p.excludeCredentials = src.excludeCredentials.map(function (c) {
         return { type: c.type, id: b64uToBuf(c.id), transports: c.transports };
       });
     }
@@ -324,6 +337,7 @@
     module.exports = {
       b64uToBuf: b64uToBuf,
       bufToB64u: bufToB64u,
+      unwrapPublicKeyEnvelope: unwrapPublicKeyEnvelope,
       prepareLoginOptions: prepareLoginOptions,
       prepareRegOptions: prepareRegOptions,
       serializeAssertion: serializeAssertion,
