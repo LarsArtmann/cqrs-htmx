@@ -1,6 +1,6 @@
 # Round 29: W02 closed + pushed, W03 fully executed (landed via daemon commits, CI green), one usermgmt receipt missing at interrupt
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_16-45_ci-inventory-closed-w04-half-executed_status.md`](../2026-10-25_16-45_ci-inventory-closed-w04-half-executed_status.md), which W02/W03 state and the S39 receipt dangling pointer are recorded as closed in the round-30 CI-inventory report. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_16-45_ci-inventory-closed-w04-half-executed_status.md`](2026-10-25_16-45_ci-inventory-closed-w04-half-executed_status.md), which W02/W03 state and the S39 receipt dangling pointer are recorded as closed in the round-30 CI-inventory report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 
