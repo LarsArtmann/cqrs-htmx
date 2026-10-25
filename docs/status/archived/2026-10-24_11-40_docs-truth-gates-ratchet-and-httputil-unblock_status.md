@@ -1,6 +1,6 @@
 # Status — docs corpus truth + gates, eviction prepared, httputil wave unblocked
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md`](../2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md), which gate receipts landed in 12-52; the open items (tail sweep, Q2 eviction, S28 battery, Lane D, golangci-lint direction) are master-plan milestones + TODO rows. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md`](2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md), which gate receipts landed in 12-52; the open items (tail sweep, Q2 eviction, S28 battery, Lane D, golangci-lint direction) are master-plan milestones + TODO rows. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 

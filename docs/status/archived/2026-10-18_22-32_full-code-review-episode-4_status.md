@@ -1,6 +1,6 @@
 # Status — Full Code Review Episode 4: Execution & Brutal Self-Review
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md`](../2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md), which all ~50 findings are the 2026-10-18 harvest rows (master plan Lane D S31-S43); the #1/#2 HIGHs are fixed in-tree (8e7b2174, CHANGELOG Unreleased). Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md`](2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md), which all ~50 findings are the 2026-10-18 harvest rows (master plan Lane D S31-S43); the #1/#2 HIGHs are fixed in-tree (8e7b2174, CHANGELOG Unreleased). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 

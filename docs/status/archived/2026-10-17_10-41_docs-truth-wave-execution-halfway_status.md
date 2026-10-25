@@ -1,6 +1,6 @@
 # Status Report 2026-10-17 10:41 — Docs-Truth Wave Execution (M01–M17 Landed, Halfway Point)
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md`](../2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md), which second half landed (M18 goth-stack, M21/M12 packets, S04b/S05/S23 via the master plan + 12-52); M12-14 are ROADMAP OQ30-32; f-11 crush-config row; M10 codespell harvested to the tooling-canary row. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md`](2026-10-24_12-52_archive-ritual-corpus-ratchet-and-authz-hierarchy_status.md), which second half landed (M18 goth-stack, M21/M12 packets, S04b/S05/S23 via the master plan + 12-52); M12-14 are ROADMAP OQ30-32; f-11 crush-config row; M10 codespell harvested to the tooling-canary row. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-24)).**
 

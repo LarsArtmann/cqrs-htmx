@@ -1,5 +1,9 @@
 # Status — archive ritual automated, corpus ratcheted, and the role hierarchy finally authorizes
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md`](../2026-10-25_05-50_master-plan-execution-lanes-a-c-and-d-wave_status.md), which this report receipts the same master-plan execution arc (Lanes A-C complete + Lane D wave 1); the 12-52 report owns nothing unique — its eviction/battery/Lane-D opens are plan milestones. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-24 (2026-10-25)).**
+
 **Session:** 2026-10-24 12:09 → 12:52 CEST · **Branch:** `master` · **Tree:** clean · **Ahead of origin:** 5 before this report (6 after) · **CI:** not triggered (nothing pushed this session).
 
 **What this session was:** continue the master plan (`docs/planning/2026-10-24_05-36_SUPERB-…`) exactly where the previous report stopped — the archive tail, the corpus budget, and then the first Lane D item. Three of the plan's known weak points were fixed at the mechanism level rather than by hand: the archive ritual became one gated command, the corpus got a ratchet, and the identity model's documented role hierarchy went from decorative to enforced.
