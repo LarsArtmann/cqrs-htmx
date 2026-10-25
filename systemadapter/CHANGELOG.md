@@ -4,6 +4,12 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Declarative `Enforce` answers what legacy Casbin answers (S42a/b).** The role ladder previously invented grants legacy never made — viewer→read, user→write, owner≡admin — so migrating from `NewProjectionLayer` to the declarative path silently widened permissions. The verdict now mirrors the legacy default policies: only `admin` and `super_admin` hold wildcard allows, every other role denies, and the action string does not participate (the default policies are object/action-agnostic wildcards). Pinned by a live parity test that drives BOTH paths per role×action and asserts equality.
+- **Declarative audit Action vocabulary is the `usermgmt.AuditAction*` vocabulary (S42b).** The invented `change_email`/`enable_totp`-style verbs are gone; every audited event now records the legacy action constant, and the three auth-audit events legacy covers (`LoginSucceeded`, `LoginFailed` with its bounded reason class as `Detail`, `RegistrationClosed`) are folded too. The two external-account events keep their past-tense labels (legacy does not audit them; pinned as declarative-only constants).
+- **Declarative audit entries carry the actor (S42c).** `AuditEntryView` gains `ActorID` (self-describing `kind:raw` wire form) and `Detail` fields, populated from the journaled record's metadata. Records written by an enriching writer against a shared store (the usermgmt service path wires `event.ActorEnricher`) replay through the declarative projections with "who did it" intact. Known limit, documented: the declarative dispatch path itself attaches no actors until `system.Execute` propagates context (upstream v5 ask).
+
 ### Added
 
 - **`RecordCredentialUse` is registered in `DomainConfig` (21 -> 22 commands).** The usermgmt v4.15.0 sign-counter persistence shipped the command, the decide logic, and the `updateCredentialUsed` fold — but this module's command table never registered a handler, so `system.New()` consumers could not record assertion state and the declarative `UserView` kept the registration-time signature counter forever (clone detection dead on the system path). Found by the Lane-D R02 proof test (`declarative_credential_test.go`), which now pins the SignCount + UP/UV/backup lift end-to-end. Requires usermgmt v4.16.0+ (`DecideRecordCredentialUse`).
