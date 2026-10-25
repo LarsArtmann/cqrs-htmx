@@ -310,3 +310,18 @@ graph TD
 Every milestone is a commit. A milestone that proves wrong is reverted as a unit (`git revert`
 of that commit), never partially; a ratchet re-pin is reverted together with its ledger row, since
 a baseline without an adjudication is exactly the blind spot the gate exists to prevent.
+
+## 8. Execution receipt (Wave R + D01, 2026-10-25)
+
+| Milestone | Verdict | Evidence |
+| --- | --- | --- |
+| R01 | DONE (split across sessions) | branching-flow re-pinned twice, both pure transposes with dated ledger rows (168→179 at `bebd56d6`; 179→179 at `a5183fff`); root lint 44→0; root coverage 88.1→91.8% |
+| R02 | DONE | 4 proof tests + the real DomainConfig-registration bug they exposed (usermgmt v4.16.0) |
+| R03 | DONE | `59487eb8` + `d0faae0f` (CHANGELOG, CURRENT_FOCUS, usermgmt README, provider guide) |
+| R04 | DONE | `.#test` rc=0 · `.#lint` rc=0 (2.15.0, 15 modules) · `.#coverage-gate` PASS · `.#check-modules` 55/55 — at `a5183fff` |
+| R05 | DONE | pushed `cde4e417..a5183fff` through strict gates; CI run `40179492715` all-jobs-success; tag table in the 10-15 receipt |
+| R06 | DONE | `docs/status/2026-10-25_10-15_green-tree-receipt_status.md` (09-45 archived; baselines moved in-commit) |
+| D04 | DONE (pulled forward) | `bcc64baa` — 189 wrapcheck FPs (the sanctioned errorfamily layer) ignored via `ignore-package-globs` in 15 configs; CI pin → v2.15.0; 3 stale nolints removed |
+| D01 | DONE (this commit) | Appendix D reconciled (7 rows); CHANGELOG receipts S35/S41/S44; S27 harvest (S39 + docs-truth quartet rows); this receipt |
+
+**Kill-criteria status:** never triggered — R04 reached 55/55 on the first post-D04 run. Wave D (D02, D03, D05–D16) remains, tracked by §3/§4.2 and TODO_LIST.
