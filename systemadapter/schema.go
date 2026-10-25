@@ -36,6 +36,7 @@ func EventSchemas() []cqrsschema.EventSchema {
 		cqrsschema.Event(identitymodel.EventUserDeleted, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventCredentialAdded, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventCredentialRemoved, envelopeSchemaVersion),
+		cqrsschema.Event(identitymodel.EventCredentialUsed, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventEmailVerified, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventTOTPEnabled, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventTOTPDisabled, envelopeSchemaVersion),

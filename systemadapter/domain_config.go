@@ -8,8 +8,8 @@
 //
 // Example:
 //
-//	domain := systemadapter.DomainConfig()          // 4 deciders, 20 commands,
-//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 21 events, projections
+//	domain := systemadapter.DomainConfig()          // 4 deciders, 21 commands,
+//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 25 events, projections
 //	sys, err := system.New(ctx, domain, deployment)
 //
 // Projection-side knobs ride the same call: WithCheckpointStore supplies the
@@ -33,8 +33,8 @@ import (
 )
 
 // DomainConfig returns a system.DomainConfig pre-wired with all four identity-model
-// deciders (User, Membership, Tenant, Bot), all 20 commands, and a TypeDecoder
-// that maps all 21 event types to their payload structs.
+// deciders (User, Membership, Tenant, Bot), all 21 commands, and a TypeDecoder
+// that maps all 25 event types to their payload structs.
 //
 // The consumer passes this to system.New() alongside a DeploymentConfig that
 // specifies engines and buses. The system handles repository creation, event
