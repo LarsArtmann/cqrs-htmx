@@ -1,0 +1,443 @@
+package dashboardui
+
+// Embedded page assets: the compiled CSS and the dashboard client JS,
+// served as const strings (CSP-safe: no inline script/style attributes).
+// Split out of layout.go so the layout code reads without the asset blobs.
+
+const dashboardCSS = `
+:root {
+	--accent: #4f46e5;
+	/* --link is the TEXT-safe accent (links, focus outlines). Kept separate
+	   from --accent because --accent also feeds @theme --color-blue-600
+	   (button/badge BACKGROUNDS whose white text needs the deep value):
+	   #4f46e5 on dark surfaces is 2.70:1 — WCAG-fail for text — while
+	   #818cf8 passes 5.69:1 and keeps white-on-accent backgrounds ≥ 4.5:1. */
+	--link: #4f46e5;
+	--bg: #f6f7f9;
+	--surface: #ffffff;
+	--surface-hover: #f0f1f4;
+	--text: #0f172a;
+	--muted: #5d6b7e;
+	--border: #e6e8ec;
+	--ok: #16a34a;
+	--warn: #d97706;
+	--err: #dc2626;
+	--sidebar-bg: #0f172a;
+	--sidebar-text: #94a3b8;
+	--sidebar-active: #f1f5f9;
+	--sidebar-width: 248px;
+	--radius: 6px;
+	--radius-lg: 8px;
+	--radius-sm: 4px;
+	--gap: 16px;
+	--transition: 0.2s ease;
+}
+/* Dark mode is CLASS-driven (adminui pattern, templ-components toggle
+   strategy): layout.ThemeScript applies the stored/system choice as .dark on
+   <html> BEFORE first paint (no flash) and layout.ThemeToggle flips it.
+   Without JS the dashboard degrades to light mode. */
+html.dark {
+	--bg: #0b1120;
+	--surface: #131c31;
+	--surface-hover: #1a2740;
+	--text: #e6edf6;
+	--muted: #93a4bd;
+	--border: #233049;
+	--sidebar-bg: #060d1c;
+	/* #64748b on #060d1c was 4.08:1 — below WCAG AA for nav text. */
+	--sidebar-text: #94a3b8;
+	--sidebar-active: #e6edf6;
+	/* indigo-300: indigo-400 failed 4.42:1 on code chips (bg var(--border));
+	   #a5b4fc clears every surface 6.6:1+ and matches .nav-link-active. */
+	--link: #a5b4fc;
+}
+
+/* ===== Base ===== */
+body { background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; line-height: 1.6; }
+/* Copy-button labels sit on the button's own surface; keep them at --text
+   because the inherited muted table color fails WCAG 4.5:1 on it. */
+[data-tc-copy] span[data-tc-copy-text] { color: var(--text); }
+* { box-sizing: border-box; }
+a { color: var(--link); text-decoration: none; transition: opacity var(--transition); }
+a:hover { opacity: 0.8; }
+
+/* ===== Focus styles (accessibility) ===== */
+*:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+/* ===== Code ===== */
+code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(--border); padding: 0.1rem 0.35rem; border-radius: var(--radius-sm); }
+.mono { font-family: ui-monospace, monospace; font-size: 0.85em; }
+
+/* ===== App layout ===== */
+.app-layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; min-height: 100vh; }
+.app-main { display: flex; flex-direction: column; min-width: 0; }
+
+/* ===== Sidebar ===== */
+.sidebar { background: var(--sidebar-bg); color: var(--sidebar-text); padding: 18px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+.sidebar-brand { display: flex; align-items: center; gap: 10px; padding-bottom: 16px; color: var(--sidebar-active); font-weight: 700; }
+.sidebar-badge { display: grid; place-items: center; width: 26px; height: 26px; background: var(--accent); color: white; border-radius: var(--radius-lg); font-size: 0.85em; flex-shrink: 0; }
+.sidebar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+.sidebar-footer { margin-top: auto; padding-top: 8px; font-size: 0.75rem; opacity: 0.85; }
+
+/* ===== Navigation links ===== */
+.nav-link { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); text-decoration: none; font-size: 0.9rem; font-weight: 500; color: var(--sidebar-text); transition: background var(--transition), color var(--transition); }
+.nav-link:hover { background: rgba(255,255,255,0.06); color: var(--sidebar-active); opacity: 1; }
+.nav-link-active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: #a5b4fc; }
+.nav-icon { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; }
+.nav-link-logout { margin-top: 8px; }
+
+/* ===== Header ===== */
+.app-header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(8px); }
+.header-cluster { display: flex; align-items: center; gap: 12px; }
+.header-title { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+/* ===== Live indicator ===== */
+.live-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); opacity: 0.4; transition: opacity 0.3s; }
+.sse-status { font-size: 0.75rem; color: var(--muted); }
+.sse-count { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ===== Content area ===== */
+.content-area { width: 100%; max-width: 1200px; padding: 24px; }
+
+/* ===== Page header ===== */
+.page-header { margin-bottom: 24px; }
+.page-header h2 { margin: 0 0 4px; }
+.page-header .page-subtitle { color: var(--muted); font-size: 0.88em; }
+
+/* ===== Stat cards ===== (grid container is display.Grid — bundled utilities) */
+/* ===== Error/404 shell (errorpage adoption) ===== */
+.error-shell { max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
+
+/* ===== Metadata table ===== */
+.meta-key { color: var(--muted); font-weight: 500; }
+.meta-val { font-family: ui-monospace, monospace; font-size: 0.85em; }
+
+/* ===== Pre/code blocks ===== */
+.code-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; overflow-x: auto; font-size: 0.85em; line-height: 1.5; margin: 0; }
+.code-block code { background: none; padding: 0; }
+
+/* ===== Cards/panels ===== */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 24px; }
+.panel-title { font-weight: 600; margin-bottom: 12px; font-size: 0.95rem; }
+
+/* ===== Grid for two-column layouts ===== */
+.two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+/* ===== Buttons ===== */
+
+/* ===== Pagination ===== */
+.pagination { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+.pagination a, .pagination span { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); text-decoration: none; font-size: 0.85em; color: var(--muted); }
+.pagination a:hover { background: var(--surface-hover); }
+.pagination .current { border-color: var(--accent); background: var(--accent); color: white; font-weight: 600; }
+.pagination-info { border: none !important; color: var(--muted) !important; font-size: 0.8em !important; margin: 0 4px; }
+
+/* ===== Version slider (time-travel) ===== */
+.version-links { display: flex; flex-wrap: wrap; gap: 4px; }
+.version-slider { width: 100%; max-width: 400px; accent-color: var(--accent); cursor: pointer; }
+.version-slider:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.version-display { font-size: 0.9rem; color: var(--muted); }
+
+/* ===== Filter bar ===== */
+.filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+.filter-bar input, .filter-bar select { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.88em; background: var(--surface); color: var(--text); }
+.filter-bar label { font-size: 0.85em; font-weight: 500; color: var(--muted); }
+
+/* ===== Toast container ===== */
+
+/* ===== HTMX loading indicator ===== */
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
+.htmx-request.htmx-indicator-dot::after { content: " ⏳"; }
+
+/* ===== SSE live-update row highlight ===== */
+@keyframes newRowHighlight {
+  from { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+  to { background: transparent; }
+}
+.new-row { animation: newRowHighlight 2s ease-out; }
+
+/* ===== Hamburger (mobile only) ===== */
+.hamburger { display: none; flex-direction: column; justify-content: center; gap: 4px; width: 36px; height: 36px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); cursor: pointer; }
+.hamburger span { display: block; height: 2px; background: var(--text); border-radius: 1px; transition: transform 0.2s, opacity 0.2s; }
+
+/* ===== Sidebar backdrop (mobile only) ===== */
+.sidebar-backdrop { display: none; }
+
+/* ===== Table scroll wrapper ===== */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+	.app-layout { grid-template-columns: 1fr; }
+	.sidebar { position: fixed; left: -100%; width: var(--sidebar-width); z-index: 100; transition: left 0.3s; height: 100vh; }
+	.sidebar.open { left: 0; }
+	.sidebar-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+	.sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
+	.hamburger { display: flex; }
+	.app-header { padding: 12px 16px; }
+	.content-area { padding: 16px; }
+	.two-col-grid { grid-template-columns: 1fr; }
+	.filter-bar { flex-direction: column; align-items: stretch; }
+	.filter-bar input, .filter-bar select { width: 100%; }
+	.nav-link { padding: 12px 10px; font-size: 1rem; }
+}
+
+/* ===== Print styles ===== */
+@media print {
+	.sidebar, .app-header, #tc-toast-container { display: none; }
+	.app-layout { display: block; }
+	.content-area { max-width: 100%; padding: 0; }
+}
+
+/* ===== Animations ===== */
+@media (prefers-reduced-motion: reduce) {
+	* { transition: none !important; animation: none !important; }
+}
+
+/* ===== Skip-to-content link ===== */
+.skip-link { position: absolute; left: -999px; top: 0; z-index: 10000; padding: 8px 16px; background: var(--accent); color: white; border-radius: 0 0 var(--radius) 0; }
+.skip-link:focus { left: 0; }
+
+/* ===== Utility classes ===== */
+.section-gap { margin-bottom: 16px; }
+.section-gap-lg { margin-bottom: 24px; }
+.cell-emph { font-weight: 600; }
+.inline-form { display: inline; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+`
+
+const dashboardJS = `
+(function() {
+  var scriptSrc = document.currentScript.src;
+  var path = scriptSrc.replace(/\/dashboard\.js$/, "");
+  var base = path.replace(/\/-$/, "");
+  var streamUrl = base + "/-/events/stream";
+  var indicator = document.querySelector("[data-live-indicator]");
+  var statusEl = document.querySelector("[data-sse-status]");
+  var countEl = document.querySelector("[data-sse-count]");
+  var reconnectDelay = 1000;
+  var maxReconnectDelay = 30000;
+  var eventCount = 0;
+  var es = null;
+  var reconnectTimer = null;
+
+  function updateStatus(state) {
+    var labels = { connecting: "Connecting", open: "Live", error: "Reconnecting", closed: "Disconnected" };
+    if (statusEl) statusEl.textContent = labels[state] || state;
+    if (indicator) {
+      indicator.style.opacity = state === "open" ? "1" : "0.4";
+      indicator.title = labels[state] || state;
+    }
+  }
+
+  function updateCount() {
+    if (countEl) countEl.textContent = eventCount + " events";
+  }
+
+  function handleEvent(e) {
+    try {
+      var data = JSON.parse(e.data);
+      document.dispatchEvent(new CustomEvent("dashboard:event", { detail: data }));
+      eventCount++;
+      updateStatus("open");
+      updateCount();
+    } catch (err) {
+      console.warn("dashboard: failed to parse SSE event payload", err);
+    }
+  }
+
+  function connect() {
+    if (es) es.close();
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+
+    es = new EventSource(streamUrl);
+    es.addEventListener("event", handleEvent);
+
+    es.onopen = function() {
+      reconnectDelay = 1000;
+      updateStatus("open");
+    };
+
+    es.onerror = function() {
+      updateStatus("error");
+      es.close();
+      reconnectTimer = setTimeout(function() {
+        reconnectDelay = Math.min(reconnectDelay * 2, maxReconnectDelay);
+        connect();
+      }, reconnectDelay);
+    };
+  }
+
+  document.addEventListener("visibilitychange", function() {
+    if (indicator && document.visibilityState === "visible" && (!es || es.readyState === EventSource.CLOSED)) {
+      reconnectDelay = 1000;
+      connect();
+    }
+  });
+
+  // Reset the received-events counter whenever HTMX swaps a view so the
+  // badge counts events received on the current page, not since first load.
+  document.addEventListener("htmx:afterSwap", function() {
+    eventCount = 0;
+    updateCount();
+  });
+
+  window.addEventListener("beforeunload", function() {
+    if (es) es.close();
+  });
+
+  // Only connect SSE when the live indicator is present (EventBus configured).
+  // The data-confirm, copyable, and hamburger listeners below work on all pages.
+  if (indicator) {
+    connect();
+  }
+})();
+
+document.addEventListener("dashboard:event", function(e) {
+  var data = e.detail || {};
+
+  if (window.htmx && document.getElementById("projection-health")) {
+    htmx.trigger("#projection-health", "refresh");
+  }
+
+  var tbody = document.getElementById("events-tbody");
+  if (!tbody || !data.eventId) return;
+
+  var script = document.querySelector("script[src$='dashboard.js']");
+  var basePath = script ? script.src.replace(/\/-\/dashboard\.js$/, "") : "";
+  var now = data.occurredAt ? new Date(data.occurredAt) : new Date();
+  var row = document.createElement("tr");
+  row.className = "new-row";
+
+  // Build every cell with createElement/textContent so event metadata from
+  // the SSE feed is rendered as text, never parsed as HTML.
+  function cell(text, className) {
+    var td = document.createElement("td");
+    td.textContent = text == null ? "" : String(text);
+    if (className) td.className = className;
+    return td;
+  }
+
+  row.appendChild(cell(now.toLocaleTimeString(), "mono"));
+  var typeTd = document.createElement("td");
+  var code = document.createElement("code");
+  code.textContent = data.type || "";
+  if (basePath) {
+    var link = document.createElement("a");
+    link.href = basePath + "/events/" + encodeURIComponent(data.eventId);
+    link.appendChild(code);
+    typeTd.appendChild(link);
+  } else {
+    typeTd.appendChild(code);
+  }
+  row.appendChild(typeTd);
+  row.appendChild(cell(String(data.streamId || "").substring(0, 20), "mono"));
+  row.appendChild(cell(data.streamType || ""));
+  row.appendChild(cell(data.version || ""));
+  tbody.insertBefore(row, tbody.firstChild);
+  while (tbody.children.length > 50) tbody.removeChild(tbody.lastChild);
+});
+
+document.addEventListener("click", function(e) {
+  var hamburger = e.target.closest("[data-hamburger]");
+  if (hamburger) {
+    var sidebar = document.querySelector(".sidebar");
+    var backdrop = document.querySelector("[data-sidebar-backdrop]");
+    if (sidebar) {
+      var isOpen = sidebar.classList.toggle("open");
+      hamburger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if (backdrop) backdrop.classList.toggle("visible", isOpen);
+    }
+    return;
+  }
+  var sidebar = document.querySelector(".sidebar");
+  if (sidebar && sidebar.classList.contains("open") && !sidebar.contains(e.target)) {
+    sidebar.classList.remove("open");
+    hamburger = document.querySelector("[data-hamburger]");
+    if (hamburger) hamburger.setAttribute("aria-expanded", "false");
+    var backdrop = document.querySelector("[data-sidebar-backdrop]");
+    if (backdrop) backdrop.classList.remove("visible");
+  }
+});
+
+document.addEventListener("click", function(e) {
+  var btn = e.target.closest("[data-download-payload]");
+  if (!btn) return;
+  var eventID = btn.getAttribute("data-download-payload");
+  var el = document.querySelector("#event-payload code");
+  if (!el) return;
+  var text = el.textContent;
+  var blob = new Blob([text], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = (eventID || "event") + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// Page-size selector: navigate on change (replaces the inline onchange attr).
+document.addEventListener("change", function(e) {
+  if (e.target && e.target.matches && e.target.matches('select[name="limit"]')) {
+    window.location.href = e.target.value;
+  }
+});
+
+// CSP-safe confirmation dialog: delegated submit listener for forms with
+// data-confirm attribute. Replaces inline onsubmit="return confirm(...)".
+document.addEventListener("submit", function(e) {
+  var form = e.target.closest("[data-confirm]");
+  if (form && !confirm(form.dataset.confirm)) {
+    e.preventDefault();
+  }
+});
+
+// Time-travel version slider wiring (CSP-safe — replaces the former inline
+// onchange/oninput attributes, which nonce CSP blocks): update the version
+// display and aria-valuetext while dragging, navigate on release.
+(function() {
+  var slider = document.getElementById("version-slider");
+  if (!slider) return;
+  var display = document.getElementById(slider.dataset.sliderDisplay || "slider-version-display");
+  slider.addEventListener("input", function() {
+    if (display) display.textContent = slider.value;
+    slider.setAttribute("aria-valuetext", "Version " + slider.value + " of " + slider.max);
+  });
+  slider.addEventListener("change", function() {
+    if (slider.dataset.navBase) {
+      window.location.href = slider.dataset.navBase + slider.value;
+    }
+  });
+})();
+
+// Keyboard navigation for the time-travel version slider: ArrowLeft/ArrowRight
+// anywhere on the page move the slider and navigate to the selected version.
+document.addEventListener("keydown", function(e) {
+  var slider = document.getElementById("version-slider");
+  if (!slider) return;
+  if (e.target.tagName === "INPUT" && e.target !== slider) return;
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  e.preventDefault();
+  var step = (e.key === "ArrowLeft") ? -1 : 1;
+  var newVal = parseInt(slider.value, 10) + step;
+  var min = parseInt(slider.min, 10);
+  var max = parseInt(slider.max, 10);
+  if (newVal < min || newVal > max) return;
+  slider.value = newVal;
+  slider.dispatchEvent(new Event("change"));
+});
+
+// Toast bridge: HTMX write responses carry a "dashboardui:toast" HX-Trigger
+// event; tcShowToast is provided by the library ToastContainer mounted in the
+// layout (CSP-safe — no inline scripts of our own).
+document.addEventListener("dashboardui:toast", function(e) {
+  var d = e.detail || {};
+  var kindMap = { ok: "success", err: "error", warn: "warning", info: "info" };
+  if (typeof tcShowToast === "function") {
+    tcShowToast(d.message || "", kindMap[d.kind] || "info");
+  }
+});`
