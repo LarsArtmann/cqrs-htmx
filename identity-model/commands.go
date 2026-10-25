@@ -1,6 +1,8 @@
 package identitymodel
 
 import (
+	"slices"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -29,7 +31,10 @@ func NewRegisterUserCmd(
 
 func (c *RegisterUserCmd) Email() string       { return c.email }
 func (c *RegisterUserCmd) DisplayName() string { return c.displayName }
-func (c *RegisterUserCmd) Roles() []Role       { return c.roles }
+
+// Roles returns a copy (S38f): mutating the returned slice must not write
+// through to the command — commands are immutable once constructed.
+func (c *RegisterUserCmd) Roles() []Role { return slices.Clone(c.roles) }
 
 type ChangeEmailCmd struct {
 	*command.BasicCommand
@@ -93,7 +98,9 @@ func NewRemoveCredentialCmd(aggID id.StreamID, credID []byte) *RemoveCredentialC
 	}
 }
 
-func (c *RemoveCredentialCmd) CredentialID() []byte { return c.credentialID }
+// CredentialID returns a copy (S38f): callers must not be able to mutate the
+// command's credential reference through the accessor.
+func (c *RemoveCredentialCmd) CredentialID() []byte { return slices.Clone(c.credentialID) }
 
 // RecordCredentialUseCmd records the credential state observed during a
 // successful WebAuthn assertion (signature counter + flags).
@@ -133,7 +140,9 @@ func NewEnableTOTPCmd(aggID id.StreamID, secret []byte) *EnableTOTPCmd {
 	}
 }
 
-func (c *EnableTOTPCmd) Secret() []byte { return c.secret }
+// Secret returns a copy (S38f): the TOTP secret is credential material; an
+// accessor must never hand out a mutable alias to it.
+func (c *EnableTOTPCmd) Secret() []byte { return slices.Clone(c.secret) }
 
 type DisableTOTPCmd struct {
 	*command.BasicCommand
@@ -214,7 +223,10 @@ func NewAddMemberCmd(actorID ActorID, tenantID TenantID, roles []Role) *AddMembe
 
 func (c *AddMemberCmd) ActorID() ActorID   { return c.actorID }
 func (c *AddMemberCmd) TenantID() TenantID { return c.tenantID }
-func (c *AddMemberCmd) Roles() []Role      { return c.roles }
+
+// Roles returns a copy (S38f): mutating the returned slice must not write
+// through to the command.
+func (c *AddMemberCmd) Roles() []Role { return slices.Clone(c.roles) }
 
 type UpdateMemberRolesCmd struct {
 	*command.BasicCommand
@@ -230,7 +242,9 @@ func NewUpdateMemberRolesCmd(
 	}
 }
 
-func (c *UpdateMemberRolesCmd) Roles() []Role { return c.roles }
+// Roles returns a copy (S38f): mutating the returned slice must not write
+// through to the command.
+func (c *UpdateMemberRolesCmd) Roles() []Role { return slices.Clone(c.roles) }
 
 type RemoveMemberCmd struct {
 	*command.BasicCommand
@@ -309,10 +323,15 @@ func NewRegisterBotCmd(
 	}
 }
 
-func (c *RegisterBotCmd) Name() string      { return c.name }
-func (c *RegisterBotCmd) OwnerID() UserID   { return c.ownerID }
-func (c *RegisterBotCmd) TokenHash() []byte { return c.tokenHash }
-func (c *RegisterBotCmd) Scopes() []string  { return c.scopes }
+func (c *RegisterBotCmd) Name() string    { return c.name }
+func (c *RegisterBotCmd) OwnerID() UserID { return c.ownerID }
+
+// TokenHash and Scopes return copies (S38f): the token hash is credential
+// material and the scopes are the command's authorization surface; neither
+// may be mutated through an accessor.
+func (c *RegisterBotCmd) TokenHash() []byte { return slices.Clone(c.tokenHash) }
+
+func (c *RegisterBotCmd) Scopes() []string { return slices.Clone(c.scopes) }
 
 type DeleteBotCmd struct {
 	reasonedCommand
