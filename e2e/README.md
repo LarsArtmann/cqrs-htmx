@@ -1,6 +1,6 @@
 # Offline Sync E2E Tests
 
-Playwright-based browser tests for the cqrs-htmx offline sync SharedWorker (`sync/sync-worker.js` + `sync/sync-client.js`).
+Playwright-based browser tests for the cqrs-htmx offline sync SharedWorker (`sync/sync-worker.js` + `sync-client.js`), the adminui/dashboardui surfaces, and the loginpage WebAuthn ceremonies.
 
 ## What these tests cover
 
@@ -10,6 +10,15 @@ The E2E suite (`tests/sync.spec.ts`) exercises the offline command retry pipelin
 2. **Retry on reconnect** — queued commands are retried when the SharedWorker detects reconnection
 3. **Deduplication** — retried commands don't double-execute
 4. **Dead port resilience** — commands survive tab close/reopen
+
+`tests/loginpage-webauthn.spec.ts` drives the rendered login page through
+the full register and login passkey ceremonies against a REAL go-webauthn
+server (`e2e/server/login.go`, in-memory usermgmt) using Playwright's CDP
+virtual authenticator — genuine attestation/assertion bytes, session
+cookie, CSRF round-trip, and the ADR-0055 register-issues-cookie
+dependency. `tests/loginpage-golden.spec.ts` pins the full-page render DOM
+(nonce- and CSRF-insensitive; regenerate intentional render changes with
+`WRITE_GOLDEN=1 npx playwright test loginpage-golden`).
 
 ## Prerequisites
 
