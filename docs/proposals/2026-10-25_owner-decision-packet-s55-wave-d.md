@@ -79,4 +79,4 @@ The T01 budgets closed the deadline class (half-resolved). Today (2026-10-25 14:
 
 ---
 
-*Sources: [TODO_LIST.md](../../TODO_LIST.md) D-table + routed rows · [round-14 packet](2026-10-01_owner-decision-packet-round14-tail.md) · [T23/T18 packet](2026-10-01_t23-t18-owner-decision-packet.md) · [10-42 plan](../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md) §6/§7 · [10-43 addendum](../planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md) §3 · [14-01 status](../status/2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md) §g.*
+*Sources: [TODO_LIST.md](../../TODO_LIST.md) D-table + routed rows · [round-14 packet](2026-10-01_owner-decision-packet-round14-tail.md) · [T23/T18 packet](2026-10-01_t23-t18-owner-decision-packet.md) · [10-42 plan](../planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md) §6/§7 · [10-43 addendum](../planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md) §3 · [14-01 status](../status/archived/2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md) §g.*

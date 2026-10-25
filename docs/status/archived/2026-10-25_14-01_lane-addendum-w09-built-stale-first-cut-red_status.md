@@ -1,7 +1,11 @@
 # Status 2026-10-25 14:01 — lane addendum landed, W09 built, stale-first-cut red
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md`](../2026-10-25_15-16_wave-d-lane-execution-master-healed-w13-w16-w17-quartet-closed_status.md), which W09 healed + W13/W16/W17-verdicts/quartet closed; 14-01 questions answered or carried to the successor section g. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Session:** the docs/tooling session (lane: W09/W13/W16/W17-verdicts + quartet + sync tails per the
-[10-43 lane addendum](../planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md)).
+[10-43 lane addendum](../../planning/2026-10-25_10-43_SUPERB-lane-addendum-two-session-split-of-the-10-42-plan.md)).
 **Tree at writing:** HEAD `e8442fda` (3 daemon commits unpushed); origin `1921e57c` (sibling's
 round-28 receipt push, which carried my W09 FIRST CUT); **CI `40193603909` RED** (3 legs, detail in §d).
 

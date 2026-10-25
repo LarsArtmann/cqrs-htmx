@@ -1,6 +1,6 @@
 # Status: Wave R closed, D04/D01/D02 executed, lane split with the sibling session
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md`](../2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md), which the lane-split decision is absorbed by the 10-43 lane addendum; execution state continues in the 14-01 report. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md`](2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md), which the lane-split decision is absorbed by the 10-43 lane addendum; execution state continues in the 14-01 report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 
