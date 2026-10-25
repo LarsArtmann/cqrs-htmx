@@ -1064,3 +1064,79 @@ func TestServeDomainEvents_RequestFilter_NilFallsBackToConstructionFilter(t *tes
 		t.Errorf("(nil, nil) derivation must fall back to WithSSEFilter\nbody:\n%s", body)
 	}
 }
+
+// gatedSSEStore delays its EventsAnswer until released, so a test can
+// broadcast into the live channel DURING the replay window — exactly the
+// replay/live seam double-delivery window.
+type gatedSSEStore struct {
+	events  []sse.Event
+	release chan struct{}
+}
+
+func (s *gatedSSEStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
+	<-s.release
+
+	if lastID.Get() == "" {
+		return s.events, nil
+	}
+
+	for i, evt := range s.events {
+		if evt.ID.Get() == lastID.Get() {
+			return s.events[i+1:], nil
+		}
+	}
+
+	return nil, nil
+}
+
+// TestServeDomainEvents_ReplayLiveSeamNoDuplicate pins S39/w03.1: an event
+// published while the replay pass is still writing (it sits in BOTH the
+// store's replay window and the live subscription buffer) is delivered
+// exactly once. Pre-fix, the replay wrote it and the live pump wrote it
+// again — every client that connected during a publish burst saw doubles.
+func TestServeDomainEvents_ReplayLiveSeamNoDuplicate(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	e1 := sse.Event{Event: "domain", Data: "one", ID: sse.NewEventID("id-1")}
+	e2 := sse.Event{Event: "domain", Data: "two", ID: sse.NewEventID("id-2")}
+	e3 := sse.Event{Event: "domain", Data: "three", ID: sse.NewEventID("id-3")}
+
+	store := &gatedSSEStore{events: []sse.Event{e1, e2}, release: make(chan struct{})}
+	h := ServeDomainEvents(b, store, 0)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	// Let the handler subscribe, then publish e2 into the LIVE channel while
+	// the replay is still gated — e2 is now in both delivery paths.
+	time.Sleep(50 * time.Millisecond)
+	b.Broadcast(e2)
+	close(store.release)
+
+	// Post-replay live event must flow normally.
+	time.Sleep(50 * time.Millisecond)
+	b.Broadcast(e3)
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+	for data, want := range map[string]int{
+		"one": 1, "two": 1, "three": 1,
+	} {
+		if got := strings.Count(body, "data: "+data+"\n"); got != want {
+			t.Errorf("event %q delivered %d times, want %d\nbody:\n%s", data, got, want, body)
+		}
+	}
+}

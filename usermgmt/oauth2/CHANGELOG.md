@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **Providers returning neither `sub` nor `id` are rejected (2026-10-25, S39).** An empty subject used to pass silently, degrading the external-account identity key to email-only matching (every email-sharing account links to one user); `FinishLogin`/`FinishLoginWithToken` now fail with `oauth2.empty_subject` at the contract seam. Pinned for both the userinfo and the OIDC ID-token paths.
+
+### Added
+
+- **OIDC nonce round-trip: `BeginLoginWithNonce` + `FinishLoginWithNonce` (2026-10-25, S39).** `BeginLoginWithNonce` embeds a nonce in the authorization request (OIDC Core §3.1.2.1) and returns it; `FinishLoginWithNonce` rejects an id_token whose nonce claim does not match (mismatched OR missing) — replayed or injected tokens can no longer verify. Use the pair together; the plain `BeginLogin`/`FinishLogin` keep their PKCE-only behavior, and an empty nonce skips the check. Additive: no existing signature changed.
 
 ## [v4.13.0] - 2026-10-11
 

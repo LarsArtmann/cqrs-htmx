@@ -400,9 +400,21 @@ func replayEvents(
 // derivation error responds 400 (Bad Request) before any stream is opened.
 //
 // Subscribe is called BEFORE replay so live events buffer in the channel while
-// replay writes to the stream — no event is lost during the replay window.
+// replay writes to the stream — no event is lost during the replay window,
+// and the IDs the replay writes are deduplicated against the live pump, so
+// an event published during that window is delivered exactly once.
 // With [WithSSEFilter] or a per-request [WithRequestFilter] predicate, both
 // the subscription and the replay deliver only matching events.
+//
+// # Cursor semantics
+//
+// Last-Event-ID handling is delegated to the store and is therefore
+// store-defined. The bundled [NewJournalSSEStore] treats an unknown-but-
+// valid cursor as "from the beginning" (upstream ReadFrom semantics — a
+// full, capped backfill), while hand-rolled stores commonly return nothing.
+// Clients must only send IDs the SAME store issued; a cursor from another
+// deployment or after a store rotation produces a full backfill, not an
+// error.
 func ServeDomainEvents(
 	broadcaster *sse.Broadcaster[sse.Event],
 	store sse.EventStore,
