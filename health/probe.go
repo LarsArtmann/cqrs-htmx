@@ -70,6 +70,13 @@ func NewProbe(provider ProjectionStatusProvider, opts ...gohealth.Option) (*gohe
 // projection checks carry the shared ProjectionStatuses() read time as their
 // duration, so duration_ns reaches the wire on this path too.
 func Recorder(provider ProjectionStatusProvider) gohealth.HealthRecorder {
+	if provider == nil {
+		// Mirror NewProbe's fail-fast: without the guard the nil dereference
+		// surfaces only when the first health batch runs, far from the cause.
+		panic("cqrs-htmx/health: Recorder requires a non-nil provider " +
+			"(pass *usermgmt.Service or *usermgmt.EventSourcedSetup)")
+	}
+
 	return projectionRecorder{provider: provider}
 }
 
@@ -186,8 +193,15 @@ func checkError(entry cqrshtmx.ProjectionStatusEntry) error {
 	case cqrshtmx.ProjectionStatusFailed:
 		return errorfamily.NewInfrastructure("cqrshtmx.health.projection_failed",
 			fmt.Sprintf("projection %q failed: %s", entry.Name, entry.LastError))
-	default:
+	case cqrshtmx.ProjectionStatusIdle, cqrshtmx.ProjectionStatusRunning, cqrshtmx.ProjectionStatusBackoff:
 		return errorfamily.NewTransient("cqrshtmx.health.projection_draining",
 			fmt.Sprintf("projection %q is %q (catching up)", entry.Name, entry.Status))
+	default:
+		// Unknown statuses stay transient (not-ready, retry) but are worded
+		// honestly — calling an unrecognized state "catching up" would be a
+		// guess presented as a diagnosis.
+		return errorfamily.NewTransient("cqrshtmx.health.projection_unknown_status",
+			fmt.Sprintf("projection %q reported unrecognized status %q (treated as not-ready)",
+				entry.Name, entry.Status))
 	}
 }

@@ -393,3 +393,31 @@ func TestNewDashboard_RendersHTML(t *testing.T) {
 	require.Contains(t, w.Body.String(), "Health Dashboard")
 	require.Contains(t, w.Body.String(), "user-read-model", "projection check should render")
 }
+
+// TestCheckError_UnknownStatusWordedHonestly pins S39/w03.4: an unrecognized
+// status stays transient but is labeled as what it is — pre-fix, every
+// unknown status was diagnosed as "catching up", a guess presented as fact.
+func TestCheckError_UnknownStatusWordedHonestly(t *testing.T) {
+	t.Parallel()
+
+	entry := cqrshtmx.ProjectionStatusEntry{Name: "weird-projection", Status: "hibernating"}
+	err := checkError(entry)
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unrecognized status")
+	require.Contains(t, err.Error(), "hibernating")
+	require.NotContains(t, err.Error(), "catching up")
+}
+
+// TestRecorder_NilProviderPanicsAtConstruction pins S39/w03.4: Recorder(nil)
+// fails at construction (mirroring NewProbe's reject), not at the first
+// health batch.
+func TestRecorder_NilProviderPanicsAtConstruction(t *testing.T) {
+	t.Parallel()
+
+	require.PanicsWithValue(t,
+		"cqrs-htmx/health: Recorder requires a non-nil provider "+
+			"(pass *usermgmt.Service or *usermgmt.EventSourcedSetup)",
+		func() { Recorder(nil) },
+	)
+}
