@@ -660,7 +660,7 @@ Button link/submit, EmptyState, and DefinitionList render benchmarks.
 Design rationale for the divergences lives in
 [ADR-0053](../docs/adr/0053-dashboardui-templ-components-divergences.md) and the
 adoption-audit series
-([2026-09-23 report](../docs/research/2026-09-23_templ-components-deep-dive.html);
+([2026-10-04 report](../docs/research/2026-10-04_templ-components-deep-dive.html);
 series index: [docs/research/README.md](../docs/research/README.md)).
 
 ### Rebuilding the CSS bundle

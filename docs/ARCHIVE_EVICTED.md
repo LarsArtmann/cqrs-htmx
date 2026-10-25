@@ -64,3 +64,11 @@ with a receipt in history, and leaves the working tree consistent with `ARCHIVE_
   link and grew the keep-set from 10 to 13.
 - Round-23 execution (2026-10-24, final set): 6/6 gates green in a fresh detached worktree
   BEFORE the real apply, and again on the real tree after.
+
+## Addendum — generated-artifact pass (same day, S21+S29)
+
+A second measured pass removed **77 more files** under the same living-citation rule:
+14 `docs/status/*.html` generated reports (round-14 KEEP-IN-PLACE verdict superseded by the
+master plan), 19 uncited `docs/research/` runs (12 cited reports kept), and 44 uncited
+`docs/architecture-understanding/` snapshots (2 composability reviews kept). Restore source
+is the same pre-eviction commit family; `git restore --source=<pre-addendum-commit> -- docs/research docs/architecture-understanding docs/status` recovers them.
