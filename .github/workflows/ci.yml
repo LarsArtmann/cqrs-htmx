@@ -802,6 +802,11 @@ jobs:
       - name: bump-dep self-test
         run: bash scripts/selftests/test-bump-dep.sh
 
+      # Staged-templ codegen-drift pre-commit gate self-test (stale pair red,
+      # regenerated pair green, hand-edit caught) — S48 formatter→generate chain.
+      - name: templ codegen-staged self-test
+        run: bash scripts/selftests/test-check-templ-codegen-staged.sh
+
       # Fixture self-test for the /v4-suffix import-path rule inside
       # check-docs-freshness.sh (scripts/lib/docs-import-paths.sh).
       - name: Docs freshness self-test

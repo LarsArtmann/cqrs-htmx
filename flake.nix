@@ -365,6 +365,25 @@
               );
             };
 
+            test-check-templ-codegen-staged = {
+              type = "app";
+              meta.description = "Fixture self-test for the staged-templ codegen-drift pre-commit gate (stale pair red, regenerated pair green, hand-edit caught; stubbed templ)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-templ-codegen-staged";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-templ-codegen-staged.sh
+                  '';
+                }
+              );
+            };
+
             test = goApp {
               name = "run-tests";
               description = "Run Go tests with race detector across all workspace modules (auto-discovered, excludes e2e/examples)";
@@ -1149,6 +1168,7 @@
                         "corpus-budget-ratchet:bash scripts/checks/check-docs-corpus-budget.sh --ratchet"
                         "corpus-budget-self-test:bash scripts/selftests/test-check-docs-corpus-budget.sh"
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
+                        "templ-codegen-staged-self-test:bash scripts/selftests/test-check-templ-codegen-staged.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                         "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
@@ -1215,6 +1235,7 @@
                     bash scripts/checks/check-docs-corpus-budget.sh --ratchet
                     bash scripts/selftests/test-check-docs-corpus-budget.sh
                     bash scripts/selftests/test-bump-dep.sh
+                    bash scripts/selftests/test-check-templ-codegen-staged.sh
                     bash scripts/checks/check-session-route-wrappers.sh
                     bash scripts/selftests/test-check-session-route-wrappers.sh
                     bash scripts/checks/check-branching-flow.sh

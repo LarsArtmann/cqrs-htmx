@@ -45,7 +45,7 @@ chmod +x "$WORK/bin/templ" "$WORK/bin/gofmt"
 
 # Fixture repo with a committed baseline pair.
 git init -q "$WORK/repo"
-cd "$WORK/repo"
+cd "$WORK/repo" || exit 1
 git config user.email fixture@test.local
 git config user.name fixture
 mkdir adminui
