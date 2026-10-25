@@ -17,7 +17,7 @@ Every term below should mean the **same thing** to everyone who reads it.
 | Authz              | Authorization engine wrapping Casbin RBAC with domains                                                                                                  | usermgmt module                           |
 | Bot                | A non-human actor with an API token, registered to an owner for automated access                                                                        | Identity model (ADR 0015)                 |
 | BotID              | A branded string uniquely identifying a bot                                                                                                             | Identity model                            |
-| Broadcaster        | The SSE fan-out hub (`*sse.Broadcaster[sse.Event]`); adapters for CQRS dispatch hooks and DataStar embed it — `Hub()` is the canonical shareable object | cqrs-htmx root + datastar                 |
+| Broadcaster        | The SSE fan-out hub (`*sse.Broadcaster[sse.Event]`); `Hub()` is the canonical shareable object; datastar re-exports the upstream go-datastar/broadcast hub | cqrs-htmx root + datastar                 |
 | Casbin             | External authorization library providing RBAC with domain support                                                                                       | Authorization                             |
 | CasbinProjection   | A projection that derives all Casbin policies from user events                                                                                          | Event sourcing                            |
 | Ceremony           | A WebAuthn protocol flow (registration or login) split into a begin + finish exchange                                                                   | Authentication                            |
@@ -33,12 +33,12 @@ Every term below should mean the **same thing** to everyone who reads it.
 | EventCatalog       | Immutable JSON catalog of event schemas (type, description, payload fields); served as Published Language for projection builders                       | cqrs-htmx root module                     |
 | ExternalAccount    | An OAuth2/OIDC provider account (provider + subject) linked to a User                                                                                   | OAuth2 integration (ADR 0014)             |
 | Fold               | Pure function that reconstructs aggregate state by replaying events                                                                                     | Event sourcing                            |
-| foldUser           | The concrete fold function that reconstructs `UserState` from the User event stream                                                                     | Event sourcing                            |
+| FoldUser           | The concrete fold function that reconstructs `UserState` from the User event stream (siblings: `FoldMembership`, `FoldTenant`, `FoldBot`)                | Event sourcing                            |
 | HandlerOption      | Functional option pattern for configuring CQRS HTTP handlers                                                                                            | cqrs-htmx root module                     |
 | HTMX               | HTML-over-the-wire library for dynamic web pages without writing JavaScript                                                                             | Frontend                                  |
 | HTMXRedirect       | Helper that emits an HTMX-aware redirect (`HX-Redirect` for HTMX clients, standard `http.Redirect` otherwise)                                           | cqrs-htmx root module                     |
 | Impersonation      | A SuperAdmin acting on behalf of another user with an auditable session origin                                                                          | Identity model (ADR 0015)                 |
-| EventBus           | In-memory event bus (`watermill.EventBus`) that blocks publishers until handlers complete (read-your-writes)                                            | Event sourcing                            |
+| EventBus           | The event pub/sub backend (`event.Bus`; default `watermill.EventBus`) that blocks publishers until handlers complete (read-your-writes)                | Event sourcing                            |
 | JournalSSEStore    | SSE replay store that reads missed events from a journal on reconnect, using `Last-Event-ID` as a cursor                                                | cqrs-htmx root module                     |
 | Membership         | A grant of roles to an Actor within a Tenant — the RBAC link between actor and tenant                                                                   | Identity model (ADR 0015)                 |
 | Passkey            | A WebAuthn credential (FIDO2) bound to a device, enabling passwordless login                                                                            | Authentication                            |
@@ -87,7 +87,7 @@ Immutable objects defined by attributes.
 | UserID            | Branded string uniquely identifying a user                           | Identity       |
 | Email             | Validated email address (`ParseEmail`/`MustParseEmail`)              | Identity       |
 | Session           | Token + user + actor + origin + timestamps, immutable after creation | Authentication |
-| Role              | Named permission group string (admin, user, viewer)                  | RBAC           |
+| Role              | Named permission group string (super_admin, admin, user, viewer, owner)                                                  | RBAC       |
 | Policy            | An RBAC rule: subject + domain + object + action + effect            | Authorization  |
 | GroupPolicy       | A role assignment: subject + role + domain                           | Authorization  |
 | VerificationToken | Single-use secret proving email ownership, with a TTL                | Authentication |
@@ -119,6 +119,9 @@ Immutable records of domain changes.
 | TenantDeleted           | A tenant was deleted (tombstone)                                                                                           | Tenant     |
 | BotRegistered           | A bot was registered with an API token                                                                                     | Bot        |
 | BotDeleted              | A bot was deleted (tombstone)                                                                                              | Bot        |
+| LoginSucceeded         | An authentication attempt succeeded (auth-audit trail, 2026-10-19)                                                        | Auth audit |
+| LoginFailed            | An authentication attempt failed, with reason (auth-audit trail)                                                          | Auth audit |
+| RegistrationClosed     | A registration ceremony window was closed (auth-audit trail)                                                              | Auth audit |
 
 ## Commands
 
