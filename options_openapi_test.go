@@ -53,8 +53,8 @@ func TestOpenAPISpecHandler_ServesJSON(t *testing.T) {
 		t.Errorf("Content-Type = %q, want %q", ct, "application/json; charset=utf-8")
 	}
 
-	if cc := w.Header().Get("Cache-Control"); cc != "public, max-age=31536000, immutable" {
-		t.Errorf("Cache-Control = %q, want immutable", cc)
+	if cc := w.Header().Get("Cache-Control"); cc != "no-cache" {
+		t.Errorf("Cache-Control = %q, want no-cache (ETag-driven revalidation; the URL is not versioned)", cc)
 	}
 
 	etag := w.Header().Get("ETag")

@@ -11,7 +11,8 @@ import (
 
 // TestProjectionReadinessCheck verifies the readiness gate logic: it must pass
 // (return nil) only when every projection has reached a terminal drain state
-// ("live" or "stopped"), and fail while any is still draining or has failed.
+// ("live" or "stopped"), fail while any is still draining or has failed, and
+// fail CLOSED on a nil provider (a wiring bug must never read as ready).
 func TestProjectionReadinessCheck(t *testing.T) {
 	t.Parallel()
 
@@ -22,9 +23,9 @@ func TestProjectionReadinessCheck(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "nil_provider_passes",
+			name:        "nil_provider_fails_closed",
 			nilProvider: true,
-			wantErr:     false,
+			wantErr:     true,
 		},
 		{
 			name:     "empty_statuses_passes",
