@@ -113,13 +113,13 @@ func (o *OAuth2Service) BeginLogin(ctx context.Context, provider string) (*Begin
 		return nil, errorfamily.NewTransient("usermgmt.oauth2.generate_state", "generate oauth2 state").WithCause(err)
 	}
 
-	redirectURL, pkceVerifier, err := o.provider.BeginLogin(ctx, provider, state)
+	redirectURL, pkceVerifier, nonce, err := o.provider.BeginLogin(ctx, provider, state)
 	if err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.oauth2.begin_login", "oauth2 begin login").
 			WithCause(err).WithContext("provider", provider)
 	}
 
-	if err := o.states.Save(state, provider, pkceVerifier, o.stateTTL); err != nil {
+	if err := o.states.Save(state, provider, pkceVerifier, nonce, o.stateTTL); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.oauth2.save_state", "save oauth2 state").
 			WithCause(err).WithContext("provider", provider)
 	}
@@ -139,7 +139,7 @@ func (o *OAuth2Service) FinishLogin(
 	ctx context.Context,
 	provider, code, state string,
 ) (*FinishOAuthLoginResponse, error) {
-	storedProvider, pkceVerifier, err := o.states.Consume(state)
+	storedProvider, pkceVerifier, nonce, err := o.states.Consume(state)
 	if err != nil {
 		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
 		return nil, errorfamily.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state").
@@ -151,7 +151,7 @@ func (o *OAuth2Service) FinishLogin(
 			"oauth2 provider mismatch between state and callback").WithContext("provider", provider)
 	}
 
-	userInfoJSON, err := o.provider.FinishLogin(ctx, provider, code, pkceVerifier)
+	userInfoJSON, err := o.provider.FinishLogin(ctx, provider, code, pkceVerifier, nonce)
 	if err != nil {
 		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
 		return nil, errorfamily.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token").
