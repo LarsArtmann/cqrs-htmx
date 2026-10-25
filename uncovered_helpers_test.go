@@ -70,8 +70,8 @@ func TestErrorWrapperMethods_PreserveCauseMessage(t *testing.T) {
 
 	statusErr := WithHTTPStatus(cause, http.StatusTeapot)
 
-	var statusWrapped *httpStatusError
-	if !errors.As(statusErr, &statusWrapped) {
+	statusWrapped, ok := errors.AsType[*httpStatusError](statusErr)
+	if !ok {
 		t.Fatal("WithHTTPStatus must wrap in httpStatusError")
 	}
 
@@ -81,8 +81,8 @@ func TestErrorWrapperMethods_PreserveCauseMessage(t *testing.T) {
 
 	retryErr := WithRetryAfter(cause, 30*time.Second)
 
-	var retryWrapped *retryAfterError
-	if !errors.As(retryErr, &retryWrapped) {
+	retryWrapped, ok := errors.AsType[*retryAfterError](retryErr)
+	if !ok {
 		t.Fatal("WithRetryAfter must wrap in retryAfterError")
 	}
 

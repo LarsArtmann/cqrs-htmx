@@ -38,8 +38,8 @@ func credentialUsedEvent(t *testing.T, use CredentialUse) event.Event {
 func twoCredentialState() UserState {
 	return UserState{
 		Credentials: []WebAuthnCredential{
-			{CredentialCore: CredentialCore{ID: []byte{0x01}, SignCount: 5, Transports: []string{"usb"}}},
-			{CredentialCore: CredentialCore{ID: []byte{0x02}, SignCount: 9}},
+			{ID: []byte{0x01}, SignCount: 5, Transports: []string{"usb"}},
+			{ID: []byte{0x02}, SignCount: 9},
 		},
 	}
 }
@@ -133,7 +133,7 @@ func TestCounterRegressed_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		cred := WebAuthnCredential{CredentialCore: CredentialCore{SignCount: tc.current}}
+		cred := WebAuthnCredential{SignCount: tc.current}
 
 		if got := cred.CounterRegressed(tc.next); got != tc.want {
 			t.Errorf("CounterRegressed(%d -> %d) = %v, want %v", tc.current, tc.next, got, tc.want)
@@ -142,15 +142,14 @@ func TestCounterRegressed_Table(t *testing.T) {
 }
 
 func TestApplyUse_Table(t *testing.T) {
-	cred := WebAuthnCredential{CredentialCore: CredentialCore{
+	cred := WebAuthnCredential{
 		ID:             []byte{0x01},
 		Transports:     []string{"usb", "nfc"},
 		SignCount:      5,
 		UserPresent:    false,
 		UserVerified:   false,
 		BackupEligible: true,
-		BackupState:    false,
-	}}
+		BackupState:    false}
 
 	next := cred.ApplyUse(CredentialUse{
 		CredentialID: []byte{0x01},

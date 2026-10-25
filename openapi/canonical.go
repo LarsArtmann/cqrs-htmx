@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"cmp"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"slices"
@@ -99,7 +100,7 @@ func canonInts[V any](m map[int]V) canonIntMap[V] {
 		out = append(out, canonIntPair[V]{key: k, val: v})
 	}
 
-	slices.SortFunc(out, func(a, b canonIntPair[V]) int { return a.key - b.key })
+	slices.SortFunc(out, func(a, b canonIntPair[V]) int { return cmp.Compare(a.key, b.key) })
 
 	return out
 }
