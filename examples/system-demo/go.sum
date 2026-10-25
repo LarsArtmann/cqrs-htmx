@@ -129,8 +129,8 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.14.0 h1:EW35G5bWkwxQs2ptRz
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.14.0/go.mod h1:CDfDKB4Rd5UxxyQSopojwBN2TxeMgd5/f+WivZVPA0s=
 github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.4 h1:izMuBh/fl5i67gnLvBmoDynqgAJDxOR/Xq7T0aYkqBI=
 github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.4/go.mod h1:ItSYTxTqPqj6myzTKfPdWci0WGCu5vOQ6YZvZN2xED4=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.15.0 h1:2XpYU5VPSaUynHSrF5QIDYNXNYbzIC0X/zvAbKQW+Rw=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.15.0/go.mod h1:RXv3wjpCcFWxbRS/IGRpI+wOYuIyng/ERx8UbXCDPGo=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.16.0 h1:sZeiML0CYJ1Lls2AH1iqg9wcvth6z1H3QwEuenKauG8=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.16.0/go.mod h1:RXv3wjpCcFWxbRS/IGRpI+wOYuIyng/ERx8UbXCDPGo=
 github.com/larsartmann/cqrs-htmx/v4 v4.14.1 h1:ZcMc6o55bnYFH8u7Ae9t8a2yxt6iLHUc70MRpWkLfFQ=
 github.com/larsartmann/cqrs-htmx/v4 v4.14.1/go.mod h1:TPQzgHhx+ZBGkdNUumWwiKqH7Lg3l8LR5t0PefBNijI=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=
