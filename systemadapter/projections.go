@@ -121,7 +121,8 @@ func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*Pro
 
 	casbinProj, err := usermgmt.NewCasbinProjection(authz)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "systemadapter.create_casbin_projection", "create casbin projection")
+		return nil, errorfamily.WrapInfrastructure(err,
+			"systemadapter.create_casbin_projection", "create casbin projection")
 	}
 
 	pl := &ProjectionLayer{
