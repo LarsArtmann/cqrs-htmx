@@ -54,7 +54,7 @@ func decideAddMember(
 				Roles:         rolesCopy,
 			},
 			//cqrs-lint:ignore(A027) one codec per repository is intentional; global DefaultCodec would couple unrelated aggregates
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -89,7 +89,7 @@ func decideUpdateMemberRoles(
 				TenantID:      state.TenantID.Get(),
 				Roles:         rolesCopy,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -119,7 +119,7 @@ func decideRemoveMember(
 				ActorID:       state.ActorID.String(),
 				TenantID:      state.TenantID.Get(),
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

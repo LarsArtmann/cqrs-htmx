@@ -45,7 +45,7 @@ func decideRegisterUser(
 				DisplayName:   displayName,
 				Roles:         rolesCopy,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -76,7 +76,7 @@ func decideDeleteUser(
 				SchemaVersion: currentSchemaVersion,
 				Reason:        reason,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

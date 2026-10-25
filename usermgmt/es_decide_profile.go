@@ -29,7 +29,7 @@ func decideChangeEmail(
 				Email:         email,
 			},
 			//cqrs-lint:ignore(A027) one codec per repository is intentional; global DefaultCodec would couple unrelated aggregates
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -63,7 +63,7 @@ func decideChangeDisplayName(
 				SchemaVersion: currentSchemaVersion,
 				DisplayName:   displayName,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -96,7 +96,7 @@ func decideVerifyEmail(
 				SchemaVersion: currentSchemaVersion,
 				Email:         state.Email,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

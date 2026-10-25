@@ -38,7 +38,7 @@ func decideLinkExternalAccount(
 				Email:         email,
 				DisplayName:   displayName,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -87,7 +87,7 @@ func decideUnlinkExternalAccount(
 				Provider:      provider,
 				Subject:       subject,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

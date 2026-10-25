@@ -45,7 +45,7 @@ type authAuditor struct {
 func (a authAuditor) append(ctx context.Context, evtType event.Type, payload any, actor id.ActorID) {
 	streamID := id.NewStreamID()
 
-	opts := []event.Option{event.WithCodec(codec.JSONCodec{})}
+	opts := []event.Option{event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1)}
 
 	if !actor.IsZero() {
 		opts = append(opts, event.WithActor(actor))

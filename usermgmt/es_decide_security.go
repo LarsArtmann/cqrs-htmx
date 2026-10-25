@@ -28,7 +28,7 @@ func decideEnableTOTP(
 				SchemaVersion: currentSchemaVersion,
 				Secret:        secret,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -60,7 +60,7 @@ func decideDisableTOTP(
 			TOTPDisabledPayload{
 				SchemaVersion: currentSchemaVersion,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

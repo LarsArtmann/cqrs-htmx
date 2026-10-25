@@ -41,7 +41,7 @@ func decideAddCredential(
 				BackupState:     cred.BackupState,
 				Name:            cred.Name,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -83,7 +83,7 @@ func decideRemoveCredential(
 				SchemaVersion: currentSchemaVersion,
 				ID:            credentialID,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -144,7 +144,7 @@ func decideRecordCredentialUse(
 				UserVerified:  use.UserVerified,
 				BackupState:   use.BackupState,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
