@@ -1,9 +1,13 @@
 # Status: Green tree — Wave R closed, D04 executed, CI green on pushed HEAD
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md`](../2026-10-25_10-37_wave-d-resume-d01-d03-landed-d05-in-analysis_status.md), which superseded by the Wave D continuation receipt (Wave R + D04 story carried in one line; owner-gate tables carried). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Written:** 2026-10-25 10:15 CET · **Supersedes:**
-[`2026-10-25_09-45_wave-r-rescue-executed_status.md`](archived/2026-10-25_09-45_wave-r-rescue-executed_status.md)
+[`2026-10-25_09-45_wave-r-rescue-executed_status.md`](2026-10-25_09-45_wave-r-rescue-executed_status.md)
 (its §g.1 golangci question is ANSWERED and executed; §g.2/§g.3 carried here).
-**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
+**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md)
 **Tree:** clean, master == origin/master at `a5183fff` · **CI: run `40179492715` ALL JOBS SUCCESS** (lint (.) under golangci 2.15.0, test incl. root coverage, checks, module-architecture; `architecture-gate` is PR-only by design).
 
 ## §a FULLY DONE this session (committed and pushed)

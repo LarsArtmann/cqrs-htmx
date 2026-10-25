@@ -26,7 +26,7 @@ systemadapter registration; usermgmt v4.16.0), D04 executed (golangci
 wrapcheck-enabled configs; CI pin moved up to match the flake), the full
 battery green (test rc=0 · lint rc=0 · coverage-gate PASS ·
 check-modules 55/55), pushed through strict gates, CI terminal green.
-Receipt: [`docs/status/2026-10-25_10-15_green-tree-receipt_status.md`](docs/status/2026-10-25_10-15_green-tree-receipt_status.md).
+Receipt: [`docs/status/2026-10-25_10-15_green-tree-receipt_status.md`](docs/status/archived/2026-10-25_10-15_green-tree-receipt_status.md).
 
 ## The next thread (start immediately after)
 
