@@ -1,10 +1,14 @@
 # Status: Wave R closed, D04/D01/D02 executed, lane split with the sibling session
 
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md`](../2026-10-25_14-01_lane-addendum-w09-built-stale-first-cut-red_status.md), which the lane-split decision is absorbed by the 10-43 lane addendum; execution state continues in the 14-01 report. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
+
 **Written:** 2026-10-25 10:36 CET · **Supersedes:**
-[`2026-10-25_10-15_green-tree-receipt_status.md`](archived/2026-10-25_10-15_green-tree-receipt_status.md)
+[`2026-10-25_10-15_green-tree-receipt_status.md`](2026-10-25_10-15_green-tree-receipt_status.md)
 (Wave R + D04 receipts there are carried; this report covers the D01/D02 execution
 and the lane division).
-**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md) (its §8 execution receipt is current through D01).
+**Plan of record:** [`docs/planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md`](../../planning/2026-10-25_08-05_SUPERB-ci-rescue-s32-proof-and-full-micro-breakdown-pareto-plan.md) (its §8 execution receipt is current through D01).
 **Tree:** clean at `ae3b80dd` (sibling session's D03 close-out, local-only) · origin/master at `65665920` (1 ahead unpushed — the sibling's commit, not mine) · **CI run `40181238507` IN PROGRESS on `65665920` — NOT yet watched to terminal** (see §f-1).
 
 ## §a FULLY DONE this session (all committed; pushed through `65665920`)
