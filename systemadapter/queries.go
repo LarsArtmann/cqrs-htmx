@@ -2,7 +2,6 @@ package systemadapter
 
 import (
 	"context"
-	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -162,8 +161,13 @@ func FindPolicies(ctx context.Context, sys *system.System, subject, domain strin
 }
 
 // Enforce checks whether the subject holds any role in the given domain that
-// grants the requested action. Role inheritance is applied: admin implies user,
-// user implies viewer, super_admin implies all.
+// grants the requested action.
+//
+// S42 alignment: the verdict mirrors the legacy Casbin default policies —
+// only admin and super_admin carry wildcard allows, so only those roles
+// grant. The earlier viewer→read / user→write / owner≡admin ladder invented
+// permissions legacy never granted: migrating from NewProjectionLayer to the
+// declarative path must never silently widen access.
 func Enforce(ctx context.Context, sys *system.System, subject, domain, action string) (bool, error) {
 	entries, err := FindPolicies(ctx, sys, subject, domain)
 	if err != nil {
@@ -171,7 +175,7 @@ func Enforce(ctx context.Context, sys *system.System, subject, domain, action st
 	}
 	for _, entry := range entries {
 		for _, role := range entry.Roles {
-			if roleGrantsAction(identitymodel.Role(role), action) {
+			if roleHoldsDefaultAllow(identitymodel.Role(role)) {
 				return true, nil
 			}
 		}
@@ -179,40 +183,17 @@ func Enforce(ctx context.Context, sys *system.System, subject, domain, action st
 	return false, nil
 }
 
-// roleGrantsAction checks whether a role grants the requested action, applying
-// the inheritance hierarchy: super_admin > admin > user > viewer.
-func roleGrantsAction(role identitymodel.Role, action string) bool {
-	levels := map[identitymodel.Role]int{
-		identitymodel.RoleSuperAdmin: 4,
-		identitymodel.RoleAdmin:      3,
-		identitymodel.RoleOwner:      3,
-		identitymodel.RoleUser:       2,
-		identitymodel.RoleViewer:     1,
-	}
-	required, ok := actionLevel(action)
-	if !ok {
-		return false
-	}
-	granted, ok := levels[role]
-	if !ok {
-		return false
-	}
-	return granted >= required
-}
-
-func actionLevel(action string) (int, bool) {
-	switch strings.ToLower(action) {
-	case "view", "read":
-		return 1, true
-	case "use", "write", "edit":
-		return 2, true
-	case "manage", "admin":
-		return 3, true
-	case "super", "everything":
-		return 4, true
-	default:
-		return 0, false
-	}
+// roleHoldsDefaultAllow reports whether the role carries a default allow
+// policy under the legacy Casbin seed: DefaultPolicies grants admin and
+// super_admin a */*/* wildcard, and no other role holds any policy. The
+// g2 hierarchy (super_admin > admin > user > viewer) cannot widen this —
+// user and viewer have nothing to inherit.
+//
+// The action string deliberately does not participate: the default policies
+// are object/action-agnostic wildcards, so filtering on it would diverge
+// from the legacy verdict for the same inputs.
+func roleHoldsDefaultAllow(role identitymodel.Role) bool {
+	return role == identitymodel.RoleAdmin || role == identitymodel.RoleSuperAdmin
 }
 
 // -------------------------------------------------------------------------

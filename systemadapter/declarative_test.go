@@ -592,13 +592,16 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 		return nil
 	})
 
+	// S42 alignment: legacy Casbin grants viewer and user NOTHING (no default
+	// policies exist for them), so the declarative path must deny too — even
+	// for the low-bar "view"/"write" actions the old ladder invented.
 	eventually(t, 5*time.Second, func() error {
 		allowed, err := systemadapter.Enforce(ctx, sys, plainStreamID.Get(), tenantID.Get(), "view")
 		if err != nil {
 			return err
 		}
-		if !allowed {
-			return errors.New("viewer should be allowed to view")
+		if allowed {
+			return errors.New("viewer must NOT be granted view (legacy grants viewer nothing)")
 		}
 		return nil
 	})

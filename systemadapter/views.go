@@ -89,7 +89,15 @@ type PolicyEntry struct {
 type AuditEntryView struct {
 	EventType   string `json:"event_type"`
 	AggregateID string `json:"aggregate_id"`
+	// ActorID is the self-describing "kind:raw" actor wire form (e.g.
+	// "user:01J...") when the journaled record carries one, empty otherwise.
+	// Populated from record metadata, so entries replayed from a store shared
+	// with an enriching writer (the usermgmt service path) keep "who did it".
+	ActorID string `json:"actor_id,omitempty"`
 	//cqrs-lint:ignore(C013) metaengine serializes views as JSON; time.Time marshals to RFC3339 with timezone — nothing is lost
 	OccurredAt time.Time `json:"occurred_at"`
 	Action     string    `json:"action"`
+	// Detail carries the bounded failure-reason class for login_failed
+	// entries; empty otherwise. Mirrors the legacy AuditEntry.Detail contract.
+	Detail string `json:"detail,omitempty"`
 }
