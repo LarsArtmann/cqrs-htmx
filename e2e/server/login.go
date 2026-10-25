@@ -32,8 +32,9 @@ const e2eWebAuthnOrigin = "http://localhost:18923"
 // ships a csrf-token meta tag for assets/login.js to round-trip.
 func mountLoginPage(mux *http.ServeMux) error {
 	passkeys, err := usermgmtwebauthn.New(usermgmtwebauthn.Config{
-		RPID:      "localhost",
-		RPOrigins: []string{e2eWebAuthnOrigin},
+		RPID:          "localhost",
+		RPDisplayName: "cqrs-htmx e2e",
+		RPOrigins:     []string{e2eWebAuthnOrigin},
 	})
 	if err != nil {
 		return err

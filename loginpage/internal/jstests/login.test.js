@@ -166,3 +166,38 @@ test("prepareRegOptions decodes challenge and user.id", () => {
   assert.strictEqual(out.user.name, "a@b.c");
   assert.deepStrictEqual([...new Uint8Array(out.excludeCredentials[0].id)], [0, 255]);
 });
+
+// usermgmt's begin endpoints return the browser options inside a
+// {"publicKey": {...}} envelope. The preparers must unwrap it — found live
+// by the Playwright virtual-authenticator E2E (2026-10-25): the bare-object
+// reads crashed with "Cannot read properties of undefined (reading
+// 'replace')" because opts.challenge lived one level down.
+test("prepare* unwraps usermgmt's {publicKey: {...}} begin envelope", () => {
+  const login = loginJS.prepareLoginOptions({
+    publicKey: {
+      challenge: "AQID",
+      rpId: "localhost",
+      allowCredentials: [{ type: "public-key", id: "AAE", transports: ["internal"] }],
+    },
+  });
+  assert.deepStrictEqual([...new Uint8Array(login.challenge)], [1, 2, 3]);
+  assert.strictEqual(login.rpId, "localhost");
+  assert.deepStrictEqual([...new Uint8Array(login.allowCredentials[0].id)], [0, 1]);
+
+  const reg = loginJS.prepareRegOptions({
+    publicKey: {
+      challenge: "AA",
+      user: { id: "AQID", name: "a@b.c", displayName: "A" },
+    },
+  });
+  assert.deepStrictEqual([...new Uint8Array(reg.challenge)], [0]);
+  assert.deepStrictEqual([...new Uint8Array(reg.user.id)], [1, 2, 3]);
+
+  assert.strictEqual(
+    loginJS.unwrapPublicKeyEnvelope({ publicKey: { challenge: "AA" } }).challenge,
+    "AA",
+  );
+  assert.deepStrictEqual(loginJS.unwrapPublicKeyEnvelope({ challenge: "AA" }), {
+    challenge: "AA",
+  });
+});
