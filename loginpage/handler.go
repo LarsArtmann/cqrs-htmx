@@ -168,13 +168,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Rebuild the per-request fields (the CSRF token is request-scoped under
 	// nosurf; nonce and theme may come from request hooks or middleware).
 	data := h.data
-	data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
-	data.CSRFField = httputil.CSRFTokenFormField(r)
-	if h.config.NonceFromRequest != nil {
-		data.Nonce = sanitizeNonce(h.config.NonceFromRequest(r))
-	}
-	data.Theme = h.config.resolveTheme(r)
-	data.ErrorMessage = errorMessageFromQuery(r)
+	applyRequestScoped(&data, h.config, r)
 
 	renderPage(w, r, data)
 }
@@ -288,12 +282,26 @@ func buildPageData(config Config, r *http.Request) PageData {
 	}
 
 	if r != nil {
-		data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
-		data.CSRFField = httputil.CSRFTokenFormField(r)
-		data.ErrorMessage = errorMessageFromQuery(r)
+		applyRequestScoped(&data, config, r)
 	}
 
 	return data
+}
+
+// applyRequestScoped populates the request-scoped PageData fields: CSRF
+// token (request-scoped under nosurf), CSP nonce, theme, and the ?error=
+// message. Shared by ServeHTTP (Option A) and buildPageData (Option B via
+// NewPageData) so both render paths stay identical — pre-fix, Option B
+// populated only the CSRF fields, shipping nonce-less scripts (dead under
+// the recommended CSP) and losing SSR theming.
+func applyRequestScoped(data *PageData, config Config, r *http.Request) {
+	data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
+	data.CSRFField = httputil.CSRFTokenFormField(r)
+	if config.NonceFromRequest != nil {
+		data.Nonce = sanitizeNonce(config.NonceFromRequest(r))
+	}
+	data.Theme = config.resolveTheme(r)
+	data.ErrorMessage = errorMessageFromQuery(r)
 }
 
 // errorMessageFromQuery reads the ?error= query param (the conventional
