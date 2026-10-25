@@ -81,6 +81,14 @@ linters:
     # always thread r.Context() via renderPage/renderPartial.
     - contextcheck
   settings:
+    wrapcheck:
+      ignore-sigs:
+        - .WithCause(
+        - .WithContext(
+        - .WithContextAny(
+      ignore-package-globs:
+        - github.com/larsartmann/go-error-family*
+        - github.com/larsartmann/go-cqrs-lite/event/*
     cyclop:
       max-complexity: 12
     exhaustruct:

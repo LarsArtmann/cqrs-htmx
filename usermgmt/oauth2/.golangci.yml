@@ -42,6 +42,15 @@ linters:
     - interfacebloat
     - maintidx
     - nestif
+  settings:
+    wrapcheck:
+      ignore-sigs:
+        - .WithCause(
+        - .WithContext(
+        - .WithContextAny(
+      ignore-package-globs:
+        - github.com/larsartmann/go-error-family*
+        - github.com/larsartmann/go-cqrs-lite/event/*
   exclusions:
     generated: lax
     rules:

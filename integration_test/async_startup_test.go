@@ -33,7 +33,7 @@ type slowJournal struct {
 func (j *slowJournal) ReadFrom(ctx context.Context, after id.EventID, limit int) ([]event.Event, error) {
 	j.reads.Add(1)
 	time.Sleep(j.delay)
-	return j.SeekableJournal.ReadFrom(ctx, after, limit) //nolint:wrapcheck // delay-injection delegator
+	return j.SeekableJournal.ReadFrom(ctx, after, limit)
 }
 
 // TestAsyncStartupReadinessLifecycle verifies the full async-startup lifecycle

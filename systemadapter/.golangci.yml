@@ -100,6 +100,14 @@ linters:
     # are inherently long. Splitting them reduces readability.
     - funlen
   settings:
+    wrapcheck:
+      ignore-sigs:
+        - .WithCause(
+        - .WithContext(
+        - .WithContextAny(
+      ignore-package-globs:
+        - github.com/larsartmann/go-error-family*
+        - github.com/larsartmann/go-cqrs-lite/event/*
     cyclop:
       max-complexity: 12
     gocritic:
