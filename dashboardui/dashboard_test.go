@@ -447,7 +447,10 @@ func TestLayout_ScriptsAreDeferred(t *testing.T) {
 	body := rec.Body.String()
 	for _, want := range []string{
 		`<script src="/dashboard/-/htmx.js" defer></script>`,
-		`<script src="/dashboard/-/dashboard.js" defer></script>`,
+		// data-base-path is the JS base-path hook (W14.3): authoritative even
+		// when the script URL is proxied; the JS falls back to src parsing
+		// when the attribute is absent.
+		`<script src="/dashboard/-/dashboard.js" data-base-path="/dashboard" defer></script>`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("layout missing deferred script tag %q", want)
