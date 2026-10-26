@@ -1,0 +1,7 @@
+# codespell config (canary f, 2026-10-26): the living docs set must spell
+# clean. These are DOMAIN TERMS, not typos:
+#   deriver/Deriver — the go-cqrs-lite decider/deriver pair (event sourcing)
+#   mor/MoR         — Model of Record
+[codespell]
+ignore-words-list = deriver,derivers,mor
+skip = .git,go.sum,flake.lock,docs/status/archived,docs/planning/archived

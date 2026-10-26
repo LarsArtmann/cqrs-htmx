@@ -592,6 +592,23 @@ jobs:
       - name: Root files allowlist self-test
         run: bash scripts/selftests/test-check-root-files.sh
 
+      # Canary (c), gotcha 35: a daemon-captured .buildflow.yml deletion
+      # resurrected documented-destructive steps. The 7 documented skips
+      # must stay listed.
+      - name: BuildFlow skips canary
+        run: bash scripts/checks/check-buildflow-skips.sh
+
+      - name: BuildFlow skips canary self-test
+        run: bash scripts/selftests/test-check-buildflow-skips.sh
+
+      # Canary (b), gotcha 34: the verify-tag fixtures are deliberately
+      # untidy — a tidy sweep strips exactly the lines they exist to carry.
+      - name: Verify-tag fixtures poison canary
+        run: bash scripts/checks/check-verify-tag-fixtures-untidy.sh
+
+      - name: Verify-tag fixtures poison canary self-test
+        run: bash scripts/selftests/test-check-verify-tag-fixtures-untidy.sh
+
       # R2/R18: upstream release consumability — a tag whose go.mod carries
       # placeholder pseudo-version requires (templ-components v1.20.0 class)
       # blocks every consumer push with a misleading "unknown revision".

@@ -34,12 +34,12 @@ expected=(
   dprint-format    # dprint.json removed 2026-10-18; tombstone vs unscoped defaults
 )
 
-# skip_steps entries: lines "- name" after "skip_steps:" until the next
-# top-level key.
+# skip_steps entries: "- name" lines (any indentation) after "skip_steps:"
+# until the next top-level key.
 actual=$(awk '
   /^skip_steps:/ { in_block = 1; next }
   in_block && /^[^#[:space:]][^:]*:/ { in_block = 0 }
-  in_block && /^- / { sub(/^- */, ""); print }
+  in_block && /^[[:space:]]*- / { sub(/^[[:space:]]*-[[:space:]]*/, ""); print }
 ' "$BUILDFLOW")
 
 if [ -z "$actual" ]; then
