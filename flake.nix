@@ -2297,7 +2297,7 @@
               text = ''
                 fail=0
                 while IFS=$'\t' read -r mod threshold; do
-                  case "$mod" in ''|'#'*) continue ;; esac
+                  case "$mod" in ""|'#'*) continue ;; esac
                   profile=$(mktemp /tmp/cov.XXXXXX)
                   if [ -f "$mod/go.mod" ]; then
                     # Module row: hermetic per-module test run.
