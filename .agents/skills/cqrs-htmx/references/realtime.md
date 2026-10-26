@@ -65,8 +65,8 @@ type Event struct {
 
 ## `Broadcaster` API (SSE fan-out)
 
-//doc:api-tour
 ```go
+//doc:api-tour
 b := cqrshtmx.NewBroadcaster()
 b.Subscribe()             // → chan SSEEvent (buffered, 64 capacity)
 b.Unsubscribe(ch)         // O(1) via channel pointer identity; closes the channel
@@ -103,9 +103,9 @@ cqrshtmx.SSEEventHeartbeat   // "heartbeat"
 ### Event filtering (consumer concern)
 
 The library intentionally provides no filtering primitives — filtering is domain-specific. The recommended pattern:
-//doc:api-tour
 
 ```go
+//doc:api-tour
 // 1. Parse filter from query params
 type sseFilter struct {
     EventType string

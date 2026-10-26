@@ -234,8 +234,8 @@ mux.Handle("POST /api/greet", cqrshtmx.CommandTyped[*greetCmd](
 
 Queries work the same way — the type implements `query.Query` and the handler returns a concrete result type:
 
-//doc:api-tour
 ```go
+//doc:api-tour
 type sumQuery struct {
     A int `json:"a"`
     B int `json:"b"`

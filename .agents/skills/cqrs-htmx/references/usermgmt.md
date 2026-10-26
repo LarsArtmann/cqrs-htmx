@@ -122,8 +122,8 @@ The HTTP ceremony endpoints are mounted by `RegisterRoutes`. Registration and lo
 
 **v4 injection pattern** (import the sub-module only if you need OAuth2):
 
-//doc:api-tour
 ```go
+//doc:api-tour
 import "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
 
 oaProvider, err := oauth2.New(ctx, oauth2.Config{
@@ -150,9 +150,9 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 ### TOTP (optional second factor)
 
 **v4 injection pattern** (import the sub-module only if you need TOTP):
-//doc:api-tour
 
 ```go
+//doc:api-tour
 import "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 
 totpProvider := totp.New(totp.Config{Issuer: "My App", Window: 1})  // Window=1 → ±30s drift

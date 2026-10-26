@@ -58,6 +58,17 @@ ALLOWLIST="
 cqrshtmx.TemplComponent
 "
 
+# Per-document allowlist: doc-basename TAB token. auditlog/README.md's
+# quickstart intentionally shadows names — `setup` is the LOCAL VARIABLE
+# returned by WithAuditLog (fields .Opts/.Viewer/.Plugin), and `auditlog` is
+# the UPSTREAM samber-do-auditlog package alias in its import block.
+DOC_ALLOWLIST="
+auditlog/README.md	setup.Opts
+auditlog/README.md	setup.Plugin
+auditlog/README.md	setup.Viewer
+auditlog/README.md	auditlog.Config
+"
+
 fail=0
 checked=0
 
@@ -79,6 +90,12 @@ for doc in "${DOCS[@]}"; do
     fi
 
     if grep -qx "$sym" <<<"$ALLOWLIST"; then
+      continue
+    fi
+
+    doc_base="${doc#"$REPO_ROOT"/}"
+    if grep -qP "^\Q$doc_base\E\t\Q$sym\E$" <<<"$DOC_ALLOWLIST" 2>/dev/null ||
+      printf '%s\n' "$DOC_ALLOWLIST" | grep -q "^${doc_base}	${sym}$"; then
       continue
     fi
 
