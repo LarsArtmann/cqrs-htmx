@@ -356,7 +356,6 @@ func TestSnapshotDeleteHandler_Success(t *testing.T) {
 	if !strings.Contains(loc, "/snapshots") {
 		t.Fatalf("unexpected redirect location: %s", loc)
 	}
-
 	trigger := w.Header().Get("Hx-Trigger")
 	if !strings.Contains(trigger, "Snapshot deleted") {
 		t.Fatalf("expected success toast, got Hx-Trigger: %s", trigger)

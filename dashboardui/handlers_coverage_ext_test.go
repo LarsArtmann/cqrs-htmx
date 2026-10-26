@@ -390,8 +390,33 @@ func TestSnapshotDetailHandler_StoreError(t *testing.T) {
 	r.SetPathValue("id", "01HXTEST")
 	d.snapshotDetailHandler(w, r)
 
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected 500 (a store failure must not masquerade as a missing snapshot), got %d", w.Code)
+	}
+}
+
+// Not-found is an honest absence: the missing-snapshot page, never a 500.
+func TestSnapshotDetailHandler_NotFoundIsMissingPageNotError(t *testing.T) {
+	d, err := New(Config{
+		Journal:       &stubJournal{},
+		SnapshotStore: &errorSnapshotStore{loadErr: snapshot.ErrSnapshotNotFound},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/snapshots/User/01HXTEST", nil)
+	r.SetPathValue("type", "User")
+	r.SetPathValue("id", "01HXTEST")
+	d.snapshotDetailHandler(w, r)
+
 	if w.Code != http.StatusOK {
-		t.Errorf("expected 200 (renders 'no snapshot' page), got %d", w.Code)
+		t.Fatalf("expected 200 missing-snapshot page, got %d", w.Code)
+	}
+
+	if !strings.Contains(w.Body.String(), "No snapshot found") {
+		t.Error("expected the missing-snapshot page for a not-found error")
 	}
 }
 

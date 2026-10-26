@@ -246,7 +246,13 @@ func LoadTailEvents(
 				break
 			}
 
-			after = batch[len(batch)-1].ID()
+			next := batch[len(batch)-1].ID()
+			if next == after {
+				return nil, 0, errorfamily.NewInfrastructure("dashboardui.tail_events.cursor_stalled",
+					"journal cursor did not advance while reading the tail")
+			}
+
+			after = next
 		}
 
 		return tail, total, nil
@@ -336,7 +342,13 @@ func loadEventByJournalScan(
 			break
 		}
 
-		after = batch[len(batch)-1].ID()
+		next := batch[len(batch)-1].ID()
+		if next == after {
+			return nil, errorfamily.NewInfrastructure("dashboardui.event_detail.cursor_stalled",
+				"journal cursor did not advance while scanning for the event")
+		}
+
+		after = next
 	}
 
 	return nil, errorfamily.Newf(event.Rejection,
@@ -393,8 +405,13 @@ func FindEventNeighbors(ctx context.Context, cfg Config, eventID id.EventID) (st
 				return "", ""
 			}
 
+			next := batch[len(batch)-1].ID()
+			if next == after {
+				return "", ""
+			}
+
 			prev = batch[len(batch)-1]
-			after = prev.ID()
+			after = next
 		}
 	}
 
