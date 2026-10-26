@@ -24,15 +24,6 @@ if [ ! -d "$SKILLS_DIR" ]; then
   exit 1
 fi
 
-# extracts a fence's body between ```go and the closing ``` line.
-extract_go_fences() {
-  awk '
-    /^```go$/ { infence = 1; next }
-    in_fence && /^```$/ { infence = 0; printf "\n===FENCE===\n"; next }
-    in_fence { print }
-  ' "$1"
-}
-
 # parses_ok <body>: as-is | package-wrapped | func-wrapped.
 parses_ok() {
   local body="$1"
@@ -42,8 +33,20 @@ parses_ok() {
   return 1
 }
 
+# looks_like_code <body>: the skill docs also carry Go-fenced API SIGNATURE
+# REFERENCE TABLES ("cqrshtmx.Foo(a) / cqrshtmx.Bar(b)") and import-block
+# fragments — legitimate doc constructs a parser floor cannot treat as
+# programs. A fence is checked only when it carries a code-ish line.
+looks_like_code() {
+  grep -qE ':=|^[[:space:]]*(func|package|import|type|var|const|return)[[:space:]]|\{[[:space:]]*$' <<<"$1"
+}
+
+# NOTE: the awk runs INLINE in the process substitution (not via a helper
+# function) — mvdan/sh, the shell on this host, does not pipe function
+# output through < <() correctly.
 fail=0
 checked=0
+skipped=0
 
 shopt -s globstar
 for doc in "$SKILLS_DIR"/**/*.md; do
@@ -52,25 +55,44 @@ for doc in "$SKILLS_DIR"/**/*.md; do
   body=""
   while IFS= read -r line; do
     if [ "$line" = "===FENCE===" ]; then
-      checked=$((checked + 1))
-      if ! parses_ok "$body"; then
-        echo "✗ skill-snippets: a Go fence in $doc does not parse:" >&2
-        printf '%s\n' "$body" | head -8 | sed 's/^/    /' >&2
-        fail=1
+      if [ "$(printf '%s' "$body" | head -1 | tr -d '[:space:]')" = "//doc:api-tour" ]; then
+        # Annotated API-tour fence (statements + "// → ..." method listings):
+        # deliberately not a program. The marker is a Go comment, so the
+        # fence still renders as ordinary documentation.
+        skipped=$((skipped + 1))
+      elif looks_like_code "$body"; then
+        checked=$((checked + 1))
+        if ! parses_ok "$body"; then
+          echo "✗ skill-snippets: a Go fence in $doc does not parse:" >&2
+          printf '%s\n' "$body" | head -8 | sed 's/^/    /' >&2
+          fail=1
+        fi
+      else
+        skipped=$((skipped + 1))
       fi
       body=""
     else
       body+="$line"$'\n'
     fi
-  done < <(extract_go_fences "$doc")
+  done < <(
+    # "\140" = backtick, written as an octal escape: literal backticks in
+    # this awk program break mvdan/sh's process-substitution parsing (the
+    # shell this host runs), silently feeding the loop EOF.
+    awk '
+      BEGIN { opener = "\140\140\140go"; closer = "\140\140\140" }
+      $0 == opener { infence = 1; next }
+      infence && $0 == closer { infence = 0; printf "\n===FENCE===\n"; next }
+      infence { print }
+    ' "$doc"
+  )
 done
 
 if [ "$checked" -eq 0 ]; then
-  echo "✗ skill-snippets: zero Go fences found — the gate scanned nothing"
+  echo "✗ skill-snippets: zero code fences found — the gate scanned nothing"
   exit 1
 fi
 
 if [ "$fail" -eq 0 ]; then
-  echo "✓ skill-snippets: $checked Go fence(s) all parse"
+  echo "✓ skill-snippets: $checked code fence(s) all parse ($skipped signature-reference fence(s) skipped)"
 fi
 exit "$fail"

@@ -41,6 +41,7 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 ## `SSEStream` API
 
 ```go
+//doc:api-tour
 stream := cqrshtmx.NewSSEStream(w, r)
 stream.Send(cqrshtmx.SSEEvent{Event: "x", Data: "...", ID: "...", Retry: "3000"})
 stream.SendHTML("itemUpdated", "<div>...</div>") // convenience
@@ -64,6 +65,7 @@ type Event struct {
 
 ## `Broadcaster` API (SSE fan-out)
 
+//doc:api-tour
 ```go
 b := cqrshtmx.NewBroadcaster()
 b.Subscribe()             // → chan SSEEvent (buffered, 64 capacity)
@@ -101,6 +103,7 @@ cqrshtmx.SSEEventHeartbeat   // "heartbeat"
 ### Event filtering (consumer concern)
 
 The library intentionally provides no filtering primitives — filtering is domain-specific. The recommended pattern:
+//doc:api-tour
 
 ```go
 // 1. Parse filter from query params

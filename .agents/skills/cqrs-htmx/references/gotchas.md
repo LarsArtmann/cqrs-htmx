@@ -131,6 +131,7 @@ A dispatch error may carry a domain Rejection/Conflict. Forcing it to Transient 
 In usermgmt, `Secure` is `*bool` — nil defaults to true. To set false explicitly you must use a pointer:
 
 ```go
+//doc:api-tour
 Secure: new(bool),              // false
 // or
 sec := true

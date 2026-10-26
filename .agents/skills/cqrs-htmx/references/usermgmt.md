@@ -102,6 +102,7 @@ Reads the cookie, validates the token, and injects the authenticated `*usermgmt.
 **v4 injection pattern** (import the sub-module only if you need passkeys):
 
 ```go
+//doc:api-tour
 import "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
 
 waProvider, err := webauthn.New(webauthn.Config{
@@ -121,6 +122,7 @@ The HTTP ceremony endpoints are mounted by `RegisterRoutes`. Registration and lo
 
 **v4 injection pattern** (import the sub-module only if you need OAuth2):
 
+//doc:api-tour
 ```go
 import "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
 
@@ -148,6 +150,7 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 ### TOTP (optional second factor)
 
 **v4 injection pattern** (import the sub-module only if you need TOTP):
+//doc:api-tour
 
 ```go
 import "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"

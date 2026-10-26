@@ -206,6 +206,7 @@ For HTML rendering: `cqrshtmx.RenderTempl(component)` (templ), `cqrshtmx.RenderT
 `CommandTyped[Q]` and `QueryTyped[Q, R]` eliminate the mapper function and manual type assertions. The type `Q` itself implements `command.Command` or `query.Query`, and the decoder populates it directly from the request body:
 
 ```go
+//doc:api-tour
 // 1. Define a type that implements command.Command directly.
 type greetCmd struct {
     aggID id.AggregateID
@@ -233,6 +234,7 @@ mux.Handle("POST /api/greet", cqrshtmx.CommandTyped[*greetCmd](
 
 Queries work the same way — the type implements `query.Query` and the handler returns a concrete result type:
 
+//doc:api-tour
 ```go
 type sumQuery struct {
     A int `json:"a"`
