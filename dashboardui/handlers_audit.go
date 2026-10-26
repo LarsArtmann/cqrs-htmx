@@ -220,16 +220,13 @@ func (d *Dashboard) queriesIndexHandler(
 	p := d.page("Queries", "/queries", r)
 
 	if format := parseFormat(r); format != formatHTML {
-		var queries []*query.PersistedQuery
+		if d.config.QueryJournal == nil {
+			d.renderError(w, r, http.StatusInternalServerError, "no query journal configured")
 
-		var err error
-
-		if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
-			queries, err = seekable.ReadQueriesFrom(r.Context(), id.RequestID{}, exportLimit)
-		} else if d.config.QueryJournal != nil {
-			queries, err = d.config.QueryJournal.ReadAllQueries(r.Context())
+			return
 		}
 
+		queries, err := loadAllQueries(r.Context(), d.config.QueryJournal)
 		if err != nil {
 			d.renderError(w, r, http.StatusInternalServerError, "failed to load queries for export")
 

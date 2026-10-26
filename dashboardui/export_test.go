@@ -102,3 +102,53 @@ func TestCommandsExport_CSV(t *testing.T) {
 		t.Error("expected CSV header row")
 	}
 }
+
+// The export must carry the COMPLETE audit trail: the old zero-cursor
+// ReadFrom(zero, exportLimit) returned only the OLDEST exportLimit commands,
+// silently dropping every newer entry, and never paged past one batch.
+func TestCommandsExport_PagesSeekableJournal_CompleteTrail(t *testing.T) {
+	t.Parallel()
+
+	total := exportLimit + 5 // one entry past the old hard cap: forces paging AND proves no truncation
+	cmds := make([]*command.PersistedCommand, 0, total)
+	for range total {
+		cmds = append(cmds, makeTestCommand(t))
+	}
+
+	d := MustNew(Config{
+		Journal:        stubJournal{},
+		CommandJournal: &fakeCommandJournal{cmds: cmds},
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/commands?format=csv", nil)
+	d.commandsIndexHandler(w, r)
+
+	if got := strings.Count(w.Body.String(), "test.create"); got != total {
+		t.Errorf("export must contain every command: got %d rows, want %d", got, total)
+	}
+}
+
+// Queries twin: JSON export pages a seekable journal and stays complete.
+func TestQueriesExport_PagesSeekableJournal_CompleteTrail(t *testing.T) {
+	t.Parallel()
+
+	total := exportBatch + 3 // two cursor pages
+	queries := make([]*query.PersistedQuery, 0, total)
+	for range total {
+		queries = append(queries, makeTestQuery(t))
+	}
+
+	d := MustNew(Config{
+		Journal:      stubJournal{},
+		QueryJournal: &fakeQueryJournal{queries: queries},
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/queries?format=json", nil)
+	d.queriesIndexHandler(w, r)
+
+	if got := strings.Count(w.Body.String(), `"requestId"`); got != total {
+		t.Errorf("export must contain every query: got %d rows, want %d", got, total)
+	}
+}
