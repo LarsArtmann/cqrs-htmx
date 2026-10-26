@@ -384,6 +384,9 @@ func TestTruncate_NeverSplitsRunes(t *testing.T) {
 			t.Errorf("truncate(%q, %d) = %q, want %q", tc.in, tc.n, got, tc.want)
 		}
 	}
+
+	// Sweep every cut width over a multi-script string: no result may ever be
+	// invalid UTF-8, whatever byte the naive cut lands on.
 	sweep := "héllo wörld ünïcode \u65e5\u672c\u8a9e mixed"
 	for _, s := range []string{sweep} {
 		for n := range len(s) + 2 {
