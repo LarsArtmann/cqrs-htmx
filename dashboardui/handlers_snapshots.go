@@ -70,7 +70,8 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 
 	// Idempotent delete: a snapshot that is already gone is success, not a
 	// 500 "Delete failed" toast.
-	if err := d.config.SnapshotStore.Delete(r.Context(), ref); err != nil && !errors.Is(err, snapshot.ErrSnapshotNotFound) {
+	deleteErr := d.config.SnapshotStore.Delete(r.Context(), ref)
+	if deleteErr != nil && !errors.Is(deleteErr, snapshot.ErrSnapshotNotFound) {
 		slog.ErrorContext(
 			r.Context(),
 			"dashboardui.audit",
@@ -84,7 +85,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 				"result",
 				"error",
 				"error",
-				err,
+				deleteErr,
 			)...,
 		)
 		triggerToast(w, "err", "Delete failed")
