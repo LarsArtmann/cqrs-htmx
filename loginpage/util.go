@@ -42,6 +42,21 @@ func validateStylesheetURL(cssPath string) error {
 	)
 }
 
+// validateAuthPrefix rejects AuthPrefix values that are not root-relative
+// paths. The prefix is concatenated into every auth link target and into the
+// 302 Location header of [Config.AutoRedirect]: a bare-relative value
+// ("api") would mis-resolve against the page URL, and a protocol-relative
+// value ("//host") or scheme'd URL would redirect visitors off-site.
+func validateAuthPrefix(prefix string) error {
+	if prefix == "" ||
+		(strings.HasPrefix(prefix, "/") && !strings.HasPrefix(prefix, "//")) {
+		return nil
+	}
+	return errConfig(
+		`Config.AuthPrefix must be empty or a root-relative path starting with "/" (e.g. "/api"): it feeds link targets and the AutoRedirect 302 Location, so bare-relative ("api") and protocol-relative ("//host") values redirect wrongly or off-site`,
+	)
+}
+
 // trimTrailingSlash removes trailing "/" so prefixes never end with one.
 func trimTrailingSlash(s string) string {
 	return strings.TrimRight(s, "/")

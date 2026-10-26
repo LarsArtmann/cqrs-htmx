@@ -142,14 +142,30 @@ type Config struct {
 	// Mutually exclusive with [Config.OAuth2Buttons] (rejected at [New]).
 	NoOAuth2 bool
 
+	// NoWebAuthn force-hides the passkey form and the registration section
+	// on the page, even when [Config.Service] has a WebAuthn provider
+	// configured — the page-level counterpart of [Config.NoOAuth2], for
+	// consumers that mount an OAuth-only page (see [Config.AutoRedirect])
+	// while the shared service keeps WebAuthn for other surfaces. The
+	// service itself is untouched: WebAuthn endpoints stay mounted wherever
+	// the consumer registered them. Mutually exclusive with [Config.NoOAuth2]
+	// (rejected at [New] — a page with no sign-in method at all is a
+	// misconfiguration, not a choice).
+	NoWebAuthn bool
+
 	// AutoRedirect skips the page when OAuth2 is the page's ONLY sign-in
-	// method: with WebAuthn unconfigured and exactly one OAuth2 provider
-	// visible, a GET answers with a redirect (302) straight to
+	// method: with WebAuthn unconfigured (or hidden via [Config.NoWebAuthn])
+	// and exactly one OAuth2 provider visible, a GET answers with a redirect
+	// (302) straight to
 	// {AuthPrefix}/auth/oauth/{provider}/begin instead of rendering a button
 	// the visitor would only click once. With multiple providers the page
-	// renders normally (the visitor must choose); with WebAuthn configured
-	// the passkey form renders. Mutually exclusive with [Config.NoOAuth2]
-	// (rejected at [New]).
+	// renders normally (the visitor must choose); with WebAuthn visible the
+	// passkey form renders. Mutually exclusive with [Config.NoOAuth2]
+	// (rejected at [New]). Session note: the page is session-agnostic by
+	// design — an already-authenticated visitor still gets the 302 (they
+	// re-authenticate and land on Config.Redirect). Consumers who want
+	// signed-in users to skip the page entirely wrap its route with their
+	// own session gate (e.g. setup.RequireSessionRedirect) before it.
 	AutoRedirect bool
 
 	// CredentialName is the label stored with newly registered WebAuthn
@@ -208,7 +224,15 @@ func (config Config) validate() error {
 	if config.AutoRedirect && config.NoOAuth2 {
 		return errConfig(
 			"Config.AutoRedirect and Config.NoOAuth2 are contradictory: AutoRedirect sends visitors straight to an OAuth2 provider, NoOAuth2 hides every OAuth2 button",
+			)
+	}
+	if config.NoWebAuthn && config.NoOAuth2 {
+		return errConfig(
+			"Config.NoWebAuthn and Config.NoOAuth2 are contradictory: the page would have no sign-in method at all — mount a page per audience instead of hiding every method on one",
 		)
+	}
+	if err := validateAuthPrefix(config.AuthPrefix); err != nil {
+		return err
 	}
 	if config.Theme != "" && config.Theme != ThemeLight && config.Theme != ThemeDark {
 		return errConfig(`Config.Theme must be "light" or "dark" (or empty to follow prefers-color-scheme)`)

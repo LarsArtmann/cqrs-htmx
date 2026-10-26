@@ -123,7 +123,7 @@ func New(config Config) (*Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !config.Service.HasWebAuthn() &&
+	if pageHasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn; !pageHasWebAuthn &&
 		!config.NoOAuth2 &&
 		len(config.OAuth2Buttons) == 0 &&
 		len(config.Service.ConfiguredOAuth2Providers()) == 0 {
@@ -246,7 +246,9 @@ func buildPageData(config Config, r *http.Request) PageData {
 	// string containing "</script>" would otherwise break out of the block.
 	configJSON = []byte(scriptSafeJSON(string(configJSON)))
 
-	hasWebAuthn := config.Service.HasWebAuthn()
+	// NoWebAuthn hides the passkey form on THIS page only; the service-level
+	// provider stays configured for other surfaces.
+	hasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn
 
 	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
 	oauth2Buttons := config.OAuth2Buttons
