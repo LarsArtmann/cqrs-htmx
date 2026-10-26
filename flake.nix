@@ -2293,45 +2293,36 @@
 
             coverage-gate = goApp {
               name = "coverage-gate";
-              description = "Run tests and fail if coverage drops below thresholds";
-              runtimeInputs = [ pkgs.bc ];
+              description = "Run tests and fail if coverage drops below thresholds (single-sourced in scripts/checks/coverage-thresholds.tsv; fail-loud on failed test runs)";
               text = ''
                 fail=0
-                check_cov() {
-                  local mod="$1" threshold="$2"
-                  local cov profile
+                while IFS=$'\t' read -r mod threshold; do
+                  case "$mod" in ''|'#'*) continue ;; esac
                   profile=$(mktemp /tmp/cov.XXXXXX)
-                  cov=$(cd "$mod" && go test ./... -count=1 -coverprofile="$profile" >/dev/null 2>&1 && go tool cover -func="$profile" | tail -1 | grep -oP '\d+\.\d+(?=%)')
-                  rm -f "$profile"
-                  echo "$mod coverage: ''${cov}% (threshold: ''${threshold}%)"
-                  if (( $(echo "$cov < $threshold" | bc -l) )); then
-                    echo "FAIL: $mod coverage ''${cov}% < ''${threshold}%"
+                  if [ -f "$mod/go.mod" ]; then
+                    # Module row: hermetic per-module test run.
+                    if ! (cd "$mod" && go test ./... -count=1 -coverprofile="$profile" >/dev/null 2>&1); then
+                      echo "FAIL: $mod test run failed — coverage not measured"
+                      rm -f "$profile"
+                      fail=1
+                      continue
+                    fi
+                  else
+                    # Package row (no go.mod): measure the package from its parent module.
+                    parent=$(dirname "$mod")
+                    pkg=$(basename "$mod")
+                    if ! (cd "$parent" && go test "./$pkg/..." -count=1 -coverprofile="$profile" >/dev/null 2>&1); then
+                      echo "FAIL: $mod test run failed — coverage not measured"
+                      rm -f "$profile"
+                      fail=1
+                      continue
+                    fi
+                  fi
+                  if ! bash scripts/checks/check-coverage-threshold.sh "$mod" "$profile"; then
                     fail=1
                   fi
-                }
-                check_cov . 90
-                check_cov identity-model 70
-                check_cov usermgmt 74
-                check_cov usermgmt/totp 80
-                check_cov usermgmt/webauthn 80
-                check_cov usermgmt/oauth2 80
-                check_cov adminui 66
-                check_cov loginpage 79
-                check_cov dashboardui 60
-                check_cov datastar 90
-                check_cov setup 80
-                check_cov systemadapter 70
-                check_cov health 90
-                check_cov auditlog 90
-                # Per-package gate: dashboardui/core is the pure data layer.
-                core_profile=$(mktemp /tmp/corecov.XXXXXX)
-                core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile="$core_profile" >/dev/null 2>&1 && go tool cover -func="$core_profile" | tail -1 | grep -oP '\d+\.\d+(?=%)')
-                rm -f "$core_profile"
-                echo "dashboardui/core coverage: ''${core_cov}% (threshold: 80%)"
-                if (( $(echo "$core_cov < 80" | bc -l) )); then
-                  echo "FAIL: dashboardui/core coverage ''${core_cov}% < 80%"
-                  fail=1
-                fi
+                  rm -f "$profile"
+                done < scripts/checks/coverage-thresholds.tsv
                 if [ "$fail" -eq 1 ]; then
                   echo "Coverage gate FAILED"
                   exit 1
