@@ -56,6 +56,7 @@ func firstRune(s string) string {
 	if r == utf8.RuneError {
 		return "?"
 	}
+
 	return string(r)
 }
 
@@ -70,6 +71,7 @@ func initials(brand string) string {
 		if len(runes) > brandInitialsLen {
 			runes = runes[:brandInitialsLen]
 		}
+
 		return strings.ToUpper(string(runes))
 	}
 

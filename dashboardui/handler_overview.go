@@ -64,8 +64,10 @@ func truncate(s string, n int) string {
 		if r != utf8.RuneError || size != 1 {
 			break
 		}
+
 		cut = cut[:len(cut)-1]
 	}
+
 	return cut + "..."
 }
 

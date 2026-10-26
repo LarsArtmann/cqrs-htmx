@@ -5,10 +5,12 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -353,5 +355,86 @@ func TestTimeTravel_FirstLinksToV1AndClampsZero(t *testing.T) {
 
 	if !strings.Contains(rec2.Body.String(), "Viewing version 1 of 3") {
 		t.Error("?v=0 must clamp to version 1, not render version 0")
+	}
+}
+
+// ===== W14.2: rune-safe display helpers + escaped name path segments =====
+
+func TestTruncate_NeverSplitsRunes(t *testing.T) {
+	cases := []struct {
+		in   string
+		n    int
+		want string
+	}{
+		{"abcd", 4, "abcd"},                          // fits exactly, no cut
+		{"abcde", 4, "abcd..."},                      // ASCII cut at rune boundary
+		{"héllo", 2, "h..."},                         // byte 2 splits é -> back off
+		{"日本語", 4, "日..."},                          // byte 4 splits 本 -> back off
+		{"日本", 6, "日本"},                            // fits (6 bytes), no cut
+		{"héllo wörld", 60, "héllo wörld"},           // longer than width: untouched
+		{"", 4, ""},                                  // empty stays empty
+		{"é", 1, "..."},                              // single 2-byte rune, width 1: back off to empty
+	}
+	for _, tc := range cases {
+		if got := truncate(tc.in, tc.n); got != tc.want {
+			t.Errorf("truncate(%q, %d) = %q, want %q", tc.in, tc.n, got, tc.want)
+		}
+	}
+	for _, s := range []string{"héllo wörld ünïcode 日本語 mixed"} {
+		for n := range len(s) + 2 {
+			if got := truncate(s, n); !utf8.ValidString(got) {
+				t.Errorf("truncate(%q, %d) = %q: invalid UTF-8", s, n, got)
+			}
+		}
+	}
+}
+
+func TestInitials_RuneSafe(t *testing.T) {
+	cases := []struct {
+		in   string
+		want string
+	}{
+		{"", "?"},                        // empty brand
+		{"  ", "?"},                      // whitespace-only brand
+		{"Acme", "AC"},                   // single word, first 2 runes
+		{"Ä", "Ä"},                       // single multi-byte rune, old code cut mid-rune
+		{"Ähnlich", "ÄH"},                // old code produced mojibake ("ÃH")
+		{"日本語システム", "日本"},           // CJK truncates by rune, not byte
+		{"Acme Corp", "AC"},              // two words
+		{"Über GmbH", "ÜG"},              // old code byte-indexed -> "ÃG"
+		{"a b", "AB"},                    // single-rune words
+	}
+	for _, tc := range cases {
+		if got := initials(tc.in); got != tc.want {
+			t.Errorf("initials(%q) = %q, want %q", tc.in, got, tc.want)
+		}
+	}
+}
+
+func TestPathSeg_EscapesRouteBreakingNames(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"user-read-model", "user-read-model"}, // plain names unchanged
+		{"my proj", "my%20proj"},               // space would 404 the route
+		{"a/b", "a%2Fb"},                       // slash would mis-split the route
+	}
+	for _, tc := range cases {
+		if got := pathSeg(tc.in); got != tc.want {
+			t.Errorf("pathSeg(%q) = %q, want %q", tc.in, got, tc.want)
+		}
+		if back, err := url.PathUnescape(pathSeg(tc.in)); err != nil || back != tc.in {
+			t.Errorf("pathSeg(%q) must round-trip: got %q, err %v", tc.in, back, err)
+		}
+	}
+}
+
+func TestProjectionRows_NameWithSpaceEscapesHref(t *testing.T) {
+	html := goldenRender(t, projectionRows(pageData{BasePath: "/dashboard"}, []projectionStat{{
+		Name: "my proj", Status: "active", StatusKind: statusGood,
+	}}))
+	if !strings.Contains(html, `href="/dashboard/projections/my%20proj"`) {
+		t.Errorf("projection link must escape the name segment, got: %s", html)
+	}
+	if !strings.Contains(html, ">my proj</a>") {
+		t.Error("the visible label must stay the raw name")
 	}
 }
