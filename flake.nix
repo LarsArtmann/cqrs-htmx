@@ -259,7 +259,9 @@
                 # treefmt/prettier (programs above, plan M03); dprint.json and
                 # this devShell binary were dead config after the switch.
                 pkgs.prettier # YAML/JSON/CSS/config files
-                pkgs.biome # JS/TS files (admin.js, login.js, sync-*.js)
+                # biome removed 2026-10-26: nothing consumed biome.json (no
+                # treefmt program, no BuildFlow step, no CI job) — JS
+                # formatting rides BuildFlow's prettier-format step.
                 pkgs.codespell # spell check across all files
                 pkgs.treefmt # nix fmt aggregator
                 # BuildFlow pre-commit steps that failed on missing binaries
