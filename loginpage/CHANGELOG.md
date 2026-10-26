@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`Config.NoWebAuthn` (W14/S36 follow-through, 2026-10-26).** Page-level counterpart of `Config.NoOAuth2`: force-hides the passkey form and the registration section on THIS page while the shared `*usermgmt.Service` keeps its WebAuthn provider for other surfaces (the service and its mounted endpoints are untouched). Unlocks the OAuth-only recipe on a shared service — `NoWebAuthn` + `AutoRedirect` + a sole provider turns the page into a pure OAuth2 entry point (302 straight to the begin URL). Mutually exclusive with `Config.NoOAuth2` (rejected at `New`: a page with no sign-in method at all is a misconfiguration). README §One-click sign-in documents the recipe and the session semantics (the page is session-agnostic by design; wrap the route with a session gate such as `setup.RequireSessionRedirect` to let signed-in visitors skip it).
+
+### Changed
+
+- **`Config.AuthPrefix` is now validated at `New`.** The prefix feeds every auth link target and the `AutoRedirect` 302 `Location` header, so it must be empty or a root-relative path (leading `/`, not protocol-relative `//host`): bare-relative values (`"api"`) mis-resolve against the page URL and protocol-relative values redirect off-site. Previously such values were silently accepted.
+
 ### Fixed
 
 - **WebAuthn ceremonies work against real usermgmt responses (S57/W10, 2026-10-25).** The embedded JS read `begin.options.challenge` (and `user.id` / `allowCredentials` / `excludeCredentials`) directly off the begin endpoint's response — but usermgmt's `/auth/webauthn/{login,register}/begin` return the browser options wrapped in a `{"publicKey": {...}}` envelope, so every real ceremony crashed in the browser with `Cannot read properties of undefined (reading 'replace')`. Found by the first browser-level proof this page ever had (the Playwright virtual-authenticator E2E in `e2e/tests/loginpage-webauthn.spec.ts`); the node smoke suite had only ever fed bare options objects. Both `prepareLoginOptions` and `prepareRegOptions` now unwrap the envelope first (bare objects keep working); pinned by a new jstests case using the exact usermgmt wire shape.
