@@ -677,14 +677,31 @@ func (f *fakeQueryJournal) ReadAllQueries(_ context.Context) ([]*query.Persisted
 
 func (f *fakeQueryJournal) ReadQueriesFrom(
 	_ context.Context,
-	_ id.RequestID,
-	_ int,
+	after id.RequestID,
+	limit int,
 ) ([]*query.PersistedQuery, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
 
-	return f.queries, nil
+	start := 0
+
+	if after != (id.RequestID{}) {
+		for i, qry := range f.queries {
+			if qry.ID() == after {
+				start = i + 1
+
+				break
+			}
+		}
+	}
+
+	queries := f.queries[start:]
+	if limit > 0 && limit < len(queries) {
+		queries = queries[:limit]
+	}
+
+	return queries, nil
 }
 
 func makeTestQuery(t *testing.T) *query.PersistedQuery {

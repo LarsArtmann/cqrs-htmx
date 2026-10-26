@@ -54,14 +54,22 @@ const exportBatch = 500
 // seekable journal is paged by cursor (a single zero-cursor ReadFrom returns
 // the OLDEST batch, silently truncating the export); a non-seekable journal
 // falls back to one ReadAll, the only shape it offers. The export is the
-// complete audit trail — truncation is the bug this replaces.
+// complete audit trail — truncation is the bug this replaces. A cursor that
+// stalls (a full batch whose last ID never moves) fails fast instead of
+// hanging the export.
 func loadAllCommands(
 	ctx context.Context,
 	journal command.CommandJournal,
 ) ([]*command.PersistedCommand, error) {
 	seekable, ok := journal.(command.SeekableCommandJournal)
 	if !ok {
-		return journal.ReadAll(ctx)
+		cmds, err := journal.ReadAll(ctx)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.audit.commands_read_all_failed", "read command journal for export")
+		}
+
+		return cmds, nil
 	}
 
 	var (
@@ -82,7 +90,13 @@ func loadAllCommands(
 			break
 		}
 
-		after = batch[len(batch)-1].ID()
+		next := batch[len(batch)-1].ID()
+		if next == after {
+			return nil, errorfamily.NewInfrastructure("dashboardui.audit.commands_cursor_stalled",
+				"command journal cursor did not advance while paging the export")
+		}
+
+		after = next
 	}
 
 	return all, nil
@@ -95,7 +109,13 @@ func loadAllQueries(
 ) ([]*query.PersistedQuery, error) {
 	seekable, ok := journal.(query.SeekableQueryJournal)
 	if !ok {
-		return journal.ReadAllQueries(ctx)
+		queries, err := journal.ReadAllQueries(ctx)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.audit.queries_read_all_failed", "read query journal for export")
+		}
+
+		return queries, nil
 	}
 
 	var (
@@ -116,7 +136,13 @@ func loadAllQueries(
 			break
 		}
 
-		after = batch[len(batch)-1].ID()
+		next := batch[len(batch)-1].ID()
+		if next == after {
+			return nil, errorfamily.NewInfrastructure("dashboardui.audit.queries_cursor_stalled",
+				"query journal cursor did not advance while paging the export")
+		}
+
+		after = next
 	}
 
 	return all, nil
