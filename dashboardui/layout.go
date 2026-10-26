@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"net/http"
 	"strings"
+	"unicode/utf8"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/templ-components/icons"
@@ -48,6 +49,16 @@ func mapNavIconName(name string) icons.Name {
 	}
 }
 
+// firstRune returns s's first rune as a string, "?" when s does not decode
+// as UTF-8 (never a mojibake byte).
+func firstRune(s string) string {
+	r, _ := utf8.DecodeRuneInString(s)
+	if r == utf8.RuneError {
+		return "?"
+	}
+	return string(r)
+}
+
 func initials(brand string) string {
 	words := strings.Fields(brand)
 	if len(words) == 0 {
@@ -55,10 +66,14 @@ func initials(brand string) string {
 	}
 
 	if len(words) == 1 {
-		return strings.ToUpper(brand[:min(brandInitialsLen, len(brand))])
+		runes := []rune(words[0])
+		if len(runes) > brandInitialsLen {
+			runes = runes[:brandInitialsLen]
+		}
+		return strings.ToUpper(string(runes))
 	}
 
-	return strings.ToUpper(string(words[0][0]) + string(words[1][0]))
+	return strings.ToUpper(firstRune(words[0]) + firstRune(words[1]))
 }
 
 // serveCSS returns a handler that serves the dashboard stylesheet.

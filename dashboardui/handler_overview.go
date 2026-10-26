@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"net/url"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/larsartmann/templ-components/display"
 )
@@ -54,7 +56,25 @@ func truncate(s string, n int) string {
 		return s
 	}
 
-	return s[:n] + "..."
+	cut := s[:n]
+	// Back off while the cut would split a multi-byte rune: a mid-rune cut
+	// is invalid UTF-8 and renders as mojibake in the truncated cell.
+	for len(cut) > 0 {
+		r, size := utf8.DecodeLastRuneInString(cut)
+		if r != utf8.RuneError || size != 1 {
+			break
+		}
+		cut = cut[:len(cut)-1]
+	}
+	return cut + "..."
+}
+
+// pathSeg escapes a free-text URL path segment (projection name, stream
+// name). Go's ServeMux decodes the escape again in PathValue, so names with
+// spaces or slashes round-trip through routes that would otherwise 404 or
+// mis-split.
+func pathSeg(s string) string {
+	return url.PathEscape(s)
 }
 
 func esc(s string) string {

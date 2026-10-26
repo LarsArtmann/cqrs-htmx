@@ -126,9 +126,9 @@ func dlqIndexRows(p pageData, links []dlqProjectionLink) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 templ.SafeURL
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + link.Name)
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + pathSeg(link.Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 37, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 37, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -141,7 +141,7 @@ func dlqIndexRows(p pageData, links []dlqProjectionLink) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(link.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 37, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 37, Col: 99}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -159,7 +159,7 @@ func dlqIndexRows(p pageData, links []dlqProjectionLink) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = buttonLink("View", p.BasePath+"/dead-letters/"+link.Name, "", display.ButtonSecondary, false).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = buttonLink("View", p.BasePath+"/dead-letters/"+pathSeg(link.Name), "", display.ButtonSecondary, false).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -237,9 +237,9 @@ func dlqContent(p pageData, proj string, entries []projectionhost.DeadLetterEntr
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 templ.SafeURL
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + proj + "/replay")
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + pathSeg(proj) + "/replay")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 59, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 59, Col: 71}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -294,9 +294,9 @@ func dlqContent(p pageData, proj string, entries []projectionhost.DeadLetterEntr
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 templ.SafeURL
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + proj + "/purge")
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + pathSeg(proj) + "/purge")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 71, Col: 61}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 71, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -430,9 +430,9 @@ func dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry) 
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 templ.SafeURL
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + proj + "/" + e.EventID)
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + pathSeg(proj) + "/" + pathSeg(e.EventID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 98, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 98, Col: 89}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -445,7 +445,7 @@ func dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry) 
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(e.EventType)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 98, Col: 93}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 98, Col: 111}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -476,7 +476,7 @@ func dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry) 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = buttonLink("View", p.BasePath+"/dead-letters/"+proj+"/"+e.EventID, "", display.ButtonSecondary, false).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = buttonLink("View", p.BasePath+"/dead-letters/"+pathSeg(proj)+"/"+pathSeg(e.EventID), "", display.ButtonSecondary, false).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -486,9 +486,9 @@ func dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry) 
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var20 templ.SafeURL
-				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + proj + "/" + e.EventID + "/delete")
+				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + pathSeg(proj) + "/" + pathSeg(e.EventID) + "/delete")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 108, Col: 81}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 108, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
@@ -601,9 +601,9 @@ func dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLet
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var25 templ.SafeURL
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + proj)
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + pathSeg(proj))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 129, Col: 87}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 129, Col: 96}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
@@ -616,7 +616,7 @@ func dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLet
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(proj)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 129, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 129, Col: 105}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -681,9 +681,9 @@ func dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLet
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var29 templ.SafeURL
-			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + proj + "/" + entry.EventID + "/delete")
+			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/dead-letters/" + pathSeg(proj) + "/" + pathSeg(entry.EventID) + "/delete")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 151, Col: 83}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dlq.templ`, Line: 151, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
