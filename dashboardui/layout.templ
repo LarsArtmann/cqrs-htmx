@@ -36,7 +36,7 @@ templ layout(p pageData, content templ.Component) {
 				// and applies .dark + color-scheme before first paint.
 				@dashboardStylesheets(p.Nonce, p.BasePath)
 				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
-				<script src={ p.BasePath + "/-/dashboard.js" } defer></script>
+				<script src={ p.BasePath + "/-/dashboard.js" } data-base-path={ p.BasePath } defer></script>
 			</head>
 			<body>
 				<a href="#main-content" class="skip-link">Skip to content</a>

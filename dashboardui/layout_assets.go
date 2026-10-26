@@ -305,8 +305,17 @@ document.addEventListener("dashboard:event", function(e) {
   var tbody = document.getElementById("events-tbody");
   if (!tbody || !data.eventId) return;
 
-  var script = document.querySelector("script[src$='dashboard.js']");
-  var basePath = script ? script.src.replace(/\/-\/dashboard\.js$/, "") : "";
+  // The layout emits data-base-path on this script tag; it is authoritative
+  // even when the script URL is proxied or renamed. The src-regex fallback
+  // covers dashboards mounted by older hosts that lack the attribute.
+  var script = document.querySelector("script[data-base-path]") ||
+    document.querySelector("script[src$='dashboard.js']");
+  var basePath = "";
+  if (script && script.dataset.basePath) {
+    basePath = script.dataset.basePath;
+  } else if (script) {
+    basePath = script.src.replace(/\/-\/dashboard\.js$/, "");
+  }
   var now = data.occurredAt ? new Date(data.occurredAt) : new Date();
   var row = document.createElement("tr");
   row.className = "new-row";

@@ -45,6 +45,83 @@ func queriesAfter(queries []*query.PersistedQuery, after id.RequestID) []*query.
 	return queries
 }
 
+// exportBatch is the page size when walking a seekable journal for an
+// export: small enough to bound each read, large enough to keep the walk
+// cheap.
+const exportBatch = 500
+
+// loadAllCommands walks the command journal from the head to the tail. A
+// seekable journal is paged by cursor (a single zero-cursor ReadFrom returns
+// the OLDEST batch, silently truncating the export); a non-seekable journal
+// falls back to one ReadAll, the only shape it offers. The export is the
+// complete audit trail — truncation is the bug this replaces.
+func loadAllCommands(
+	ctx context.Context,
+	journal command.CommandJournal,
+) ([]*command.PersistedCommand, error) {
+	seekable, ok := journal.(command.SeekableCommandJournal)
+	if !ok {
+		return journal.ReadAll(ctx)
+	}
+
+	var (
+		all   []*command.PersistedCommand
+		after id.CommandID
+	)
+	for {
+		batch, err := seekable.ReadFrom(ctx, after, exportBatch)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.audit.commands_read_failed", "read command journal for export").
+				WithContextAny("batch_size", exportBatch)
+		}
+
+		all = append(all, batch...)
+
+		if len(batch) < exportBatch {
+			break
+		}
+
+		after = batch[len(batch)-1].ID()
+	}
+
+	return all, nil
+}
+
+// loadAllQueries is the query-journal twin of loadAllCommands.
+func loadAllQueries(
+	ctx context.Context,
+	journal query.QueryJournal,
+) ([]*query.PersistedQuery, error) {
+	seekable, ok := journal.(query.SeekableQueryJournal)
+	if !ok {
+		return journal.ReadAllQueries(ctx)
+	}
+
+	var (
+		all   []*query.PersistedQuery
+		after id.RequestID
+	)
+	for {
+		batch, err := seekable.ReadQueriesFrom(ctx, after, exportBatch)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.audit.queries_read_failed", "read query journal for export").
+				WithContextAny("batch_size", exportBatch)
+		}
+
+		all = append(all, batch...)
+
+		if len(batch) < exportBatch {
+			break
+		}
+
+		after = batch[len(batch)-1].ID()
+	}
+
+	return all, nil
+}
+
 //
 //nolint:cyclop,dupl // export branching; deliberate parallel twin — see queriesIndexHandler
 func (d *Dashboard) commandsIndexHandler(
@@ -54,16 +131,13 @@ func (d *Dashboard) commandsIndexHandler(
 	p := d.page("Commands", "/commands", r)
 
 	if format := parseFormat(r); format != formatHTML {
-		var cmds []*command.PersistedCommand
+		if d.config.CommandJournal == nil {
+			d.renderError(w, r, http.StatusInternalServerError, "no command journal configured")
 
-		var err error
-
-		if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
-			cmds, err = seekable.ReadFrom(r.Context(), id.CommandID{}, exportLimit)
-		} else if d.config.CommandJournal != nil {
-			cmds, err = d.config.CommandJournal.ReadAll(r.Context())
+			return
 		}
 
+		cmds, err := loadAllCommands(r.Context(), d.config.CommandJournal)
 		if err != nil {
 			d.renderError(w, r, http.StatusInternalServerError, "failed to load commands for export")
 
