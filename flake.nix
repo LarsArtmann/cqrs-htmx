@@ -1180,6 +1180,8 @@
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
                         "streamid-identity:bash scripts/checks/check-streamid-identity.sh"
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
+                        "root-files:bash scripts/checks/check-root-files.sh --strict"
+                        "root-files-self-test:bash scripts/selftests/test-check-root-files.sh"
                         "family-release-consumable:bash scripts/checks/check-family-release-consumable.sh"
                         "family-release-consumable-self-test:bash scripts/selftests/test-check-family-release-consumable.sh"
                         "selftest-env-leaks:bash scripts/checks/check-selftest-env-leaks.sh"
@@ -1359,6 +1361,26 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-streamid-identity.sh
+                  '';
+                }
+              );
+            };
+
+            check-root-files = {
+              type = "app";
+              meta.description = "Root-declutter gate: freeze the tracked non-Go file set at repo root (the biome.json class — configs nothing consumes); new root files need a visible baseline bump in the same commit";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-root-files";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                    pkgs.diffutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-root-files.sh --strict
                   '';
                 }
               );

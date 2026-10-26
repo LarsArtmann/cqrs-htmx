@@ -20,7 +20,6 @@ ROADMAP.md
 SECURITY.md
 TODO_LIST.md
 VERSIONING.md
-biome.json
 flake.lock
 flake.nix
 git-town.toml

@@ -620,6 +620,15 @@ jobs:
       - name: StreamID identity-form self-test
         run: bash scripts/selftests/test-check-streamid-identity.sh
 
+      # Root-declutter (2026-10-26): freeze the tracked non-Go file set at
+      # repo root — the biome.json class of configs nothing consumes. New
+      # root files need a visible baseline bump in the same commit.
+      - name: Root files allowlist check
+        run: bash scripts/checks/check-root-files.sh --strict
+
+      - name: Root files allowlist self-test
+        run: bash scripts/selftests/test-check-root-files.sh
+
       # R2/R18: upstream release consumability — a tag whose go.mod carries
       # placeholder pseudo-version requires (templ-components v1.20.0 class)
       # blocks every consumer push with a misleading "unknown revision".
