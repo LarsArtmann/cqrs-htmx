@@ -153,7 +153,9 @@ _ = svc.EventBus().SubscribeAll(func(_ context.Context, evt event.Event) error {
   projection of these events (see `Service.AuditLog()`); you are consuming
   the same published language it folds. Auth-audit events (`LoginSucceeded`,
   `LoginFailed`, `RegistrationClosed`) ride their own Auth-typed streams and
-  are appended best-effort.
+  are appended best-effort. The full actor/causation/correlation model —
+  auto-wired by `NewService` onto every dispatch — is the
+  [actor-and-audit-trail guide](../docs/guides/actor-and-audit-trail.md).
 
 ## Development
 
