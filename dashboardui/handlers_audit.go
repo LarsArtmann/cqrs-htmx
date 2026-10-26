@@ -57,6 +57,8 @@ const exportBatch = 500
 // complete audit trail — truncation is the bug this replaces. A cursor that
 // stalls (a full batch whose last ID never moves) fails fast instead of
 // hanging the export.
+//
+//nolint:dupl // deliberate command/query twin — journal interfaces carry different ID types, no shared generic seam
 func loadAllCommands(
 	ctx context.Context,
 	journal command.CommandJournal,
@@ -103,6 +105,8 @@ func loadAllCommands(
 }
 
 // loadAllQueries is the query-journal twin of loadAllCommands.
+//
+//nolint:dupl // deliberate command/query twin — journal interfaces carry different ID types, no shared generic seam
 func loadAllQueries(
 	ctx context.Context,
 	journal query.QueryJournal,
