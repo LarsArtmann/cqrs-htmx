@@ -1,5 +1,9 @@
 # Round 33: W08 verified · W10 landed a REAL loginpage bug fix · W11 five splits landed · W12 gates 2/4 · master RED on a split-shifted gate pin
 
+> **ANNOTATED 2026-10-26** — ~~this report~~ **SUPERSEDED** by [`2026-10-26_20-50_round-34-master-healed-s001-unmasked-w14-1-2-landed-w14-3-unverified_status.md`](../2026-10-26_20-50_round-34-master-healed-s001-unmasked-w14-1-2-landed-w14-3-unverified_status.md), which owner interrupt: round-34 reports the heal+landing and carries the open g-questions forward. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-26 (round-23 (2026-10-26)).**
+
 **Created:** 2026-10-26 11:16 CET · **Session:** round 33 (continuation of the 10-42 Wave-D plan; supersedes + archives the 10-25 19-27 round-32 report). **State at writing:** tree clean, ahead 0, HEAD `408c0356` — **master CI RED** (run `40277139959`, job `module-architecture`; locally reproduced and root-caused, see §b1 — a stale file:line pin my e2e split shifted, fix known and mechanical, NOT yet applied). W12 battery: gates 1–3 GREEN (`.#test` rc=0 on rerun after one flake, `.#lint` rc=0, `.#coverage-gate` rc=0), gate 4 (`.#check-modules -- --report`) rc=1 with exactly two red rows — `streamid-identity` (the CI red, §b1) and `branching-flow` (local-only ratchet, §b2). Plan lanes W01–W08, W10, W11 are DONE; W12 is half done; W14/W15/W17 not started.
 
 ## a) FULLY DONE (this session, receipts)

@@ -1,6 +1,6 @@
 # Round 32 — 81afedee red triaged (upstream train catch), W07 S58 stamped across all 31 sites, receipts + gates closed
 
-> **ANNOTATED 2026-10-26** — ~~this report~~ **SUPERSEDED** by [`2026-10-26_11-16_round-33-w10-real-bug-w11-splits-w12-2of4-ci-red-on-streamid-pin_status.md`](../2026-10-26_11-16_round-33-w10-real-bug-w11-splits-w12-2of4-ci-red-on-streamid-pin_status.md), which Same arc, next round: W07 receipts verified in-tree by round 33; round 33 adds W08/W10/W11 landing and the W12 gate state.. Strike depth:
+> **ANNOTATED 2026-10-26** — ~~this report~~ **SUPERSEDED** by [`2026-10-26_11-16_round-33-w10-real-bug-w11-splits-w12-2of4-ci-red-on-streamid-pin_status.md`](2026-10-26_11-16_round-33-w10-real-bug-w11-splits-w12-2of4-ci-red-on-streamid-pin_status.md), which Same arc, next round: W07 receipts verified in-tree by round 33; round 33 adds W08/W10/W11 landing and the W12 gate state.. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-26 (round-23 (2026-10-26)).**
 
