@@ -1,5 +1,9 @@
 # Round 32 — 81afedee red triaged (upstream train catch), W07 S58 stamped across all 31 sites, receipts + gates closed
 
+> **ANNOTATED 2026-10-26** — ~~this report~~ **SUPERSEDED** by [`2026-10-26_11-16_round-33-w10-real-bug-w11-splits-w12-2of4-ci-red-on-streamid-pin_status.md`](../2026-10-26_11-16_round-33-w10-real-bug-w11-splits-w12-2of4-ci-red-on-streamid-pin_status.md), which Same arc, next round: W07 receipts verified in-tree by round 33; round 33 adds W08/W10/W11 landing and the W12 gate state.. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-26 (round-23 (2026-10-26)).**
+
 **Session**: 2026-10-25 ~19:00–19:30 CET · **Lane**: W01–W08, W10–W12, W14, W15, W17 (sibling: W09/W13/W16) · **Plan of record**: `docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md`
 **State at interrupt**: report demanded mid-W07 (code stamped+verified; receipts+gates have since been closed in this same session — see a3). Owner questions from round 31 still unanswered; defaults held (stack to W12, filings wait for W13, W04 defaults kept).
 
