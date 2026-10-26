@@ -366,21 +366,26 @@ func TestTruncate_NeverSplitsRunes(t *testing.T) {
 		n    int
 		want string
 	}{
-		{"abcd", 4, "abcd"},                          // fits exactly, no cut
-		{"abcde", 4, "abcd..."},                      // ASCII cut at rune boundary
-		{"héllo", 2, "h..."},                         // byte 2 splits é -> back off
-		{"日本語", 4, "日..."},                          // byte 4 splits 本 -> back off
-		{"日本", 6, "日本"},                            // fits (6 bytes), no cut
-		{"héllo wörld", 60, "héllo wörld"},           // longer than width: untouched
-		{"", 4, ""},                                  // empty stays empty
-		{"é", 1, "..."},                              // single 2-byte rune, width 1: back off to empty
+		{"abcd", 4, "abcd"},     // fits exactly, no cut
+		{"abcde", 4, "abcd..."}, // ASCII cut at rune boundary
+		{"héllo", 2, "h..."},    // byte 2 splits é -> back off
+		{
+			"\u65e5\u672c\u8a9e",
+			4,
+			"\u65e5...",
+		}, // 3-byte runes: byte 4 splits rune 2
+		{"\u65e5\u672c", 6, "\u65e5\u672c"}, // fits (6 bytes), no cut
+		{"héllo wörld", 60, "héllo wörld"},  // longer than width: untouched
+		{"", 4, ""},                         // empty stays empty
+		{"é", 1, "..."},                     // single 2-byte rune, width 1: back off to empty
 	}
 	for _, tc := range cases {
 		if got := truncate(tc.in, tc.n); got != tc.want {
 			t.Errorf("truncate(%q, %d) = %q, want %q", tc.in, tc.n, got, tc.want)
 		}
 	}
-	for _, s := range []string{"héllo wörld ünïcode 日本語 mixed"} {
+	sweep := "héllo wörld ünïcode \u65e5\u672c\u8a9e mixed"
+	for _, s := range []string{sweep} {
 		for n := range len(s) + 2 {
 			if got := truncate(s, n); !utf8.ValidString(got) {
 				t.Errorf("truncate(%q, %d) = %q: invalid UTF-8", s, n, got)
@@ -394,15 +399,18 @@ func TestInitials_RuneSafe(t *testing.T) {
 		in   string
 		want string
 	}{
-		{"", "?"},                        // empty brand
-		{"  ", "?"},                      // whitespace-only brand
-		{"Acme", "AC"},                   // single word, first 2 runes
-		{"Ä", "Ä"},                       // single multi-byte rune, old code cut mid-rune
-		{"Ähnlich", "ÄH"},                // old code produced mojibake ("ÃH")
-		{"日本語システム", "日本"},           // CJK truncates by rune, not byte
-		{"Acme Corp", "AC"},              // two words
-		{"Über GmbH", "ÜG"},              // old code byte-indexed -> "ÃG"
-		{"a b", "AB"},                    // single-rune words
+		{"", "?"},         // empty brand
+		{"  ", "?"},       // whitespace-only brand
+		{"Acme", "AC"},    // single word, first 2 runes
+		{"Ä", "Ä"},        // single multi-byte rune, old code cut mid-rune
+		{"Ähnlich", "ÄH"}, // old code produced mojibake ("ÃH")
+		{
+			"\u65e5\u672c\u8a9e\u30b7\u30b9\u30c6\u30e0",
+			"\u65e5\u672c",
+		}, // CJK truncates by rune, not byte
+		{"Acme Corp", "AC"}, // two words
+		{"Über GmbH", "ÜG"}, // old code byte-indexed -> "ÃG"
+		{"a b", "AB"},       // single-rune words
 	}
 	for _, tc := range cases {
 		if got := initials(tc.in); got != tc.want {
@@ -421,6 +429,7 @@ func TestPathSeg_EscapesRouteBreakingNames(t *testing.T) {
 		if got := pathSeg(tc.in); got != tc.want {
 			t.Errorf("pathSeg(%q) = %q, want %q", tc.in, got, tc.want)
 		}
+
 		if back, err := url.PathUnescape(pathSeg(tc.in)); err != nil || back != tc.in {
 			t.Errorf("pathSeg(%q) must round-trip: got %q, err %v", tc.in, back, err)
 		}
@@ -434,6 +443,7 @@ func TestProjectionRows_NameWithSpaceEscapesHref(t *testing.T) {
 	if !strings.Contains(html, `href="/dashboard/projections/my%20proj"`) {
 		t.Errorf("projection link must escape the name segment, got: %s", html)
 	}
+
 	if !strings.Contains(html, ">my proj</a>") {
 		t.Error("the visible label must stay the raw name")
 	}
