@@ -372,7 +372,7 @@ CQRS error families map to HTTP status codes through one function — your domai
 | Transient      | 503 Service Unavailable   |
 | Infrastructure | 503 Service Unavailable   |
 
-Auth sentinels: `ErrUnauthorized` → 401, `ErrForbidden` → 403, `ErrValidation` → 400, `ErrMethodNotAllowed` → 405, `ErrRequestTooLarge` → 413.
+Auth sentinels: `ErrUnauthorized` → 401, `ErrForbidden` → 403, `ErrValidationFailed` → 400, `ErrMethodNotAllowed` → 405, `ErrRequestTooLarge` → 413.
 
 Plug in the response format you want via `Config.ErrorHandler`:
 

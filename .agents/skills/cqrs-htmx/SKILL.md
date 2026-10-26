@@ -305,7 +305,7 @@ mux.Handle("POST /games/{id}/delete", app.Command("DeleteGame",
 
 `RequestGuard` runs **after decode, before dispatch** -- has access to the decoded command/query.
 
-> **Auth error sentinels -> HTTP status:** `cqrshtmx.ErrUnauthorized` -> 401, `cqrshtmx.ErrForbidden` -> 403, `cqrshtmx.ErrValidation` -> 400, `cqrshtmx.ErrRequestTooLarge` -> 413, `cqrshtmx.ErrMethodNotAllowed` -> 405.
+> **Auth error sentinels -> HTTP status:** `cqrshtmx.ErrUnauthorized` -> 401, `cqrshtmx.ErrForbidden` -> 403, `cqrshtmx.ErrValidationFailed` -> 400, `cqrshtmx.ErrRequestTooLarge` -> 413, `cqrshtmx.ErrMethodNotAllowed` -> 405.
 
 ### Middleware + serving htmx.js
 

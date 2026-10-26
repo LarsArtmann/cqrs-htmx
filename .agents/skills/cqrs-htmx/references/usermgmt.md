@@ -191,7 +191,7 @@ These are intentionally **service-level, not HTTP routes** — the routing schem
 | **Bots** (API tokens) | `RegisterBot`, `DeleteBot`, `GetBot`, `ResolveBotByToken`. Requires `ServiceConfig.TokenPepper`. Use `NewAPITokenMiddleware(svc)` + `RequireBot` for bot auth. Tokens are HMAC-hashed, never stored plaintext. |
 | **Impersonation**     | `BeginImpersonation(ctx, adminID, targetID, reason)`, `EndImpersonation`. Guards: super-admin only, reason required, self-impersonation blocked.                                                               |
 
-Identity types: `usermgmt.ActorID` is a kind-discriminated struct (`{kind, raw}`) — bridging to root uses `.PrefixedString()` → `cqrshtmx.NewActorID(...)`. `ParseActorID(s)` is the inverse. `TenantID`/`BotID` are branded string types.
+Identity types: `usermgmt.ActorID` is a kind-discriminated struct (`{kind, raw}`) — bridging to root uses `.PrefixedString()` → `cqrshtmx.ParseActorID(s)` (or `cqrshtmx.ActorIDFromUser(uid)` straight from a `UserID`). `TenantID`/`BotID` are branded string types.
 
 ## SQL persistence details
 

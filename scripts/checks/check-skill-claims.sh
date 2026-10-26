@@ -8,7 +8,9 @@
 # `pkg.Symbol` and the symbol no longer (or never did) exist anywhere in the
 # owning module's sources. Semantic claims ("X does Y") stay human work.
 #
-# Usage: bash scripts/checks/check-skill-claims.sh
+# Usage: bash scripts/checks/check-skill-claims.sh [doc-glob ...]
+#        (default: the skill tree; check-readme-splitbrain.sh reuses this
+#        core over the module READMEs — same drift class, different corpus)
 # Env: SKILL_CLAIMS_ROOT   override the repo root (fixture self-test).
 # Exit: 0 all named symbols resolve, 1 drift or missing inputs, 2 usage.
 set -uo pipefail
@@ -16,10 +18,16 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${SKILL_CLAIMS_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
-SKILLS_DIR="$REPO_ROOT/.agents/skills"
-if [ ! -d "$SKILLS_DIR" ]; then
-  echo "✗ skill-claims: $SKILLS_DIR not found"
-  exit 1
+if [ "$#" -gt 0 ]; then
+  DOCS=("$@")
+else
+  SKILLS_DIR="$REPO_ROOT/.agents/skills"
+  if [ ! -d "$SKILLS_DIR" ]; then
+    echo "✗ skill-claims: $SKILLS_DIR not found"
+    exit 1
+  fi
+  shopt -s globstar
+  DOCS=("$SKILLS_DIR"/**/*.md)
 fi
 
 # Module alias -> source dir. The alias is how docs qualify symbols
@@ -54,7 +62,7 @@ fail=0
 checked=0
 
 shopt -s globstar
-for doc in "$SKILLS_DIR"/**/*.md; do
+for doc in "${DOCS[@]}"; do
   [ -f "$doc" ] || continue
 
   # module-qualified ExportedSymbol tokens.
