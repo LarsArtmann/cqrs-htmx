@@ -168,7 +168,7 @@ const (
 // credential material — the payload must be safe to journal verbatim.
 type AuthFailureReason string
 
-const (
+const ( //cqrs-lint:ignore(S001) AuthFailureTokenExchange is an enum value for a login-failure reason class, not a secret
 	AuthFailureNoCredentials  AuthFailureReason = "no_credentials"
 	AuthFailureCeremonyFailed AuthFailureReason = "ceremony_failed"
 	AuthFailureCodeInvalid    AuthFailureReason = "code_invalid"
