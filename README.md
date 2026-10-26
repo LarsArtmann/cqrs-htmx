@@ -66,7 +66,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 - **Event-sourced user management** — the [`usermgmt`](usermgmt/README.md) module: register/login/logout/me, sessions, roles, tenants, bots, account lockout, audit log; SQL stores for SQLite, Postgres, and MySQL
 - **Passwordless auth** — WebAuthn/passkeys by default; [TOTP MFA](usermgmt/totp/) and [OAuth2/OIDC](usermgmt/oauth2/) as independent sub-modules (import only what you need — zero auth deps in core)
 - **Casbin authorization** — `Authorize(resource, action)` gates dispatch; domain/tenant-aware RBAC with a projection that derives policies from identity events
-- **Actor + audit chain built-in** — every event carries who acted (user/bot/system), impersonation chains, and correlation/request IDs, auto-derived from the HTTP session ([guide](docs/guides/actor-and-audit-trail.md))
+- **Actor + audit chain built-in** — every event carries who acted (user/bot/system), impersonation chains, and correlation/request IDs, auto-derived from the HTTP session; auth-audit events (`LoginSucceeded`/`LoginFailed`/`RegistrationClosed`) ride their own streams and fold into the audit log ([guide](docs/guides/actor-and-audit-trail.md))
 
 **Realtime**
 
@@ -353,8 +353,8 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 </div>
 ```
 
-- For **event-sourced streams**, use the canonical `transport/` surface: `transport.ServeDomainEvents` + `DomainEventToSSE` envelope + `WithSSEFilter`/`WithSSEMaxReplay` (replay caps, permission filtering; envelope bytes are golden-pinned against drift).
-- For **durable replay**, `JournalSSEStore` adapts any go-cqrs-lite journal into an `sse.EventStore` for reconnecting clients.
+- For **event-sourced streams**, use the canonical `transport/` surface: `transport.ServeDomainEvents` + `DomainEventToSSE` envelope + `WithSSEFilter`/`WithSSEMaxReplay` (replay caps, permission filtering; envelope bytes are golden-pinned against drift) and `WithRequestFilter` for per-request scoping from query params/headers (malformed filter input answers 400 before the stream opens; guide: [docs/guides/sse-and-datastar.md](docs/guides/sse-and-datastar.md)).
+- For **durable replay**, `JournalSSEStore` adapts any go-cqrs-lite journal into an `sse.EventStore` for reconnecting clients — a journal that also implements `TailReader` (`ReadLastN`) serves first-connect backfill at O(n) instead of O(journal) (one `ORDER BY ... DESC LIMIT n` for SQL stores).
 - For **offline-capable clients**, the frontend sync protocol ([ADR-0056](docs/adr/0056-frontend-sync-protocol.md)): `SyncPullHandler` serves cursor-based, permission-filtered event pulls (payloads included, ETag/304 re-polls, backend-reset detection); `App.SyncPushHandler()` accepts batched commands and answers per-command `confirmed`/`rejected` outcomes — each envelope replays the exact pipeline its single-command endpoint registered. The embedded JS client (`window.cqrsSync`) handles the IndexedDB queue and event cache. Runnable walkthrough: [`examples/sync-demo`](examples/sync-demo/README.md).
 - **Slow consumers** are dropped, never blocked — pair with idempotency middleware and the ACK protocol when you need delivery guarantees.
 

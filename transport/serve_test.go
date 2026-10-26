@@ -711,12 +711,14 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 	t.Parallel()
 
 	match := func(sse.Event) bool { return true }
+	derive := func(*http.Request) (func(sse.Event) bool, error) { return nil, nil }
 
 	structCfg := serveDomainEventsConfig{}
 	structOpts := SSEOptions{
 		LogPrefix:          "app",
 		UnavailableMessage: "gone",
 		Filter:             match,
+		RequestFilter:      derive,
 		MaxReplay:          7,
 	}.Options()
 
@@ -729,6 +731,7 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 		WithSSELogPrefix("app"),
 		WithSSEUnavailableMessage("gone"),
 		WithSSEFilter(match),
+		WithRequestFilter(derive),
 		WithSSEMaxReplay(7),
 	} {
 		opt(&funcCfg)
@@ -743,6 +746,11 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 	// Function values are not comparable; both must be non-nil.
 	if structCfg.filter == nil || funcCfg.filter == nil {
 		t.Fatal("both configurations must carry the filter predicate")
+	}
+
+	// The per-request filter derivation must survive the conversion too.
+	if structCfg.requestFilter == nil || funcCfg.requestFilter == nil {
+		t.Fatal("both configurations must carry the request-filter derivation")
 	}
 
 	// The zero struct contributes no options at all.

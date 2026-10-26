@@ -216,6 +216,50 @@ client's backfill only ever receives matching events — even when the store
 only implements plain `sse.EventStore`. A filter that leaked excluded events
 during backfill would be a security hole, never a degradation.
 
+### Per-Request Filters: WithRequestFilter
+
+`WithSSEFilter` fixes the predicate at construction time. When the filter
+dimensions live in the REQUEST — query params (`?types=`, `?channel=`),
+headers, path values — derive the predicate per request instead:
+
+```go
+h := transport.ServeDomainEvents(hub, store, 15*time.Second,
+    transport.WithRequestFilter(func(r *http.Request) (func(sse.Event) bool, error) {
+        typ := r.URL.Query().Get("type")
+        if typ == "" {
+            return nil, nil // unfiltered; falls back to WithSSEFilter if set
+        }
+
+        return func(evt sse.Event) bool {
+            return strings.Contains(evt.Data, `"streamType":"`+typ+`"`)
+        }, nil
+    }))
+```
+
+- A derivation error aborts the request with **400 Bad Request** before any
+  stream is opened — reject malformed filter input there (unknown params,
+  unparsable values).
+- `(nil, nil)` means "no per-request filter": the construction-time
+  `WithSSEFilter` (if any) applies to that request.
+- The same fail-closed wiring as `WithSSEFilter`: the live subscription AND
+  the replay/backfill both pass through the derived predicate, and
+  `WithSSEMaxReplay` counts MATCHING events only.
+- The struct form carries it too: `SSEOptions{RequestFilter: derive}` —
+  `.Options()` converts it to `WithRequestFilter` (both forms are pinned
+  equivalent by a conversion test).
+
+### Replay Backfill: JournalSSEStore and the TailReader Capability
+
+`transport.NewJournalSSEStore` adapts any go-cqrs-lite journal into an
+`sse.EventStore` for reconnect backfill. By default the store pages the
+journal from the head to collect the newest `maxReplay` events — O(journal)
+work at first connect. A journal that ALSO implements
+`transport.TailReader` (`ReadLastN(ctx, n)`) serves the tail DIRECTLY at
+O(n): for a SQL journal that is one `ORDER BY <sequence> DESC LIMIT n`
+query. Detection is structural (`NewJournalSSEStore` type-asserts the
+journal it wraps) — add a small `ReadLastN` to a custom journal and
+first-connect backfill stops scanning.
+
 ## Observability: Fan-Out Metrics (Consumer Recipe)
 
 The SSE push path emits no spans or metrics of its own — the library stays

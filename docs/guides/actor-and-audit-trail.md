@@ -148,3 +148,8 @@ Design invariants (why it looks the way it does):
       `QueryOptionsFromContext` yourself.
 - [ ] Background jobs: `WithActorID` with a system/service actor.
 - [ ] Bot API traffic: `id.NewBotActor` in the token-auth middleware.
+
+**Wired for you:** [`usermgmt.NewService`](../../usermgmt/README.md) builds
+the entire chain — session→actor bridge, causation, correlation — onto its
+dispatcher, so consumers of the user-management module get the "nothing to
+do" rows above for free.
