@@ -224,7 +224,7 @@ func (config Config) validate() error {
 	if config.AutoRedirect && config.NoOAuth2 {
 		return errConfig(
 			"Config.AutoRedirect and Config.NoOAuth2 are contradictory: AutoRedirect sends visitors straight to an OAuth2 provider, NoOAuth2 hides every OAuth2 button",
-			)
+		)
 	}
 	if config.NoWebAuthn && config.NoOAuth2 {
 		return errConfig(

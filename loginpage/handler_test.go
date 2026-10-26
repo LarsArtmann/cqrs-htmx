@@ -1036,3 +1036,119 @@ func TestSoleOAuthBeginURL(t *testing.T) {
 		}
 	}
 }
+
+// stubWebAuthnProvider satisfies identitymodel.WebAuthnProvider (via
+// usermgmt's alias) with no-op ceremonies: the page only asks HasWebAuthn at
+// render time, never invokes the provider itself.
+type stubWebAuthnProvider struct{}
+
+func (stubWebAuthnProvider) BeginRegistration(context.Context, []byte) ([]byte, []byte, error) {
+	return nil, nil, nil
+}
+
+func (stubWebAuthnProvider) FinishRegistration(context.Context, []byte, []byte, []byte) ([]byte, error) {
+	return nil, nil
+}
+
+func (stubWebAuthnProvider) BeginLogin(context.Context, []byte) ([]byte, []byte, error) {
+	return nil, nil, nil
+}
+
+func (stubWebAuthnProvider) FinishLogin(context.Context, []byte, []byte, []byte) ([]byte, error) {
+	return nil, nil
+}
+
+// newWebAuthnAndOAuthService builds a service with BOTH a WebAuthn provider
+// and the named OAuth2 providers configured — the shared-service setup the
+// NoWebAuthn page-level hide exists for.
+func newWebAuthnAndOAuthService(t *testing.T, names ...string) *usermgmt.Service {
+	t.Helper()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		WebAuthn: stubWebAuthnProvider{},
+		OAuth2:   &stubOAuth2WithNames{names: names},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	return svc
+}
+
+func TestServeHTTP_NoWebAuthn_HidesPasskeyFormAndRegistration(t *testing.T) {
+	h, err := New(Config{
+		Service:    newWebAuthnAndOAuthService(t, "google"),
+		NoWebAuthn: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+	body := w.Body.String()
+	assertContains(t, body, "Sign in with Google", "the OAuth2 button must still render")
+	assertNotContains(t, body, `id="lp-login-form"`, "NoWebAuthn must hide the passkey form")
+	assertNotContains(t, body, "Sign in with passkey", "NoWebAuthn must hide the passkey submit button")
+	assertNotContains(
+		t,
+		body,
+		`id="lp-show-register"`,
+		"NoWebAuthn must hide the registration toggle (registration is passkey-only)",
+	)
+	assertNotContains(
+		t,
+		body,
+		"No authentication method is configured",
+		"OAuth2 is visible, the setup notice must not render",
+	)
+}
+
+func TestServeHTTP_NoWebAuthn_OtherPagesUnaffected(t *testing.T) {
+	h, err := New(Config{Service: newWebAuthnAndOAuthService(t, "google")})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	body := w.Body.String()
+	assertContains(t, body, `id="lp-login-form"`, "without NoWebAuthn the passkey form renders from the same service")
+}
+
+func TestServeHTTP_AutoRedirect_NoWebAuthn_SingleProvider(t *testing.T) {
+	h, err := New(Config{
+		Service:      newWebAuthnAndOAuthService(t, "google"),
+		NoWebAuthn:   true,
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusFound {
+		t.Errorf("status = %d, want %d (NoWebAuthn makes OAuth2 the page's only method)", w.Code, http.StatusFound)
+	}
+	if loc := w.Header().Get("Location"); loc != "/auth/oauth/google/begin" {
+		t.Errorf("Location = %q, want %q", loc, "/auth/oauth/google/begin")
+	}
+}
+
+func TestNew_NoWebAuthn_NoOAuth2_Rejected(t *testing.T) {
+	_, err := New(Config{
+		Service:    newWebAuthnAndOAuthService(t, "google"),
+		NoWebAuthn: true,
+		NoOAuth2:   true,
+	})
+	if err == nil {
+		t.Fatal("NoWebAuthn together with NoOAuth2 must be rejected at New: the page would have no sign-in method")
+	}
+}
+
+func TestNew_AuthPrefix_RejectsNonRootedValues(t *testing.T) {
+	for _, prefix := range []string{"api", "//evil.example", "https://evil.example", "auth/"} {
+		if _, err := New(Config{Service: newTestService(t), AuthPrefix: prefix}); err == nil {
+			t.Errorf("AuthPrefix %q must be rejected: it feeds link targets and the AutoRedirect 302 Location", prefix)
+		}
+	}
+}
