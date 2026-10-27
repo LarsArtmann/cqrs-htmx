@@ -18,7 +18,7 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-# shellcheck source=../lib/go-cache-env.sh
+# shellcheck source=/dev/null # hermetic env lives outside this script's dir
 source "$SCRIPT_DIR/../lib/go-cache-env.sh"
 
 MODE=check

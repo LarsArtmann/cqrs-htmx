@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016 # fixture docs intentionally carry literal `pkg.Symbol` markdown
 # test-check-skill-claims.sh — fixture self-test for check-skill-claims.sh.
 #
 # Cases:
