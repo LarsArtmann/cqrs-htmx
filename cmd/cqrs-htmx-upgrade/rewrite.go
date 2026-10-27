@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // fileReport is the outcome for one scanned file.
@@ -71,20 +73,24 @@ func run(paths []string, table rulesTable, apply bool) (int, []fileReport, error
 			); err != nil {
 				return len(
 						goFiles,
-					), reports, fmt.Errorf(
-						"refusing to write %s: rewritten source does not parse: %w",
-						path,
+					), reports, errorfamily.Wrapf(
 						err,
+						errorfamily.Corruption,
+						"cqrshtmx.upgrade.unwritable_rewrite",
+						"refusing to write %s: rewritten source does not parse",
+						path,
 					)
 			}
 
 			info, err := os.Stat(path)
 			if err != nil {
-				return len(goFiles), reports, err
+				return len(goFiles), reports, errorfamily.Wrapf(err, errorfamily.Infrastructure,
+					"cqrshtmx.upgrade.stat_failed", "stat %s", path)
 			}
 
 			if err := os.WriteFile(path, []byte(rep.applied), info.Mode().Perm()); err != nil {
-				return len(goFiles), reports, fmt.Errorf("write %s: %w", path, err)
+				return len(goFiles), reports, errorfamily.Wrapf(err, errorfamily.Infrastructure,
+					"cqrshtmx.upgrade.write_failed", "write %s", path)
 			}
 		}
 
@@ -170,7 +176,8 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 
 	file, err := parser.ParseFile(fset, path, src, parser.ParseComments)
 	if err != nil {
-		return rep, fmt.Errorf("parse: %w", err)
+		return rep, errorfamily.Wrapf(err, errorfamily.Rejection,
+			"cqrshtmx.upgrade.parse_failed", "parse %s", path)
 	}
 
 	qualToPath := importQualifierMap(file)
@@ -220,14 +227,14 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 
 	for _, e := range edits {
 		if e.offset < 0 || e.end > len(out) || e.offset > e.end {
-			//nolint:err113 // CLI: terminal invariant diagnostic, not a library API error
-			return rep, fmt.Errorf( //nolint:erraudit // FP: path is already in the message; the qualifier map adds no diagnostic value
+			return rep, errorfamily.Newf(errorfamily.Corruption,
+				"cqrshtmx.upgrade.bad_edit_range",
 				"internal: bad edit range [%d,%d) for %s (len %d)",
 				e.offset,
 				e.end,
 				path,
 				len(out),
-			)
+			).WithContextAny("qual_to_path", qualToPath)
 		}
 
 		out = out[:e.offset] + e.newText + out[e.end:]

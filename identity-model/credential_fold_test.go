@@ -149,7 +149,8 @@ func TestApplyUse_Table(t *testing.T) {
 		UserPresent:    false,
 		UserVerified:   false,
 		BackupEligible: true,
-		BackupState:    false}
+		BackupState:    false,
+	}
 
 	next := cred.ApplyUse(CredentialUse{
 		CredentialID: []byte{0x01},

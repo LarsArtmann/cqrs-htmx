@@ -79,7 +79,9 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 	}
 
 	if maxBodySize > 0 && int64(len(body)) > maxBodySize {
-		return nil, ErrRequestTooLarge
+		return nil, errorfamily.Wrapf(ErrRequestTooLarge, event.Rejection,
+			"cqrshtmx.decode.body.too_large", "body of %d bytes exceeds limit", len(body)).
+			WithContextAny("max_body_size", maxBodySize)
 	}
 
 	return body, nil
@@ -147,7 +149,8 @@ func decodeFormValues(form url.Values, target any) error {
 		loweredKey := strings.ToLower(k)
 		if _, exists := normalized[loweredKey]; exists {
 			return errorfamily.NewRejection("cqrshtmx.decode.form.ambiguous_key",
-				"form contains multiple keys that differ only by case: "+loweredKey)
+				"form contains multiple keys that differ only by case: "+loweredKey).
+				WithContext("form_key", loweredKey)
 		}
 
 		normalized[loweredKey] = v

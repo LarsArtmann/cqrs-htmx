@@ -1,5 +1,9 @@
 # Round 40 — status + self-critique over round 39: what I forgot, what I could have done better, what still needs improving (bounded AuditLog shipped, tail healed, `check-modules` split-brain found, one held red proven pre-existing)
 
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md`](../2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md), which rotated out of the live tail; thread continues in round-41, latest session state in round-42. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-27 (round-23 (2026-10-27)).**
+
 **Date:** 2026-10-27 16:37 CET · **Reporter:** the same session as round 39 (self-critique pass, demanded) · **Head at report:** `3849f092` (master; `origin/master` = `ebfcd5e2`, so local is **ahead 13 and unpushed** — the daemon committed throughout but stopped pushing mid-session) · **Scope:** round-39's run only, plus what I noticed while doing it — no new unrelated research · **Box at report time:** load 4.46 (down from 4–70; the 9+ foreign multi-hour `golangci-lint` processes that broke the lint leg are gone) · **This report supersedes `2026-10-27_16-17_round-39-…`**, which is archived with it as successor.
 
 > **Format:** `.md` per this repo's dated-`docs/status/` convention and the operator's explicit path (the status-report skill's canonical HTML is overridden by instruction; no propagation back into the skill).

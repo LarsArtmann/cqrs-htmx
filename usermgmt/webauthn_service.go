@@ -291,7 +291,8 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	}
 
 	if err := s.recordCredentialUse(ctx, userID, credJSON); err != nil {
-		return nil, err //nolint:erraudit // HELPER: recordCredentialUse attaches user_id to every error it returns; sessionKey derives from user_id
+		// sessionKey derives from user_id, so nothing else needs attaching here.
+		return nil, err //nolint:erraudit // HELPER: recordCredentialUse attaches user_id on every path
 	}
 
 	s.webauthnSessions.Delete(sessionKey)
@@ -321,7 +322,8 @@ func (s *Service) recordCredentialUse(ctx context.Context, userID UserID, credJS
 	var used webAuthnUserCred
 	if err := json.Unmarshal(credJSON, &used); err != nil {
 		return errorfamily.NewInfrastructure("usermgmt.webauthn.unmarshal_credential",
-			"unmarshal logged-in credential").WithCause(err)
+			"unmarshal logged-in credential").WithCause(err).
+			WithContextAny("user_id", userID)
 	}
 
 	aggID, err := aggIDFromUser(userID)

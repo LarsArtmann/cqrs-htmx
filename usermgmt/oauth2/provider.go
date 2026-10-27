@@ -425,7 +425,7 @@ func (p *initializedProvider) extractFromIDToken(
 		return userInfo{}, "", errorfamily.NewRejection(
 			"oauth2.nonce_mismatch",
 			"id_token nonce does not match the authorization request",
-		).WithContext("provider", p.name) //nolint:erraudit // LIVE-SECRET: nonce values must not be logged
+		).WithContext("provider", p.name)
 	}
 	return userInfo{
 		Subject:           claims.Sub,

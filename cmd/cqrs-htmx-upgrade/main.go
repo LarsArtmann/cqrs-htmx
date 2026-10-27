@@ -30,6 +30,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func main() {
@@ -54,7 +56,12 @@ func main() {
 func runCLI(paths []string, apply, verbose bool) error {
 	mappings, err := deriveMappings()
 	if err != nil {
-		return fmt.Errorf("derive mappings: %w", err)
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"cqrshtmx.upgrade.derive_mappings_failed",
+			"derive mappings",
+		)
 	}
 
 	_, reports, err := run(paths, mappings, apply)
