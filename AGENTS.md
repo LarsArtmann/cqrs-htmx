@@ -93,7 +93,7 @@ adminui, dashboardui, and loginpage depend on it. Before hand-rolling any UI ele
 - **Dark-mode surfaces:** if the consumer's `@theme` remaps gray-800/900 (e.g. to `--text`), pin them back to literal darks in dark mode — library `dark:` variants assume literal darks (all library `text-gray-800/900` occurrences carry `dark:` overrides, so the pin is safe). Dark mode itself is CLASS-driven in both UI modules (adminui + dashboardui, 2026-09-23): `@custom-variant dark` + `html.dark` tokens + `layout.ThemeScript`/`ThemeToggle`; the old media-query token flip is gone (no-JS degrades to light).
 - **Hybrid (strings.Builder) rendering:** templ `{children...}` renders EMPTY in the hybrid path — use props-based components or the `templ.WithChildren(ctx, child)` escape hatch (v1.19.1); `display.Grid`/`htmx.PolledRegion` need a real templ path. Ends here: dashboardui converted to full templ (2026-09-22); no remaining repo consumer renders library components through strings.Builder.
 - **loginpage ADOPTED the library** (2026-10-04): `layout.Base`, `forms.Input`, `display.Button`, `feedback.Alert`, `utils.Class`/`utils.Ternary` — the former "adoption opportunities" list is fully consumed; loginpage's page compiles through templ, its JS-injected spinner uses only scanned Tailwind utilities (see loginpage/README.md § Styling).
-- **Adoption inventory:** the grep-able adopted/custom/divergent table lives in `dashboardui/README.md` (§ Styling and templ-components Adoption); audit series in `docs/research/2026-09-{17,23}_templ-components-deep-dive.html` with the comparable rubric in the 09-23 report §06.
+- **Adoption inventory:** the grep-able adopted/custom/divergent table lives in `dashboardui/README.md` (§ Styling and templ-components Adoption); audit series in `docs/research/` — `2026-09-17_templ-components-dashboardui-deep-dive.html` (14/100) with the series entry point `2026-10-04_templ-components-deep-dive.html` (repo-wide 94; the comparable rubric §06 lives there — the 09-23 audit was evicted as uncited, its outcome recorded in the research README's series table).
 
 ## Benchmarks
 
@@ -101,7 +101,7 @@ Every serious comparison uses `b.Loop()` (Go 1.24+) + `b.ReportAllocs()` + `b.Re
 
 ## Gotchas
 
-40 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
+42 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
 number and has a `#gotcha-N` anchor). This index is the scan surface; open the file for the detail.
 
 | #   | Trap                                                                                                                        | #   | Trap                                                                         |
@@ -126,7 +126,8 @@ number and has a `#gotcha-N` anchor). This index is the scan surface; open the f
 | 18  | setup contracts:                                                                                                            | 38  | Upstream family waves can be ATOMIC — consuming one member leaves the works… |
 | 19  | Status-report hygiene (docs-health):                                                                                        | 39  | The train-lag tail grows WHILE you sweep — run `check-release-train --refre… |
 | 20  | TODO_LIST/docs ownership:                                                                                                   | 40  | A documented red in a sequential CI job retires the evidentiary value of th… |
-| 41  | SQLite "no such table: events" under parallel `.#test` load = known flake — rerun once before triage (full text: gotcha 41) |     |                                                                              |
+| 41  | SQLite "no such table: events" under parallel `.#test` load = known flake — rerun once before triage (full text: gotcha 41) |
+| 42  | A wall-clock `go test` timeout IS a hang until proven otherwise — suspect the fake/stall guard first, load second (full text: gotcha 42) |     |                                                                              |
 
 ---
 
