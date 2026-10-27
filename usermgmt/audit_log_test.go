@@ -297,7 +297,7 @@ func TestAuditLog_EntriesForAfterEviction(t *testing.T) {
 func TestAuditLog_RecentIsOrderedAfterWrap(t *testing.T) {
 	auditLog := NewAuditLogWithLimit(3)
 
-	var ids []id.StreamID
+	ids := make([]id.StreamID, 0, 5)
 	for range 5 {
 		ids = append(ids, handleUserRegistered(t, auditLog))
 	}
