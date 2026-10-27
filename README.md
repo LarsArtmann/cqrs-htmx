@@ -34,6 +34,23 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 > for a complete server-rendered Go web stack with zero framework lock-in.
 > The stack, piece by piece: [docs/goth-stack.md](docs/goth-stack.md).
 
+## Contents
+
+- [Why](#why) — the glue this library deletes
+- [What you get](#what-you-get) — feature map at a glance
+- [Install](#install) — one import, or pick individual modules
+- [Quick start](#quick-start) — first endpoint in minutes
+- [The composition model](#the-composition-model) — how `HandlerOption`s compose
+- [Choose your integration path](#choose-your-integration-path) — setup SDK vs hand-wiring
+- [The modules](#the-modules) — usermgmt, adminui, dashboardui, setup, datastar
+- [Realtime: SSE and offline sync](#realtime-sse-and-offline-sync)
+- [Error handling](#error-handling) — domain errors → HTTP status mapping
+- [Ready-made UIs & the one-call setup](#ready-made-uis--the-one-call-setup)
+- [Examples](#examples) — 13 runnable, tested demos
+- [Documentation](#documentation) — 30+ guides, ADRs, runbooks
+- [Versioning & migrations](#versioning--migrations) — v2→v3→v4→v5 + upgrade codemod
+- [Contributing](#contributing) · [License](#license) (MIT)
+
 ## Why
 
 Every Go backend that combines CQRS + HTMX ends up writing the same glue, endpoint after endpoint:
