@@ -421,3 +421,32 @@ func TestRecorder_NilProviderPanicsAtConstruction(t *testing.T) {
 		func() { Recorder(nil) },
 	)
 }
+
+// TestRecorderChain_PreservesDetailedDurations pins what the delegated chain
+// fixed. RecorderChain used to implement only the plain recorder interface, so
+// a probe holding it never took go-health's detailed path and every projection
+// duration was silently dropped — the chain looked fine and the dashboards
+// rendering duration_ns stayed blank. Both members now contribute through
+// ChainRecorders, which always satisfies DetailedHealthRecorder.
+func TestRecorderChain_PreservesDetailedDurations(t *testing.T) {
+	t.Parallel()
+
+	provider := slowProvider{
+		entries: []cqrshtmx.ProjectionStatusEntry{
+			{Name: "user-read-model", Status: "live"},
+		},
+		delay: 2 * time.Millisecond,
+	}
+	plugin := staticRecorder{results: map[string]error{"audit-log": nil}}
+
+	probe := gohealth.New(do.New(), gohealth.WithHealthRecorder(
+		RecorderChain(Recorder(provider), plugin),
+	))
+	resp := probe.Evaluate(t.Context())
+
+	require.Contains(t, resp.Checks, "user-read-model")
+	require.Contains(t, resp.Checks, "audit-log")
+	require.Positive(t,
+		resp.Checks["user-read-model"].DurationNanos,
+		"the chain must keep durations from its detailed member")
+}

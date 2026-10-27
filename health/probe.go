@@ -93,37 +93,14 @@ func Recorder(provider ProjectionStatusProvider) gohealth.HealthRecorder {
 //	    health.RecorderChain(health.Recorder(svc), auditPlugin),
 //	))
 //
-// The chain is a plain [gohealth.HealthRecorder]: per-check durations from
-// detailed recorders do not survive the merge.
+// Deprecated: use [gohealth.ChainRecorders] directly. It is the same merge —
+// this function now forwards to it — but the upstream chain always satisfies
+// [gohealth.DetailedHealthRecorder], so per-check durations from detailed
+// members survive the merge and reach the wire. This wrapper used to drop
+// them: it implemented only the plain interface, so a probe holding it never
+// took the detailed path and every projection duration was lost.
 func RecorderChain(recorders ...gohealth.HealthRecorder) gohealth.HealthRecorder {
-	chain := make([]gohealth.HealthRecorder, 0, len(recorders))
-
-	for _, recorder := range recorders {
-		if recorder != nil {
-			chain = append(chain, recorder)
-		}
-	}
-
-	return recorderChain{recorders: chain}
-}
-
-type recorderChain struct {
-	recorders []gohealth.HealthRecorder
-}
-
-// RecordHealthCheckWithContext merges each recorder's batch in order; a name
-// produced by two recorders keeps the result of the later one.
-func (c recorderChain) RecordHealthCheckWithContext(
-	ctx context.Context,
-	injector do.Injector,
-) map[string]error {
-	results := make(map[string]error)
-
-	for _, recorder := range c.recorders {
-		maps.Copy(results, recorder.RecordHealthCheckWithContext(ctx, injector))
-	}
-
-	return results
+	return gohealth.ChainRecorders(recorders...)
 }
 
 type projectionRecorder struct {
