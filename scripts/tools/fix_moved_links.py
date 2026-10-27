@@ -38,7 +38,9 @@ def split_target(target: str) -> tuple[str, str]:
     return target, ""
 
 
-def rewrite_line(line: str, file_dir: Path, oldmap: dict[str, str], root: Path) -> tuple[str, int]:
+def rewrite_line(
+    line: str, file_dir: Path, oldmap: dict[str, str], root: Path
+) -> tuple[str, int]:
     changed = 0
 
     def repl(match: re.Match[str]) -> str:
@@ -63,7 +65,10 @@ def main(argv: list[str]) -> int:
     dry_run = "--dry-run" in argv
     args = [a for a in argv[1:] if a != "--dry-run"]
     if len(args) < 3 or len(args) % 2 == 0:
-        print("usage: fix_moved_links.py <repo-root> <old> <new> [<old> <new> ...] [--dry-run]", file=sys.stderr)
+        print(
+            "usage: fix_moved_links.py <repo-root> <old> <new> [<old> <new> ...] [--dry-run]",
+            file=sys.stderr,
+        )
         return 1
     root = Path(args[0]).resolve()
     oldmap: dict[str, str] = {}
@@ -71,7 +76,10 @@ def main(argv: list[str]) -> int:
         old = os.path.normpath(root / args[i])
         new = os.path.normpath(root / args[i + 1])
         if not (root / args[i + 1]).exists():
-            print(f"✗ fix-moved-links: new path does not exist: {args[i + 1]}", file=sys.stderr)
+            print(
+                f"✗ fix-moved-links: new path does not exist: {args[i + 1]}",
+                file=sys.stderr,
+            )
             return 1
         oldmap[old] = new
 
@@ -109,7 +117,9 @@ def main(argv: list[str]) -> int:
                     print(f"fix-moved-links: {changed_here} link(s) in {rel}")
 
     verb = "would fix" if dry_run else "fixed"
-    print(f"fix-moved-links: {verb} {links_changed} link(s) across {files_changed} file(s)")
+    print(
+        f"fix-moved-links: {verb} {links_changed} link(s) across {files_changed} file(s)"
+    )
     return 0
 
 
