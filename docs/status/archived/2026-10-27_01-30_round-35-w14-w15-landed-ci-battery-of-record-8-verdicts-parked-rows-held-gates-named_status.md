@@ -1,5 +1,9 @@
 # Round 35 — W14+W15 landed, CI battery of record, 8 parked-row verdicts, held gates named
 
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_09-41_round-36-owner-status-demand-full-inventory-self-critique-next-50_status.md`](../2026-10-27_09-41_round-36-owner-status-demand-full-inventory-self-critique-next-50_status.md), which superseded by round-36 (owner status demand; adds self-critique + next-50). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-27 (round-23 (2026-10-27)).**
+
 **Date:** 2026-10-26/27 (session ~21:15 → 01:30) · **Lane:** module lane (W01–W08, W10–W12, W14, W15, W17-verdicts) · **Head at close:** see §h · **Box load:** 107–164 throughout (shared; shaped every verification decision below)
 
 ## §a What this session did

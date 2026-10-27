@@ -35,7 +35,7 @@ closes independently; the 10-42 plan's terminal DONE line waits for both lanes.
 ## Resolved since the last update
 
 **The module lane's W14+W15+W17 verdicts** (receipt:
-[`docs/status/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md`](docs/status/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md)):
+[`docs/status/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md`](docs/status/archived/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md)):
 master healed from the w14.3 CI-killer (cursor-ignoring fake → OOM class), journal
 walkers stall-guarded everywhere, snapshot 404/500 split, boost-inheritance guard,
 root-files allowlist gate, coverage thresholds single-sourced + fail-loud, tooling
