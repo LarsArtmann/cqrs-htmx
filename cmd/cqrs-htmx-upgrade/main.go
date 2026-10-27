@@ -56,7 +56,12 @@ func main() {
 func runCLI(paths []string, apply, verbose bool) error {
 	mappings, err := deriveMappings()
 	if err != nil {
-		return errorfamily.Wrapf(err, errorfamily.Classify(err), "cqrshtmx.upgrade.derive_mappings_failed", "derive mappings")
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"cqrshtmx.upgrade.derive_mappings_failed",
+			"derive mappings",
+		)
 	}
 
 	_, reports, err := run(paths, mappings, apply)

@@ -86,17 +86,32 @@ func deriveMappings() (rulesTable, error) {
 
 	httputil, err := deriveFromFiles(rootDir, rootHTTputilFiles(), httputilImportPath, "R1")
 	if err != nil {
-		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "cqrshtmx.upgrade.derive_r1_failed", "R1 (httputil re-exports)")
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"cqrshtmx.upgrade.derive_r1_failed",
+			"R1 (httputil re-exports)",
+		)
 	}
 
 	gosse, err := deriveFromFiles(rootDir, rootGoSSEFiles(), gosseImportPath, "R2")
 	if err != nil {
-		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "cqrshtmx.upgrade.derive_r2_failed", "R2 (go-sse re-exports)")
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"cqrshtmx.upgrade.derive_r2_failed",
+			"R2 (go-sse re-exports)",
+		)
 	}
 
 	identity, err := deriveFromFiles(usermgmtDir, usermgmtAliasFiles(usermgmtDir), identityImportPath, "R9")
 	if err != nil {
-		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "cqrshtmx.upgrade.derive_r9_failed", "R9/R10 (usermgmt aliases)")
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"cqrshtmx.upgrade.derive_r9_failed",
+			"R9/R10 (usermgmt aliases)",
+		)
 	}
 
 	root := symbolMap{}
@@ -104,7 +119,12 @@ func deriveMappings() (rulesTable, error) {
 
 	for sym, m := range gosse {
 		if _, clash := root[sym]; clash {
-			return nil, errorfamily.Newf(errorfamily.Corruption, "cqrshtmx.upgrade.reexport_clash", "re-export clash: %s", sym)
+			return nil, errorfamily.Newf(
+				errorfamily.Corruption,
+				"cqrshtmx.upgrade.reexport_clash",
+				"re-export clash: %s",
+				sym,
+			)
 		}
 
 		root[sym] = m

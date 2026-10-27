@@ -202,7 +202,9 @@ func TestServeDomainEvents_ReplayFailureLogsCursor(t *testing.T) {
 	failing := &failingSSEStore{err: errors.New("journal read failed")}
 
 	var logBuf bytes.Buffer
+
 	prevLog := slog.Default()
+
 	slog.SetDefault(slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelWarn})))
 	t.Cleanup(func() { slog.SetDefault(prevLog) })
 
@@ -216,9 +218,11 @@ func TestServeDomainEvents_ReplayFailureLogsCursor(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 	req.Header.Set("Last-Event-ID", "evt-42")
+
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		h.ServeHTTP(rec, req)
 		close(done)
@@ -232,9 +236,11 @@ func TestServeDomainEvents_ReplayFailureLogsCursor(t *testing.T) {
 	if !strings.Contains(logs, "SSE replay failed") {
 		t.Fatalf("expected a replay-failure warning, got:\n%s", logs)
 	}
+
 	if !strings.Contains(logs, "lastEventID=evt-42") {
 		t.Errorf("replay-failure warning must carry the cursor context, got:\n%s", logs)
 	}
+
 	if !strings.Contains(rec.Body.String(), "connected") {
 		t.Errorf("replay failure must not kill the stream, body:\n%s", rec.Body.String())
 	}

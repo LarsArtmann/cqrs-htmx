@@ -73,8 +73,13 @@ func run(paths []string, table rulesTable, apply bool) (int, []fileReport, error
 			); err != nil {
 				return len(
 						goFiles,
-					), reports, errorfamily.Wrapf(err, errorfamily.Corruption,
-					"cqrshtmx.upgrade.unwritable_rewrite", "refusing to write %s: rewritten source does not parse", path)
+					), reports, errorfamily.Wrapf(
+						err,
+						errorfamily.Corruption,
+						"cqrshtmx.upgrade.unwritable_rewrite",
+						"refusing to write %s: rewritten source does not parse",
+						path,
+					)
 			}
 
 			info, err := os.Stat(path)
