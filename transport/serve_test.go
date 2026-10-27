@@ -197,7 +197,8 @@ func TestServeDomainEvents_ReplayFromStore(t *testing.T) {
 // boundary annotation on replayAdjustedStore.EventsAfter: a failing store's
 // error propagates verbatim (the adapter is a pass-through), and the cursor
 // context the linter believes lost is logged at the handler boundary with the
-// replay-failure warning, on BOTH the filtered and unfiltered paths.
+// replay-failure warning. This test drives the UNFILTERED branch; the
+// filtered branch (WithSSEFilter) has its own twin below.
 func TestServeDomainEvents_ReplayFailureLogsCursor(t *testing.T) {
 	failing := &failingSSEStore{err: errors.New("journal read failed")}
 
@@ -239,6 +240,59 @@ func TestServeDomainEvents_ReplayFailureLogsCursor(t *testing.T) {
 
 	if !strings.Contains(logs, "lastEventID=evt-42") {
 		t.Errorf("replay-failure warning must carry the cursor context, got:\n%s", logs)
+	}
+
+	if !strings.Contains(rec.Body.String(), "connected") {
+		t.Errorf("replay failure must not kill the stream, body:\n%s", rec.Body.String())
+	}
+}
+
+// TestServeDomainEvents_ReplayFailureLogsCursor_FilteredPath is the filtered
+// twin: WithSSEFilter routes replay through filteredReplayStore, whose
+// EventsAfterFiltered propagates the store error verbatim (the second
+// //nolint:erraudit boundary), and the handler's filter != nil branch must
+// warn with the same cursor context.
+func TestServeDomainEvents_ReplayFailureLogsCursor_FilteredPath(t *testing.T) {
+	failing := &failingSSEStore{err: errors.New("journal read failed")}
+
+	var logBuf bytes.Buffer
+
+	prevLog := slog.Default()
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelWarn})))
+	t.Cleanup(func() { slog.SetDefault(prevLog) })
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	h := ServeDomainEvents(b, failing, 0, WithSSEFilter(func(sse.Event) bool { return true }))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	req.Header.Set("Last-Event-ID", "evt-42")
+
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	logs := logBuf.String()
+	if !strings.Contains(logs, "SSE replay failed") {
+		t.Fatalf("expected a replay-failure warning on the filtered path, got:\n%s", logs)
+	}
+
+	if !strings.Contains(logs, "lastEventID=evt-42") {
+		t.Errorf("filtered replay-failure warning must carry the cursor context, got:\n%s", logs)
 	}
 
 	if !strings.Contains(rec.Body.String(), "connected") {
