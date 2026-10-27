@@ -2,11 +2,13 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -105,6 +107,53 @@ func TestFinishLogin_RejectsCounterRegression(t *testing.T) {
 	if findEvent(loadUserEvents(t, svc, reg.User.ID), eventCredentialUsed) != nil {
 		t.Error("a rejected regression must not emit a CredentialUsed event")
 	}
+}
+
+// TestRecordCredentialUse_AttachesUserIDContext mechanizes the invariant the
+// FinishLogin verbatim passthrough relies on: every error recordCredentialUse
+// returns carries user_id, so propagating it unchanged loses no attribution
+// context (the erraudit boundary annotation documents exactly this).
+func TestRecordCredentialUse_AttachesUserIDContext(t *testing.T) {
+	assertUserIDContext := func(t *testing.T, err error, want UserID) {
+		t.Helper()
+
+		famErr, ok := errors.AsType[*errorfamily.Error](err)
+		if !ok {
+			t.Fatalf("expected *errorfamily.Error, got %T: %v", err, err)
+		}
+		if !famErr.HasContext("user_id") {
+			t.Fatalf("expected user_id context, got %#v", famErr.ErrorContext())
+		}
+		if got := famErr.ContextValue("user_id"); got != want.Get().String() {
+			t.Errorf("user_id context = %q, want %q", got, want.Get().String())
+		}
+	}
+
+	t.Run("unmarshal failure", func(t *testing.T) {
+		svc := newWebAuthnTestServiceWithConfig(t)
+		reg := registerTestUser(t, svc, "wa-ctx-unmarshal", "wa-ctx-unmarshal@test.com")
+
+		err := svc.recordCredentialUse(context.Background(), reg.User.ID, []byte("{not json"))
+		if err == nil {
+			t.Fatal("expected an unmarshal failure, got nil")
+		}
+		assertUserIDContext(t, err, reg.User.ID)
+	})
+
+	t.Run("decider rejection", func(t *testing.T) {
+		svc := newWebAuthnTestServiceWithConfig(t)
+		reg := registerTestUser(t, svc, "wa-ctx-decider", "wa-ctx-decider@test.com")
+
+		cred := testUseCredential()
+		cred.SignCount = 5
+		addTestCredential(t, svc, reg.User.ID, cred)
+
+		err := beginAndFinishLogin(t, svc, reg.User.ID, reg.User.Email)
+		if err == nil {
+			t.Fatal("expected a counter-regression rejection, got nil")
+		}
+		assertUserIDContext(t, err, reg.User.ID)
+	})
 }
 
 // TestCeremonySessions_NamespacedPerCeremony proves registration and login

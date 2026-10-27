@@ -322,7 +322,8 @@ func (s *Service) recordCredentialUse(ctx context.Context, userID UserID, credJS
 	var used webAuthnUserCred
 	if err := json.Unmarshal(credJSON, &used); err != nil {
 		return errorfamily.NewInfrastructure("usermgmt.webauthn.unmarshal_credential",
-			"unmarshal logged-in credential").WithCause(err)
+			"unmarshal logged-in credential").WithCause(err).
+			WithContextAny("user_id", userID)
 	}
 
 	aggID, err := aggIDFromUser(userID)
