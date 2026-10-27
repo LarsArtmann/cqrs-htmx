@@ -51,3 +51,7 @@ The round-34 report recorded w14.3 as "committed but UNVERIFIED, 611s timeout, l
 ## §i Verify commands
 
 `nix run .#check-root-files` · `nix run .#check-buildflow-skips` (via check-modules stages: `root-files`, `buildflow-skips`, `verify-tag-fixtures-untidy`, `skill-claims`, `skill-snippets`, `readme-splitbrain`, + self-tests) · `bash scripts/tools/tidy-sweep.sh` · `bash scripts/checks/check-coverage-threshold.sh <module>` · CI run on the final head.
+
+## §j Addendum (02:40): the battery-of-record run, two self-inflicted reds, terminal green
+
+The first battery-of-record run (40425469944, head `5b902efc`) failed TWO steps — both introduced this session, both caught by CI exactly as designed: (1) `check-coverage-threshold.sh` ran `go tool cover` from the repo root while coverage profiles carry module-relative source paths (the old inline steps always `cd`'d first) — the usermgmt leg could not resolve sources; the script now measures from the profile's own directory. (2) The root-files baseline had been generated before `.codespellrc` was tracked — the gate flagged its own author's drift at HEAD; baseline re-pinned at 32. Fixed in `91c6aca2` (+ daemon capture `839b5a44`): run **40438109268 = success — ALL 16 jobs green** (test, module-architecture, checks with every new gate, the 11-module lint matrix, build, security, mod-tidy). `.#verify-remote-tags`: 179/179 peel identically. **Master is green at close.**
