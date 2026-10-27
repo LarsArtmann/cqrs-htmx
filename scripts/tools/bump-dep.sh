@@ -93,6 +93,16 @@ if [ -n "${BUMP_DEP_ROOT:-}" ]; then
 else
   SCAN_ROOT="$REPO_ROOT"
   cd "$REPO_ROOT" || exit 1
+  # Collision forensics (2026-10-27, the round-38 interleave): name a recent
+  # sweep BEFORE the dirty-tree refusal below blames an unnamed "dirty tree" —
+  # two actors running the same gate-printed FIX RECIPE collided exactly this
+  # way; the refusal alone hid the cause until /tmp was read by hand.
+  recent_sweep_log="$(find /tmp -maxdepth 1 -name 'bump-dep-*.log' -mmin -15 -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+  if [ -n "$recent_sweep_log" ]; then
+    echo "bump-dep: NOTE — a sweep log was written within the last 15m: $recent_sweep_log" >&2
+    echo "bump-dep: if another session is mid-sweep, let it finish and verify its PASS" >&2
+    echo "bump-dep: table instead of interleaving go.mod writes." >&2
+  fi
   if ! git diff --quiet || ! git diff --cached --quiet; then
     echo "bump-dep: REFUSING to run on a dirty tree — the auto-commit daemon makes interleaved sweeps unreviewable. Commit or stash first." >&2
     exit 1

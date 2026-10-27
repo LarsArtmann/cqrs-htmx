@@ -278,6 +278,26 @@ _ROI-gated follow-ups from the 2026-10-05 branching-flow analysis + ratchet sess
 - **Small-findings bundle (plan R25):** navItem intentional-dup comments ×2 (T15); `Capabilities.Has*()` prototype (T16); branching-flow↔cqrs-lint overlap doc so the two gates don't double-report (T21); `//nolint:branching-flow` reason-convention mirroring the erraudit classes (T22); verdict-table template for future analyzer passes (T24); FP-rate tracking across runs (T25). NOTE: T17 (`buildHandlerConfigChecked typeIsZero` flag-param move) is CLOSED — the triage ledger rejected both remaining flag-param findings (2026-10-05).
 - **Docs/process micros:** domain-language entry for "credential" boundaries (blocked on OQ28); add `branching-flow` to the devShell if it becomes load-bearing for more than one gate; `contextguard` as a standalone cheap gate (currently 0 findings — ride the ratchet instead unless it drifts); verify `dupe` cross-module matches are real, not walk artifacts.
 
+### Residual micro-ideas (harvested 2026-10-27 issue/PR sweep + release-train alignment)
+
+_Ideas from the 2026-10-27 sibling sessions (the GitHub-queue sweep and the release-train alignment unblock) that are real but do not each deserve a TODO_LIST slot. Fleet-scale ones are flagged — they apply to every LarsArtmann repo, not just this one._
+
+- **Fleet: the Go Report Card badge is a dead trust signal.** The service (sunset 2026-10-27, verified live) still appears on the front doors of LarsArtmann repos; READMEs that carry it advertise a shutdown page. Fleet-grep for `goreportcard.com` and replace with nothing (CI + pkg.go.dev already cover it) or a maintained equivalent. Found via PR #33 (this repo's own README change introduced it).
+- **Fleet: PR-only CI jobs whose credential is unset.** The 2026-10-27 architecture-gate brown-out — a `pull_request`-gated job failing at its `ssh-agent` step because `SSH_PRIVATE_KEY` is unset, BEFORE its own `continue-on-error` — made every PR in this repo permanently red. The class is mechanically detectable (`gh api`/workflow parse: every `pull_request` job's `secrets.*` references satisfiable, or skipping explicit); worth checking the other repos, then lifting the check upstream into BuildFlow.
+- **Fleet: tag filters that cannot match this family's tag shape.** `?filter=%5Ev4` yields "no matching tags found" because tags are `module/vX.Y.Z`; `v4.*` works. Any badge, `gh` filter, or regex over tags in a LarsArtmann family repo is suspect.
+- **Release badge semantics (PR #33 follow-up):** decide whether the badge means the ROOT module tag (`v4.*` → `v4.14.1`) or the newest tag of any module (`usermgmt/v4.16.0`), and say which in the README — the two answer different questions and both are currently unstated.
+- **`docs/screenshots/README.md` index** so the README's "More shots in docs/screenshots" link lands on prose (what each shot shows) instead of a bare GitHub file listing.
+- **Load-aware verification runbook.** Two 2026-10-27 sessions ran a box at load 100–165 (a monitor365 nix build + concurrent sessions) and both produced false step failures and refusals: codify "run `uptime` (or `wait-tree-quiet`) before heavyweight legs" and which gates are load-insensitive. (Sources: round-36 §e4, round-38 §d2/§e3.)
+- **Root-files baseline `--why` column** — a free-text justification per frozen entry, so the next session knows whether a file was grandfathered or deliberately added.
+- **Negative-control fixture for `check-verify-tag-fixtures-untidy`** — the gate is currently validated against the real tree only; a planted-tidy fixture would prove it fires (and that gotcha 34's markers are load-bearing).
+- **Skill-snippets gate v2: build-level compile for fences that import cqrs-htmx** (the README quickstart gate's pattern), keeping the parse check as the floor.
+- **Coverage TSV inverse-drift guard** — fail when a module HAS a test step but NO threshold row (the existing gate catches the opposite direction only).
+- **`check-release-train` recipe-posture telemetry** — after the FIX RECIPE gained `--commit --lint`, watch whether sweeps actually use it (the 2026-10-27 shredding class: a flagless sweep landed as heuristic daemon chores with no reviewable commit).
+- **`tidy-sweep.sh` over all 29 modules at low load**, recording candidates (never run end-to-end).
+- **Codespell skip-pattern validation** — `.codespellrc` skip patterns exist but are unproven; add a cheap codespell stage to CI if they hold.
+- **The awk-backtick/process-substitution root cause** (AGENTS "Host quirk": literal backticks in an awk program inside `<(...)` silently feed the loop EOF under this host's bash). The `"\140"` workaround is documented; the mechanism is not diagnosed — worth pinning down (it affects every gate script author).
+- **`session-start` rc guard: surface the current box load** so the verification posture (targeted vs composite) is chosen deliberately rather than discovered mid-battery.
+
 ---
 
 ## Documentation polish ideas (raw — 2026-10-17 harvest from the README-rewrite tail)

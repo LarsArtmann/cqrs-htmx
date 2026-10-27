@@ -101,7 +101,7 @@ Every serious comparison uses `b.Loop()` (Go 1.24+) + `b.ReportAllocs()` + `b.Re
 
 ## Gotchas
 
-42 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
+43 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
 number and has a `#gotcha-N` anchor). This index is the scan surface; open the file for the detail.
 
 | #   | Trap                                                                                                                        | #   | Trap                                                                         |
@@ -128,6 +128,7 @@ number and has a `#gotcha-N` anchor). This index is the scan surface; open the f
 | 20  | TODO_LIST/docs ownership:                                                                                                   | 40  | A documented red in a sequential CI job retires the evidentiary value of th… |
 | 41  | SQLite "no such table: events" under parallel `.#test` load = known flake — rerun once before triage (full text: gotcha 41) |
 | 42  | A wall-clock `go test` timeout IS a hang until proven otherwise — suspect the fake/stall guard first, load second (full text: gotcha 42) |     |                                                                              |
+| 43  | BuildFlow's stale-`vendorHash` warning is a documented NON-FIX — the hash belongs to the `benchstat` derivation, not this repo's go.sum (full text: gotcha 43) |     |                                                                              |
 
 ---
 
