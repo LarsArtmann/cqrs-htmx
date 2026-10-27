@@ -21,9 +21,11 @@ Every projection check carries the shared `ProjectionStatuses()` read time as
 `duration_ns`, on every path (the recorder implements go-health's optional
 `DetailedHealthRecorder`).
 
-Note: `gohealth.WithHealthRecorder` passed to `NewProbe` has no effect — the
-provider owns the batch. Compose extra recorders with `RecorderChain` and
-build the probe yourself, as in the table above.
+Note: `gohealth.WithHealthRecorder` passed to `NewProbe` is refused at
+`Start` (go-health v0.8.0's `ErrRecorderNotApplicable`) instead of being
+silently dropped — the provider owns the batch. Compose extra recorders with
+`RecorderChain` and build the probe yourself, as in the table above. The chain
+preserves `duration_ns` from detailed members.
 
 ## Semantics
 
