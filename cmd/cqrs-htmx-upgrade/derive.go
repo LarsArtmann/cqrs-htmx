@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -10,6 +9,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // rulesTable maps a SOURCE package import path to its deprecated-symbol table
@@ -85,17 +86,17 @@ func deriveMappings() (rulesTable, error) {
 
 	httputil, err := deriveFromFiles(rootDir, rootHTTputilFiles(), httputilImportPath, "R1")
 	if err != nil {
-		return nil, fmt.Errorf("R1 (httputil re-exports): %w", err)
+		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "cqrshtmx.upgrade.derive_r1_failed", "R1 (httputil re-exports)")
 	}
 
 	gosse, err := deriveFromFiles(rootDir, rootGoSSEFiles(), gosseImportPath, "R2")
 	if err != nil {
-		return nil, fmt.Errorf("R2 (go-sse re-exports): %w", err)
+		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "cqrshtmx.upgrade.derive_r2_failed", "R2 (go-sse re-exports)")
 	}
 
 	identity, err := deriveFromFiles(usermgmtDir, usermgmtAliasFiles(usermgmtDir), identityImportPath, "R9")
 	if err != nil {
-		return nil, fmt.Errorf("R9/R10 (usermgmt aliases): %w", err)
+		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "cqrshtmx.upgrade.derive_r9_failed", "R9/R10 (usermgmt aliases)")
 	}
 
 	root := symbolMap{}
@@ -103,7 +104,7 @@ func deriveMappings() (rulesTable, error) {
 
 	for sym, m := range gosse {
 		if _, clash := root[sym]; clash {
-			return nil, fmt.Errorf("re-export clash: %s", sym) //nolint:err113 // CLI diagnostic
+			return nil, errorfamily.Newf(errorfamily.Corruption, "cqrshtmx.upgrade.reexport_clash", "re-export clash: %s", sym)
 		}
 
 		root[sym] = m
@@ -126,7 +127,8 @@ func deriveFromFiles(dir string, files []string, wantTargetPath, rule string) (s
 
 		file, err := parser.ParseFile(fset, path, nil, parser.SkipObjectResolution)
 		if err != nil {
-			return nil, fmt.Errorf("parse %s: %w", path, err)
+			return nil, errorfamily.Wrapf(err, errorfamily.Rejection,
+				"cqrshtmx.upgrade.parse_failed", "parse %s", path)
 		}
 
 		qualToPath := importQualifierMap(file)
@@ -137,7 +139,8 @@ func deriveFromFiles(dir string, files []string, wantTargetPath, rule string) (s
 	}
 
 	if len(out) == 0 {
-		return nil, fmt.Errorf("no %s aliases in %s", wantTargetPath, dir) //nolint:err113 // CLI diagnostic
+		return nil, errorfamily.Newf(errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.no_aliases", "no %s aliases in %s", wantTargetPath, dir)
 	}
 
 	return out, nil
@@ -237,12 +240,14 @@ func moduleDir(importPath string) (string, error) {
 
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("locate module %s (is it in your module graph?): %w", importPath, err)
+		return "", errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.locate_module_failed", "locate module %s (is it in your module graph?)", importPath)
 	}
 
 	dir := strings.TrimSpace(string(out))
 	if dir == "" {
-		return "", fmt.Errorf("empty dir for %s", importPath) //nolint:err113 // CLI diagnostic
+		return "", errorfamily.Newf(errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.empty_module_dir", "empty dir for %s", importPath)
 	}
 
 	return dir, nil
