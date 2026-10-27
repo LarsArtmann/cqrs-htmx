@@ -541,3 +541,5 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 
 When the user asks for something not covered inline here, **read the matching reference file before improvising** -- it almost always contains the exact API and the ordering constraints.
+
+> **Skill-authoring note:** code fences in this SKILL.md and the module READMEs are parse-checked by `check-skill-snippets.sh` (wired into check-modules + CI) -- keep every fence linguistically tagged and compilable-shaped. A fence that is a deliberate API tour (statements + `// -> ...` method listings, not a program) carries `//doc:api-tour` as its literal first line; the gate then skips it. Reference-file fences (`references/*.md`) are skipped wholesale.

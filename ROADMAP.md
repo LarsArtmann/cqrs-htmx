@@ -78,7 +78,7 @@ _Focus: Adopting go-cqrs-lite capabilities to reduce hand-rolled code._
 
 ## Data Mesh Interchange (Researched — Not Yet Adopted)
 
-Research and a proposal (`docs/research/2026-07-25_*`, `docs/proposals/2026-07-25_data-mesh-interchange.md`) concluded that cqrs-htmx should **not** build a data-mesh interchange from scratch — go-cqrs-lite `catalog/v4` already provides the documentation layer (DataProduct / Channel / Message / exporters / docserver). The proposal's recommendation is **Approach C + D**: evaluate consolidating the hand-rolled `EventCatalog`/`openapi/` with `catalog/v4`, plus build the three genuinely missing runtime pieces:
+Research and a proposal (`docs/proposals/2026-07-25_data-mesh-interchange.md`; the companion 2026-07-25 landscape research was evicted 2026-10-24 as uncited — restore via `docs/ARCHIVE_EVICTED.md`) concluded that cqrs-htmx should **not** build a data-mesh interchange from scratch — go-cqrs-lite `catalog/v4` already provides the documentation layer (DataProduct / Channel / Message / exporters / docserver). The proposal's recommendation is **Approach C + D**: evaluate consolidating the hand-rolled `EventCatalog`/`openapi/` with `catalog/v4`, plus build the three genuinely missing runtime pieces:
 
 | Gap                             | What                                                                         | Effort   |
 | ------------------------------- | ---------------------------------------------------------------------------- | -------- |

@@ -1,6 +1,6 @@
 # Wave D lane closure: sync tails shipped as assets v1.6.0, battery run green-except-sibling-lint, push held
 
-> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_16-02_docs-lane-done-master-red-on-sibling-lint-self-review_status.md`](../2026-10-25_16-02_docs-lane-done-master-red-on-sibling-lint-self-review_status.md), which Owner-demanded full status + self-review: same arc plus the sibling push/CI-red turn of events; supersedes the closure receipt. Strike depth:
+> **ANNOTATED 2026-10-25** — ~~this report~~ **SUPERSEDED** by [`2026-10-25_16-02_docs-lane-done-master-red-on-sibling-lint-self-review_status.md`](2026-10-25_16-02_docs-lane-done-master-red-on-sibling-lint-self-review_status.md), which Owner-demanded full status + self-review: same arc plus the sibling push/CI-red turn of events; supersedes the closure receipt. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-25 (round-23 (2026-10-25)).**
 
