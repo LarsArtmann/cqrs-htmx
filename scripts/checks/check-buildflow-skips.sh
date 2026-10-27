@@ -25,13 +25,13 @@ fi
 # The documented skips. Order does not matter; each entry mirrors a
 # load-bearing comment block in .buildflow.yml.
 expected=(
-  templ-generate   # bundled templ binary writes directory-prefixed FileName fields
-  tailwind-build   # consumer-compiled CSS bundles; the stale-bundle class
-  jest-test        # Go library, no JS test framework
-  vitest-test      # Go library, no JS test framework
-  pnpm-audit       # no JS lockfile
-  deadnix          # not installed
-  dprint-format    # dprint.json removed 2026-10-18; tombstone vs unscoped defaults
+  templ-generate # bundled templ binary writes directory-prefixed FileName fields
+  tailwind-build # consumer-compiled CSS bundles; the stale-bundle class
+  jest-test      # Go library, no JS test framework
+  vitest-test    # Go library, no JS test framework
+  pnpm-audit     # no JS lockfile
+  deadnix        # not installed
+  dprint-format  # dprint.json removed 2026-10-18; tombstone vs unscoped defaults
 )
 
 # skip_steps entries: "- name" lines (any indentation) after "skip_steps:"

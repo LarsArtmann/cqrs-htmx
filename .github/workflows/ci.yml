@@ -609,6 +609,24 @@ jobs:
       - name: Verify-tag fixtures poison canary self-test
         run: bash scripts/selftests/test-check-verify-tag-fixtures-untidy.sh
 
+      # Skill-maintenance gates (w15.2/w15.3): the skill's documented
+      # symbols must resolve in code, its Go fences must parse, and module
+      # READMEs must not name APIs that no longer exist.
+      - name: Skill claims drift gate
+        run: bash scripts/checks/check-skill-claims.sh
+
+      - name: Skill claims self-test
+        run: bash scripts/selftests/test-check-skill-claims.sh
+
+      - name: Skill snippets parse gate
+        run: bash scripts/checks/check-skill-snippets.sh
+
+      - name: Skill snippets self-test
+        run: bash scripts/selftests/test-check-skill-snippets.sh
+
+      - name: Module README split-brain scan
+        run: bash scripts/checks/check-readme-splitbrain.sh
+
       # R2/R18: upstream release consumability — a tag whose go.mod carries
       # placeholder pseudo-version requires (templ-components v1.20.0 class)
       # blocks every consumer push with a misleading "unknown revision".

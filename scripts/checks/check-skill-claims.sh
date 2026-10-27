@@ -71,6 +71,7 @@ auditlog/README.md	auditlog.Config
 
 fail=0
 checked=0
+seen=0
 
 shopt -s globstar
 for doc in "${DOCS[@]}"; do
@@ -89,13 +90,14 @@ for doc in "${DOCS[@]}"; do
       continue
     fi
 
+    seen=$((seen + 1))
+
     if grep -qx "$sym" <<<"$ALLOWLIST"; then
       continue
     fi
 
     doc_base="${doc#"$REPO_ROOT"/}"
-    if grep -qP "^\Q$doc_base\E\t\Q$sym\E$" <<<"$DOC_ALLOWLIST" 2>/dev/null ||
-      printf '%s\n' "$DOC_ALLOWLIST" | grep -q "^${doc_base}	${sym}$"; then
+    if printf '%s\n' "$DOC_ALLOWLIST" | grep -q "^${doc_base}	${sym}$"; then
       continue
     fi
 
@@ -134,12 +136,12 @@ for doc in "${DOCS[@]}"; do
   done < <(grep -ohE '\b(cqrshtmx|cqrs|transport|usermgmt|identitymodel|setup|adminui|dashboardui|loginpage|datastar|systemadapter|health|auditlog|totp|webauthn|oauth2)\.[A-Z][A-Za-z0-9]*\b' "$doc" | sort -u)
 done
 
-if [ "$checked" -eq 0 ]; then
+if [ "$seen" -eq 0 ]; then
   echo "✗ skill-claims: zero symbols extracted — the gate scanned nothing (fixture or path drift)"
   exit 1
 fi
 
 if [ "$fail" -eq 0 ]; then
-  echo "✓ skill-claims: $checked documented symbol(s) all resolve in code"
+  echo "✓ skill-claims: $checked documented symbol(s) all resolve ($((seen - checked)) allowlisted)"
 fi
 exit "$fail"

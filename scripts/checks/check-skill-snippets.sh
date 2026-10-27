@@ -47,6 +47,7 @@ looks_like_code() {
 fail=0
 checked=0
 skipped=0
+found=0
 
 shopt -s globstar
 for doc in "$SKILLS_DIR"/**/*.md; do
@@ -55,6 +56,7 @@ for doc in "$SKILLS_DIR"/**/*.md; do
   body=""
   while IFS= read -r line; do
     if [ "$line" = "===FENCE===" ]; then
+      found=$((found + 1))
       if [ "$(printf '%s' "$body" | head -1 | tr -d '[:space:]')" = "//doc:api-tour" ]; then
         # Annotated API-tour fence (statements + "// → ..." method listings):
         # deliberately not a program. The marker is a Go comment, so the
@@ -87,8 +89,8 @@ for doc in "$SKILLS_DIR"/**/*.md; do
   )
 done
 
-if [ "$checked" -eq 0 ]; then
-  echo "✗ skill-snippets: zero code fences found — the gate scanned nothing"
+if [ "$found" -eq 0 ]; then
+  echo "✗ skill-snippets: zero Go fences found — the gate scanned nothing"
   exit 1
 fi
 
