@@ -1,6 +1,6 @@
 # Round 37 — docs-health full AUDIT: the 2026-0* corpus + all six living docs trued, two archives, all gates green
 
-> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-37_round-40-status-self-critique-forgotten-items-bounded-auditlog-gate-split-brain_status.md`](../2026-10-27_16-37_round-40-status-self-critique-forgotten-items-bounded-auditlog-gate-split-brain_status.md), which round-40 carries round-37's open §g2/§g3 questions (branching-flow baseline hold, corpus-budget posture) verbatim in its own §g3, and round-37's harvest targets landed as the TODO_LIST/ROADMAP rows round-40 §a12 verified. Strike depth:
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-37_round-40-status-self-critique-forgotten-items-bounded-auditlog-gate-split-brain_status.md`](2026-10-27_16-37_round-40-status-self-critique-forgotten-items-bounded-auditlog-gate-split-brain_status.md), which round-40 carries round-37's open §g2/§g3 questions (branching-flow baseline hold, corpus-budget posture) verbatim in its own §g3, and round-37's harvest targets landed as the TODO_LIST/ROADMAP rows round-40 §a12 verified. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-27 (round-42 (2026-10-27, issue/PR merge + fix sweep)).**
 

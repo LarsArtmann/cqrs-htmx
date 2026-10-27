@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // testUseCredential is the credential the WebAuthn stub's FinishLogin reports
