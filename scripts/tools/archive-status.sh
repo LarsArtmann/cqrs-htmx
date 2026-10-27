@@ -216,7 +216,7 @@ for i in "${!reports[@]}"; do
     exit 1
   fi
 
-  if ! REPORT="$report" SUCCESSOR="$successor_rel" REASON="$reason" VERDICT="$verdict" WHEN="$DATE" PASSNAME="$PASS" python3 - "$new_path" <<'PY'; then
+  if ! REPORT="$report" SUCCESSOR="$successor_rel" REASON="$reason" VERDICT="$verdict" WHEN="$DATE" PASSNAME="$PASS" python3 - "$new_path" <<'PY'
 import os
 import sys
 
@@ -255,6 +255,7 @@ if text.endswith("\n"):
     out += "\n"
 open(path, "w", encoding="utf-8").write(out)
 PY
+  then
     echo "✗ archive-status: annotate failed for $report (moved; finish by hand)" >&2
     exit 1
   fi

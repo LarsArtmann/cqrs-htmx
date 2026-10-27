@@ -13,7 +13,7 @@ CI goes red with a signature that looks like a code bug, not a version skew.
    nixpkgs bump. Every flake app that needs Go must take `goPkg`, never the
    ambient `pkgs.go`.
 2. **`go.work` `go` directive** — the workspace floor. `scripts/checks/
-   check-go-toolchain.sh` fails when this directive is NEWER than the
+check-go-toolchain.sh` fails when this directive is NEWER than the
    devShell toolchain (the 1.26.5-era trap: CI and devShells run
    `GOTOOLCHAIN=local`, so a too-new directive breaks every local build).
 3. **Per-module `go.mod` directives** — the go.work floor is the ceiling for
