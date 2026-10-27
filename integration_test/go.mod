@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.16.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.6
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
@@ -28,7 +28,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.4
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.16.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-health v0.7.0

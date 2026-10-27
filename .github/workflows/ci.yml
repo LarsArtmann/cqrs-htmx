@@ -943,16 +943,39 @@ jobs:
         with:
           sarif_file: results.sarif
 
+  architecture-gate-preflight:
+    # GitHub forbids `secrets` in a job-level `if`, so this probe converts the
+    # presence of SSH_PRIVATE_KEY into a job output. Without it the gate below
+    # reds EVERY pull request at the ssh-agent step while the secret is
+    # unconfigured — a permanent red that trains everyone to ignore the checks.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      has_key: ${{ steps.probe.outputs.has_key }}
+    steps:
+      - name: Probe for the private-repo SSH key
+        id: probe
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -n "$SSH_PRIVATE_KEY" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=architecture-gate skipped::SSH_PRIVATE_KEY is not configured; the EventCatalog breaking-change gate needs the PRIVATE eventcatalog-hub repo. Configure the secret to enable it."
+          fi
+
   architecture-gate:
     # Breaking-change gate for the EventCatalog export (hub contract): diffs
     # the PR's examples/catalog-demo eventcatalog tree against the base
     # branch's — removed messages/services, changed schemas on unchanged
     # ids, dropped producers/consumers fail the PR. The gate script lives
     # in the PRIVATE eventcatalog-hub repo, so this job needs the same
-    # SSH_PRIVATE_KEY secret bank-sync's CI uses. Soft rollout: it reports
-    # but does not fail until that secret is configured — then drop
-    # continue-on-error.
-    if: github.event_name == 'pull_request'
+    # SSH_PRIVATE_KEY secret bank-sync's CI uses. Soft rollout: absent the
+    # secret the job SKIPS (never silently passes); once configured it runs,
+    # and the final step's continue-on-error drops to enforce.
+    if: github.event_name == 'pull_request' && needs.architecture-gate-preflight.outputs.has_key == 'true'
+    needs: architecture-gate-preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

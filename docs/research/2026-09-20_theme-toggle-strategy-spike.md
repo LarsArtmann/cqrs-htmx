@@ -1,6 +1,14 @@
 # Theme Toggle Strategy Spike (adminui) — M088
 
-**Date:** 2026-09-20 · **Status:** spike complete, awaiting M089 sign-off
+> **ANNOTATED 2026-10-27 (docs-health round 37):** RESOLVED — and the decision went the OTHER way.
+> The class-strategy migration (Option A's mechanism) shipped: adminui 2026-09-21 (`82a5e878`, class-driven
+> `dark:` variants + `.dark` class), dashboardui 2026-09-23 (`@custom-variant dark` + `html.dark` tokens +
+> `layout.ThemeScript`/`ThemeToggle` — user-controllable toggle included). Option B (`data-theme` token-flip)
+> and "defer" were NOT taken; the token architecture was migrated away from, not preserved. Recorded in the
+> research README's series table and AGENTS.md's dark-mode row. Outcome per the 09-23 audit §06 (now in the
+> 10-04 report, the series entry point).
+
+**Date:** 2026-09-20 · ~~**Status:** spike complete, awaiting M089 sign-off~~ RESOLVED 2026-09-21/23 — class-strategy shipped (see blockquote)
 **Question:** how should adminui gain a user-controllable theme toggle — Tailwind class-strategy migration, or a toggle over the existing `@theme` token-flip?
 
 ## Current state (what exists today)
@@ -48,6 +56,6 @@ Mechanism: duplicate the dark token block under `:root[data-theme="dark"]`, keep
 
 Per the remediation plan, no theme code ships before the user picks:
 
-- [ ] **A** — class-strategy migration (bigger diff, industry-default)
-- [ ] **B** — token-flip + `data-theme` toggle (~30 lines, recommended)
-- [ ] **defer** — no toggle this train; system preference only (status quo)
+- [x] ~~**A** — class-strategy migration (bigger diff, industry-default)~~ **SHIPPED 2026-09-21/23** (adminui `82a5e878`; dashboardui 2026-09-23 — `@custom-variant dark` + `html.dark` + `ThemeScript`/`ThemeToggle`)
+- [ ] ~~**B** — token-flip + `data-theme` toggle (~30 lines, recommended)~~ NOT TAKEN — the token architecture was migrated away from instead
+- [ ] ~~**defer** — no toggle this train; system preference only (status quo)~~ NOT TAKEN — a user-controllable toggle shipped (ThemeToggle)

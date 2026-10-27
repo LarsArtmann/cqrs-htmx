@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **The SSE `visibilitychange` reconnect is gated on the live indicator:** without an EventBus the old handler opened an EventSource against an unregistered route on tab refocus and retried the 404 forever.
 - **Overview stream links render as plain text without the EventSource capability** (the `/aggregates/{type}/{id}` routes only register with it — the links used to open the styled 404 page).
 - **Test fakes honor the SeekableJournal contract** (after cursor + read limit); the old head-slicing fakes masked the cursor bugs above and would loop any future paged scan.
+- **Journal walkers stall-guarded (2026-10-26, W14.3/W14.4):** `LoadTailEvents`, the event-detail neighbor scan, and the audit/CSV export stream all terminate with a `*_cursor_stalled` infrastructure error when a journal stops advancing, instead of hanging forever (the export hang class was severe enough to OOM CI runners before the fix; the regression pins cursor+limit semantics on the test fakes).
+- **UTF-8-safe paths and filters (2026-10-26, W14.2/W14.3):** route path segments are escaped with `url.PathEscape` (a stream/type id containing `/` or `%` can no longer traverse or 404 the wrong route), multi-byte characters survive the filter form round-trip, and panels derive asset/API URLs from a `data-base-path` root hook instead of string concatenation.
+- **Snapshot detail tells the truth (2026-10-26, W14.4):** a missing snapshot renders the missing page (404-shaped) while a store failure renders the 500 error panel — an outage no longer masquerades as "No snapshot found"; delete on an already-gone snapshot is idempotent success.
+- **The rendered-page boost-inheritance guard (2026-10-26, W14.4):** a test walks every GET route's rendered HTML and fails when any self-fetching element inside the boosted `.app-layout` wrapper lacks its own `hx-target`/`hx-select` pins — the 2026-10-18 overview-blanking class is now structurally dead, not just patched at one site.
 
 ## [v4.13.3] - 2026-10-11
 

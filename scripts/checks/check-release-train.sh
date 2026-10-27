@@ -296,11 +296,14 @@ if [ "$STRICT_LAG" -ge 0 ] && [ "$lags" -gt "$STRICT_LAG" ]; then
         sed 's/^{"module":"\([^"]*\)","required":"[^"]*","latest":"\([^"]*\)".*/\1 \2/' |
         sort -u |
         while read -r lagmod lagver; do
-          echo "  scripts/tools/bump-dep.sh 'larsartmann/${lagmod#github.com/larsartmann/}\$' $lagver"
+          echo "  scripts/tools/bump-dep.sh 'larsartmann/${lagmod#github.com/larsartmann/}\$' $lagver --commit --lint"
         done
       echo "Same-version families (root + submodules at one version) may merge into"
-      echo "one prefix sweep. Verify each sweep's PASS table, commit per sweep, then"
-      echo "re-run: nix run .#check-release-train -- --refresh-cache --strict-lag 0"
+      echo "one prefix sweep. --commit lands sweep + verification as ONE reviewable"
+      echo "commit (a flagless sweep gets shredded across auto-commit daemon chores);"
+      echo "--lint adds the hermetic golangci-lint leg. Verify each sweep's PASS"
+      echo "table, then re-run:"
+      echo "  nix run .#check-release-train -- --refresh-cache --strict-lag 0"
     fi
   }
   exit 3

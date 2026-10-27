@@ -1,5 +1,9 @@
 # Full status: docs lane DONE and on origin (sync v1.6.0), master RED on the sibling's lint — self-review demanded and given
 
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_09-41_round-36-owner-status-demand-full-inventory-self-critique-next-50_status.md`](2026-10-27_09-41_round-36-owner-status-demand-full-inventory-self-critique-next-50_status.md), which Superseded by the round-32-to-36 receipt chain: the 7 lint findings + S39 receipt landed (948825e5, its own postscript), CI watched to terminal green and the battery of record (40439932229), verify-remote-tags 179/179 + W12 reconciliation done (round-36 sec-a1), g1 moot per its postscript; the surviving owner questions (branching-flow baseline, treadmill posture, packet items) are carried in the round-36 report sec-g and the S55 packet. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-27 (docs-health round 37 (2026-10-27)).**
+
 **Created:** 2026-10-25 16:02 CET · **Session:** continuation of the docs lane (10-42 plan + 10-43 addendum); supersedes + archives the 15-57 closure receipt (same arc, plus the post-battery turn of events and the owner-demanded self-review). **State at writing:** local = origin = `db75f32c`, tree clean, ahead 0. **Master CI RED** — runs `40203801203` (head `5e0fb368`) and `40204630054` (head `db75f32c`) both failed exactly the lint matrix legs `lint (usermgmt)` + `lint (.)` + `lint (auditlog)` with exactly the 7 findings my battery inventoried; every non-lint job (build, test, checks, module-architecture, mod-tidy, security, all other lint legs) is GREEN. Load avg 17–26.
 
 ## a) FULLY DONE (this session, receipts)
@@ -12,13 +16,13 @@
 ## b) PARTIALLY DONE
 
 1. **Push + CI watch: DONE for my commits (`5e0fb368`, `db75f32c` both on origin), but master is RED — the heals must come from the sibling's lane.** Timeline: my battery lint verdict existed ~15:45; the sibling pushed the 14-commit stack (carrying my work) at **15:46 without running lint** — falsifying their 15-22 §b3 "expectation is green" (their §b2 admits the battery gap). Runs `40203801203` + `40204630054` failed the 3 lint legs; everything else green, so my sync v1.6.0 and all docs work are CI-proven. The 7-finding fix list is on origin in the 15-57 receipt §b1 for them.
-2. **`.#verify-remote-tags` not run** — pointless while master is red; queued post-green.
+2. ~~**`.#verify-remote-tags` not run** — pointless while master is red; queued post-green.~~ done — `.#verify-remote-tags` 179/179 tags peel identically + the W12 `git log --stat` book reconciliation ran clean (round-36 receipt §a1, `docs/status/archived/2026-10-27_01-30_round-35-..._status.md`).
 
 ## c) NOT STARTED
 
-- The sibling's lint fixes (their lane) and their missing usermgmt/CHANGELOG S39 receipt (their §b1, absent as of 15:40).
-- Post-green legs: CI terminal-green watch, `.#verify-remote-tags`, the W12 `git log --stat` book reconciliation (partially moot — the stack is pushed).
-- Whole-Wave-D remainder: their W04–W15 → W17-final receipt; the 10-42 terminal DONE line.
+- ~~The sibling's lint fixes (their lane) and their missing usermgmt/CHANGELOG S39 receipt (their §b1, absent as of 15:40).~~ done at `948825e5` (2026-10-25 16:13, the postscript below — the 7-finding fix + the S39 receipt landed in the same commit).
+- ~~Post-green legs: CI terminal-green watch, `.#verify-remote-tags`, the W12 `git log --stat` book reconciliation (partially moot — the stack is pushed).~~ done — CI watched to terminal green through rounds 31–35 and the battery of record (run 40439932229, all 16 jobs); the other two legs closed per §b2 above.
+- ~~Whole-Wave-D remainder: their W04–W15 → W17-final receipt; the 10-42 terminal DONE line.~~ W14/W15/W17 verdicts executed + receipted through rounds 32–36 (`docs/status/2026-10-27_09-41_round-36-..._status.md` §a); the 10-42 terminal DONE line stays open on the sibling lane closing — routed to `CURRENT_FOCUS.md` (the active thread).
 
 ## d) TOTALLY FUCKED UP! (honest)
 
@@ -38,16 +42,16 @@
 
 ## f) NEXT (ordered; "(sib)" = module lane, "(mine)" = docs lane, "(owner)" = gated)
 
-1. (sib) Fix the 7 lint findings — inventory on origin in 15-57 §b1 / §a2 above; CI confirms it 1:1.
-2. (sib) The missing usermgmt/CHANGELOG S39 receipt (empty-subject + nonce flow).
-3. (mine, post-fix) `git fetch`; if they pushed the fix, `gh run watch` to terminal green; else offer the re-lint locally (`nix run .#lint` rc=0) before their push.
-4. (mine, post-green) `.#verify-remote-tags` peeled-ref audit; W12 `git log --stat` reconciliation against the sibling's 15-22 §f35.
-5. (owner) g1 below — lane exception vs wait for the sibling fix.
+1. ~~(sib) Fix the 7 lint findings — inventory on origin in 15-57 §b1 / §a2 above; CI confirms it 1:1.~~ done at `948825e5` (postscript).
+2. ~~(sib) The missing usermgmt/CHANGELOG S39 receipt (empty-subject + nonce flow).~~ done at `948825e5` (postscript).
+3. ~~(mine, post-fix) `git fetch`; if they pushed the fix, `gh run watch` to terminal green; else offer the re-lint locally (`nix run .#lint` rc=0) before their push.~~ done — the fix landed 16:13; CI watched to terminal green (rounds 31–35, battery of record 40439932229).
+4. ~~(mine, post-green) `.#verify-remote-tags` peeled-ref audit; W12 `git log --stat` reconciliation against the sibling's 15-22 §f35.~~ done (round-36 §a1: 179/179, reconciliation consistent).
+5. ~~(owner) g1 below — lane exception vs wait for the sibling fix.~~ MOOT — overtaken by events (postscript: sibling fixed in-lane, the wait-and-triage path).
 6. (owner) g2 — branching-flow +22: sibling in-lane fix or dated-ledger re-pin (packet §6.2).
 7. (owner) g3 — nightly strict-lag treadmill workflow (packet §6.3; worst-lag-0 measured green).
-8. (sib) Their W04 → W17-final per their 15-22 §f (identity-model tails, systemadapter fidelity, consumer seams, schema-version stamping, file splits, backlog waves).
-9. (mine) Append the post-green push/tag receipts (this report or its successor).
-10. (mine) Archive this report when superseded (chain: 14-01 → 15-16 → 15-57 → 16-02).
+8. ~~(sib) Their W04 → W17-final per their 15-22 §f (identity-model tails, systemadapter fidelity, consumer seams, schema-version stamping, file splits, backlog waves).~~ executed + receipted rounds 32–36 (W14.1–W14.6, W15.2–W15.5, W17 verdicts; `docs/status/2026-10-27_09-41_round-36-..._status.md`).
+9. ~~(mine) Append the post-green push/tag receipts (this report or its successor).~~ superseded — the round-32→36 receipt chain is the successor record.
+10. ~~(mine) Archive this report when superseded (chain: 14-01 → 15-16 → 15-57 → 16-02).~~ done — this archive pass (docs-health round 37, 2026-10-27), superseded by the round-36 report.
 11. (owner-tick) Packet ON TICK: D6 cqrs-lint chain (tag → fleet swap → CI gate), D14 httputil/server_timing tag, D17 gosec pin, U1/U2/E005 upstream drafts, PapDashboard reply.
 12. (watch) templ first release after 10-05 (retire the verify-warning workaround on the next train); treefmt-nix#545; BF1 fixture pruning; /mnt/buildcache (69%, 66G free at 14:33).
 13. (quiet-window) `.#bench-spike` at first load <6 (same change as any bench-path edit); loginpage coverage-gate re-pin (templ ep-4 micro).

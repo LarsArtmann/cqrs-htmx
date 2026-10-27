@@ -2,6 +2,7 @@ package systemadapter_test
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -147,10 +148,8 @@ func TestDeclarative_AuditVocabularyParity(t *testing.T) {
 		for _, e := range entries {
 			seen[e.Action] = true
 
-			for _, b := range banned {
-				if e.Action == b {
-					return errors.New("audit entry carries an invented action verb: " + e.Action)
-				}
+			if slices.Contains(banned, e.Action) {
+				return errors.New("audit entry carries an invented action verb: " + e.Action)
 			}
 		}
 

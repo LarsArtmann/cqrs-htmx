@@ -1,6 +1,6 @@
 # Dependency Train Bump — Playbook
 
-> How to sweep a family dependency (cqrs-htmx, go-cqrs-lite, templ-components, httputil, go-sse, …) to a new published version across this 28-module workspace. Companion to `release-next-train-prep.md` (cutting OUR train) — this runbook is for consuming SOMEONE ELSE'S.
+> How to sweep a family dependency (cqrs-htmx, go-cqrs-lite, templ-components, httputil, go-sse, …) to a new published version across this 29-module workspace. Companion to `release-next-train-prep.md` (cutting OUR train) — this runbook is for consuming SOMEONE ELSE'S.
 
 **Automation:** `scripts/tools/bump-dep.sh <module-pattern> <version>` does the mechanical sweep (see below). The verification loop stays manual — it is where the mistakes hide.
 
@@ -50,6 +50,8 @@ revision`. bump-dep now pre-flights every module it is about to bump via
 | `invalid package name: ""` in unrelated modules   | VCS-cache bare repo lost its `origin` remote (GOPRIVATE git resolution) | `git -C /mnt/buildcache/go-mod/cache/vcs/<hash>/ remote add origin https://github.com/larsartmann/<repo>.git` |
 | Phantom `missing go.sum entry` everywhere at once | Cache filesystem full                                                   | `df -h` the cache dir; `go-cache-env.sh` fails fast on this                                                   |
 | Just-published tag reads UNPUBLISHED              | release-train gate's ls-remote tag cache TTL                            | re-run with `-- --refresh-cache`                                                                              |
+| buildflow doctor: "vendorHash … may be stale — go.sum was modified" | Gotcha 31: the checker misattributes repo-wide go.sum churn to the benchstat-only FOD (`vendorHash.nix` is unrelated to our go.sums) | Ignore the warning; receipt via `nix build .#benchstat` (green); NEVER edit `hash.nix`/`vendorHash.nix` off the checker's finding alone |
+| bump-dep refuses on a "dirty tree" nobody touched  | Another session is mid-sweep on the same gate-printed FIX RECIPE        | Heed the new `bump-dep: NOTE — a sweep log …` forensics line; let the other sweep finish and verify its PASS table instead of interleaving |
 | go.mod `go` directive creeps up                   | A 1.27.1-toolchain process ran `go mod tidy` (sibling session / gopls)  | restore the floor; `go-cache-env.sh` now aligns `GOTOOLCHAIN` for gate runs                                   |
 
 ## scripts/tools/bump-dep.sh
@@ -57,7 +59,7 @@ revision`. bump-dep now pre-flights every module it is about to bump via
 ```bash
 scripts/tools/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0          # sweep a train
 scripts/tools/bump-dep.sh 'larsartmann/cqrs-htmx' v4.12.0 --dry-run   # plan only (no network)
-scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0 --commit      # sweep + commit as one
+scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0 --commit --lint # sweep+lint+commit as one
 ```
 
 Digit-safe module matching (accepts BOTH the block-require form and the
