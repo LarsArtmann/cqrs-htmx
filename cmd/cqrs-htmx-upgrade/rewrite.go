@@ -229,7 +229,7 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 				e.end,
 				path,
 				len(out),
-			)
+			).WithContextAny("qual_to_path", qualToPath)
 		}
 
 		out = out[:e.offset] + e.newText + out[e.end:]
