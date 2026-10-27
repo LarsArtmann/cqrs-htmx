@@ -80,6 +80,9 @@
 
 - [ ] **Repository-protection decision (owner).** Verified 2026-10-27: master has NO branch protection (`branches/master/protection` → 404) and NO rulesets (`[]`), so every check is advisory and a skipped job cannot wedge a merge (which is what made the skip-based architecture-gate fix safe). Decide whether to require the currently-passing checks (test / lint / build / checks) and whether `DontMergeMeYet` ("Ready to merge") is the intended merge gate. Source: 15-06 §f19/§f20.
 
+- [ ] **`.#check-modules` mode split-brain: the default path runs 40 scripts, `--report` runs 69.** Verified 2026-10-27 by diffing the app's own stage lists: the whole "New gates 2026-10-26" set (`root-files`, `buildflow-skips`, `verify-tag-fixtures-untidy`, `skill-claims`, `skill-snippets`, `readme-splitbrain`, `family-release-consumable`, `selftest-env-leaks`, `streamid-identity`, `train-consumers-hermetic`) plus their self-tests, `test-check-release-train.sh`, `test-check-cqrs-lint.sh`, `test-erraudit-inventory.sh` and the preflight/push-and-watch/verify-remote-tags self-tests appear ONLY in the `--report` array. Two consequences: (a) a local `nix run .#check-modules` green does NOT verify those gates (CI does, so coverage is not lost, but the local claim is over-broad — AGENTS' "All in check-modules + CI" is half-true); (b) the default path aborts at the first red, so a single held stage (branching-flow) retires the evidentiary value of everything after it — gotcha 40's class, locally. Fix: have the default path call the same array (report-then-fail), or add a self-test asserting the two lists are identical. Verify: `nix run .#check-modules -- --report` stage count equals the default path's, or the parity self-test is green. Source: round-39 §a13/§f16.
+
+
 
 ## P3 — Technical debt & future
 
