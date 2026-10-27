@@ -1,12 +1,11 @@
 # cqrs-htmx
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
-[![Release](https://img.shields.io/github/v/tag/LarsArtmann/cqrs-htmx?filter=%5Ev4&sort=semver&label=release)](https://github.com/LarsArtmann/cqrs-htmx/releases)
+[![Release](https://img.shields.io/github/v/tag/LarsArtmann/cqrs-htmx?filter=v4.*&sort=semver&label=release)](https://github.com/LarsArtmann/cqrs-htmx/releases)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
 [![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](docs/goth-stack.md)
-[![Go Report Card](https://goreportcard.com/badge/github.com/larsartmann/cqrs-htmx/v4)](https://goreportcard.com/report/github.com/larsartmann/cqrs-htmx/v4)
 
 **CQRS + event sourcing for server-rendered Go apps — wired to HTTP and HTMX in one declarative line per endpoint.**
 
