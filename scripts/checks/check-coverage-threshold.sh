@@ -46,7 +46,12 @@ if [ ! -f "$profile" ]; then
   exit 1
 fi
 
-cov=$(go tool cover -func="$profile" | tail -1 | grep -oP '\d+\.\d+(?=%)' || true)
+# Measure from the profile's directory: coverage profiles carry
+# source-module-relative paths, so running `go tool cover` from elsewhere
+# (repo root) cannot resolve them (the first CI run of this script failed
+# exactly there — the old inline steps always cd'd first).
+cov=$(cd "$(dirname "$profile")" && go tool cover -func="$(basename "$profile")" |
+  tail -1 | grep -oP '\d+\.\d+(?=%)' || true)
 case "$cov" in
 '' | *[!0-9.]*)
   echo "✗ coverage-threshold: could not parse total coverage from $profile" >&2
