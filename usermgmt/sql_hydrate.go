@@ -56,7 +56,6 @@ func (s *hydrationAwareCheckpointStore) Save(ctx context.Context, name string, c
 	if !s.hydratable[name] {
 		return nil
 	}
-	//nolint:wrapcheck // deliberate passthrough: this store implements the same interface contract
 	return s.inner.Save(ctx, name, cp)
 }
 
@@ -64,7 +63,6 @@ func (s *hydrationAwareCheckpointStore) Load(ctx context.Context, name string) (
 	if !s.hydratable[name] {
 		return event.Checkpoint{}, nil //nolint:exhaustruct // zero-value is the "no checkpoint, replay all" contract
 	}
-	//nolint:wrapcheck // deliberate passthrough: this store implements the same interface contract
 	return s.inner.Load(ctx, name)
 }
 

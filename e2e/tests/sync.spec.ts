@@ -4,16 +4,15 @@ import { test, expect, type Page, type BrowserContext, type Route } from "@playw
 // Playwright's TypeScript transformer issues with module-level arrow
 // functions that access DOM APIs.
 
+// Version-agnostic on purpose: the worker owns the DB version (v2 since
+// sync assets 1.5.0 added the events+meta stores). Opening with a pinned
+// lower version fires VersionError against a live v2 database, which made
+// QUEUE_DEPTH resolve 0 forever (found 2026-10-09 against the 1.5.0 worker).
+
 const QUEUE_DEPTH = `(function() {
   return new Promise(function(resolve) {
     try {
-      var req = indexedDB.open('cqrshtmx-sync', 1);
-      req.onupgradeneeded = function(e) {
-        var db = e.target.result;
-        if (!db.objectStoreNames.contains('commands')) {
-          db.createObjectStore('commands', { keyPath: 'commandId' });
-        }
-      };
+      var req = indexedDB.open('cqrshtmx-sync');
       req.onsuccess = function(e) {
         var db = e.target.result;
         if (!db.objectStoreNames.contains('commands')) {
@@ -34,13 +33,7 @@ const QUEUE_DEPTH = `(function() {
 const QUEUE_ENTRIES = `(function() {
   return new Promise(function(resolve) {
     try {
-      var req = indexedDB.open('cqrshtmx-sync', 1);
-      req.onupgradeneeded = function(e) {
-        var db = e.target.result;
-        if (!db.objectStoreNames.contains('commands')) {
-          db.createObjectStore('commands', { keyPath: 'commandId' });
-        }
-      };
+      var req = indexedDB.open('cqrshtmx-sync');
       req.onsuccess = function(e) {
         var db = e.target.result;
         if (!db.objectStoreNames.contains('commands')) {
@@ -107,8 +100,8 @@ test("offline enqueue persists command envelope to IndexedDB", async ({ page, co
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  await page.fill('input[name="name"]', "Offline Test Item");
-  await page.click('button[type="submit"]');
+  await page.fill('#add-form input[name="name"]', "Offline Test Item");
+  await page.click('#add-form button[type="submit"]');
 
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
@@ -136,8 +129,8 @@ test("online flush delivers queued command to server", async ({ page, context })
   await goOffline(page, context);
   await page.waitForTimeout(500);
 
-  await page.fill('input[name="name"]', "Delivered After Reconnect");
-  await page.click('button[type="submit"]');
+  await page.fill('#add-form input[name="name"]', "Delivered After Reconnect");
+  await page.click('#add-form button[type="submit"]');
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
   const before = await page.request.get("/api/debug/items");
@@ -181,8 +174,8 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
   await goOffline(page1, context);
   await page1.waitForTimeout(500);
 
-  await page1.fill('input[name="name"]', "Cross-Session Recovery");
-  await page1.click('button[type="submit"]');
+  await page1.fill('#add-form input[name="name"]', "Cross-Session Recovery");
+  await page1.click('#add-form button[type="submit"]');
   await expect.poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
   // Close session 1. The worker's round-robin + periodic re-flush will
@@ -240,8 +233,8 @@ test("multiple offline commands are queued and delivered on reconnect", async ({
 
   const names = ["Multi-1", "Multi-2", "Multi-3"];
   for (const name of names) {
-    await page.fill('input[name="name"]', name);
-    await page.click('button[type="submit"]');
+    await page.fill('#add-form input[name="name"]', name);
+    await page.click('#add-form button[type="submit"]');
     await page.waitForTimeout(300);
   }
 
@@ -261,4 +254,176 @@ test("multiple offline commands are queued and delivered on reconnect", async ({
       { timeout: 30000 },
     )
     .toBe(3);
+});
+
+// Test 5 (ADR-0056 batch push): commands stamped with
+// data-sync-command-type flush as ONE retry-batch POST /sync/push on
+// reconnect — not per-command HTMX replays. Verifies: single request,
+// all commands in the batch, per-command confirmed outcomes drain the
+// queue, and delivery is proven server-side via the debug endpoint.
+
+test("batched offline commands flush as ONE /sync/push request", async ({ page, context }) => {
+  await page.goto("/");
+  await expect(page.locator("[data-sync-status]")).toContainText(
+    /Connected|Synced|All changes saved/i,
+    { timeout: 15000 },
+  );
+  await page.waitForTimeout(500);
+
+  await context.setOffline(true);
+  await page.route("**/api/sync-items", (route: Route) => route.abort("failed"));
+
+  const names = ["Batch-1", "Batch-2", "Batch-3"];
+  for (const name of names) {
+    await page.fill('#sync-add-form input[name="name"]', name);
+    await page.click('#sync-add-form button[type="submit"]');
+    await page.waitForTimeout(300);
+  }
+
+  await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(3);
+
+  // Arm the push counter BEFORE reconnecting: flushes only fire once the
+  // worker sees the online event, so nothing is counted while offline.
+  let pushCalls = 0;
+  let batchedCommandCount = 0;
+  await page.route("**/sync/push", async (route: Route) => {
+    if (route.request().method() === "POST") {
+      pushCalls++;
+      const body = route.request().postDataJSON() as { commands?: unknown[] };
+      if (body && Array.isArray(body.commands)) {
+        batchedCommandCount = Math.max(batchedCommandCount, body.commands.length);
+      }
+    }
+    await route.continue();
+  });
+
+  await page.unroute("**/api/sync-items");
+  await context.setOffline(false);
+
+  await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 30000 }).toBe(0);
+
+  await expect
+    .poll(
+      async () => {
+        const resp = await page.request.get("/api/debug/items");
+        const items = (await resp.json()) as string[];
+        return names.filter(function (n: string) {
+          return items.indexOf(n) >= 0;
+        }).length;
+      },
+      { timeout: 30000 },
+    )
+    .toBe(3);
+
+  expect(pushCalls).toBe(1);
+  expect(batchedCommandCount).toBe(3);
+});
+
+// Typed window.cqrsSync access (no global declaration file for specs).
+// page.evaluate structured-clones its result: functions do NOT survive the
+// boundary, so specs must evaluate inline expressions that AWAIT the call and
+// return plain data (the CACHED_EVENTS pattern), never the API object itself.
+const GET_EVENTS = `(async function() {
+  const out = await window.cqrsSync.getEvents();
+  return { events: out.events, cursor: out.cursor, backendId: out.backendId };
+})()`;
+
+const CACHED_EVENTS = `(async function() {
+  const out = await window.cqrsSync.getEvents();
+  return { count: out.events.length, backendId: out.backendId };
+})()`;
+
+const PULL = `(async function() {
+  await window.cqrsSync.pull();
+})()`;
+
+// Plain-data shape of GET_EVENTS as it crosses back through page.evaluate
+// (types do not survive the structured clone; this keeps spec reads checked).
+type SyncSnapshot = {
+  events: { type: string }[];
+  cursor: string;
+  backendId: string;
+};
+
+// Test 6 (ADR-0056 offline reads): events pulled while online stay
+// readable through window.cqrsSync.getEvents() with the network cut —
+// the cached feed is the offline read surface for consumer UIs.
+
+test("offline reads serve cached events via window.cqrsSync.getEvents()", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-sync-status]")).toContainText(
+    /Connected|Synced|All changes saved/i,
+    { timeout: 15000 },
+  );
+
+  // First pull populates the cache from the seeded journal. The status
+  // indicator does NOT gate the boot-time catch-up pull (it reflects the
+  // push/SSE connection), so poll the cache until the pull lands.
+  await expect
+    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, {
+      timeout: 15000,
+    })
+    .toBeGreaterThanOrEqual(2);
+  const online = await page.evaluate<SyncSnapshot>(GET_EVENTS);
+  expect(online.backendId).toBe("e2e-backend-A");
+
+  await goOffline(page, context);
+  await page.waitForTimeout(500);
+
+  const offline = await page.evaluate<SyncSnapshot>(GET_EVENTS);
+  expect(offline.events.length).toBeGreaterThanOrEqual(2);
+  expect(offline.events[offline.events.length - 1].type).toBe("Item.synced");
+  expect(offline.backendId).toBe("e2e-backend-A");
+
+  await goOnline(page, context);
+});
+
+// Test 7 (ADR-0056 sync:reset): when the pull handler's backendId
+// changes (backend rebuild), the client wipes the event CACHE but KEEPS
+// the command queue — pending work is never lost to a cache reset.
+
+test("sync:reset on backendId change clears the cache but keeps the queue", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-sync-status]")).toContainText(
+    /Connected|Synced|All changes saved/i,
+    { timeout: 15000 },
+  );
+
+  await expect
+    .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, {
+      timeout: 15000,
+    })
+    .toBeGreaterThanOrEqual(2);
+
+  // Rotate the backend identity, then force a pull: the response's
+  // backendId no longer matches the persisted one, so the worker wipes
+  // the cache, stores the (empty, cursor is already past the journal)
+  // batch, and broadcasts sync:reset to every tab.
+  const rotate = await page.request.post("/api/debug/rotate-backend");
+  expect(rotate.status()).toBe(204);
+  await page.evaluate(PULL);
+
+  await expect
+    .poll(() => page.evaluate(CACHED_EVENTS), { timeout: 10000 })
+    .toEqual({ count: 0, backendId: "e2e-backend-B" });
+
+  // Enqueue a command offline AFTER the reset: the queue must accept and
+  // keep it (cache reset never touches pending commands).
+  await goOffline(page, context);
+  await page.waitForTimeout(300);
+  await page.fill('#add-form input[name="name"]', "Queued-After-Reset");
+  await page.click('#add-form button[type="submit"]');
+
+  await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
+
+  const afterQueue = await page.evaluate(CACHED_EVENTS);
+  expect(afterQueue).toEqual({ count: 0, backendId: "e2e-backend-B" });
+
+  await goOnline(page, context);
 });

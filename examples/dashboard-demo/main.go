@@ -137,24 +137,26 @@ func seedDemoData(
 			"email": fmt.Sprintf("%s@example.com", name),
 		})
 
-		//cqrs-lint:ignore(E006,E004,D013) demo data: no catalog, no projection, no schema versioning in dashboard demo
+		//cqrs-lint:ignore(E006,E004,E021,D001) demo data: no catalog, no projection; mixed naming is deliberate
 		created, _ := event.New(
 			"user.created",
 			aggID,
 			streamTypeUser,
 			event.Version(1),
 			jsontext.Value(payload),
+			event.WithSchemaVersion(1),
 		)
 		//cqrs-lint:ignore(C028,C042) demo seed data: errors are non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
-		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
+		//cqrs-lint:ignore(E006,E004,E021) demo data: no catalog and no projection in this dashboard demo
 		renamed, _ := event.New(
 			"user.renamed",
 			aggID,
 			streamTypeUser,
 			event.Version(2),
 			map[string]any{"name": name + " Jr."},
+			event.WithSchemaVersion(1),
 		)
 		//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = store.Save(ctx, ref, []event.Event{renamed}, event.Version(1))
@@ -184,7 +186,7 @@ func seedDemoData(
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef(streamTypeOrder, aggID)
 
-		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
+		//cqrs-lint:ignore(E006,E004,E021) demo data: no catalog and no projection in this dashboard demo
 		placed, _ := event.New(
 			"order.placed",
 			aggID,
@@ -195,11 +197,12 @@ func seedDemoData(
 				"total":      float64(i * 2999),
 				"items":      i,
 			},
+			event.WithSchemaVersion(1),
 		)
 		//cqrs-lint:ignore(C028,C042) demo seed data: errors are non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
-		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
+		//cqrs-lint:ignore(E006,E004,E021) demo data: no catalog and no projection in this dashboard demo
 		shipped, _ := event.New(
 			"order.shipped",
 			aggID,
@@ -208,6 +211,7 @@ func seedDemoData(
 			map[string]any{
 				"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
 			},
+			event.WithSchemaVersion(1),
 		)
 		//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = store.Save(ctx, ref, []event.Event{shipped}, event.Version(1))
@@ -256,6 +260,7 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 			st,
 			event.Version(1),
 			jsontext.Value(payload),
+			event.WithSchemaVersion(1),
 		)
 		//cqrs-lint:ignore(C028,C042) demo seed data: errors non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(

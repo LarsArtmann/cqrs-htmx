@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -324,8 +325,14 @@ func TestFetchOverview_SeekableJournalAtCountLimit(t *testing.T) {
 	}
 
 	overview := FetchOverview(context.Background(), cfg)
-	if overview.TotalEvents != "500+" {
-		t.Errorf("TotalEvents = %q, want %q at count limit", overview.TotalEvents, "500+")
+	// Tail scans count the whole journal exactly — the old head-read capped
+	// at "500+" once the first batch filled.
+	if overview.TotalEvents != strconv.Itoa(OverviewCountLimit) {
+		t.Errorf(
+			"TotalEvents = %q, want exact %q",
+			overview.TotalEvents,
+			strconv.Itoa(OverviewCountLimit),
+		)
 	}
 }
 

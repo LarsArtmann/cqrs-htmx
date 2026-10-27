@@ -20,8 +20,17 @@ const (
 	machineCatalogPath  = "/events/catalog"
 	machineProjPath     = "/health/projections"
 	machineDebugPath    = "/debug"
+	machineDocsPath     = "/docs/"
 	machineRegisterBody = `{"email":"machine@example.com","display_name":"Machine"}`
 )
+
+// stubDocsHandler stands in for a consumer-supplied docserver (shape B: the
+// consumer builds it, setup only mounts it).
+func stubDocsHandler(body string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, body)
+	})
+}
 
 func newMachineBundle(t *testing.T, cfg setup.Config) *httptest.Server {
 	t.Helper()
@@ -241,6 +250,44 @@ func TestNew_OptInPaths_Validation(t *testing.T) {
 			cfg:  setup.Config{Title: "Collision", LivePath: "/health"},
 			want: "routes would conflict",
 		},
+		{
+			name: "docs path without handler rejected",
+			cfg:  setup.Config{Title: "Half Docs", DocsPath: "/docs"},
+			want: "DocsPath and DocsHandler must be set together",
+		},
+		{
+			name: "docs handler without path rejected",
+			cfg:  setup.Config{Title: "Half Docs", DocsHandler: stubDocsHandler("x")},
+			want: "DocsPath and DocsHandler must be set together",
+		},
+		{
+			name: "docs root path rejected",
+			cfg: setup.Config{
+				Title:       "Root Docs",
+				DocsPath:    "/",
+				DocsHandler: stubDocsHandler("x"),
+			},
+			want: "reserved for the login page",
+		},
+		{
+			name: "docs missing leading slash rejected",
+			cfg: setup.Config{
+				Title:       "Shape",
+				DocsPath:    "docs",
+				DocsHandler: stubDocsHandler("x"),
+			},
+			want: "must start with",
+		},
+		{
+			name: "docs collision with health rejected",
+			cfg: setup.Config{
+				Title:       "Collision",
+				HealthPath:  "/health",
+				DocsPath:    "/health",
+				DocsHandler: stubDocsHandler("x"),
+			},
+			want: "routes would conflict",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -254,5 +301,75 @@ func TestNew_OptInPaths_Validation(t *testing.T) {
 				t.Errorf("rejection must mention %q, got: %v", tc.want, err)
 			}
 		})
+	}
+}
+
+func TestMount_DocsHandler_Unauthenticated401(t *testing.T) {
+	t.Parallel()
+
+	server := newMachineBundle(t, setup.Config{
+		Title:       "Docs 401",
+		DocsPath:    machineDocsPath,
+		DocsHandler: stubDocsHandler("deployment docs"),
+	})
+
+	resp, err := server.Client().Get(server.URL + machineDocsPath)
+	if err != nil {
+		t.Fatalf("GET %s: %v", machineDocsPath, err)
+	}
+	_, _ = io.Copy(io.Discard, resp.Body)
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Errorf("GET %s unauthenticated = %d, want 401 (docs describe deployment internals)",
+			machineDocsPath, resp.StatusCode)
+	}
+}
+
+func TestMount_DocsHandler_AuthenticatedServesConsumerHandler(t *testing.T) {
+	t.Parallel()
+
+	server := newMachineBundle(t, setup.Config{
+		Title:       "Docs Serve",
+		DocsPath:    machineDocsPath,
+		DocsHandler: stubDocsHandler("deployment docs body"),
+	})
+
+	client := registerAndLogin(t, server)
+
+	resp := getWithSession(t, server, machineDocsPath, client)
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET %s authenticated = %d, want 200", machineDocsPath, resp.StatusCode)
+	}
+	if string(body) != "deployment docs body" {
+		t.Errorf("docs body = %q, want the consumer handler's own response verbatim", string(body))
+	}
+}
+
+func TestMount_DocsHandler_SubtreePathServesPrefix(t *testing.T) {
+	t.Parallel()
+
+	server := newMachineBundle(t, setup.Config{
+		Title:       "Docs Subtree",
+		DocsPath:    machineDocsPath,
+		DocsHandler: stubDocsHandler("subtree page"),
+	})
+
+	client := registerAndLogin(t, server)
+
+	resp := getWithSession(t, server, machineDocsPath+"guide", client)
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK || string(body) != "subtree page" {
+		t.Fatalf(
+			"GET %sguide = %d %q, want 200 from the subtree-mounted handler",
+			machineDocsPath,
+			resp.StatusCode,
+			string(body),
+		)
 	}
 }

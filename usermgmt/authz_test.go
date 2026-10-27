@@ -275,8 +275,16 @@ func TestAuthz_GroupPolicies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GroupPolicies: %v", err)
 	}
-	if len(groups) != 1 {
-		t.Errorf("expected 1 group policy, got %d", len(groups))
+	// The enforcer also stores the role-to-role hierarchy edges it mirrors into
+	// each domain, so only rows whose subject is not a role are user grants.
+	grants := 0
+	for _, row := range groups {
+		if len(row) > 0 && !Role(row[0]).Valid() {
+			grants++
+		}
+	}
+	if grants != 1 {
+		t.Errorf("expected 1 group policy grant, got %d in %v", grants, groups)
 	}
 }
 

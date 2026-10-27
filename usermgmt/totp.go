@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -94,12 +95,19 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 }
 
 // VerifyTOTP validates a TOTP code against the user's active TOTP secret.
-// This is used as a second factor during login.
+// This is used as a second factor during login. Outcomes journal to the
+// auth audit (cqrs-htmx#23) — success as LoginSucceeded, failure as
+// LoginFailed with the code_invalid reason class. DisableTOTP/VerifyTOTPSetup
+// deliberately do NOT journal: they are not login attempts.
 func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) error {
 	if err := s.requireValidTOTP(userID, code, "totp_verify_failed"); err != nil {
+		s.authAudit.loginFailure(ctx, userID, identitymodel.AuthMethodTOTP, identitymodel.AuthFailureCodeInvalid)
+
 		return errorfamily.Wrapf(err, errorfamily.Classify(err),
 			"usermgmt.totp.verify_failed", "totp verify failed").WithContextAny("user_id", userID)
 	}
+
+	s.authAudit.loginSuccess(ctx, userID, identitymodel.AuthMethodTOTP)
 	s.logAuth(statusTOTPVerified, userID)
 	return nil
 }

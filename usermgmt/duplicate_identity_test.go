@@ -66,9 +66,7 @@ func TestUserReadModel_DuplicateIdentityKeepsOldest(t *testing.T) {
 		}),
 		makeUserEvent(t, original, eventExternalAccountLinked, 2, ExternalAccountLinkedPayload{
 			SchemaVersion: currentSchemaVersion,
-			ExternalAccountCore: ExternalAccountCore{
-				Provider: provider, Subject: subject, Email: email,
-			},
+			Provider:      provider, Subject: subject, Email: email,
 		}),
 		makeUserEvent(t, duplicate, eventUserRegistered, 1, UserRegisteredPayload{
 			SchemaVersion: currentSchemaVersion,
@@ -78,9 +76,7 @@ func TestUserReadModel_DuplicateIdentityKeepsOldest(t *testing.T) {
 		}),
 		makeUserEvent(t, duplicate, eventExternalAccountLinked, 2, ExternalAccountLinkedPayload{
 			SchemaVersion: currentSchemaVersion,
-			ExternalAccountCore: ExternalAccountCore{
-				Provider: provider, Subject: subject, Email: email,
-			},
+			Provider:      provider, Subject: subject, Email: email,
 		}),
 	}
 	for _, evt := range events {

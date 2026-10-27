@@ -32,6 +32,12 @@ type Schema struct {
 	// Type == "array".
 	Items *Schema `json:"items,omitempty"`
 
+	// MinItems is the inclusive minimum element count (array type only).
+	MinItems *uint64 `json:"minItems,omitempty"`
+
+	// MaxItems is the inclusive maximum element count (array type only).
+	MaxItems *uint64 `json:"maxItems,omitempty"`
+
 	// Enum constrains the value to one of the listed constants (any JSON type).
 	Enum []any `json:"enum,omitempty"`
 
@@ -52,9 +58,64 @@ type Schema struct {
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
 
 	// Ref is a JSON reference ($ref) into the components/schemas map, e.g.
-	// "#/components/schemas/Item". Use Ref(name) to construct one. When set,
-	// all other fields are ignored on serialization (per JSON Reference).
+	// "#/components/schemas/Item". Use Ref(name) to construct one — it sets
+	// ONLY this field. Conforming readers ignore sibling fields when $ref is
+	// present (per JSON Reference); this builder serializes whatever is set,
+	// so mixing Ref with other fields is the caller's bug.
 	Ref string `json:"$ref,omitempty"`
+}
+
+// Clone returns a deep copy of the schema (Properties, Items, Required, and
+// Enum are duplicated). Schemas appear inside cloned operations; the deep copy
+// keeps consumer mutations from reaching collected spec state.
+func (s *Schema) Clone() Schema {
+	c := *s
+	c.Properties = cloneSchemaMap(s.Properties)
+	c.Required = cloneStrings(s.Required)
+	c.Enum = cloneAnySlice(s.Enum)
+
+	if s.Items != nil {
+		ic := s.Items.Clone()
+		c.Items = &ic
+	}
+
+	if ap, ok := s.AdditionalProperties.(*Schema); ok && ap != nil {
+		ac := ap.Clone()
+		c.AdditionalProperties = &ac
+	}
+
+	return c
+}
+
+func cloneSchemaMap(source map[string]*Schema) map[string]*Schema {
+	if source == nil {
+		return nil
+	}
+
+	out := make(map[string]*Schema, len(source))
+	for name, s := range source {
+		if s == nil {
+			out[name] = nil
+
+			continue
+		}
+
+		sc := s.Clone()
+		out[name] = &sc
+	}
+
+	return out
+}
+
+func cloneAnySlice(source []any) []any {
+	if source == nil {
+		return nil
+	}
+
+	out := make([]any, len(source))
+	copy(out, source)
+
+	return out
 }
 
 // String returns a schema with type "string".
@@ -180,6 +241,22 @@ func (s *Schema) WithMin(n float64) *Schema {
 // WithMax sets the inclusive numeric maximum and returns the schema.
 func (s *Schema) WithMax(n float64) *Schema {
 	s.Maximum = &n
+
+	return s
+}
+
+// WithMinItems sets the inclusive minimum element count (array type) and
+// returns the schema.
+func (s *Schema) WithMinItems(n uint64) *Schema {
+	s.MinItems = &n
+
+	return s
+}
+
+// WithMaxItems sets the inclusive maximum element count (array type) and
+// returns the schema.
+func (s *Schema) WithMaxItems(n uint64) *Schema {
+	s.MaxItems = &n
 
 	return s
 }

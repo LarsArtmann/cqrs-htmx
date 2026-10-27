@@ -1,0 +1,210 @@
+# Frontend Sync Protocol — Offline Reads, Batched Command Push, and Conflict Outcomes
+
+> **Decision record:** [ADR-0056](../adr/0056-frontend-sync-protocol.md) · **Series:** ADR-0023 (sync commands, not events) → ADR-0040 (IndexedDB queue) → ADR-0042 (root extraction) → this guide
+> **Research trail:** [2026-10-09 LiveStore/Axon synthesis](../research/2026-10-09_frontend-sync-protocol-synthesis.md)
+
+This guide wires the full offline loop: your UI queues **commands** while offline, flushes them as **one batched push** on reconnect, and caches **events** locally so reads work offline — with permissions enforced server-side on every pull.
+
+## The three laws
+
+1. **Clients sync intent, never facts.** Push carries commands; the server re-decides everything (authz, invariants, conflicts). There is no client-side decider and no client-appended event.
+2. **Clients may cache facts for reads.** The pull endpoint is the explicit opt-in surface for event payloads; the SSE envelope stays metadata-only.
+3. **Conflicts resolve by server total order.** The client pulls before pushing; every command answers with a classified outcome; rejected commands surface honestly and leave the queue.
+
+## Server wiring
+
+Two endpoints, one worker script, one client script:
+
+```go
+mux := http.NewServeMux()
+
+// Read half: cursor-based, permission-filtered event pull WITH payloads.
+mux.Handle("GET /sync/pull", cqrshtmx.SyncPullHandler(journal,
+    cqrshtmx.WithSyncPullBackendID("prod-2026-10"),
+    cqrshtmx.WithSyncPullFilter(myVisibilityFilter),
+))
+
+// Write half: batched push of queued commands. Needs NO new registration —
+// it replays the pipelines your app.Command()/CommandTyped() calls registered.
+mux.Handle("POST /sync/push", app.SyncPushHandler())
+
+// Embedded assets (ETag + immutable caching).
+mux.Handle("GET /sync-worker.js", cqrshtmx.SyncWorkerHandler())
+mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
+```
+
+`journal` is any `event.Journal` — `event.SeekableJournal` implementations (SQL stores) get efficient position-based reads; others fall back to `ReadAll` + in-memory seeking.
+
+## HTML wiring
+
+```html
+<body data-sync-pull-url="/sync/pull" data-sync-push-url="/sync/push">
+	<div data-sync-status="idle">Synced</div>
+	<!-- indicator: idle|ok|pending -->
+	<div data-sync-target>
+		<form hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend" data-sync-command-type="CreateItem">
+			<!-- opts into batch push -->
+			<input name="name" required />
+			<button type="submit">Add</button>
+		</form>
+	</div>
+	<script src="/sync-client.js"></script>
+</body>
+```
+
+- `data-sync-pull-url` / `data-sync-push-url` on `<body>` override the `/sync/pull` + `/sync/push` defaults.
+- `data-sync-command-type` on (or above) the issuing element stamps the envelope's command type, so the offline queue flushes it via **one batched** `POST /sync/push` instead of per-URL HTMX replay. Absent = the classic per-URL replay path (backward compatible).
+- `data-sync-status` reflects lifecycle (`idle`/`ok`/`pending`); per-command rows get `data-sync-state` (`pending`/`confirmed`/`rejected`) and `data-command-id` for ACK/SSE correlation.
+
+### Pull wire contract
+
+`GET /sync/pull?after=<eventID>&limit=<n>` →
+
+```json
+{
+	"backendId": "prod-2026-10",
+	"events": [
+		{
+			"eventId": "01J…",
+			"type": "ItemCreated",
+			"streamType": "item",
+			"streamId": "01J…",
+			"version": 1,
+			"occurredAt": "2026-10-09T02:17:55Z",
+			"payloadEncoding": "json",
+			"payload": { "name": "grocery-list" }
+		}
+	],
+	"nextCursor": "01J…",
+	"hasMore": false
+}
+```
+
+- **Cursor:** the last event ID seen. Empty = bootstrap. Page with `nextCursor` while `hasMore`. An empty page returns an empty `nextCursor` — keep the previous cursor (ULIDs order globally, so compacted journals stay navigable).
+- **Delivery encoding is honest:** exactly one of `payload` (inline verbatim JSON, `payloadEncoding: "json"`) or `payloadB64` (base64 bytes under their codec name, e.g. `"cbor"`) is set. A json-stamped event whose bytes are not valid JSON reports `"opaque"` (`cqrshtmx.SyncPayloadEncodingOpaque`) — the wire never promises JSON the bytes cannot keep.
+- **Caching:** every response carries an FNV-1a ETag over the position fields and `Cache-Control: private, no-cache` — a conditional re-poll at an unchanged cursor is a cheap 304.
+- **Backend reset:** persist `backendId`; when it changes, wipe the local event cache and re-bootstrap (the shipped client does this automatically and broadcasts `sync:reset`).
+
+### Push wire contract
+
+`POST /sync/push` with `{commands: [{commandId, type, body, contentType}]}` → HTTP 200 with per-command outcomes:
+
+```json
+{
+	"results": [
+		{ "commandId": "offline-1", "status": "confirmed" },
+		{
+			"commandId": "offline-2",
+			"status": "rejected",
+			"error": { "message": "note already exists: conflict-dup", "code": "note.conflict", "family": "conflict" }
+		}
+	]
+}
+```
+
+- `body` is the exact body your single-command endpoint's decoder expects (JSON or form-encoded — set `contentType` to match).
+- `error.family` is the retry contract: `rejection`/`conflict` = permanent (surface + drop), `transient` = retryable (re-queue), `corruption`/`infrastructure` = permanent-fail. 5xx details are redacted server-side (`SafeDetail`).
+- `commandId` is stamped as `X-Command-Id` on the replayed pipeline, so `BroadcastOnAck`-style hooks fire per command and idempotency middleware dedups retries.
+- Batches cap at `MaxSyncPushBatch` (100); failures are isolated per command — one rejected command never aborts the batch.
+
+## OpenAPI metadata
+
+Both sync endpoints ship their wire contract as ready-made OpenAPI 3.1 operations — attach them at the same paths you mounted the handlers:
+
+```go
+spec := openapi.New("MyApp", "1.0.0")
+cqrshtmx.AddSyncOpenAPI(spec, "/sync/pull", "/sync/push")
+handler, err := cqrshtmx.OpenAPISpecHandler(spec)
+if err != nil { log.Fatal(err) } // serialization failed — a programming error
+mux.Handle("GET /openapi.json", handler)
+```
+
+Custom paths or an existing spec? `cqrshtmx.SyncPullOpenAPIOp()` / `cqrshtmx.SyncPushOpenAPIOp()` return the operation metadata for `openapi.Spec.PathOp` — the schemas are inline, so no component registration is needed. The emitted fragment (params, payload-encoding rules, outcome enums, batch bounds, ETag/304 contract) is pinned by a golden test: documentation drift is a test failure, not a footnote.
+
+## Permissions (the pull filter)
+
+`WithSyncPullFilter` runs **per request** with the live `*http.Request` — session-derived authorization composes naturally. Filtering is fail-closed, and invisible events still advance the cursor (they are never re-read):
+
+```go
+func myVisibilityFilter(r *http.Request, evt event.Event) bool {
+    user, ok := usermgmt.UserFromContext(r.Context())
+    if !ok {
+        return false // fail closed: no session, no payloads
+    }
+    return evt.StreamType() == "item" || belongsToTenant(evt, user.TenantID())
+}
+```
+
+A Casbin recipe: assert `enforcer.Enforce(user.ID().Get(), evt.StreamType(), "read")` per event. Remember `nil` filter = **every event visible with payloads** — only acceptable for non-sensitive feeds. Gate the endpoint behind your session middleware like any other authenticated route.
+
+## Client API
+
+The sync client exposes a small public surface on `window`:
+
+```js
+window.cqrsSync.version; // "1.6.0" — matches cqrshtmx.SyncVersion()
+await window.cqrsSync.getEvents(); // cached event feed (works offline; worker-owned IndexedDB)
+await window.cqrsSync.pull(); // force a catch-up pull; resolves when caught up
+```
+
+Events and resets also arrive as DOM events: `cqrshtmx:sync-events` (new cached events; also triggered through HTMX as `cqrshtmx:sync-events` on `document.body`) and on cache reset. Reuse in your own JS:
+
+```js
+document.addEventListener("cqrshtmx:sync-events", (e) => {
+	renderFeedFrom(e.detail); // detail carries the newly cached events
+});
+```
+
+The SharedWorker stays a **coordinator, not a proxy** (ADR-0029): tabs own their fetches and SSE connections; the worker owns persistence (command queue, event cache, cursor/backendId meta) and cross-tab broadcasts. Offline reads ask the worker (`get-events`); the client does not project events — folding cached events into view state is consumer territory (see ROADMAP).
+
+A runnable version of everything on this page — offline queue, batched push, filtered pull, conflict rejection, the OpenAPI contract — lives at [`examples/sync-demo/`](../../examples/sync-demo/) (its README has a 2-minute offline walkthrough).
+
+## Local persistence: the IndexedDB schema and the v1→v2 upgrade
+
+The SharedWorker owns one IndexedDB database per origin: `cqrshtmx-sync`.
+
+| Version                                | Stores                                                               | Purpose                                                               |
+| -------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **v1** (ADR-0040, sync assets ≤ 1.4.x) | `commands` (keyPath `commandId`)                                     | The offline command queue: `{commandId, envelope, queuedAt, retries}` |
+| **v2** (ADR-0056, 1.5.0+)              | + `events` (keyPath `eventId`), + `meta` (out-of-line key `"state"`) | The pulled-event cache and the `{cursor, backendId}` sync state       |
+
+**Upgrade path (automatic):** the worker opens the database at `DB_VERSION = 2`. A v1 database upgrades in place in `onupgradeneeded` — the two new stores are created, and the v1 pending commands are preserved untouched (retry counts included; the usual TTL/retry limits keep applying). Fresh databases create all three stores at version 2 in the same handler. No data migration runs: v1 records are forward-compatible by shape. This path is pinned by the protocol test suite (`sync/jstests/sync-worker.test.js`, run through the Go wrapper): v1-seeded upgrade boot, pending-command survival, and fresh full-schema boot.
+
+**Downgrade protection:** IndexedDB refuses to open a higher-version database at a lower version, so a stale v1 worker (an old cached asset after a rollback) gets a `VersionError`, warns, and degrades to in-memory mode — the v2 data stays intact on disk and is picked back up by the next v2 worker. A v2 worker opening a v1 database is the supported direction; the reverse never corrupts.
+
+**Cursor monotonicity (1.6.0):** the worker refuses to persist a cursor that would move **backwards** on the same backend (cursors are event-ID ULIDs and order lexicographically, so string compare is the ordering). Two tabs racing pulls can deliver responses out of order; persisting the stale one would silently rewind every future pull. The stale batch's events still land (puts are idempotent by `eventId`), the `sync:events` broadcast carries the kept cursor, and the refusal logs the pinned line
+
+```
+[sync-worker] cursor regression refused: kept <cursor>, rejected <cursor>
+```
+
+A `backendId` change is the one legitimate rewind (new backend, new cursor space) and is exempt — it also wipes the event cache per the reset semantics above.
+
+## Batch budgets and timeouts
+
+Every knob in the shipped assets is a compile-time constant; the numbers:
+
+| Constant           | Value        | Where                   | Meaning                                                                                                      |
+| ------------------ | ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `MaxSyncPushBatch` | 100          | server (`sync_push.go`) | Hard cap per `POST /sync/push`; exceeding it rejects the whole request (400, `cqrshtmx.sync.push.too_large`) |
+| `PULL_PAGE_LIMIT`  | 500          | client                  | Events requested per pull page                                                                               |
+| `PULL_MAX_PAGES`   | 20           | client                  | Pages per catch-up pull → ≤ 10,000 events per pull cycle                                                     |
+| `MAX_RETRIES`      | 10           | worker                  | Flush attempts before a command is declared `dead`                                                           |
+| `RETRY_TTL_MS`     | 24 h         | worker                  | Age limit before a command is declared `dead`                                                                |
+| `STAGGER_MS` / cap | 100 ms / 2 s | worker                  | Pacing for classic per-command replay (batched push goes out as one request)                                 |
+
+**The >100 sharp edge, honestly:** the worker batches **all** queued typed commands into **one** push. An offline session that queues more than `MaxSyncPushBatch` commands produces a batch the server rejects wholesale; every command then burns one retry per flush cycle and surfaces as `dead` after `MAX_RETRIES`. If your users can realistically exceed 100 queued commands, budget for it on the consumer side (chunk the flush in a copied asset, or surface queue depth via the `pending` broadcasts before it grows that large).
+
+**Timeouts:** neither asset sets explicit fetch or EventSource timeouts — browser defaults govern (a hung push is treated like offline: commands stay queued). To enforce stricter deadlines, copy the assets, add an `AbortController` budget, and serve them via `SyncWorkerHandlerWith(customJS, "1.0.0-custom")` / `SyncClientHandlerWith(customJS, "1.0.0-custom")` — the version string is your cache-busting knob, and the Go/JS version-drift test does not apply to custom copies.
+
+## Security notes
+
+- **Mount behind your middleware**: session (outside CSRF), CSRF (protects the outer POST once — inner envelopes are not independently reachable), security headers as usual.
+- **Payload exposure is deliberate**: the pull endpoint is the one surface that emits event payloads. If your events carry PII, the filter is mandatory, not optional.
+- **5xx redaction**: push errors from server failures are `SafeDetail`-redacted — no internals leak to the client.
+- **Scoped live feeds**: if the sync client also consumes a shared SSE endpoint and different clients should see different event slices, the SSE side has its own per-request filter seam (`transport.WithRequestFilter`) — see the [SSE & Datastar guide](sse-and-datastar.md) rather than reaching for the pull filter (that one governs the pull wire contract only).
+- **CSP**: both assets are external scripts with no inline code and no `eval`, but three directives must line up. (1) `script-src` must allow the two script URLs (a nonce-only policy that permits just inline scripts blocks them — list the URLs or `"self"`). (2) The SharedWorker load is governed by `worker-src` (falling back to `child-src` → `script-src` → `default-src`) — allow the worker URL, and note the client derives it from the client script's own `src` unless you override it with `data-sync-worker-url`, so keep both URLs consistent under your policy. (3) `connect-src` must cover `/sync/pull`, `/sync/push`, and your SSE endpoint (`data-sse-url`) — both `fetch` and `EventSource` count as connects. `RecommendedSecurityMiddleware`'s per-request nonce covers inline scripts you emit yourself; it does not automatically allow-list the sync assets.
+
+## What's NOT included (by design)
+
+Client-side projections (a fold engine over the cached feed), ServiceWorker-served offline HTML, and WASM client deciders are ROADMAP items — see ADR-0056's non-goals. The shipped client caches and exposes the feed; it never re-decides.

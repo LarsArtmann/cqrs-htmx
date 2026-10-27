@@ -72,16 +72,16 @@ auth.RegisterRoutes(mux)   // mutates YOUR mux — you own routing
 
 Routes registered (Go 1.22+ method patterns). The auth posture is library-enforced (ADR-0055): session-dependent routes self-wrap with an enrich-only session pass (work on a bare mount, 401 without a valid cookie), and the enrollment ceremonies enforce the owner-match rule — no external session middleware required for any of them:
 
-| Method    | Path                                                                 | Notes                                                 |
-| --------- | -------------------------------------------------------------------- | ----------------------------------------------------- |
-| POST      | `/auth/register`                                                     | email-only registration; returns user + session token (sets the cookie — bootstrap for the enrollment gate) |
+| Method    | Path                                                                 | Notes                                                                                                               |
+| --------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| POST      | `/auth/register`                                                     | email-only registration; returns user + session token (sets the cookie — bootstrap for the enrollment gate)         |
 | POST      | `/auth/webauthn/register/begin` \ `/finish`                          | passkey enrollment ceremony — **owner-session-gated**: 401 without session, 403 when `user_id` targets another user |
-| POST      | `/auth/webauthn/login/begin` \ `/finish`                             | passkey login ceremony (public)                        |
-| POST      | `/auth/logout`                                                       | invalidate session                                    |
-| GET       | `/auth/me`                                                           | current user JSON (session required)                  |
-| GET       | `/auth/credentials` \ DELETE `/auth/credentials/{id}`                | manage passkeys (session required)                     |
-| (various) | `/auth/verify/*`, `/auth/totp/*`, `/auth/import/*`, `/auth/export/*` | from `RegisterVerificationTOTPRoutes` (session required, except token-based `POST /auth/email/verify`) |
-| GET       | `/auth/oauth/{provider}/begin` \ `/callback`, POST `/unlink`         | OAuth2 (when configured; unlink session-required)     |
+| POST      | `/auth/webauthn/login/begin` \ `/finish`                             | passkey login ceremony (public)                                                                                     |
+| POST      | `/auth/logout`                                                       | invalidate session                                                                                                  |
+| GET       | `/auth/me`                                                           | current user JSON (session required)                                                                                |
+| GET       | `/auth/credentials` \ DELETE `/auth/credentials/{id}`                | manage passkeys (session required)                                                                                  |
+| (various) | `/auth/verify/*`, `/auth/totp/*`, `/auth/import/*`, `/auth/export/*` | from `RegisterVerificationTOTPRoutes` (session required, except token-based `POST /auth/email/verify`)              |
+| GET       | `/auth/oauth/{provider}/begin` \ `/callback`, POST `/unlink`         | OAuth2 (when configured; unlink session-required)                                                                   |
 
 Headless/administrative enrollment uses the service-level API (`Service.BeginRegistration`/`FinishRegistration`) — there is no HTTP opt-out. For your own session-gated surfaces, setup exports `setup.RequireSession` (401/JSON) and `setup.RequireSessionRedirect(loginURL)` (303/browser), both mounted AFTER the enrich-only `bundle.SessionMiddleware()`.
 
@@ -102,6 +102,7 @@ Reads the cookie, validates the token, and injects the authenticated `*usermgmt.
 **v4 injection pattern** (import the sub-module only if you need passkeys):
 
 ```go
+//doc:api-tour
 import "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
 
 waProvider, err := webauthn.New(webauthn.Config{
@@ -122,6 +123,7 @@ The HTTP ceremony endpoints are mounted by `RegisterRoutes`. Registration and lo
 **v4 injection pattern** (import the sub-module only if you need OAuth2):
 
 ```go
+//doc:api-tour
 import "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
 
 oaProvider, err := oauth2.New(ctx, oauth2.Config{
@@ -150,6 +152,7 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 **v4 injection pattern** (import the sub-module only if you need TOTP):
 
 ```go
+//doc:api-tour
 import "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 
 totpProvider := totp.New(totp.Config{Issuer: "My App", Window: 1})  // Window=1 → ±30s drift
@@ -191,7 +194,7 @@ These are intentionally **service-level, not HTTP routes** — the routing schem
 | **Bots** (API tokens) | `RegisterBot`, `DeleteBot`, `GetBot`, `ResolveBotByToken`. Requires `ServiceConfig.TokenPepper`. Use `NewAPITokenMiddleware(svc)` + `RequireBot` for bot auth. Tokens are HMAC-hashed, never stored plaintext. |
 | **Impersonation**     | `BeginImpersonation(ctx, adminID, targetID, reason)`, `EndImpersonation`. Guards: super-admin only, reason required, self-impersonation blocked.                                                               |
 
-Identity types: `usermgmt.ActorID` is a kind-discriminated struct (`{kind, raw}`) — bridging to root uses `.PrefixedString()` → `cqrshtmx.NewActorID(...)`. `ParseActorID(s)` is the inverse. `TenantID`/`BotID` are branded string types.
+Identity types: `usermgmt.ActorID` is a kind-discriminated struct (`{kind, raw}`) — bridging to root uses `.PrefixedString()` → `cqrshtmx.ParseActorID(s)` (or `cqrshtmx.ActorIDFromUser(uid)` straight from a `UserID`). `TenantID`/`BotID` are branded string types.
 
 ## SQL persistence details
 
@@ -219,12 +222,10 @@ Recommended: store-level encryption (`NewEncryptedStore`) + bus-level signing (`
 
 The default `watermill.EventBus` (GoChannel, `BlockPublishUntilSubscriberAck: true`) blocks publishers until projection handlers complete, so read models update _before_ `Execute()` returns. `StartProjections` replays all historical events synchronously first, then subscribes to live events with replay→live dedup. No `time.Sleep`-based catch-up. This means a `Register` followed immediately by a `FindByID` returns the new user.
 
-## UserID bridge (root ↔ usermgmt)
+## UserID (root ↔ usermgmt: same type)
 
-- `usermgmt.UserID` = `brandid.ID[userBrand, string]` (string-backed).
-- `cqrshtmx.UserID` = ULID-backed (`go-cqrs-lite/id`).
-- They are **not interconvertible by assignment**. Bridge with `.Get()` (raw value), never `.String()` (which is brand-prefixed and meant for debug).
-- When wiring usermgmt session context into root `App` handlers, convert explicitly via `cqrshtmx.ParseUserID(...)` on the raw value.
+- `usermgmt.UserID` = `identitymodel.UserID` = root `cqrshtmx.UserID` = `go-cqrs-lite/id`'s ULID-backed `UserID`. One type everywhere — assignment across modules just works; no bridging needed.
+- The only trap is the deprecated `NewUserID(string)` (silently SHA-256-hashes non-ULID input). Construct with `ParseUserID` / `GenerateUserID` / `SyntheticUserID` (see `references/gotchas.md` § Type system).
 
 ## Import / export users
 

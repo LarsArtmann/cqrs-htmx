@@ -41,7 +41,7 @@ func decideCreateTenant(
 				DisplayName:   displayName,
 			},
 			//cqrs-lint:ignore(A027) one codec per repository is intentional; global DefaultCodec would couple unrelated aggregates
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -74,7 +74,7 @@ func decideSuspendTenant(
 				SchemaVersion: currentSchemaVersion,
 				Reason:        reason,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -105,7 +105,7 @@ func decideReactivateTenant(
 			TenantReactivatedPayload{
 				SchemaVersion: currentSchemaVersion,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -141,7 +141,7 @@ func decideDeleteTenant(
 				SchemaVersion: currentSchemaVersion,
 				Reason:        reason,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

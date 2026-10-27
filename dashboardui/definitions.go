@@ -3,7 +3,6 @@ package dashboardui
 import (
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // defItem builds a definition item with plain-text detail.
@@ -19,11 +18,11 @@ func defItemRaw(term, html string) display.DefinitionItem {
 
 // defItemCopy builds a definition item whose detail is display markup plus a
 // library CopyButton carrying the raw value.
-func defItemCopy(term, displayHTML, rawValue string) display.DefinitionItem {
+func defItemCopy(term, displayHTML, rawValue, nonce string) display.DefinitionItem {
 	return display.DefinitionItem{
 		Term:            term,
 		Detail:          "",
-		DetailComponent: templ.Join(rawComponent(displayHTML), copyButtonComponent(rawValue)),
+		DetailComponent: templ.Join(rawComponent(displayHTML), copyButtonComponent(rawValue, nonce)),
 	}
 }
 
@@ -33,11 +32,13 @@ func rawComponent(html string) templ.Component {
 }
 
 // copyButtonComponent builds an unrendered library CopyButton component for
-// embedding inside other components (definition list details).
-func copyButtonComponent(text string) templ.Component {
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
+// embedding inside other components (definition list details). nonce threads
+// the per-request CSP nonce into the component's clipboard singleton script
+// ("" renders the script without a nonce attribute, which a nonce-locked CSP
+// blocks).
+func copyButtonComponent(text, nonce string) templ.Component {
 	return display.CopyButton(display.CopyButtonProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: nonce,
 		Text:        text,
 		Label:       "",
 		CopiedLabel: "",

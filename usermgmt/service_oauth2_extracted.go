@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -43,6 +44,11 @@ type OAuth2Service struct {
 	sessionTTL    time.Duration
 	logger        *slog.Logger
 	classifyError errorClassifier
+
+	// audit carries the auth audit journal (cqrs-htmx#23): the
+	// OAuth2Service journals login outcomes and registration-closed probes
+	// through the same best-effort append path as the core Service.
+	audit authAuditor
 }
 
 // dispatcher is the subset of *command.Dispatcher that sub-services need.
@@ -62,6 +68,7 @@ type errorClassifier func(err error, userID UserID, kv ...string) error
 // same values the core Service was built with (ServiceConfig.MaxUsers and the
 // Service's registration mutex) so both flows enforce one shared user limit.
 // registrationMu may be nil, in which case the count check is advisory only.
+// store + bus carry the auth audit journal; pass the Service's values.
 func NewOAuth2Service(
 	provider OAuth2Provider,
 	states OAuth2StateStore,
@@ -74,6 +81,8 @@ func NewOAuth2Service(
 	sessionTTL time.Duration,
 	logger *slog.Logger,
 	classifyError errorClassifier,
+	store event.Store,
+	bus event.Bus,
 ) *OAuth2Service {
 	if provider == nil {
 		return nil
@@ -93,7 +102,21 @@ func NewOAuth2Service(
 		sessionTTL:     sessionTTL,
 		logger:         logger,
 		classifyError:  classifyError,
+		audit:          authAuditor{logger: logger, store: store, bus: bus},
 	}
+}
+
+// nonceBeginner is the additive OIDC-nonce capability of the bundled
+// oauth2 provider. Providers that implement it get nonce-bound ID tokens;
+// others fall back to the PKCE-only baseline.
+type nonceBeginner interface {
+	BeginLoginWithNonce(ctx context.Context, providerName, state string) (
+		redirectURL, pkceVerifier, nonce string, err error,
+	)
+
+	FinishLoginWithNonce(
+		ctx context.Context, providerName, code, pkceVerifier, nonce string,
+	) (userInfoJSON []byte, err error)
 }
 
 // BeginLogin starts the OAuth2 login flow for the given provider.
@@ -101,6 +124,21 @@ func (o *OAuth2Service) BeginLogin(ctx context.Context, provider string) (*Begin
 	state, err := generateOAuth2State()
 	if err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.oauth2.generate_state", "generate oauth2 state").WithCause(err)
+	}
+
+	nonceStore, nonceCapable := o.states.(NonceStateStore)
+	if beginner, ok := o.provider.(nonceBeginner); ok && nonceCapable {
+		redirectURL, pkceVerifier, nonce, err := beginner.BeginLoginWithNonce(ctx, provider, state)
+		if err != nil {
+			return nil, errorfamily.NewTransient("usermgmt.oauth2.begin_login", "oauth2 begin login").
+				WithCause(err).WithContext("provider", provider)
+		}
+		if err := nonceStore.SaveWithNonce(state, provider, pkceVerifier, nonce, o.stateTTL); err != nil {
+			return nil, errorfamily.NewTransient("usermgmt.oauth2.save_state", "save oauth2 state").
+				WithCause(err).WithContext("provider", provider)
+		}
+		o.logAuth("oauth_login_begin", UserID{}, "provider", provider)
+		return &BeginOAuthLoginResponse{RedirectURL: redirectURL}, nil
 	}
 
 	redirectURL, pkceVerifier, err := o.provider.BeginLogin(ctx, provider, state)
@@ -129,6 +167,12 @@ func (o *OAuth2Service) FinishLogin(
 	ctx context.Context,
 	provider, code, state string,
 ) (*FinishOAuthLoginResponse, error) {
+	nonceStore, nonceCapable := o.states.(NonceStateStore)
+	beginner, providerNonceCapable := o.provider.(nonceBeginner)
+	if nonceCapable && providerNonceCapable {
+		return o.finishLoginWithNonce(ctx, provider, code, state, nonceStore, beginner)
+	}
+
 	storedProvider, pkceVerifier, err := o.states.Consume(state)
 	if err != nil {
 		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
@@ -148,6 +192,49 @@ func (o *OAuth2Service) FinishLogin(
 			WithContext("provider", provider)
 	}
 
+	return o.completeLogin(ctx, provider, userInfoJSON)
+}
+
+// finishLoginWithNonce is the nonce-bound FinishLogin path used when both the
+// provider and the state store implement the additive nonce capability: a
+// mismatched or missing id_token nonce claim is rejected at verification
+// (OIDC Core §3.1.3.7).
+func (o *OAuth2Service) finishLoginWithNonce(
+	ctx context.Context,
+	provider, code, state string,
+	nonceStore NonceStateStore,
+	beginner nonceBeginner,
+) (*FinishOAuthLoginResponse, error) {
+	storedProvider, pkceVerifier, nonce, err := nonceStore.ConsumeWithNonce(state)
+	if err != nil {
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "invalid_state")
+		return nil, errorfamily.WrapRejection(err, "usermgmt.oauth.state_consume_failed", "consume oauth2 state").
+			WithContext("provider", provider)
+	}
+	if storedProvider != provider {
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "provider_mismatch")
+		return nil, errorfamily.WrapRejection(ErrOAuthInvalidState, "usermgmt.oauth.provider_mismatch",
+			"oauth2 provider mismatch between state and callback").WithContext("provider", provider)
+	}
+
+	userInfoJSON, err := beginner.FinishLoginWithNonce(ctx, provider, code, pkceVerifier, nonce)
+	if err != nil {
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "token_exchange")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.oauth.token_exchange", "exchange oauth2 token").
+			WithContext("provider", provider)
+	}
+
+	return o.completeLogin(ctx, provider, userInfoJSON)
+}
+
+// completeLogin is the shared FinishLogin tail: user-info validation,
+// account linking / auto-registration, session creation, and audit. Both the
+// PKCE-only and the nonce-bound paths converge here.
+func (o *OAuth2Service) completeLogin(
+	ctx context.Context,
+	provider string,
+	userInfoJSON []byte,
+) (*FinishOAuthLoginResponse, error) {
 	var info OAuth2UserInfo
 	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
 		return nil, errorfamily.NewInfrastructure("usermgmt.oauth.userinfo_unmarshal", "unmarshal user info").
@@ -158,6 +245,15 @@ func (o *OAuth2Service) FinishLogin(
 		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "no_email")
 		return nil, errorfamily.NewRejection("usermgmt.oauth_no_email",
 			"OAuth2 provider did not return an email address").WithContext("provider", provider)
+	}
+	if info.Subject == "" {
+		// The bundled oauth2 module already rejects this at extraction; the
+		// check here guards custom OAuth2Provider implementations, whose
+		// empty subject would degrade the external-account identity key to
+		// email-only matching.
+		o.logAuth("oauth_login_failed", UserID{}, "provider", provider, "reason", "no_subject")
+		return nil, errorfamily.NewRejection("usermgmt.oauth_no_subject",
+			"OAuth2 provider did not return a subject (sub) claim").WithContext("provider", provider)
 	}
 	info.Email = strings.ToLower(strings.TrimSpace(info.Email))
 
@@ -178,6 +274,8 @@ func (o *OAuth2Service) FinishLogin(
 	} else {
 		o.logAuth("oauth_login", user.ID, "provider", provider)
 	}
+
+	o.audit.oauth2LoginSuccess(ctx, user.ID, provider)
 
 	return &FinishOAuthLoginResponse{User: user, Session: session}, nil
 }
@@ -233,21 +331,35 @@ func (o *OAuth2Service) matchOrCreateUser(
 		return existing, false, nil
 	}
 
-	if user, found := o.readModel.FindByEmail(info.Email); found {
-		if err := o.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
-			return nil, false, err
-		}
-		user, _ = o.readModel.FindByUserID(user.ID)
-		return user, false, nil
+	// Email-match linking is gated on EmailVerified (see matchVerifiedEmail).
+	matched, matchedByEmail, err := o.matchVerifiedEmail(ctx, provider, info)
+	if err != nil {
+		return nil, false, err
+	}
+	if matchedByEmail {
+		return matched, false, nil
 	}
 
+	return o.provisionLinkedUser(ctx, provider, info)
+}
+
+// provisionLinkedUser auto-registers a fresh user for the OAuth2 identity and
+// links the external account to it. The shared registration lock (when
+// MaxUsers is set) is held from the count check through the final read so a
+// concurrent Register or first-login sees the updated count once this returns.
+func (o *OAuth2Service) provisionLinkedUser(
+	ctx context.Context,
+	provider string,
+	info OAuth2UserInfo,
+) (*User, bool, error) {
 	if o.maxUsers > 0 {
-		// Hold the shared registration lock through dispatch so a concurrent
-		// Register or first-login sees the updated count once this returns.
 		o.registrationMu.Lock()
 		defer o.registrationMu.Unlock()
+
 		if o.readModel.Count() >= o.maxUsers {
 			o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
+			o.audit.registrationClosed(ctx)
+
 			return nil, false, errorfamily.NewRejection(
 				"usermgmt.oauth2.registration_closed",
 				"registration is closed",
@@ -284,8 +396,57 @@ func (o *OAuth2Service) matchOrCreateUser(
 			WithContextAny("user_id", user.ID).WithContext("provider", provider)
 	}
 
-	user, _ = o.readModel.FindByID(aggID)
+	user, ok = o.readModel.FindByID(aggID)
+	if !ok {
+		return nil, false, withUserIDContext(
+			errorfamily.NewTransient(
+				"usermgmt.oauth2.read_model_missing",
+				"oauth2 user not in read model after register+link",
+			),
+			userID,
+		)
+	}
+
 	return user, true, nil
+}
+
+// matchVerifiedEmail links the OAuth2 identity to an existing account by
+// email address and returns the refreshed user (ok=true). Linking is gated on
+// EmailVerified: linking an external identity to an existing account by an
+// unverified, user-controllable email (GitHub noreply, generic OIDC) is a
+// pre-account-takeover vector (NIST 800-63B forbids linking on unverified
+// email). Unverified emails report no match so matchOrCreateUser falls
+// through to subject-only matching / auto-registration instead.
+func (o *OAuth2Service) matchVerifiedEmail(
+	ctx context.Context,
+	provider string,
+	info OAuth2UserInfo,
+) (*User, bool, error) {
+	if !info.EmailVerified {
+		return nil, false, nil
+	}
+
+	user, found := o.readModel.FindByEmail(info.Email)
+	if !found {
+		return nil, false, nil
+	}
+
+	if err := o.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
+		return nil, true, err
+	}
+
+	refreshed, ok := o.readModel.FindByUserID(user.ID)
+	if !ok {
+		return nil, true, withUserIDContext(
+			errorfamily.NewTransient(
+				"usermgmt.oauth2.read_model_missing",
+				"oauth2 user not in read model after email-match link",
+			),
+			user.ID,
+		)
+	}
+
+	return refreshed, true, nil
 }
 
 // linkExternalAccount dispatches LinkExternalAccount if not already linked,

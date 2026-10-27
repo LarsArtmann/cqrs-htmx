@@ -73,7 +73,7 @@ run_gate --strict-lag 0
 ok=0
 [ "$gate_rc" -eq 3 ] || ok=1
 grep -q "TRAIN LAG: github.com/larsartmann/go-fixture-fake/v9@v0.1.0 but v0.2.0" "$tree/out.txt" || ok=1
-grep -qF "scripts/tools/bump-dep.sh 'larsartmann/go-fixture-fake/v9\$' v0.2.0" "$tree/out.txt" || ok=1
+grep -qF "scripts/tools/bump-dep.sh 'larsartmann/go-fixture-fake/v9\$' v0.2.0 --commit --lint" "$tree/out.txt" || ok=1
 report $ok "F1 root lag exits 3 with exact-anchor recipe (got $gate_rc)"
 rm -rf "$tree"
 
@@ -83,7 +83,7 @@ seed_tags go-fixture-fake v0.1.0 sub/v3.0.0 sub/v3.1.1
 run_gate --strict-lag 0
 ok=0
 [ "$gate_rc" -eq 3 ] || ok=1
-grep -qF "scripts/tools/bump-dep.sh 'larsartmann/go-fixture-fake/sub/v3\$' v3.1.1" "$tree/out.txt" || ok=1
+grep -qF "scripts/tools/bump-dep.sh 'larsartmann/go-fixture-fake/sub/v3\$' v3.1.1 --commit --lint" "$tree/out.txt" || ok=1
 report $ok "F2 submodule lag anchors submodule path (got $gate_rc)"
 rm -rf "$tree"
 

@@ -1,6 +1,7 @@
 package datastar
 
 import (
+	"sort"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -34,8 +35,16 @@ type EventBridge struct {
 }
 
 // NewEventBridge creates an event bridge that broadcasts patches via the
-// given broadcaster.
+// given broadcaster. It panics immediately when broadcaster is nil — without
+// the guard the bridge constructs fine and panics on the FIRST mapped event,
+// far from the cause; failing at construction puts the stack trace at the
+// bug.
 func NewEventBridge(broadcaster *Broadcaster) *EventBridge {
+	if broadcaster == nil {
+		panic("datastar: NewEventBridge requires a non-nil broadcaster " +
+			"(use broadcast.NewBroadcaster)")
+	}
+
 	return &EventBridge{
 		broadcaster: broadcaster,
 		handlers:    make(map[string]PatchFunc),
@@ -103,8 +112,8 @@ func (b *EventBridge) Handle(e event.Event) {
 	}
 }
 
-// MappedEventTypes returns the event types that have registered handlers.
-// Useful for diagnostics and testing.
+// MappedEventTypes returns the event types that have registered handlers,
+// sorted for deterministic output. Useful for diagnostics and testing.
 func (b *EventBridge) MappedEventTypes() []string {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
@@ -113,6 +122,7 @@ func (b *EventBridge) MappedEventTypes() []string {
 	for t := range b.handlers {
 		types = append(types, t)
 	}
+	sort.Strings(types)
 
 	return types
 }

@@ -270,9 +270,21 @@ func TestProvider_FullCeremony(t *testing.T) {
 
 	// Finish login with spec vector assertion
 	loginBody := buildLoginBody(t)
-	err = p.FinishLogin(ctx, loginUserJSON, loginBody, overriddenLoginSession)
+
+	usedJSON, err := p.FinishLogin(ctx, loginUserJSON, loginBody, overriddenLoginSession)
 	if err != nil {
 		t.Fatalf("FinishLogin: %v", err)
+	}
+
+	// The returned credential is what the caller persists. Losing it (the old
+	// `error`-only signature) is the S32 bug: the signature counter would never
+	// advance and clone detection could not fire.
+	var used credentialData
+	if unmarshalErr := json.Unmarshal(usedJSON, &used); unmarshalErr != nil {
+		t.Fatalf("unmarshal logged-in credential: %v", unmarshalErr)
+	}
+	if !bytes.Equal(used.ID, cred.ID) {
+		t.Errorf("logged-in credential ID = %x, want %x", used.ID, cred.ID)
 	}
 }
 
@@ -369,8 +381,7 @@ func TestProvider_FinishLogin_WrongChallenge(t *testing.T) {
 	}
 
 	// Do NOT override — wrong challenge
-	err = p.FinishLogin(ctx, loginUserJSON, buildLoginBody(t), loginSession)
-	if err == nil {
+	if _, err := p.FinishLogin(ctx, loginUserJSON, buildLoginBody(t), loginSession); err == nil {
 		t.Fatal("expected error with wrong challenge")
 	}
 }

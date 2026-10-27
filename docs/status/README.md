@@ -15,17 +15,21 @@ Each report in this tree captures what someone knew at the end of a work session
 
 ## Layout (reorganized 2026-09-09; archive consolidated 2026-09-20)
 
-| Path                               | Contents                                                                     |
-| ---------------------------------- | ---------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 0 after the round-17 pass) |
-| `docs/status/archived/`            | 467 archived session reports (2026-05-03 → 2026-10-06)                       |
-| `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                 |
-| `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
-| `docs/reviews/archived/`           | Archived review documents                                                    |
-| `docs/modularization/archived/`    | Archived module-assessment documents                                         |
-| `docs/plans/archived/`             | Archived implementation plans                                                |
-| `docs/feedback/processed/`         | Processed feedback documents                                                 |
-| `docs/architecture-understanding/` | Generated self-contained HTML architecture reports (see "HTML corpus" below) |
+| Path                               | Contents                                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------------------- |
+| `docs/status/*.md`                 | The unarchived tail — newest session reports only. **Counts are derived, never written here; run the command in "File counts" below.** |
+| `docs/status/archived/`            | Closed history — every archived session report. Counts derived (see below); bulk-pass manifest in `archived/README.md` |
+| `docs/status/*.html`               | Historical: generated HTML artifacts were evicted 2026-10-24 (see "HTML corpus policy")                                      |
+| `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`                             |
+| `docs/reviews/archived/`           | Archived review documents                                                                   |
+| `docs/modularization/archived/`    | Archived module-assessment documents                                                       |
+| `docs/plans/archived/`             | Archived implementation plans                                                              |
+| `docs/feedback/processed/`         | Processed feedback documents                                                               |
+| `docs/architecture-understanding/` | Generated architecture snapshots (d2/svg/HTML); uncited ones evicted 2026-10-24, the two load-bearing composability reviews remain |
+
+> **Archive eviction (prepared 2026-10-24, owner-gated).** 578 of the 591 files under the archive
+> directories are unreferenced closed history. The measured keep-set, the dry-run verdict, and the
+> one-command removal/restore flow live in [`../ARCHIVE_EVICTED.md`](../ARCHIVE_EVICTED.md).
 
 `docs/status/archived/` is the ONLY archive directory — the older duplicate `docs/status/archive/` (a 92-file split-brain) was merged into it and removed.
 
@@ -77,14 +81,23 @@ bash scripts/selftests/test-check-status-rows.sh
 #   checker and fixer are proven to agree by the self-test. `--dry-run` first.
 python3 scripts/tools/normalize-status-rows.py --dry-run
 bash scripts/selftests/test-normalize-status-rows.sh
+
+# Equivalence meta-test (T05, 2026-10-08): the checker and fixer import the
+#   shared scripts/lib/status_table.py; this pushes 7 adversarial fixtures
+#   through BOTH and proves the fixer normalizes exactly the rows the gate
+#   flags — the split-brain class is structurally dead, not just currently
+#   aligned. Also a check-modules + CI stage.
+bash scripts/selftests/test-status-table-equivalence.sh
 ```
 
-A third, **advisory** gate keeps the live tail honest: `scripts/checks/check-docs-tail-budget.sh`
-warns (exit 0) when `docs/status/*.md` (excluding this README) exceeds 3 reports,
-so a growing tail surfaces at sweep boundary instead of being re-discovered.
-It is deliberately **not** a blocking `check-modules` stage — a mid-session tail
-of two or three reports is legitimate. `--strict` exits 1 for a manual/train-time
-check. Fixture self-test: `bash scripts/selftests/test-check-docs-tail-budget.sh`.
+A third gate keeps the live tail honest in two modes. The absolute target is 3 reports
+(`docs/status/*.md`, excluding this README); `--strict` exits 1 against it for a manual check.
+The **blocking** mode is `--ratchet`: it reads `docs/status/TAIL_BASELINE` and fails when the
+tail grows past it, so the corpus can only ratchet down — a new report must replace an archived
+one, and archiving must lower the baseline in the same commit. That is what turns "the tail grew
+for weeks while the gate printed a warning" into a red build. Both modes run in `check-modules`
+and CI. Fixture self-test (10 cases incl. ratchet at/over/below/missing/malformed baseline):
+`bash scripts/selftests/test-check-docs-tail-budget.sh`.
 
 Ambient `python3` is the contract for Gate 2 (CI runners ship it); the flake apps
 (`nix run .#check-status-rows` / `.#test-status-rows` / `.#normalize-status-rows`
@@ -99,63 +112,99 @@ adjudicate; scope-identity with the repo gate was verified per-file and per-line
 
 ## HTML corpus policy
 
-The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60 files) are **generated, self-contained report artifacts** (styled snapshots produced for a specific session or review) and are **exempt from annotation sweeps and freshness gates**. They are deliverables, not claims to maintain: their content is superseded by the living docs, and no markdown-source counterpart is expected. Do not edit them in place; archive or regenerate instead. **Standing decision (docs-health round 14, 2026-10-01): the 12-file `docs/status/*.html` corpus is KEEP-IN-PLACE** — archiving would be churn without information gain (they are already exempt from every gate and indexed by this README), and the TODO_LIST item that asked for the deliberate decision is closed with this line as the record.
+**Standing decision (superseded 2026-10-24):** docs-health round 14 (2026-10-01) had classified
+the generated `*.html` artifacts as KEEP-IN-PLACE. The 2026-10-24 corpus-eviction master plan
+(S21/S29) re-adjudicated: they are **generated, self-contained report artifacts** whose content
+is superseded by the living docs — 14 status HTML reports + every uncited research/architecture
+HTML snapshot were **evicted** by the same measured rule as the archive eviction (living-doc
+citation = keep; restore via [`../ARCHIVE_EVICTED.md`](../ARCHIVE_EVICTED.md)). The 12 cited
+research reports and the 2 composability reviews survive as load-bearing design rationale.
+Future generated HTML artifacts follow the same rule: cite one from a living doc if it is
+load-bearing, otherwise it is evictable closed history.
 
 ## File counts
 
-- `docs/status/`: **0 unarchived reports** (the 2026-10-06 round-18 docs-health pass annotated + archived the entire 17-report tail in one sweep) + README + 12 HTML artifacts.
-- `docs/status/archived/`: **467 archived reports** (2026-05-03 → 2026-10-06).
-- The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), 2026-09-21 (the 34-report tail), 2026-09-22 (the 8-report superb-plan tail + the plan itself), 2026-10-01 round-13 (the 22-report 09-22→09-30 tail — every report annotated with a dated blockquote + evidence-backed inline strikes, open items routed to TODO_LIST/ROADMAP, then archived), 2026-10-01 round-14 (the 10-01 pair — the 02:59 BuildFlow-recovery and 06:36 round-13 reports got W0–W3-receipt top-up blockquotes + inline strikes for everything the train/gate/erraudit sessions then resolved, then archived; the same pass triaged the six 2026-08-30 planning files — upstream-asks draft archived, gated-work index + cqrs-lint distribution draft annotated, three live owner-gated decisions confirmed leave-in-place — and confirmed the HTML corpus keep-in-place decision), and **2026-10-04 round-17 (the 13-report 10-01→10-04 tail — every report annotated with a dated blockquote + evidence strikes, open items verified against the tree (CI run 37178906141: test green on published pins; master red on exactly one job — the loginpage 7/5 dep budget) and routed to TODO_LIST/ROADMAP, then archived; the two `docs/drafts/2026-10-04-signing-cloneevent-encoding*` files got RESOLVED-SHIPPED blockquotes and stay in place)**, and **2026-10-06 round-18 (the 17-report 10-04→10-06 tail — every report annotated with a dated blockquote + evidence strikes verified against the tree (the identity-auth-hardening wave tags, the 11-module sweep train, push `e2f6be27`, CI green 37392674249, the M01–M15 hardening execution across three sibling sessions) and routed to TODO_LIST/ROADMAP, then archived; the six 2026-08-30/09-23 planning files re-confirmed: 3 annotated, 3 owner-gated LEAVE-IN-PLACE; the HTML corpus keep-in-place decision re-honored)**. Of the 467 archived reports, **102 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and the rest predate annotation entirely (legacy-exempt). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
+Counts are **derived, never hand-maintained** (killed by docs-health round 22, 2026-10-24 — the
+previous table claimed a number 11 short of reality and stayed wrong for a week).
+
+```bash
+# live markdown reports — exactly what the tail-budget gate counts
+ls docs/status/*.md | grep -v 'README.md' | wc -l
+
+# generated HTML artifacts (exempt from annotation and freshness gates)
+ls docs/status/*.html | wc -l
+
+# closed history, all passes
+find docs/status/archived -name '*.md' | wc -l
+
+# the live tail against its budget (exit 1 under --strict)
+bash scripts/checks/check-docs-tail-budget.sh
+```
+
+The complete per-pass manifest lives in [`archived/README.md`](archived/README.md); the round
+manifests below are the in-place records of the largest passes. Gate 1
+(`check-status-annotations.sh`) enforces the current-convention era (reports dated 2026-09-09
+onward); Gate 2 (`check-status-rows.py`) keeps table-row shapes honest. Anything older than the
+epoch is legacy-exempt by design.
 
 ### Round-17 archive manifest (2026-10-04)
 
 All 13 files: classification **ARCHIVE** (dated blockquote + evidence strikes + open items routed), `git mv` → `docs/status/archived/`.
 
-| File | Deciding evidence |
-| --- | --- |
-| `2026-10-01_10-30_pareto-w0-w3-train-gates-erraudit-status.md` | T06 erraudit closed same evening; T13–T25 + W10 shipped 10-01/02; T09 answered (3 filed / 2 retired); go.work → OQ27; rawIDToken executed (D3) |
-| `2026-10-01_12-30_docs-health-round14-full-pass-status.md` | Its own §b/§c debt closed (composite 15:50, D-index exists, LEAVE verdict recorded); §g1 moot; archive bar applied by rounds 15–17 |
-| `2026-10-01_15-55_pareto-t06-close-battery-tail-status.md` | T08 local half + T09 done same evening; open residue (bench, next train, D5) routed |
-| `2026-10-01_17-01_t06-tail-session-self-critique-status.md` | §b breadth closed overnight (test-all 28/28); 25 strikes; owners routed |
-| `2026-10-01_17-36_tooling-round-2-shared-tree-session-status.md` | Heavy gates landed; the report's own ARCHIVE-pass ask executed by this pass |
-| `2026-10-02_07-09_round15-consolidated-status.md` | Open items all routed (bench/train/D-list/E005); T08-half + stale-suppressions + archive-pass strikes |
-| `2026-10-02_08-55_round15-tail-self-critique-status.md` | f16 done by this pass; OQ21 moot; §f50 superseded; the rest routed as written |
-| `2026-10-03_03-30_v007-verification-cqrs-lint-determinism-session.md` | V007 disposition settled (ADR-0051 + inventory §5c); archive ask executed; remainder owner-gated and routed |
-| `2026-10-03_04-01_pareto-plan-v5-autoupgrade-push-blocked.md` | Push blocker resolved next morning (alignment executed, push landed); plan M1–M28 live in TODO |
-| `2026-10-04_05-49_loginpage-critical-review-and-hardening-session.md` | Both filed follow-ups (NoOAuth2, CSP-nonce) shipped; README/AGENTS/CHANGELOG truth-passes verified; review HTML annotated |
-| `2026-10-04_05-51_push-unblock-and-signing-regression.md` | Arc closed: upstream fix landed + re-pinned; patch-tag thread MOOT (only integration_test requires signing); dep-budget = last red |
-| `2026-10-04_06-52_signing-v433-fix-landed-and-verified.md` | CI sharpened to one red job; lifecycle debts closed by this pass; §g questions resolved/MOOT |
-| `2026-10-04_06-54_pareto-plan-episode4-tail-execution.md` | Test failures sharpened (CI green on pins; sibling-tree state; dep-budget is the train blocker); T5–T9 verified still open + routed |
+| File                                                                  | Deciding evidence                                                                                                                              |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2026-10-01_10-30_pareto-w0-w3-train-gates-erraudit-status.md`        | T06 erraudit closed same evening; T13–T25 + W10 shipped 10-01/02; T09 answered (3 filed / 2 retired); go.work → OQ27; rawIDToken executed (D3) |
+| `2026-10-01_12-30_docs-health-round14-full-pass-status.md`            | Its own §b/§c debt closed (composite 15:50, D-index exists, LEAVE verdict recorded); §g1 moot; archive bar applied by rounds 15–17             |
+| `2026-10-01_15-55_pareto-t06-close-battery-tail-status.md`            | T08 local half + T09 done same evening; open residue (bench, next train, D5) routed                                                            |
+| `2026-10-01_17-01_t06-tail-session-self-critique-status.md`           | §b breadth closed overnight (test-all 28/28); 25 strikes; owners routed                                                                        |
+| `2026-10-01_17-36_tooling-round-2-shared-tree-session-status.md`      | Heavy gates landed; the report's own ARCHIVE-pass ask executed by this pass                                                                    |
+| `2026-10-02_07-09_round15-consolidated-status.md`                     | Open items all routed (bench/train/D-list/E005); T08-half + stale-suppressions + archive-pass strikes                                          |
+| `2026-10-02_08-55_round15-tail-self-critique-status.md`               | f16 done by this pass; OQ21 moot; §f50 superseded; the rest routed as written                                                                  |
+| `2026-10-03_03-30_v007-verification-cqrs-lint-determinism-session.md` | V007 disposition settled (ADR-0051 + inventory §5c); archive ask executed; remainder owner-gated and routed                                    |
+| `2026-10-03_04-01_pareto-plan-v5-autoupgrade-push-blocked.md`         | Push blocker resolved next morning (alignment executed, push landed); plan M1–M28 live in TODO                                                 |
+| `2026-10-04_05-49_loginpage-critical-review-and-hardening-session.md` | Both filed follow-ups (NoOAuth2, CSP-nonce) shipped; README/AGENTS/CHANGELOG truth-passes verified; review HTML annotated                      |
+| `2026-10-04_05-51_push-unblock-and-signing-regression.md`             | Arc closed: upstream fix landed + re-pinned; patch-tag thread MOOT (only integration_test requires signing); dep-budget = last red             |
+| `2026-10-04_06-52_signing-v433-fix-landed-and-verified.md`            | CI sharpened to one red job; lifecycle debts closed by this pass; §g questions resolved/MOOT                                                   |
+| `2026-10-04_06-54_pareto-plan-episode4-tail-execution.md`             | Test failures sharpened (CI green on pins; sibling-tree state; dep-budget is the train blocker); T5–T9 verified still open + routed            |
 
 ### Round-18 archive manifest (2026-10-06)
 
 All 17 files: classification **ARCHIVE** (dated `> ANNOTATED 2026-10-06` blockquote + evidence strikes + open items routed), `git mv` → `docs/status/archived/`. Verification anchors: the identity-auth-hardening wave (usermgmt v4.14.0 + setup v4.14.0 + dashboardui v4.13.0; ADR-0055), the 11-module sweep train (root v4.13.1 + usermgmt v4.14.1 + identity-model v4.12.1 + 8 patch tags; templ-components v1.20.1 heal), the alignment push `e2f6be27` (CI all-green 37392674249), and the M01–M15 cross-repo hardening execution (22:34 + 23:20 + 21:35 reports, GCL receipts).
 
-| File | Deciding evidence |
-| --- | --- |
-| `2026-10-04_12-09_crm-identity-feedback-verification.md` | Every §f seed executed by the M1–M25 hardening plan (ADR-0055, gate + self-wrap + DisplayName + wrapper-check gate); CRM acceptance ran; 41 strikes; browser-level ceremony + CSRF note routed |
-| `2026-10-04_13-14_dashboardui-integration-modes_status.md` | Autodetect + `Config.Layout` shipped as dashboardui/v4.13.0, consumed by setup v4.14.x; B1/B2 + c3/c6/c7 + §f1–5/15/49 struck; embed demo/guide + panels layer routed |
-| `2026-10-04_13-14_scripts-reorg-status.md` | Reorg held through 5 pushes + green CI; external reds shipped (LayoutFunc); §b1–b4 + §f1–4/9/22–24/30 struck; root-guard/aggregator/manifest-consolidation routed |
-| `2026-10-04_15-50_identity-auth-hardening-execution-self-review.md` | Wave tagged + pushed; CI verified; the 3 "pre-existing" failures root-caused (gotcha 25) + fixed 10-05; goldens regenerated; f4/6/9–11/13/18/20/21 + g1 struck |
-| `2026-10-05_12-48_maximization-pass-self-review.md` | P1 fix + gotcha 25 canon; push done (`e2f6be27`); StreamMarker train landed; statusToBadgeMap closed MOOT+ADOPTED; b3–b5 + f1–4/6/11/12/17/19/33 + g1 struck |
-| `2026-10-05_14-59_branching-flow-full-analysis.md` | Already annotated 2026-10-05 by its own session (ratchet `94a92e6f`, safe fixes, harvest `471c0933`); carried into the archive unchanged |
-| `2026-10-05_15-42_push-unblock-broken-templ-components-release.md` | UNBLOCKED: v1.20.1 healed, #27 filed, family swept, bundles rebuilt, push landed; b1–b4 + c1–c4/c7 + f1–4/9–11/13–16/21 + g1–g3 struck |
-| `2026-10-05_20-31_ratchet-shipped-safe-fixes-upstream-poison.md` | All loose ends closed by the 21:19 session (exhaustruct ignore-pattern, 663→659, R7, harvest, #27, CHANGELOG) + Q1 end-to-end (v1.20.1 → push); b/c + f1–12/18 + g2/g3 struck |
-| `2026-10-05_20-32_round17-plan-execution-and-divergence-recovery.md` | Blockers dissolved: train ran (11 patch tags), push `e2f6be27`, CI all-green; b2–b5 + f1–5/8/41/47–49 struck; A7/A9/A11–A14 + owner rows routed |
-| `2026-10-05_21-19_ratchet-tail-executed-plan-annotations-upstream-filed.md` | Its §b blocker resolved end-to-end (v1.20.1 + sweep + `7c74307a` + green check-modules + push); final-verification + f1–6/14 + g2/g3 struck |
-| `2026-10-06_03-04_alignment-push-train-and-ci-green-repair.md` | End state held (CI sustained green); golden TODO struck this pass; stale agents-notes claim fixed `7c74307a`; b7/c7/f1/f2/f18 struck; battery/tooling/collection items routed |
-| `2026-10-06_19-31_alignment-stall-env-triage-phase1-prep.md` | Alignment completed + M01–M15 executed same evening (three sibling sessions); b1/b3 + c + f1–5/9–29/46 struck; flightrecorder push blocker + M16–M27 routed |
-| `2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md` | Fully superseded by 21:35 (M13–M15 done, questions answered by execution); ANNOTATED + §b2/§c struck; 5 PARTIAL rows normalized to whole-row strikes |
-| `2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md` | M01–M10 closed same night by the sibling lane (22:34 + 23:20); §2 + §5 items 1–10 + §6-Q1 struck; flightrecorder + M16–M27 + forensics routed |
-| `2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md` | Phase 2 closed by 23:20 (M06 `7584b7a84` completed; M07/M08/M10 landed + receipted); b1 + c-row + f1–6 + g2/g3 struck; push blocker + full-gate battery routed |
-| `2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md` | Lane M05–M10 verified + receipted; Q2/Q3 confirmed; Q1 (flightrecorder/push) + M16–M27 + GCL TODO items stay open; 1 PARTIAL row normalized |
-| `2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md` | The honest gaps (F22, GCL gate compliance, metaengine `-race`, doc comment) harvested into TODO_LIST; f30/f31 struck; push authorization + history-readability owner calls routed |
-| `2026-10-07_02-11_art-dupl-dedup-8-groups-status.md` | Round 1 mid-state (art-dupl `-t 4`); superseded same day by the 03-13 completion report |
-| `2026-10-07_03-13_art-dupl-dedup-round-complete-8-groups-dispositioned.md` | Round 1 complete: 8 groups dispositioned (3 extracted, 5 accepted); release train + 3 owner questions routed forward |
-| `2026-10-07_04-03_art-dupl-t1-round2-status.md` | Round 2 (art-dupl `-t 1`, 113 groups): 7 extracted + verified, 106 accepted; post-round re-run 113 → 91 shown; full per-group triage |
-| `2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md` | Round 2 comprehensive status + self-review: honest gaps (skipped gates d1/d2, manifest miss d5, batched-lint d3) + 40 ranked next steps + 3 owner questions |
+| File                                                                        | Deciding evidence                                                                                                                                                                              |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2026-10-04_12-09_crm-identity-feedback-verification.md`                    | Every §f seed executed by the M1–M25 hardening plan (ADR-0055, gate + self-wrap + DisplayName + wrapper-check gate); CRM acceptance ran; 41 strikes; browser-level ceremony + CSRF note routed |
+| `2026-10-04_13-14_dashboardui-integration-modes_status.md`                  | Autodetect + `Config.Layout` shipped as dashboardui/v4.13.0, consumed by setup v4.14.x; B1/B2 + c3/c6/c7 + §f1–5/15/49 struck; embed demo/guide + panels layer routed                          |
+| `2026-10-04_13-14_scripts-reorg-status.md`                                  | Reorg held through 5 pushes + green CI; external reds shipped (LayoutFunc); §b1–b4 + §f1–4/9/22–24/30 struck; root-guard/aggregator/manifest-consolidation routed                              |
+| `2026-10-04_15-50_identity-auth-hardening-execution-self-review.md`         | Wave tagged + pushed; CI verified; the 3 "pre-existing" failures root-caused (gotcha 25) + fixed 10-05; goldens regenerated; f4/6/9–11/13/18/20/21 + g1 struck                                 |
+| `2026-10-05_12-48_maximization-pass-self-review.md`                         | P1 fix + gotcha 25 canon; push done (`e2f6be27`); StreamMarker train landed; statusToBadgeMap closed MOOT+ADOPTED; b3–b5 + f1–4/6/11/12/17/19/33 + g1 struck                                   |
+| `2026-10-05_14-59_branching-flow-full-analysis.md`                          | Already annotated 2026-10-05 by its own session (ratchet `94a92e6f`, safe fixes, harvest `471c0933`); carried into the archive unchanged                                                       |
+| `2026-10-05_15-42_push-unblock-broken-templ-components-release.md`          | UNBLOCKED: v1.20.1 healed, #27 filed, family swept, bundles rebuilt, push landed; b1–b4 + c1–c4/c7 + f1–4/9–11/13–16/21 + g1–g3 struck                                                         |
+| `2026-10-05_20-31_ratchet-shipped-safe-fixes-upstream-poison.md`            | All loose ends closed by the 21:19 session (exhaustruct ignore-pattern, 663→659, R7, harvest, #27, CHANGELOG) + Q1 end-to-end (v1.20.1 → push); b/c + f1–12/18 + g2/g3 struck                  |
+| `2026-10-05_20-32_round17-plan-execution-and-divergence-recovery.md`        | Blockers dissolved: train ran (11 patch tags), push `e2f6be27`, CI all-green; b2–b5 + f1–5/8/41/47–49 struck; A7/A9/A11–A14 + owner rows routed                                                |
+| `2026-10-05_21-19_ratchet-tail-executed-plan-annotations-upstream-filed.md` | Its §b blocker resolved end-to-end (v1.20.1 + sweep + `7c74307a` + green check-modules + push); final-verification + f1–6/14 + g2/g3 struck                                                    |
+| `2026-10-06_03-04_alignment-push-train-and-ci-green-repair.md`              | End state held (CI sustained green); golden TODO struck this pass; stale agents-notes claim fixed `7c74307a`; b7/c7/f1/f2/f18 struck; battery/tooling/collection items routed                  |
+| `2026-10-06_19-31_alignment-stall-env-triage-phase1-prep.md`                | Alignment completed + M01–M15 executed same evening (three sibling sessions); b1/b3 + c + f1–5/9–29/46 struck; flightrecorder push blocker + M16–M27 routed                                    |
+| `2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md`         | Fully superseded by 21:35 (M13–M15 done, questions answered by execution); ANNOTATED + §b2/§c struck; 5 PARTIAL rows normalized to whole-row strikes                                           |
+| `2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`                     | M01–M10 closed same night by the sibling lane (22:34 + 23:20); §2 + §5 items 1–10 + §6-Q1 struck; flightrecorder + M16–M27 + forensics routed                                                  |
+| `2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md`             | Phase 2 closed by 23:20 (M06 `7584b7a84` completed; M07/M08/M10 landed + receipted); b1 + c-row + f1–6 + g2/g3 struck; push blocker + full-gate battery routed                                 |
+| `2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md`                        | Lane M05–M10 verified + receipted; Q2/Q3 confirmed; Q1 (flightrecorder/push) + M16–M27 + GCL TODO items stay open; 1 PARTIAL row normalized                                                    |
+| `2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md`                   | The honest gaps (F22, GCL gate compliance, metaengine `-race`, doc comment) harvested into TODO_LIST; f30/f31 struck; push authorization + history-readability owner calls routed              |
+| `2026-10-07_02-11_art-dupl-dedup-8-groups-status.md`                        | Round 1 mid-state (art-dupl `-t 4`); superseded same day by the 03-13 completion report                                                                                                        |
+| `2026-10-07_03-13_art-dupl-dedup-round-complete-8-groups-dispositioned.md`  | Round 1 complete: 8 groups dispositioned (3 extracted, 5 accepted); release train + 3 owner questions routed forward                                                                           |
+| `2026-10-07_04-03_art-dupl-t1-round2-status.md`                             | Round 2 (art-dupl `-t 1`, 113 groups): 7 extracted + verified, 106 accepted; post-round re-run 113 → 91 shown; full per-group triage                                                           |
+| `2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md`               | Round 2 comprehensive status + self-review: honest gaps (skipped gates d1/d2, manifest miss d5, batched-lint d3) + 40 ranked next steps + 3 owner questions                                    |
 
 Also archived in the same sweep (planning corpus): `docs/planning/archived/2026-10-01_06-47_pareto-round13-superb-execution-plan.md` and `..._15-04_pareto-round14-gates-green-first.md` — both carry dated OUTCOME blockquotes, every executable item shipped 2026-10-01/02, residue (bench, T08 fleet swap, D-list) routed in TODO_LIST; the round-16 and episode-4 plans stay ACTIVE in `docs/planning/`.
+
+### 2026-10-09 tail-pass archive manifest
+
+Both files: classification **ARCHIVE** (dated `> ANNOTATED 2026-10-09` blockquote + evidence strikes + open items routed), `git mv` → `docs/status/archived/`. Verification anchors: origin CI green (run 37851669797 on `c5bbc693`), fixture conversion `70b1289e`, R12/T8 `baeffce1`+`c5d223de`, R15/T14 `ab23e247`, family-walk receipt `23b54cc2`, runbook docs `b2a12066`, the landed frontend-sync feature (`278b16c2`, ADR-0056). The manifest lives HERE (not `archived/README.md`) — the annotation gate requires every `archived/*.md` to carry a date prefix.
+
+| File                                                                        | Deciding evidence                                                                                                                                                          |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2026-10-08_22-02_train-ci-repair-family-walk-fix-fixture-helper-status.md` | Patch train + httputil v1.4.2 + family-walk fix all shipped and CI-verified; 55 strikes; survivors routed to TODO rows + decision table D14/D15 + the train-trust-plan row |
+| `2026-10-09_00-06_fixture-consolidation-upstream-wave-branching-flow-hardening_status.md` | Fixtures landed, upstream wave aligned, branching-flow ratchet re-pinned to 229; battery + owner lanes routed; the sync session landed after this report                 |
 
 ## Why not "update them all" ad hoc?
 

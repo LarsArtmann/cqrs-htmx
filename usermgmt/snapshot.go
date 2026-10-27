@@ -197,5 +197,6 @@ func cloneSnapshot(s snapshot.Snapshot) *snapshot.Snapshot {
 		State:      stateCopy,
 		Encoding:   s.Encoding,
 		CreatedAt:  s.CreatedAt,
+		StateShape: s.StateShape,
 	}
 }

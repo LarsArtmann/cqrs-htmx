@@ -203,10 +203,20 @@ func TestEventBridgeMappedEventTypesReturnsSortedCopy(t *testing.T) {
 	bridge.Map("M", func(e event.Event) (ds.Patch, error) { return nil, nil })
 
 	types := bridge.MappedEventTypes()
-	require.Len(t, types, 3)
-	require.Contains(t, types, "Z")
-	require.Contains(t, types, "A")
-	require.Contains(t, types, "M")
+	require.Equal(t, []string{"A", "M", "Z"}, types,
+		"MappedEventTypes must be sorted regardless of registration order")
+}
+
+// TestNewEventBridgeNilBroadcasterPanicsAtConstruction pins S39/w03.5:
+// pre-fix, NewEventBridge(nil) succeeded and the nil dereference surfaced
+// only when the first mapped event was handled — far from the cause.
+func TestNewEventBridgeNilBroadcasterPanicsAtConstruction(t *testing.T) {
+	t.Parallel()
+
+	require.PanicsWithValue(t,
+		"datastar: NewEventBridge requires a non-nil broadcaster (use broadcast.NewBroadcaster)",
+		func() { ds.NewEventBridge(nil) },
+	)
 }
 
 func TestEventBridgeOnError(t *testing.T) {

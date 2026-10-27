@@ -71,7 +71,7 @@ func projectionsContent(p pageData, projs []projectionStat) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(projs) == 0 {
-			templ_7745c5c3_Err = emptyStatePanel(icons.ArrowPath, "No projections registered", "").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = emptyStatePanel(icons.ArrowPath, p.empty[EmptyStateProjections].Title, p.empty[EmptyStateProjections].Message).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -130,9 +130,9 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 templ.SafeURL
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/projections/" + proj.Name)
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/projections/" + pathSeg(proj.Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 46, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 46, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -145,7 +145,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(proj.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 46, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 46, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -270,7 +270,7 @@ func projectionRows(p pageData, projs []projectionStat) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if proj.Errors > 0 || p.Caps.DeadLetterStore || p.Caps.ProjectionHost {
-				templ_7745c5c3_Err = buttonLink(fmt.Sprintf("DLQ (%d)", proj.Errors), p.BasePath+"/dead-letters/"+proj.Name, "View dead letters for "+proj.Name, display.ButtonSecondary, false).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = buttonLink(fmt.Sprintf("DLQ (%d)", proj.Errors), p.BasePath+"/dead-letters/"+pathSeg(proj.Name), "View dead letters for "+proj.Name, display.ButtonSecondary, false).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -318,9 +318,9 @@ func projectionResetForm(p pageData, name string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 templ.SafeURL
-		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/projections/" + name + "/reset")
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/projections/" + pathSeg(name) + "/reset")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 75, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `projections.templ`, Line: 75, Col: 66}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -485,7 +485,7 @@ func projectionDetailContent(p pageData, proj projectionStat) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = definitionList(projectionDetailItems(proj)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = definitionList(projectionDetailItems(proj, p.Nonce)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

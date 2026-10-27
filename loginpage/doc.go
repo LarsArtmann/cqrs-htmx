@@ -13,7 +13,7 @@
 //   - Browser WebAuthn detection (graceful fallback for unsupported browsers)
 //   - RFC 7807 error parsing (extracts title from Problem Details JSON)
 //   - Accessibility (aria-live on error regions for screen readers)
-//   - Zero external asset requests (CSS and JS inlined via go:embed)
+//   - JS inlined via go:embed; CSS is consumer-compiled Tailwind via Config.CSSPath
 //
 // # Quick start
 //
@@ -35,6 +35,11 @@
 // providers via Service.ConfiguredOAuth2Providers() and generates buttons with
 // display names (e.g., "google" -> "Google"). Set OAuth2Buttons explicitly to
 // override labels or limit which providers are shown.
+//
+// With [Config.AutoRedirect], a page whose ONLY sign-in method is a single
+// OAuth2 provider skips the button: GET answers with a redirect straight to
+// the provider's begin endpoint. Multiple providers or a configured WebAuthn
+// provider render the page normally.
 //
 // # Self-contained
 //

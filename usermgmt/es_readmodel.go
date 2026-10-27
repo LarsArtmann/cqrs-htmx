@@ -34,21 +34,20 @@ type externalAccountKey struct {
 
 func NewUserReadModel() *UserReadModel {
 	return &UserReadModel{
-		readModelCore: readModelCore[*UserReadModel]{
-			handlers: map[event.Type]eventHandler[*UserReadModel]{
-				eventUserRegistered:          (*UserReadModel).handleUserRegistered,
-				eventRolesUpdated:            (*UserReadModel).handleRolesUpdated,
-				eventEmailChanged:            (*UserReadModel).handleEmailChanged,
-				eventDisplayNameChanged:      (*UserReadModel).handleDisplayNameChanged,
-				eventCredentialAdded:         (*UserReadModel).handleCredentialAdded,
-				eventCredentialRemoved:       (*UserReadModel).handleCredentialRemoved,
-				eventUserDeleted:             (*UserReadModel).handleUserDeleted,
-				eventEmailVerified:           (*UserReadModel).handleEmailVerified,
-				eventTOTPEnabled:             (*UserReadModel).handleTOTPEnabled,
-				eventTOTPDisabled:            (*UserReadModel).handleTOTPDisabled,
-				eventExternalAccountLinked:   (*UserReadModel).handleExternalAccountLinked,
-				eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
-			},
+		handlers: map[event.Type]eventHandler[*UserReadModel]{
+			eventUserRegistered:          (*UserReadModel).handleUserRegistered,
+			eventRolesUpdated:            (*UserReadModel).handleRolesUpdated,
+			eventEmailChanged:            (*UserReadModel).handleEmailChanged,
+			eventDisplayNameChanged:      (*UserReadModel).handleDisplayNameChanged,
+			eventCredentialAdded:         (*UserReadModel).handleCredentialAdded,
+			eventCredentialRemoved:       (*UserReadModel).handleCredentialRemoved,
+			eventCredentialUsed:          (*UserReadModel).handleCredentialUsed,
+			eventUserDeleted:             (*UserReadModel).handleUserDeleted,
+			eventEmailVerified:           (*UserReadModel).handleEmailVerified,
+			eventTOTPEnabled:             (*UserReadModel).handleTOTPEnabled,
+			eventTOTPDisabled:            (*UserReadModel).handleTOTPDisabled,
+			eventExternalAccountLinked:   (*UserReadModel).handleExternalAccountLinked,
+			eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
 		},
 		users:            make(map[id.StreamID]*User),
 		emails:           make(map[string]id.StreamID),
@@ -121,6 +120,13 @@ func (m *UserReadModel) handleEmailChanged(_ id.StreamID, evt event.Event) error
 		}
 		u.Email = p.Email
 		u.EmailVerified = false
+		// Mirror FoldUser (identity-model/fold.go EventEmailChanged): an
+		// email change resets TOTP. Without this the read model keeps
+		// TOTPEnabled=true while the aggregate fold already disabled it,
+		// leaving the user locked into an undisableable second factor
+		// (DisableTOTP sees the fold's TOTPEnabled=false and emits nothing).
+		u.TOTPEnabled = false
+		u.TOTPSecret = nil
 		u.UpdatedAt = evt.OccurredAt()
 		if _, exists := m.emails[p.Email]; !exists {
 			m.emails[p.Email] = aggID
@@ -177,6 +183,27 @@ func (m *UserReadModel) handleCredentialRemoved(_ id.StreamID, evt event.Event) 
 		}
 		u.Credentials = filtered
 		u.UpdatedAt = evt.OccurredAt()
+	}
+	return nil
+}
+
+func (m *UserReadModel) handleCredentialUsed(_ id.StreamID, evt event.Event) error {
+	aggID := evt.StreamID()
+	p, err := decodePayload[CredentialUsedPayload](evt, "CredentialUsed")
+	if err != nil {
+		return err
+	}
+	if u, ok := m.users[aggID]; ok {
+		if cred := findCredential(u.Credentials, p.CredentialID); cred != nil {
+			*cred = cred.ApplyUse(CredentialUse{
+				CredentialID: p.CredentialID,
+				SignCount:    p.SignCount,
+				UserPresent:  p.UserPresent,
+				UserVerified: p.UserVerified,
+				BackupState:  p.BackupState,
+			})
+			u.UpdatedAt = evt.OccurredAt()
+		}
 	}
 	return nil
 }
@@ -244,13 +271,11 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Eve
 			return ea.Provider == p.Provider && ea.Subject == p.Subject
 		}) {
 			u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
-				ExternalAccountCore: ExternalAccountCore{
-					Provider:    p.Provider,
-					Subject:     p.Subject,
-					Email:       p.Email,
-					DisplayName: p.DisplayName,
-				},
-				LinkedAt: evt.OccurredAt(),
+				Provider:    p.Provider,
+				Subject:     p.Subject,
+				Email:       p.Email,
+				DisplayName: p.DisplayName,
+				LinkedAt:    evt.OccurredAt(),
 			})
 		}
 		u.UpdatedAt = evt.OccurredAt()

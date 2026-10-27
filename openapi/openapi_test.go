@@ -340,3 +340,116 @@ func TestSpec_AllBuildersAndMutators(t *testing.T) {
 		}
 	}
 }
+
+// TestOpBuilder_RespHeader verifies response-header documentation: headers land
+// on the response they follow, and only there. Asserts on the decoded document
+// (encoding/json/v2 does not sort map keys, so substring order is not stable).
+func TestOpBuilder_RespHeader(t *testing.T) {
+	spec := cqrsopenapi.New("Demo API", "1.0.0").Path("/feed",
+		cqrsopenapi.Get("GetFeed").
+			Response(200, "OK", cqrsopenapi.JSON(cqrsopenapi.Object())).
+			RespHeader("ETag", cqrsopenapi.String(), "weak-change tag").
+			RespHeader("Cache-Control", cqrsopenapi.String(), "revalidate always").
+			Response(304, "Not modified").
+			RespHeader("X-Empty", cqrsopenapi.String(), "no-content header"),
+	)
+
+	op := spec.Paths["/feed"].Get
+	if op == nil {
+		t.Fatal("GET operation missing")
+	}
+
+	resp200 := op.Responses[200]
+	if resp200 == nil {
+		t.Fatal("200 response missing")
+	}
+
+	for _, name := range []string{"ETag", "Cache-Control"} {
+		if resp200.Headers[name] == nil {
+			t.Errorf("200 response missing %q header: %+v", name, resp200.Headers)
+		}
+	}
+
+	if _, leaked := resp200.Headers["X-Empty"]; leaked {
+		t.Errorf("X-Empty header leaked onto the 200 response: %+v", resp200.Headers)
+	}
+
+	resp304 := op.Responses[304]
+	if resp304 == nil || resp304.Headers["X-Empty"] == nil {
+		t.Errorf("304 response missing its X-Empty header: %+v", resp304)
+	}
+}
+
+// TestOpBuilder_RespHeaderPanicsWithoutResponse pins the misuse contract: a
+// RespHeader with no preceding Response is a programming error, not a no-op.
+func TestOpBuilder_RespHeaderPanicsWithoutResponse(t *testing.T) {
+	defer func() {
+		if recover() == nil {
+			t.Fatal("RespHeader before Response should panic")
+		}
+	}()
+
+	_ = cqrsopenapi.Get("Misordered").RespHeader("ETag", cqrsopenapi.String(), "no response yet")
+}
+
+// TestSpec_PathOp verifies attaching a prebuilt Operation by its carried
+// HTTPMethod — the seam library-shipped operation metadata uses.
+func TestSpec_PathOp(t *testing.T) {
+	op := cqrsopenapi.Post("LibPush").
+		Summary("push a batch").
+		Response(200, "OK").
+		Op()
+
+	spec := cqrsopenapi.New("Demo API", "1.0.0").
+		PathOp("/lib/push", op).
+		Path("/lib/push",
+			cqrsopenapi.Get("AlsoHere").Response(200, "OK"),
+		)
+
+	item := spec.Paths["/lib/push"]
+	if item.Post == nil || item.Post.OperationID != "LibPush" {
+		t.Fatalf("PathOp did not attach the POST operation: %+v", item)
+	}
+
+	if item.Get == nil || item.Get.OperationID != "AlsoHere" {
+		t.Fatalf("PathOp clobbered the existing GET operation: %+v", item)
+	}
+}
+
+// TestSpec_PathOpPanicsWithoutMethod pins the misuse contract: operations
+// without an HTTPMethod cannot be placed on a path.
+func TestSpec_PathOpPanicsWithoutMethod(t *testing.T) {
+	defer func() {
+		if recover() == nil {
+			t.Fatal("PathOp with a method-less operation should panic")
+		}
+	}()
+
+	_ = cqrsopenapi.New("Demo API", "1.0.0").PathOp("/x", cqrsopenapi.Operation{})
+}
+
+// TestSchema_ItemBounds verifies minItems/maxItems round-trip into the
+// serialized schema.
+func TestSchema_ItemBounds(t *testing.T) {
+	spec := cqrsopenapi.New("Demo API", "1.0.0").Path("/batch",
+		cqrsopenapi.Post("Batch").
+			JSONBody(cqrsopenapi.Object(
+				cqrsopenapi.PropReq("items",
+					cqrsopenapi.Array(cqrsopenapi.String()).WithMinItems(1).WithMaxItems(100)),
+			)).
+			Response(200, "OK"),
+	)
+
+	data, err := spec.JSON()
+	if err != nil {
+		t.Fatalf("JSON: %v", err)
+	}
+
+	out := string(data)
+
+	for _, want := range []string{`"minItems": 1`, `"maxItems": 100`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("contains(%q) = false, want true\n%s", want, out)
+		}
+	}
+}

@@ -1,6 +1,8 @@
 package setup
 
 import (
+	"log/slog"
+
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
@@ -11,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 )
 
 // New creates a fully wired [Bundle] from a single [Config].
@@ -137,6 +140,19 @@ func newShellBundle(cfg Config) (*Bundle, error) {
 	bus := cfg.EventBus
 	if bus == nil {
 		bus = watermill.NewEventBus()
+		// Safe-by-default: a panicking subscriber must not take the process
+		// down. The recovered panic is logged via the process default logger
+		// and returned as an Infrastructure error, visible even though the
+		// bus's internal router discards handler-error logs
+		// (watermill.NopLogger).
+		// Opt-out: bring your own EventBus via Config.EventBus.
+		if err := bus.Use(middleware.EventRecovery(middleware.WithLogger(slog.Default()))); err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"setup.default_event_bus_recovery",
+				"failed to apply recovery middleware to the default event bus",
+			)
+		}
 	}
 
 	return &Bundle{ //nolint:exhaustruct // Service/Auth/panels/Broadcaster stay nil by design (ADR-0054)
@@ -317,6 +333,13 @@ func (b *Bundle) attachLogin() error {
 		AccentColor:    b.config.AccentColor,
 		NoRegistration: b.config.LoginNoRegistration,
 		CSSPath:        b.config.LoginCSSPath,
+		AutoRedirect:   b.config.LoginAutoRedirect,
+		// The bundle's security layer (RecommendedSecurityMiddleware) sets a
+		// nonce CSP on every response, so the login page's inline scripts must
+		// carry that same nonce or the browser blocks them. No nonce in the
+		// request context (consumer disabled the security layer) renders the
+		// scripts unchanged, without a nonce attribute.
+		NonceFromRequest: httputil.NonceFromRequest,
 	})
 	if err != nil {
 		return errorfamily.WrapRejection(
@@ -340,9 +363,16 @@ func (b *Bundle) cleanup() {
 		b.Dashboard.Close()
 	}
 
+	// SSE resources (broadcaster hubs, the bridge-done channel) are created
+	// by attachSSE BEFORE later attach steps can fail — without closing them
+	// here, a failure after attachSSE leaks the goroutine-backed hubs and the
+	// EventBus subscription forever (closeSSEDone/closeSSEBroadcasters are
+	// nil-safe and idempotent).
+	closeSSEDone(b)
+	closeSSEBroadcasters(b)
+
 	if b.ownsService && b.Service != nil {
-		//cqrs-lint:ignore(C015) cleanup on a failed construction path: the creation error is the primary failure
-		_ = b.Service.Close() //cqrs-lint:ignore(C023) cleanup on a failed construction path: the creation error is the primary failure; Close errors here are secondary
+		_ = b.Service.Close() //cqrs-lint:ignore(C023,C015) cleanup path: creation error is primary; Close errors are secondary
 	}
 }
 

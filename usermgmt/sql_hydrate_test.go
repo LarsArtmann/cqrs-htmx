@@ -30,12 +30,10 @@ func TestSQLUserReadModel_HydrateRoundTrip(t *testing.T) {
 			Roles:         []Role{RoleUser},
 		}),
 		makeEvent(t, eventCredentialAdded, 2, CredentialAddedPayload{
-			SchemaVersion: currentSchemaVersion,
-			CredentialCore: CredentialCore{
-				ID:              []byte("cred-hydrate-1"),
-				PublicKey:       []byte("pk"),
-				AttestationType: "none",
-			},
+			SchemaVersion:   currentSchemaVersion,
+			ID:              []byte("cred-hydrate-1"),
+			PublicKey:       []byte("pk"),
+			AttestationType: "none",
 		}),
 		makeEvent(t, eventTOTPEnabled, 3, TOTPEnabledPayload{
 			SchemaVersion: currentSchemaVersion,
@@ -43,11 +41,9 @@ func TestSQLUserReadModel_HydrateRoundTrip(t *testing.T) {
 		}),
 		makeEvent(t, eventExternalAccountLinked, 4, ExternalAccountLinkedPayload{
 			SchemaVersion: currentSchemaVersion,
-			ExternalAccountCore: ExternalAccountCore{
-				Provider: "github",
-				Subject:  "42",
-				Email:    "hydrate@example.com",
-			},
+			Provider:      "github",
+			Subject:       "42",
+			Email:         "hydrate@example.com",
 		}),
 	}
 	for _, evt := range events {
@@ -241,8 +237,8 @@ func TestUserReadModel_CredentialAddedIsReplaySafe(t *testing.T) {
 	}
 
 	evt := makeEvent(t, eventCredentialAdded, 2, CredentialAddedPayload{
-		SchemaVersion:  currentSchemaVersion,
-		CredentialCore: CredentialCore{ID: []byte("cred-dup"), PublicKey: []byte("pk")},
+		SchemaVersion: currentSchemaVersion,
+		ID:            []byte("cred-dup"), PublicKey: []byte("pk"),
 	})
 
 	for range 2 {
@@ -270,8 +266,8 @@ func TestUserReadModel_ExternalAccountLinkedIsReplaySafe(t *testing.T) {
 	}
 
 	evt := makeEvent(t, eventExternalAccountLinked, 2, ExternalAccountLinkedPayload{
-		SchemaVersion:       currentSchemaVersion,
-		ExternalAccountCore: ExternalAccountCore{Provider: "google", Subject: "sub-1"},
+		SchemaVersion: currentSchemaVersion,
+		Provider:      "google", Subject: "sub-1",
 	})
 	for range 2 {
 		if err := rm.Handle(t.Context(), evt); err != nil {
@@ -396,12 +392,10 @@ func TestEventSourcedSetup_CheckpointRestartHydratesReadModels(t *testing.T) {
 			Roles:         []Role{RoleUser},
 		}),
 		makeEvent(t, eventCredentialAdded, 2, CredentialAddedPayload{
-			SchemaVersion: currentSchemaVersion,
-			CredentialCore: CredentialCore{
-				ID:              []byte("cred-restart"),
-				PublicKey:       []byte("pk"),
-				AttestationType: "none",
-			},
+			SchemaVersion:   currentSchemaVersion,
+			ID:              []byte("cred-restart"),
+			PublicKey:       []byte("pk"),
+			AttestationType: "none",
 		}),
 		makeEvent(t, eventTOTPEnabled, 3, TOTPEnabledPayload{
 			SchemaVersion: currentSchemaVersion,
@@ -409,10 +403,8 @@ func TestEventSourcedSetup_CheckpointRestartHydratesReadModels(t *testing.T) {
 		}),
 		makeEvent(t, eventExternalAccountLinked, 4, ExternalAccountLinkedPayload{
 			SchemaVersion: currentSchemaVersion,
-			ExternalAccountCore: ExternalAccountCore{
-				Provider: "github",
-				Subject:  "restart-1",
-			},
+			Provider:      "github",
+			Subject:       "restart-1",
 		}),
 	}
 	membershipEvent := makeEventFor(

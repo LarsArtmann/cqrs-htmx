@@ -26,6 +26,7 @@ type Dashboard struct {
 	caps        Capabilities
 	nav         []navItem
 	twCSS       http.Handler
+	emptyStates map[EmptyStateKey]EmptyStateCopy
 	broadcaster *cqrshtmx.Broadcaster
 	sseStore    sse.EventStore
 	done        chan struct{}
@@ -57,11 +58,12 @@ func New(config Config) (*Dashboard, error) {
 	}
 
 	d := &Dashboard{
-		config: config,
-		caps:   caps,
-		nav:    buildNav(caps),
-		twCSS:  twCSS,
-		done:   make(chan struct{}),
+		config:      config,
+		caps:        caps,
+		nav:         buildNav(caps),
+		twCSS:       twCSS,
+		emptyStates: config.resolveEmptyStates(),
+		done:        make(chan struct{}),
 	}
 
 	if caps.EventBus {
@@ -119,6 +121,7 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		ReadOnly:  d.config.ReadOnly,
 		Caps:      d.caps,
 		HTMX:      cqrshtmx.IsHTMXRequest(r),
+		empty:     d.emptyStates,
 		shell:     d.config.Layout,
 	}
 }

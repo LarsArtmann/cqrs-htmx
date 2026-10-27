@@ -10,19 +10,25 @@ const (
 	AggregateTypeMembership event.StreamType = "Membership"
 	AggregateTypeTenant     event.StreamType = "Tenant"
 	AggregateTypeBot        event.StreamType = "Bot"
+	AggregateTypeAuth       event.StreamType = "Auth"
 
 	EventUserRegistered          event.Type = "UserRegistered"
 	EventRolesUpdated            event.Type = "RolesUpdated" // legacy: no longer emitted, decoded for backward compat
 	EventEmailChanged            event.Type = "EmailChanged"
 	EventDisplayNameChanged      event.Type = "DisplayNameChanged"
 	EventUserDeleted             event.Type = "UserDeleted"
-	EventCredentialAdded         event.Type = "CredentialAdded"   //nolint:gosec // event type name, not credential
-	EventCredentialRemoved       event.Type = "CredentialRemoved" //nolint:gosec // event type name, not credential
+	EventCredentialAdded         event.Type = "CredentialAdded"   //nolint:gosec // G101: event type name, not a credential
+	EventCredentialRemoved       event.Type = "CredentialRemoved" //nolint:gosec // G101: event type name, not a credential
+	EventCredentialUsed          event.Type = "CredentialUsed"    //nolint:gosec // G101: event type name, not a credential
 	EventEmailVerified           event.Type = "EmailVerified"
 	EventTOTPEnabled             event.Type = "TOTPEnabled"
 	EventTOTPDisabled            event.Type = "TOTPDisabled"
 	EventExternalAccountLinked   event.Type = "ExternalAccountLinked"
 	EventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
+
+	EventLoginSucceeded     event.Type = "LoginSucceeded"
+	EventLoginFailed        event.Type = "LoginFailed"
+	EventRegistrationClosed event.Type = "RegistrationClosed"
 
 	EventMemberAdded        event.Type = "MemberAdded"
 	EventMemberRolesChanged event.Type = "MemberRolesChanged"
@@ -40,8 +46,9 @@ const (
 	CmdChangeEmail           command.Type = "ChangeEmail"
 	CmdChangeDisplayName     command.Type = "ChangeDisplayName"
 	CmdDeleteUser            command.Type = "DeleteUser"
-	CmdAddCredential         command.Type = "AddCredential"    //nolint:gosec // command type name, not credential
-	CmdRemoveCredential      command.Type = "RemoveCredential" //nolint:gosec // command type name, not credential
+	CmdAddCredential         command.Type = "AddCredential"       //nolint:gosec // command type name, not credential
+	CmdRemoveCredential      command.Type = "RemoveCredential"    //nolint:gosec // command type name, not credential
+	CmdRecordCredentialUse   command.Type = "RecordCredentialUse" //nolint:gosec // command type name, not credential
 	CmdVerifyEmail           command.Type = "VerifyEmail"
 	CmdEnableTOTP            command.Type = "EnableTOTP"
 	CmdDisableTOTP           command.Type = "DisableTOTP"

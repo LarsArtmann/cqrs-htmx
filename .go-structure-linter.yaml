@@ -1,16 +1,21 @@
-# go-structure-linter suppressions for cqrs-htmx (triaged 2026-09-17, task M3).
-# This is a multi-module LIBRARY repo: the root module's public API lives at the
-# module root BY DESIGN - the import path github.com/larsartmann/cqrs-htmx/v4 IS
-# the repo root. Moving root .go files under /pkg/ or /internal/ would break
-# every consumer import. The application-repo layout heuristics below do not
-# apply to a published library; suppress with reasons, revisit on policy change.
+# go-structure-linter suppressions for cqrs-htmx (triaged 2026-09-17, task M3;
+# updated 2026-10-14 RS4). This is a multi-module LIBRARY repo: the root
+# module's public API lives at the module root BY DESIGN - the import path
+# github.com/larsartmann/cqrs-htmx/v4 IS the repo root. The root-package-files
+# suppression was RETIRED 2026-10-14: gsl v0.11.5's published-library
+# auto-deferral covers the flat root (verified live: removing the suppression
+# leaves the finding silent). Remaining entries are policy-class dispositions.
 suppressions:
-  - rule: root-package-files
+  - rule: assets-directory
     reason: >
-      Published library - the root module's public API is deliberately at the
-      module root (github.com/larsartmann/cqrs-htmx/v4 imports resolve there).
-      /pkg/ or /internal/ relocation would break every consumer; the rule's
-      application-repo heuristic does not apply to library roots.
+      adminui/assets/* are the admin UI's colocated build artifacts served by
+      the admin module itself; a repo-root assets/ would separate them from
+      their only consumer.
+  - rule: testdata-directory
+    reason: >
+      Fixture placement is owner policy per module; the application-repo
+      default shape does not fit this library layout.
+
   - id: go-structure-linter:go-sum-out-of-sync:scripts/testdata/verify-tag/clean-go-mod/go.mod:0:0:4f98394c
     reason: >
       Test fixture for verify-tag's clean-go.mod detection (scripts/testdata) -

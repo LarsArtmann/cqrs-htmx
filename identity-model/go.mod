@@ -1,15 +1,15 @@
 module github.com/larsartmann/cqrs-htmx/identity-model/v4
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/casbin/casbin/v3 v3.11.0
 	github.com/larsartmann/go-branded-id v0.7.0
-	github.com/larsartmann/go-codec v0.3.1
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-codec v0.3.2
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/oklog/ulid/v2 v2.1.2
 )
 
@@ -21,10 +21,6 @@ require (
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1 // indirect
-	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )

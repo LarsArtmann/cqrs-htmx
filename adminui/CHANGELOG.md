@@ -8,11 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **`Config.AccentColor` is validated at `New` against the CSS-color grammar (S36, 2026-10-25).** The accent is spliced into a raw `<style>` block (`:root{--accent:...}`), which HTML escaping cannot sanitize — a value like `red;} body{background:url(x)}` injected page rules. `New` now rejects anything outside #hex (3/4/6/8 digits), numeric `rgb()/rgba()/hsl()/hsla()`, and named CSS colors, mirroring dashboardui's grammar exactly (fail-fast chosen over sanitize-to-default: a typo'd accent should surface at construction, not silently render indigo). Pinned by `TestConfig_AccentColor_RejectsAtNew`/`AcceptsGrammar`/`DefaultStillValid`. Breaking only for configs that were injecting CSS; every legitimate color passes unchanged.
+
+- **Failed HTMX partial renders answer 500 instead of a truncated 200 (S36, 2026-10-25).** `renderPartial` logged render errors but left the response a 200 with a half-written fragment — htmx treats 200 as success and swaps the broken fragment into the DOM silently. The error path now mirrors `renderPage`'s explicit 500. Pinned by `TestRenderPartial_RenderError` (updated from the stale contract that asserted the bug).
+
+## [v4.12.4] - 2026-10-11
+
+### Changed
+
+- **Dependency/codegen alignment (2026-10-11 wave):** templ-components v1.21.0, root v4.14.x, `_templ.go` regenerated to canonical module-dir form, and the 1.27.2 toolchain floor. The asset-dedup and content-ETag receipts above are retroactive notes for work that shipped inside v4.12.3 (receipt-less there); no behavior change in this tag beyond the dependency rides.
+
+### Fixed
+
 - **Asset serving delegates to the root module's `cqrshtmx.ServeAsset` (2026-10-07, art-dupl dedup round):** `/-/admin-tw.css` and `/-/admin.js` keep the immutable-asset posture (content-derived ETag, 1-year immutable caching, nosniff) but the read/serve/ETag plumbing now lives once in the root module (`cqrshtmx.ServeAsset`/`cqrshtmx.AssetETag`/`cqrshtmx.AssetFromFS`) instead of being duplicated with dashboardui — the posture can no longer drift between the two UI modules; only the `embed.FS` declaration and config-error wrapping stay local (a missing embedded asset now surfaces as a wrapped Infrastructure-family error). ETag values change format from `"adminui-<name>-<16-hex>"` to `"<name>-<unpadded-hex>"`; consumers see one revalidation, then behavior is identical. Pinned by the same 304 round-trip tests plus root's header/conditional-GET/read contract tests.
 
 - **Asset ETags are content-derived and cache headers immutable (dashboardui M16 sweep):** `/-/admin-tw.css` and `/-/admin.js` now carry ETags computed from their own bytes (FNV-1a, `"adminui-<name>-<hash>"`) instead of the hand-bumped `adminui-v3.4.0` constant — the class where the compiled bundle changes but the version const does not, silently diverging every consumer's cached copy. `Cache-Control` moves from `public, max-age=86400` to `public, max-age=31536000, immutable` (the root module's `HTMXScriptHandler` posture). Pinned by a round-trip 304 test and the content-hash assertion in `assets_test.go`; mirrors dashboardui's `assets.go` so both UI modules follow one rule.
 
-## [v4.11.0] - 2026-09-19
+# [v4.11.0] - 2026-09-19
 
 ### Added
 

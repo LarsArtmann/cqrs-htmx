@@ -38,14 +38,31 @@ func (f *fakeSeekableJournal) ReadAll(_ context.Context) ([]event.Event, error) 
 
 func (f *fakeSeekableJournal) ReadFrom(
 	_ context.Context,
-	_ id.EventID,
-	_ int,
+	after id.EventID,
+	limit int,
 ) ([]event.Event, error) {
 	if f.readErr != nil {
 		return nil, f.readErr
 	}
 
-	return f.events, nil
+	start := 0
+
+	if after != (id.EventID{}) {
+		for i, evt := range f.events {
+			if evt.ID() == after {
+				start = i + 1
+
+				break
+			}
+		}
+	}
+
+	events := f.events[start:]
+	if limit > 0 && limit < len(events) {
+		events = events[:limit]
+	}
+
+	return events, nil
 }
 
 type fakeEventByIDLoader struct {
@@ -181,8 +198,10 @@ func TestOverviewStats_SeekableJournalManyEvents(t *testing.T) {
 	}
 
 	stats := d.overviewStats(context.Background())
-	if stats.TotalEvents != strconv.Itoa(overviewCountLimit+1)+"+" {
-		t.Errorf("expected TotalEvents with + suffix, got %s", stats.TotalEvents)
+	// Tail scans count the whole journal, so the total is exact (the old
+	// head-read capped at "500+" and never reflected real growth).
+	if stats.TotalEvents != strconv.Itoa(overviewCountLimit+1) {
+		t.Errorf("expected exact TotalEvents %d, got %s", overviewCountLimit+1, stats.TotalEvents)
 	}
 }
 
@@ -371,8 +390,33 @@ func TestSnapshotDetailHandler_StoreError(t *testing.T) {
 	r.SetPathValue("id", "01HXTEST")
 	d.snapshotDetailHandler(w, r)
 
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected 500 (a store failure must not masquerade as a missing snapshot), got %d", w.Code)
+	}
+}
+
+// Not-found is an honest absence: the missing-snapshot page, never a 500.
+func TestSnapshotDetailHandler_NotFoundIsMissingPageNotError(t *testing.T) {
+	d, err := New(Config{
+		Journal:       &stubJournal{},
+		SnapshotStore: &errorSnapshotStore{loadErr: snapshot.ErrSnapshotNotFound},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/snapshots/User/01HXTEST", nil)
+	r.SetPathValue("type", "User")
+	r.SetPathValue("id", "01HXTEST")
+	d.snapshotDetailHandler(w, r)
+
 	if w.Code != http.StatusOK {
-		t.Errorf("expected 200 (renders 'no snapshot' page), got %d", w.Code)
+		t.Fatalf("expected 200 missing-snapshot page, got %d", w.Code)
+	}
+
+	if !strings.Contains(w.Body.String(), "No snapshot found") {
+		t.Error("expected the missing-snapshot page for a not-found error")
 	}
 }
 
@@ -531,14 +575,31 @@ func (f *fakeCommandJournal) ReadAll(_ context.Context) ([]*command.PersistedCom
 
 func (f *fakeCommandJournal) ReadFrom(
 	_ context.Context,
-	_ id.CommandID,
-	_ int,
+	after id.CommandID,
+	limit int,
 ) ([]*command.PersistedCommand, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
 
-	return f.cmds, nil
+	start := 0
+
+	if after != (id.CommandID{}) {
+		for i, cmd := range f.cmds {
+			if cmd.ID() == after {
+				start = i + 1
+
+				break
+			}
+		}
+	}
+
+	cmds := f.cmds[start:]
+	if limit > 0 && limit < len(cmds) {
+		cmds = cmds[:limit]
+	}
+
+	return cmds, nil
 }
 
 func makeTestCommand(t *testing.T) *command.PersistedCommand {
@@ -641,14 +702,31 @@ func (f *fakeQueryJournal) ReadAllQueries(_ context.Context) ([]*query.Persisted
 
 func (f *fakeQueryJournal) ReadQueriesFrom(
 	_ context.Context,
-	_ id.RequestID,
-	_ int,
+	after id.RequestID,
+	limit int,
 ) ([]*query.PersistedQuery, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
 
-	return f.queries, nil
+	start := 0
+
+	if after != (id.RequestID{}) {
+		for i, qry := range f.queries {
+			if qry.ID() == after {
+				start = i + 1
+
+				break
+			}
+		}
+	}
+
+	queries := f.queries[start:]
+	if limit > 0 && limit < len(queries) {
+		queries = queries[:limit]
+	}
+
+	return queries, nil
 }
 
 func makeTestQuery(t *testing.T) *query.PersistedQuery {

@@ -17,7 +17,7 @@ func FuzzMarshalWebAuthnUser(f *testing.F) {
 			ID:    NewUserID("01HXKYGEG0QH8XJYQKZ3R8WZAA"),
 			Email: email,
 			Credentials: []WebAuthnCredential{
-				{CredentialCore: CredentialCore{Name: "test"}},
+				{Name: "test"},
 			},
 		}
 		data, err := marshalWebAuthnUser(user)

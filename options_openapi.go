@@ -35,8 +35,9 @@ func WithOpenAPI(op openapi.Operation) HandlerOption {
 }
 
 // OpenAPISpecHandler returns an http.HandlerFunc that serves the given spec as
-// indented OpenAPI 3.1 JSON with a 1-year immutable Cache-Control and an ETag
-// derived from the content, suitable for mounting at /openapi.json.
+// indented OpenAPI 3.1 JSON with an ETag-derived `Cache-Control: no-cache`
+// (unchanged fetches are 304s; a changed spec is refetched), suitable for
+// mounting at /openapi.json.
 //
 // The spec is serialized eagerly when this function is called, so any
 // serialization error surfaces once at startup rather than on the first

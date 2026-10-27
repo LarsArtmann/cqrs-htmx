@@ -107,6 +107,59 @@ func TestAccountLockout_CustomConfig(t *testing.T) {
 	}
 }
 
+// TestAccountLockout_ActiveLockIsFixedExpiry pins the owner verdict
+// (2026-10-25): a lock expires Duration after the ORIGINAL lock — failures
+// arriving while the lock is active must neither extend it nor count toward
+// the next window. Pre-fix, every probe reset lockedAt, so a determined
+// prober kept the account locked indefinitely.
+func TestAccountLockout_ActiveLockIsFixedExpiry(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 1, Duration: 40 * time.Millisecond})
+
+	if locked := l.RecordFailure("user@test.com"); !locked {
+		t.Fatal("expected lock on first failure with MaxAttempts=1")
+	}
+
+	originalLock := l.lockedAt["user@test.com"]
+
+	time.Sleep(15 * time.Millisecond)
+	for range 5 {
+		l.RecordFailure("user@test.com")
+	}
+
+	probedLock := l.lockedAt["user@test.com"]
+	if !probedLock.Equal(originalLock) {
+		t.Fatalf("lock was re-extended by probes: original=%v probed=%v", originalLock, probedLock)
+	}
+
+	// After expiry the lock clears despite the probes (they did not count).
+	time.Sleep(30 * time.Millisecond)
+	if l.IsLocked("user@test.com") {
+		t.Error("lock should have expired at the ORIGINAL expiry despite active probing")
+	}
+}
+
+// TestAccountLockout_EvictStaleSweepsAbandonedAttempts pins the EvictStale
+// truth fix: attempt counters for emails that never reached a lock are swept
+// once their last failure is older than Duration. Pre-fix only lockedAt was
+// swept, so probed-but-never-locked emails grew the map without bound.
+func TestAccountLockout_EvictStaleSweepsAbandonedAttempts(t *testing.T) {
+	l := NewAccountLockout(LockoutConfig{MaxAttempts: 5, Duration: 10 * time.Millisecond})
+
+	l.RecordFailure("abandoned@test.com") // 1/5 attempts — never locked
+	time.Sleep(20 * time.Millisecond)
+	l.RecordFailure("fresh@test.com")
+
+	if evicted := l.EvictStale(); evicted != 1 {
+		t.Fatalf("expected exactly the abandoned counter evicted, got %d", evicted)
+	}
+	if _, ok := l.attempts["abandoned@test.com"]; ok {
+		t.Error("abandoned attempt counter should be gone")
+	}
+	if _, ok := l.attempts["fresh@test.com"]; !ok {
+		t.Error("fresh attempt counter must survive")
+	}
+}
+
 func TestAccountLockout_DefaultConfig(t *testing.T) {
 	l := NewAccountLockout()
 	if l.config.MaxAttempts != defaultMaxAttempts {

@@ -20,8 +20,7 @@ import (
 // listener) and walks the full auth flow: public routes answer, protected
 // routes gate on the session, and the dev-login cookie unlocks both panels.
 func TestDemoApp_EndToEnd(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	// Same composition as main(): ServiceConfig escape hatch + shared SSE +
 	// DataStar feed on the same hub.

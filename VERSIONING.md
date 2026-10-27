@@ -18,13 +18,19 @@ Each major version lives at a distinct import path:
 - **v3** (released): `github.com/larsartmann/cqrs-htmx/v3` — maintenance only
 - **v4** (current): `github.com/larsartmann/cqrs-htmx/v4` — active development
 
-Sub-modules follow the same pattern:
+Every published module follows the same pattern. The authoritative list is `go.work`
+(examples, `e2e/server`, and `integration_test` are workspace members but are not published):
 
-- `github.com/larsartmann/cqrs-htmx/usermgmt/v4`
-- `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`
-- `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4`
-- `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`
+- `github.com/larsartmann/cqrs-htmx/usermgmt/v4` (+ `…/usermgmt/totp/v4`, `…/webauthn/v4`, `…/oauth2/v4`)
+- `github.com/larsartmann/cqrs-htmx/identity-model/v4`
 - `github.com/larsartmann/cqrs-htmx/adminui/v4`
+- `github.com/larsartmann/cqrs-htmx/dashboardui/v4`
+- `github.com/larsartmann/cqrs-htmx/loginpage/v4`
+- `github.com/larsartmann/cqrs-htmx/setup/v4`
+- `github.com/larsartmann/cqrs-htmx/datastar/v4`
+- `github.com/larsartmann/cqrs-htmx/systemadapter/v4`
+- `github.com/larsartmann/cqrs-htmx/health/v4`
+- `github.com/larsartmann/cqrs-htmx/auditlog/v4`
 
 > **v4 auth strategy extraction:** TOTP, WebAuthn, and OAuth2 are now optional
 > sub-modules. Core `usermgmt` has zero auth-related dependencies — consumers

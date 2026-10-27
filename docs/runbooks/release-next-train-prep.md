@@ -198,7 +198,7 @@ systemadapter + examples/system-demo.
 Remaining replace inventory (all with removal conditions):
 
 - systemadapter + examples/system-demo: `metaengine/projectionadapter/v4 =>
-  local` — strip once projectionadapter v4.5.0+ is tagged (v4.4.1 is the
+local` — strip once projectionadapter v4.5.0+ is tagged (v4.4.1 is the
   current max; OccurredAt on EventWithID needs v4.5.0). When that unlocks,
   systemadapter's FIRST tag joins the then-current family version.
 

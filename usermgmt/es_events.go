@@ -20,6 +20,8 @@ type (
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	CredentialRemovedPayload = identitymodel.CredentialRemovedPayload
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	CredentialUsedPayload = identitymodel.CredentialUsedPayload
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	EmailVerifiedPayload = identitymodel.EmailVerifiedPayload
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	TOTPEnabledPayload = identitymodel.TOTPEnabledPayload

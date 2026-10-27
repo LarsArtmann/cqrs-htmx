@@ -1,6 +1,8 @@
 package dashboardui
 
 import (
+	"time"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/templ-components/display"
@@ -17,29 +19,28 @@ templ commandsContent(p pageData, cmds []*command.PersistedCommand, page paginat
 	if len(cmds) == 0 {
 		@emptyStatePanel(
 			icons.Clipboard,
-			"No commands recorded",
-			"Commands will appear here as they are dispatched.",
+			p.empty[EmptyStateCommands].Title,
+			p.empty[EmptyStateCommands].Message,
 		)
 	} else {
 		<h2>Command Audit</h2>
 		@rawDataTable(
 			plainHeaders("Received At", "Type", "Stream Type", "Stream ID", "Command ID", ""),
 			"",
-			commandRows(p.BasePath, cmds),
+			commandRows(p.BasePath, p.Nonce, cmds),
 		)
 		@paginationNav(p.BasePath, "/commands", page, "")
-		@formatLinksNav(p.BasePath, "/commands")
+		@formatLinksNav(p.BasePath, "/commands", "")
 	}
 }
 
-templ commandRows(basePath string, cmds []*command.PersistedCommand) {
+templ commandRows(basePath, nonce string, cmds []*command.PersistedCommand) {
 	for _, cmd := range cmds {
 		<tr>
-			<td>{ cmd.ReceivedAt().Format("2006-01-02 15:04:05") }</td>
-			<td><code>{ string(cmd.Type()) }</code></td>
+			@auditedTimeTypeCells(cmd.ReceivedAt(), string(cmd.Type()))
 			<td>{ string(cmd.StreamType()) }</td>
-			<td><span class="mono">{ truncate(cmd.StreamID().String(), listIDWidth) }</span> @copyButton(cmd.StreamID().String(), "")</td>
-			<td><span class="mono">{ truncate(cmd.ID().String(), eventIDWidth) }</span> @copyButton(cmd.ID().String(), "")</td>
+			<td><span class="mono">{ truncate(cmd.StreamID().String(), listIDWidth) }</span> @copyButton(cmd.StreamID().String(), "", nonce)</td>
+			<td><span class="mono">{ truncate(cmd.ID().String(), eventIDWidth) }</span> @copyButton(cmd.ID().String(), "", nonce)</td>
 			<td>@buttonLink("View", basePath+"/commands/"+cmd.ID().String(), "", display.ButtonSecondary, false)</td>
 		</tr>
 	}
@@ -53,30 +54,37 @@ templ queriesContent(p pageData, queries []*query.PersistedQuery, page paginatio
 	if len(queries) == 0 {
 		@emptyStatePanel(
 			icons.Search,
-			"No queries recorded",
-			"Queries will appear here as they are executed.",
+			p.empty[EmptyStateQueries].Title,
+			p.empty[EmptyStateQueries].Message,
 		)
 	} else {
 		<h2>Query Audit</h2>
 		@rawDataTable(
 			plainHeaders("Received At", "Type", "Request ID", ""),
 			"",
-			queryRows(p.BasePath, queries),
+			queryRows(p.BasePath, p.Nonce, queries),
 		)
 		@paginationNav(p.BasePath, "/queries", page, "")
-		@formatLinksNav(p.BasePath, "/queries")
+		@formatLinksNav(p.BasePath, "/queries", "")
 	}
 }
 
-templ queryRows(basePath string, queries []*query.PersistedQuery) {
+templ queryRows(basePath, nonce string, queries []*query.PersistedQuery) {
 	for _, q := range queries {
 		<tr>
-			<td>{ q.ReceivedAt().Format("2006-01-02 15:04:05") }</td>
-			<td><code>{ string(q.Type()) }</code></td>
-			<td><span class="mono">{ truncate(q.ID().String(), eventIDWidth) }</span> @copyButton(q.ID().String(), "")</td>
+			@auditedTimeTypeCells(q.ReceivedAt(), string(q.Type()))
+			<td><span class="mono">{ truncate(q.ID().String(), eventIDWidth) }</span> @copyButton(q.ID().String(), "", nonce)</td>
 			<td>@buttonLink("View", basePath+"/queries/"+q.ID().String(), "", display.ButtonSecondary, false)</td>
 		</tr>
 	}
+}
+
+// auditedTimeTypeCells renders the received-at and type columns shared by the
+// command and query audit rows. One place owns the cell markup and the
+// timestamp format so the two tables cannot drift.
+templ auditedTimeTypeCells(receivedAt time.Time, typ string) {
+	<td>{ receivedAt.Format("2006-01-02 15:04:05") }</td>
+	<td><code>{ typ }</code></td>
 }
 
 // ===== Command Detail =====
@@ -88,12 +96,12 @@ templ commandDetailPage(p pageData, cmd *command.PersistedCommand) {
 templ commandDetailContent(p pageData, cmd *command.PersistedCommand) {
 	<div class="page-header">
 		<h2><code>{ string(cmd.Type()) }</code></h2>
-		<div class="page-subtitle mono">{ cmd.ID().String() } @copyButton(cmd.ID().String(), "")</div>
+		<div class="page-subtitle mono">{ cmd.ID().String() } @copyButton(cmd.ID().String(), "", p.Nonce)</div>
 	</div>
 	<div class="two-col-grid">
 		<div>
 			<h3>Metadata</h3>
-			@definitionList(commandMetaItems(cmd))
+			@definitionList(commandMetaItems(cmd, p.Nonce))
 		</div>
 		<div>
 			<h3>Payload</h3>
@@ -115,12 +123,12 @@ templ queryDetailPage(p pageData, q *query.PersistedQuery) {
 templ queryDetailContent(p pageData, q *query.PersistedQuery) {
 	<div class="page-header">
 		<h2><code>{ string(q.Type()) }</code></h2>
-		<div class="page-subtitle mono">{ q.ID().String() } @copyButton(q.ID().String(), "")</div>
+		<div class="page-subtitle mono">{ q.ID().String() } @copyButton(q.ID().String(), "", p.Nonce)</div>
 	</div>
 	<div class="two-col-grid">
 		<div>
 			<h3>Metadata</h3>
-			@definitionList(queryMetaItems(q))
+			@definitionList(queryMetaItems(q, p.Nonce))
 		</div>
 		<div>
 			<h3>Payload</h3>

@@ -14,7 +14,7 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
 	d := usersListData{
 		Users: matched[offset : offset+limit], Total: len(matched), Search: q,
-		BasePath: h.config.BasePath, listPage: listPage{Page: page, TotalPages: totalPages},
+		BasePath: h.config.BasePath, Page: page, TotalPages: totalPages,
 	}
 
 	if cqrshtmx.RenderPartial(r) {

@@ -1,6 +1,12 @@
 // Command catalog-demo starts an HTTP server that serves live API documentation
 // (OpenAPI, AsyncAPI, D2) generated from Go types via the cqrs-htmx catalog module.
 //
+// Catalog vocabulary note: this demo uses go-cqrs-lite/catalog/v4, the
+// doc-generation suite (OpenAPI/AsyncAPI/D2/EventCatalog MDX). It is a
+// different concept from cqrs-htmx's own dependency-free EventCatalog schema
+// surface — see docs/guides/event-catalog-guide.md ("See Also") and
+// docs/research/2026-10-12_catalog-v4-integration-map.md for the distinction.
+//
 // Run it and visit:
 //
 //	http://localhost:8080/openapi.json       — OpenAPI 3.0 spec
@@ -29,6 +35,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
 	"github.com/larsartmann/httputil"
 )
@@ -66,6 +73,17 @@ type GetOrderQuery struct {
 	ID string `json:"id" doc:"Order identifier to look up" example:"ord_456"`
 }
 
+// demoBadge is the canonical demo marker (amber chip, dark text), the
+// same look catalog.MarkDemo() stamps; swap this file to a single
+// b.InnerBuilder().MarkDemo() call once the catalog dependency ships it.
+func demoBadge() catalog.Badge {
+	return catalog.Badge{
+		Content:         "Demo",
+		BackgroundColor: "#f59e0b",
+		TextColor:       "#1f2937",
+	}
+}
+
 // buildCatalog wires up the documentation for the Order Service.
 func buildCatalog() *catalog.Catalog {
 	b := simple.New(
@@ -75,36 +93,49 @@ func buildCatalog() *catalog.Catalog {
 	// Owner-of-record for the federation hub (catalog.home.lan): the service
 	// page links to this user, and the hub renders owner cards from it. Uses
 	// the inner builder (published-catalog API — simple.WithServiceOwners
-	// ships with the next catalog release).
+	// ships with the next catalog release). The demo source marks the user
+	// record as example data in the hub's users surface (EC users have no
+	// badges; source is the rendered provenance field).
 	b.InnerBuilder().AddUser(catalog.User{
-		ID:    "lars",
-		Name:  "Lars Artmann",
-		Email: "git@lars.software",
+		ID:     "lars",
+		Name:   "Lars Artmann",
+		Email:  "git@lars.software",
+		Source: &catalog.Source{Provider: "demo"},
 	})
-	b.InnerBuilder().ConfigureService("order-service", catalog.ServiceOwners("lars"))
+	b.InnerBuilder().ConfigureService(
+		"order-service", catalog.ServiceOwners("lars"), catalog.ServiceBadges(demoBadge()),
+	)
 
 	// Commands — describe the HTTP request shapes.
 	simple.Command[CreateOrderCommand](
 		b, "create-order",
 		simple.WithOperation("POST", "/orders"),
+		catalog.Owners("lars"),
 		catalog.WithSummary("Place a new order"),
+		catalog.MsgBadges(demoBadge()),
 	)
 
 	// Events — the persisted payloads are the real contract.
 	simple.Event[OrderCreatedEvent](
 		b, "order.created", catalog.Sends,
+		catalog.Owners("lars"),
 		catalog.WithSummary("An order was placed"),
+		catalog.MsgBadges(demoBadge()),
 	)
 	simple.Event[OrderCancelledEvent](
 		b, "order.cancelled", catalog.Sends,
+		catalog.Owners("lars"),
 		catalog.WithSummary("An order was cancelled"),
+		catalog.MsgBadges(demoBadge()),
 	)
 
 	// Queries — read-side request shapes.
 	simple.Query[GetOrderQuery](
 		b, "get-order",
 		simple.WithOperation("GET", "/orders/{id}"),
+		catalog.Owners("lars"),
 		catalog.WithSummary("Retrieve an order by ID"),
+		catalog.MsgBadges(demoBadge()),
 	)
 
 	return b.Build()
@@ -122,13 +153,31 @@ func main() {
 		false,
 		"write the EventCatalog tree and exit (headless CI mode; no server)",
 	)
+	plain := flag.Bool(
+		"plain",
+		false,
+		"emit plain frontmatter-ID refs (governance/lint exports; pairs with -export-only)",
+	)
 	flag.Parse()
 
 	cat := buildCatalog()
 
 	// Build-time artifact: generate the EventCatalog MDX file tree.
 	if *eventCatalogDir != "" {
-		if err := docserver.GenerateEventCatalog(cat, *eventCatalogDir); err != nil {
+		if *plain {
+			// Plain-refs profile: the hub's per-source governance lint re-exports
+			// with bare frontmatter IDs (@eventcatalog/linter keys on them).
+			var opts []eventcatalog.Option
+			if *exportOnly {
+				opts = append(opts, eventcatalog.WithSkipBootstrapFiles())
+			}
+
+			opts = append(opts, eventcatalog.WithPlainRefIDs())
+
+			if err := eventcatalog.NewExporter(*eventCatalogDir, opts...).Export(cat); err != nil {
+				log.Fatalf("generate event catalog: %v", err)
+			}
+		} else if err := docserver.GenerateEventCatalog(cat, *eventCatalogDir); err != nil {
 			log.Fatalf("generate event catalog: %v", err)
 		}
 		log.Printf("wrote EventCatalog files to %s", *eventCatalogDir)

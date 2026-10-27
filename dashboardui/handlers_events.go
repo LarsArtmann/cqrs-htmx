@@ -51,23 +51,18 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasNext := len(events) > pageSize
-	if hasNext {
-		events = events[:pageSize]
+	// The window badge tells the truth about what the scan actually returned:
+	// the fetch above caps at filterScanLimit, but a smaller journal (or a
+	// smaller store-side cap) returns fewer — announcing the cap would claim
+	// rows that were never loaded.
+	windowCount := 0
+	if windowed {
+		windowCount = len(events)
 	}
 
-	if windowed {
-		// loadFilteredEvents returns up to limit+1 for HasMore detection;
-		// the window shows exactly filterScanLimit.
-		events = events[:min(len(events), filterScanLimit)]
-	}
+	hasNext, events, nextCursor := pageEvents(events, pageSize, windowed)
 
 	sortEvents(events, sortBy)
-
-	var nextCursor string
-	if hasNext && len(events) > 0 {
-		nextCursor = events[len(events)-1].ID().String()
-	}
 
 	state := paginationState{
 		HasNext:     hasNext,
@@ -88,12 +83,42 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		state.TotalCount = ""
 	}
 
-	renderPage(w, r, eventsPage(p, events, state, filters, sortBy))
+	renderPage(w, r, eventsPage(p, events, state, filters, sortBy, windowCount))
+}
+
+// pageEvents applies the pagination cut and derives the Next cursor.
+// hasNext reports whether more rows follow; the windowed sorted view shows
+// the WHOLE scan window instead (a pageSize cut there would strand every
+// event past page one behind a disabled pagination bar). The cursor comes
+// from the PRE-SORT journal-order tail — the sorted slice's last element is
+// an arbitrary journal position, and a cursor taken from it re-serves
+// overlapping pages.
+func pageEvents(
+	events []event.Event,
+	pageSize int,
+	windowed bool,
+) (bool, []event.Event, string) {
+	// The windowed view shows the WHOLE fetched window (the fetch already caps
+	// at filterScanLimit); a pageSize cut there would strand every event past
+	// page one behind a disabled pagination bar.
+	hasNext := !windowed && len(events) > pageSize
+	if hasNext {
+		events = events[:pageSize]
+	}
+
+	var nextCursor string
+	if hasNext && len(events) > 0 {
+		nextCursor = events[len(events)-1].ID().String()
+	}
+
+	return hasNext, events, nextCursor
 }
 
 // exportEvents writes the filtered event journal in a non-HTML export format
-// (CSV or JSON). The window is the most recent exportLimit events; HTML is
-// routed to the paginated index view by the caller instead.
+// (CSV or JSON). The window is the NEWEST exportLimit matching events (the
+// journal is paged once keeping a rolling tail — a head read would export
+// the OLDEST events and silently drop everything recent); HTML is routed to
+// the paginated index view by the caller instead.
 func (d *Dashboard) exportEvents(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -101,7 +126,7 @@ func (d *Dashboard) exportEvents(
 	filters eventFilter,
 	sortBy sortState,
 ) {
-	events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
+	events, _, err := d.loadTailEvents(r.Context(), filters, exportLimit)
 	if err != nil {
 		d.renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
 
@@ -140,5 +165,5 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 	prevID, nextID := d.findEventNeighbors(r.Context(), eventID)
 
 	p := d.page("Event: "+truncate(string(evt.Type()), eventTypeWidth), "/events", r)
-	renderPage(w, r, eventDetailPage(p, evt, prevID, nextID, payloadBytes(d.config.PayloadRenderer, evt)))
+	renderPage(w, r, eventDetailPage(p, evt, prevID, nextID, payloadBytes(d.config, evt)))
 }

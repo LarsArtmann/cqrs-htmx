@@ -9,25 +9,25 @@ import (
 )
 
 // ===== Event Stream Browser =====
-templ eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) {
-	@layout(p, eventsContent(p, events, page, filter, sortBy))
+templ eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) {
+	@layout(p, eventsContent(p, events, page, filter, sortBy, windowCount))
 }
 
-templ eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) {
+templ eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) {
 	@display.PageHeader(display.PageHeaderProps{Title: "Event Stream"})
 	@eventFilterBar(p.BasePath, filter)
 	if len(events) == 0 {
 		if filter.Active() {
 			@emptyStatePanel(
 				icons.Search,
-				"No matching events",
-				"No events match the current filters. Try adjusting or clearing them.",
+				p.empty[EmptyStateEventsFiltered].Title,
+				p.empty[EmptyStateEventsFiltered].Message,
 			)
 		} else {
 			@emptyStatePanel(
 				icons.QueueList,
-				"No events yet",
-				"Events will appear here as they are committed to the store.",
+				p.empty[EmptyStateEvents].Title,
+				p.empty[EmptyStateEvents].Message,
 			)
 		}
 	} else {
@@ -40,23 +40,24 @@ templ eventsContent(p pageData, events []event.Event, page paginationState, filt
 				eventSortHeader(p.BasePath, "Version", "version", sortBy, filter.ExtraParams()),
 			},
 			"events-tbody",
-			eventsTableRows(p.BasePath, events),
+			eventsTableRows(p.BasePath, p.Nonce, events),
 		)
-		if sortBy.Active() {
-			@badge(fmt.Sprintf("sorted view: first %d events", filterScanLimit), display.BadgeNeutral)
+		if windowCount > 0 {
+			@badge(fmt.Sprintf("sorted view: newest %d events (scan cap %d)", windowCount, filterScanLimit), display.BadgeNeutral)
 		}
 		@paginationNav(p.BasePath, "/events", page, combinedFilterSortParams(filter, sortBy))
-		@formatLinksNav(p.BasePath, "/events")
+		@formatLinksNav(p.BasePath, "/events", combinedFilterSortParams(filter, sortBy))
 	}
 }
 
-templ eventsTableRows(basePath string, events []event.Event) {
+templ eventsTableRows(basePath, nonce string, events []event.Event) {
 	for _, evt := range events {
 		<tr>
 			<td>{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
 			<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
-			<td><span class="mono">{ truncate(evt.StreamID().String(), listIDWidth) }</span> @copyButton(evt.StreamID().String(), "")
-</td>
+			<td>
+				<span class="mono">{ truncate(evt.StreamID().String(), listIDWidth) }</span> @copyButton(evt.StreamID().String(), "", nonce)
+			</td>
 			<td>{ string(evt.StreamType()) }</td>
 			<td>{ evt.Version().String() }</td>
 		</tr>
@@ -92,11 +93,13 @@ templ eventDetailPage(p pageData, evt event.Event, prevID, nextID string, payloa
 
 templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payload []byte) {
 	<div class="page-header">
-		<h2><code>{ string(evt.Type()) }</code> @badge(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral)
-@encodingBadge(string(evt.Encoding()))
-</h2>
-		<div class="page-subtitle mono">{ evt.ID().String() } @copyButton(evt.ID().String(), "")
-</div>
+		<h2>
+			<code>{ string(evt.Type()) }</code> @badge(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral)
+			@encodingBadge(string(evt.Encoding()))
+		</h2>
+		<div class="page-subtitle mono">
+			{ evt.ID().String() } @copyButton(evt.ID().String(), "", p.Nonce)
+		</div>
 		if prevID != "" || nextID != "" {
 			<div class="filter-bar section-gap">
 				if prevID != "" {
@@ -115,7 +118,7 @@ templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string, pay
 	<div class="two-col-grid">
 		<div>
 			<h3>Metadata</h3>
-			@definitionList(eventMetaItems(evt, evt.Metadata()))
+			@definitionList(eventMetaItems(evt, evt.Metadata(), p.Nonce))
 			if len(evt.Metadata().Custom) > 0 {
 				<h3>Custom Metadata</h3>
 				@definitionList(eventCustomMetaItems(evt.Metadata().Custom))
@@ -124,7 +127,7 @@ templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string, pay
 		<div>
 			<h3>Payload</h3>
 			<div class="filter-bar">
-				@copyButton(string(payload), "Copy Payload")
+				@copyButton(string(payload), "Copy Payload", p.Nonce)
 				@buttonSubmit("Download JSON", "", display.ButtonSecondary, templ.Attributes{"data-download-payload": evt.ID().String()})
 			</div>
 			<pre class="code-block" id="event-payload"><code>{ string(payload) }</code></pre>

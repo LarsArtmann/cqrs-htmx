@@ -27,59 +27,25 @@ Usage:
 Exit: 0 = no PARTIAL rows; 1 = at least one PARTIAL row.
 """
 
-import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+from status_table import classify_row, is_separator, table_blocks
 
 DEFAULT_DIR = Path("docs/status/archived")
 
 
-def outside_code_spans(text: str) -> str:
-    without_double = re.sub(r"``[^`]+``", "", text)
+def check_file(path: Path) -> tuple[int, int, list[str]]:
+    """Returns (partial_row_count, mixed_table_count, mixed_table_lines).
 
-    return re.sub(r"`[^`]*`", "", without_double)
-
-
-def cells_of(line: str) -> list[str]:
-    return [c.strip() for c in line.strip().strip("|").split("|")]
-
-
-def is_separator(line: str) -> bool:
-    cells = cells_of(line)
-
-    return bool(cells) and all(re.fullmatch(r":?-{3,}:?", c) for c in cells)
-
-
-def classify_row(line: str) -> str:
-    """STRUCK / CLEAN / PARTIAL for one table data row."""
-    states = ["~~" in outside_code_spans(cell) for cell in cells_of(line)]
-
-    if all(states):
-        return "STRUCK"
-    if not any(states):
-        return "CLEAN"
-
-    return "PARTIAL"
-
-
-def table_blocks(lines: list[str]):
-    block: list[tuple[int, str]] = []
-
-    for i, line in enumerate(lines, start=1):
-        if line.lstrip().startswith("|"):
-            block.append((i, line))
-            continue
-        if block:
-            yield block
-            block = []
-    if block:
-        yield block
-
-
-def check_file(path: Path) -> tuple[int, int]:
-    """Returns (partial_row_count, mixed_table_count)."""
+    mixed_table_lines carries the (path, line) anchors of deliberately-mixed
+    tables so the summary can name FILES, not just counts (T20, 2026-10-08):
+    a bare count forces a re-grep to find where a convention lives.
+    """
     problems: list[str] = []
     mixed_tables = 0
+    mixed_lines: list[str] = []
 
     partial_rows = 0
 
@@ -102,11 +68,12 @@ def check_file(path: Path) -> tuple[int, int]:
                 problems.append(f"  line {no}: {line[:100]}")
         elif 0 < struck < len(rows):
             mixed_tables += 1
+            mixed_lines.append(f"{path.name}:{data[0][0]}")
 
     for problem in problems:
         print(problem)
 
-    return partial_rows, mixed_tables
+    return partial_rows, mixed_tables, mixed_lines
 
 
 def resolve_args(argv: list[str]) -> list[Path]:
@@ -134,14 +101,16 @@ def main() -> int:
     partial_rows = 0
     missing = 0
     mixed = 0
+    mixed_anchors: list[str] = []
     for path in files:
         if not path.is_file():
             print(f"  ✗ MISSING: {path}")
             missing += 1
             continue
-        file_partials, file_mixed = check_file(path)
+        file_partials, file_mixed, file_anchors = check_file(path)
         partial_rows += file_partials
         mixed += file_mixed
+        mixed_anchors.extend(file_anchors)
 
     print()
     if partial_rows:
@@ -158,6 +127,8 @@ def main() -> int:
         f"✓ row gate: {len(files)} file(s) free of PARTIAL rows "
         f"({mixed} deliberately-mixed table(s) reported, first-class by convention)"
     )
+    if mixed_anchors:
+        print("  mixed tables (first-class): " + ", ".join(mixed_anchors))
 
     return 0
 

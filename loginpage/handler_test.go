@@ -21,6 +21,23 @@ func newTestService(t *testing.T) *usermgmt.Service {
 	return svc
 }
 
+// assertContains fails the test when body lacks want. Shared by the page
+// content assertions so the failure shape lives in one place.
+func assertContains(t *testing.T, body, want, label string) {
+	t.Helper()
+	if !strings.Contains(body, want) {
+		t.Error(label)
+	}
+}
+
+// assertNotContains fails the test when body contains unwanted.
+func assertNotContains(t *testing.T, body, unwanted, label string) {
+	t.Helper()
+	if strings.Contains(body, unwanted) {
+		t.Error(label)
+	}
+}
+
 func TestNew_NilService(t *testing.T) {
 	_, err := New(Config{})
 	if err == nil {
@@ -53,15 +70,14 @@ func TestServeHTTP_NoAuthMethodShowsError(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
-	if !strings.Contains(body, "No authentication method is configured") {
-		t.Error("page should show no-auth error when no strategies are configured")
-	}
-	if strings.Contains(body, `id="lp-login-form"`) {
-		t.Error("page should not render login form without auth methods")
-	}
-	if strings.Contains(body, `id="loginpage-config"`) {
-		t.Error("page should not include config JS without auth methods")
-	}
+	assertContains(
+		t,
+		body,
+		"No authentication method is configured",
+		"page should show no-auth error when no strategies are configured",
+	)
+	assertNotContains(t, body, `id="lp-login-form"`, "page should not render login form without auth methods")
+	assertNotContains(t, body, `id="loginpage-config"`, "page should not include config JS without auth methods")
 }
 
 func TestServeHTTP_PostMethodNotAllowed(t *testing.T) {
@@ -100,27 +116,13 @@ func TestPage_WebAuthnLogin(t *testing.T) {
 		Subtitle: "Sign in to your account",
 		Accent:   "#4f46e5",
 	})
-	if !strings.Contains(body, "<title>Test App</title>") {
-		t.Error("page missing title")
-	}
-	if !strings.Contains(body, ">Acme</h1>") {
-		t.Error("page missing brand")
-	}
-	if !strings.Contains(body, `id="lp-login-form"`) {
-		t.Error("page missing login form")
-	}
-	if !strings.Contains(body, `id="lp-email"`) {
-		t.Error("page missing email input")
-	}
-	if !strings.Contains(body, "Sign in with passkey") {
-		t.Error("page missing passkey button")
-	}
-	if !strings.Contains(body, "loginpage-config") {
-		t.Error("page missing config script tag")
-	}
-	if !strings.Contains(body, "navigator.credentials") {
-		t.Error("page missing inline JS")
-	}
+	assertContains(t, body, "<title>Test App</title>", "page missing title")
+	assertContains(t, body, ">Acme</h1>", "page missing brand")
+	assertContains(t, body, `id="lp-login-form"`, "page missing login form")
+	assertContains(t, body, `id="lp-email"`, "page missing email input")
+	assertContains(t, body, "Sign in with passkey", "page missing passkey button")
+	assertContains(t, body, "loginpage-config", "page missing config script tag")
+	assertContains(t, body, "navigator.credentials", "page missing inline JS")
 }
 
 func TestPage_RegistrationSection(t *testing.T) {
@@ -130,15 +132,9 @@ func TestPage_RegistrationSection(t *testing.T) {
 		Accent:  "#4f46e5",
 		ShowReg: true,
 	})
-	if !strings.Contains(body, `id="lp-register-section"`) {
-		t.Error("registration section missing when ShowReg is true")
-	}
-	if !strings.Contains(body, "Create one") {
-		t.Error("registration toggle link missing")
-	}
-	if !strings.Contains(body, "Create account") {
-		t.Error("registration submit button missing")
-	}
+	assertContains(t, body, `id="lp-register-section"`, "registration section missing when ShowReg is true")
+	assertContains(t, body, "Create one", "registration toggle link missing")
+	assertContains(t, body, "Create account", "registration submit button missing")
 }
 
 func TestPage_RegistrationHidden(t *testing.T) {
@@ -148,9 +144,12 @@ func TestPage_RegistrationHidden(t *testing.T) {
 		Accent:  "#4f46e5",
 		ShowReg: false,
 	})
-	if strings.Contains(body, `id="lp-register-section"`) {
-		t.Error("registration section should be hidden when ShowReg is false")
-	}
+	assertNotContains(
+		t,
+		body,
+		`id="lp-register-section"`,
+		"registration section should be hidden when ShowReg is false",
+	)
 }
 
 func TestPage_OAuth2Buttons(t *testing.T) {
@@ -164,21 +163,11 @@ func TestPage_OAuth2Buttons(t *testing.T) {
 			{Provider: "github", Label: "Sign in with GitHub"},
 		},
 	})
-	if !strings.Contains(body, "Sign in with Google") {
-		t.Error("Google button missing")
-	}
-	if !strings.Contains(body, "Sign in with GitHub") {
-		t.Error("GitHub button missing")
-	}
-	if !strings.Contains(body, `/auth/oauth/google/begin`) {
-		t.Error("Google OAuth begin URL missing")
-	}
-	if !strings.Contains(body, `/auth/oauth/github/begin`) {
-		t.Error("GitHub OAuth begin URL missing")
-	}
-	if !strings.Contains(body, "lp-divider") {
-		t.Error("divider missing between WebAuthn and OAuth2")
-	}
+	assertContains(t, body, "Sign in with Google", "Google button missing")
+	assertContains(t, body, "Sign in with GitHub", "GitHub button missing")
+	assertContains(t, body, `/auth/oauth/google/begin`, "Google OAuth begin URL missing")
+	assertContains(t, body, `/auth/oauth/github/begin`, "GitHub OAuth begin URL missing")
+	assertContains(t, body, "lp-divider", "divider missing between WebAuthn and OAuth2")
 }
 
 func TestPage_OAuth2OnlyNoDivider(t *testing.T) {
@@ -196,15 +185,9 @@ func TestPage_OAuth2OnlyNoDivider(t *testing.T) {
 		t.Fatalf("render: %v", err)
 	}
 	body := w.Body.String()
-	if !strings.Contains(body, "Sign in with Google") {
-		t.Error("Google button missing")
-	}
-	if strings.Contains(body, "lp-divider") {
-		t.Error("divider should not appear when WebAuthn is false")
-	}
-	if strings.Contains(body, `id="lp-login-form"`) {
-		t.Error("WebAuthn form should not appear when WebAuthn is false")
-	}
+	assertContains(t, body, "Sign in with Google", "Google button missing")
+	assertNotContains(t, body, "lp-divider", "divider should not appear when WebAuthn is false")
+	assertNotContains(t, body, `id="lp-login-form"`, "WebAuthn form should not appear when WebAuthn is false")
 }
 
 func TestPage_FaviconPresent(t *testing.T) {
@@ -213,12 +196,8 @@ func TestPage_FaviconPresent(t *testing.T) {
 		Brand:  "Acme",
 		Accent: "#ff0000",
 	})
-	if !strings.Contains(body, `rel="icon"`) {
-		t.Error("favicon link missing")
-	}
-	if !strings.Contains(body, "data:image/svg+xml") {
-		t.Error("favicon should be an SVG data URI")
-	}
+	assertContains(t, body, `rel="icon"`, "favicon link missing")
+	assertContains(t, body, "data:image/svg+xml", "favicon should be an SVG data URI")
 }
 
 func TestServeHTTP_CSRFTokenIncluded(t *testing.T) {
@@ -240,12 +219,8 @@ func TestServeHTTP_CSRFTokenIncluded(t *testing.T) {
 		t.Fatalf("render: %v", err)
 	}
 	body := w.Body.String()
-	if !strings.Contains(body, "test-csrf-123") {
-		t.Error("CSRF token not rendered in page")
-	}
-	if !strings.Contains(body, `name="csrf-token"`) {
-		t.Error("CSRF meta tag missing")
-	}
+	assertContains(t, body, "test-csrf-123", "CSRF token not rendered in page")
+	assertContains(t, body, `name="csrf-token"`, "CSRF meta tag missing")
 }
 
 func TestServeHTTP_ConfigJSONContainsEndpoints(t *testing.T) {
@@ -261,9 +236,7 @@ func TestServeHTTP_ConfigJSONContainsEndpoints(t *testing.T) {
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
 	// OAuth2 buttons are present
-	if !strings.Contains(body, "Sign in with Google") {
-		t.Error("Google OAuth button missing")
-	}
+	assertContains(t, body, "Sign in with Google", "Google OAuth button missing")
 }
 
 func TestServeHTTP_AuthPrefix(t *testing.T) {
@@ -278,9 +251,7 @@ func TestServeHTTP_AuthPrefix(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
-	if !strings.Contains(body, "/api/auth/oauth/google/begin") {
-		t.Error("OAuth2 URL should contain prefixed endpoint")
-	}
+	assertContains(t, body, "/api/auth/oauth/google/begin", "OAuth2 URL should contain prefixed endpoint")
 }
 
 func TestServeHTTP_AccentColorApplied(t *testing.T) {
@@ -296,10 +267,11 @@ func TestServeHTTP_AccentColorApplied(t *testing.T) {
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
 	// templ HTML-escapes the SafeURL (single quotes become &#39;), so assert
-	// the fragments that survive escaping: the data URI scheme and the color.
-	if !strings.Contains(body, "data:image/svg+xml") || !strings.Contains(body, "#ff0000") {
-		t.Error("accent color not applied in the SVG favicon")
-	}
+	// the fragments that survive escaping: the data URI scheme and the
+	// percent-encoded color ('#' would truncate the data URI at the fragment
+	// boundary — it MUST arrive as %23).
+	assertContains(t, body, "data:image/svg+xml", "accent color data URI missing from the SVG favicon")
+	assertContains(t, body, "%23ff0000", "accent color not applied (percent-encoded) in the SVG favicon")
 }
 
 func TestServeHTTP_CustomCSSPath(t *testing.T) {
@@ -315,9 +287,7 @@ func TestServeHTTP_CustomCSSPath(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
-	if !strings.Contains(body, `href="/css/app.css"`) {
-		t.Error("custom CSS path not linked")
-	}
+	assertContains(t, body, `href="/css/app.css"`, "custom CSS path not linked")
 }
 
 func TestServeHTTP_NoCacheHeaders(t *testing.T) {
@@ -388,6 +358,43 @@ func TestNewPageData_WithCSRF(t *testing.T) {
 	}
 	if !strings.Contains(data.CSRFMeta, "token-abc") {
 		t.Error("CSRFMeta should contain the token")
+	}
+}
+
+// TestNewPageData_PopulatesNonceAndTheme pins S36: Option B (consumer-owned
+// layout via NewPageData) must render with the same request-scoped context
+// as the handler path — pre-fix, Nonce and Theme were never populated, so
+// the embedded scripts were dead under the recommended nonce-CSP and SSR
+// theming was lost.
+func TestNewPageData_PopulatesNonceAndTheme(t *testing.T) {
+	svc := newTestService(t)
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	//nolint:gosec // G124: simulates an incoming request cookie, never a Set-Cookie; test-only
+	r.AddCookie(&http.Cookie{Name: "theme", Value: ThemeDark})
+
+	data, err := NewPageData(Config{
+		Service: svc,
+		NonceFromRequest: func(*http.Request) string {
+			return "nonce-123<script>" // hostile nonce — must be sanitized
+		},
+		ThemeFromRequest: func(req *http.Request) string {
+			theme, _ := req.Cookie("theme")
+			if theme == nil {
+				return ""
+			}
+			return theme.Value
+		},
+	}, r)
+	if err != nil {
+		t.Fatalf("NewPageData: %v", err)
+	}
+
+	if data.Nonce != "nonce-123script" {
+		t.Errorf("Nonce = %q, want sanitized %q", data.Nonce, "nonce-123script")
+	}
+	if data.Theme != ThemeDark {
+		t.Errorf("Theme = %q, want %q", data.Theme, ThemeDark)
 	}
 }
 
@@ -481,12 +488,8 @@ func TestPage_BrowserUnsupportedFallback(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
-	if !strings.Contains(body, `id="lp-no-webauthn"`) {
-		t.Error("browser-unsupported fallback div missing")
-	}
-	if !strings.Contains(body, `id="lp-no-webauthn" class="hidden`) {
-		t.Error("fallback div should be hidden by default")
-	}
+	assertContains(t, body, `id="lp-no-webauthn"`, "browser-unsupported fallback div missing")
+	assertContains(t, body, `id="lp-no-webauthn" class="hidden`, "fallback div should be hidden by default")
 }
 
 func TestPage_CSSPathLinked(t *testing.T) {
@@ -502,9 +505,7 @@ func TestPage_CSSPathLinked(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
-	if !strings.Contains(body, `href="/css/custom.css"`) {
-		t.Error("custom CSS path not linked")
-	}
+	assertContains(t, body, `href="/css/custom.css"`, "custom CSS path not linked")
 }
 
 func TestPage_NoAuthState(t *testing.T) {
@@ -517,9 +518,7 @@ func TestPage_NoAuthState(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
-	if !strings.Contains(body, "No authentication method is configured") {
-		t.Error("no-auth error state missing")
-	}
+	assertContains(t, body, "No authentication method is configured", "no-auth error state missing")
 }
 
 func TestFaviconURI(t *testing.T) {
@@ -528,10 +527,13 @@ func TestFaviconURI(t *testing.T) {
 	if !strings.Contains(string(uri), "data:image/svg+xml") {
 		t.Error("favicon should be an SVG data URI")
 	}
-	if !strings.Contains(string(uri), "fill='#ff0000'") {
+	if strings.Contains(string(uri), "#") {
+		t.Error("raw '#' truncates a data URI at the fragment boundary — the SVG must be percent-encoded")
+	}
+	if !strings.Contains(string(uri), "fill%3D%27%23ff0000%27") {
 		t.Error("favicon should use the accent color")
 	}
-	if !strings.Contains(string(uri), ">A<") {
+	if !strings.Contains(string(uri), "%3EA%3C") {
 		t.Error("favicon should use the brand initial")
 	}
 }
@@ -581,24 +583,16 @@ func TestPage_AllAuthMethods(t *testing.T) {
 			{Provider: "google", Label: "Sign in with Google"},
 		},
 	})
-	if !strings.Contains(body, "lp-divider") {
-		t.Error("divider missing when both WebAuthn and OAuth2 present")
-	}
-	if !strings.Contains(body, "Create one") {
-		t.Error("registration toggle missing")
-	}
-	if !strings.Contains(body, "Sign in with Google") {
-		t.Error("OAuth2 button missing")
-	}
-	if !strings.Contains(body, "Sign in with passkey") {
-		t.Error("passkey button missing")
-	}
+	assertContains(t, body, "lp-divider", "divider missing when both WebAuthn and OAuth2 present")
+	assertContains(t, body, "Create one", "registration toggle missing")
+	assertContains(t, body, "Sign in with Google", "OAuth2 button missing")
+	assertContains(t, body, "Sign in with passkey", "passkey button missing")
 }
 
 func TestFaviconURI_EmptyBrand(t *testing.T) {
 	data := PageData{Brand: "", Accent: "#000"}
 	uri := data.faviconURI()
-	if !strings.Contains(string(uri), ">?<") {
+	if !strings.Contains(string(uri), "%3E%3F%3C") {
 		t.Error("empty brand should show '?' as favicon initial")
 	}
 }
@@ -699,9 +693,12 @@ func TestServeHTTP_MaliciousCredentialNameNotInjected(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	h.ServeHTTP(w, r)
 	body := w.Body.String()
-	if strings.Contains(body, "</script><script>alert(1)</script>") {
-		t.Error("rendered page must not contain the raw injection payload")
-	}
+	assertNotContains(
+		t,
+		body,
+		"</script><script>alert(1)</script>",
+		"rendered page must not contain the raw injection payload",
+	)
 }
 
 func TestPage_NonceRenderedOnScripts(t *testing.T) {
@@ -725,11 +722,11 @@ func TestPage_NonceSanitized(t *testing.T) {
 func bodyClassTokens(t *testing.T, body string) []string {
 	t.Helper()
 	const marker = `<body class="`
-	i := strings.Index(body, marker)
-	if i < 0 {
+	_, after, ok := strings.Cut(body, marker)
+	if !ok {
 		t.Fatal("body tag with class attribute not found")
 	}
-	rest := body[i+len(marker):]
+	rest := after
 	end := strings.Index(rest, `"`)
 	if end < 0 {
 		t.Fatal("unterminated body class attribute")
@@ -858,15 +855,14 @@ func TestServeHTTP_NoOAuth2_RendersNoButtons(t *testing.T) {
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	body := rec.Body.String()
-	if strings.Contains(body, "/auth/oauth/google/begin") {
-		t.Error("NoOAuth2 must hide auto-detected provider buttons")
-	}
-	if strings.Contains(body, "Sign in with Google") {
-		t.Error("NoOAuth2 must hide provider labels")
-	}
-	if !strings.Contains(body, "No authentication method is configured") {
-		t.Error("page should render the setup notice when every method is hidden")
-	}
+	assertNotContains(t, body, "/auth/oauth/google/begin", "NoOAuth2 must hide auto-detected provider buttons")
+	assertNotContains(t, body, "Sign in with Google", "NoOAuth2 must hide provider labels")
+	assertContains(
+		t,
+		body,
+		"No authentication method is configured",
+		"page should render the setup notice when every method is hidden",
+	)
 }
 
 func TestPage_ButtonSpinnerServerRenderedHidden(t *testing.T) {
@@ -876,13 +872,283 @@ func TestPage_ButtonSpinnerServerRenderedHidden(t *testing.T) {
 		Accent:   "#4f46e5",
 		WebAuthn: true,
 	})
-	if !strings.Contains(body, `class="hidden lp-spinner"`) {
-		t.Error("submit buttons must server-render the hidden lp-spinner hook")
+	assertContains(t, body, `class="hidden lp-spinner"`, "submit buttons must server-render the hidden lp-spinner hook")
+	assertContains(t, body, "animate-spin", "spinner must be the library feedback.Spinner (animate-spin class)")
+	assertNotContains(t, body, "SPINNER_HTML", "login.js must no longer carry hand-built spinner markup")
+}
+
+func newOAuthOnlyService(t *testing.T, names ...string) *usermgmt.Service {
+	t.Helper()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		OAuth2: &stubOAuth2WithNames{names: names},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
 	}
-	if !strings.Contains(body, "animate-spin") {
-		t.Error("spinner must be the library feedback.Spinner (animate-spin class)")
+	return svc
+}
+
+func TestNew_AutoRedirect_NoOAuth2_Rejected(t *testing.T) {
+	_, err := New(Config{
+		Service:      newTestService(t),
+		AutoRedirect: true,
+		NoOAuth2:     true,
+	})
+	if err == nil {
+		t.Fatal("AutoRedirect together with NoOAuth2 must be rejected at New")
 	}
-	if strings.Contains(body, "SPINNER_HTML") {
-		t.Error("login.js must no longer carry hand-built spinner markup")
+}
+
+func TestServeHTTP_AutoRedirect_SingleProvider(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google"),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusFound {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusFound)
+	}
+	if loc := w.Header().Get("Location"); loc != "/auth/oauth/google/begin" {
+		t.Errorf("Location = %q, want %q", loc, "/auth/oauth/google/begin")
+	}
+	if cc := w.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("Cache-Control = %q, want %q", cc, "no-store")
+	}
+}
+
+func TestServeHTTP_AutoRedirect_ErrorParamRendersPage(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google"),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login?error=Provider+said+no", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d (?error= must break the callback redirect loop)", w.Code, http.StatusOK)
+	}
+	if loc := w.Header().Get("Location"); loc != "" {
+		t.Errorf("Location = %q, want none", loc)
+	}
+	body := w.Body.String()
+	assertContains(t, body, "Provider said no", "page should surface the error param in the #lp-error alert")
+	assertNotContains(
+		t,
+		body,
+		"red-400 hidden",
+		"error alert must not carry the hidden class when a message is present",
+	)
+}
+
+func TestServeHTTP_ErrorParamSanitized(t *testing.T) {
+	h, err := New(Config{Service: newOAuthOnlyService(t, "google")})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, `/login?error=<script>alert(1)</script>`, nil))
+	body := w.Body.String()
+	assertNotContains(t, body, "<script>alert(1)</script>", "error message must be HTML-escaped by templ")
+	assertContains(t, body, "alert(1)", "escaped error text should still be present")
+}
+
+func TestServeHTTP_AutoRedirect_AuthPrefix(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google"),
+		AutoRedirect: true,
+		AuthPrefix:   "/api",
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if loc := w.Header().Get("Location"); loc != "/api/auth/oauth/google/begin" {
+		t.Errorf("Location = %q, want %q", loc, "/api/auth/oauth/google/begin")
+	}
+}
+
+func TestServeHTTP_AutoRedirect_MultipleProvidersRendersPage(t *testing.T) {
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google", "github"),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d (page must render so the visitor can choose)", w.Code, http.StatusOK)
+	}
+	body := w.Body.String()
+	assertContains(t, body, "/auth/oauth/google/begin", "page should render Google OAuth begin URL")
+	assertContains(t, body, "/auth/oauth/github/begin", "page should render buttons for every provider")
+}
+
+func TestServeHTTP_AutoRedirect_NoAuthMethodRendersNotice(t *testing.T) {
+	h, err := New(Config{
+		Service:      newTestService(t),
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+	if !strings.Contains(w.Body.String(), "No authentication method is configured") {
+		t.Error("page should render the setup notice when there is nothing to redirect to")
+	}
+}
+
+func TestSoleOAuthBeginURL(t *testing.T) {
+	tests := []struct {
+		name string
+		data PageData
+		want string
+	}{
+		{
+			"single provider only",
+			PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}}},
+			"/auth/oauth/google/begin",
+		},
+		{"webauthn present", PageData{WebAuthn: true, OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, ""},
+		{"two providers", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}, {Provider: "github"}}}, ""},
+		{"no providers", PageData{}, ""},
+		{
+			"auth prefix",
+			PageData{authPrefix: "/api", OAuth2Buttons: []OAuth2Button{{Provider: "google"}}},
+			"/api/auth/oauth/google/begin",
+		},
+	}
+	for _, tt := range tests {
+		if got := tt.data.soleOAuthBeginURL(); got != tt.want {
+			t.Errorf("%s: soleOAuthBeginURL = %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+// stubWebAuthnProvider satisfies identitymodel.WebAuthnProvider (via
+// usermgmt's alias) with no-op ceremonies: the page only asks HasWebAuthn at
+// render time, never invokes the provider itself.
+type stubWebAuthnProvider struct{}
+
+func (stubWebAuthnProvider) BeginRegistration(context.Context, []byte) ([]byte, []byte, error) {
+	return nil, nil, nil
+}
+
+func (stubWebAuthnProvider) FinishRegistration(context.Context, []byte, []byte, []byte) ([]byte, error) {
+	return nil, nil
+}
+
+func (stubWebAuthnProvider) BeginLogin(context.Context, []byte) ([]byte, []byte, error) {
+	return nil, nil, nil
+}
+
+func (stubWebAuthnProvider) FinishLogin(context.Context, []byte, []byte, []byte) ([]byte, error) {
+	return nil, nil
+}
+
+// newWebAuthnAndOAuthService builds a service with BOTH a WebAuthn provider
+// and the named OAuth2 providers configured — the shared-service setup the
+// NoWebAuthn page-level hide exists for.
+func newWebAuthnAndOAuthService(t *testing.T, names ...string) *usermgmt.Service {
+	t.Helper()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		WebAuthn: stubWebAuthnProvider{},
+		OAuth2:   &stubOAuth2WithNames{names: names},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	return svc
+}
+
+func TestServeHTTP_NoWebAuthn_HidesPasskeyFormAndRegistration(t *testing.T) {
+	h, err := New(Config{
+		Service:    newWebAuthnAndOAuthService(t, "google"),
+		NoWebAuthn: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+	body := w.Body.String()
+	assertContains(t, body, "Sign in with Google", "the OAuth2 button must still render")
+	assertNotContains(t, body, `id="lp-login-form"`, "NoWebAuthn must hide the passkey form")
+	assertNotContains(t, body, "Sign in with passkey", "NoWebAuthn must hide the passkey submit button")
+	assertNotContains(
+		t,
+		body,
+		`id="lp-show-register"`,
+		"NoWebAuthn must hide the registration toggle (registration is passkey-only)",
+	)
+	assertNotContains(
+		t,
+		body,
+		"No authentication method is configured",
+		"OAuth2 is visible, the setup notice must not render",
+	)
+}
+
+func TestServeHTTP_NoWebAuthn_OtherPagesUnaffected(t *testing.T) {
+	h, err := New(Config{Service: newWebAuthnAndOAuthService(t, "google")})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	body := w.Body.String()
+	assertContains(t, body, `id="lp-login-form"`, "without NoWebAuthn the passkey form renders from the same service")
+}
+
+func TestServeHTTP_AutoRedirect_NoWebAuthn_SingleProvider(t *testing.T) {
+	h, err := New(Config{
+		Service:      newWebAuthnAndOAuthService(t, "google"),
+		NoWebAuthn:   true,
+		AutoRedirect: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusFound {
+		t.Errorf("status = %d, want %d (NoWebAuthn makes OAuth2 the page's only method)", w.Code, http.StatusFound)
+	}
+	if loc := w.Header().Get("Location"); loc != "/auth/oauth/google/begin" {
+		t.Errorf("Location = %q, want %q", loc, "/auth/oauth/google/begin")
+	}
+}
+
+func TestNew_NoWebAuthn_NoOAuth2_Rejected(t *testing.T) {
+	_, err := New(Config{
+		Service:    newWebAuthnAndOAuthService(t, "google"),
+		NoWebAuthn: true,
+		NoOAuth2:   true,
+	})
+	if err == nil {
+		t.Fatal("NoWebAuthn together with NoOAuth2 must be rejected at New: the page would have no sign-in method")
+	}
+}
+
+func TestNew_AuthPrefix_RejectsNonRootedValues(t *testing.T) {
+	for _, prefix := range []string{"api", "//evil.example", "https://evil.example", "auth/"} {
+		if _, err := New(Config{Service: newTestService(t), AuthPrefix: prefix}); err == nil {
+			t.Errorf("AuthPrefix %q must be rejected: it feeds link targets and the AutoRedirect 302 Location", prefix)
+		}
 	}
 }

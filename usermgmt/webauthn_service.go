@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -25,6 +26,8 @@ type webAuthnUserCred struct {
 	Transports      []string `json:"transports,omitempty"`
 	AAGUID          []byte   `json:"aaguid,omitempty"`
 	SignCount       uint32   `json:"sign_count"`
+	UserPresent     bool     `json:"user_present,omitempty"`
+	UserVerified    bool     `json:"user_verified,omitempty"`
 	BackupEligible  bool     `json:"backup_eligible"`
 	BackupState     bool     `json:"backup_state"`
 }
@@ -41,6 +44,8 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 			Transports:      c.Transports,
 			AAGUID:          c.AAGUID,
 			SignCount:       c.SignCount,
+			UserPresent:     c.UserPresent,
+			UserVerified:    c.UserVerified,
 			BackupEligible:  c.BackupEligible,
 			BackupState:     c.BackupState,
 		}
@@ -60,6 +65,15 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 
 // maxWebAuthnBodySize limits the authenticator response body to prevent abuse.
 const maxWebAuthnBodySize = 1 << 20 // 1 MB
+
+// WebAuthn ceremony sessions are keyed per ceremony. Without the prefix a
+// registration begun for a user and a login begun for the same user overwrite
+// each other's challenge in the shared session store (both keyed by user ID),
+// so whichever ceremony finishes second validates against the wrong challenge.
+const (
+	registrationSessionPrefix = "reg:"
+	loginSessionPrefix        = "login:"
+)
 
 // webauthnBeginResponse is the shared shape returned by both WebAuthn begin
 // ceremonies (registration and login): the JSON options to send to the client
@@ -102,7 +116,7 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 			WithCause(err)
 	}
 
-	sessionKey := userID.Get().String()
+	sessionKey := registrationSessionPrefix + userID.Get().String()
 	s.webauthnSessions.Save(sessionKey, sessionData)
 	s.logger.Info("usermgmt: registration ceremony begun", "user_id", userID)
 
@@ -127,7 +141,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 			WithContextAny("user_id", userID)
 	}
 
-	sessionKey := userID.Get().String()
+	sessionKey := registrationSessionPrefix + userID.Get().String()
 	sessionData, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration failed – session not found",
@@ -204,6 +218,13 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 
 	if len(user.Credentials) == 0 {
 		s.logger.Debug("usermgmt: login failed – no credentials", "email", email)
+		s.authAudit.loginFailure(
+			ctx,
+			user.ID,
+			identitymodel.AuthMethodWebAuthN,
+			identitymodel.AuthFailureNoCredentials,
+		)
+
 		return nil, ErrNoCredentials
 	}
 
@@ -218,7 +239,7 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 		return nil, errorfamily.NewTransient("usermgmt.webauthn.begin_login", "begin webauthn login").WithCause(err)
 	}
 
-	sessionKey := user.ID.Get().String()
+	sessionKey := loginSessionPrefix + user.ID.Get().String()
 	s.webauthnSessions.Save(sessionKey, sessionData)
 	s.logger.Debug("usermgmt: login ceremony begun", "email", email)
 
@@ -246,7 +267,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 			WithContextAny("user_id", userID)
 	}
 
-	sessionKey := userID.Get().String()
+	sessionKey := loginSessionPrefix + userID.Get().String()
 	sessionData, err := s.webauthnSessions.Get(sessionKey)
 	if err != nil {
 		s.logger.Warn("usermgmt: finish login failed – session not found",
@@ -264,14 +285,13 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user", "marshal user data").WithCause(err)
 	}
 
-	if err := s.webauthn.FinishLogin(ctx, userJSON, body, sessionData); err != nil {
-		if s.lockout != nil {
-			s.lockout.RecordFailure(user.Email)
-		}
-		s.logger.Warn("usermgmt: finish login ceremony failed",
-			"user_id", userID, "email", user.Email, "error", err)
-		return nil, errorfamily.NewRejection("usermgmt.webauthn.login_failed",
-			"credential login failed").WithCause(err)
+	credJSON, err := s.webauthn.FinishLogin(ctx, userJSON, body, sessionData)
+	if err != nil {
+		return nil, s.finishLoginFailed(ctx, userID, user, err)
+	}
+
+	if err := s.recordCredentialUse(ctx, userID, credJSON); err != nil {
+		return nil, err
 	}
 
 	s.webauthnSessions.Delete(sessionKey)
@@ -287,6 +307,66 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 		)
 	}
 
+	s.authAudit.loginSuccess(ctx, userID, identitymodel.AuthMethodWebAuthN)
 	s.logger.Info("usermgmt: login successful", "user_id", userID, "email", user.Email)
 	return &FinishLoginResponse{User: user, Session: sess}, nil
+}
+
+// recordCredentialUse persists the credential state a successful assertion
+// produced. It is not optional bookkeeping: the stored signature counter is the
+// high-water mark the next login is compared against, so skipping this leaves
+// clone detection permanently blind. A regressed counter surfaces here as a
+// conflict from the decider, which fails the login.
+func (s *Service) recordCredentialUse(ctx context.Context, userID UserID, credJSON []byte) error {
+	var used webAuthnUserCred
+	if err := json.Unmarshal(credJSON, &used); err != nil {
+		return errorfamily.NewInfrastructure("usermgmt.webauthn.unmarshal_credential",
+			"unmarshal logged-in credential").WithCause(err)
+	}
+
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		return errorfamily.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed",
+			"convert userID").WithContextAny("user_id", userID)
+	}
+
+	if err := s.dispatcher.Dispatch(ctx, NewRecordCredentialUseCmd(aggID, CredentialUse{
+		CredentialID: used.ID,
+		SignCount:    used.SignCount,
+		UserPresent:  used.UserPresent,
+		UserVerified: used.UserVerified,
+		BackupState:  used.BackupState,
+	})); err != nil {
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.webauthn.credential_use_failed", "record credential use").
+			WithContextAny("user_id", userID)
+	}
+
+	return nil
+}
+
+// finishLoginFailed handles a failed WebAuthn login ceremony: lockout
+// accounting, the warn log, the auth-audit journal entry (cqrs-htmx#23),
+// and the rejection the caller returns.
+func (s *Service) finishLoginFailed(
+	ctx context.Context,
+	userID UserID,
+	user *User,
+	cause error,
+) error {
+	if s.lockout != nil {
+		s.lockout.RecordFailure(user.Email)
+	}
+
+	s.logger.Warn("usermgmt: finish login ceremony failed",
+		"user_id", userID, "email", user.Email, "error", cause)
+	s.authAudit.loginFailure(
+		ctx,
+		userID,
+		identitymodel.AuthMethodWebAuthN,
+		identitymodel.AuthFailureCeremonyFailed,
+	)
+
+	return errorfamily.NewRejection("usermgmt.webauthn.login_failed",
+		"credential login failed").WithCause(cause)
 }

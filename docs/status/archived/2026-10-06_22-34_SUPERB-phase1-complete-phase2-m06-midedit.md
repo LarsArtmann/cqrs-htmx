@@ -4,6 +4,7 @@
 **Assignment:** Pareto plan `docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md` — my lane M01–M10; foreign session's lane M11–M15 (now complete on their side).
 
 ## a) FULLY DONE (this session)
+
 > **ANNOTATED 2026-10-06 (docs-health round 18)** — Phase 2 closed by the 23:20 completion report: **M06 finished** (mid-edit content had survived as `7584b7a84`; completed + tested at 3 levels), M07 (`77076688b`), M08 (`9ce1367c4`), M10 (`5688d848f`) all landed + receipted; per-lane final battery green both repos. Struck below: §b1, §c M07–M10 row, §f1–6, §g2/§g3. STILL OPEN: the flightrecorder v0.2.1 lag train + push (§c-last/§f7/§g1 — the standing blocker, TODO_LIST), M16–M26 unscheduled, full-gate battery (check-modules/coverage) at the next quiet window (§b2), §e1 GCL concurrent-writer protocol + §e2 api_surface pre-emption (GCL AGENTS candidates).
 
 1. **Alignment pass COMPLETED** (was ~70%): killed the stalled 49-min tidy (1s CPU — futex-waiting on a VCS cache lock; SIGKILL via `/run/current-system/sw/bin/kill` — mvdan/sh's builtin kill rejects `-9`), cleared the stale `shallow.lock` my kill left, reran tidy (rc=0), committed `integration_test/go.sum` churn, hermetically verified BOTH touched modules (`GOWORK=off` build+vet green), and passed the absence assertion (zero `id/v4 v4.7.0` / `scheduling/v4 v4.6.0` requires repo-wide).
@@ -23,6 +24,7 @@
 ## c) NOT STARTED
 
 ~~- M07 (New engine-leak cleanup + goleak), M08 (timers lifecycle), M10 (unknown InstanceRole + engine-name hints) — Phase 2 remainder.~~ done — 23:20 session (`77076688b`, `9ce1367c4`/`143cbd589`, `5688d848f`)
+
 - M16–M26 (Phase 3) per plan ordering.
 - The alignment push itself (owner-gated) + the flightrecorder v0.2.1 bump train (16 lagging requires appeared DURING this session — someone published it today; the strict gate will block the push until that train runs).
 
@@ -53,8 +55,9 @@
 ## g) Questions I CANNOT answer myself
 
 1. **Push (carried from the prior report):** gates are per-module green but the strict release-train gate now trips on the NEW flightrecorder lag — do you want me to run that bump train (16 requires, `bump-dep.sh` is the right tool for a real train) and then push, or does the owner take the push lane entirely?
-~~2. **SortKeyCursor issuance (M06 scope):** the compound cursor fixes the FILTER, but today only value-only cursors are ISSUED (`ScanPage` derives them without the KV key). Full issuance needs `ScanResult.NextCursor` + the three KV engines filling it (protocol addition). Ship the filter fix + type now (consumers can construct compound cursors) and defer issuance, or do the full protocol in this session?~~ resolved — plan-faithful (F20+F21 only); issuance queued in GCL TODO_LIST with design notes
-~~3. **Session continue-point:** M06 code is sitting UNCOMMITTED in the GCL tree (with the hostile-writer history) — I stopped per your report order. Resume by finishing M06, or do you want the tree state inspected first?~~ resolved — tree inspected first; the mid-edit content HAD survived (`7584b7a84`)
+   ~~2. **SortKeyCursor issuance (M06 scope):** the compound cursor fixes the FILTER, but today only value-only cursors are ISSUED (`ScanPage` derives them without the KV key). Full issuance needs `ScanResult.NextCursor` + the three KV engines filling it (protocol addition). Ship the filter fix + type now (consumers can construct compound cursors) and defer issuance, or do the full protocol in this session?~~ resolved — plan-faithful (F20+F21 only); issuance queued in GCL TODO_LIST with design notes
+   ~~3. **Session continue-point:** M06 code is sitting UNCOMMITTED in the GCL tree (with the hostile-writer history) — I stopped per your report order. Resume by finishing M06, or do you want the tree state inspected first?~~ resolved — tree inspected first; the mid-edit content HAD survived (`7584b7a84`)
 
 ---
-*Point-in-time snapshot; annotate, never rewrite. Auto-commit daemon will file this report.*
+
+_Point-in-time snapshot; annotate, never rewrite. Auto-commit daemon will file this report._

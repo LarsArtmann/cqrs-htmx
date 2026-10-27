@@ -157,8 +157,33 @@ func TestService_RebuildProjection_UnknownProjection(t *testing.T) {
 	}
 	defer func() { _ = svc.Close() }()
 
-	err = svc.RebuildProjection(context.Background(), "nonexistent-projection")
+	ctx := context.Background()
+
+	err = svc.RebuildProjection(ctx, "nonexistent-projection")
 	if err == nil {
-		t.Error("RebuildProjection with unknown name should return error")
+		t.Fatal("RebuildProjection with unknown name should return error")
+	}
+
+	// S37b: the rebuild failed AFTER the host was stopped — the service must
+	// recover with a working host instead of sitting at zero live
+	// projections. In this drain-then-exit host wiring "stopped" is the
+	// normal steady state, so the honest pin is FUNCTIONAL: a projection
+	// must still consume new events after the failed rebuild. Pre-fix the
+	// service kept the stopped host and the read model went permanently
+	// stale (GetUser would fail with read_model_missing).
+	resp, err := svc.Register(ctx, usermgmt.RegisterRequest{
+		ID:    usermgmt.SyntheticUserID("post-rebuild-user"),
+		Email: "post-rebuild@example.com",
+	})
+	if err != nil {
+		t.Fatalf("Register after failed rebuild: %v", err)
+	}
+
+	user, err := svc.GetUser(ctx, resp.User.ID)
+	if err != nil {
+		t.Fatalf("GetUser after failed rebuild — projections did not recover: %v", err)
+	}
+	if user.Email != "post-rebuild@example.com" {
+		t.Errorf("user email after recovery = %q, want %q", user.Email, "post-rebuild@example.com")
 	}
 }

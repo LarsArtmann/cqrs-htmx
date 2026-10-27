@@ -1,0 +1,149 @@
+package main
+
+import (
+	"encoding/json/v2"
+	"fmt"
+	"html"
+	"net/http"
+	"strings"
+	"sync"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-sse"
+)
+
+// --- HTML page ---
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = w.Write([]byte(indexHTML))
+}
+
+const indexHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sync E2E Test</title>
+  <script src="/htmx.js"></script>
+</head>
+<body data-sse-url="/events" data-sync-pull-url="/sync/pull" data-sync-push-url="/sync/push">
+  <div id="sync-indicator" data-sync-status="idle">Synced</div>
+  <main>
+    <h1>Items</h1>
+    <div data-sync-target>
+      <form id="add-form" hx-post="/api/items" hx-target="#item-list" hx-swap="beforeend">
+        <input type="text" name="name" placeholder="Item name" required autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+      <form id="sync-add-form" data-sync-command-type="SyncAddItem" hx-post="/api/sync-items" hx-target="#item-list" hx-swap="beforeend">
+        <input type="text" name="name" placeholder="Batched item" required autocomplete="off">
+        <button type="submit">Add (batched)</button>
+      </form>
+      <ul id="item-list"></ul>
+    </div>
+  </main>
+  <script src="/sync-client.js"></script>
+</body>
+</html>`
+
+// --- SSE handler ---
+
+func sseHandler(broadcaster *cqrshtmx.Broadcaster) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		stream := sse.NewStream(w, r)
+		defer func() { _ = stream.Close() }()
+
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+
+		ch := broadcaster.Subscribe()
+		defer broadcaster.Unsubscribe(ch)
+
+		for {
+			select {
+			case <-stream.Context().Done():
+				return
+			case evt, ok := <-ch:
+				if !ok {
+					return
+				}
+
+				if err := stream.Send(evt); err != nil {
+					return
+				}
+			}
+		}
+	}
+}
+
+// --- Items command handler ---
+
+func itemsPostHandler(store *itemStore, ackHook cqrshtmx.AfterDispatchHook) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "bad form", http.StatusBadRequest)
+
+			return
+		}
+
+		name := strings.TrimSpace(r.FormValue("name"))
+		if name == "" {
+			http.Error(w, "name required", http.StatusBadRequest)
+
+			return
+		}
+
+		store.add(name)
+
+		cmdID := cqrshtmx.CommandIDFromRequest(r)
+		if cmdID != "" {
+			ackHook(r.Context(), r, nil)
+		}
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprintf(w, `<li data-sync-state="confirmed">%s</li>`, html.EscapeString(name))
+	}
+}
+
+// --- Debug endpoint (test assertions) ---
+
+func itemsDebugHandler(store *itemStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		items := store.list()
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.MarshalWrite(w, items)
+	}
+}
+
+// --- In-memory item store ---
+
+type itemStore struct {
+	mu    sync.Mutex
+	items []string
+}
+
+func (s *itemStore) add(name string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.items = append(s.items, name)
+}
+
+func (s *itemStore) list() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	out := make([]string, len(s.items))
+	copy(out, s.items)
+
+	return out
+}

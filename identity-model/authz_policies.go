@@ -1,42 +1,172 @@
 package identitymodel
 
 import (
+	"slices"
+	"strings"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// Apply applies a batch of group and policy additions/removals sequentially.
+// policyMutator is the slice of *casbin.Enforcer that Apply needs. It exists so
+// the rollback path can be exercised with a stub that fails on demand; a
+// failing policy store is otherwise impossible to provoke in a unit test.
+type policyMutator interface {
+	AddGroupingPolicy(params ...any) (bool, error)
+	RemoveGroupingPolicy(params ...any) (bool, error)
+	AddPolicy(params ...any) (bool, error)
+	RemovePolicy(params ...any) (bool, error)
+}
+
+type undoKind int
+
+const (
+	undoRemoveGroup undoKind = iota
+	undoAddGroup
+	undoRemovePolicy
+	undoAddPolicy
+)
+
+type undoOp struct {
+	kind undoKind
+	args []any
+}
+
+func (u undoOp) apply(m policyMutator) error {
+	var err error
+	switch u.kind {
+	case undoRemoveGroup:
+		_, err = m.RemoveGroupingPolicy(u.args...)
+	case undoAddGroup:
+		_, err = m.AddGroupingPolicy(u.args...)
+	case undoRemovePolicy:
+		_, err = m.RemovePolicy(u.args...)
+	case undoAddPolicy:
+		_, err = m.AddPolicy(u.args...)
+	}
+	if err != nil {
+		return errorfamily.WrapTransient(err, "casbin_error", "undo policy mutation")
+	}
+
+	return nil
+}
+
+// Apply applies a batch of group and policy changes atomically: if one
+// operation fails, every already-applied operation is rolled back, so a caller
+// never observes half a batch. Rollback is best-effort — a store that fails on
+// the way in can fail on the way out too, and that is reported on the returned
+// error rather than hidden.
+//
+// The role hierarchy is seeded for every domain the batch grants into, so an
+// inheritance edge exists before the grant that relies on it.
 func (a *Authz) Apply(update PolicyUpdate) error {
 	if a.enforcer == nil {
 		return ErrEnforcerNotInitialized
 	}
 
 	for _, g := range update.AddGroups {
-		if _, err := a.enforcer.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
-			return wrapGroupError(err, "add", g)
+		if err := a.ensureRoleHierarchy(g.Domain); err != nil {
+			return err
 		}
 	}
 
+	return applyPolicyUpdate(a.enforcer, update)
+}
+
+func applyPolicyUpdate(m policyMutator, update PolicyUpdate) error {
+	var applied []undoOp
+
+	for _, g := range update.AddGroups {
+		if err := applyAddGroup(m, &applied, g); err != nil {
+			return rollback(m, applied, err)
+		}
+	}
 	for _, p := range update.AddPolicies {
-		if _, err := a.enforcer.AddPolicy(policyArgs(p)...); err != nil {
-			return wrapPolicyError(err, "add", p)
+		if err := applyAddPolicy(m, &applied, p); err != nil {
+			return rollback(m, applied, err)
 		}
 	}
-
 	for _, g := range update.RemoveGroups {
-		if _, err := a.enforcer.RemoveGroupingPolicy(
-			g.Subject, string(g.Role), g.Domain,
-		); err != nil {
-			return wrapGroupError(err, "remove", g)
+		if err := applyRemoveGroup(m, &applied, g); err != nil {
+			return rollback(m, applied, err)
 		}
 	}
-
 	for _, p := range update.RemovePolicies {
-		if _, err := a.enforcer.RemovePolicy(policyArgs(p)...); err != nil {
-			return wrapPolicyError(err, "remove", p)
+		if err := applyRemovePolicy(m, &applied, p); err != nil {
+			return rollback(m, applied, err)
 		}
 	}
 
 	return nil
+}
+
+func applyAddGroup(m policyMutator, applied *[]undoOp, g GroupPolicy) error {
+	args := []any{g.Subject, string(g.Role), g.Domain}
+	changed, err := m.AddGroupingPolicy(args...)
+	if err != nil {
+		return wrapGroupError(err, "add", g)
+	}
+	if changed {
+		*applied = append(*applied, undoOp{kind: undoRemoveGroup, args: args})
+	}
+
+	return nil
+}
+
+func applyAddPolicy(m policyMutator, applied *[]undoOp, p Policy) error {
+	args := policyArgs(p)
+	changed, err := m.AddPolicy(args...)
+	if err != nil {
+		return wrapPolicyError(err, "add", p)
+	}
+	if changed {
+		*applied = append(*applied, undoOp{kind: undoRemovePolicy, args: args})
+	}
+
+	return nil
+}
+
+func applyRemoveGroup(m policyMutator, applied *[]undoOp, g GroupPolicy) error {
+	args := []any{g.Subject, string(g.Role), g.Domain}
+	changed, err := m.RemoveGroupingPolicy(args...)
+	if err != nil {
+		return wrapGroupError(err, "remove", g)
+	}
+	if changed {
+		*applied = append(*applied, undoOp{kind: undoAddGroup, args: args})
+	}
+
+	return nil
+}
+
+func applyRemovePolicy(m policyMutator, applied *[]undoOp, p Policy) error {
+	args := policyArgs(p)
+	changed, err := m.RemovePolicy(args...)
+	if err != nil {
+		return wrapPolicyError(err, "remove", p)
+	}
+	if changed {
+		*applied = append(*applied, undoOp{kind: undoAddPolicy, args: args})
+	}
+
+	return nil
+}
+
+// rollback reverses applied operations in reverse order and returns cause,
+// annotated when the rollback itself could not complete.
+func rollback(m policyMutator, applied []undoOp, cause error) error {
+	var failed []string
+	for _, a := range slices.Backward(applied) {
+		if err := a.apply(m); err != nil {
+			failed = append(failed, err.Error())
+		}
+	}
+
+	if len(failed) > 0 {
+		return errorfamily.WrapTransient(cause, "casbin_error",
+			"apply rolled back incompletely: "+strings.Join(failed, "; "))
+	}
+
+	return cause
 }
 
 // AddPolicy adds a single RBAC policy rule.
@@ -64,8 +194,17 @@ func (a *Authz) mutatePolicy(p Policy, action string, fn func(...any) (bool, err
 	return nil
 }
 
-// AddGroupPolicy assigns a role to a subject in a domain.
+// AddGroupPolicy assigns a role to a subject in a domain, seeding the role
+// hierarchy for that domain first so inherited permissions resolve.
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
+	if a.enforcer == nil {
+		return ErrEnforcerNotInitialized
+	}
+
+	if err := a.ensureRoleHierarchy(g.Domain); err != nil {
+		return err
+	}
+
 	return a.mutateGroupPolicy(g, "add", a.enforcer.AddGroupingPolicy)
 }
 

@@ -120,6 +120,132 @@ out=$(bash "$GATE" --bogus 2>&1)
 rc=$?
 check 7 2 "usage" "$rc" "$out"
 
+# Cases 8-9: the family walk demands each submodule's OWN required version,
+# not the candidate's tag (multi-train families — httputil root v1.4.x +
+# server_timing v1.0.x — must not be swept onto the root's version). A
+# same-version family (templ-components) is still caught: the parent's
+# require line carries the (placeholder or missing) version verbatim, and
+# fetching exactly that version is what fails. Exercised offline through a
+# file:// stub proxy.
+PROXY="$WORK/proxy"
+mkdir -p "$PROXY/github.com/example/family/@v" "$PROXY/github.com/example/family/sub/@v"
+cat >"$PROXY/github.com/example/family/@v/v1.4.2.mod" <<'EOF'
+module github.com/example/family
+
+go 1.27
+
+require (
+	github.com/example/family/sub v1.0.1
+)
+EOF
+cat >"$PROXY/github.com/example/family/sub/@v/v1.0.1.mod" <<'EOF'
+module github.com/example/family/sub
+
+go 1.27
+EOF
+
+# Case 8: multi-train family — the submodule is healthy at its own version.
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.2 2>&1)
+rc=$?
+check 8 0 "is consumable" "$rc" "$out"
+
+# Case 9: the parent requires a submodule version the proxy does not have.
+cat >"$PROXY/github.com/example/family/@v/v1.4.3.mod" <<'EOF'
+module github.com/example/family
+
+go 1.27
+
+require (
+	github.com/example/family/sub v1.0.2
+)
+EOF
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.3 2>&1)
+rc=$?
+check 9 1 "no published v1.0.2" "$rc" "$out"
+
+# Case 10: a submodule whose OWN go.mod carries a placeholder is caught at ITS
+# version (the templ-components v1.20.0 submodule-poison class, now labeled
+# with the submodule's own train instead of the parent's tag).
+cat >"$PROXY/github.com/example/family/sub/@v/v1.0.1.mod" <<'EOF'
+module github.com/example/family/sub
+
+go 1.27
+
+require (
+	github.com/example/family/deep v1.0.0-00010101000000-000000000000
+)
+EOF
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.2 2>&1)
+rc=$?
+check 10 1 "sub@v1.0.1 is unconsumable (placeholder sub-requires)" "$rc" "$out"
+
+# Case 11: a parenthesized replace block in the parent's go.mod must NOT be
+# parsed as versioned requires (the "no published =>" false positive, hit
+# live 2026-10-14 on go-output root v0.38.5 — four family replace lines read
+# as unpublished requires and aborted a legitimate sweep).
+# (Restore the clean sub@v1.0.1 fixture — case 10 poisoned it deliberately.)
+cat >"$PROXY/github.com/example/family/sub/@v/v1.0.1.mod" <<'EOF'
+module github.com/example/family/sub
+
+go 1.27
+EOF
+cat >"$PROXY/github.com/example/family/@v/v1.4.4.mod" <<'EOF'
+module github.com/example/family
+
+go 1.27
+
+require (
+	github.com/example/family/sub v1.0.1
+)
+
+replace (
+	github.com/example/family => ./
+	github.com/example/family/sub => ./sub
+)
+EOF
+out=$(GOPROXY_BASE="file://$PROXY" bash "$GATE" github.com/example/family v1.4.4 2>&1)
+rc=$?
+check 11 0 "is consumable" "$rc" "$out"
+if printf '%s' "$out" | grep -q '=>'; then
+  echo "  FAIL 11b: replace directive leaked into the walk output" >&2
+  fail=$((fail + 1))
+else
+  echo "  ok 11b: replace block ignored"
+  pass=$((pass + 1))
+fi
+
+# Case 12: a REAL HTTP 404 (curl rc 22) is rc 1 — the go-output daghtml
+# v0.38.5 class (2026-10-14): the `if ! curl; then curl_rc=$?` negation trap
+# read $? as 0 and misclassified every 404 as "unreachable" (rc 2), so
+# bump-dep's pre-flight warned-and-continued onto untagged versions. A
+# localhost python server provides a genuine 404 without network.
+HTTPROOT="$(mktemp -d "$WORK/http-XXXXXX")"
+mkdir -p "$HTTPROOT/github.com/example/family/@v"
+printf 'module github.com/example/family\n\ngo 1.27\n' \
+  >"$HTTPROOT/github.com/example/family/@v/v1.5.0.mod"
+HTTPPORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
+python3 -m http.server --bind 127.0.0.1 "$HTTPPORT" --directory "$HTTPROOT" >/dev/null 2>&1 &
+HTTPD_PID=$!
+trap 'kill "$HTTPD_PID" 2>/dev/null; rm -rf "$WORK"' EXIT
+sleep 0.5
+if ! kill -0 "$HTTPD_PID" 2>/dev/null; then
+  echo "  FAIL 12: localhost http.server did not start" >&2
+  fail=$((fail + 1))
+else
+  out=$(GOPROXY_BASE="http://127.0.0.1:$HTTPPORT" bash "$GATE" github.com/example/family v1.5.0 2>&1)
+  rc=$?
+  check 12a 0 "is consumable" "$rc" "$out"
+  out=$(GOPROXY_BASE="http://127.0.0.1:$HTTPPORT" bash "$GATE" github.com/example/family v9.9.9 2>&1)
+  rc=$?
+  check 12b 1 "UNPUBLISHED on the module proxy (404)" "$rc" "$out"
+fi
+
+# Case 13: connection-refused is a TOOL FAILURE (rc 2), never a finding —
+# bump-dep degrades to WARNING+continue for exactly this rc, never for 404.
+out=$(GOPROXY_BASE="http://127.0.0.1:1" bash "$GATE" github.com/example/family v1.5.0 2>&1)
+rc=$?
+check 13 2 "TOOL FAILURE" "$rc" "$out"
+
 echo "pass=$pass fail=$fail"
 if [ "$fail" -ne 0 ]; then
   exit 1

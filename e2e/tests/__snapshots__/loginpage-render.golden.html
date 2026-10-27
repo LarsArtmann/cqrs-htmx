@@ -1,0 +1,350 @@
+<html lang="en" class="h-full" style="color-scheme: light;"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light dark"><title>E2E Sign in</title><meta name="description" content="Sign in to your account"><meta name="robots" content="noindex"><meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)"><meta property="og:title" content="E2E Sign in"><meta property="og:description" content="Sign in to your account"><meta property="og:type" content="website"><meta property="og:locale" content="en"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="E2E Sign in"><meta name="twitter:description" content="Sign in to your account"><script nonce="<NONCE>">
+			(function() {
+				var theme;
+				try { theme = localStorage.getItem('theme'); } catch(e) {}
+				var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				var isDark = theme === 'dark' || (!theme && prefersDark);
+				if (isDark) {
+					document.documentElement.classList.add('dark');
+				}
+				document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+			})();
+		</script><link rel="stylesheet" href="/app.css"><link rel="icon" href="data:image/svg+xml,%3Csvg+xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27+viewBox%3D%270+0+100+100%27%3E%3Crect+width%3D%27100%27+height%3D%27100%27+rx%3D%2720%27+fill%3D%27%234f46e5%27%2F%3E%3Ctext+x%3D%2750%27+y%3D%2770%27+font-size%3D%2760%27+text-anchor%3D%27middle%27+fill%3D%27white%27+font-family%3D%27sans-serif%27+font-weight%3D%27bold%27%3Ec%3C%2Ftext%3E%3C%2Fsvg%3E"><meta name="csrf-token" content="<CSRF>"></head><body class="bg-white text-gray-900 antialiased min-h-dvh flex flex-col scroll-smooth motion-reduce:scroll-auto selection:bg-blue-100 dark:selection:bg-blue-900 selection:text-blue-900 dark:selection:text-blue-100 dark:bg-gray-950 dark:text-gray-100"><a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-50 focus:bg-blue-600 dark:focus:bg-blue-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-md focus:shadow-lg focus:outline-hidden focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 focus:ring-blue-500 dark:focus:ring-blue-400">Skip to main content</a> <main id="main-content" tabindex="-1" class="flex-1"><div class="flex min-h-dvh flex-col items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900"><div class="w-full max-w-sm"><div class="mb-8 text-center"><h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">cqrs-htmx e2e</h1><p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Sign in to your account</p></div><div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-8 dark:border-gray-700 dark:bg-gray-800 dark:shadow-black/20"><div id="lp-error" class="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 hidden" role="alert" aria-live="polite"></div><section id="lp-login-section" class="lp-section"><form id="lp-login-form" class="space-y-4"><label for="lp-email" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Email <span class="text-red-500 dark:text-red-400 ms-0.5" aria-hidden="true">*</span></label><div class="relative"><input type="email" name="email" id="lp-email" value="" placeholder="you@example.com" enterkeyhint="next" inputmode="email" class="block border-0 caret-blue-600 dark:bg-gray-800 dark:caret-blue-400 dark:focus:ring-blue-500 dark:placeholder:text-gray-500 dark:ring-gray-700 dark:text-white focus:ring-2 focus:ring-blue-600 focus:ring-inset placeholder:text-gray-400 px-3 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-xs sm:leading-6 sm:text-sm text-gray-900 transition-colors w-full" required="" aria-required="true" autofocus="" autocomplete="email"></div><button id="lp-login-btn" type="submit" class="bg-blue-600 cursor-pointer dark:bg-blue-500 dark:focus-visible:outline-blue-500 dark:hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 focus-visible:outline-offset-2 font-semibold gap-2 hover:bg-blue-500 inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-white transition-colors w-full"><span class="hidden lp-spinner" aria-hidden="true"><svg class="animate-spin h-4 motion-reduce:animate-none shrink-0 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>Sign in with passkey</button></form><div id="lp-no-webauthn" class="hidden mt-4 text-center"><p>Your browser does not support passkeys.</p><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Use a modern browser (Chrome, Firefox, Safari, or Edge) or try SSO if available.</p></div><p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">Don't have an account? <a href="#" id="lp-show-register" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Create one</a></p></section>  <section id="lp-register-section" class="hidden lp-section"><form id="lp-register-form" class="space-y-4"><label for="lp-reg-email" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Email <span class="text-red-500 dark:text-red-400 ms-0.5" aria-hidden="true">*</span></label><div class="relative"><input type="email" name="email" id="lp-reg-email" value="" placeholder="you@example.com" enterkeyhint="next" inputmode="email" class="block border-0 caret-blue-600 dark:bg-gray-800 dark:caret-blue-400 dark:focus:ring-blue-500 dark:placeholder:text-gray-500 dark:ring-gray-700 dark:text-white focus:ring-2 focus:ring-blue-600 focus:ring-inset placeholder:text-gray-400 px-3 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-xs sm:leading-6 sm:text-sm text-gray-900 transition-colors w-full" required="" aria-required="true" autocomplete="email"></div><label for="lp-reg-name" class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Display name </label><div class="relative"><input type="text" name="display_name" id="lp-reg-name" value="" placeholder="Your name" class="block border-0 caret-blue-600 dark:bg-gray-800 dark:caret-blue-400 dark:focus:ring-blue-500 dark:placeholder:text-gray-500 dark:ring-gray-700 dark:text-white focus:ring-2 focus:ring-blue-600 focus:ring-inset placeholder:text-gray-400 px-3 py-1.5 ring-1 ring-gray-300 ring-inset rounded-md shadow-xs sm:leading-6 sm:text-sm text-gray-900 transition-colors w-full" autocomplete="name"></div><button id="lp-register-btn" type="submit" class="bg-blue-600 cursor-pointer dark:bg-blue-500 dark:focus-visible:outline-blue-500 dark:hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 focus-visible:outline-offset-2 font-semibold gap-2 hover:bg-blue-500 inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-white transition-colors w-full"><span class="hidden lp-spinner" aria-hidden="true"><svg class="animate-spin h-4 motion-reduce:animate-none shrink-0 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>Create account</button></form><p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">Already have an account? <a href="#" id="lp-show-login" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Sign in</a></p></section></div></div></div><input type="hidden" name="csrf_token" value="<CSRF>"> <script id="loginpage-config" type="application/json" nonce="<NONCE>">{"redirect":"/post-login","endpoints":{"loginBegin":"/auth/webauthn/login/begin","loginFinish":"/auth/webauthn/login/finish","register":"/auth/register","registerBegin":"/auth/webauthn/register/begin","registerFinish":"/auth/webauthn/register/finish"},"credentialName":"Passkey"}</script> <script nonce="<NONCE>">(function () {
+  "use strict";
+
+  var config =
+    typeof document !== "undefined"
+      ? JSON.parse(document.getElementById("loginpage-config").textContent)
+      : null;
+
+  // ── Base64URL helpers ────────────────────────────────────────────
+  function b64uToBuf(b64u) {
+    var b64 = b64u.replace(/-/g, "+").replace(/_/g, "/");
+    var pad = b64.length % 4;
+    if (pad) b64 += "=".repeat(4 - pad);
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  function bufToB64u(buf) {
+    var bytes = new Uint8Array(buf);
+    var bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  }
+
+  // ── CSRF ────────────────────────────────────────────────────────
+  function csrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute("content") : "";
+  }
+
+  function post(url, body) {
+    return fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken(),
+      },
+      body: typeof body === "string" ? body : JSON.stringify(body),
+      credentials: "same-origin",
+    });
+  }
+
+  async function postJSON(url, body) {
+    var resp = await post(url, body);
+    if (!resp.ok) throw await apiError(resp);
+    return resp.json();
+  }
+
+  async function postRaw(url, body) {
+    var resp = await post(url, body);
+    if (!resp.ok) throw await apiError(resp);
+    return resp;
+  }
+
+  async function apiError(resp) {
+    var msg = "Request failed (" + resp.status + ")";
+    try {
+      var data = await resp.json();
+      msg = data.error || data.detail || data.title || data.message || msg;
+    } catch (_) {}
+    var err = new Error(msg);
+    err.status = resp.status;
+    return err;
+  }
+
+  // ── WebAuthn option preparation ─────────────────────────────────
+  // usermgmt's begin endpoints return the browser options wrapped in a
+  // {"publicKey": {...}} envelope (the WebAuthn API's own parameter shape,
+  // pinned by usermgmt's stub and provider tests). Both preparers unwrap
+  // that envelope first, so a bare options object keeps working too.
+  function unwrapPublicKeyEnvelope(opts) {
+    if (opts && opts.publicKey && typeof opts.publicKey === "object") {
+      return opts.publicKey;
+    }
+    return opts;
+  }
+
+  function prepareLoginOptions(opts) {
+    var src = unwrapPublicKeyEnvelope(opts);
+    var p = Object.assign({}, src);
+    p.challenge = b64uToBuf(src.challenge);
+    if (src.allowCredentials) {
+      p.allowCredentials = src.allowCredentials.map(function (c) {
+        return { type: c.type, id: b64uToBuf(c.id), transports: c.transports };
+      });
+    }
+    return p;
+  }
+
+  function prepareRegOptions(opts) {
+    var src = unwrapPublicKeyEnvelope(opts);
+    var p = Object.assign({}, src);
+    p.challenge = b64uToBuf(src.challenge);
+    if (src.user) {
+      p.user = Object.assign({}, src.user, { id: b64uToBuf(src.user.id) });
+    }
+    if (src.excludeCredentials) {
+      p.excludeCredentials = src.excludeCredentials.map(function (c) {
+        return { type: c.type, id: b64uToBuf(c.id), transports: c.transports };
+      });
+    }
+    return p;
+  }
+
+  // ── Credential serialization ────────────────────────────────────
+  function serializeAssertion(cred) {
+    var r = cred.response;
+    var out = {
+      id: cred.id,
+      rawId: bufToB64u(cred.rawId),
+      type: cred.type,
+      response: {
+        authenticatorData: bufToB64u(r.authenticatorData),
+        clientDataJSON: bufToB64u(r.clientDataJSON),
+        signature: bufToB64u(r.signature),
+      },
+    };
+    if (r.userHandle) out.response.userHandle = bufToB64u(r.userHandle);
+    if (cred.getClientExtensionResults)
+      out.clientExtensionResults = cred.getClientExtensionResults();
+    return out;
+  }
+
+  function serializeAttestation(cred) {
+    var r = cred.response;
+    var out = {
+      id: cred.id,
+      rawId: bufToB64u(cred.rawId),
+      type: cred.type,
+      response: {
+        attestationObject: bufToB64u(r.attestationObject),
+        clientDataJSON: bufToB64u(r.clientDataJSON),
+      },
+    };
+    if (cred.getClientExtensionResults)
+      out.clientExtensionResults = cred.getClientExtensionResults();
+    return out;
+  }
+
+  // ── Friendly error messages ─────────────────────────────────────
+  function friendlyError(err) {
+    if (err.name === "NotAllowedError") return "Passkey prompt was cancelled or timed out.";
+    if (err.name === "SecurityError") return "This domain is not authorized for passkeys.";
+    if (err.name === "AbortError") return "Operation was aborted.";
+    return err.message || "An unexpected error occurred.";
+  }
+
+  function isWebAuthnError(err) {
+    return (
+      err.name === "NotAllowedError" || err.name === "SecurityError" || err.name === "AbortError"
+    );
+  }
+
+  // ── UI helpers ──────────────────────────────────────────────────
+  // The loading spinner is server-rendered inside each submit button (the
+  // library's feedback.Spinner behind an lp-spinner hook) and starts
+  // hidden — setLoading only toggles visibility, so the JS injects no
+  // markup at runtime.
+
+  function showError(msg) {
+    var el = document.getElementById("lp-error");
+    if (el) {
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+  }
+
+  function hideError() {
+    var el = document.getElementById("lp-error");
+    if (el) el.classList.add("hidden");
+  }
+
+  function setLoading(btnId, loading) {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    var spinner = btn.querySelector(".lp-spinner");
+    if (spinner) spinner.classList.toggle("hidden", !loading);
+  }
+
+  function showSection(id) {
+    var sections = document.querySelectorAll(".lp-section");
+    for (var i = 0; i < sections.length; i++) {
+      sections[i].classList.toggle("hidden", sections[i].id !== id);
+    }
+  }
+
+  function isWebAuthnSupported() {
+    return typeof window.PublicKeyCredential !== "undefined";
+  }
+
+  function showWebAuthnUnsupported() {
+    var form = document.getElementById("lp-login-form");
+    if (form) form.classList.add("hidden");
+    var regLink = document.getElementById("lp-show-register");
+    if (regLink) regLink.classList.add("hidden");
+    var fallback = document.getElementById("lp-no-webauthn");
+    if (fallback) fallback.classList.remove("hidden");
+  }
+
+  // ── Login flow ──────────────────────────────────────────────────
+  async function doLogin(email) {
+    hideError();
+    setLoading("lp-login-btn", true);
+    try {
+      // 1. Begin login
+      var begin = await postJSON(config.endpoints.loginBegin, { email: email });
+
+      // 2. Browser prompt
+      var cred = await navigator.credentials.get({
+        publicKey: prepareLoginOptions(begin.options),
+      });
+
+      // 3. Finish login
+      var finishUrl =
+        config.endpoints.loginFinish + "?user_id=" + encodeURIComponent(begin.session_key);
+      await postRaw(finishUrl, JSON.stringify(serializeAssertion(cred)));
+
+      // 4. Redirect on success
+      window.location.href = config.redirect;
+    } catch (err) {
+      showError(isWebAuthnError(err) ? friendlyError(err) : err.message);
+    } finally {
+      setLoading("lp-login-btn", false);
+    }
+  }
+
+  // ── Registration flow ───────────────────────────────────────────
+  async function doRegister(email, displayName) {
+    hideError();
+    setLoading("lp-register-btn", true);
+    try {
+      // 1. Register user (server auto-generates the ID)
+      var regResp = await postJSON(config.endpoints.register, {
+        email: email,
+        display_name: displayName,
+      });
+
+      // 2. Begin WebAuthn registration (using server-assigned user ID)
+      var begin = await postJSON(config.endpoints.registerBegin, {
+        user_id: regResp.user.id,
+      });
+
+      // 3. Browser prompt
+      var cred = await navigator.credentials.create({
+        publicKey: prepareRegOptions(begin.options),
+      });
+
+      // 4. Finish registration
+      var finishUrl =
+        config.endpoints.registerFinish +
+        "?user_id=" +
+        encodeURIComponent(regResp.user.id) +
+        "&credential_name=" +
+        encodeURIComponent(config.credentialName || "Passkey");
+      await postRaw(finishUrl, JSON.stringify(serializeAttestation(cred)));
+
+      // 5. Redirect on success
+      window.location.href = config.redirect;
+    } catch (err) {
+      showError(isWebAuthnError(err) ? friendlyError(err) : err.message);
+    } finally {
+      setLoading("lp-register-btn", false);
+    }
+  }
+
+  // ── Event wiring ────────────────────────────────────────────────
+  // Skipped under the Node test harness (no DOM); the pure helpers above
+  // remain exported for tests.
+  if (typeof document !== "undefined") {
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!isWebAuthnSupported()) showWebAuthnUnsupported();
+
+      var loginForm = document.getElementById("lp-login-form");
+      if (loginForm) {
+        loginForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var email = document.getElementById("lp-email").value.trim();
+          if (!email) {
+            showError("Please enter your email address.");
+            return;
+          }
+          doLogin(email);
+        });
+      }
+
+      var regForm = document.getElementById("lp-register-form");
+      if (regForm) {
+        regForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var email = document.getElementById("lp-reg-email").value.trim();
+          var name = document.getElementById("lp-reg-name").value.trim();
+          if (!email) {
+            showError("Please enter your email address.");
+            return;
+          }
+          doRegister(email, name);
+        });
+      }
+
+      var showReg = document.getElementById("lp-show-register");
+      if (showReg) {
+        showReg.addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("lp-register-section");
+          hideError();
+        });
+      }
+
+      var showLogin = document.getElementById("lp-show-login");
+      if (showLogin) {
+        showLogin.addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("lp-login-section");
+          hideError();
+        });
+      }
+    });
+  }
+
+  // Node test-harness export (module is undefined in browsers, so this
+  // block is inert when the file is served to a page).
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      b64uToBuf: b64uToBuf,
+      bufToB64u: bufToB64u,
+      unwrapPublicKeyEnvelope: unwrapPublicKeyEnvelope,
+      prepareLoginOptions: prepareLoginOptions,
+      prepareRegOptions: prepareRegOptions,
+      serializeAssertion: serializeAssertion,
+      serializeAttestation: serializeAttestation,
+      friendlyError: friendlyError,
+      isWebAuthnError: isWebAuthnError,
+    };
+  }
+})();
+</script></main></body></html>

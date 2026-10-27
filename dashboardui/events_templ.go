@@ -17,7 +17,7 @@ import (
 )
 
 // ===== Event Stream Browser =====
-func eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) templ.Component {
+func eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -38,7 +38,7 @@ func eventsPage(p pageData, events []event.Event, page paginationState, filter e
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = layout(p, eventsContent(p, events, page, filter, sortBy)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout(p, eventsContent(p, events, page, filter, sortBy, windowCount)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -46,7 +46,7 @@ func eventsPage(p pageData, events []event.Event, page paginationState, filter e
 	})
 }
 
-func eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) templ.Component {
+func eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState, windowCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -79,8 +79,8 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 			if filter.Active() {
 				templ_7745c5c3_Err = emptyStatePanel(
 					icons.Search,
-					"No matching events",
-					"No events match the current filters. Try adjusting or clearing them.",
+					p.empty[EmptyStateEventsFiltered].Title,
+					p.empty[EmptyStateEventsFiltered].Message,
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -88,8 +88,8 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 			} else {
 				templ_7745c5c3_Err = emptyStatePanel(
 					icons.QueueList,
-					"No events yet",
-					"Events will appear here as they are committed to the store.",
+					p.empty[EmptyStateEvents].Title,
+					p.empty[EmptyStateEvents].Message,
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -105,7 +105,7 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 					eventSortHeader(p.BasePath, "Version", "version", sortBy, filter.ExtraParams()),
 				},
 				"events-tbody",
-				eventsTableRows(p.BasePath, events),
+				eventsTableRows(p.BasePath, p.Nonce, events),
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -114,8 +114,8 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if sortBy.Active() {
-				templ_7745c5c3_Err = badge(fmt.Sprintf("sorted view: first %d events", filterScanLimit), display.BadgeNeutral).Render(ctx, templ_7745c5c3_Buffer)
+			if windowCount > 0 {
+				templ_7745c5c3_Err = badge(fmt.Sprintf("sorted view: newest %d events (scan cap %d)", windowCount, filterScanLimit), display.BadgeNeutral).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -132,7 +132,7 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = formatLinksNav(p.BasePath, "/events").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = formatLinksNav(p.BasePath, "/events", combinedFilterSortParams(filter, sortBy)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -141,7 +141,7 @@ func eventsContent(p pageData, events []event.Event, page paginationState, filte
 	})
 }
 
-func eventsTableRows(basePath string, events []event.Event) templ.Component {
+func eventsTableRows(basePath, nonce string, events []event.Event) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -209,7 +209,7 @@ func eventsTableRows(basePath string, events []event.Event) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(evt.StreamID().String(), listIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 58, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 59, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -219,7 +219,7 @@ func eventsTableRows(basePath string, events []event.Event) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = copyButton(evt.StreamID().String(), "").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = copyButton(evt.StreamID().String(), "", nonce).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -230,7 +230,7 @@ func eventsTableRows(basePath string, events []event.Event) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(string(evt.StreamType()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 60, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 61, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -243,7 +243,7 @@ func eventsTableRows(basePath string, events []event.Event) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(evt.Version().String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 61, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 62, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -291,7 +291,7 @@ func eventFilterBar(basePath string, filter eventFilter) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(basePath + "/events")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 74, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 75, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
@@ -387,7 +387,7 @@ func eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payl
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(string(evt.Type()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 95, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 97, Col: 29}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -412,13 +412,13 @@ func eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payl
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(evt.ID().String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 98, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 101, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = copyButton(evt.ID().String(), "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = copyButton(evt.ID().String(), "", p.Nonce).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -462,7 +462,7 @@ func eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payl
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = definitionList(eventMetaItems(evt, evt.Metadata())).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = definitionList(eventMetaItems(evt, evt.Metadata(), p.Nonce)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -480,7 +480,7 @@ func eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payl
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = copyButton(string(payload), "Copy Payload").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = copyButton(string(payload), "Copy Payload", p.Nonce).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -495,7 +495,7 @@ func eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payl
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(string(payload))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 130, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `events.templ`, Line: 133, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {

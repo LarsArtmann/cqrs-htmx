@@ -24,7 +24,7 @@ var (
 	// ErrUserIDExists is returned when attempting to create a user with an ID that already exists.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrUserIDExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrUserIDExists, http.StatusNotFound)
+	ErrUserIDExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrUserIDExists, http.StatusConflict)
 	// ErrEmailExists is returned when attempting to register an email that is already taken.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
@@ -56,15 +56,15 @@ var (
 	// ErrForbidden is returned when an authorization check denies access.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrForbidden = identitymodel.ErrForbidden
+	ErrForbidden error = identitymodel.ErrForbidden
 	// ErrUnauthorized is returned when authentication is required but missing or invalid.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrUnauthorized = identitymodel.ErrUnauthorized
+	ErrUnauthorized error = identitymodel.ErrUnauthorized
 	// ErrValidation is returned when input validation fails (e.g. invalid email).
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrValidation = identitymodel.ErrValidation
+	ErrValidation error = identitymodel.ErrValidation
 	// ErrAccountLocked is returned when login is rejected because the account exceeded the
 	// maximum allowed failed attempts.
 	//
@@ -85,7 +85,7 @@ var (
 	// invalid, already used, or expired.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrInvalidVerificationToken = identitymodel.ErrInvalidVerificationToken
+	ErrInvalidVerificationToken error = identitymodel.ErrInvalidVerificationToken
 	// ErrEmailAlreadyVerified is returned when verification is requested for
 	// an already-verified email.
 	//
@@ -102,7 +102,7 @@ var (
 	// ErrTOTPNotEnabled is returned when TOTP verification is requested for a user without TOTP.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrTOTPNotEnabled = identitymodel.ErrTOTPNotEnabled
+	ErrTOTPNotEnabled error = identitymodel.ErrTOTPNotEnabled
 	// ErrInvalidTOTPCode is returned when the provided TOTP code is invalid.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
@@ -110,7 +110,7 @@ var (
 	// ErrTOTPSetupExpired is returned when the pending TOTP setup has expired.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrTOTPSetupExpired = identitymodel.ErrTOTPSetupExpired
+	ErrTOTPSetupExpired error = identitymodel.ErrTOTPSetupExpired
 	// ErrOAuthNotConfigured is returned when OAuth2 is used without being configured.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
@@ -122,11 +122,11 @@ var (
 	// ErrOAuthInvalidState is returned when the state token is invalid, expired, or missing.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrOAuthInvalidState = identitymodel.ErrOAuthInvalidState
+	ErrOAuthInvalidState error = identitymodel.ErrOAuthInvalidState
 	// ErrOAuthTokenExchange is returned when exchanging the authorization code for a token fails.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrOAuthTokenExchange = identitymodel.ErrOAuthTokenExchange
+	ErrOAuthTokenExchange error = identitymodel.ErrOAuthTokenExchange
 	// ErrExternalAccountAlreadyLinked is returned when an external account
 	// (provider+subject pair) is already linked to a different user.
 	ErrExternalAccountAlreadyLinked = cqrshtmx.WithHTTPStatus(

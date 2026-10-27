@@ -141,9 +141,10 @@ func TestRenderPartial_RenderError(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.Header.Set("HX-Request", "true")
 	renderPartial(w, r, errorComponent{})
-	// renderPartial does NOT set 500 — it just logs and returns
-	if w.Body.Len() > 0 {
-		t.Errorf("renderPartial with error component should write nothing, got %q", w.Body.String())
+	// S36: a failed partial render must answer 500 — htmx swaps 200 responses
+	// into the DOM, so a truncated fragment would silently corrupt the page.
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("renderPartial with error component: status = %d, want %d", w.Code, http.StatusInternalServerError)
 	}
 }
 

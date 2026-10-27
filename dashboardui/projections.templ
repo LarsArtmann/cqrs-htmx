@@ -19,7 +19,7 @@ templ projectionsPage(p pageData, projs []projectionStat) {
 
 templ projectionsContent(p pageData, projs []projectionStat) {
 	if len(projs) == 0 {
-		@emptyStatePanel(icons.ArrowPath, "No projections registered", "")
+		@emptyStatePanel(icons.ArrowPath, p.empty[EmptyStateProjections].Title, p.empty[EmptyStateProjections].Message)
 	} else {
 		<h2>Projections</h2>
 		@rawDataTable(
@@ -43,7 +43,7 @@ templ projectionsContent(p pageData, projs []projectionStat) {
 templ projectionRows(p pageData, projs []projectionStat) {
 	for _, proj := range projs {
 		<tr>
-			<td class="cell-emph"><a href={ p.BasePath + "/projections/" + proj.Name }>{ proj.Name }</a></td>
+			<td class="cell-emph"><a href={ p.BasePath + "/projections/" + pathSeg(proj.Name) }>{ proj.Name }</a></td>
 			<td>@badge(proj.Status, statusKindToBadgeType(proj.StatusKind))</td>
 			<td class="mono">{ proj.Lag }</td>
 			<td>{ strconv.FormatInt(proj.Processed, 10) }</td>
@@ -57,7 +57,7 @@ templ projectionRows(p pageData, projs []projectionStat) {
 			}
 			<td>
 				if proj.Errors > 0 || p.Caps.DeadLetterStore || p.Caps.ProjectionHost {
-					@buttonLink(fmt.Sprintf("DLQ (%d)", proj.Errors), p.BasePath+"/dead-letters/"+proj.Name, "View dead letters for "+proj.Name, display.ButtonSecondary, false)
+					@buttonLink(fmt.Sprintf("DLQ (%d)", proj.Errors), p.BasePath+"/dead-letters/"+pathSeg(proj.Name), "View dead letters for "+proj.Name, display.ButtonSecondary, false)
 				}
 				if !p.ReadOnly {
 					@projectionResetForm(p, proj.Name)
@@ -72,7 +72,7 @@ templ projectionRows(p pageData, projs []projectionStat) {
 templ projectionResetForm(p pageData, name string) {
 	<form
 		method="POST"
-		action={ p.BasePath + "/projections/" + name + "/reset" }
+		action={ p.BasePath + "/projections/" + pathSeg(name) + "/reset" }
 		class="inline-form"
 		data-confirm={ fmt.Sprintf("Reset projection %s? This will re-process all events from the beginning.", name) }
 		aria-label={ fmt.Sprintf("Reset projection %s", name) }
@@ -104,7 +104,7 @@ templ projectionDetailContent(p pageData, proj projectionStat) {
 		@statCard("stat-lag-"+slug, proj.Lag, "Lag", display.StatToneBlue)
 	}
 	<h3>Details</h3>
-	@definitionList(projectionDetailItems(proj))
+	@definitionList(projectionDetailItems(proj, p.Nonce))
 	<div class="filter-bar">
 		@buttonLink(
 			fmt.Sprintf("View Dead Letters (%d)", proj.Errors),

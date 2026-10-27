@@ -1,9 +1,12 @@
 // Package identitymodel contains the pure domain model types for event-sourced
 // identity management: Users, Tenants/Orgs, Sessions, Auth, and RBAC.
 //
-// This module is dependency-free from infrastructure concerns — no HTTP
-// frameworks, no SQL drivers, no Casbin. It defines the WHAT (types, events,
-// commands, states), not the HOW (storage, transport, enforcement).
+// This module has no HTTP or SQL dependencies — it defines the WHAT (types,
+// events, commands, states, and the Casbin-backed Authz enforcement engine),
+// not the HOW (storage, transport). Casbin IS a first-class dependency here:
+// the authorization model, default policies, and role hierarchy are domain
+// concepts and live in this package; only the enforcer's POLICY STORAGE is
+// injected by consumers.
 //
 // The module is designed to be imported by implementation packages (like
 // usermgmt) which provide the infrastructure: SQL event stores, HTTP handlers,

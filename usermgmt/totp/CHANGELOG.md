@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Negative `Window` is clamped to the default (2026-10-25, S39).** `ValidateCode` widens the acceptance window via `uint(Skew)`, so `Window: -3` silently became a ~4-billion-step (multi-year) skew instead of an error; `New` clamps any `Window <= 0` to the default of 1. Pinned by `TestNewNegativeWindowClampedToDefault`.
+
+## [v4.12.1] - 2026-10-11
+
+### Changed
+
+- **Dependency/floor alignment (2026-10-11 wave):** go-error-family v0.10.2 and the 1.27.2 toolchain floor (GO-2026-6603/6611/6613/6617). No API change.
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added

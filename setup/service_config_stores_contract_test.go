@@ -92,8 +92,8 @@ func (stubWebAuthn) BeginLogin(_ context.Context, _ []byte) ([]byte, []byte, err
 	return []byte(`{"publicKey":{}}`), []byte(`{}`), nil
 }
 
-func (stubWebAuthn) FinishLogin(_ context.Context, _, _, _ []byte) error {
-	return nil
+func (stubWebAuthn) FinishLogin(_ context.Context, _, _, _ []byte) ([]byte, error) {
+	return []byte(`{"signCount":0}`), nil
 }
 
 func TestServiceConfig_CustomStores_AreTheOnesUsed(t *testing.T) {

@@ -12,7 +12,7 @@ import (
 )
 
 // errTestDispatch is a test-only dispatch error using event-family (no stdlib).
-var errTestDispatch = errorfamily.NewRejection("test.dispatch_failed", "dispatch failed")
+var errTestDispatch error = errorfamily.NewRejection("test.dispatch_failed", "dispatch failed")
 
 func TestCommandAck_JSON(t *testing.T) {
 	t.Parallel()

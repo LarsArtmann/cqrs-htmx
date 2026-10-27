@@ -27,10 +27,14 @@ func renderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
 }
 
 // renderPartial writes a templ fragment for an HTMX swap (no full document).
+// A render failure must answer non-200: htmx treats 200 as success and would
+// swap a truncated fragment into the DOM silently, so the error path mirrors
+// renderPage's explicit 500.
 func renderPartial(w http.ResponseWriter, r *http.Request, c templ.Component) {
 	setHTMLNoStoreHeaders(w)
 	if err := c.Render(r.Context(), w); err != nil {
 		slog.ErrorContext(r.Context(), "adminui: render partial", "error", err)
+		http.Error(w, "render error", http.StatusInternalServerError)
 	}
 }
 

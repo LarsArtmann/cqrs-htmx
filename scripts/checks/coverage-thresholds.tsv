@@ -1,0 +1,21 @@
+# Single source for per-module coverage thresholds (canary g, 2026-10-26).
+# Consumed by: nix run .#coverage-gate AND the CI coverage-check steps via
+# scripts/checks/check-coverage-threshold.sh. A row is either a MODULE dir
+# (has go.mod; profile <module>/coverage.out) or a PACKAGE row (no go.mod;
+# measured as ./<pkg>/... from the parent module — dashboardui/core).
+# Bump a threshold only with the coverage to justify it, in the same commit.
+.	90
+identity-model	70
+usermgmt	74
+usermgmt/totp	80
+usermgmt/webauthn	80
+usermgmt/oauth2	80
+adminui	66
+loginpage	79
+dashboardui	60
+dashboardui/core	80
+datastar	90
+setup	80
+systemadapter	70
+health	90
+auditlog	90

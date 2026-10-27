@@ -53,8 +53,11 @@ type Config struct {
 	// [ModeSuperAdmin] mode. Required when Mode == [ModeTenantAdmin].
 	TenantID identitymodel.TenantID
 
-	// AccentColor overrides the highlight color (any CSS color). Default
-	// [DefaultAccentColor].
+	// AccentColor overrides the highlight color. Must be a CSS color literal
+	// — #hex (3/4/6/8 digits), rgb()/rgba()/hsl()/hsla() with numeric
+	// components, or a named CSS color; the value is interpolated into an
+	// inline <style> block, so anything outside that grammar is rejected at
+	// [New]. Default [DefaultAccentColor].
 	AccentColor string
 
 	// Authorizer decides whether the authenticated user may use the panel.
@@ -95,6 +98,11 @@ func (config Config) withDefaults() (Config, error) {
 	config.BasePath = trimTrailingSlash(config.BasePath)
 	if config.AccentColor == "" {
 		config.AccentColor = DefaultAccentColor
+	}
+	if !isValidAccentColor(config.AccentColor) {
+		return config, errConfig(
+			"Config.AccentColor must be a CSS color literal (#hex, rgb()/rgba()/hsl()/hsla() with numeric components, or a named color); got " + config.AccentColor,
+		)
 	}
 	if config.Mode == ModeTenantAdmin && config.TenantID.Get() == "" {
 		return config, errConfig("Config.TenantID is required for ModeTenantAdmin")

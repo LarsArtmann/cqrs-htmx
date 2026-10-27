@@ -1,0 +1,24 @@
+{
+  "name": "cqrs-htmx",
+  "repo": "LarsArtmann/cqrs-htmx",
+  "forgejo": "lars/cqrs-htmx",
+  "branch": "master",
+  "build": "cd examples/catalog-demo && go build -o ../../work/bin/catalog-demo .",
+  "export": [
+    "work/bin/catalog-demo",
+    "-eventcatalog",
+    "work/out/cqrs-htmx/eventcatalog",
+    "-export-only"
+  ],
+  "tree": "work/out/cqrs-htmx/eventcatalog",
+  "lint": {
+    "export": [
+      "work/bin/catalog-demo",
+      "-eventcatalog",
+      "work/lint/cqrs-htmx",
+      "-export-only",
+      "-plain"
+    ],
+    "tree": "work/lint/cqrs-htmx"
+  }
+}

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -394,10 +395,12 @@ func (s *SQLSessionStore) EvictExpired(ctx context.Context) (int64, error) {
 
 // StartCleanupSweeper launches a background goroutine that periodically calls
 // EvictExpired. Call Close to stop it. The returned function can be used for
-// early shutdown (e.g., defer in tests or context-cancellation in main).
+// early shutdown (e.g., defer in tests or context-cancellation in main) and
+// is safe to call multiple times.
 func (s *SQLSessionStore) StartCleanupSweeper(ctx context.Context, interval time.Duration) func() {
 	ticker := time.NewTicker(interval)
 	done := make(chan struct{})
+	var once sync.Once
 	go func() {
 		defer ticker.Stop()
 		for {
@@ -411,5 +414,5 @@ func (s *SQLSessionStore) StartCleanupSweeper(ctx context.Context, interval time
 			}
 		}
 	}()
-	return func() { close(done) }
+	return func() { once.Do(func() { close(done) }) }
 }

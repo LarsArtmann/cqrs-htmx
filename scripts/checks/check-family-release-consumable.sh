@@ -43,25 +43,35 @@ scan_gomod() { # <gomod-file> <label> <family-prefix>
 
 walk_family_subs() { # <gomod-file> <candidate-module> <version>
   local file="$1" candidate="$2" version="$3"
-  local family candidate_escaped path subfile rc
+  local family candidate_escaped path subver subfile rc
   family="$(printf '%s' "$candidate" | sed 's|/[^/]*$||')"
   candidate_escaped="$(printf '%s' "$candidate" | sed 's/[^a-zA-Z0-9/._-]/\\&/g')"
   rc=0
-  while IFS= read -r path; do
+  # Same-family submodules ride their OWN require line, not the candidate's
+  # tag: multi-train families (httputil root v1.4.x + server_timing v1.0.x)
+  # must not be demanded at the root's version. A same-version family
+  # (templ-components) is still caught — its parent requires carry the (often
+  # placeholder) version verbatim, and fetching that version is what fails.
+  # `=>` excludes replace directives — a parenthesized replace block emits
+  # bare `path => target` lines that otherwise parse as versioned requires
+  # (the "no published =>" false positive, hit live 2026-10-14 on go-output
+  # root v0.38.5: four family replace lines read as unpublished requires).
+  while read -r path subver; do
     [ -n "$path" ] || continue
+    subver="${subver:-$version}"
     subfile="$(mktemp /tmp/cqrs-htmx-consumable-sub-XXXXXX)"
-    if ! curl -fsSL --max-time 30 "$PROXY_BASE/$path/@v/$version.mod" >"$subfile" 2>/dev/null; then
-      echo "FAIL: submodule $path has no published $version on the module proxy (unconsumable family release)"
+    if ! curl -fsSL --max-time 30 "$PROXY_BASE/$path/@v/$subver.mod" >"$subfile" 2>/dev/null; then
+      echo "FAIL: submodule $path has no published $subver on the module proxy (unconsumable family release)"
       rm -f "$subfile"
       rc=1
       continue
     fi
-    if ! scan_gomod "$subfile" "$path@$version" "$family"; then
+    if ! scan_gomod "$subfile" "$path@$subver" "$family"; then
       rc=1
     fi
     rm -f "$subfile"
   done <<EOF
-$(grep -E "^[[:space:]]*\"?$candidate_escaped/" "$file" | grep -v '//' | awk '{print $1}' | tr -d '"' | sort -u)
+$(grep -E "^[[:space:]]*\"?$candidate_escaped/" "$file" | grep -v '//' | grep -v '=>' | awk '{print $1, $2}' | tr -d '"' | sort -u)
 EOF
   return "$rc"
 }
@@ -127,8 +137,14 @@ version="$2"
 tmp="$(mktemp /tmp/cqrs-htmx-consumable-XXXXXX)"
 trap 'rm -f "$tmp"' EXIT
 
-if ! curl -fsSL --max-time 30 "$PROXY_BASE/$module/@v/$version.mod" >"$tmp"; then
-  curl_rc=$?
+curl -fsSL --max-time 30 "$PROXY_BASE/$module/@v/$version.mod" >"$tmp"
+curl_rc=$?
+if [ "$curl_rc" -ne 0 ]; then
+  # Read curl's rc OUTSIDE a `!` negation: inside `if ! curl; then`, $? is
+  # the INVERTED status (always 0), so every real-proxy 404 was misclassified
+  # "unreachable" (rc 2) and bump-dep's pre-flight warned-and-continued —
+  # edits then landed on untagged versions (live 2026-10-14, go-output
+  # daghtml v0.38.5: the R18 gate never aborted on a real 404 until now).
   if [ "$curl_rc" -eq 22 ]; then
     echo "FAIL: $module@$version is UNPUBLISHED on the module proxy (404) — the release cannot be consumed at all"
     exit 1

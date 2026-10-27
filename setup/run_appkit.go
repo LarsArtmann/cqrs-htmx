@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	appkit "github.com/larsartmann/go-appkit"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -23,9 +22,14 @@ import (
 //     budget 30s.
 //   - SSE header flush survives appkit's middleware chain (outer) wrapping
 //     the bundle's chain (inner).
-//   - /health/ready keeps projection-aware semantics: appkit's ReadyCheck is
-//     wired to cqrshtmx.ProjectionReadinessCheck (503 while any projection
-//     drains or has failed, 200 once live/stopped).
+//   - /health/ready keeps projection-aware semantics AND the full bundle
+//     readiness: appkit's ReadyCheck runs every bundleReadinessCheck
+//     (projection drain gate, shared-hub check, Config.HealthChecks) —
+//     503 while any of them fails, 200 once all pass. appkit owns the
+//     /health* routes (the bundle's HealthPath mount sits under the "/"
+//     catch-all and is shadowed when the paths collide — set
+//     Config.HealthPath to a distinct path to serve the rich JSON body
+//     alongside).
 //
 // Deliberate differences (the appkit uplift ADR-001 wants):
 //
@@ -73,8 +77,8 @@ func (b *Bundle) runWithAppkit(
 		IdleTimeout:       runIdleTimeout,
 		ShutdownTimeout:   runShutdownTimeout,
 		DrainDelay:        drainDelay,
-		ReadyCheck:        b.projectionReadyCheck(),
-		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready
+		ReadyCheck:        b.bundleReadyCheck(),
+		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready (see doc above)
 		Metrics:           b.config.Metrics,
 		Version:           b.config.Version,
 	})
@@ -130,14 +134,18 @@ func (b *Bundle) runWithAppkit(
 // the first behavioral uplift of RunHandler.
 const appkitDefaultDrainDelay = 2 * time.Second
 
-// projectionReadyCheck adapts the bundle's projection-aware readiness onto
-// appkit's boolean probe: ready when the check passes (nil error).
-func (b *Bundle) projectionReadyCheck() func() bool {
+// bundleReadyCheck adapts the FULL bundle readiness composition onto appkit's
+// boolean probe: ready only when every check passes (projections drained,
+// hub healthy, consumer checks green). This is the same check set the
+// mounted readiness handler serves — one composition, two surfaces.
+func (b *Bundle) bundleReadyCheck() func() bool {
 	return func() bool {
-		if b.Service == nil {
-			return true
+		for _, check := range b.bundleReadinessChecks() {
+			if err := check.Check(); err != nil {
+				return false
+			}
 		}
 
-		return cqrshtmx.ProjectionReadinessCheck(b.Service).Check() == nil
+		return true
 	}
 }

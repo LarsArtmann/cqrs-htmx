@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
 )
 
@@ -76,12 +77,17 @@ func CommandIDFromRequest(r *http.Request) string {
 // defaultAckEventName is the SSE event name used for ACK broadcasts.
 const defaultAckEventName = "sync:ack"
 
-// newAck builds a CommandAck from a dispatch result.
+// newAck builds a CommandAck from a dispatch result. The error text is
+// sanitized exactly like the HTTP error path ([SafeDetail] with
+// includeInternal=false): rejection-family detail is the client contract and
+// is passed through; server-fault families (5xx) are replaced by their
+// generic public-safe default so internals never ride a broadcast that every
+// connected SSE client receives.
 func newAck(commandID string, err error) CommandAck {
 	ack := CommandAck{CommandID: commandID}
 	if err != nil {
 		ack.Status = AckRejected
-		ack.Error = err.Error()
+		ack.Error = SafeDetail(err, errorfamily.Classify(err).HTTPStatus(), false)
 	} else {
 		ack.Status = AckConfirmed
 	}

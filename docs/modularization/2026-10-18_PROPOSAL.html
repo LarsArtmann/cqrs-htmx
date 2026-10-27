@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+    <div class="top-bar">
+      <span>MODULARIZATION ANALYSIS &middot; EPISODE 4</span>
+      <span>2026-10-18</span>
+      <span>go-modularize &middot; direction-neutral re-assessment</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">00 Executive Summary</a>
+          <a href="#state">01 Current State</a>
+          <a href="#dag">02 Dependency DAG</a>
+          <a href="#assessment">03 Boundary Assessment</a>
+          <a href="#usermgmt">04 usermgmt Triggers</a>
+          <a href="#strategy">05 Strategy Verification</a>
+          <a href="#selfreview">06 Brutal Self-Review</a>
+          <a href="#plan">07 Execution Plan</a>
+          <a href="#risks">08 Risk Assessment</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">go-modularize &middot; Phase 1&ndash;5</div>
+          <h1>29 Modules, Direction-Neutral Re-Assessment</h1>
+          <p class="hero-subtitle">
+            Episode 4 of the modularization series (2026-06-21, 2026-07-01,
+            2026-08-05 before this). The workspace grew 19 &rarr; 29 modules since the last
+            look. This analysis re-scores every boundary in both directions &mdash; merge and
+            split &mdash; and re-measures the deferred usermgmt decomposition triggers.
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Executive Summary</a></li>
+            <li><a href="#state">Current State</a></li>
+            <li><a href="#dag">Dependency DAG</a></li>
+            <li><a href="#assessment">Boundary Assessment</a></li>
+            <li><a href="#usermgmt">usermgmt Triggers</a></li>
+            <li><a href="#strategy">Strategy Verification</a></li>
+            <li><a href="#selfreview">Brutal Self-Review</a></li>
+            <li><a href="#plan">Execution Plan</a></li>
+            <li><a href="#risks">Risk Assessment</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Executive Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">29</div>
+            <div class="stat-label">modules under one go.work</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">cycles / wrong-direction edges</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">16</div>
+            <div class="stat-label">modules scored Keep</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">2</div>
+            <div class="stat-label">watch items (root package, streamId form)</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Verdict: boundaries are correct &mdash; zero merges, zero splits, zero reorganizes</h4>
+          <p>
+            Every published module passes the litmus test: one sentence of purpose, at least
+            one consumer composing it without its siblings, independent versioning riding the
+            release train. The three modules a naive "too many modules" reading would
+            merge &mdash; totp (96 LOC), auditlog (70 LOC, zero cqrs-htmx deps), health (245
+            LOC) &mdash; are precisely the ones whose merge would <em>destroy</em> their
+            composability payoff: folding totp into usermgmt would drag
+            pquerna/otp into every usermgmt consumer and end the zero-dependency
+            structural-typing seam. The usermgmt v5 decomposition (ADR-0038) stays
+            correctly deferred: 0 of 3 triggers fire, re-measured. One structural watch item
+            (the root package's 57-file/267-symbol surface) and one hygiene fix (AGENTS.md
+            module count, landed) come out of this pass.
+          </p>
+        </div>
+
+        <h2 id="state"><span class="num">01</span>Current State</h2>
+        <p>
+          Workspace mode with an already-executed split: 29 modules, one tracked
+          <code>go.work</code>, per-module independent semver tags
+          (<code>module/vX.Y.Z</code>), proxy-published. Six modules joined since the
+          2026-08-05 episode: setup, systemadapter (2026-08-09), health, auditlog
+          (2026-08-14), examples/sync-demo (2026-10-11), examples/system-demo (2026-08-09).
+          State classification per the skill: <strong>Already split &rarr; workspace audit +
+          re-modularization assessment</strong>, not a greenfield decomposition.
+        </p>
+
+        <table>
+          <thead>
+            <tr><th>Module</th><th>Prod LOC</th><th>Internal deps</th><th>External anchors</th><th>Since</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>.</strong> (cqrs-htmx/v4)</td><td>7,954 + subpkgs</td><td>0</td><td>go-cqrs-lite, casbin(via usermgmt only), httputil</td><td>start</td></tr>
+            <tr><td>identity-model</td><td>2,507</td><td>0</td><td>go-cqrs-lite, casbin, go-branded-id</td><td>start</td></tr>
+            <tr><td>usermgmt</td><td>12,262</td><td>2 (identity-model, v4)</td><td>go-cqrs-lite stack</td><td>start</td></tr>
+            <tr><td>usermgmt/totp</td><td>96</td><td>0</td><td>pquarna/otp, go-error-family</td><td>start</td></tr>
+            <tr><td>usermgmt/webauthn</td><td>295</td><td>0</td><td>go-webauthn</td><td>start</td></tr>
+            <tr><td>usermgmt/oauth2</td><td>440</td><td>0</td><td>x/oauth2</td><td>start</td></tr>
+            <tr><td>adminui</td><td>1,611</td><td>3</td><td>templ-components</td><td>&lt; 08-05</td></tr>
+            <tr><td>dashboardui</td><td>6,742</td><td>1 (v4)</td><td>templ-components</td><td>&lt; 08-05</td></tr>
+            <tr><td>loginpage</td><td>727</td><td>2</td><td>templ-components</td><td>&lt; 08-05</td></tr>
+            <tr><td>datastar</td><td>432</td><td>0</td><td>go-datastar, go-sse only</td><td>&lt; 08-05</td></tr>
+            <tr><td>setup</td><td>2,656</td><td>7 (widest &mdash; by design)</td><td>appkit, go-health</td><td>08-09</td></tr>
+            <tr><td>systemadapter</td><td>1,820</td><td>2</td><td>go-cqrs-lite system/metaengine</td><td>08-09</td></tr>
+            <tr><td>health</td><td>245</td><td>1 (v4)</td><td>go-health</td><td>08-14</td></tr>
+            <tr><td>auditlog</td><td>70</td><td>0</td><td>samber-do-auditlog, go-ndjson</td><td>08-14</td></tr>
+            <tr><td>integration_test</td><td>tests only (24 files)</td><td>13 (all)</td><td>&mdash;</td><td>start</td></tr>
+            <tr><td>e2e/server + examples &times;13</td><td>leaf apps</td><td>0&ndash;2 each</td><td>&mdash;</td><td>mixed</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="dag"><span class="num">02</span>Dependency DAG</h2>
+        <p>
+          Direct internal requires extracted from every go.mod (module-declaration lines
+          excluded; indirect filtered). Verified acyclic by construction &mdash; four strict
+          tiers plus consumer leaves; MVS resolution and the release-train gate would both
+          surface any upward edge (a cycle would strand UNPUBLISHED requires forever).
+        </p>
+        <div style="border: 1px solid rgba(244,244,240,0.12); border-radius: 12px; padding: 12px; background: #0e0e10;">
+          <?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 4960 986"><svg class="d2-2963720991 d2-svg" width="4960" height="986" viewBox="-91 -121 4960 986"><rect x="-91" y="-121" width="4960" height="986" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-2963720991 .text {
+	font-family: "d2-2963720991-font-regular";
+}
+@font-face {
+	font-family: d2-2963720991-font-regular;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-2963720991 .text-bold {
+	font-family: "d2-2963720991-font-bold";
+}
+@font-face {
+	font-family: d2-2963720991-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-2963720991 .fill-N1{fill:#0A0F25;}
+		.d2-2963720991 .fill-N7{fill:#FFFFFF;}
+		.d2-2963720991 .fill-B1{fill:#0D32B2;}
+		.d2-2963720991 .fill-B4{fill:#E3E9FD;}
+		.d2-2963720991 .fill-B5{fill:#EDF0FD;}
+		.d2-2963720991 .fill-B6{fill:#F7F8FE;}
+		.d2-2963720991 .stroke-B1{stroke:#0D32B2;}
+		.d2-2963720991 .stroke-B2{stroke:#0D32B2;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><g class="dGllcjA="><g class="shape" ><rect x="10" y="20" width="660" height="126" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="340" y="7" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Stable core (zero internal deps)</text></g><g class="dGllcjBi"><g class="shape" ><rect x="710" y="20" width="1062" height="126" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="1241" y="7" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Zero-dep composables</text></g><g class="dGllcjE="><g class="shape" ><rect x="1812" y="20" width="1121" height="126" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="2372.5" y="7" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Domain services</text></g><g class="dGllcjI="><g class="shape" ><rect x="2973" y="20" width="337" height="126" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="3141.5" y="7" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">UI surfaces</text></g><g class="dGllcjM="><g class="shape" ><rect x="3350" y="20" width="385" height="126" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="3542.5" y="7" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Composition root</text></g><g class="bGVhdmVz"><g class="shape" ><rect x="2205" y="286" width="1709" height="126" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="3059.5" y="273" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Consumers — never depended upon</text></g><g class="aWRlbnRpdHk="><g class="shape" ><rect x="4536" y="50" width="102" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4587" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">identity</text></g><g class="dXNlcm1nbXQ="><g class="shape" ><rect x="4459" y="316" width="118" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4518" y="354.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">usermgmt</text></g><g class="djQ="><g class="shape" ><rect x="4365" y="50" width="63" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4396.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">v4</text></g><g class="ZGFzaGJvYXJkdWk="><g class="shape" ><rect x="4330" y="532" width="134" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4397" y="570.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">dashboardui</text></g><g class="aGVhbHRo"><g class="shape" ><rect x="3976" y="316" width="90" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4021" y="354.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">health</text></g><g class="c3lzdGVtYWRhcHRlcg=="><g class="shape" ><rect x="3943" y="532" width="153" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4019.5" y="570.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">systemadapter</text></g><g class="YWRtaW51aQ=="><g class="shape" ><rect x="4585" y="532" width="103" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4636.5" y="570.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">adminui</text></g><g class="bG9naW5wYWdl"><g class="shape" ><rect x="4156" y="532" width="114" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4213" y="570.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">loginpage</text></g><g class="c2V0dXA="><g class="shape" ><rect x="4589" y="698" width="85" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="4631.5" y="736.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">setup</text></g><g class="ZGF0YXN0YXI="><g class="shape" ><rect x="3777" y="532" width="106" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="3830" y="570.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">datastar</text></g><g class="c3RyYXRlZ2llcw=="><g class="shape" ><rect x="3785" y="50" width="116" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="3843" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">strategies</text></g><g class="dGllcjAudjQ="><g class="shape" ><rect x="40" y="50" width="281" height="66" stroke="#0D32B2" fill="#2b1f1f" class=" stroke-B1" style="stroke-width:2;" /></g><text x="180.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">cqrs-htmx/v4 — root HTTP library</text></g><g class="dGllcjAuaWRlbnRpdHk="><g class="shape" ><rect x="381" y="50" width="259" height="66" stroke="#0D32B2" fill="#1a2b45" class=" stroke-B1" style="stroke-width:2;" /></g><text x="510.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">identity-model — pure domain</text></g><g class="dGllcjBiLmF1ZGl0bG9n"><g class="shape" ><rect x="740" y="50" width="243" height="66" stroke="#0D32B2" fill="#1a2b45" class=" stroke-B1" style="stroke-width:2;" /></g><text x="861.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">auditlog — 0 cqrs-htmx deps</text></g><g class="dGllcjBiLmRhdGFzdGFy"><g class="shape" ><rect x="1043" y="50" width="228" height="66" stroke="#0D32B2" fill="#1a2b45" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1157" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">datastar — 0 internal deps</text></g><g class="dGllcjBiLnN0cmF0ZWdpZXM="><g class="shape" ><rect x="1331" y="50" width="411" height="66" stroke="#0D32B2" fill="#1a2b45" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1536.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">totp · webauthn · oauth2 — structural typing, 0 deps</text></g><g class="dGllcjEudXNlcm1nbXQ="><g class="shape" ><rect x="1842" y="50" width="298" height="66" stroke="#0D32B2" fill="#2b2416" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1991" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">usermgmt — event-sourced identity</text></g><g class="dGllcjEuZGFzaGJvYXJkdWk="><g class="shape" ><rect x="2200" y="50" width="134" height="66" stroke="#0D32B2" fill="#2b2416" class=" stroke-B1" style="stroke-width:2;" /></g><text x="2267" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">dashboardui</text></g><g class="dGllcjEuaGVhbHRo"><g class="shape" ><rect x="2394" y="50" width="90" height="66" stroke="#0D32B2" fill="#2b2416" class=" stroke-B1" style="stroke-width:2;" /></g><text x="2439" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">health</text></g><g class="dGllcjEuc3lzdGVtYWRhcHRlcg=="><g class="shape" ><rect x="2544" y="50" width="359" height="66" stroke="#0D32B2" fill="#2b2416" class=" stroke-B1" style="stroke-width:2;" /></g><text x="2723.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">systemadapter — bridge system/metaengine</text></g><g class="dGllcjIuYWRtaW51aQ=="><g class="shape" ><rect x="3003" y="50" width="103" height="66" stroke="#0D32B2" fill="#1f2a22" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3054.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">adminui</text></g><g class="dGllcjIubG9naW5wYWdl"><g class="shape" ><rect x="3166" y="50" width="114" height="66" stroke="#0D32B2" fill="#1f2a22" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3223" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">loginpage</text></g><g class="dGllcjMuc2V0dXA="><g class="shape" ><rect x="3380" y="50" width="325" height="66" stroke="#0D32B2" fill="#3a2b45" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3542.5" y="88.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">setup — 7 internal deps, one-call bundle</text></g><g class="bGVhdmVzLmludGVncmF0aW9u"><g class="shape" ><rect x="2235" y="316" width="288" height="66" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2379" y="354.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">integration_test (13 internal deps)</text></g><g class="bGVhdmVzLmUyZQ=="><g class="shape" ><rect x="3418" y="316" width="121" height="66" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3478.5" y="354.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">e2e/server</text></g><g class="bGVhdmVzLmV4YW1wbGVz"><g class="shape" ><rect x="3743" y="316" width="141" height="66" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3813.5" y="354.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">examples ×13</text></g><g class="KGlkZW50aXR5IC0mZ3Q7IHVzZXJtZ210KVswXQ=="><marker id="mk-d2-2963720991-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 4542.405818 117.207718 C 4491.200195 156 4478 176 4478 191 C 4478 206 4482.799805 276 4500.269061 312.393915" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHY0IC0mZ3Q7IHVzZXJtZ210KVswXQ=="><path d="M 4430.025928 100.234829 C 4531.25 152.662994 4557 176 4557 191 C 4557 206 4552.200195 276 4534.730939 312.393915" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHY0IC0mZ3Q7IGRhc2hib2FyZHVpKVswXQ=="><path d="M 4396.75 118 C 4396.75 156 4396.75 176 4396.75 191 C 4396.75 206 4396.75 226 4396.75 241 C 4396.75 256 4396.75 282.600006 4396.75 307.5 C 4396.75 332.399994 4396.75 365.600006 4396.75 390.5 C 4396.75 415.399994 4396.75 492 4396.75 528" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHY0IC0mZ3Q7IGhlYWx0aClbMF0="><path d="M 4363.047093 90.431456 C 4089.800049 150.800003 4021 176 4021 191 C 4021 206 4021 276 4021 312" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KGlkZW50aXR5IC0mZ3Q7IHN5c3RlbWFkYXB0ZXIpWzBd"><path d="M 4534.028974 92.3392 C 4192 151.199997 4106 176 4106 191 C 4106 206 4106 226 4106 241 C 4106 256 4106 282.600006 4106 307.5 C 4106 332.399994 4106 365.600006 4106 390.5 C 4106 415.399994 4095.600098 492 4056.883336 529.227569" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHVzZXJtZ210IC0mZ3Q7IHN5c3RlbWFkYXB0ZXIpWzBd"><path d="M 4456.52064 357.828581 C 4047.100098 417.108002 3953.25 492 3986.574141 529.026823" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KGlkZW50aXR5IC0mZ3Q7IGFkbWludWkpWzBd"><path d="M 4622.678142 117.400146 C 4662.049805 156 4672.25 176 4672.25 191 C 4672.25 206 4672.25 226 4672.25 241 C 4672.25 256 4672.25 282.600006 4672.25 307.5 C 4672.25 332.399994 4672.25 365.600006 4672.25 390.5 C 4672.25 415.399994 4667.850098 492 4651.860962 528.338743" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHVzZXJtZ210IC0mZ3Q7IGFkbWludWkpWzBd"><path d="M 4572.951871 383.050541 C 4636.049805 422 4650.450195 492 4643.958631 528.06327" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHY0IC0mZ3Q7IGFkbWludWkpWzBd"><path d="M 4430.120991 95.603681 C 4578.850098 151.779007 4616.5 176 4616.5 191 C 4616.5 206 4616.5 226 4616.5 241 C 4616.5 256 4616.5 282.600006 4616.5 307.5 C 4616.5 332.399994 4616.5 365.600006 4616.5 390.5 C 4616.5 415.399994 4618.899902 492 4627.566499 528.110453" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHVzZXJtZ210IC0mZ3Q7IGxvZ2lucGFnZSlbMF0="><path d="M 4456.625873 371.682328 C 4327.5 419.79599 4284.950195 492 4248.549721 529.143156" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHY0IC0mZ3Q7IGxvZ2lucGFnZSlbMF0="><path d="M 4363.087235 93.584233 C 4173.799805 151.399994 4126 176 4126 191 C 4126 206 4126 226 4126 241 C 4126 256 4126 282.600006 4126 307.5 C 4126 332.399994 4126 365.600006 4126 390.5 C 4126 415.399994 4136.398926 492 4175.116632 529.227602" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHY0IC0mZ3Q7IHNldHVwKVswXQ=="><path d="M 4430.201816 90.478365 C 4700.049805 150.807999 4768 176 4768 191 C 4768 206 4768 226 4768 241 C 4768 256 4768 282.600006 4768 307.5 C 4768 332.399994 4768 365.600006 4768 390.5 C 4768 415.399994 4768 442 4768 457 C 4768 472 4768 498.600006 4768 523.5 C 4768 548.400024 4749.200195 659.400024 4677.420305 702.925992" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KGlkZW50aXR5IC0mZ3Q7IHNldHVwKVswXQ=="><path d="M 4639.775753 109.920163 C 4726 154.600006 4748 176 4748 191 C 4748 206 4748 226 4748 241 C 4748 256 4748 282.600006 4748 307.5 C 4748 332.399994 4748 365.600006 4748 390.5 C 4748 415.399994 4748 442 4748 457 C 4748 472 4748 498.600006 4748 523.5 C 4748 548.400024 4733.200195 658.400024 4677.272771 697.700224" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHVzZXJtZ210IC0mZ3Q7IHNldHVwKVswXQ=="><path d="M 4579.358922 373.000842 C 4697.899902 420.052002 4728 442 4728 457 C 4728 472 4728 498.600006 4728 523.5 C 4728 548.400024 4716.399902 658 4673.029637 695.388238" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KGFkbWludWkgLSZndDsgc2V0dXApWzBd"><path d="M 4636.5 600 C 4636.5 638 4635.899902 658 4633.739559 694.00718" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KGRhc2hib2FyZHVpIC0mZ3Q7IHNldHVwKVswXQ=="><path d="M 4396.75 600 C 4396.75 638 4435.100098 661.588013 4584.729675 714.60507" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KGxvZ2lucGFnZSAtJmd0OyBzZXR1cClbMF0="><path d="M 4212.75 600 C 4212.75 638 4287.899902 662.913025 4584.576509 721.787377" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KGRhdGFzdGFyIC0mZ3Q7IHNldHVwKVswXQ=="><path d="M 3829.75 600 C 3829.75 638 3981.5 663.718994 4584.52129 726.184838" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHRpZXIxIC0mZ3Q7IGxlYXZlcylbMF0="><path d="M 2439 148 C 2439 202 2439 230 2439 282" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHRpZXIyIC0mZ3Q7IGxlYXZlcylbMF0="><path d="M 3223 148 C 3223 202 3223 221.800003 3223 241" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHRpZXIzIC0mZ3Q7IGxlYXZlcylbMF0="><path d="M 3542.5 148 C 3542.5 202 3542.5 230 3542.5 282" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHY0IC0mZ3Q7IGxlYXZlcylbMF0="><path d="M 4363.018871 87.274097 C 3908.199951 150.199997 3794 230 3794 282" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><g class="KHN0cmF0ZWdpZXMgLSZndDsgbGVhdmVzKVswXQ=="><path d="M 3843 118 C 3843 156 3843 230 3843 282" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2963720991-3488378134)" mask="url(#d2-2963720991)" /></g><mask id="d2-2963720991" maskUnits="userSpaceOnUse" x="-91" y="-121" width="4960" height="986">
+<rect x="-91" y="-121" width="4960" height="986" fill="white"></rect>
+
+</mask></svg></svg>
+        </div>
+        <p style="font-size: 0.85em; color: #8b8b96;">
+          Key structural facts: root (v4) imports usermgmt <em>zero times</em> (the clean
+          boundary the architecture docs claim &mdash; verified by grep, only the reverse
+          direction exists: usermgmt &rarr; v4 in 5 production files). The three auth
+          strategies depend on <strong>nothing internal at all</strong> &mdash; they satisfy
+          usermgmt's interfaces structurally, which is why they can stay 96&ndash;440 LOC
+          and still be independently consumable.
+        </p>
+
+        <h2 id="assessment"><span class="num">03</span>Re-Modularization Assessment (Phase 1.5)</h2>
+        <p>
+          Scored per the skill's five criteria: cohesion (do all packages belong together),
+          coupling (deps it should not have), independence (build/test/version alone),
+          depth (right level of abstraction), composability payoff (a consumer imports it
+          without its siblings).
+        </p>
+        <table>
+          <thead>
+            <tr><th>Module</th><th>Cohesion</th><th>Coupling</th><th>Independent</th><th>Depth</th><th>Payoff evidence</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>v4 (root)</td><td>5</td><td>5</td><td>yes</td><td>right (see watch item)</td><td>every consumer; zero usermgmt imports</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>identity-model</td><td>5</td><td>5 (casbin deliberate, ADR-0044)</td><td>yes</td><td>right</td><td>aliased by usermgmt; consumed standalone by strategies' consumers</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>usermgmt</td><td>4</td><td>4</td><td>yes</td><td>coarse but deferred (ADR-0038)</td><td>all examples import it whole</td><td><span class="badge badge-fixed">Keep (defer split)</span></td></tr>
+            <tr><td>totp / webauthn / oauth2</td><td>5</td><td>5 (zero!)</td><td>yes</td><td>right</td><td>samber-do-demo composes totp without webauthn/oauth2</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>auditlog</td><td>5</td><td>5 (zero cqrs-htmx)</td><td>yes</td><td>right</td><td>samber-do-demo; consumers without any HTTP library</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>health</td><td>5</td><td>5</td><td>yes</td><td>right</td><td>opt-in bridge; setup does NOT require it</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>datastar</td><td>5</td><td>5 (go-datastar/go-sse only)</td><td>yes</td><td>right</td><td>datastar-demo, setup-demo compose it without dashboardui/adminui</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>adminui</td><td>5</td><td>4 (3 deps, all justified)</td><td>yes</td><td>right</td><td>admin-demo mounts adminui without dashboardui/loginpage</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>dashboardui</td><td>5</td><td>5 (v4 only)</td><td>yes</td><td>right</td><td>dashboard-demo without adminui</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>loginpage</td><td>5</td><td>4</td><td>yes</td><td>right</td><td>setup-demo login flow without adminui</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>setup</td><td>5</td><td>3 (7 deps &mdash; widest, correct for a composition root)</td><td>yes</td><td>right (leaf by role)</td><td>setup-demo: one call replaces 7 imports</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>systemadapter</td><td>5</td><td>4</td><td>yes</td><td>right</td><td>system-demo composes system.New path without setup/adminui</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>integration_test</td><td>5</td><td>3 (13 deps, all &mdash; cross-module harness)</td><td>yes</td><td>right</td><td>is the consumer-contract proof (GOWORK=off vs published tags)</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+            <tr><td>examples &times;13, e2e</td><td>5</td><td>5</td><td>yes</td><td>right</td><td>each example IS a hermetic published-surface verification unit</td><td><span class="badge badge-fixed">Keep</span></td></tr>
+          </tbody>
+        </table>
+
+        <div class="card card-problem">
+          <h4>Watch item W1 &mdash; the root package, not the root module</h4>
+          <p>
+            Package <code>cqrshtmx</code> (repo root) carries 57 production files / ~8.0k
+            LOC / 267 exported top-level symbols &mdash; past every god-package rule of
+            thumb (15+ files, 30+ symbols). Cohesion clusters exist
+            (options/sync/sse/htmx/event/projection/csrf prefixes) and the escape valve is
+            already in active use: <code>openapi/</code> and <code>transport/</code> are
+            subpackages. Verdict: <strong>keep in v4</strong> &mdash; the single-import
+            surface is the product's DX, and splitting it breaks every consumer's import
+            lines for zero dependency-graph gain (no cycle, no weight difference &mdash;
+            the subpackages would still ship in the same module). Discipline going forward:
+            genuinely orthogonal NEW surfaces (the pattern transport/ set) go to new
+            subpackages; nothing new grows in the flat package without a prefix-cluster
+            justification. Revisit only at a v5 boundary alongside the SSE-re-export
+            removals.
+          </p>
+        </div>
+
+        <h2 id="usermgmt"><span class="num">04</span>usermgmt Decomposition Triggers &mdash; Re-Measured</h2>
+        <table>
+          <thead>
+            <tr><th>Trigger</th><th>2026-08-05</th><th>2026-10-18</th><th>Met?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1. Consumer needs a subset (User without Tenant/Bot)</td><td>no consumer</td><td>still none &mdash; every example and integration_test imports usermgmt whole</td><td><span class="badge badge-low">No</span></td></tr>
+            <tr><td>2. Aggregate dep-tree divergence &gt;30%</td><td>0%</td><td>0% &mdash; all aggregates still share the same go-cqrs-lite spine</td><td><span class="badge badge-low">No</span></td></tr>
+            <tr><td>3. Compile-time pressure</td><td>~3s</td><td>2.9s warm (measured this session)</td><td><span class="badge badge-low">No</span></td></tr>
+          </tbody>
+        </table>
+        <p>
+          Raw size moved (91&rarr;100 prod files, 10.5k&rarr;12.3k LOC, Service still 73
+          methods) but size was never the trigger &mdash; composability demand is, and it
+          remains absent. The ADR-0019 method-receiver blocker and the ADR-0038 v5 service
+          decomposition plan both stand. <strong>Deferral re-validated.</strong> The
+          file-prefix seams documented in episode 2026-08-05 (user/membership/tenant/bot/
+          sql/http clusters) were re-confirmed by this pass &mdash; the split stays
+          mechanical whenever a trigger fires.
+        </p>
+
+        <h2 id="strategy"><span class="num">05</span>Strategy Verification (Phase 2)</h2>
+        <table>
+          <thead>
+            <tr><th>Check</th><th>Method</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Replace directives</td><td>scan of all 29 go.mod</td><td><span class="badge badge-fixed">Clean</span> &mdash; the only replaces live in integration_test (local test harness, never published) and go.work (version-qualified local-dev). Exactly the "version train" pattern.</td></tr>
+            <tr><td>go.work &harr; go.mod sync</td><td>29 use entries vs module walks</td><td><span class="badge badge-fixed">Clean</span> &mdash; no stale entries; go.work is tracked (CI requirement).</td></tr>
+            <tr><td>internal/ audit</td><td>find internal dirs</td><td><span class="badge badge-fixed">Clean</span> &mdash; only loginpage/internal; no cross-module import possible (Go-enforced).</td></tr>
+            <tr><td>Test-dep leaks</td><td>ginkgo/gomega in requires</td><td><span class="badge badge-fixed">Standard</span> &mdash; root + dashboardui carry BDD deps as direct requires; Go has no test-only block; no transitive production bloat beyond ginkgo's own (accepted, fleet-standard).</td></tr>
+            <tr><td>Error-type placement</td><td>sentinel location audit</td><td><span class="badge badge-fixed">Correct</span> &mdash; contract errors (errorfamily sentinels) live in identity-model, imported by every producer and consumer; implementation errors stay local; errors.Is/As work across every boundary.</td></tr>
+            <tr><td>Coverage gate list</td><td>flake.nix check_cov entries</td><td><span class="badge badge-fixed">Complete</span> &mdash; all 15 published modules gated with thresholds; examples/e2e/integration_test excluded by design (not published).</td></tr>
+            <tr><td>Generated code</td><td>_templ.go placement</td><td><span class="badge badge-fixed">Correct</span> &mdash; generated files committed in the owning modules (adminui/dashboardui/loginpage); codegen runs per-module (module-canonical FileName form, enforced by .#check-codegen).</td></tr>
+            <tr><td>Layering direction</td><td>root&harr;usermgmt import scan</td><td><span class="badge badge-fixed">Correct</span> &mdash; root imports usermgmt zero times; usermgmt&rarr;root in 5 files (http handlers, errors, catalog &mdash; building ON the library, not into it).</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="selfreview"><span class="num">06</span>Brutal Self-Review (Phase 4)</h2>
+        <div class="card card-problem">
+          <h4>The checklist, answered against this proposal</h4>
+          <p>
+            <strong>What did you forget?</strong> Checked: cmd/ (root-module binaries, correct
+            as-is), attic/ (excluded from go.work deliberately), the templ-components
+            sibling-repo replaces (bridged in go.work only &mdash; the hermeticity rules are
+            gotcha-36 territory, not boundary defects). <strong>Over-modularized?</strong> The
+            honest stress test: 29 go.mods is high maintenance (release trains, hardcoded
+            gate lists, dependabot inventory warnings). The counter-evidence is the payoff
+            column above &mdash; every module has a consumer composing it without siblings,
+            and the examples ARE verification units. Co-change exists (family waves touch
+            everything) but is dependency-driven, the exact case the skill says NOT to merge
+            on. <strong>Under-modularized?</strong> usermgmt &mdash; correctly deferred, triggers
+            re-measured. Root package &mdash; watch item W1, v5 material at the earliest.
+            <strong>Split brains?</strong> usermgmt's alias layer over identity-model is a
+            deliberate re-export architecture, not duplication; the sync DTO types live only
+            in root. <strong>Would merging examples into one module help?</strong> No &mdash;
+            each example's go.mod is the hermetic GOWORK=off verification of a DIFFERENT
+            dependency subset against published tags (the gotcha-30/38 class); merging
+            would pool the subsets and void the proof.
+          </p>
+        </div>
+
+        <h2 id="plan"><span class="num">07</span>Execution Plan (Phase 5)</h2>
+        <p>
+          Because the verdict is "no structural change", the plan is correspondingly
+          minimal &mdash; Pareto tiering still applies to what remains:
+        </p>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Tier 2 &mdash; Hygiene: module count corrected (DONE this session)</h4>
+            <p>AGENTS.md said "28 modules"; go.work has 29 (sync-demo joined 2026-10-11). Fixed in the same session's data-model-review commit. Verify: <code>grep -c use go.work</code> vs AGENTS.md.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Tier 4 &mdash; Watch: root-package intake discipline (standing)</h4>
+            <p>New orthogonal surfaces become subpackages (the transport/ pattern); flat-package additions need a prefix-cluster justification. No code change today; the discipline prevents W1 from becoming a v5 forced migration.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Tier 4 &mdash; Watch: cross-surface streamId form (links to data-model episode 3, N5)</h4>
+            <p>When the go-cqrs-lite id-module branding publishes (workspace replaces already carry it — the goldens were regenerated 2026-10-06), adjudicate SSE-envelope vs sync-pull streamId form once, in the same change. Not a module-boundary item &mdash; listed because it is the only wire-level coupling between two root-owned surfaces.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Deferred &mdash; usermgmt v5 (ADR-0038), unchanged</h4>
+            <p>Execute the aggregate split (user/membership/tenant/bot/store/http clusters &rarr; sub-modules + facade) only when a trigger fires. Re-run this assessment if any example or external consumer starts importing a subset.</p>
+          </div>
+        </div>
+
+        <h2 id="risks"><span class="num">08</span>Risk Assessment</h2>
+        <table>
+          <thead>
+            <tr><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>29-module train choreography errors (poisoned tags, phantom requires)</td><td>recurring (documented in gotchas)</td><td>already mechanized: release-train gate (strict at push), verify-tag.sh, wave-ordered cuts, preflight battery</td></tr>
+            <tr><td>Root package grows past maintainability before v5</td><td>medium</td><td>W1 intake discipline (this document); transport/-style subpackages for new surfaces</td></tr>
+            <tr><td>Hardcoded flake gate lists miss a future 16th published module</td><td>low (coverage list complete; forEachGoModule apps auto-discover)</td><td>release playbook's "new module" checklist already mandates the adds</td></tr>
+            <tr><td>Merge pressure from "too many modules" aesthetics</td><td>social, not technical</td><td>this assessment's payoff column; the hygiene-trap doctrine (merging never fixes tooling friction)</td></tr>
+          </tbody>
+        </table>
+
+        <footer class="footer">
+          Generated 2026-10-18 &middot; go-modularize skill &middot; episode 4 of 4 &middot;
+          all metrics measured this session (LOC via wc, deps via go.mod parse, build via
+          warm go build); prior episodes cross-referenced from docs/modularization/
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

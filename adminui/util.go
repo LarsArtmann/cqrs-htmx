@@ -20,7 +20,7 @@ func errConfig(msg string) error {
 }
 
 // errForbidden is the Rejection returned when a user lacks panel access.
-var errForbidden = errorfamily.NewRejection("adminui.forbidden", "access denied")
+var errForbidden error = errorfamily.NewRejection("adminui.forbidden", "access denied")
 
 // roleBadgeType maps a role string to a templ-components BadgeType.
 func roleBadgeType(role string) display.BadgeType {
@@ -87,22 +87,10 @@ func pageBounds(page, total, pageSize int) (offset, limit, totalPages, current i
 	if pageSize <= 0 {
 		pageSize = listPageSize
 	}
-	totalPages = (total + pageSize - 1) / pageSize
-	if totalPages < 1 {
-		totalPages = 1
-	}
-	current = page
-	if current < 1 {
-		current = 1
-	}
-	if current > totalPages {
-		current = totalPages
-	}
+	totalPages = max((total+pageSize-1)/pageSize, 1)
+	current = min(max(page, 1), totalPages)
 	offset = (current - 1) * pageSize
-	limit = min(pageSize, total-offset)
-	if limit < 0 {
-		limit = 0
-	}
+	limit = max(min(pageSize, total-offset), 0)
 	return offset, limit, totalPages, current
 }
 

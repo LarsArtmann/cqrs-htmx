@@ -59,7 +59,7 @@ func decideRegisterBot(
 				TokenHash:     tokenHash,
 				Scopes:        scopesCopy,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -95,7 +95,7 @@ func decideDeleteBot(
 				SchemaVersion: currentSchemaVersion,
 				Reason:        reason,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

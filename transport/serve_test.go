@@ -1,11 +1,14 @@
 package transport
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -504,6 +507,8 @@ func TestServeDomainEvents_BroadcasterCloseMidStream(t *testing.T) {
 	}
 }
 
+const fanoutBroadcastMarker = "to-everyone"
+
 func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 	t.Parallel()
 
@@ -515,6 +520,7 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 	const clients = 16
 
 	recorders := make([]*httptest.ResponseRecorder, clients)
+	delivered := make([]chan struct{}, clients)
 	dones := make([]chan struct{}, clients)
 
 	for i := range clients {
@@ -522,20 +528,33 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 		rec := httptest.NewRecorder()
 		recorders[i] = rec
 
+		delivered[i] = make(chan struct{})
+		signal := &deliverySignalWriter{ResponseRecorder: rec, delivered: delivered[i]}
+
 		done := make(chan struct{})
 		dones[i] = done
 
 		go func() {
-			h.ServeHTTP(rec, req)
+			h.ServeHTTP(signal, req)
 			close(done)
 		}()
 	}
 
-	time.Sleep(50 * time.Millisecond)
+	// The handler subscribes before sending "connected", so a full
+	// SubscriberCount proves every client receives the fan-out. The former
+	// fixed sleep raced slow goroutines under load: they subscribed after
+	// the broadcast and legitimately missed it.
+	waitForSubscribers(t, b, clients)
 
-	b.Broadcast(sse.Event{Event: "fanout", Data: "to-everyone"})
+	b.Broadcast(sse.Event{Event: "fanout", Data: fanoutBroadcastMarker})
 
-	time.Sleep(100 * time.Millisecond)
+	for i := range clients {
+		select {
+		case <-delivered[i]:
+		case <-time.After(5 * time.Second):
+			t.Fatalf("client %d never received the broadcast", i)
+		}
+	}
 
 	for i := range clients {
 		select {
@@ -556,9 +575,43 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 		}
 
 		body := recorders[i].Body.String()
-		if !strings.Contains(body, "to-everyone") {
+		if !strings.Contains(body, fanoutBroadcastMarker) {
 			t.Errorf("client %d missed the broadcast\nbody:\n%s", i, body)
 		}
+	}
+}
+
+// deliverySignalWriter closes delivered once the broadcast marker has
+// streamed through. The sniff buffer is written and read only by the handler
+// goroutine; the channel close is the only cross-goroutine handoff, so the
+// test can wait on it race-free.
+type deliverySignalWriter struct {
+	*httptest.ResponseRecorder
+
+	delivered chan struct{}
+	seen      []byte
+	once      sync.Once
+}
+
+func (w *deliverySignalWriter) Write(p []byte) (int, error) {
+	w.seen = append(w.seen, p...)
+	if bytes.Contains(w.seen, []byte(fanoutBroadcastMarker)) {
+		w.once.Do(func() { close(w.delivered) })
+	}
+
+	return w.ResponseRecorder.Write(p)
+}
+
+func waitForSubscribers(t *testing.T, b *sse.Broadcaster[sse.Event], want int) {
+	t.Helper()
+
+	deadline := time.Now().Add(5 * time.Second)
+	for b.SubscriberCount() < want {
+		if time.Now().After(deadline) {
+			t.Fatalf("only %d/%d clients subscribed within 5s", b.SubscriberCount(), want)
+		}
+
+		time.Sleep(2 * time.Millisecond)
 	}
 }
 
@@ -658,12 +711,14 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 	t.Parallel()
 
 	match := func(sse.Event) bool { return true }
+	derive := func(*http.Request) (func(sse.Event) bool, error) { return nil, nil }
 
 	structCfg := serveDomainEventsConfig{}
 	structOpts := SSEOptions{
 		LogPrefix:          "app",
 		UnavailableMessage: "gone",
 		Filter:             match,
+		RequestFilter:      derive,
 		MaxReplay:          7,
 	}.Options()
 
@@ -676,6 +731,7 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 		WithSSELogPrefix("app"),
 		WithSSEUnavailableMessage("gone"),
 		WithSSEFilter(match),
+		WithRequestFilter(derive),
 		WithSSEMaxReplay(7),
 	} {
 		opt(&funcCfg)
@@ -692,8 +748,404 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 		t.Fatal("both configurations must carry the filter predicate")
 	}
 
+	// The per-request filter derivation must survive the conversion too.
+	if structCfg.requestFilter == nil || funcCfg.requestFilter == nil {
+		t.Fatal("both configurations must carry the request-filter derivation")
+	}
+
 	// The zero struct contributes no options at all.
 	if got := len(SSEOptions{}.Options()); got != 0 {
 		t.Fatalf("zero SSEOptions must produce no options, got %d", got)
+	}
+}
+
+func TestServeDomainEvents_FilterCapCountsMatchesOnly(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	// A burst of 8 non-matching events, then 3 matching ones. With a cap of 3
+	// applied BEFORE the filter, the entire budget would be consumed by the
+	// non-matching burst and the scoped feed would receive zero backfill.
+	events := make([]sse.Event, 0, 11)
+	for i := range 8 {
+		events = append(events, sse.Event{
+			Event: "other",
+			Data:  fmt.Sprintf("other-%d", i),
+			ID:    sse.NewEventID(fmt.Sprintf("id-o-%d", i)),
+		})
+	}
+
+	for i := range 3 {
+		events = append(events, sse.Event{
+			Event: "wanted",
+			Data:  fmt.Sprintf("want-%d", i),
+			ID:    sse.NewEventID(fmt.Sprintf("id-w-%d", i)),
+		})
+	}
+
+	h := ServeDomainEvents(b, &fakeSSEStore{events: events}, 0,
+		WithSSEFilter(func(evt sse.Event) bool { return evt.Event == "wanted" }),
+		WithSSEMaxReplay(3),
+	)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	for _, want := range []string{"want-0", "want-1", "want-2"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("scoped backfill missing %q — cap was consumed by non-matching events\nbody:\n%s", want, body)
+		}
+	}
+
+	if strings.Contains(body, "other-") {
+		t.Errorf("non-matching event leaked into filtered backfill\nbody:\n%s", body)
+	}
+}
+
+func TestServeDomainEvents_PanickingFilterPredicateDoesNotKillReplay(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	events := []sse.Event{
+		{Event: "boom", Data: "panics-the-predicate", ID: sse.NewEventID("id-1")},
+		{Event: "safe", Data: "fine", ID: sse.NewEventID("id-2")},
+	}
+
+	pred := func(evt sse.Event) bool {
+		if evt.Event == "boom" {
+			panic("consumer predicate bug")
+		}
+
+		return evt.Event == "safe"
+	}
+
+	h := ServeDomainEvents(b, &fakeSSEStore{events: events}, 0, WithSSEFilter(pred))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("handler did not return — panicking replay predicate killed the goroutine")
+	}
+
+	if !strings.Contains(rec.Body.String(), "fine") {
+		t.Errorf("non-panicking event missing from backfill\nbody:\n%s", rec.Body.String())
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_PerRequestScoping(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	derive := func(r *http.Request) (func(sse.Event) bool, error) {
+		typ := r.URL.Query().Get("type")
+		if typ == "" {
+			return nil, nil
+		}
+
+		return func(evt sse.Event) bool { return strings.Contains(evt.Data, `"type":"`+typ+`"`) }, nil
+	}
+
+	h := ServeDomainEvents(b, nil, 0, WithRequestFilter(derive))
+
+	runStream := func(typ string) (*httptest.ResponseRecorder, context.CancelFunc, chan struct{}) {
+		ctx, cancel := context.WithCancel(context.Background())
+		req := httptest.NewRequest(http.MethodGet, "/events?type="+typ, nil).WithContext(ctx)
+		rec := httptest.NewRecorder()
+		done := make(chan struct{})
+
+		go func() {
+			h.ServeHTTP(rec, req)
+			close(done)
+		}()
+
+		return rec, cancel, done
+	}
+
+	recUser, cancelUser, doneUser := runStream("user")
+	recTenant, cancelTenant, doneTenant := runStream("tenant")
+
+	time.Sleep(50 * time.Millisecond)
+
+	// One broadcast fan-outs to both streams — each must see only its own
+	// derived-filter matches.
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"user","n":1}`})
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"tenant","n":2}`})
+
+	time.Sleep(50 * time.Millisecond)
+	cancelUser()
+	cancelTenant()
+	<-doneUser
+	<-doneTenant
+
+	for _, tc := range []struct {
+		name string
+		body *httptest.ResponseRecorder
+		want string
+		not  string
+	}{
+		{name: "user stream", body: recUser, want: `"type":"user"`, not: `"type":"tenant"`},
+		{name: "tenant stream", body: recTenant, want: `"type":"tenant"`, not: `"type":"user"`},
+	} {
+		if !strings.Contains(tc.body.Body.String(), tc.want) {
+			t.Errorf("%s must receive its matching event\nbody:\n%s", tc.name, tc.body.Body.String())
+		}
+
+		if strings.Contains(tc.body.Body.String(), tc.not) {
+			t.Errorf("%s must NOT receive the other stream's event\nbody:\n%s", tc.name, tc.body.Body.String())
+		}
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_LiveDuringReplayExactlyOnce(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	store := &blockingSSEStore{
+		events: []sse.Event{
+			{Event: "domain", Data: `{"type":"user","n":1}`, ID: sse.NewEventID("1")},
+			{Event: "domain", Data: `{"type":"other","n":2}`, ID: sse.NewEventID("2")},
+		},
+		started: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+
+	derive := func(r *http.Request) (func(sse.Event) bool, error) {
+		typ := r.URL.Query().Get("type")
+
+		return func(evt sse.Event) bool { return strings.Contains(evt.Data, `"type":"`+typ+`"`) }, nil
+	}
+
+	h := ServeDomainEvents(b, store, 0, WithRequestFilter(derive))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events?type=user", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	<-store.started
+
+	// Broadcast DURING the replay window: the subscribe-before-replay order
+	// must deliver it exactly once, and only because it matches the derived
+	// filter.
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"user","n":3}`})
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"type":"user","n":4}`})
+	close(store.release)
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("handler did not return")
+	}
+
+	body := rec.Body.String()
+
+	if got := strings.Count(body, `"n":3`); got != 1 {
+		t.Errorf("live event during replay must land exactly once, got %d\nbody:\n%s", got, body)
+	}
+
+	if strings.Contains(body, `"n":2`) {
+		t.Errorf("non-matching replayed event must be filtered from backfill\nbody:\n%s", body)
+	}
+
+	if !strings.Contains(body, `"n":1`) || !strings.Contains(body, `"n":4`) {
+		t.Errorf("matching replay + live events missing\nbody:\n%s", body)
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_DerivationError_BadRequest(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	derive := func(r *http.Request) (func(sse.Event) bool, error) {
+		if r.URL.Query().Get("bad") != "" {
+			return nil, errors.New("unknown filter param")
+		}
+
+		return nil, nil
+	}
+
+	h := ServeDomainEvents(b, nil, 0, WithRequestFilter(derive))
+
+	req := httptest.NewRequest(http.MethodGet, "/events?bad=1", nil)
+	rec := httptest.NewRecorder()
+
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("derivation error must abort with 400, got %d", rec.Code)
+	}
+
+	if !strings.Contains(rec.Body.String(), "unknown filter param") {
+		t.Errorf("400 body should carry the derivation error, got %q", rec.Body.String())
+	}
+}
+
+func TestServeDomainEvents_RequestFilter_NilFallsBackToConstructionFilter(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	derive := func(_ *http.Request) (func(sse.Event) bool, error) { return nil, nil }
+	match := func(evt sse.Event) bool { return evt.Event == "wanted" }
+
+	h := ServeDomainEvents(b, nil, 0, WithSSEFilter(match), WithRequestFilter(derive))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	b.Broadcast(sse.Event{Event: "wanted", Data: "yes"})
+	b.Broadcast(sse.Event{Event: "unwanted", Data: "no"})
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, "yes") || strings.Contains(body, "no") {
+		t.Errorf("(nil, nil) derivation must fall back to WithSSEFilter\nbody:\n%s", body)
+	}
+}
+
+// gatedSSEStore delays its EventsAnswer until released, so a test can
+// broadcast into the live channel DURING the replay window — exactly the
+// replay/live seam double-delivery window.
+type gatedSSEStore struct {
+	events  []sse.Event
+	release chan struct{}
+}
+
+func (s *gatedSSEStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
+	<-s.release
+
+	if lastID.Get() == "" {
+		return s.events, nil
+	}
+
+	for i, evt := range s.events {
+		if evt.ID.Get() == lastID.Get() {
+			return s.events[i+1:], nil
+		}
+	}
+
+	return nil, nil
+}
+
+// TestServeDomainEvents_ReplayLiveSeamNoDuplicate pins S39/w03.1: an event
+// published while the replay pass is still writing (it sits in BOTH the
+// store's replay window and the live subscription buffer) is delivered
+// exactly once. Pre-fix, the replay wrote it and the live pump wrote it
+// again — every client that connected during a publish burst saw doubles.
+func TestServeDomainEvents_ReplayLiveSeamNoDuplicate(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	e1 := sse.Event{Event: "domain", Data: "one", ID: sse.NewEventID("id-1")}
+	e2 := sse.Event{Event: "domain", Data: "two", ID: sse.NewEventID("id-2")}
+	e3 := sse.Event{Event: "domain", Data: "three", ID: sse.NewEventID("id-3")}
+
+	store := &gatedSSEStore{events: []sse.Event{e1, e2}, release: make(chan struct{})}
+	h := ServeDomainEvents(b, store, 0)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	// Let the handler subscribe, then publish e2 into the LIVE channel while
+	// the replay is still gated — e2 is now in both delivery paths.
+	time.Sleep(50 * time.Millisecond)
+	b.Broadcast(e2)
+	close(store.release)
+
+	// Post-replay live event must flow normally.
+	time.Sleep(50 * time.Millisecond)
+	b.Broadcast(e3)
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+	for data, want := range map[string]int{
+		"one": 1, "two": 1, "three": 1,
+	} {
+		if got := strings.Count(body, "data: "+data+"\n"); got != want {
+			t.Errorf("event %q delivered %d times, want %d\nbody:\n%s", data, got, want, body)
+		}
 	}
 }

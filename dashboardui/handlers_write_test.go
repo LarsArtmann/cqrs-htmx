@@ -363,6 +363,31 @@ func TestSnapshotDeleteHandler_Success(t *testing.T) {
 	}
 }
 
+// Deleting a snapshot that is already gone is idempotent success, not a 500
+// "Delete failed" toast.
+func TestSnapshotDeleteHandler_AlreadyGoneIsSuccess(t *testing.T) {
+	store := &fakeSnapshotStore{deleteErr: snapshot.ErrSnapshotNotFound}
+	d := mustTestDashboardWithConfig(t, Config{
+		Journal:       &stubJournal{},
+		SnapshotStore: store,
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/snapshots/user/abc/delete", nil)
+	r.SetPathValue("type", "user")
+	r.SetPathValue("id", "abc")
+	d.snapshotDeleteHandler(w, r)
+
+	if w.Code != http.StatusSeeOther {
+		t.Fatalf("expected 303 redirect for an already-deleted snapshot, got %d", w.Code)
+	}
+
+	trigger := w.Header().Get("Hx-Trigger")
+	if !strings.Contains(trigger, "Snapshot deleted") {
+		t.Fatalf("expected success toast, got Hx-Trigger: %s", trigger)
+	}
+}
+
 // --- Time-Travel Detail Handler ---
 
 func TestTimeTravelDetailHandler_WithEvents(t *testing.T) {
@@ -486,19 +511,6 @@ func TestTimeTravelDetailHandler_LoadToVersionError(t *testing.T) {
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("expected 500, got %d", w.Code)
 	}
-}
-
-// --- Helpers ---
-
-func mustTestDashboardWithConfig(t *testing.T, config Config) *Dashboard {
-	t.Helper()
-
-	d, err := New(config)
-	if err != nil {
-		t.Fatalf("New Dashboard: %v", err)
-	}
-
-	return d
 }
 
 var (

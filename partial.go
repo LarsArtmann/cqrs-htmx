@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"fmt"
+	stdhtml "html"
 	"net/http"
 	"strings"
 )
@@ -35,6 +36,10 @@ func RenderTemplComponent(w http.ResponseWriter, r *http.Request, partial, full 
 // can be returned alongside a primary response. HTMX processes elements with
 // hx-swap-oob alongside the main swap target, updating them independently.
 //
+// The fragment is interpolated verbatim (it is HTML by contract); the id is
+// escaped for a double-quoted attribute context, so an id containing quotes
+// or angle brackets cannot break out of the generated attribute.
+//
 // By default, elements are replaced using innerHTML. Pass a [SwapStrategy] to
 // use a different swap method:
 //
@@ -42,18 +47,18 @@ func RenderTemplComponent(w http.ResponseWriter, r *http.Request, partial, full 
 //	    cqrshtmx.SwapBeforeEnd)
 //
 // Works for HTTP responses and SSE event data.
-func OOBHTML(id, html string, swapStrategy ...SwapStrategy) string {
+func OOBHTML(id, fragment string, swapStrategy ...SwapStrategy) string {
 	swap := "true"
 	if len(swapStrategy) > 0 && swapStrategy[0] != "" {
 		swap = string(swapStrategy[0])
 	}
 
-	if strings.Contains(html, "hx-swap-oob") {
-		return html
+	if strings.Contains(fragment, "hx-swap-oob") {
+		return fragment
 	}
 
 	return fmt.Sprintf(
 		`<div id="%s" hx-swap-oob="%s">%s</div>`,
-		id, swap, html,
+		stdhtml.EscapeString(id), swap, fragment,
 	)
 }

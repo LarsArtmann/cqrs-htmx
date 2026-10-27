@@ -26,7 +26,7 @@ func benchmarkRing(b *testing.B, ids []id.EventID) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for range b.N {
-		r := dedup.NewRing(dedup.DefaultCapacity)
+		r := dedup.NewRing[string](dedup.DefaultCapacity)
 		for _, eid := range ids {
 			r.Add(eid.String())
 		}

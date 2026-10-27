@@ -62,15 +62,16 @@ func ParseUserID(s string) (UserID, error) {
 
 // strippedBrandPrefix removes a leading "<Brand>:..." prefix if present.
 func strippedBrandPrefix(s string) string {
-	if i := strings.IndexByte(s, ':'); i >= 0 {
-		return s[i+1:]
+	if _, after, ok := strings.Cut(s, ":"); ok {
+		return after
 	}
 	return s
 }
 
 // MustParseUserID converts a ULID string to a UserID, panicking on invalid input.
+// Like [ParseUserID], it tolerates (and strips) a leading brand prefix.
 func MustParseUserID(s string) UserID {
-	uid, err := id.ParseUserID(s)
+	uid, err := ParseUserID(s)
 	if err != nil {
 		panic(
 			fmt.Sprintf("identitymodel.MustParseUserID(%q): %v", s, err),
@@ -80,8 +81,12 @@ func MustParseUserID(s string) UserID {
 }
 
 // GenerateUserID creates a fresh random UserID (new ULID) for production use.
+// The ULID's timestamp is preserved, so IDs minted later sort later across
+// millisecond boundaries (ULID's core ordering guarantee). Do NOT route
+// fresh ULIDs through [SyntheticUserID] — the SHA-256 derivation destroys
+// the timestamp and with it the ordering.
 func GenerateUserID() UserID {
-	return SyntheticUserID(ulid.Make().String())
+	return brandid.NewID[id.UserMarker](ulid.Make())
 }
 
 type tenantBrand struct{}
@@ -94,6 +99,36 @@ type TenantID = brandid.ID[tenantBrand, string]
 // NewTenantID constructs a TenantID from a string value.
 func NewTenantID(s string) TenantID { return brandid.NewID[tenantBrand](s) }
 
+// ParseTenantID converts a string to a TenantID, returning an error for
+// empty or whitespace-padded input. The brand display prefix ("Tenant:", as
+// emitted by TenantID.String()) is tolerated and stripped, mirroring
+// [ParseUserID]: the prefix carries no identity information. For arbitrary
+// trusted input use [NewTenantID]; this is the strict path for RECONSTRUCTION
+// (event folds) and external input.
+func ParseTenantID(s string) (TenantID, error) {
+	v, err := parseBrandedComponent(s, "Tenant")
+	if err != nil {
+		return TenantID{}, errorfamily.Wrapf(err, event.Rejection,
+			"identitymodel.tenant_id.invalid", "invalid tenant id %q", s)
+	}
+
+	return NewTenantID(v), nil
+}
+
+// parseBrandedComponent strips a single exact "<Brand>:" display prefix and
+// rejects empty or whitespace-padded values — the ambiguous forms that would
+// otherwise silently become distinct identities.
+func parseBrandedComponent(s, brand string) (string, error) {
+	v := strings.TrimPrefix(s, brand+":")
+
+	if v == "" || v != strings.TrimSpace(v) {
+		return "", errorfamily.NewRejection("identitymodel.branded_id.invalid",
+			"value is empty or whitespace-padded")
+	}
+
+	return v, nil
+}
+
 type botBrand struct{}
 
 func (botBrand) Name() string { return "Bot" }
@@ -103,6 +138,20 @@ type BotID = brandid.ID[botBrand, string]
 
 // NewBotID constructs a BotID from a string value.
 func NewBotID(s string) BotID { return brandid.NewID[botBrand](s) }
+
+// ParseBotID converts a string to a BotID, returning an error for empty or
+// whitespace-padded input. The brand display prefix ("Bot:", as emitted by
+// BotID.String()) is tolerated and stripped. For arbitrary trusted input use
+// [NewBotID]; this is the strict path for RECONSTRUCTION and external input.
+func ParseBotID(s string) (BotID, error) {
+	v, err := parseBrandedComponent(s, "Bot")
+	if err != nil {
+		return BotID{}, errorfamily.Wrapf(err, event.Rejection,
+			"identitymodel.bot_id.invalid", "invalid bot id %q", s)
+	}
+
+	return NewBotID(v), nil
+}
 
 // ActorKind discriminates between human and machine actors.
 // This is an alias of id.ActorKind from go-cqrs-lite, ensuring full
@@ -158,7 +207,15 @@ func ActorIDAsUserID(actorID ActorID) (UserID, bool) {
 		return zero, false
 	}
 
-	return NewUserID(actorID.String()), true
+	uid, err := ParseUserID(actorID.Raw())
+	if err != nil {
+		// A user-kind actor whose raw value is not a ULID is malformed;
+		// persisting a hash of it would fabricate a different identity.
+		var zero UserID
+		return zero, false
+	}
+
+	return uid, true
 }
 
 // ActorIDFromBot creates an ActorID from a BotID.

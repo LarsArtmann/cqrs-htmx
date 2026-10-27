@@ -219,6 +219,12 @@ The `golangci_lint_ls` LSP may show stale warnings that `golangci-lint run` (CLI
 
 ## Release Process
 
+The full maintainer runbook — pre-flight, wave-ordered tag cuts, consumer
+sweeps, pre-push gates, post-push CI watch — lives in
+[docs/guides/release-playbook.md](docs/guides/release-playbook.md). Start
+there before cutting any tag; `nix run .#train-preflight` is the one-command
+pre-wave gate.
+
 ### Versioning
 
 This repo uses **multi-module tagging**: each module gets its own semver tag.

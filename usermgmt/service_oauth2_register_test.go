@@ -187,3 +187,36 @@ func TestRegister_MixedConcurrentRegistrations_RespectMaxUsers(t *testing.T) {
 		t.Errorf("read model count = %d, want %d", got, maxUsers)
 	}
 }
+
+// TestFinishOAuthLogin_EmptySubjectRejected pins S39/w03.6: a provider
+// (custom OAuth2Provider implementations included) that returns user info
+// without a subject is rejected — an empty subject would degrade the
+// external-account identity key to email-only matching.
+func TestFinishOAuthLogin_EmptySubjectRejected(t *testing.T) {
+	svc, err := NewService(ServiceConfig{
+		OAuth2: subjectlessOAuth2Stub{},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	_, err = runTestOAuth2Login(context.Background(), svc, "google")
+	if err == nil {
+		t.Fatal("FinishOAuthLogin without subject: expected rejection, got nil")
+	}
+	if !strings.Contains(err.Error(), "usermgmt.oauth_no_subject") {
+		t.Errorf("expected usermgmt.oauth_no_subject, got: %v", err)
+	}
+}
+
+// subjectlessOAuth2Stub returns valid user info with an empty subject — the
+// exact shape custom providers must not be able to smuggle through.
+type subjectlessOAuth2Stub struct{}
+
+func (subjectlessOAuth2Stub) BeginLogin(_ context.Context, provider, state string) (string, string, error) {
+	return "https://provider.example.com/auth?state=" + state + "&provider=" + provider, "pkce", nil
+}
+
+func (subjectlessOAuth2Stub) FinishLogin(_ context.Context, _ string, _ string, _ string) ([]byte, error) {
+	return []byte(`{"subject":"","email":"nosub@test.com","email_verified":true,"display_name":"No Sub"}`), nil
+}

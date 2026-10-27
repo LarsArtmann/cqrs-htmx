@@ -49,7 +49,7 @@ func TestWebAuthn_BeginRegistration_WithSessionStored(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BeginRegistration: %v", err)
 	}
-	_, err = svc.webauthnSessions.Get(NewUserID("u1").Get().String())
+	_, err = svc.webauthnSessions.Get(registrationSessionPrefix + NewUserID("u1").Get().String())
 	if err != nil {
 		t.Errorf("expected session data stored, got: %v", err)
 	}
@@ -97,14 +97,12 @@ func TestWebAuthn_BeginLogin_Success(t *testing.T) {
 	registerTestUser(t, svc, "u1", "login@test.com")
 
 	fakeCred := WebAuthnCredential{
-		CredentialCore: CredentialCore{
-			ID:              []byte{0x01, 0x02, 0x03},
-			PublicKey:       []byte{0x04, 0x05, 0x06},
-			AttestationType: "none",
-			Transports:      []string{"internal"},
-			BackupEligible:  true,
-			BackupState:     true,
-		},
+		ID:              []byte{0x01, 0x02, 0x03},
+		PublicKey:       []byte{0x04, 0x05, 0x06},
+		AttestationType: "none",
+		Transports:      []string{"internal"},
+		BackupEligible:  true,
+		BackupState:     true,
 	}
 	if err := svc.AddCredential(context.Background(), NewUserID("u1"), fakeCred); err != nil {
 		t.Fatalf("AddCredential: %v", err)

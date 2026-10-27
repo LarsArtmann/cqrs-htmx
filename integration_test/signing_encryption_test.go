@@ -68,18 +68,16 @@ func TestSigningEncryption_StoreEncryptionAndBusSigning(t *testing.T) {
 	// Service A: write path — encrypts at rest, signs in transit.
 	svcA, err := usermgmt.NewService(usermgmt.ServiceConfig{
 		EventStore: innerStore,
-		SecurityHooks: usermgmt.SecurityHooks{
-			StoreWrapper: func(s event.Store) (event.Store, error) {
-				return encryption.NewEncryptedStore(s, cipher)
-			},
-			PublishMiddleware: []event.PublishMiddleware{
-				signing.SignMiddleware(signer),
-			},
-			// RequireSignatureMiddleware is strict: it rejects events lacking a
-			// valid signature. If SignMiddleware failed to sign, this would error.
-			HandlerMiddleware: []event.Middleware{
-				signing.RequireSignatureMiddleware(signer),
-			},
+		StoreWrapper: func(s event.Store) (event.Store, error) {
+			return encryption.NewEncryptedStore(s, cipher)
+		},
+		PublishMiddleware: []event.PublishMiddleware{
+			signing.SignMiddleware(signer),
+		},
+		// RequireSignatureMiddleware is strict: it rejects events lacking a
+		// valid signature. If SignMiddleware failed to sign, this would error.
+		HandlerMiddleware: []event.Middleware{
+			signing.RequireSignatureMiddleware(signer),
 		},
 	})
 	if err != nil {
@@ -165,17 +163,15 @@ func TestSigningEncryption_BusLevelCrypto(t *testing.T) {
 	}
 
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		SecurityHooks: usermgmt.SecurityHooks{
-			// Sign then encrypt on publish (sign the plaintext, then encrypt).
-			PublishMiddleware: []event.PublishMiddleware{
-				signing.SignMiddleware(signer),
-				encryption.EncryptMiddleware(enc),
-			},
-			// Decrypt then verify on handle (decrypt to plaintext, then verify sig).
-			HandlerMiddleware: []event.Middleware{
-				encryption.DecryptMiddleware(enc),
-				signing.RequireSignatureMiddleware(signer),
-			},
+		// Sign then encrypt on publish (sign the plaintext, then encrypt).
+		PublishMiddleware: []event.PublishMiddleware{
+			signing.SignMiddleware(signer),
+			encryption.EncryptMiddleware(enc),
+		},
+		// Decrypt then verify on handle (decrypt to plaintext, then verify sig).
+		HandlerMiddleware: []event.Middleware{
+			encryption.DecryptMiddleware(enc),
+			signing.RequireSignatureMiddleware(signer),
 		},
 	})
 	if err != nil {
@@ -268,13 +264,11 @@ func TestSigningEncryption_Ed25519AsymmetricSigning(t *testing.T) {
 	}
 
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		SecurityHooks: usermgmt.SecurityHooks{
-			PublishMiddleware: []event.PublishMiddleware{
-				signing.SignMiddleware(signer),
-			},
-			HandlerMiddleware: []event.Middleware{
-				signing.RequireSignatureMiddleware(verifier),
-			},
+		PublishMiddleware: []event.PublishMiddleware{
+			signing.SignMiddleware(signer),
+		},
+		HandlerMiddleware: []event.Middleware{
+			signing.RequireSignatureMiddleware(verifier),
 		},
 	})
 	if err != nil {

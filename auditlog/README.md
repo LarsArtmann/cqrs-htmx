@@ -39,4 +39,14 @@ reports and exports (JSON/CSV/Mermaid/D2/...).
 
 The plugin satisfies go-health's `HealthRecorder` interface implicitly, so it
 composes with the `cqrs-htmx/health` module when you want DI audit and
-projection health in one probe.
+projection health in one probe:
+
+```go
+probe := gohealth.New(injector, gohealth.WithHealthRecorder(
+    health.RecorderChain(health.Recorder(svc), setup.Plugin),
+))
+```
+
+`health.RecorderChain` merges the recorders in order (later ones win name
+collisions); see the [health module's README](../health/README.md) for the
+full surface map.

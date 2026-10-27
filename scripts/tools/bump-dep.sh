@@ -4,7 +4,9 @@
 #
 # For every go.mod that requires a module matching <module-pattern>, set the
 # require to <version>, then run hermetic tidy + `go mod verify` + build + vet
-# per module. Digit-safe pattern matching (the `[a-z/-]+` class once silently
+# per module (and, with --lint, hermetic golangci-lint — the leg that catches
+# linter-visible regressions a fresh require can drag in, e.g. a bumped
+# dependency whose API now trips exhaustruct/wrapcheck in the consuming module). Digit-safe pattern matching (the `[a-z/-]+` class once silently
 # skipped usermgmt/oauth2). Matches BOTH the block-require form
 # (`\tgithub.com/x v1.0.0`) AND the single-line form
 # (`require github.com/x v1.0.0`) — the 9b3c2e18 gap that needed a hand-fix
@@ -12,10 +14,12 @@
 #
 # Usage:
 #   scripts/tools/bump-dep.sh <module-substring-or-regex> <version> \
-#       [--dry-run] [--commit] [--no-verify]
+#       [--dry-run] [--commit] [--no-verify] [--lint] [--message <tpl>]
 # Example:
 #   scripts/tools/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0
 #   scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0   # $ = exact module only
+#   scripts/tools/bump-dep.sh 'larsartmann/go-foo$' v1.2.3 --commit \
+#       --message 'deps: align go-foo to {version} (wave 3)'
 # A trailing $ anchors the END of the module path — without it the pattern
 # is a prefix and also sweeps sibling submodules with their own trains
 # (httputil/server_timing and go-cqrs-lite/storage/memory both bit this way:
@@ -28,6 +32,10 @@
 #                 commit in-process — sweep + verification land as ONE commit
 #                 (beats the auto-commit daemon shredding them apart)
 #   --no-verify   skip the per-module `go mod verify` step (default: on)
+#   --lint        after the sweep, run hermetic golangci-lint in every bumped
+#                 module (own .golangci.yml, GOWORK=off); a lint failure fails
+#                 the sweep naming the module. BUMP_DEP_LINT overrides the
+#                 command (offline fixture self-test)
 #
 # Env:
 #   BUMP_DEP_ROOT  scan root override (fixture self-test). When set, the git
@@ -44,18 +52,35 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DRY=0
 COMMIT=0
 VERIFY=1
+LINT=0
+LINT_LABEL=""
+MSG_TEMPLATE=""
 positional=()
-for arg in "$@"; do
-  case "$arg" in
+while [ "$#" -gt 0 ]; do
+  case "$1" in
   --dry-run) DRY=1 ;;
   --commit) COMMIT=1 ;;
   --no-verify) VERIFY=0 ;;
-  *) positional+=("$arg") ;;
+  --lint) LINT=1 ;;
+  --message)
+    if [ "$#" -lt 2 ]; then
+      echo "bump-dep: --message requires a value" >&2
+      exit 2
+    fi
+    MSG_TEMPLATE="$2"
+    shift
+    ;;
+  *) positional+=("$1") ;;
   esac
+  shift
 done
 
+# Supported --message placeholders: {pattern} and {version}; the default keeps
+# the historical one-line subject.
+
 if [ "${#positional[@]}" -lt 2 ]; then
-  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify]" >&2
+  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify] [--lint] [--message <tpl>]" >&2
+  echo "  --message <tpl>: commit subject; {pattern} and {version} placeholders" >&2
   exit 2
 fi
 
@@ -68,6 +93,16 @@ if [ -n "${BUMP_DEP_ROOT:-}" ]; then
 else
   SCAN_ROOT="$REPO_ROOT"
   cd "$REPO_ROOT" || exit 1
+  # Collision forensics (2026-10-27, the round-38 interleave): name a recent
+  # sweep BEFORE the dirty-tree refusal below blames an unnamed "dirty tree" —
+  # two actors running the same gate-printed FIX RECIPE collided exactly this
+  # way; the refusal alone hid the cause until /tmp was read by hand.
+  recent_sweep_log="$(find /tmp -maxdepth 1 -name 'bump-dep-*.log' -mmin -15 -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+  if [ -n "$recent_sweep_log" ]; then
+    echo "bump-dep: NOTE — a sweep log was written within the last 15m: $recent_sweep_log" >&2
+    echo "bump-dep: if another session is mid-sweep, let it finish and verify its PASS" >&2
+    echo "bump-dep: table instead of interleaving go.mod writes." >&2
+  fi
   if ! git diff --quiet || ! git diff --cached --quiet; then
     echo "bump-dep: REFUSING to run on a dirty tree — the auto-commit daemon makes interleaved sweeps unreviewable. Commit or stash first." >&2
     exit 1
@@ -115,7 +150,14 @@ if [ "${#mods[@]}" -eq 0 ]; then
 fi
 
 echo "bump-dep: sweeping $PATTERN -> $VERSION across ${#mods[@]} module(s)"
-[ "$DRY" -eq 1 ] && printf '  (dry-run) %s\n' "${mods[@]}" && exit 0
+if [ "$DRY" -eq 1 ]; then
+  printf '  (dry-run) %s\n' "${mods[@]}"
+  if [ -n "$MSG_TEMPLATE" ]; then
+    preview="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
+    echo "bump-dep: commit subject will be: ${preview//\{version\}/$VERSION}"
+  fi
+  exit 0
+fi
 
 # R18 pre-flight: validate the TARGET release is consumable BEFORE touching
 # anything. The templ-components v1.20.0 class — a tag whose go.mod carries
@@ -179,6 +221,35 @@ for mod in "${mods[@]}"; do
   fi
 done
 
+# S47 lint leg: hermetic golangci-lint per bumped module, AFTER the go steps —
+# a fresh require can regress lint-visible contracts (exhaustruct shapes,
+# wrapcheck surfaces) while build+vet stay green. BUMP_DEP_LINT overrides the
+# command for the offline fixture self-test; the default is the same
+# `golangci-lint run` the flake lint app uses, resolved from the devShell PATH.
+if [ "$LINT" -eq 1 ]; then
+  LINT_CMD="${BUMP_DEP_LINT:-golangci-lint run}"
+  LINT_LABEL=" + lint green"
+  for mod in "${mods[@]}"; do
+    log="/tmp/bump-dep-lint-$(basename "$mod")-$$-$(date +%s).log"
+    echo "==> lint $mod"
+    (
+      cd "$mod" || exit 1
+      GOEXPERIMENT=jsonv2 GOWORK=off $LINT_CMD
+    ) >"$log" 2>&1
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      echo "  PASS"
+    elif [ "$rc" -eq 127 ]; then
+      echo "  FAIL (rc=127) — golangci-lint not found on PATH; run inside 'nix develop' or install 2.15.x. Log: $log"
+      fail=1
+    else
+      echo "  FAIL (lint rc=$rc) — log: $log"
+      tail -5 "$log" | sed 's/^/      /'
+      fail=1
+    fi
+  done
+fi
+
 echo ""
 if grep -rE "$MATCH_RE" --include=go.mod . 2>/dev/null | grep -v '/testdata/' | grep -v "$VERSION" | grep -q .; then
   echo "bump-dep: ABSENCE ASSERTION FAILED — stale requires remain:"
@@ -190,20 +261,41 @@ if [ "$fail" -ne 0 ]; then
   echo "bump-dep: FAILED for at least one module (see logs above)"
   exit 1
 fi
-echo "bump-dep: OK — $PATTERN at $VERSION everywhere, all modules tidy+verify+build+vet green"
+echo "bump-dep: OK — $PATTERN at $VERSION everywhere, all modules tidy+verify+build+vet green${LINT_LABEL}"
+if [ -n "$MSG_TEMPLATE" ]; then
+  preview="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
+  echo "bump-dep: commit subject will be: ${preview//\{version\}/$VERSION}"
+fi
 
 if [ "$COMMIT" -eq 1 ]; then
   cd "$REPO_ROOT" || exit 1
   git add -u
+  if [ -n "$MSG_TEMPLATE" ]; then
+    COMMIT_SUBJECT="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
+    COMMIT_SUBJECT="${COMMIT_SUBJECT//\{version\}/$VERSION}"
+  else
+    COMMIT_SUBJECT="chore(deps): bump $PATTERN to $VERSION"
+  fi
   commit_log="/tmp/bump-dep-commit-$$-$(date +%s).log"
-  git commit -m "chore(deps): bump $PATTERN to $VERSION" >"$commit_log" 2>&1
+  git commit -m "$COMMIT_SUBJECT" >"$commit_log" 2>&1
   commit_rc=$?
   if [ "$commit_rc" -eq 0 ]; then
-    echo "bump-dep: committed the sweep as one commit"
-    echo "  next: check-release-train --refresh-cache --strict-lag 0 (fresh-tag TTL can read a JUST-pushed tag as UNPUBLISHED)"
+    echo "bump-dep: committed the sweep as one commit: $COMMIT_SUBJECT"
+    # Auto-warm the tag cache NOW (gotcha 27): the NEXT gated commit reads the
+    # 15-min /tmp tag cache, and a just-pushed tag reads UNPUBLISHED until the
+    # cache refreshes. Refreshing here costs seconds and kills the
+    # tag-then-commit-fails class; failure to refresh is a warning, not fatal
+    # (offline trains re-run the gate explicitly).
+    echo "bump-dep: refreshing tag cache (gotcha 27)..."
+    if bash "$REPO_ROOT/scripts/checks/check-release-train.sh" --refresh-cache --advisory >"$commit_log" 2>&1; then
+      echo "bump-dep: tag cache refreshed"
+    else
+      echo "bump-dep: WARNING — tag-cache refresh failed (offline?). Re-run 'nix run .#check-release-train -- --refresh-cache' before the next gated commit."
+    fi
+    echo "  daemon note: if 'git log -1' now shows 'chore: auto-commit ...', AMEND that commit with this subject — don't re-commit on top."
   else
     echo "bump-dep: WARNING — the sweep commit did NOT land (rc=$commit_rc); the go.mod/go.sum changes remain STAGED"
-    echo "  usual causes: pre-commit hook failure. The auto-commit daemon may absorb the staged content as a heuristic commit — check git log before re-committing."
+    echo "  usual causes: pre-commit hook failure. The auto-commit daemon may absorb the staged content as a heuristic commit — check git log before re-committing; if it did, AMEND that commit with: $COMMIT_SUBJECT"
     tail -5 "$commit_log" | sed 's/^/    /'
     exit 1
   fi

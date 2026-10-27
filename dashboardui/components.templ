@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
@@ -104,10 +105,11 @@ templ buttonSubmit(text, ariaLabel string, variant display.ButtonType, attrs tem
 
 // copyButton renders a library CopyButton (data-tc-copy + the library's
 // singleton delegated clipboard script). The empty label falls back to the
-// library's "Copy"/"Copied!" pair.
-templ copyButton(text, label string) {
+// library's "Copy"/"Copied!" pair. nonce threads the per-request CSP nonce
+// into the clipboard script; the library omits the attribute when empty.
+templ copyButton(text, label, nonce string) {
 	@display.CopyButton(display.CopyButtonProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: nonce},
 		Text:      text,
 		Label:     label,
 		Icon:      true,
@@ -227,12 +229,25 @@ templ pageSizeSelector(basePath, path string, state paginationState, extraParams
 }
 
 // formatLinksNav renders CSV and JSON export links for the given page path.
-templ formatLinksNav(basePath, path string) {
+// extraParams carries the active filter/sort query so an export respects
+// what the user is looking at instead of silently exporting the whole
+// journal.
+templ formatLinksNav(basePath, path, extraParams string) {
 	<div class="filter-bar">
 		<span class="muted">Export:</span>
-		@buttonLink("CSV", basePath+path+"?format=csv", "", display.ButtonSecondary, false)
-		@buttonLink("JSON", basePath+path+"?format=json", "", display.ButtonSecondary, false)
+		@exportLink("CSV", basePath+path, "format=csv", extraParams)
+		@exportLink("JSON", basePath+path, "format=json", extraParams)
 	</div>
+}
+
+templ exportLink(label, basePath, formatParam, extraParams string) {
+	{{
+		query := formatParam
+		if extraParams != "" {
+			query = extraParams + "&" + formatParam
+		}
+	}}
+	@buttonLink(label, basePath+"?"+query, "", display.ButtonSecondary, false)
 }
 
 // snapshotRelativeTime renders the library RelativeTime component (title =
@@ -241,4 +256,14 @@ templ formatLinksNav(basePath, path string) {
 // plain relativeTime() helper — out of scope per the adoption plan.
 templ snapshotRelativeTime(nonce string, t time.Time) {
 	@display.RelativeTime(display.RelativeTimeProps{Time: t, Nonce: nonce})
+}
+
+// eventTimelineCells renders the three event columns shared by the aggregate
+// timeline and time-travel tables: version, typed link to the event detail
+// page, and occurred-at. One place owns the cell markup and the timestamp
+// format so the two tables cannot drift.
+templ eventTimelineCells(basePath string, evt event.Event) {
+	<td class="cell-emph">{ evt.Version().String() }</td>
+	<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
+	<td class="mono">{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
 }

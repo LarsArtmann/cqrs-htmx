@@ -1,0 +1,18 @@
+package app
+
+import (
+	"net/http"
+
+	"github.com/larsartmann/httputil"
+)
+
+// wire mounts the app with the v4-era CSRF re-exports (pre-upgrade shape).
+func wire(mux *http.ServeMux) http.Handler {
+	var csrfCfg httputil.CSRFConfig
+	mux.Handle("POST /items", httputil.CSRFMiddleware(csrfCfg)(nil))
+
+	token := httputil.CSRFToken
+	_ = token
+
+	return mux
+}

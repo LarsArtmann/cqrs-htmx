@@ -1,22 +1,23 @@
 module github.com/larsartmann/cqrs-htmx/examples/samber-do-demo
 
-go 1.27.1
+go 1.27.2
 
 require (
-	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/health/v4 v4.12.2
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.2
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.2
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
-	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/go-health v0.5.0
-	github.com/larsartmann/go-health-dashboard v0.10.2
-	github.com/larsartmann/httputil v1.4.1
+	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/health/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.14.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.16.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
+	github.com/larsartmann/go-error-family v0.12.0
+	github.com/larsartmann/go-health v0.7.0
+	github.com/larsartmann/go-health-dashboard v0.12.1
+	github.com/larsartmann/httputil v1.7.0
 	github.com/larsartmann/samber-do-auditlog v0.11.0
 	github.com/samber/do/v2 v2.1.0
+	github.com/stretchr/testify v1.12.1
 )
 
 require (
@@ -32,8 +33,8 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd // indirect
-	github.com/charmbracelet/x/ansi v0.11.8 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
+	github.com/charmbracelet/x/ansi v0.11.9 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -53,27 +54,26 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
+	github.com/larsartmann/go-codec v0.3.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-datastar v0.6.2 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
@@ -81,31 +81,31 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.38.4 // indirect
-	github.com/larsartmann/go-output/d2 v0.38.4 // indirect
-	github.com/larsartmann/go-output/daghtml v0.38.3 // indirect
-	github.com/larsartmann/go-output/delimited v0.38.4 // indirect
-	github.com/larsartmann/go-output/escape v0.38.3 // indirect
-	github.com/larsartmann/go-output/graph v0.38.4 // indirect
-	github.com/larsartmann/go-output/markdown v0.38.4 // indirect
-	github.com/larsartmann/go-output/markup v0.38.4 // indirect
-	github.com/larsartmann/go-output/plantuml v0.38.4 // indirect
-	github.com/larsartmann/go-output/serialization v0.38.4 // indirect
-	github.com/larsartmann/go-output/table v0.38.4 // indirect
-	github.com/larsartmann/go-output/tree v0.38.4 // indirect
-	github.com/larsartmann/go-retry v0.7.1 // indirect
-	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
+	github.com/larsartmann/go-output v0.38.7 // indirect
+	github.com/larsartmann/go-output/d2 v0.38.7 // indirect
+	github.com/larsartmann/go-output/daghtml v0.38.7 // indirect
+	github.com/larsartmann/go-output/delimited v0.38.7 // indirect
+	github.com/larsartmann/go-output/escape v0.38.7 // indirect
+	github.com/larsartmann/go-output/graph v0.38.7 // indirect
+	github.com/larsartmann/go-output/markdown v0.38.7 // indirect
+	github.com/larsartmann/go-output/markup v0.38.7 // indirect
+	github.com/larsartmann/go-output/plantuml v0.38.7 // indirect
+	github.com/larsartmann/go-output/serialization v0.38.7 // indirect
+	github.com/larsartmann/go-output/table v0.38.7 // indirect
+	github.com/larsartmann/go-output/tree v0.38.7 // indirect
+	github.com/larsartmann/go-retry v0.8.0 // indirect
+	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.20.1 // indirect
-	github.com/larsartmann/templ-components/datastar v1.20.1 // indirect
-	github.com/larsartmann/templ-components/htmx v1.20.1 // indirect
-	github.com/larsartmann/templ-components/icons v1.20.1 // indirect
-	github.com/larsartmann/templ-components/utils v1.20.1 // indirect
+	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
+	github.com/larsartmann/templ-components v1.24.0 // indirect
+	github.com/larsartmann/templ-components/datastar v1.24.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.24.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.24.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.24.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/mattn/go-runewidth v0.0.30 // indirect
+	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
@@ -119,7 +119,6 @@ require (
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -132,8 +131,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 	modernc.org/libc v1.77.1 // indirect

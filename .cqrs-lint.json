@@ -8,9 +8,14 @@
     // aliases") and EventCatalog.Register(EventMetadata{Type: ...}) was
     // invisible. Fixed at the source in go-cqrs-lite (var-alias + metadata
     // collection, verified 0 findings with C040 enabled on the full walk).
-    // NOTE: until the system cqrs-lint binary rebuilds from that go-cqrs-lite
-    // state, manual root walks with the OLD binary print 21 stale C040
-    // warnings — the gate stays green (warnings do not fail it).
-    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007"]
+    // RESOLVED 2026-10-15: the system binary (4.16.1, go-cqrs-lite
+    // 2026-10-12) ships the fix — root walks print no C040 warnings.
+    //
+    // D005 (docs-vs-go.mod version consistency) false-positives on
+    // go-cqrs-lite per-module trains: AGENTS.md cites submodule versions that
+    // ARE correct in go.mod (event/v4 v4.14.0) while the detector compares
+    // them against a different family require (command/v4 v4.13.1) — the
+    // same lockstep assumption V006 is disabled for.
+    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007", "D005"]
   }
 }

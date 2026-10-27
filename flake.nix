@@ -40,7 +40,20 @@
           # cannot satisfy those directives under go_1_26, so the toolchain
           # moves to nixpkgs' go_1_27 — the same change go-cqrs-lite landed
           # in its flake the same day.
-          goPkg = pkgs.go_1_27;
+          #
+          # 2026-10-11: stdlib net/http vulns GO-2026-6603/6611/6613/6617
+          # (HTTP/2 HPACK race class) reddened CI's govulncheck on the 1.27.1
+          # floor; fixes ship in go 1.27.2. This nixpkgs rev still carries
+          # go_1_27 = 1.27.1, so pin the patch version forward via
+          # overrideAttrs (same mechanism go-health used in reverse for gosec
+          # on 2026-10-11) instead of a whole nixpkgs bump.
+          goPkg = pkgs.go_1_27.overrideAttrs (_old: rec {
+            version = "1.27.2";
+            src = pkgs.fetchurl {
+              url = "https://go.dev/dl/go${version}.src.tar.gz";
+              hash = "sha256-A0ldorpkiU1A9cSZLklFT6eLUGkGBP+Stq//UIG3bmI=";
+            };
+          });
 
           goEnv = ''
             export GOWORK=off
@@ -123,6 +136,16 @@
               nixfmt.enable = true;
               templ.enable = true;
               gofmt.enable = true;
+              # Markdown formatter (2026-10-17, plan M03): nixpkgs prettier —
+              # hermetic (no plugin downloads, unlike dprint), no Go
+              # involvement (the templ-wrapper trap class cannot fire).
+              # Scoped to **/*.md ONLY (never .json/.yaml — CI workflows and
+              # configs have their own canonical shapes; the first run with
+              # the bare `*.md` pattern formatted js/yaml/json across the
+              # tree and was reverted). Prose is never re-wrapped
+              # (.prettierrc proseWrap: preserve) so annotation rows and
+              # hand-wrapped tables keep their lines.
+              prettier.enable = true;
               # Aligned with the golangci-lint golines config (.golangci.yml
               # settings.golines.max-len: 120). The 2026-08-29 275-file churn
               # came from treefmt's default max-len of 100 reflowing every
@@ -134,6 +157,31 @@
             settings.formatter.golines.options = [
               "--max-len"
               "120"
+            ];
+            settings.formatter.prettier.includes = lib.mkForce [
+              "*.md"
+              "**/*.md"
+            ];
+            # Historical / append-only corpora stay byte-identical (plan
+            # guardrail: no reformatting of historical artifacts — annotation
+            # shapes, verdict tables, and append-only sections must not
+            # churn): status reports (live tail + archived), plans, research,
+            # ADRs, feedback, analysis ledgers, agents-notes narratives, the
+            # append-only CHANGELOG, and the deliberately-untidy testdata
+            # fixtures. Global excludes hide these from every formatter —
+            # safe: none of these trees carry formattable Go/nix/shell.
+            settings.global.excludes = [
+              "CHANGELOG.md"
+              "docs/adr/**"
+              "docs/agents-notes.md"
+              "docs/analysis/**"
+              "docs/architecture-understanding/**"
+              "docs/feedback/**"
+              "docs/modularization/**"
+              "docs/planning/**"
+              "docs/research/**"
+              "docs/status/**"
+              "scripts/testdata/**"
             ];
             # treefmt-nix's templ module wraps templ with nixpkgs' DEFAULT go
             # (1.26.x). Since the fleet re-pin moved the module floors to
@@ -207,9 +255,13 @@
                 # BuildFlow pre-commit hook formatters/linters
                 pkgs.shfmt # shell scripts (scripts/*.sh)
                 pkgs.nixfmt # flake.nix
-                pkgs.dprint # markdown-format
+                # dprint removed 2026-10-18: markdown formatting belongs to
+                # treefmt/prettier (programs above, plan M03); dprint.json and
+                # this devShell binary were dead config after the switch.
                 pkgs.prettier # YAML/JSON/CSS/config files
-                pkgs.biome # JS/TS files (admin.js, login.js, sync-*.js)
+                # biome removed 2026-10-26: nothing consumed biome.json (no
+                # treefmt program, no BuildFlow step, no CI job) — JS
+                # formatting rides BuildFlow's prettier-format step.
                 pkgs.codespell # spell check across all files
                 pkgs.treefmt # nix fmt aggregator
                 # BuildFlow pre-commit steps that failed on missing binaries
@@ -310,6 +362,25 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-bump-dep.sh
+                  '';
+                }
+              );
+            };
+
+            test-check-templ-codegen-staged = {
+              type = "app";
+              meta.description = "Fixture self-test for the staged-templ codegen-drift pre-commit gate (stale pair red, regenerated pair green, hand-edit caught; stubbed templ)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-templ-codegen-staged";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-templ-codegen-staged.sh
                   '';
                 }
               );
@@ -1065,6 +1136,9 @@
                         "version-drift:bash scripts/checks/check-version-drift.sh --strict"
                         "release-train:bash scripts/checks/check-release-train.sh"
                         "release-train-self-test:bash scripts/selftests/test-check-release-train.sh"
+                        "upstream-treadmill:bash scripts/checks/check-upstream-treadmill.sh"
+                        "upstream-treadmill-self-test:bash scripts/selftests/test-check-upstream-treadmill.sh"
+                        "wave-tag-self-test:bash scripts/selftests/test-wave-tag.sh"
                         "vcs-cache:bash scripts/checks/check-vcs-cache.sh"
                         "vcs-cache-self-test:bash scripts/selftests/test-check-vcs-cache.sh"
                         "css-bundles:bash scripts/checks/check-css-bundles.sh"
@@ -1073,22 +1147,50 @@
                         "css-bundle-classes-self-test:bash scripts/selftests/test-check-css-bundle-classes.sh"
                         "preflight-self-test:bash scripts/selftests/test-preflight-tree-check.sh"
                         "wait-tree-quiet-self-test:bash scripts/selftests/test-wait-tree-quiet.sh"
+                        "train-preflight-self-test:bash scripts/selftests/test-train-preflight.sh"
+                        "push-and-watch-self-test:bash scripts/selftests/test-push-and-watch.sh"
+                        "verify-remote-tags-self-test:bash scripts/selftests/test-verify-remote-tags.sh"
+                        "train-consumers-hermetic:bash scripts/checks/check-train-consumers-hermetic.sh"
+                        "train-consumers-hermetic-self-test:bash scripts/selftests/test-check-train-consumers-hermetic.sh"
+                        "status-rows-equivalence-self-test:bash scripts/selftests/test-status-table-equivalence.sh"
+                        "train-lag-report-self-test:bash scripts/selftests/test-train-lag-report.sh"
                         "replace-directives:bash scripts/checks/check-replace-directives.sh"
                         "docs-freshness:bash scripts/checks/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/selftests/test-check-docs-freshness.sh"
                         "docs-links:bash scripts/checks/check-docs-links.sh"
+                        "readme-quickstart:bash scripts/checks/check-readme-quickstart.sh"
+                        "readme-quickstart-self-test:bash scripts/selftests/test-check-readme-quickstart.sh"
                         "status-annotations:bash scripts/checks/check-status-annotations.sh"
                         "status-annotations-self-test:bash scripts/selftests/test-check-status-annotations.sh"
                         "status-rows:python3 scripts/checks/check-status-rows.py"
                         "status-rows-self-test:bash scripts/selftests/test-check-status-rows.sh"
                         "status-rows-normalize-self-test:bash scripts/selftests/test-normalize-status-rows.sh"
+                        "todo-hygiene:bash scripts/checks/check-todo-hygiene.sh"
+                        "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
+                        "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
+                        "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
+                        "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
+                        "corpus-budget-ratchet:bash scripts/checks/check-docs-corpus-budget.sh --ratchet"
+                        "corpus-budget-self-test:bash scripts/selftests/test-check-docs-corpus-budget.sh"
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
+                        "templ-codegen-staged-self-test:bash scripts/selftests/test-check-templ-codegen-staged.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                         "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
                         "streamid-identity:bash scripts/checks/check-streamid-identity.sh"
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
+                        "root-files:bash scripts/checks/check-root-files.sh --strict"
+                        "root-files-self-test:bash scripts/selftests/test-check-root-files.sh"
+                        "buildflow-skips:bash scripts/checks/check-buildflow-skips.sh"
+                        "buildflow-skips-self-test:bash scripts/selftests/test-check-buildflow-skips.sh"
+                        "verify-tag-fixtures-untidy:bash scripts/checks/check-verify-tag-fixtures-untidy.sh"
+                        "verify-tag-fixtures-untidy-self-test:bash scripts/selftests/test-check-verify-tag-fixtures-untidy.sh"
+                        "skill-claims:bash scripts/checks/check-skill-claims.sh"
+                        "skill-claims-self-test:bash scripts/selftests/test-check-skill-claims.sh"
+                        "skill-snippets:bash scripts/checks/check-skill-snippets.sh"
+                        "skill-snippets-self-test:bash scripts/selftests/test-check-skill-snippets.sh"
+                        "readme-splitbrain:bash scripts/checks/check-readme-splitbrain.sh"
                         "family-release-consumable:bash scripts/checks/check-family-release-consumable.sh"
                         "family-release-consumable-self-test:bash scripts/selftests/test-check-family-release-consumable.sh"
                         "selftest-env-leaks:bash scripts/checks/check-selftest-env-leaks.sh"
@@ -1124,6 +1226,9 @@
                     bash scripts/selftests/test-check-workspace-build.sh
                     bash scripts/checks/check-version-drift.sh --strict
                     bash scripts/checks/check-release-train.sh
+                    bash scripts/checks/check-upstream-treadmill.sh
+                    bash scripts/selftests/test-check-upstream-treadmill.sh
+                    bash scripts/selftests/test-wave-tag.sh
                     bash scripts/checks/check-vcs-cache.sh
                     bash scripts/selftests/test-check-vcs-cache.sh
                     bash scripts/checks/check-css-bundles.sh
@@ -1134,12 +1239,22 @@
                     bash scripts/checks/check-docs-freshness.sh
                     bash scripts/selftests/test-check-docs-freshness.sh
                     bash scripts/checks/check-docs-links.sh
+                    bash scripts/checks/check-readme-quickstart.sh
+                    bash scripts/selftests/test-check-readme-quickstart.sh
                     bash scripts/checks/check-status-annotations.sh
                     bash scripts/selftests/test-check-status-annotations.sh
                     python3 scripts/checks/check-status-rows.py
                     bash scripts/selftests/test-check-status-rows.sh
                     bash scripts/selftests/test-normalize-status-rows.sh
+                    bash scripts/checks/check-todo-hygiene.sh
+                    bash scripts/selftests/test-check-todo-hygiene.sh
+                    bash scripts/selftests/test-evict-archive.sh
+                    bash scripts/selftests/test-archive-status.sh
+                    bash scripts/checks/check-docs-tail-budget.sh --ratchet
+                    bash scripts/checks/check-docs-corpus-budget.sh --ratchet
+                    bash scripts/selftests/test-check-docs-corpus-budget.sh
                     bash scripts/selftests/test-bump-dep.sh
+                    bash scripts/selftests/test-check-templ-codegen-staged.sh
                     bash scripts/checks/check-session-route-wrappers.sh
                     bash scripts/selftests/test-check-session-route-wrappers.sh
                     bash scripts/checks/check-branching-flow.sh
@@ -1179,6 +1294,25 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-docs-links.sh
+                  '';
+                }
+              );
+            };
+
+            check-readme-quickstart = {
+              type = "app";
+              meta.description = "Compile the README quick-start fence in a throwaway consumer module (GOWORK=off, real module graph — the README-lies class dies here)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-readme-quickstart";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    export GOTOOLCHAIN=local
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-readme-quickstart.sh
                   '';
                 }
               );
@@ -1236,6 +1370,26 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-streamid-identity.sh
+                  '';
+                }
+              );
+            };
+
+            check-root-files = {
+              type = "app";
+              meta.description = "Root-declutter gate: freeze the tracked non-Go file set at repo root (the biome.json class — configs nothing consumes); new root files need a visible baseline bump in the same commit";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-root-files";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                    pkgs.diffutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-root-files.sh --strict
                   '';
                 }
               );
@@ -1376,7 +1530,7 @@
 
             check-docs-tail-budget = {
               type = "app";
-              meta.description = "ADVISORY: warn when the live docs/status/*.md tail exceeds 3 reports (--strict to exit 1). Deliberately not a blocking check-modules stage";
+              meta.description = "Live docs/status/*.md tail: advisory vs the absolute budget of 3, --strict exits 1, --ratchet is the blocking mode wired into check-modules + CI (fails on growth past docs/status/TAIL_BASELINE)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-docs-tail-budget";
@@ -1407,6 +1561,127 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-docs-tail-budget.sh
+                  '';
+                }
+              );
+            };
+
+            check-docs-corpus-budget = {
+              type = "app";
+              meta.description = "Ratchet on the whole docs corpus (markdown lines under docs/), baseline in docs/CORPUS_BASELINE; --ratchet fails on growth, --update-baseline justifies deliberate growth, --files prints per-directory counts";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-docs-corpus-budget";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-docs-corpus-budget.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-docs-corpus-budget = {
+              type = "app";
+              meta.description = "Fixture self-test for check-docs-corpus-budget.sh (9 cases: at/over/below baseline, missing, malformed, update, report mode, files table, empty tree)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-docs-corpus-budget";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-docs-corpus-budget.sh
+                  '';
+                }
+              );
+            };
+
+            check-todo-hygiene = {
+              type = "app";
+              meta.description = "Four TODO_LIST.md hygiene rules: no [x] rows, no struck-title rows, no section >30% dead, header <1500 chars with no paragraph >300";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-todo-hygiene";
+                  runtimeInputs = [
+                    pkgs.gawk
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-todo-hygiene.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-todo-hygiene = {
+              type = "app";
+              meta.description = "Fixture self-test for check-todo-hygiene.sh (10 cases: clean/[x]/struck-title/inline-strike/section-death/long-paragraph/header-total/missing/empty/verbose)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-todo-hygiene";
+                  runtimeInputs = [
+                    pkgs.gawk
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-todo-hygiene.sh
+                  '';
+                }
+              );
+            };
+
+            archive-status = {
+              type = "app";
+              meta.description = "One atomic, gated docs/status archive pass: row-gate, git mv, dated SUPERSEDED blockquote, link re-base, manifest row, baseline ratchet-down (dry run by default)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "archive-status";
+                  runtimeInputs = [
+                    pkgs.bash
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.git
+                    pkgs.python3
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/archive-status.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-archive-status = {
+              type = "app";
+              meta.description = "Fixture self-test for archive-status.sh + rebase_links.py (22 assertions: dry run, move+annotate+re-base+manifest, inbound-citation re-point, anchor survival, resolved verdict, baseline ratchet-down, 7 refusals)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-archive-status";
+                  runtimeInputs = [
+                    pkgs.bash
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.git
+                    pkgs.python3
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-archive-status.sh
                   '';
                 }
               );
@@ -1675,6 +1950,198 @@
               );
             };
 
+            train-preflight = {
+              type = "app";
+              meta.description = "ONE command before a train: tree quiescence + surprise check + lint + hermetic test battery + strict release-train gate, with candidate-count guards (a zero-iteration stage is a false green)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "train-preflight";
+                  # pkgs.nix: the lint/test stages invoke `nix run .#lint` /
+                  # `.#test` from inside the app; without nix on PATH they fail
+                  # with a confusing command-not-found after the slow stages.
+                  runtimeInputs = [
+                    pkgs.nix
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/train-preflight.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-train-preflight = {
+              type = "app";
+              meta.description = "Fixture self-test for train-preflight.sh (offline stubs: all-green / stage failure / guard misses / keep-going aggregate / outside-repo / e2e skip + CI self-skip)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-train-preflight";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-train-preflight.sh
+                  '';
+                }
+              );
+            };
+
+            push-and-watch = {
+              type = "app";
+              meta.description = "Push, then watch THIS push's ci.yml run to terminal state (workflow-filtered — the newest unfiltered run is the Dependabot graph update); refreshes the release-train tag cache first, prints failed jobs + triage hint on red";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "push-and-watch";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.gh
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/push-and-watch.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-push-and-watch = {
+              type = "app";
+              meta.description = "Fixture self-test for push-and-watch.sh (offline stubs: green watch / red triage / run-not-found / push failure / refresh-before-push)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-push-and-watch";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-push-and-watch.sh
+                  '';
+                }
+              );
+            };
+
+            verify-remote-tags = {
+              type = "app";
+              meta.description = "Paranoia tag audit: local tags must peel (^{}) on the remote to the SAME commit (tag-object vs peeled-commit false-alarm class, 2026-10-13); fails on mismatch/missing/zero candidates";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "verify-remote-tags";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/verify-remote-tags.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-verify-remote-tags = {
+              type = "app";
+              meta.description = "Fixture self-test for verify-remote-tags.sh (offline bare-clone remote: usage / annotated+lightweight OK / zero candidates / missing / moved mismatch)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-verify-remote-tags";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-verify-remote-tags.sh
+                  '';
+                }
+              );
+            };
+
+            check-train-consumers-hermetic = {
+              type = "app";
+              meta.description = "Pre-publish hermetic consumer catch (gotcha-30 mechanized): GOWORK=off build+vet+test for every module with go.mod/go.sum changes vs origin/master — run BEFORE verify-tag --push";
+              # goPkg: the hermetic pipeline shells out to `go`; without the
+              # 1.27.1 toolchain the ambient go cannot load the workspace floor.
+              runtimeInputs = [ goPkg ];
+              text = ''
+                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                bash scripts/checks/check-train-consumers-hermetic.sh "$@"
+              '';
+            };
+
+            test-check-train-consumers-hermetic = {
+              type = "app";
+              meta.description = "Fixture self-test for check-train-consumers-hermetic.sh (offline stubs: zero-count pass / green module / red module blocks / base SKIP / testdata exclusion)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-train-consumers-hermetic";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-train-consumers-hermetic.sh
+                  '';
+                }
+              );
+            };
+
+            test-status-table-equivalence = {
+              type = "app";
+              meta.description = "Adversarial equivalence meta-test: the PARTIAL-row gate and the normalizer must agree exactly (shared scripts/lib/status_table.py; 7 fixtures incl. the 2026-10-08 malformed-separator split brain)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-status-table-equivalence";
+                  runtimeInputs = [
+                    pkgs.python3
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-status-table-equivalence.sh
+                  '';
+                }
+              );
+            };
+
+            train-lag-report = {
+              type = "app";
+              meta.description = "Early-warning train-lag report: runs the strict release-train gate and surfaces the lag table + fix recipe advisory-style (never red on lag; broken gates stay loud). Nightly workflow + manual";
+              runtimeInputs = [
+                pkgs.git
+                pkgs.coreutils
+              ];
+              text = ''
+                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                bash scripts/checks/train-lag-report.sh "$@"
+              '';
+            };
+
+            test-train-lag-report = {
+              type = "app";
+              meta.description = "Fixture self-test for train-lag-report.sh (offline stubs: aligned / lag advisory / strict propagation / broken-gate propagation / tally guard)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-train-lag-report";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-train-lag-report.sh
+                  '';
+                }
+              );
+            };
+
             check-release-train = {
               type = "app";
               meta.description = "Verify every internal require resolves to a PUBLISHED tag; list train-lag for the next family train (forwards flags: --json, --strict-lag N, --no-cache, --refresh-cache)";
@@ -1691,6 +2158,87 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-release-train.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            check-upstream-treadmill = {
+              type = "app";
+              meta.description = "How far behind is every larsartmann UPSTREAM dependency (go-cqrs-lite, httputil, templ-components, ...): per (repo, tag-prefix) lag table, advisory by default, --strict-lag N to gate; unknown prefixes and non-exempt pseudo pins are structural errors (the A5/sqliteengine silent-failure class); shares the release-train tag cache";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-upstream-treadmill";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                    pkgs.findutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-upstream-treadmill.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-upstream-treadmill = {
+              type = "app";
+              meta.description = "Fixture self-test for check-upstream-treadmill.sh (offline: seeded tag cache + recording fetch stub — aligned/lag/strict/unknown-prefix/sqliteengine-trap/loud-fetch-failure/pseudo-exempt/self-skip/disagree/warm-cache/nested-prefix)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-upstream-treadmill";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-upstream-treadmill.sh
+                  '';
+                }
+              );
+            };
+
+            wave-tag = {
+              type = "app";
+              meta.description = "The release tag rhythm as one command: verify-tag guards → push → tag+push (poisoned-tag protocol) → release-train --refresh-cache --strict-lag 0 → bump-dep consumer sweep (--commit --lint) → carrier re-tag report/cascade. Dry-run by default; --execute runs it; any red leg refuses";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "wave-tag";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/wave-tag.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-wave-tag = {
+              type = "app";
+              meta.description = "Fixture self-test for wave-tag.sh (offline recording stubs: dry-run touches nothing, guard/push/train/sweep refusals stop the rhythm, strict leg order, module-path $ anchor, carrier next-patch report, usage errors)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-wave-tag";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-wave-tag.sh
                   '';
                 }
               );
@@ -1754,45 +2302,36 @@
 
             coverage-gate = goApp {
               name = "coverage-gate";
-              description = "Run tests and fail if coverage drops below thresholds";
-              runtimeInputs = [ pkgs.bc ];
+              description = "Run tests and fail if coverage drops below thresholds (single-sourced in scripts/checks/coverage-thresholds.tsv; fail-loud on failed test runs)";
               text = ''
                 fail=0
-                check_cov() {
-                  local mod="$1" threshold="$2"
-                  local cov profile
+                while IFS=$'\t' read -r mod threshold; do
+                  case "$mod" in ""|'#'*) continue ;; esac
                   profile=$(mktemp /tmp/cov.XXXXXX)
-                  cov=$(cd "$mod" && go test ./... -count=1 -coverprofile="$profile" >/dev/null 2>&1 && go tool cover -func="$profile" | tail -1 | grep -oP '\d+\.\d+(?=%)')
-                  rm -f "$profile"
-                  echo "$mod coverage: ''${cov}% (threshold: ''${threshold}%)"
-                  if (( $(echo "$cov < $threshold" | bc -l) )); then
-                    echo "FAIL: $mod coverage ''${cov}% < ''${threshold}%"
+                  if [ -f "$mod/go.mod" ]; then
+                    # Module row: hermetic per-module test run.
+                    if ! (cd "$mod" && go test ./... -count=1 -coverprofile="$profile" >/dev/null 2>&1); then
+                      echo "FAIL: $mod test run failed — coverage not measured"
+                      rm -f "$profile"
+                      fail=1
+                      continue
+                    fi
+                  else
+                    # Package row (no go.mod): measure the package from its parent module.
+                    parent=$(dirname "$mod")
+                    pkg=$(basename "$mod")
+                    if ! (cd "$parent" && go test "./$pkg/..." -count=1 -coverprofile="$profile" >/dev/null 2>&1); then
+                      echo "FAIL: $mod test run failed — coverage not measured"
+                      rm -f "$profile"
+                      fail=1
+                      continue
+                    fi
+                  fi
+                  if ! bash scripts/checks/check-coverage-threshold.sh "$mod" "$profile"; then
                     fail=1
                   fi
-                }
-                check_cov . 90
-                check_cov identity-model 70
-                check_cov usermgmt 74
-                check_cov usermgmt/totp 80
-                check_cov usermgmt/webauthn 80
-                check_cov usermgmt/oauth2 80
-                check_cov adminui 66
-                check_cov loginpage 79
-                check_cov dashboardui 60
-                check_cov datastar 90
-                check_cov setup 80
-                check_cov systemadapter 70
-                check_cov health 90
-                check_cov auditlog 90
-                # Per-package gate: dashboardui/core is the pure data layer.
-                core_profile=$(mktemp /tmp/corecov.XXXXXX)
-                core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile="$core_profile" >/dev/null 2>&1 && go tool cover -func="$core_profile" | tail -1 | grep -oP '\d+\.\d+(?=%)')
-                rm -f "$core_profile"
-                echo "dashboardui/core coverage: ''${core_cov}% (threshold: 80%)"
-                if (( $(echo "$core_cov < 80" | bc -l) )); then
-                  echo "FAIL: dashboardui/core coverage ''${core_cov}% < 80%"
-                  fail=1
-                fi
+                  rm -f "$profile"
+                done < scripts/checks/coverage-thresholds.tsv
                 if [ "$fail" -eq 1 ]; then
                   echo "Coverage gate FAILED"
                   exit 1
@@ -1871,15 +2410,34 @@
                       bun install --frozen-lockfile 2>/dev/null || bun install
                       # Auto-provision the browser when no Nix/system Chromium
                       # was found (no-op fast path when already installed).
+                      # ffmpeg ALWAYS: video contexts (retain-on-failure) need
+                      # the downloaded binary even when the browser itself
+                      # comes from Nix via E2E_BROWSER_PATH (2026-10-09: the
+                      # Nix-Chromium machine class failed all 61 specs because
+                      # ffmpeg was skipped alongside the browser).
+                      # Install via the LOCAL playwright CLI (node_modules/.bin):
+                      # bun x downloads a STANDALONE playwright whose browser
+                      # builds can skew against the local @playwright/test.
                       if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
-                        bun x playwright install chromium ffmpeg
+                        ./node_modules/.bin/playwright install chromium ffmpeg
+                      else
+                        ./node_modules/.bin/playwright install ffmpeg
                       fi
                       bun run test
-                    elif command -v pnpm dlx >/dev/null 2>&1; then
-                      pnpm dlx playwright install chromium
-                      pnpm dlx playwright test
+                    elif command -v pnpm >/dev/null 2>&1; then
+                      # LOCAL runner only: `pnpm dlx playwright test` fails with
+                      # "Playwright Test did not expect test() to be called here"
+                      # (dlx'd standalone runner skews against the local
+                      # @playwright/test; hit live 2026-10-13).
+                      pnpm install
+                      if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
+                        pnpm exec playwright install chromium ffmpeg
+                      else
+                        pnpm exec playwright install ffmpeg
+                      fi
+                      pnpm exec playwright test
                     else
-                      echo "FAIL: Neither bun nor pnpm dlx found. Install Node.js or Bun to run E2E tests."
+                      echo "FAIL: Neither bun nor pnpm found. Install Node.js or Bun to run E2E tests."
                       exit 1
                     fi
                   '';

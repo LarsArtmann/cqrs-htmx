@@ -69,23 +69,25 @@ mux.Use(httputil.CSRFMiddleware(httputil.CSRFConfig{}))
 
 ## Configuration
 
-| Field            | Type                | Default      | Description                                       |
-| ---------------- | ------------------- | ------------ | ------------------------------------------------- |
-| `Service`        | `*usermgmt.Service` | **required** | Provides auth-method detection                    |
-| `Title`          | `string`            | `"Sign in"`  | Page `<title>` and heading                        |
-| `Brand`          | `string`            | = Title      | App name shown above the form                     |
-| `Redirect`       | `string`            | `"/"`        | Post-login redirect (root-relative)               |
-| `AccentColor`    | `string`            | `"#4f46e5"`  | Accent used only for the SVG favicon (any CSS color) |
-| `CSSPath`        | `string`            | `"/app.css"` | URL of the consumer's compiled Tailwind stylesheet |
-| `Theme`          | `string`            | `""`         | Force `"light"`/`"dark"` (empty = prefers-color-scheme) |
-| `ThemeFromRequest` | `func(*http.Request) string` | `nil` | Per-request theme hook (e.g. cookie); wins over `Theme` |
-| `NonceFromRequest` | `func(*http.Request) string` | `nil` | CSP nonce for the inline scripts (base64url, sanitized) |
-| `NoRegistration` | `bool`              | `false`      | Hide the registration section                     |
-| `RegisterFirst`  | `bool`              | `false`      | Render the registration section on load (e.g. a `/register` route) |
-| `AuthPrefix`     | `string`            | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`) |
-| `OAuth2Buttons`  | `[]OAuth2Button`    | **auto**     | OAuth2 provider buttons (auto-detected if empty)  |
-| `NoOAuth2`       | `bool`              | `false`      | Force-hide every OAuth2 button, including auto-detected ones; mutually exclusive with `OAuth2Buttons` (rejected at `New`) |
-| `CredentialName` | `string`            | `"Passkey"`  | Label for newly registered credentials            |
+| Field              | Type                         | Default      | Description                                                                                                                                                                                         |
+| ------------------ | ---------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Service`          | `*usermgmt.Service`          | **required** | Provides auth-method detection                                                                                                                                                                      |
+| `Title`            | `string`                     | `"Sign in"`  | Page `<title>` and heading                                                                                                                                                                          |
+| `Brand`            | `string`                     | = Title      | App name shown above the form                                                                                                                                                                       |
+| `Redirect`         | `string`                     | `"/"`        | Post-login redirect (root-relative)                                                                                                                                                                 |
+| `AccentColor`      | `string`                     | `"#4f46e5"`  | Accent used only for the SVG favicon (any CSS color)                                                                                                                                                |
+| `CSSPath`          | `string`                     | `"/app.css"` | URL of the consumer's compiled Tailwind stylesheet                                                                                                                                                  |
+| `Theme`            | `string`                     | `""`         | Force `"light"`/`"dark"` (empty = prefers-color-scheme)                                                                                                                                             |
+| `ThemeFromRequest` | `func(*http.Request) string` | `nil`        | Per-request theme hook (e.g. cookie); wins over `Theme`                                                                                                                                             |
+| `NonceFromRequest` | `func(*http.Request) string` | `nil`        | CSP nonce for the inline scripts (base64url, sanitized)                                                                                                                                             |
+| `NoRegistration`   | `bool`                       | `false`      | Hide the registration section                                                                                                                                                                       |
+| `RegisterFirst`    | `bool`                       | `false`      | Render the registration section on load (e.g. a `/register` route)                                                                                                                                  |
+| `AuthPrefix`       | `string`                     | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`); must be empty or root-relative (leading `/`, no `//`) — validated at `New` because it feeds link targets and the `AutoRedirect` 302 `Location` |
+| `OAuth2Buttons`    | `[]OAuth2Button`             | **auto**     | OAuth2 provider buttons (auto-detected if empty)                                                                                                                                                    |
+| `NoOAuth2`         | `bool`                       | `false`      | Force-hide every OAuth2 button, including auto-detected ones; mutually exclusive with `OAuth2Buttons` (rejected at `New`)                                                                           |
+| `NoWebAuthn`       | `bool`                       | `false`      | Force-hide the passkey form and registration section on THIS page while the service keeps WebAuthn for other surfaces; mutually exclusive with `NoOAuth2` (rejected at `New`)                        |
+| `AutoRedirect`     | `bool`                       | `false`      | When OAuth2 is the ONLY sign-in method (no WebAuthn, exactly one provider), redirect straight to the provider instead of rendering a button; mutually exclusive with `NoOAuth2` (rejected at `New`) |
+| `CredentialName`   | `string`                     | `"Passkey"`  | Label for newly registered credentials                                                                                                                                                              |
 
 ## OAuth2 buttons
 
@@ -108,6 +110,44 @@ loginpage.Config{
 
 The `Provider` string must match a key in your `oauth2.Provider` configuration.
 Buttons link to `{AuthPrefix}/auth/oauth/{provider}/begin`.
+
+### One-click sign-in (`AutoRedirect`)
+
+With `AutoRedirect: true`, a page whose only sign-in method is a single OAuth2
+provider skips the button entirely: `GET /login` answers with a redirect
+(302) straight to `{AuthPrefix}/auth/oauth/{provider}/begin`. With multiple
+providers the page renders normally (the visitor must choose), and with
+WebAuthn visible the passkey form always renders. Mutually exclusive with
+`NoOAuth2` (rejected at `New`).
+
+**Sessions.** The page is session-agnostic by design: an already-authenticated
+visitor still gets the 302 and re-authenticates (landing on `Redirect`). To
+let signed-in users skip the page entirely, wrap its route with your own
+session gate before it, e.g. `setup.RequireSessionRedirect`:
+
+```go
+mux.Handle("/login", session(setup.RequireSessionRedirect("/app", loginHandler)))
+```
+
+**OAuth-only page from a shared service (`NoWebAuthn`).** The service-level
+recipe is simple when WebAuthn is unconfigured. When one shared
+`*usermgmt.Service` serves several surfaces (a passkey app AND an SSO page),
+hide the passkey form page-level instead of re-wiring the service:
+
+```go
+ssoPage, err := loginpage.New(loginpage.Config{
+    Service:      sharedService, // HasWebAuthn() == true — kept for the other surface
+    NoWebAuthn:   true,          // this page hides the passkey form + registration
+    AutoRedirect: true,          // sole provider => 302 straight to its begin URL
+})
+```
+
+`NoWebAuthn` only changes what THIS page renders — the service's WebAuthn
+endpoints stay mounted wherever you registered them. Combined with
+`AutoRedirect` it turns the page into a pure OAuth2 entry point; combined
+with multiple providers it renders the provider chooser without the passkey
+form. `NoWebAuthn` + `NoOAuth2` is rejected at `New` (a page with no sign-in
+method at all is a misconfiguration).
 
 ## Option B: Embed in your own layout
 

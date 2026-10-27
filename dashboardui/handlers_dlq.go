@@ -69,7 +69,7 @@ func (d *Dashboard) dlqEntryDetailHandler(w http.ResponseWriter, r *http.Request
 
 	var payload []byte
 	if entry.Event != nil {
-		payload = payloadBytes(d.config.PayloadRenderer, entry.Event)
+		payload = payloadBytes(d.config, entry.Event)
 	}
 
 	p := d.page("Dead Letter: "+truncate(eventID, eventIDWidth), "/dead-letters", r)

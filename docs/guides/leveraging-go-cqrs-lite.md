@@ -12,7 +12,7 @@ cqrs-htmx already leans heavily on go-cqrs-lite for the event-sourced core (`eve
 
 | go-cqrs-lite module              | Status in cqrs-htmx                              | How to leverage                                                                                                  |
 | -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `middleware` (27 factories)      | 🟡 **Undocumented, fully usable**                | `dispatcher.Use(middleware.CommandRetry(...))` — see [§1](#1-dispatch-middleware--the-1-undocumented-capability) |
+| `middleware` (every factory)     | 🟡 **Undocumented, fully usable**                | `dispatcher.Use(middleware.CommandRetry(...))` — see [§1](#1-dispatch-middleware--the-1-undocumented-capability) |
 | `otel` + `prometheus`            | 🟡 **Hooks exist, OTel/Prom wiring is on you**   | [§2](#2-opentelemetry--prometheus)                                                                               |
 | `scheduling` (durable timers)    | 🔴 **Not used**                                  | [§3](#3-durable-deadline-scheduling)                                                                             |
 | `signing` / `encryption`         | 🟢 **Exposed** via `ServiceConfig` hooks         | [§4](#4-event-signing--encryption)                                                                               |
@@ -50,20 +50,20 @@ This unlocks 27 production-grade middleware factories covering 9 concerns:
 
 Status: ✅ built into `usermgmt.NewService` (zero consumer code) · 🟡 consumer seam (one `ServiceConfig.CommandMiddleware` / `Config.Commands.Use` entry, proven by test or example) · 📄 documented pattern only.
 
-| #  | Factory / capability                                   | Status | Where proven                                                     |
-| -- | ------------------------------------------------------ | ------ | ---------------------------------------------------------------- |
-| 1  | `CommandActorContext` (actor → command metadata)       | ✅     | `usermgmt/audit_context.go` + e2e `actor_attribution_test.go`    |
-| 2  | `event.ActorEnricher` (actor → event metadata)         | ✅     | same — wired via `CompositeEnricher` on all repositories         |
-| 3  | `event.CommandCausationEnricher` (event → causing cmd) | ✅     | same                                                             |
-| 4  | Correlation/request-ID enrichment                      | ✅     | local `requestContextEnricher` (upstream ships none — M27 watch) |
-| 5  | `CommandRecovery`                                      | 🟡     | `examples/middleware-demo`, `command_middleware_test.go`         |
-| 6  | `CommandRetry`                                         | 🟡     | `examples/middleware-demo`                                       |
-| 7  | `CommandCircuitBreaker`                                | 🟡     | §1 recipe + `dispatch-middleware-ordering.md`                    |
-| 8  | `CommandValidation` (+ shipped `ValidateCommand`)      | 🟡     | `usermgmt/command_validation_test.go`                            |
-| 9  | `CommandIdempotency`                                   | 🟡     | `usermgmt/command_idempotency_test.go`                           |
-| 10 | `CommandTracing` / `CommandTypedMetrics`               | 🟡     | `examples/observability-demo`, `examples/middleware-demo`        |
-| 11 | `CommandLogging`                                       | 📄     | §1 recipe                                                        |
-| 12 | Query mirrors (`QueryRetry`, `QueryValidation`, …)     | 📄     | same factories, `Config.Queries` dispatcher                      |
+| #   | Factory / capability                                   | Status | Where proven                                                     |
+| --- | ------------------------------------------------------ | ------ | ---------------------------------------------------------------- |
+| 1   | `CommandActorContext` (actor → command metadata)       | ✅     | `usermgmt/audit_context.go` + e2e `actor_attribution_test.go`    |
+| 2   | `event.ActorEnricher` (actor → event metadata)         | ✅     | same — wired via `CompositeEnricher` on all repositories         |
+| 3   | `event.CommandCausationEnricher` (event → causing cmd) | ✅     | same                                                             |
+| 4   | Correlation/request-ID enrichment                      | ✅     | local `requestContextEnricher` (upstream ships none — M27 watch) |
+| 5   | `CommandRecovery`                                      | 🟡     | `examples/middleware-demo`, `command_middleware_test.go`         |
+| 6   | `CommandRetry`                                         | 🟡     | `examples/middleware-demo`                                       |
+| 7   | `CommandCircuitBreaker`                                | 🟡     | §1 recipe + `dispatch-middleware-ordering.md`                    |
+| 8   | `CommandValidation` (+ shipped `ValidateCommand`)      | 🟡     | `usermgmt/command_validation_test.go`                            |
+| 9   | `CommandIdempotency`                                   | 🟡     | `usermgmt/command_idempotency_test.go`                           |
+| 10  | `CommandTracing` / `CommandTypedMetrics`               | 🟡     | `examples/observability-demo`, `examples/middleware-demo`        |
+| 11  | `CommandLogging`                                       | 📄     | §1 recipe                                                        |
+| 12  | Query mirrors (`QueryRetry`, `QueryValidation`, …)     | 📄     | same factories, `Config.Queries` dispatcher                      |
 
 The blank row is deliberate: nothing in the middleware catalog is blocked — every remaining 🟡/📄 entry is a one-line consumer decision, not missing plumbing.
 

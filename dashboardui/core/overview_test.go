@@ -88,8 +88,13 @@ func TestFetchOverview_WithSeekableJournal(t *testing.T) {
 		t.Fatalf("RecentEvents should have 2 entries, got %d", len(overview.RecentEvents))
 	}
 
-	if overview.RecentEvents[0].Type != "user.created" {
-		t.Errorf("first event type = %q, want %q", overview.RecentEvents[0].Type, "user.created")
+	// Newest first: the tail read reverses journal order for display.
+	if overview.RecentEvents[0].Type != "user.updated" {
+		t.Errorf("first event type = %q, want %q (newest first)", overview.RecentEvents[0].Type, "user.updated")
+	}
+
+	if overview.RecentEvents[1].Type != "user.created" {
+		t.Errorf("second event type = %q, want %q", overview.RecentEvents[1].Type, "user.created")
 	}
 }
 

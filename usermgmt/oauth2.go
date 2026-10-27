@@ -26,9 +26,23 @@ type OAuth2StateStore interface {
 	EvictExpired() int
 }
 
+// NonceStateStore is the additive OIDC-nonce extension of [OAuth2StateStore].
+// The default in-memory store implements it; stores that do not keep the
+// nonce-less methods working unchanged (the OIDC nonce check is then
+// skipped for those deployments).
+type NonceStateStore interface {
+	// SaveWithNonce stores the state token with the provider name, PKCE
+	// verifier, and OIDC nonce issued at BeginLogin.
+	SaveWithNonce(state, provider, pkceVerifier, nonce string, ttl time.Duration) error
+	// ConsumeWithNonce validates and deletes the state token, returning the
+	// stored provider name, PKCE verifier, and OIDC nonce.
+	ConsumeWithNonce(state string) (provider, pkceVerifier, nonce string, err error)
+}
+
 type oauth2StateEntry struct {
 	provider     string
 	pkceVerifier string
+	nonce        string
 	expiresAt    time.Time
 }
 
@@ -50,6 +64,21 @@ func (s *oauth2StateStore) Save(state, provider, pkceVerifier string, ttl time.D
 	s.states[state] = oauth2StateEntry{
 		provider:     provider,
 		pkceVerifier: pkceVerifier,
+		nonce:        "",
+		expiresAt:    time.Now().Add(ttl),
+	}
+	s.mu.Unlock()
+	return nil
+}
+
+// SaveWithNonce stores a pre-generated state token with the provider name,
+// PKCE verifier, and OIDC nonce.
+func (s *oauth2StateStore) SaveWithNonce(state, provider, pkceVerifier, nonce string, ttl time.Duration) error {
+	s.mu.Lock()
+	s.states[state] = oauth2StateEntry{
+		provider:     provider,
+		pkceVerifier: pkceVerifier,
+		nonce:        nonce,
 		expiresAt:    time.Now().Add(ttl),
 	}
 	s.mu.Unlock()
@@ -70,6 +99,22 @@ func (s *oauth2StateStore) Consume(state string) (provider, pkceVerifier string,
 		return "", "", ErrOAuthInvalidState
 	}
 	return entry.provider, entry.pkceVerifier, nil
+}
+
+// ConsumeWithNonce validates and deletes the state token (one-time use).
+// Returns the stored provider name, PKCE verifier, and OIDC nonce.
+func (s *oauth2StateStore) ConsumeWithNonce(state string) (provider, pkceVerifier, nonce string, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	entry, ok := s.states[state]
+	if !ok {
+		return "", "", "", ErrOAuthInvalidState
+	}
+	delete(s.states, state)
+	if time.Now().After(entry.expiresAt) {
+		return "", "", "", ErrOAuthInvalidState
+	}
+	return entry.provider, entry.pkceVerifier, entry.nonce, nil
 }
 
 // EvictExpired removes all expired state tokens. Returns the count evicted.

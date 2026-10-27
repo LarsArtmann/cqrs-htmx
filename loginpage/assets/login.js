@@ -1,7 +1,10 @@
 (function () {
   "use strict";
 
-  var config = JSON.parse(document.getElementById("loginpage-config").textContent);
+  var config =
+    typeof document !== "undefined"
+      ? JSON.parse(document.getElementById("loginpage-config").textContent)
+      : null;
 
   // ── Base64URL helpers ────────────────────────────────────────────
   function b64uToBuf(b64u) {
@@ -63,11 +66,23 @@
   }
 
   // ── WebAuthn option preparation ─────────────────────────────────
+  // usermgmt's begin endpoints return the browser options wrapped in a
+  // {"publicKey": {...}} envelope (the WebAuthn API's own parameter shape,
+  // pinned by usermgmt's stub and provider tests). Both preparers unwrap
+  // that envelope first, so a bare options object keeps working too.
+  function unwrapPublicKeyEnvelope(opts) {
+    if (opts && opts.publicKey && typeof opts.publicKey === "object") {
+      return opts.publicKey;
+    }
+    return opts;
+  }
+
   function prepareLoginOptions(opts) {
-    var p = Object.assign({}, opts);
-    p.challenge = b64uToBuf(opts.challenge);
-    if (opts.allowCredentials) {
-      p.allowCredentials = opts.allowCredentials.map(function (c) {
+    var src = unwrapPublicKeyEnvelope(opts);
+    var p = Object.assign({}, src);
+    p.challenge = b64uToBuf(src.challenge);
+    if (src.allowCredentials) {
+      p.allowCredentials = src.allowCredentials.map(function (c) {
         return { type: c.type, id: b64uToBuf(c.id), transports: c.transports };
       });
     }
@@ -75,13 +90,14 @@
   }
 
   function prepareRegOptions(opts) {
-    var p = Object.assign({}, opts);
-    p.challenge = b64uToBuf(opts.challenge);
-    if (opts.user) {
-      p.user = Object.assign({}, opts.user, { id: b64uToBuf(opts.user.id) });
+    var src = unwrapPublicKeyEnvelope(opts);
+    var p = Object.assign({}, src);
+    p.challenge = b64uToBuf(src.challenge);
+    if (src.user) {
+      p.user = Object.assign({}, src.user, { id: b64uToBuf(src.user.id) });
     }
-    if (opts.excludeCredentials) {
-      p.excludeCredentials = opts.excludeCredentials.map(function (c) {
+    if (src.excludeCredentials) {
+      p.excludeCredentials = src.excludeCredentials.map(function (c) {
         return { type: c.type, id: b64uToBuf(c.id), transports: c.transports };
       });
     }
@@ -251,52 +267,72 @@
   }
 
   // ── Event wiring ────────────────────────────────────────────────
-  document.addEventListener("DOMContentLoaded", function () {
-    if (!isWebAuthnSupported()) showWebAuthnUnsupported();
+  // Skipped under the Node test harness (no DOM); the pure helpers above
+  // remain exported for tests.
+  if (typeof document !== "undefined") {
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!isWebAuthnSupported()) showWebAuthnUnsupported();
 
-    var loginForm = document.getElementById("lp-login-form");
-    if (loginForm) {
-      loginForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var email = document.getElementById("lp-email").value.trim();
-        if (!email) {
-          showError("Please enter your email address.");
-          return;
-        }
-        doLogin(email);
-      });
-    }
+      var loginForm = document.getElementById("lp-login-form");
+      if (loginForm) {
+        loginForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var email = document.getElementById("lp-email").value.trim();
+          if (!email) {
+            showError("Please enter your email address.");
+            return;
+          }
+          doLogin(email);
+        });
+      }
 
-    var regForm = document.getElementById("lp-register-form");
-    if (regForm) {
-      regForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var email = document.getElementById("lp-reg-email").value.trim();
-        var name = document.getElementById("lp-reg-name").value.trim();
-        if (!email) {
-          showError("Please enter your email address.");
-          return;
-        }
-        doRegister(email, name);
-      });
-    }
+      var regForm = document.getElementById("lp-register-form");
+      if (regForm) {
+        regForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var email = document.getElementById("lp-reg-email").value.trim();
+          var name = document.getElementById("lp-reg-name").value.trim();
+          if (!email) {
+            showError("Please enter your email address.");
+            return;
+          }
+          doRegister(email, name);
+        });
+      }
 
-    var showReg = document.getElementById("lp-show-register");
-    if (showReg) {
-      showReg.addEventListener("click", function (e) {
-        e.preventDefault();
-        showSection("lp-register-section");
-        hideError();
-      });
-    }
+      var showReg = document.getElementById("lp-show-register");
+      if (showReg) {
+        showReg.addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("lp-register-section");
+          hideError();
+        });
+      }
 
-    var showLogin = document.getElementById("lp-show-login");
-    if (showLogin) {
-      showLogin.addEventListener("click", function (e) {
-        e.preventDefault();
-        showSection("lp-login-section");
-        hideError();
-      });
-    }
-  });
+      var showLogin = document.getElementById("lp-show-login");
+      if (showLogin) {
+        showLogin.addEventListener("click", function (e) {
+          e.preventDefault();
+          showSection("lp-login-section");
+          hideError();
+        });
+      }
+    });
+  }
+
+  // Node test-harness export (module is undefined in browsers, so this
+  // block is inert when the file is served to a page).
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      b64uToBuf: b64uToBuf,
+      bufToB64u: bufToB64u,
+      unwrapPublicKeyEnvelope: unwrapPublicKeyEnvelope,
+      prepareLoginOptions: prepareLoginOptions,
+      prepareRegOptions: prepareRegOptions,
+      serializeAssertion: serializeAssertion,
+      serializeAttestation: serializeAttestation,
+      friendlyError: friendlyError,
+      isWebAuthnError: isWebAuthnError,
+    };
+  }
 })();

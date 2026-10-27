@@ -68,4 +68,8 @@ func (b *Bundle) mountMachineEndpoints(mux *http.ServeMux) {
 	if cfg.DebugPath != "" {
 		mux.Handle(cfg.DebugPath, sessionMW(RequireSession(b.debug)))
 	}
+
+	if cfg.DocsPath != "" {
+		mux.Handle(cfg.DocsPath, sessionMW(RequireSession(cfg.DocsHandler)))
+	}
 }

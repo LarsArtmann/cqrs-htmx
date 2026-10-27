@@ -16,6 +16,8 @@
 **State found 2026-10-01:** `new/` empty; `processed/` has 8 files — 7 predate the `> **PROCESSED**` marker convention (legacy, resolved in-file by their own "Resolution Status" sections), 1 modern file carries the marker; the stray root file `sec-consumer-feedback.md` (2026-07-05, SEC) was verified (its DecodeJSONWithRequest claims exist in `options_decode.go` + tests) and MOVED into `processed/` with a marker today — the stray-file half of the decision is already executed and needs only ratification.
 
 **Recommended convention** (build the checker on it once confirmed):
+
 1. Checker: `docs/feedback/new/` must be empty at TRAIN time (warning otherwise); every `processed/` file carries a top-of-file `PROCESSED|RESOLVED|ANNOTATED` marker, epoch-exempt for files dated before 2026-08-01 (the 7 legacy files stay as-is — their in-file resolution sections are the record).
 2. New feedback lands in `new/` only; processing = verify claims → annotate → `git mv` (gotcha 20, unchanged).
+
 - **Decision requested:** ratify the epoch exemption + the moved SEC file; then the checker is unambiguous to build (~45 min, atomic-gate checklist).

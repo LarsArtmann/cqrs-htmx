@@ -152,8 +152,7 @@ func TestSQLSessionStore_MigratesLegacySchema(t *testing.T) {
 
 func TestSQLSessionStore_StartCleanupSweeper(t *testing.T) {
 	store := newTestSQLiteSessionStore(t)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	uid := NewUserID("sweeper-test")
 	expired, err := NewSession(uid, -1*time.Second)

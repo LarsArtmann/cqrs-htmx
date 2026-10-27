@@ -96,11 +96,9 @@ func TestFoldUser_UserDeleted(t *testing.T) {
 func TestFoldUser_CredentialAdded(t *testing.T) {
 	initial := UserState{Email: "f@example.com"}
 	state, err := foldUser(initial, makeEvent(t, eventCredentialAdded, 2, CredentialAddedPayload{
-		CredentialCore: CredentialCore{
-			ID:              []byte{1, 2, 3},
-			PublicKey:       []byte{4, 5, 6},
-			AttestationType: "none",
-		},
+		ID:              []byte{1, 2, 3},
+		PublicKey:       []byte{4, 5, 6},
+		AttestationType: "none",
 	}))
 	if err != nil {
 		t.Fatalf("foldUser: %v", err)
@@ -117,8 +115,8 @@ func TestFoldUser_CredentialRemoved(t *testing.T) {
 	initial := UserState{
 		Email: "g@example.com",
 		Credentials: []WebAuthnCredential{
-			{CredentialCore: CredentialCore{ID: []byte{1, 2, 3}}},
-			{CredentialCore: CredentialCore{ID: []byte{4, 5, 6}}},
+			{ID: []byte{1, 2, 3}},
+			{ID: []byte{4, 5, 6}},
 		},
 	}
 	state, err := foldUser(

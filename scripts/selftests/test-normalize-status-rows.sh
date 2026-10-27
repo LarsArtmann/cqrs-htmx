@@ -125,6 +125,38 @@ else
   fail=$((fail + 1))
 fi
 
+# --- Case 6: malformed separator (2-dash cell) must not hide rows ----------
+# The checker treats any pipe-block as a table regardless of separator
+# shape; the fixer must agree, or rows the gate flags stay unfixed forever.
+gap="$WORK/gap.md"
+cat >"$gap" <<'EOF'
+# Gap fixture
+
+| # | Task | Impact |
+| -- | ------ | --- |
+| 1 | plain clean row | Low |
+| ~~ | 2 | aborted strike |
+EOF
+out=$(python3 "$NORMALIZER" "$gap" 2>&1)
+rc=$?
+if [ "$rc" -eq 0 ] && grep -qF '| ~~ | ~~2~~ | ~~aborted strike~~ |' "$gap"; then
+  echo "  ok 6: row behind a malformed separator normalized"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 6: malformed-separator table not normalized; rc=$rc; got:" >&2
+  grep -n 'aborted' "$gap" | sed 's/^/      /' >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+if out=$(python3 "$CHECKER" "$gap" 2>&1); then
+  echo "  ok 7: checker agrees on the malformed-separator table"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 7: checker still reports PARTIAL rows; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
 echo ""
 if [ "$fail" -gt 0 ]; then
   echo "test-normalize-status-rows: $fail case(s) FAILED"

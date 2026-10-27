@@ -15,7 +15,59 @@ operator-facing summary; the deep details live in the linked documents.
 3. **Verify facts at execution time.** `git ls-remote` / `git show <tag>:` —
    precondition tables rot within 24 hours (the dashboardui/v4.8.1 class).
 
-## 1. Pre-tag checklist (per module)
+## 1. Before the first mutation AND before push: train-preflight
+
+```sh
+nix run .#train-preflight
+```
+
+One command, run (a) before the first tree-mutating step of a train session
+and (b) before the final push. It chains the shared-tree quiescence gate
+(`wait-tree-quiet`), the abort-on-surprise gate (`preflight-tree-check`),
+the workspace lint, the hermetic test battery (`nix run .#test` — the same
+`GOWORK=off` resolution CI uses), the strict release-train gate
+(`--refresh-cache --strict-lag 0` — the exact pre-push flags), and — since
+2026-10-13 — the e2e Playwright battery (`nix run .#e2e`) as the wave's
+DECLARED gate (self-skips under CI: runners have no browser provisioning;
+`TRAIN_PREFLIGHT_SKIP_E2E=1` is the explicit local opt-out). The e2e stage
+exists because the 2026-10-13 wave cut 7 tags and ran the battery AFTER —
+passing later does not make the order right, so the gate now lives where
+the train starts.
+
+Every heavy stage carries a candidate-count guard: a lint/test stage that
+printed zero per-module markers, or a train check without its requires
+tally, fails the preflight loudly instead of passing as a silent no-op
+(gotcha 2). The 2026-10-08 push-unblock session paid hours of forensics for
+reds this command would have surfaced before the first mutation — the two
+CI reds (status-row gate, auditlog go.sum residue) and the hermetic-only
+test red (root CSP vs published root, gotcha-30 test form) were all
+preflight-detectable.
+
+Offline coverage: `nix run .#test-train-preflight` (stub fixtures; also a
+check-modules + CI stage).
+
+**Mandate (adopted 2026-10-25, master plan S52).** This command — or a
+recorded per-stage reason for every skip — is part of EVERY train, not a
+gold-standard option. A wave that ships without a preflight receipt owns
+the burden of proof for every red CI finds afterward (the 2026-10-25
+morning tags: three cut on a tree whose webauthn suite did not compile —
+exactly the class stage 4 exists to catch).
+
+**Non-train pushes (docs waves, dependency sweeps) — the mini-preflight.**
+`train-preflight` is the gold standard whenever load allows; when it is
+disproportionate, run at least this (the 2026-10-17 push-saga receipt — every
+item below caught something CI found the hard way):
+
+1. `git fetch` FIRST — concurrent sessions are the documented norm here, and
+   the first push of a local pile is the non-fast-forward rejection class.
+2. `bash scripts/checks/check-large-files.sh --all` — 15 local seconds vs an
+   8-minute CI round trip (the 19.5 MB daemon-committed binary class).
+3. The docs gates when the diff touches markdown: `nix run .#check-docs-links`
+   - `nix run .#check-docs-freshness`.
+4. `nix run .#check-modules` when the machine is quiet enough — it is the
+   local twin of CI's `checks` job.
+
+## 2. Pre-tag checklist (per module)
 
 ```sh
 # Hermetic verification of EXACTLY what the tag will contain (vet compiles
@@ -31,10 +83,25 @@ GOWORK=off GOEXPERIMENT=jsonv2 go test ./...
 git show <dep-repo>/<dep-tag>:<path/to/file> | grep <the symbol>
 ```
 
-Then repo-wide gates from the root: `nix run .#check-modules -- --report`,
-`nix run .#check-release-train`, `nix run .#build`, `.#test`, `.#lint`.
+Then repo-wide gates from the root: `nix run .#train-preflight` (§1 — includes
+lint, the hermetic battery, and the strict train gate),
+`nix run .#check-modules -- --report`, `nix run .#build`.
 
-## 2. Tagging
+Per-module hermetic catch (gotcha-30 mechanized — run BEFORE `verify-tag
+--push` whenever go.mod/go.sum changed):
+
+```sh
+nix run .#check-train-consumers-hermetic
+```
+
+It re-resolves every dependency-changed module with `GOWORK=off` (published
+tags, the consumer's view) and runs build+vet+test. This is the gate that
+would have caught both gotcha-30 fires: the missing-symbol one (2026-10-07,
+root v4.13.1 vs asset_serve.go) and the behavior one (2026-10-08, the login
+CSP test passing workspace-mode while `nix run .#test` resolved root
+v4.13.2 hermetically).
+
+## 3. Tagging
 
 ```sh
 scripts/tools/verify-tag.sh <module-dir> vX.Y.Z --dry-run   # rehearse
@@ -50,7 +117,7 @@ Version numbers: the cqrs-htmx family cuts ONE coordinated version per train
 (buildflow's gomod-check enforces it). First-time modules join the current
 family version (health/auditlog precedent: first tag = v4.8.0).
 
-## 3. Family train order
+## 4. Family train order
 
 Follow `docs/runbooks/release-next-train-prep.md` — the ordered,
 copy-pasteable train script. Shape:
@@ -63,7 +130,7 @@ copy-pasteable train script. Shape:
    proxy at every step.
 4. `nix run .#check-release-train` must read `0 unpublished / 0 lag` after.
 
-### 3a. Wave-ordered choreography (the `--no-verify` killer)
+### 4a. Wave-ordered choreography (the `--no-verify` killer)
 
 The v4.12.0 train (2026-09-22, 14 tags) proved the refinement: sequence the
 tags so that **every commit's `require` lines point at ALREADY-PUBLISHED
@@ -86,6 +153,20 @@ tags** — never at a tag you are ABOUT to cut. Concretely:
   tag as UNPUBLISHED. `bump-dep --commit` prints this reminder and reports
   honestly when the commit did not land (rc-checked; the daemon may absorb the
   staged sweep as a heuristic commit — amend its message, don't re-commit blind).
+- The dance is CROSS-REPO too (2026-10-08 incident): after releasing a family
+  dependency from a SIBLING repo (e.g. httputil), refresh the same cache BEFORE
+  pushing this repo's consumer bumps — the local pre-push gate green-lights on
+  the stale cache while CI (fresh proxy resolution) red's the lag it could not
+  see. Sequence: release upstream → `check-release-train.sh --refresh-cache` →
+  sweep consumers → push.
+- **Refresh immediately before EVERY push — the tail grows while you sweep**
+  (2026-10-13, twice live): upstream published `system/v4 v4.14.0` BETWEEN the
+  first strict gate run and the push, adding 4 lag entries absent from the
+  original list; `go-appkit v0.9.0` published mid-sweep the same day, adding
+  3 more. Treat a pre-push release-train rc=3 as "fetch and look for a fresh
+  upstream tag FIRST": refresh the cache, check for new upstream tags, sweep
+  the new consumers, THEN re-push. `push-and-watch.sh` runs this refresh as
+  its first step so forgetting is no longer possible.
 - CHANGELOG-before-tag: write the consumer-visible receipts into the module's
   CHANGELOG `[Unreleased]` section and cut the tag WITH them committed — a tag
   whose CHANGELOG section is a stub (identity-model v4.12.0 class) ships empty
@@ -97,7 +178,7 @@ it, so tag day needs NO `git commit --no-verify` (v4.12.0: zero skips).
 Out-of-order trains are the ones that need the documented
 `--no-verify`-with-justification fallback (AGENTS.md gotcha 6).
 
-## 4. Poisoned-tag recovery ladder
+## 5. Poisoned-tag recovery ladder
 
 Published tags cannot be repaired in place (the proxy caches the name
 forever; force-moving a tag makes it WORSE):
@@ -111,7 +192,7 @@ forever; force-moving a tag makes it WORSE):
    has the complete, execution-ready recipe (pre-tag gates, CHANGELOG entry,
    proxy/pkg.go.dev verification).
 
-## 5. Post-train hygiene
+## 6. Post-train hygiene
 
 - `bash scripts/checks/check-module-isolation.sh` — 27 modules hermetic.
 - `nix run .#check-modules -- --report` — all stages red/green.
@@ -120,7 +201,75 @@ forever; force-moving a tag makes it WORSE):
 - pkg.go.dev spot-check the new tags (license + docs render — the LICENSE
   files land per-tag).
 
-## 6. Daemon attribution (who authored which commit)
+## 8. Post-push: watch CI, don't assume
+
+```sh
+nix run .#push-and-watch        # refresh-cache → push → watch THIS push's ci.yml run
+# or by hand:
+gh run watch "$(gh run list --workflow ci.yml --branch "$(git rev-parse --abbrev-ref HEAD)" --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
+```
+
+A push is not done when `git push` returns — the 2026-10-08 session carried
+master "green" through three separate post-push repair rounds (mod-tidy
+residue, status-row gate, hermetic test gap) that a watched run would have
+surfaced in one pass. `--exit-status` makes the command's rc carry the run
+verdict, so scripted trains can gate on it. Multi-red tip: fix ALL reds in
+ONE local replication pass before re-pushing — CI only surfaces the FIRST
+failure per job (gotcha 27c).
+
+**The workflow filter is not optional** (2026-10-13 wrong-run watch): the
+newest run without `--workflow ci.yml` is the Dependabot config-graph update
+every single time — that session read it green in 1m34s while the real run
+was red for hours. `push-and-watch.sh` mechanizes the whole loop: tag-cache
+refresh → push → SHA-verified run lookup → watch → on red, the failed job
+names + triage hint (`gh api repos/<slug>/actions/runs/<id>/jobs`).
+
+**Paranoia tag audit** (after any tag wave): `nix run .#verify-remote-tags
+'<pattern>...'` — every local tag must peel (`^{}`) on the remote to the
+SAME commit. Compare peeled-vs-peeled: `git ls-remote` reports the TAG
+OBJECT for annotated tags, and comparing it to `rev-parse <tag>^{commit}`
+without peeling the remote side false-alarms on every healthy tag (the
+2026-10-13 audit "failed" 13/13 on exactly this).
+
+**Step-level triage before bounding blast radius** (AGENTS gotcha 40, live
+2026-10-13): a failed sequential job retires the evidentiary value of its
+LATER steps — the adminui deferral red aborted the `test` job before
+systemadapter's leg ran, so "16/17 green, systemadapter green" hid 16
+failures for ~a day. A failed-jobs listing is not enough; enumerate failed
+steps AND never-reached steps (conclusion `null`) of every red job:
+
+```sh
+gh api repos/<slug>/actions/runs/<id>/jobs --jq \
+  '.jobs[] | select(.conclusion=="failure") | {job: .name,
+   failed: [.steps[] | select(.conclusion=="failure") | .name],
+   never_ran: [.steps[] | select(.conclusion==null) | .name]}'
+```
+
+Never claim "nothing else broke" from a run where a red job has
+`never_ran` steps — the claim is unfalsifiable until those steps execute.
+`push-and-watch.sh` prints this warning whenever a red run's jobs listing
+fails transiently, instead of an empty failed-jobs list.
+
+## 9. Sweep-commit mechanics
+
+- **Same-version prefix sweeps merge.** A consumer requiring N modules of
+  the SAME family at ONE target version needs ONE sweep anchored at the
+  family path, not N per-module sweeps — the 2026-10-08 samber-do-demo
+  round merged 10 `bump-dep.sh` invocations into 1 by anchoring
+  `larsartmann/go-samber-do-auditlog` once every require shared the target
+  version. Rule: one sweep per distinct TARGET VERSION, not per module.
+- **Mid-train daemon absorption is expected.** If the daemon lands your
+  sweep as `chore: auto-commit ...` before your own commit does, AMEND the
+  heuristic commit with the real message — never re-commit on top (two
+  commits for one sweep breaks per-sweep bisection). bump-dep `--commit`
+  prints the reminder automatically.
+- **Receipt style: one change-class per entry.** A CHANGELOG bullet that
+  bundles a dependency alignment with a code fix forces consumers to read a
+  wall to find what changed for them; split them. Docs-only work does NOT
+  get a CHANGELOG receipt (commit message + touched doc is the receipt —
+  AGENTS gotcha 20).
+
+## 10. Daemon attribution (who authored which commit)
 
 The auto-commit daemon absorbs dirty files every 30-60 s, so long sessions
 land mostly as `chore: auto-commit N changed file(s) (heuristic)` commits.

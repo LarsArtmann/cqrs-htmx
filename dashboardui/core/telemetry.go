@@ -82,7 +82,7 @@ type EngineStatsView struct {
 	Samples    int
 	EWMA       time.Duration
 	P95        time.Duration
-	LastSample time.Time
+	LastSample time.Time //cqrs-lint:ignore(C013) live in-memory provider view — never SQL-persisted
 }
 
 // Stale reports whether the last RTT sample is older than the threshold —

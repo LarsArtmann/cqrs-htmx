@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"strings"
@@ -54,12 +55,18 @@ func renderTodo(t Todo) string {
 		checked = "checked"
 		completedClass = " completed"
 	}
+
+	// t.Title is user input rendered into HTML fragments that are swapped
+	// into the DOM (and broadcast to every connected client) — it MUST be
+	// escaped or anyone's todo title can inject markup into every viewer's
+	// page. t.ID is server-generated (safe by construction).
+	title := html.EscapeString(t.Title)
 	return fmt.Sprintf(`<li id="todo-%s" class="todo-item%s">
 	<input type="checkbox" %s data-on:click="@post('/api/todos/toggle')" data-signals:id="'%s'">
 	<input type="text" class="todo-title-input" value="%s" data-bind:title data-signals:edit_id="'%s'">
 	<button class="edit-btn" data-on:click="@post('/api/todos/update')" data-signals:id="$edit_id || '%s'">edit</button>
 	<button class="delete-btn" data-on:click="@post('/api/todos/delete')" data-signals:id="'%s'">x</button>
-</li>`, t.ID, completedClass, checked, t.ID, t.Title, t.ID, t.ID, t.ID)
+</li>`, t.ID, completedClass, checked, t.ID, title, t.ID, t.ID, t.ID)
 }
 
 func renderTodoList(todos []Todo) string {
@@ -104,9 +111,10 @@ func renderStatsFromQuery(cqrs *CQRS) string {
 }
 
 func renderEventLogEntry(e DomainEvent) string {
+	// e.User is derived from user input (actor attribution) — escape it.
 	return fmt.Sprintf(`<div class="event-entry">
 	<span class="event-type">%s</span>
 	<span class="event-user">%s</span>
 	<span class="event-time">%s</span>
-</div>`, eventKindFromType(e.Type), e.User, e.OccurredAt.Format("15:04:05"))
+</div>`, html.EscapeString(eventKindFromType(e.Type)), html.EscapeString(e.User), e.OccurredAt.Format("15:04:05"))
 }

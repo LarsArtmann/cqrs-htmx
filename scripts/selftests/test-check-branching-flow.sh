@@ -45,6 +45,16 @@ make_stub green 0
 make_stub red 1
 make_stub crash 69
 
+# Misfire stub: tool rc=0 but matched NOTHING of the baseline (removed=659,
+# everything else 0) — the zero-candidate shape the gate must refuse to green.
+cat >"$TMP/stub-misfire" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$*" > "$TMP/stub-misfire.argv"
+echo "Baseline stub: +0 added, -659 removed, ~0 modified, =0 unchanged" >&2
+exit 0
+STUB
+chmod +x "$TMP/stub-misfire"
+
 # Fixture: a git repo with a committed baseline file.
 REPO="$TMP/repo"
 mkdir -p "$REPO/docs/analysis"
@@ -92,7 +102,16 @@ check "stub rc1 fails gate as NEW findings" 1 $? 'NEW findings' "$out"
 out=$(BRANCHING_FLOW_BIN="$TMP/stub-crash" bash "$GATE" "$REPO" 2>&1)
 check "stub rc69 fails gate as tool failure" 1 $? 'tool failure rc=69' "$out"
 
-# 9) Flag-wiring pin: the gate must pass --baseline, --exit-code, and the
+# 9) Zero-candidate misfire: rc=0 with detected=0/removed=659 → gate red with
+# the loud guard message, never a false green.
+out=$(BRANCHING_FLOW_BIN="$TMP/stub-misfire" bash "$GATE" "$REPO" 2>&1)
+check "zero-candidate misfire fails gate" 1 $? 'ZERO candidates' "$out"
+
+# 10) Green run prints the counts: the OK line carries the Baseline summary.
+out=$(BRANCHING_FLOW_BIN="$TMP/stub-green" bash "$GATE" "$REPO" 2>/dev/null)
+check "green output carries counts" 0 $? 'added' "$out"
+
+# 11) Flag-wiring pin: the gate must pass --baseline, --exit-code, and the
 # committed baseline path to the tool (drift here silently changes semantics).
 bash "$GATE" "$REPO" >/dev/null 2>&1 </dev/null || true
 argv=$(cat "$TMP/stub-green.argv")

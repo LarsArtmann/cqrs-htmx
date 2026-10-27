@@ -16,6 +16,10 @@ import (
 // filtering when event-type/stream-type/stream-ID filters are active.
 const FilterScanLimit = 500
 
+// tailScanBatch is the page size used by full-journal scans (tail reads,
+// neighbor lookup, event-by-ID journal scan).
+const tailScanBatch = 5000
+
 // EventFilter holds in-memory filter criteria for the event browser.
 type EventFilter struct {
 	Type       string
@@ -81,9 +85,28 @@ func ParseEventFilter(r *http.Request) EventFilter {
 	}
 }
 
+// indexAfter returns the slice index just past the event carrying the
+// cursor ID. Zero when the cursor is empty or no longer present: a pruned
+// cursor restarts from the head instead of stranding the reader on a page
+// that never advances.
+func indexAfter(events []event.Event, after id.EventID) int {
+	if after == (id.EventID{}) {
+		return 0
+	}
+
+	for i, evt := range events {
+		if evt.ID() == after {
+			return i + 1
+		}
+	}
+
+	return 0
+}
+
 // LoadRecentEvents reads up to limit events starting after the given cursor.
 // Uses SeekableJournal when available (efficient cursor-based reads), falls
-// back to Journal.ReadAll when only a basic Journal is configured.
+// back to Journal.ReadAll when only a basic Journal is configured — the
+// fallback seeks past the cursor in memory so pagination still advances.
 func LoadRecentEvents(
 	ctx context.Context,
 	cfg Config,
@@ -106,6 +129,8 @@ func LoadRecentEvents(
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.recent_events.read_all_failed", "read all events")
 		}
+
+		all = all[indexAfter(all, after):]
 
 		if len(all) > limit {
 			all = all[:limit]
@@ -149,6 +174,8 @@ func LoadFilteredEvents(
 				WithContextAny("page_size", pageSize)
 		}
 
+		raw = raw[indexAfter(raw, after):]
+
 		if len(raw) > rawLimit {
 			raw = raw[:rawLimit]
 		}
@@ -166,6 +193,85 @@ func LoadFilteredEvents(
 	}
 
 	return filtered, nil
+}
+
+// LoadTailEvents reads the newest limit events matching the filter, plus
+// the total number of events in the journal. Journals read ascending from
+// the head (both SeekableJournal.ReadFrom and Journal.ReadAll return
+// oldest-first order — reading from a zero cursor yields the FIRST n
+// events, not the last), so a newest-first window pages the journal once
+// and keeps a rolling tail. The returned slice stays in ascending order;
+// callers reverse it for display. A zero-value filter matches every event.
+func LoadTailEvents(
+	ctx context.Context,
+	cfg Config,
+	filter EventFilter,
+	limit int,
+) ([]event.Event, int, error) {
+	var (
+		tail  []event.Event
+		total int
+	)
+
+	keep := func(batch []event.Event) {
+		total += len(batch)
+
+		for _, evt := range batch {
+			if filter.Matches(evt) {
+				tail = append(tail, evt)
+			}
+		}
+
+		if len(tail) > limit {
+			trimmed := make([]event.Event, 0, limit)
+			trimmed = append(trimmed, tail[len(tail)-limit:]...)
+			tail = trimmed
+		}
+	}
+
+	if cfg.SeekableJournal != nil {
+		var after id.EventID
+
+		for {
+			batch, err := cfg.SeekableJournal.ReadFrom(ctx, after, tailScanBatch)
+			if err != nil {
+				return nil, 0, errorfamily.WrapInfrastructure(err,
+					"dashboardui.tail_events.read_failed", "read journal tail").
+					WithContextAny("limit", limit)
+			}
+
+			keep(batch)
+
+			if len(batch) < tailScanBatch {
+				break
+			}
+
+			next := batch[len(batch)-1].ID()
+			if next == after {
+				return nil, 0, errorfamily.NewInfrastructure("dashboardui.tail_events.cursor_stalled",
+					"journal cursor did not advance while reading the tail")
+			}
+
+			after = next
+		}
+
+		return tail, total, nil
+	}
+
+	if cfg.Journal != nil {
+		all, err := cfg.Journal.ReadAll(ctx)
+		if err != nil {
+			return nil, 0, errorfamily.WrapInfrastructure(err,
+				"dashboardui.tail_events.read_all_failed", "read journal").
+				WithContextAny("limit", limit)
+		}
+
+		keep(all)
+
+		return tail, total, nil
+	}
+
+	return nil, 0, nil
 }
 
 // LoadEventByID finds a single event by its EventID. Uses EventByIDLoader
@@ -217,12 +323,10 @@ func loadEventByJournalScan(
 	journal event.SeekableJournal,
 	eventID id.EventID,
 ) (event.Event, error) {
-	const scanLimit = 5000
-
 	var after id.EventID
 
 	for {
-		batch, err := journal.ReadFrom(ctx, after, scanLimit)
+		batch, err := journal.ReadFrom(ctx, after, tailScanBatch)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.event_detail.scan_failed", "scan journal for event")
@@ -234,11 +338,17 @@ func loadEventByJournalScan(
 			}
 		}
 
-		if len(batch) < scanLimit {
+		if len(batch) < tailScanBatch {
 			break
 		}
 
-		after = batch[len(batch)-1].ID()
+		next := batch[len(batch)-1].ID()
+		if next == after {
+			return nil, errorfamily.NewInfrastructure("dashboardui.event_detail.cursor_stalled",
+				"journal cursor did not advance while scanning for the event")
+		}
+
+		after = next
 	}
 
 	return nil, errorfamily.Newf(event.Rejection,
@@ -267,46 +377,90 @@ func loadEventFromAll(
 		"dashboardui.event_detail.not_found", "event %s not found in journal", eventID)
 }
 
-// FindEventNeighbors scans recent events to find the previous and next event
-// IDs relative to eventID. Returns empty strings if not found or at the
-// boundary. This is a best-effort scan limited to the most recent batch.
+// FindEventNeighbors returns the previous and next event IDs relative to
+// eventID in journal order. The scan pages the journal until the event is
+// found, so neighbors resolve at ANY position — the former head-only
+// window silently dropped prev/next navigation for every event past the
+// first batch. Returns empty strings when the event is absent or sits at a
+// boundary; journal errors degrade to no navigation rather than failing the
+// detail page.
 func FindEventNeighbors(ctx context.Context, cfg Config, eventID id.EventID) (string, string) {
-	const neighborScanLimit = 500
-
-	var events []event.Event
-
-	var err error
-
-	var prevID, nextID string
-
 	if cfg.SeekableJournal != nil {
-		events, err = cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, neighborScanLimit)
-	} else if cfg.Journal != nil {
-		events, err = cfg.Journal.ReadAll(ctx)
-		if err == nil && len(events) > neighborScanLimit {
-			events = events[:neighborScanLimit]
+		var (
+			after id.EventID
+			prev  event.Event
+		)
+
+		for {
+			batch, err := cfg.SeekableJournal.ReadFrom(ctx, after, tailScanBatch)
+			if err != nil || len(batch) == 0 {
+				return "", ""
+			}
+
+			if prevID, nextID, ok := neighborsIn(batch, prev, eventID); ok {
+				return prevID, nextID
+			}
+
+			if len(batch) < tailScanBatch {
+				return "", ""
+			}
+
+			next := batch[len(batch)-1].ID()
+			if next == after {
+				return "", ""
+			}
+
+			prev = batch[len(batch)-1]
+			after = next
 		}
 	}
 
-	if err != nil || len(events) == 0 {
-		return "", ""
-	}
-
-	for i, evt := range events {
-		if evt.ID() == eventID {
-			if i > 0 {
-				prevID = events[i-1].ID().String()
-			}
-
-			if i < len(events)-1 {
-				nextID = events[i+1].ID().String()
-			}
-
-			return prevID, nextID
+	if cfg.Journal != nil {
+		all, err := cfg.Journal.ReadAll(ctx)
+		if err != nil {
+			return "", ""
 		}
+
+		prevID, nextID, _ := neighborsIn(all, nil, eventID)
+
+		return prevID, nextID
 	}
 
 	return "", ""
+}
+
+// neighborsIn locates eventID inside events and returns the previous/next
+// IDs in journal order. lastOfPreviousBatch supplies the predecessor when
+// the event is the first of its batch (nil for the first batch or for
+// single-window scans).
+func neighborsIn(
+	events []event.Event,
+	lastOfPreviousBatch event.Event,
+	eventID id.EventID,
+) (string, string, bool) {
+	for i, evt := range events {
+		if evt.ID() != eventID {
+			continue
+		}
+
+		var prevID string
+
+		if i > 0 {
+			prevID = events[i-1].ID().String()
+		} else if lastOfPreviousBatch != nil {
+			prevID = lastOfPreviousBatch.ID().String()
+		}
+
+		var nextID string
+
+		if i < len(events)-1 {
+			nextID = events[i+1].ID().String()
+		}
+
+		return prevID, nextID, true
+	}
+
+	return "", "", false
 }
 
 // ListStreamsPaged loads a cursor-paginated page of stream listings.

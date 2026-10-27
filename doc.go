@@ -4,12 +4,13 @@
 // handlers with automatic HTMX response building, Casbin authorization, CSRF protection,
 // rate limiting, SSE streaming, and error classification.
 //
-// Server-Timing instrumentation, CSRF core, and keyed rate limiting were
-// originally implemented here but are now thin deprecated re-exports over
-// [github.com/larsartmann/httputil]. Import httputil directly — these aliases
-// (39 symbols across csrf_reexport.go, ratelimit_reexport.go,
-// server_timing_reexport.go) will be removed in v5. See
-// docs/guides/leveraging-httputil.md for the migration table.
+// Server-Timing instrumentation, CSRF core, keyed rate limiting, and the
+// idempotency-store aliases were originally implemented here but are now thin
+// deprecated re-exports over [github.com/larsartmann/httputil] and
+// [github.com/larsartmann/go-idempotency]. Import those directly — these
+// aliases (39 symbols across csrf_reexport.go, ratelimit_reexport.go,
+// server_timing_reexport.go, plus the 4 in idempotency.go) will be removed in
+// v5. See docs/guides/leveraging-httputil.md for the migration table.
 //
 // # HTTP Middleware (CORS, Compression, Body Limits, Production Server, …)
 //
@@ -177,6 +178,32 @@
 //	    AfterDispatch: broadcaster.BroadcastOnAck(),
 //	})
 //	// Client receives: {"commandId":"abc","status":"confirmed"}
+
+// # Frontend Sync Protocol (Offline Reads + Batched Command Push)
+//
+// SyncPullHandler and [App.SyncPushHandler] implement the two server halves of
+// the offline sync loop (ADR-0056). Clients sync COMMANDS up (the server
+// re-decides everything) and cache EVENTS down for offline reads:
+//
+//	mux.Handle("GET /sync/pull", cqrshtmx.SyncPullHandler(journal,
+//	    cqrshtmx.WithSyncPullBackendID("prod-2026-10"),
+//	    cqrshtmx.WithSyncPullFilter(visibilityFilter),
+//	))
+//	mux.Handle("POST /sync/push", app.SyncPushHandler())
+//
+// Pull answers GET ?after=<eventID>&limit=<n> with events (payloads included —
+// this is the explicit opt-in payload surface; the SSE envelope stays
+// metadata-only), a nextCursor, and hasMore; a permission filter hides events
+// per request while the cursor still advances past them. Push replays each
+// envelope through the pipeline its app.Command registration defined and
+// answers per-command outcomes (confirmed/rejected + errorfamily) — Axon
+// CommandGateway semantics: outcomes, never domain state.
+//
+// The embedded sync client (sync/sync-worker.js + sync/sync-client.js, served
+// via SyncWorkerHandler/SyncClientHandler) queues offline commands in
+// IndexedDB, flushes typed commands as one batch push on reconnect, caches
+// pulled events for offline reads (window.cqrsSync.getEvents), and resets the
+// cache when backendId changes. See docs/guides/frontend-sync.md.
 
 // # Submodule: usermgmt
 //

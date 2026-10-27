@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Providers returning neither `sub` nor `id` are rejected (2026-10-25, S39).** An empty subject used to pass silently, degrading the external-account identity key to email-only matching (every email-sharing account links to one user); `FinishLogin`/`FinishLoginWithToken` now fail with `oauth2.empty_subject` at the contract seam. Pinned for both the userinfo and the OIDC ID-token paths.
+
+### Added
+
+- **OIDC nonce round-trip: `BeginLoginWithNonce` + `FinishLoginWithNonce` (2026-10-25, S39).** `BeginLoginWithNonce` embeds a nonce in the authorization request (OIDC Core §3.1.2.1) and returns it; `FinishLoginWithNonce` rejects an id_token whose nonce claim does not match (mismatched OR missing) — replayed or injected tokens can no longer verify. Use the pair together; the plain `BeginLogin`/`FinishLogin` keep their PKCE-only behavior, and an empty nonce skips the check. Additive: no existing signature changed.
+
+## [v4.13.0] - 2026-10-11
+
 ### Added
 
 - **Public (secret-less) PKCE clients** (issue #8): `ProviderConfig.ClientType` (`ClientTypeConfidential` default / `ClientTypePublic`) makes `ClientSecret` optional for public clients while keeping PKCE S256 mandatory. Backward compatible — the zero value stays confidential.
@@ -16,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **First recorded external consumer:** dnsblockd (github.com/LarsArtmann/dnsblockd) embeds `usermgmt/oauth2/v4.7.0` as the protocol engine for its dashboard SSO (Pocket ID; authorization-code + PKCE S256; confidential client) — see ADR 0014 "Downstream consumers" for the adoption shape and the two upstream considerations it surfaced (mandatory client secret; fixed ID-token claim set), both resolved in this release (issues #8, #9).
 
-## [v4.7.0] - 2026-08-07
+# [v4.7.0] - 2026-08-07
 
 ### Added
 

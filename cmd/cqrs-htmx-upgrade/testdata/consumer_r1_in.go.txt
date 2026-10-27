@@ -1,0 +1,18 @@
+package app
+
+import (
+	"net/http"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+)
+
+// wire mounts the app with the v4-era CSRF re-exports (pre-upgrade shape).
+func wire(mux *http.ServeMux) http.Handler {
+	var csrfCfg cqrshtmx.CSRFConfig
+	mux.Handle("POST /items", cqrshtmx.CSRFMiddleware(csrfCfg)(nil))
+
+	token := cqrshtmx.CSRFToken
+	_ = token
+
+	return mux
+}

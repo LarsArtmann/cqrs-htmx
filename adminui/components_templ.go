@@ -552,7 +552,31 @@ func confirmModal(nonce string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p id=\"admin-confirm-body\" class=\"text-sm text-gray-600 dark:text-gray-300\">This action cannot be undone.</p><div class=\"mt-5 flex justify-end gap-2\"><button type=\"button\" data-tc-close=\"modal\" class=\"inline-flex cursor-pointer items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 ring-inset transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-700\">Cancel</button> <button type=\"button\" id=\"admin-confirm-ok\" class=\"inline-flex cursor-pointer items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400 dark:focus-visible:outline-red-500\">Confirm</button></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p id=\"admin-confirm-body\" class=\"text-sm text-gray-600 dark:text-gray-300\">This action cannot be undone.</p><div class=\"mt-5 flex justify-end gap-2\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = display.Button(display.ButtonProps{
+				Type:    display.ButtonHTMLButton,
+				Variant: display.ButtonSecondary,
+				Text:    "Cancel",
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"data-tc-close": "modal",
+				}},
+			}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = display.Button(display.ButtonProps{
+				Type:      display.ButtonHTMLButton,
+				Variant:   display.ButtonDanger,
+				Text:      "Confirm",
+				BaseProps: utils.BaseProps{ID: "admin-confirm-ok"},
+			}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -325,13 +325,18 @@ func ackMiddleware(bc *cqrshtmx.Broadcaster, idem cqrshtmx.IdempotencyStore) fun
 	hook := bc.BroadcastOnAck()
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Idempotency check: reject duplicate command IDs before processing.
+			// Idempotency check: reject already-SEEN command IDs, but only
+			// RECORD the ID after a successful (< 400) response — recording
+			// before processing would poison the key on failure and every
+			// honest retry with the same X-Command-Id would 409 for the full
+			// TTL while the command never executed.
 			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
 				if cmdID := cqrshtmx.CommandIDFromRequest(r); cmdID != "" {
-					if err := idem.CheckAndRecord(r.Context(), cmdID, 10*time.Minute); err != nil {
+					if seen, seenErr := idem.Seen(r.Context(), cmdID); seenErr == nil && seen {
 						w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 						w.WriteHeader(http.StatusConflict)
-						_, _ = w.Write([]byte(err.Error()))
+						_, _ = w.Write([]byte("duplicate command ID"))
+
 						return
 					}
 				}
@@ -340,9 +345,13 @@ func ackMiddleware(bc *cqrshtmx.Broadcaster, idem cqrshtmx.IdempotencyStore) fun
 			sr := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 			next.ServeHTTP(sr, r)
 
-			// Only broadcast ACKs for mutation methods with a command ID
 			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
-				if cqrshtmx.CommandIDFromRequest(r) != "" {
+				if cmdID := cqrshtmx.CommandIDFromRequest(r); cmdID != "" {
+					// Record only successful executions (see note above).
+					if sr.status < 400 {
+						_ = idem.Record(r.Context(), cmdID, 10*time.Minute)
+					}
+
 					if sr.status >= 400 {
 						hook(r.Context(), r, errorfamily.NewRejection(
 							"admin-demo.http_error", fmt.Sprintf("HTTP %d", sr.status),

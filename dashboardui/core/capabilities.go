@@ -55,6 +55,7 @@ type Config struct {
 	EventBus        event.Bus
 	PageSize        int
 	PayloadRenderer PayloadRenderer
+	PayloadTypes    *PayloadTypeRegistry
 
 	Topology      TopologyProvider
 	EngineHealths EngineHealthProvider

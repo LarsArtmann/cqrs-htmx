@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -12,6 +13,11 @@ import (
 	"github.com/larsartmann/templ-components/layout"
 	"github.com/larsartmann/templ-components/utils"
 )
+
+// maxErrorMessageLength caps the ?error= query param so a hostile link
+// cannot stuff unbounded text into the alert. Long enough for any friendly
+// auth message.
+const maxErrorMessageLength = 300
 
 // PageData holds everything the templ page needs to render.
 // Exported so consumers can render [Page] directly in their own layout (Option B).
@@ -41,6 +47,11 @@ type PageData struct {
 	// Theme is the server-resolved color scheme ("light" or "dark", empty
 	// for prefers-color-scheme). Drives the body class and ThemeScript.
 	Theme string
+	// ErrorMessage is an OAuth2 callback failure surfaced via the ?error=
+	// query param (the conventional OAuth2ErrorURL target). Rendered
+	// server-side in the #lp-error alert; empty keeps the div hidden for
+	// the JS contract (AJAX failures fill it client-side).
+	ErrorMessage string
 
 	// --- Internal assets (consumers ignore these) ---
 	authPrefix string
@@ -53,16 +64,29 @@ func (p PageData) oauthBeginURL(provider string) string {
 	return p.authPrefix + "/auth/oauth/" + provider + "/begin"
 }
 
+// soleOAuthBeginURL returns the begin-login URL when exactly one OAuth2
+// provider is the page's ONLY sign-in method (no WebAuthn); "" otherwise.
+// Drives [Config.AutoRedirect].
+func (p PageData) soleOAuthBeginURL() string {
+	if p.WebAuthn || len(p.OAuth2Buttons) != 1 {
+		return ""
+	}
+	return p.oauthBeginURL(p.OAuth2Buttons[0].Provider)
+}
+
 // faviconURI returns an inline SVG data-URI favicon using the brand initial
-// and accent color. Returns templ.SafeURL to bypass templ's URL sanitizer
-// (which rejects data: URIs by default).
+// and accent color. The SVG is percent-encoded because data-URI content
+// ends at the first '#': the raw fill color (e.g. `#4f46e5`) would truncate
+// the URI at the fragment boundary and no favicon would render. Returns
+// templ.SafeURL to bypass templ's URL sanitizer (which rejects data: URIs
+// by default).
 func (p PageData) faviconURI() templ.SafeURL {
 	svg := "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>" +
 		"<rect width='100' height='100' rx='20' fill='" + p.Accent + "'/>" +
 		"<text x='50' y='70' font-size='60' text-anchor='middle' fill='white'" +
 		" font-family='sans-serif' font-weight='bold'>" + firstRune(p.Brand) +
 		"</text></svg>"
-	return templ.SafeURL("data:image/svg+xml," + svg)
+	return templ.SafeURL("data:image/svg+xml," + url.QueryEscape(svg))
 }
 
 // endpointConfig is injected as JSON into the page so the client-side JS knows
@@ -86,6 +110,10 @@ type clientConfig struct {
 type Handler struct {
 	config Config
 	data   PageData
+	// autoRedirectURL is non-empty when [Config.AutoRedirect] is set and the
+	// resolved page offers exactly one OAuth2 provider as its only sign-in
+	// method; ServeHTTP then redirects instead of rendering.
+	autoRedirectURL string
 }
 
 // New creates a login page handler from the given Config.
@@ -95,7 +123,7 @@ func New(config Config) (*Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !config.Service.HasWebAuthn() &&
+	if pageHasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn; !pageHasWebAuthn &&
 		!config.NoOAuth2 &&
 		len(config.OAuth2Buttons) == 0 &&
 		len(config.Service.ConfiguredOAuth2Providers()) == 0 {
@@ -105,9 +133,15 @@ func New(config Config) (*Handler, error) {
 			"configure WebAuthn or OAuth2 providers in the usermgmt ServiceConfig",
 		)
 	}
+	data := buildPageData(config, nil)
+	autoRedirectURL := ""
+	if config.AutoRedirect {
+		autoRedirectURL = data.soleOAuthBeginURL()
+	}
 	return &Handler{
-		config: config,
-		data:   buildPageData(config, nil),
+		config:          config,
+		data:            data,
+		autoRedirectURL: autoRedirectURL,
 	}, nil
 }
 
@@ -119,15 +153,22 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// AutoRedirect: OAuth2 is the only sign-in method and it is a single
+	// provider — send the visitor straight to the provider instead of a
+	// button page. Auth hops must not be cached (the page itself is no-store).
+	// An ?error= query param skips the redirect: OAuth2 callbacks surface
+	// failures by redirecting back here, and bouncing the visitor straight
+	// out again would loop.
+	if h.autoRedirectURL != "" && r.URL.Query().Get("error") == "" {
+		w.Header().Set("Cache-Control", "no-store")
+		http.Redirect(w, r, h.autoRedirectURL, http.StatusFound)
+		return
+	}
+
 	// Rebuild the per-request fields (the CSRF token is request-scoped under
 	// nosurf; nonce and theme may come from request hooks or middleware).
 	data := h.data
-	data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
-	data.CSRFField = httputil.CSRFTokenFormField(r)
-	if h.config.NonceFromRequest != nil {
-		data.Nonce = sanitizeNonce(h.config.NonceFromRequest(r))
-	}
-	data.Theme = h.config.resolveTheme(r)
+	applyRequestScoped(&data, h.config, r)
 
 	renderPage(w, r, data)
 }
@@ -205,7 +246,9 @@ func buildPageData(config Config, r *http.Request) PageData {
 	// string containing "</script>" would otherwise break out of the block.
 	configJSON = []byte(scriptSafeJSON(string(configJSON)))
 
-	hasWebAuthn := config.Service.HasWebAuthn()
+	// NoWebAuthn hides the passkey form on THIS page only; the service-level
+	// provider stays configured for other surfaces.
+	hasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn
 
 	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
 	oauth2Buttons := config.OAuth2Buttons
@@ -241,11 +284,37 @@ func buildPageData(config Config, r *http.Request) PageData {
 	}
 
 	if r != nil {
-		data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
-		data.CSRFField = httputil.CSRFTokenFormField(r)
+		applyRequestScoped(&data, config, r)
 	}
 
 	return data
+}
+
+// applyRequestScoped populates the request-scoped PageData fields: CSRF
+// token (request-scoped under nosurf), CSP nonce, theme, and the ?error=
+// message. Shared by ServeHTTP (Option A) and buildPageData (Option B via
+// NewPageData) so both render paths stay identical — pre-fix, Option B
+// populated only the CSRF fields, shipping nonce-less scripts (dead under
+// the recommended CSP) and losing SSR theming.
+func applyRequestScoped(data *PageData, config Config, r *http.Request) {
+	data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
+	data.CSRFField = httputil.CSRFTokenFormField(r)
+	if config.NonceFromRequest != nil {
+		data.Nonce = sanitizeNonce(config.NonceFromRequest(r))
+	}
+	data.Theme = config.resolveTheme(r)
+	data.ErrorMessage = errorMessageFromQuery(r)
+}
+
+// errorMessageFromQuery reads the ?error= query param (the conventional
+// OAuth2ErrorURL callback target), trimmed and length-capped so a hostile
+// link cannot stuff unbounded text into the alert.
+func errorMessageFromQuery(r *http.Request) string {
+	msg := strings.TrimSpace(r.URL.Query().Get("error"))
+	if len(msg) > maxErrorMessageLength {
+		msg = msg[:maxErrorMessageLength]
+	}
+	return msg
 }
 
 // pageProps translates PageData into the templ-components layout props: the
@@ -276,17 +345,22 @@ func pageProps(p PageData) layout.PageProps {
 // nonce is sanitized (base64url characters only), so templ.Raw cannot be
 // abused for attribute injection even with a hostile NonceFromRequest.
 func scriptTag(js, nonce string) string {
-	if nonce == "" {
-		return "<script>" + js + "</script>"
-	}
-	return `<script nonce="` + nonce + `">` + js + "</script>"
+	return "<script" + nonceAttr(nonce) + ">" + js + "</script>"
 }
 
 // jsonScriptTag renders the client-config JSON block with an optional nonce.
 // The JSON itself is already script-safe (see scriptSafeJSON).
 func jsonScriptTag(cfgJSON, nonce string) string {
+	return `<script id="loginpage-config" type="application/json"` + nonceAttr(nonce) + ">" + cfgJSON + "</script>"
+}
+
+// nonceAttr renders a script tag's nonce attribute for an already-sanitized
+// nonce — empty when the nonce is absent. Sanitization (base64url characters
+// only, see sanitizeNonce) is what keeps templ.Raw safe from attribute
+// injection even with a hostile NonceFromRequest.
+func nonceAttr(nonce string) string {
 	if nonce == "" {
-		return `<script id="loginpage-config" type="application/json">` + cfgJSON + "</script>"
+		return ""
 	}
-	return `<script id="loginpage-config" type="application/json" nonce="` + nonce + `">` + cfgJSON + "</script>"
+	return ` nonce="` + nonce + `"`
 }

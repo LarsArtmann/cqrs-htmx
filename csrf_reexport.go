@@ -65,9 +65,9 @@ var (
 	// ErrCSRFInvalid is an alias for httputil.ErrCSRFInvalid.
 	//
 	// Deprecated: use httputil.ErrCSRFInvalid.
-	ErrCSRFInvalid = httputil.ErrCSRFInvalid
+	ErrCSRFInvalid error = httputil.ErrCSRFInvalid
 	// ErrCSRFConfig is an alias for httputil.ErrCSRFConfig.
 	//
 	// Deprecated: use httputil.ErrCSRFConfig.
-	ErrCSRFConfig = httputil.ErrCSRFConfig
+	ErrCSRFConfig error = httputil.ErrCSRFConfig
 )

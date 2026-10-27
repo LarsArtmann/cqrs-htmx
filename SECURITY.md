@@ -1,4 +1,14 @@
-# Security
+# Security Policy
+
+## Supported Versions
+
+| Version                                | Supported                                 |
+| -------------------------------------- | ----------------------------------------- |
+| Latest published tag of each v4 module | Yes — fixes ride the module's next tag    |
+| Older v4 tags, v3 and below            | No — upgrade to the newest published tags |
+
+Fixes land on `master` and ship with each module's next tag; there are no
+long-term-support branches.
 
 ## Overview
 
@@ -101,7 +111,11 @@ You can expect:
 
 ---
 
-## Hardening Checklist
+## Security Practices
+
+Baseline practices every consumer deployment should apply.
+
+### Hardening Checklist
 
 - [ ] Set `CSRFConfig.Secure=true` for HTTPS deployments
 - [ ] Use `SameSiteStrictMode` or `SameSiteLaxMode` (not `None` unless cross-domain)
@@ -129,3 +143,9 @@ You can expect:
 | golang.org/x/time/rate | Rate limiting   | Low (Go x/ repo)           |
 
 Run `govulncheck ./...` regularly to detect known vulnerabilities in dependencies.
+
+## Reporting a Vulnerability
+
+Report privately via GitHub security advisories:
+<https://github.com/LarsArtmann/cqrs-htmx/security/advisories/new>.
+Please do not open public issues for suspected vulnerabilities.

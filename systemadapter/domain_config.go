@@ -8,8 +8,8 @@
 //
 // Example:
 //
-//	domain := systemadapter.DomainConfig()          // 4 deciders, 20 commands,
-//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 21 events, projections
+//	domain := systemadapter.DomainConfig()          // 4 deciders, 21 commands,
+//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 25 events, projections
 //	sys, err := system.New(ctx, domain, deployment)
 //
 // Projection-side knobs ride the same call: WithCheckpointStore supplies the
@@ -33,8 +33,8 @@ import (
 )
 
 // DomainConfig returns a system.DomainConfig pre-wired with all four identity-model
-// deciders (User, Membership, Tenant, Bot), all 20 commands, and a TypeDecoder
-// that maps all 21 event types to their payload structs.
+// deciders (User, Membership, Tenant, Bot), all 21 commands, and a TypeDecoder
+// that maps all 25 event types to their payload structs.
 //
 // The consumer passes this to system.New() alongside a DeploymentConfig that
 // specifies engines and buses. The system handles repository creation, event
@@ -63,6 +63,7 @@ func DomainConfig(opts ...DomainOption) system.DomainConfig {
 
 	return system.DomainConfig{
 		Commands:              registerAllCommands,
+		Schema:                EventSchemas(),
 		ProjectionTypeDecoder: EventTypeDecoder(),
 		Projections:           DeclarativeProjections(),
 		CheckpointStore:       cfg.checkpointStore,
@@ -108,7 +109,6 @@ func registerAllCommands(sys *system.System) {
 
 func must(err error) {
 	if err != nil {
-		//cqrs-lint:ignore(C009) system.DomainConfig.Commands is func(*System) — no error channel exists; registration wires static deciders, so failure is a programmer error at init
 		panic(fmt.Sprintf("systemadapter: registration failed: %v", err))
 	}
 }
@@ -204,6 +204,16 @@ func registerUserCommands(sys *system.System) {
 			return system.Execute[usermgmt.UserState](
 				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideRemoveCredential(c.StreamID(), c.CredentialID()),
+			)
+		},
+	))
+
+	must(system.RegisterCommand[*identitymodel.RecordCredentialUseCmd, usermgmt.UserState](
+		sys, identitymodel.CmdRecordCredentialUse,
+		func(ctx context.Context, c *identitymodel.RecordCredentialUseCmd) system.Op[usermgmt.UserState] {
+			return system.Execute[usermgmt.UserState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
+				usermgmt.DecideRecordCredentialUse(c.StreamID(), c.Use()),
 			)
 		},
 	))

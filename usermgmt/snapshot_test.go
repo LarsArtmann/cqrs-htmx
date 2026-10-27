@@ -117,11 +117,9 @@ func TestService_SnapshotIntegration(t *testing.T) {
 	}
 
 	svc, err := NewService(ServiceConfig{
-		SnapshotConfig: SnapshotConfig{
-			Store:    store,
-			Codec:    codec.JSONCodec{},
-			Strategy: strategy,
-		},
+		Store:    store,
+		Codec:    codec.JSONCodec{},
+		Strategy: strategy,
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
@@ -241,11 +239,9 @@ func TestStateCache_InterceptsWritePathLoad(t *testing.T) {
 
 	svc, err := NewService(ServiceConfig{
 		EventStore: eventStore,
-		SnapshotConfig: SnapshotConfig{
-			Store:    snapStore,
-			Codec:    codec.JSONCodec{},
-			Strategy: strategy,
-		},
+		Store:      snapStore,
+		Codec:      codec.JSONCodec{},
+		Strategy:   strategy,
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
@@ -311,11 +307,9 @@ func TestSnapshot_WritePathConsultsSnapshot_OnCacheMiss(t *testing.T) {
 
 	svc, err := NewService(ServiceConfig{
 		EventStore: eventStore,
-		SnapshotConfig: SnapshotConfig{
-			Store:    snapStore,
-			Codec:    codec.JSONCodec{},
-			Strategy: strategy,
-		},
+		Store:      snapStore,
+		Codec:      codec.JSONCodec{},
+		Strategy:   strategy,
 	})
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
@@ -349,11 +343,9 @@ func TestSnapshot_WritePathConsultsSnapshot_OnCacheMiss(t *testing.T) {
 	// persist in memory, but the state cache is empty (new service).
 	svc2, err := NewService(ServiceConfig{
 		EventStore: eventStore,
-		SnapshotConfig: SnapshotConfig{
-			Store:    snapStore,
-			Codec:    codec.JSONCodec{},
-			Strategy: strategy,
-		},
+		Store:      snapStore,
+		Codec:      codec.JSONCodec{},
+		Strategy:   strategy,
 	})
 	if err != nil {
 		t.Fatalf("NewService (2nd): %v", err)

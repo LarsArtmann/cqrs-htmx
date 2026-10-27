@@ -9,31 +9,31 @@ Cross-module study of three codebases — **note the scope split: 139 of the 308
 
 **308 ideas, globally numbered** so they are referenceable (`idea 217`). Evidence cites `file:line` where the finding is location-specific. Prior art consulted: `2026-09-17_templ-components-dashboardui-deep-dive.html` (UI only), `storage-first-principles-analysis.md`, ADR-0149 (durable checkpoints shipped upstream). Not duplicated: dashboardui `IMPROVEMENT_IDEAS.md`/`ROADMAP.md` open items (noted as stale where CHANGELOG contradicts them).
 
-| Part | Scope | Ideas |
-|------|-------|-------|
-| A | dashboardui — security, perf, pagination, features, a11y/i18n, SSE, testing, theming | 1–82 |
-| B | metaengine — API, planner/cost model, engine duplication, correctness, vector/temporal/graph/SSE | 83–175 |
-| C | system — config, validation, defaults, lifecycle, health, bus/cache/snapshots, observability | 176–262 |
-| D | Integration seams — telemetry panels, systemadapter, missing bridges, docs drift | 263–308 |
-| — | Priority shortlist (Top 30, impact × urgency, effort-sized) | end |
+| Part | Scope                                                                                            | Ideas   |
+| ---- | ------------------------------------------------------------------------------------------------ | ------- |
+| A    | dashboardui — security, perf, pagination, features, a11y/i18n, SSE, testing, theming             | 1–82    |
+| B    | metaengine — API, planner/cost model, engine duplication, correctness, vector/temporal/graph/SSE | 83–175  |
+| C    | system — config, validation, defaults, lifecycle, health, bus/cache/snapshots, observability     | 176–262 |
+| D    | Integration seams — telemetry panels, systemadapter, missing bridges, docs drift                 | 263–308 |
+| —    | Priority shortlist (Top 30, impact × urgency, effort-sized)                                      | end     |
 
 ## Verification status
 
 Findings were produced by four parallel deep-dive sub-agents; the headline claims were then spot-verified directly against source (2026-10-06) — all passed:
 
-| Idea | Claim | Verified at |
-|------|-------|-------------|
-| 1 | SSE rows built via `innerHTML` without escaping | `dashboardui/layout.go:379-381` |
-| 2 | Accent injected via `templ.Raw("<style>…")` with only HTML-escaping | `dashboardui/layout.templ:76-78` |
-| 6 | Hardcoded ETag `dashboardui-v4.9.0` (module is v4.13.x) | `dashboardui/assets.go:43` |
-| 9 | Active sort resets cursor, loads `filterScanLimit` (500) | `dashboardui/handlers_events.go:48-51` |
-| 114 | Vector ops delegate straight to the index, bypassing `m.mu` | `metaengine/memory_engine.go:248-256` |
-| 123 | `WithFilter` appends `FilterSpec` without validating `op` | `metaengine/scan_options.go:31-35` |
-| 175 | `Doctor(ctx) string` is text-only | `metaengine/explain.go:255` |
-| 187 | Error returns after the engine-creation loop never close engines | `system/constructor.go:128-136` (1 of 12+ paths) |
-| 210 | `stopTimers` has exactly one call site (GracefulClose), none in `Close` | `system/timers.go:77-78`, `system/system.go:310` |
-| 230 | Fan-out built only when `len(inst.Publish) > 1` | `system/bus.go:69` |
-| 288 | systemadapter compiles against deprecated `usermgmt.*` re-exports | live gopls: 65 deprecation hints in `domain_config.go`/`projections.go` |
+| Idea | Claim                                                                   | Verified at                                                             |
+| ---- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 1    | SSE rows built via `innerHTML` without escaping                         | `dashboardui/layout.go:379-381`                                         |
+| 2    | Accent injected via `templ.Raw("<style>…")` with only HTML-escaping     | `dashboardui/layout.templ:76-78`                                        |
+| 6    | Hardcoded ETag `dashboardui-v4.9.0` (module is v4.13.x)                 | `dashboardui/assets.go:43`                                              |
+| 9    | Active sort resets cursor, loads `filterScanLimit` (500)                | `dashboardui/handlers_events.go:48-51`                                  |
+| 114  | Vector ops delegate straight to the index, bypassing `m.mu`             | `metaengine/memory_engine.go:248-256`                                   |
+| 123  | `WithFilter` appends `FilterSpec` without validating `op`               | `metaengine/scan_options.go:31-35`                                      |
+| 175  | `Doctor(ctx) string` is text-only                                       | `metaengine/explain.go:255`                                             |
+| 187  | Error returns after the engine-creation loop never close engines        | `system/constructor.go:128-136` (1 of 12+ paths)                        |
+| 210  | `stopTimers` has exactly one call site (GracefulClose), none in `Close` | `system/timers.go:77-78`, `system/system.go:310`                        |
+| 230  | Fan-out built only when `len(inst.Publish) > 1`                         | `system/bus.go:69`                                                      |
+| 288  | systemadapter compiles against deprecated `usermgmt.*` re-exports       | live gopls: 65 deprecation hints in `domain_config.go`/`projections.go` |
 
 Everything else is agent-sourced: re-verify at the cited `file:line` before acting on it, and treat unverified line numbers as approximate.
 
@@ -92,14 +92,14 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 35. **[feature] No projection lag sparkline** — ROADMAP blesses `display.Sparkline` as the Tier-4 exception; lag history is ring-bufferable in `projectionStat` (`core/overview.go:34-44`).
 36. **[feature] Aggregate browser lacks search** — `/aggregates` is pure cursor listing (`render.go:146-156`); stream-type filter + ID prefix search are cheap.
 37. **[feature] Event payload viewer is flat `<pre>`** (`events.templ:125`) — collapsible JSON tree / key-path copy; gjson is already in the module graph.
-38. **[feature] No route manifest** — `Routes() []Route` would let consumers print active panels and aid auth-middleware allowlisting.
+~~38. **[feature] No route manifest** — `Routes() []Route` would let consumers print active panels and aid auth-middleware allowlisting.~~ CONSUMED — M21 shipped `Routes()` (route manifest ≡ registration pinned by a `mux.Handler` drift test); `docs/status/2026-10-07_02-57_SUPERB-m20-m27-session-m20-m26-done-battery-80pct-foreign-interference.md`.
 
 ### A.6 API design / DX (39–46)
 
 39. **[API] Triple-maintenance Config seam** — every new data source must be added to `Config` (`config.go:29-116`), `core.Config` (`core/capabilities.go:43-57`), `coreConfig()` mapping (`core_bridge.go:115-131`), and `Autodetect` (`autodetect.go:42-84`). Embed `core.Config` to collapse three of four.
 40. **[API] `Authorizer` returns only `error`** (`config.go:101`) — audit logs record op/projection but never WHO (`handlers_dlq.go:103-116`). Change to return an actor, or read actor from context.
 41. **[API] No exported `Config.Validate()`** — consumers (setup/v4) can't pre-validate without constructing a Dashboard; export a wrapper over `withDefaults` (`config.go:118`).
-42. **[API] `Autodetect` can't combine sources** — single `store any` can't express "SQL store + separate projection host + bus"; accept variadic sources merging probes (`autodetect.go:39`), make the probe table-driven to drop the `//nolint:cyclop`.
+~~42. **[API] `Autodetect` can't combine sources** — single `store any` can't express "SQL store + separate projection host + bus"; accept variadic sources merging probes (`autodetect.go:39`), make the probe table-driven to drop the `//nolint:cyclop`.~~ CONSUMED — M20 shipped `Autodetect(sources ...any)` first-wins merge + table-driven `fieldProbe[T]` probes (cyclop chain deleted); 02-57 report.
 43. **[API] `PageMeta.HTMX` is dead weight** — documented as "normally never sees HTMX=true" (`layoutfunc.go:80-82`); populate honestly or remove.
 44. **[DX] `modulePath` hardcoded** (`handlers_health.go:69`) — forks lie in versionz; use `runtime/debug.ReadBuildInfo()`.
 45. **[DX] No `Example*` godoc functions** for `New`/`Autodetect`/`core.FetchOverview` — `core` is advertised as a public headless API (`core/capabilities.go:1-12`).
@@ -150,10 +150,10 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 
 ### A.12 Docs (75–79)
 
-75. **[docs] README references a nonexistent demo** — `examples/dashboard-demo/main.go` (`README.md:359`, CHANGELOG v4.2.0) does not exist; IMPROVEMENT_IDEAS T24 claims it's open while CHANGELOG says shipped.
-76. **[docs] README documents the deleted `data-copyable` protocol** (`README.md:310`) — removed in v4.10.0 for library CopyButtons.
-77. **[docs] IMPROVEMENT_IDEAS.md contradicts CHANGELOG** — lists shipped features (T12/T13/T17/T21/T22/T24) as open; prune + add a CI check striking items whose T-numbers appear in CHANGELOG.
-78. **[docs] `core/capabilities.go:9-11` package doc still says "fmt.Fprintf-based handlers"** — strings.Builder layer deleted 2026-09-22.
+~~75. **[docs] README references a nonexistent demo** — `examples/dashboard-demo/main.go` (`README.md:359`, CHANGELOG v4.2.0) does not exist; IMPROVEMENT_IDEAS T24 claims it's open while CHANGELOG says shipped.~~ OBSOLETE-ON-VERIFICATION — the demo EXISTS (8 users Alice..Henry, orders, projection host, 5s publisher); README demo section kept; 02-57 report §c.
+~~76. **[docs] README documents the deleted `data-copyable` protocol** (`README.md:310`) — removed in v4.10.0 for library CopyButtons.~~ CONSUMED — dead Copy-to-Clipboard README section removed after verifying `data-copyable` exists only in docs; 02-57 report §c.
+~~77. **[docs] IMPROVEMENT_IDEAS.md contradicts CHANGELOG** — lists shipped features (T12/T13/T17/T21/T22/T24) as open; prune + add a CI check striking items whose T-numbers appear in CHANGELOG.~~ CONSUMED — pruned with per-item verification (six T-items struck as SHIPPED with evidence; T18 verified genuinely open and kept; stale-item check note added to the header; CI check not added); 02-57 report §c.
+~~78. **[docs] `core/capabilities.go:9-11` package doc still says "fmt.Fprintf-based handlers"** — strings.Builder layer deleted 2026-09-22.~~ CONSUMED — the stale claim is dropped from the package doc; 02-57 report §c.
 79. **[docs] No SECURITY.md for write mode** — ReadOnly=false checklist scattered across `config.go:91-93`, `dashboard.go:51-57`, README.
 
 ### A.13 Theming (80–82)
@@ -422,9 +422,9 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 
 ### D.1 dashboard ↔ metaengine telemetry (263–273)
 
-263. **[telemetry] Add a "Plan" panel** rendering `Store.ExplainPlan()`/`System.ProjectionExplain()` (`metaengine/explain.go:113`, `system/introspection.go:271`) — nothing in dashboardui reads it today.
+~~263. **[telemetry] Add a "Plan" panel** rendering `Store.ExplainPlan()`/`System.ProjectionExplain()` (`metaengine/explain.go:113`, `system/introspection.go:271`) — nothing in dashboardui reads it today.~~ CONSUMED — M26 telemetry: `WireTelemetry` maps `MetaEngine().Plan()` into the query-placement table (query → engine + ADT + volume + est. latency); RuleTrace/Diagnostics surface remains phase-2; 02-57 report.
 264. **[telemetry] Render per-query placement/cost** (`QueryPlacement`: engine, ADT, volume, est. latency) as a table instead of string-parsing Explain (`metaengine/explain.go:196-200`).
-265. **[telemetry] Engine stats cards** — RTT EWMA/p95, sample count, stale flag (`metaengine/engine_stats.go:13-55`); `GetEngineStats` is documented "for any operator dashboard" with no consumer.
+~~265. **[telemetry] Engine stats cards** — RTT EWMA/p95, sample count, stale flag (`metaengine/engine_stats.go:13-55`); `GetEngineStats` is documented "for any operator dashboard" with no consumer.~~ CONSUMED — M26 engine-latency cards (RTT EWMA/P95/samples, 5-minute freshness badge, explicit no-tracker/no-samples states) now consume `GetEngineStats`; 02-57 report.
 266. **[telemetry] Plan audit history timeline** from `PlanHistory()` (version, trigger, priority snapshot) (`metaengine/plan_audit.go:31-53`); stream replans over SSE.
 267. **[telemetry] Quarantine/failover live feed** — surface `HealthSnapshot()`, `OnQuarantined/OnReactivated/OnProbe/OnCatchUp` hooks as dashboard events (`metaengine/engine_health.go:170`, `health_observer.go:20-42`).
 268. **[telemetry] Layout observability panel** — `GetLayoutInfo`, `LayoutWarnings` incl. JOIN_AMPLIFICATION (`metaengine/layout_observability.go:21,88`).
@@ -436,8 +436,8 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 
 ### D.2 dashboard ↔ system introspection (274–280)
 
-274. **[introspection] `Config.System`/`TopologyProvider` capability** — render `System.Snapshot(ctx)` Topology (instances, engines, drivers, buses, durability) (`system/introspection.go:17-48,85`); data exists, nothing consumes it.
-275. **[introspection] Wire `HealthCheckDetailed` into dashboard healthz/overview** (`system/introspection_extended.go:58-86` vs `dashboardui/handlers_health.go:12-58` — dashboard health is self-only).
+~~274. **[introspection] `Config.System`/`TopologyProvider` capability** — render `System.Snapshot(ctx)` Topology (instances, engines, drivers, buses, durability) (`system/introspection.go:17-48,85`); data exists, nothing consumes it.~~ CONSUMED — M26 `Config.Topology` provider + system-topology table (WireTelemetry maps `sys.Snapshot`); 02-57 report.
+~~275. **[introspection] Wire `HealthCheckDetailed` into dashboard healthz/overview** (`system/introspection_extended.go:58-86` vs `dashboardui/handlers_health.go:12-58` — dashboard health is self-only).~~ CONSUMED — M26: `Config.EngineHealths` composes `HealthCheckDetailed` into `/-/healthz` (engines array) + `/-/readyz` (503 `engine_unhealthy`); 02-57 report.
 276. **[introspection] System-level lag display** even when the ProjectionHost panel is off; dashboard currently recomputes lag from `host.LagPerProjection()` (`core/overview.go:107` vs `introspection_extended.go:90-113`).
 277. **[introspection] ScreamReport panel** — persisted WARN/OVERRIDE findings (`system/scream_store.go:161`); only CheckSafety is documented in the cqrs-htmx guide, never surfaced at runtime.
 278. **[introspection] Plan-drift diff view** — `ProjectionPlan()` (SerializablePlan) + `manifest_path` pinning, dashboard diffs live plan vs pinned manifest (`system/introspection.go:246-257`).
@@ -446,7 +446,7 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 
 ### D.3 systemadapter completeness (281–289)
 
-281. **[adapter] Never sets `DomainConfig.CheckpointStore` or `ProjectionHostOptions`** — declarative path always defaults (`systemadapter/domain_config.go:48-54` vs `system/config_types.go:91-101`); add `WithCheckpointStore`/`WithHostOptions` variants (ADR-0149 shipped durable checkpoints upstream — wire them).
+~~281. **[adapter] Never sets `DomainConfig.CheckpointStore` or `ProjectionHostOptions`** — declarative path always defaults (`systemadapter/domain_config.go:48-54` vs `system/config_types.go:91-101`); add `WithCheckpointStore`/`WithHostOptions` variants (ADR-0149 shipped durable checkpoints upstream — wire them).~~ CONSUMED — M22 shipped `WithCheckpointStore`/`WithDeadLetterStore`/`WithHostOptions` (durable-checkpoint restart proof: `TestDeclarative_DurableCheckpointSurvivesRestart`); systemadapter CHANGELOG + 02-57 report.
 282. **[adapter] No `Queries` registration** (only Get/Find helpers) — `system.RegisterQuery` would enable `DispatchQuery` + the query journal (`queries.go` vs system README:220-221).
 283. **[adapter] No `ShutdownDependencies` preset or `Middleware`** (authz/validation) wired (`system/README.md:322-327,376`).
 284. **[adapter] Zero coverage of system capabilities** — timers, snapshots, multi-bus, cache tier, evolutions, failover/reprobe: none wired or documented as identity-relevant (`system/timers.go:21`, `system.go:246,202`, `evolutions.go`).
@@ -461,11 +461,11 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 290. **[types] `system.RawQuery(decl any)` fully type-erased** — the 13 `system.RawQuery(xLookup())` calls lose `[Q,R]` until runtime (`system/projection_builder.go:49-53`, `systemadapter/declarations.go:33-50`); make `RawQuery[Q,R](metaengine.QueryDecl[Q,R])`.
 291. **[types] Magic query-name strings repeated** in `declarations.go` and `queries.go` with no compile-time link — export typed constants or `system.Query[T]("users")` handles.
 292. **[types] `metaengine.FilterOnField[TenantView]("Name", ...)` stringly-typed against view fields** (`declarations.go:73-74`) — struct-tag-derived option catches renames.
-293. **[types] `dashboardui.Autodetect` asserts concrete `*projectionhost.Host`** (`autodetect.go:62`) — decorators/wrapped hosts unprobeable; also `system.CommandStore()` vs dashboard's `command.CommandJournal` are different interfaces needing an adapter (`system/system.go:252`, `core/capabilities.go:51`).
+~~293. **[types] `dashboardui.Autodetect` asserts concrete `*projectionhost.Host`** (`autodetect.go:62`) — decorators/wrapped hosts unprobeable; also `system.CommandStore()` vs dashboard's `command.CommandJournal` are different interfaces needing an adapter (`system/system.go:252`, `core/capabilities.go:51`).~~ CONSUMED — M20 (leaf-interface probes) + M25 (duck-typed `System` accessor: decorators stay probeable, no system/metaengine import); 02-57 report.
 
 ### D.5 Missing bridges (294–298)
 
-294. **[bridge] `dashboardui.FromSystem(sys)` adapter** — map EventStore→Journal/Seekable/EventByIDLoader, Bus→EventBus, ProjectionHost, SnapshotStore, QueryStore (`Autodetect(sys)` can't work because System implements none of the probed leaf interfaces).
+~~294. **[bridge] `dashboardui.FromSystem(sys)` adapter** — map EventStore→Journal/Seekable/EventByIDLoader, Bus→EventBus, ProjectionHost, SnapshotStore, QueryStore (`Autodetect(sys)` can't work because System implements none of the probed leaf interfaces).~~ CONSUMED — M25 shipped `FromSystem(sys)` (first-wins mapping, journal-derived StreamReader fallback, `TestDashboard_FromSystem_PanelsLightUp`); 02-57 report.
 295. **[bridge] Projection-delta SSE channel** — metaengine `Watcher`/`ServeSSE` (per-collection read-model deltas, `metaengine/sse.go:103`, `dx.go:111`) vs dashboard SSE (raw domain events, `dashboardui/sse.go:53-60`); a Watcher→broadcaster bridge would let dashboard panels live-update read models.
 296. **[bridge] Metrics wiring** — go-cqrs-lite ships `prometheus/` and `otel/`; neither systemadapter deployments nor dashboardui reference them; `systemadapter.Metrics(sys)` wiring `metaengine.WithMetrics` + engine health gauges closes the loop.
 297. **[bridge] Health aggregation** — `System.HealthCheckDetailed` ignores metaengine's own quarantine state (`MetaEngine().HealthSnapshot()`) — a quarantined-but-pingable engine reads healthy (`introspection_extended.go:58-86` vs `engine_health.go:170-180`).
@@ -475,7 +475,7 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 
 299. **[lifecycle] Three projection lifecycles coexist** — system's internal host (declarative), deprecated ProjectionLayer host, raw `projectionhost.New`; dashboard reset calls `host.Reset` (`handlers_projections.go:71`) but the canonical declarative API is `System.ResetProjection(ctx, name)` — dashboard should prefer system-level when wired.
 300. **[lifecycle] Declarative path has no `WaitForDrain` equivalent** — guide tells users to poll queries (`declarative-projections.md:63-85`); promote `System.LagDuration()==0`-based or a `DrainFor(d)` helper so read-your-writes semantics survive migration.
-301. **[lifecycle] DLQ dark on the declarative path** — systemadapter never wires `WithDeadLetterStore` into `ProjectionHostOptions` (`systemadapter/projections.go:81-85` vs `domain_config.go:48-54`); dashboard DLQ panels go empty unless the consumer knows.
+~~301. **[lifecycle] DLQ dark on the declarative path** — systemadapter never wires `WithDeadLetterStore` into `ProjectionHostOptions` (`systemadapter/projections.go:81-85` vs `domain_config.go:48-54`); dashboard DLQ panels go empty unless the consumer knows.~~ CONSUMED — M22 shipped `WithDeadLetterStore` (replaces the in-memory DLQ default on the declarative path); systemadapter CHANGELOG + 02-57 report.
 302. **[lifecycle] projectionhost hosts are one-shot** (crash-restart = fresh host, per cqrs-htmx AGENTS) — system's rebuild story should reuse `RebuildProjection` semantics; align naming/behavior across both repos' docs.
 
 ### D.7 Docs / version alignment (303–308)
@@ -485,7 +485,7 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 305. **[docs] Same guide's "Advanced" section uses old untyped `metaengine.Query[any,any]`/`On` style** (lines 212-221) instead of the `OnRecordTyped`+`EventWithID` pattern systemadapter actually uses.
 306. **[docs] ADR-0051's "durable-checkpoint upstream ask" listed as open in archived status reports but shipped** — reconcile the criterion chain so the declarative path can be re-evaluated.
 307. **[versions] systemadapter pins `system/v4 v4.10.2` + `metaengine v4.16.1`** while the sibling tree's system depends on `metaengine v4.16.0` behind `replace ../metaengine` — track the release-wave gap so unpublished surface doesn't strand consumers.
-308. **[versions] dashboardui pins no system/metaengine deps at all** — any future capability panel adds a new direct dependency; decide the seam now (interface in `core` vs direct import).
+~~308. **[versions] dashboardui pins no system/metaengine deps at all** — any future capability panel adds a new direct dependency; decide the seam now (interface in `core` vs direct import).~~ CONSUMED — seam decided: `systembridge` sub-package is the ONE system/metaengine-importing place (dashboardui proper stays leaf-typed); 02-57 report §c + AGENTS.md.
 
 ---
 
@@ -493,40 +493,40 @@ Everything else is agent-sourced: re-verify at the cited `file:line` before acti
 
 Effort: **S** ≈ hours (same-day), **M** ≈ one to two days, **L** ≈ multi-day or needs design/ADR. The S rows form a same-day quick-win batch.
 
-| # | Idea | Effort | Why first |
-|---|------|--------|-----------|
-| 1 | **1** XSS in SSE row injection | S | Exploitable, trivial fix |
-| 2 | **123/124** metaengine FilterOp/jsonPath SQL-injection surface | S | Unvalidated enum → SQL interpolation |
-| 3 | **114** Memory-engine data race (vector/spatial bypass mutex) | M | Correctness + race detector |
-| 4 | **2** AccentColor CSS injection | S | Trivial validation fix |
-| 5 | **24** Unescaped query params in pagination links | M | Correctness bug, corrupts navigation |
-| 6 | **9** Sorting silently kills pagination | M | Core UX of the events panel |
-| 7 | **17/18** Infra errors rendered as 404/empty tables | M | Ops trust: failure looks like absence |
-| 8 | **187** `system.New` leaks engines on error paths | M | Resource leak on every failed boot |
-| 9 | **210** `Close()` never stops timers | S | Leak + doc lie |
-| 10 | **230** Single `publish: [x]` silently ignored | S | Most common bus config is the broken one |
-| 11 | **197/179** Silent memory fallback on typo'd role | S | Volatile store by accident |
-| 12 | **115** Keyset pagination drops tie rows | M | Silent data loss in scans |
-| 13 | **146** No VectorDelete anywhere | L | Stale embeddings forever |
-| 14 | **263–273** dashboard↔metaengine telemetry panels | L | The dashboard misses its own domain's richest data |
-| 15 | **303–305** Stale/deprecated guide content | S | Consumers following docs into deprecated paths |
-| 16 | **294** `dashboardui.FromSystem` bridge | M | Kills the consumer assertion dance permanently |
-| 17 | **102/103/105** Cross-engine twin extraction + debt lint | L | 3–5k lines of institutionalized copy-paste |
-| 18 | **281/301** systemadapter wires checkpoints/DLQ | M | ADR-0149 shipped; adapter ignores it |
-| 19 | **233** Cache invalidate-after-write race | S | Serves stale-forever snapshots |
-| 20 | **6** Content-hash ETags for embedded assets | S | Recurring stale-asset incident class |
-| 21 | **4** CSV formula injection | S | One-line neutralization |
-| 22 | **251** `reifyTo` panic on poison event | M | Panics a worker mid-replay |
-| 23 | **222** Liveness/readiness split | M | Bad pod restarts during rebuild |
-| 24 | **135** `metaengine-calibrate` CLI | L | Unblocks honest cost model everywhere |
-| 25 | **156** SSE unbounded replay default | S | Dangerous default inverted |
-| 26 | **295** Watcher→broadcaster bridge | M | Live read-model panels become possible |
-| 27 | **68, 26** Generic journalIndex + reusable sort spec | M | Deletes duplication + unlocks features |
-| 28 | **113** ANN vector path | L | Vector search is brute-force everywhere |
-| 29 | **298** Aggregate healthz composition | M | One endpoint telling the truth |
-| 30 | **41/42** Config.Validate + variadic Autodetect | M | Consumer DX at the two hottest seams |
+| #  | Idea                                                           | Effort | Why first                                          |
+| -- | -------------------------------------------------------------- | ------ | -------------------------------------------------- |
+| 1  | **1** XSS in SSE row injection                                 | S      | Exploitable, trivial fix                           |
+| 2  | **123/124** metaengine FilterOp/jsonPath SQL-injection surface | S      | Unvalidated enum → SQL interpolation               |
+| 3  | **114** Memory-engine data race (vector/spatial bypass mutex)  | M      | Correctness + race detector                        |
+| 4  | **2** AccentColor CSS injection                                | S      | Trivial validation fix                             |
+| 5  | **24** Unescaped query params in pagination links              | M      | Correctness bug, corrupts navigation               |
+| 6  | **9** Sorting silently kills pagination                        | M      | Core UX of the events panel                        |
+| 7  | **17/18** Infra errors rendered as 404/empty tables            | M      | Ops trust: failure looks like absence              |
+| 8  | **187** `system.New` leaks engines on error paths              | M      | Resource leak on every failed boot                 |
+| 9  | **210** `Close()` never stops timers                           | S      | Leak + doc lie                                     |
+| 10 | **230** Single `publish: [x]` silently ignored                 | S      | Most common bus config is the broken one           |
+| 11 | **197/179** Silent memory fallback on typo'd role              | S      | Volatile store by accident                         |
+| 12 | **115** Keyset pagination drops tie rows                       | M      | Silent data loss in scans                          |
+| 13 | **146** No VectorDelete anywhere                               | L      | Stale embeddings forever                           |
+| 14 | **263–273** dashboard↔metaengine telemetry panels              | L      | The dashboard misses its own domain's richest data |
+| 15 | **303–305** Stale/deprecated guide content                     | S      | Consumers following docs into deprecated paths     |
+| 16 | **294** `dashboardui.FromSystem` bridge                        | M      | Kills the consumer assertion dance permanently     |
+| 17 | **102/103/105** Cross-engine twin extraction + debt lint       | L      | 3–5k lines of institutionalized copy-paste         |
+| 18 | **281/301** systemadapter wires checkpoints/DLQ                | M      | ADR-0149 shipped; adapter ignores it               |
+| 19 | **233** Cache invalidate-after-write race                      | S      | Serves stale-forever snapshots                     |
+| 20 | **6** Content-hash ETags for embedded assets                   | S      | Recurring stale-asset incident class               |
+| 21 | **4** CSV formula injection                                    | S      | One-line neutralization                            |
+| 22 | **251** `reifyTo` panic on poison event                        | M      | Panics a worker mid-replay                         |
+| 23 | **222** Liveness/readiness split                               | M      | Bad pod restarts during rebuild                    |
+| 24 | **135** `metaengine-calibrate` CLI                             | L      | Unblocks honest cost model everywhere              |
+| 25 | **156** SSE unbounded replay default                           | S      | Dangerous default inverted                         |
+| 26 | **295** Watcher→broadcaster bridge                             | M      | Live read-model panels become possible             |
+| 27 | **68, 26** Generic journalIndex + reusable sort spec           | M      | Deletes duplication + unlocks features             |
+| 28 | **113** ANN vector path                                        | L      | Vector search is brute-force everywhere            |
+| 29 | **298** Aggregate healthz composition                          | M      | One endpoint telling the truth                     |
+| 30 | **41/42** Config.Validate + variadic Autodetect                | M      | Consumer DX at the two hottest seams               |
 
-*(Full list above: 308 ideas. Counts by module: dashboardui 82, metaengine 93, system 87, integration 46.)*
+_(Full list above: 308 ideas. Counts by module: dashboardui 82, metaengine 93, system 87, integration 46.)_
 
 ---
 
@@ -534,12 +534,12 @@ Effort: **S** ≈ hours (same-day), **M** ≈ one to two days, **L** ≈ multi-d
 
 Recorded 2026-10-06 so the judgment travels with the document, not just the chat it was voiced in. The "100 to 1000" framing manufactured volume; the honest distribution:
 
-| Tier | Share | Representative ideas |
-|------|-------|----------------------|
-| **Load-bearing — act on these** | ~60 (20%) | 1, 2, 114, 115, 123/124, 187, 197, 210, 230, 233, 251, 263–273, 294, 303–305 |
-| **Solid hygiene — do opportunistically** | ~200 (65%) | testing matrices (59–64, 136–140), docs fixes (141–145, 245–248), twin extraction (102–107), DX error messages (191–196) |
-| **Debatable — needs a product decision first** | ~30 (10%) | 37, 47, 71, 81, 82 |
-| **Veto — strategy questions disguised as ideas** | ~15 (5%) | 171 and parts of the 167–175 "serious planner gaps" range |
+| Tier                                             | Share      | Representative ideas                                                                                                     |
+| ------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Load-bearing — act on these**                  | ~60 (20%)  | 1, 2, 114, 115, 123/124, 187, 197, 210, 230, 233, 251, 263–273, 294, 303–305                                             |
+| **Solid hygiene — do opportunistically**         | ~200 (65%) | testing matrices (59–64, 136–140), docs fixes (141–145, 245–248), twin extraction (102–107), DX error messages (191–196) |
+| **Debatable — needs a product decision first**   | ~30 (10%)  | 37, 47, 71, 81, 82                                                                                                       |
+| **Veto — strategy questions disguised as ideas** | ~15 (5%)   | 171 and parts of the 167–175 "serious planner gaps" range                                                                |
 
 ### Ideas to push back on (veto or demote)
 
@@ -553,4 +553,4 @@ Recorded 2026-10-06 so the judgment travels with the document, not just the chat
 
 1 (SSE XSS), 123/124 (injection surface), 2 (accent CSS), 114 (memory-engine race), 230 (single publish target), 210 (timers on Close), 187 (engine leak), 251 (reifyTo panic), 303–305 (docs telling the truth), 294 (`FromSystem` bridge). Everything else survives a release cycle of waiting.
 
-*Append-only addition per the research-dir convention — no findings above were altered.*
+_Append-only addition per the research-dir convention — no findings above were altered._

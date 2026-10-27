@@ -125,6 +125,24 @@ func RegisterCommands(
 	}
 
 	if err := command.RegisterTyped(
+		dispatcher, cmdRecordCredentialUse,
+		func(ctx context.Context, c *RecordCredentialUseCmd) error {
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeUser, c.StreamID()),
+				decideRecordCredentialUse(c.StreamID(), c.Use()),
+			)
+		},
+	); err != nil {
+		return errorfamily.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdRecordCredentialUse,
+		)
+	}
+
+	if err := command.RegisterTyped(
 		dispatcher, cmdVerifyEmail,
 		func(ctx context.Context, c *VerifyEmailCmd) error {
 			return repo.ExecuteRef(

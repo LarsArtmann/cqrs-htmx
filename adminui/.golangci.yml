@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.27.1
+  go: 1.27.2
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -81,6 +81,14 @@ linters:
     # always thread r.Context() via renderPage/renderPartial.
     - contextcheck
   settings:
+    wrapcheck:
+      ignore-sigs:
+        - .WithCause(
+        - .WithContext(
+        - .WithContextAny(
+      ignore-package-globs:
+        - github.com/larsartmann/go-error-family*
+        - github.com/larsartmann/go-cqrs-lite/event/*
     cyclop:
       max-complexity: 12
     exhaustruct:

@@ -24,23 +24,15 @@ Usage:
 Exit: 0 = normalized (or nothing to do); 1 = a file could not be read.
 """
 
-import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+# classify_row comes from the shared lib too — the fixer MUST see the same
+# row verdicts as the gate (the equivalence meta-test pins this).
+from status_table import classify_row, is_separator, outside_code_spans
+
 DEFAULT_DIR = Path("docs/status/archived")
-
-
-def outside_code_spans(text: str) -> str:
-    without_double = re.sub(r"``[^`]+``", "", text)
-
-    return re.sub(r"`[^`]*`", "", without_double)
-
-
-def is_separator(line: str) -> bool:
-    cells = [c.strip() for c in line.strip().strip("|").split("|")]
-
-    return bool(cells) and all(re.fullmatch(r":?-{3,}:?", c) for c in cells)
 
 
 def strike_cell(cell: str) -> str:
@@ -54,18 +46,6 @@ def strike_cell(cell: str) -> str:
     return cell.replace(stripped, f"~~{stripped}~~", 1)
 
 
-def classify_row(line: str) -> str:
-    cells = line.strip().strip("|").split("|")
-    states = ["~~" in outside_code_spans(c) for c in cells]
-
-    if all(states):
-        return "STRUCK"
-    if not any(states):
-        return "CLEAN"
-
-    return "PARTIAL"
-
-
 def normalize_row(line: str) -> str:
     parts = line.split("|")
     if len(parts) < 3:
@@ -76,32 +56,41 @@ def normalize_row(line: str) -> str:
     return "|".join(parts)
 
 
+def normalize_block(lines: list[str], block: list[int]) -> int:
+    """Whole-row-strike every PARTIAL data row in one pipe-block.
+
+    Mirrors check-status-rows.table_blocks: the first non-separator line of a
+    block is the header and any later non-separator line is a data row, whether
+    or not the separator row itself is well-formed — a 2-dash `--` cell must
+    not make the fixer silently skip rows the checker flags.
+    """
+    if not block:
+        return 0
+    data = [i for i in block if not is_separator(lines[i].rstrip("\n"))]
+
+    fixed = 0
+    for i in data[1:]:
+        line = lines[i].rstrip("\n")
+        if classify_row(line) == "PARTIAL":
+            lines[i] = normalize_row(line) + ("\n" if lines[i].endswith("\n") else "")
+            fixed += 1
+
+    return fixed
+
+
 def normalize_text(text: str) -> tuple[str, int]:
     """Returns (new_text, changed_row_count)."""
     lines = text.splitlines(keepends=True)
-    in_table = False
-    header_seen = False
     changed = 0
+    block: list[int] = []
 
     for i, raw in enumerate(lines):
-        line = raw.rstrip("\n")
-        if line.lstrip().startswith("|"):
-            if not in_table:
-                in_table = True
-                header_seen = False
-            elif not header_seen:
-                # First line after the header is the separator row.
-                if is_separator(line):
-                    header_seen = True
-                    continue
-            if not header_seen or is_separator(line):
-                continue
-            if classify_row(line) == "PARTIAL":
-                lines[i] = normalize_row(line) + ("\n" if raw.endswith("\n") else "")
-                changed += 1
-        else:
-            in_table = False
-            header_seen = False
+        if raw.rstrip("\n").lstrip().startswith("|"):
+            block.append(i)
+            continue
+        changed += normalize_block(lines, block)
+        block = []
+    changed += normalize_block(lines, block)
 
     return "".join(lines), changed
 

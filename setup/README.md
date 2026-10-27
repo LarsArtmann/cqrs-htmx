@@ -43,25 +43,25 @@ func main() {
 
 ## What you get (default routes)
 
-| Route          | Panel           | Access                                                             |
-| -------------- | --------------- | ------------------------------------------------------------------ |
+| Route          | Panel           | Access                                                                       |
+| -------------- | --------------- | ---------------------------------------------------------------------------- |
 | `/auth/*`      | Auth API        | mixed — see the route table below (ceremonies gated, subset session-wrapped) |
-| `/admin/*`     | Admin panel     | session + CSRF (401 without)                                       |
-| `/dashboard/*` | CQRS dashboard  | session-gated (401 without)                                        |
-| `/sse`         | Shared SSE feed | session-gated (opt-in)                                             |
-| `/health`      | Readiness check | public (503 while draining)                                        |
-| `/`            | Login page      | public                                                             |
+| `/admin/*`     | Admin panel     | session + CSRF (401 without)                                                 |
+| `/dashboard/*` | CQRS dashboard  | session-gated (401 without)                                                  |
+| `/sse`         | Shared SSE feed | session-gated (opt-in)                                                       |
+| `/health`      | Readiness check | public (503 while draining)                                                  |
+| `/`            | Login page      | public                                                                       |
 
 ### Auth route posture
 
 The `/auth/*` surface is mixed, and the library enforces it:
 
-| Route group                          | Posture                                                                       |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| `POST /auth/register`                | public — sets the session cookie (first-user bootstrap)                       |
-| WebAuthn **login** ceremonies        | public — unauthenticated by nature                                            |
-| WebAuthn **enrollment** ceremonies   | **owner-session-gated**: 401 without a session, 403 when the target `user_id` is not the session user |
-| `GET /auth/me`, credentials, TOTP, email-verify/send, import/export, OAuth2 unlink | session required (401 without; self-wrapped with an enrich-only session pass) |
+| Route group                                                                        | Posture                                                                                               |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `POST /auth/register`                                                              | public — sets the session cookie (first-user bootstrap)                                               |
+| WebAuthn **login** ceremonies                                                      | public — unauthenticated by nature                                                                    |
+| WebAuthn **enrollment** ceremonies                                                 | **owner-session-gated**: 401 without a session, 403 when the target `user_id` is not the session user |
+| `GET /auth/me`, credentials, TOTP, email-verify/send, import/export, OAuth2 unlink | session required (401 without; self-wrapped with an enrich-only session pass)                         |
 
 The enrollment gate is why `POST /auth/register` issues the session cookie
 before any ceremony: the login page's register → begin → finish flow rides
@@ -88,6 +88,19 @@ http.ListenAndServe(":8080", bundle.Middleware()(mux))
 `Run` sets `ReadHeaderTimeout` and `IdleTimeout` but deliberately no
 `WriteTimeout` — the dashboard serves SSE streams that outlive any fixed
 deadline.
+
+### Drain posture: `RunWithAppkit` is the production drain path
+
+`Run` (and `RunHandler`) stop the server gracefully but do not flip readiness
+while draining — in-flight LB health checks keep seeing whatever the mounted
+`/health` last reported. For a production drain sequence, serve with
+`RunWithAppkit`: go-appkit's service flips `/health/ready` to 503 the moment
+shutdown begins, waits `DrainDelay` (2s default — time for load balancers to
+observe the flip and stop routing), then stops accepting connections and
+drains. Readiness stays projection-aware: appkit's `ReadyCheck` is the
+bundle's projection drain gate, and `/health/live` stays always-200 so a
+journal drain never restarts the pod. `Metrics` and `Version` (see the config
+table) are appkit-path extras.
 
 ## Styling
 
@@ -145,6 +158,7 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `HealthPath`                                              | `string`                            | `"/health"` (`"-"` = off)               | Readiness endpoint; must not collide with other paths                                                                                                                                                                                                                                                               |
 | `LivePath`                                                | `string`                            | off                                     | Opt-in public liveness probe (always-200 while serving) — point k8s `livenessProbe` here so journal drain never restarts the pod                                                                                                                                                                                    |
 | `EventCatalogPath` / `ProjectionStatusPath` / `DebugPath` | `string`                            | off                                     | Opt-in session-gated JSON endpoints: 21-event catalog (immutable cache+ETag), live projection statuses (no-cache), build metadata                                                                                                                                                                                   |
+| `DocsPath` + `DocsHandler`                                | `string` + `http.Handler`           | off                                     | Opt-in session-gated mount for the consumer's own documentation surface (shape-B seam: zero docs dependencies — build the docserver, e.g. from go-cqrs-lite/catalog, pass the handler). Trailing slash = subtree mount; set both or neither                                                                         |
 | `SSEPath`                                                 | `string`                            | off                                     | Session-gated shared SSE feed of all committed events                                                                                                                                                                                                                                                               |
 | `SSEScriptPath`                                           | `string`                            | `"/sse.js"` (with `SSEPath`; `-` = off) | HTMX SSE extension script served beside the feed (DataStarScriptPath symmetry)                                                                                                                                                                                                                                      |
 | `SSEHeartbeatInterval`                                    | `time.Duration`                     | `15s` (0 = off)                         | Keep-alive comment frames on `/sse`                                                                                                                                                                                                                                                                                 |
@@ -170,7 +184,8 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `DashboardReadOnly`                                       | `*bool`                             | `true`                                  | Set `false` at your own risk (enables reset/DLQ replay)                                                                                                                                                                                                                                                             |
 | `DashboardPageSize`                                       | `int`                               | 50                                      | Rows per dashboard table page (max 200)                                                                                                                                                                                                                                                                             |
 | `LoginNoRegistration`                                     | `bool`                              | `false`                                 | Hide the registration section                                                                                                                                                                                                                                                                                       |
-| `LoginCSSPath`                                            | `string`                            | `"/app.css"`                            | URL of the compiled Tailwind stylesheet the login page loads — the consumer MUST compile one scanning the loginpage package (see [Styling](#styling)); the admin/dashboard panels need nothing (self-contained bundles)                                                                                               |
+| `LoginAutoRedirect`                                       | `bool`                              | `false`                                 | When OAuth2 is the login page's ONLY sign-in method (no WebAuthn, exactly one provider), redirect straight to the provider instead of rendering a button                                                                                                                                                            |
+| `LoginCSSPath`                                            | `string`                            | `"/app.css"`                            | URL of the compiled Tailwind stylesheet the login page loads — the consumer MUST compile one scanning the loginpage package (see [Styling](#styling)); the admin/dashboard panels need nothing (self-contained bundles)                                                                                             |
 | `DisableAdmin` / `DisableDashboard` / `DisableLogin`      | `bool`                              | `false`                                 | Feature flags to shrink the route surface                                                                                                                                                                                                                                                                           |
 | `DisableAuth`                                             | `bool`                              | `false`                                 | Build no auth handler: `Bundle.Auth` is nil, no `/auth/*` routes mount, the service and panels stay (own-login-endpoint mode). Rejects `DisableLogin=false` and `AuthHandlerConfig` at `New` (ADR-0054)                                                                                                             |
 | `DisableService`                                          | `bool`                              | `false`                                 | The identity-external shell (ADR-0054): no usermgmt.Service, no auth, no panels; `Stores` from `EventStore`/`EventBus` (memory + watermill defaults). Session-gated surfaces (feeds, machine endpoints) are rejected at `New` — their gate would dereference the missing service; health = your `HealthChecks` only |
@@ -218,6 +233,12 @@ HealthChecks: []cqrshtmx.NamedCheck{
 
 Names are validated at `New` (non-empty, non-nil checks, no collisions with
 each other or the built-ins); the field is ignored when `HealthPath` is `-`.
+
+Need full Kubernetes liveness/readiness/startup probes, per-check durations,
+or a health dashboard instead of the single `/health` JSON endpoint? The
+[`cqrs-htmx/health`](../health/README.md) bridge module builds a
+`gohealth.Probe` over the same projection statuses — see its "which surface
+for which consumer" table.
 
 ### Bringing your own service
 
@@ -315,7 +336,18 @@ light up according to what it implements:
 The machine endpoints (`EventCatalogPath`, `ProjectionStatusPath`, `DebugPath`)
 have no store requirements: the catalog comes from
 `usermgmt.DefaultEventCatalog()` (the 21 identity events), projection statuses
-from the service, and debug metadata from the build.
+from the service, and debug metadata from the build. `DocsPath` +
+`DocsHandler` join the same session-gated posture for the consumer's own
+documentation surface — setup supplies the gate and the path validation, the
+consumer supplies the handler.
+
+> **Naming note:** `EventCatalogPath` serves cqrs-htmx's own dependency-free
+> `EventCatalog` schema surface (see the [event catalog guide](../docs/guides/event-catalog-guide.md)).
+> It is **not** [`go-cqrs-lite/catalog/v4`](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)
+> (the OpenAPI/AsyncAPI/D2 doc-generation suite) — setup deliberately does not
+> embed that; composing it is consumer-side via
+> [`examples/catalog-demo`](../examples/catalog-demo/)
+> ([integration map](../docs/research/2026-10-12_catalog-v4-integration-map.md)).
 
 Practical consequence: a minimal live-only store that cannot replay history
 still boots the bundle but silently loses the replay-backed surfaces above —

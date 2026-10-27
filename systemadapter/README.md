@@ -1,7 +1,7 @@
 # systemadapter
 
 Bridges [cqrs-htmx](https://github.com/larsartmann/cqrs-htmx)'s identity domain
-(User/Membership/Tenant/Bot — 4 deciders, 20 commands, 21 event types) into
+(User/Membership/Tenant/Bot/Auth — 4 deciders, 20 commands, 24 event types) into
 [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite)'s `system.New()`
 composition root and `metaengine` projection planner.
 
@@ -29,10 +29,10 @@ authz, audit log) that `system.New` auto-wires onto its projection host.
 
 ### Deployment presets
 
-| Preset | Shape | Use |
-| --- | --- | --- |
-| `RecommendedMemoryDeployment()` | one memory engine, every role | dev, tests |
-| `RecommendedSQLiteDeployment(dsn)` | one WAL SQLite file, every role | single-binary persistence |
+| Preset                                                        | Shape                                     | Use                                                    |
+| ------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------ |
+| `RecommendedMemoryDeployment()`                               | one memory engine, every role             | dev, tests                                             |
+| `RecommendedSQLiteDeployment(dsn)`                            | one WAL SQLite file, every role           | single-binary persistence                              |
 | `RecommendedSplitSQLiteDeployment(eventsDSN, projectionsDSN)` | journal and projections on separate files | production — replays never contend with the write path |
 
 Each returns a plain `system.DeploymentConfig` — inspect, tweak, or pass

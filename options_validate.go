@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -19,10 +18,12 @@ func validateDispatch[T any](
 	return func(config *handlerConfig) {
 		original := getter(config)
 		if original == nil {
-			slog.Warn("cqrs-htmx: "+label+" applied before decoder",
-				slog.String("hint", "apply after DecodeJSON/DecodeForm"))
-
-			return
+			// A validator registered before any decoder could never run: it
+			// would wrap nil. Historically this warned and silently skipped,
+			// which hid the dead validator until it mattered. This is a
+			// registration-order bug in consumer code — fail fast, at
+			// registration, where the stack trace points at the offender.
+			panic("cqrs-htmx: " + label + " applied before a decoder — apply it after DecodeJSON/DecodeForm")
 		}
 
 		setter(config, func(r *http.Request) (T, error) {

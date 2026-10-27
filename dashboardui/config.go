@@ -97,8 +97,26 @@ type Config struct {
 	// DefaultPayloadRenderer is used (JSON/CBOR pretty-print).
 	PayloadRenderer PayloadRenderer
 
+	// PayloadTypes routes per-event-type rendering through typed renderers
+	// registered via RegisterPayloadType(In). It is consulted BEFORE
+	// PayloadRenderer for registered types only. If nil, the package
+	// default registry (DefaultPayloadTypes) is used — startup-time
+	// RegisterPayloadType calls are honored with zero config. Set an
+	// explicit empty registry (NewPayloadTypeRegistry) to ignore the
+	// package registry entirely.
+	PayloadTypes *PayloadTypeRegistry
+
 	// Title is the brand text in the sidebar and browser tab.
 	Title string
+
+	// EmptyStateCopy overrides the empty-state panel text per surface, for
+	// hosts that brand their observability voice. Keys are the typed
+	// [EmptyStateKey] constants; values merge FIELD-WISE over the upstream
+	// defaults, so an override that sets only Message keeps the default
+	// title. A nil map renders byte-identical upstream copy. Unknown keys
+	// are rejected by [New]/[Config.Validate] — the compiler cannot catch a
+	// mistyped map key.
+	EmptyStateCopy map[EmptyStateKey]EmptyStateCopy
 
 	// BasePath is the URL prefix the dashboard is mounted under.
 	BasePath string
@@ -192,7 +210,10 @@ func (config Config) withDefaults() (Config, error) {
 		)
 	}
 
-	if config.PageSize == 0 {
+	// A negative PageSize would pass through and panic the first paginated
+	// request (events[:pageSize] with a negative bound), so clamp it with the
+	// zero-value default.
+	if config.PageSize <= 0 {
 		config.PageSize = core.DefaultPageSize()
 	}
 
@@ -200,15 +221,33 @@ func (config Config) withDefaults() (Config, error) {
 		config.PageSize = core.MaxPageSize()
 	}
 
-	if config.PayloadRenderer == nil {
-		config.PayloadRenderer = DefaultPayloadRenderer{}
-	}
-
 	if config.SSEHeartbeatInterval == 0 {
 		config.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
 	}
 
+	if err := validateEmptyStateCopy(config.EmptyStateCopy); err != nil {
+		return config, err
+	}
+
+	config = config.withPayloadRenderingDefaults()
+
 	return config, nil
+}
+
+// withPayloadRenderingDefaults fills the payload display seam: the untyped
+// renderer falls back to pretty-print, the typed registry to the package
+// registry (startup-time RegisterPayloadType calls then work with zero
+// config).
+func (config Config) withPayloadRenderingDefaults() Config {
+	if config.PayloadRenderer == nil {
+		config.PayloadRenderer = DefaultPayloadRenderer{}
+	}
+
+	if config.PayloadTypes == nil {
+		config.PayloadTypes = DefaultPayloadTypes()
+	}
+
+	return config
 }
 
 // navItem represents a sidebar navigation entry.
@@ -290,6 +329,10 @@ type pageData struct {
 	// shell is the consumer-provided layout ([Config.Layout]); nil when the
 	// built-in document shell should render.
 	shell LayoutFunc
+
+	// empty carries the resolved empty-state copy (upstream defaults merged
+	// with Config.EmptyStateCopy overrides); templ panels read it per key.
+	empty map[EmptyStateKey]EmptyStateCopy
 }
 
 // StreamRefFromID constructs an id.StreamRef from type + ID strings.

@@ -6,10 +6,11 @@ only on **NEW** findings.
 
 ## Files
 
-| File | Purpose |
-|---|---|
-| [`branching-flow-baseline.sarif`](./branching-flow-baseline.sarif) | Minified SARIF, one entry per frozen finding (666 at 2026-10-07 — re-pinned from 659 accepting 9 SUPERB-plan findings under existing verdicts (see the amendment log): 501 phantom, 76 strong-id, 51 mixins, 18 duplicate-types, 8 large-struct, 5 do, 2 flag-param, 3 iface-complete, 1 bool-blind, 1 base-naming). |
-| [`triage-decisions.md`](./triage-decisions.md) | The verdict ledger: every analyzer class, its count, its reject/fix verdict, and the reason. Read this before "fixing" a baseline finding. |
+| File                                                               | Purpose                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`branching-flow-baseline.sarif`](./branching-flow-baseline.sarif) | Minified SARIF, one entry per frozen finding (229 at 2026-10-08 — re-pinned from 666 after the M17–M26 panel rewrites + dedup rounds dissolved 449 findings, +59 new branding-advice findings accepted under existing verdicts (see the amendment log)). |
+| [`triage-decisions.md`](./triage-decisions.md)                     | The verdict ledger: every analyzer class, its count, its reject/fix verdict, and the reason. Read this before "fixing" a baseline finding.                                                                                                                                                                           |
+| [`dedup-acceptance.md`](./dedup-acceptance.md)                     | The art-dupl acceptance ledger: clone groups kept as intentional boilerplate, each with a written reason (moved here from the repo root, 2026-10-18).                                                                                                                                                              |
 
 ## The gate
 
@@ -27,6 +28,14 @@ Semantics (verified empirically 2026-10-05 vs branching-flow 0.2.0):
 - anything else — tool failure (most commonly the experimental `panic` linter
   failing to load packages because `go` on PATH is below the go.work floor;
   run via the flake app, which pins the 1.27 toolchain).
+
+Every verdict line prints the tool's Baseline counts (`+added, -removed,
+~modified, =unchanged`) so a suspicious run is visible in the output. The
+`rc 0` path carries a **zero-candidate false-green guard**: a committed
+non-empty baseline with detected=0 (added+modified+unchanged) and removed>0
+means the analyzer matched NOTHING (toolchain-floor misfire, SARIF parse
+failure, or a full ratchet-down that never re-pinned) — the gate fails
+loudly instead of passing.
 
 ## Refreshing the baseline (ratchet down)
 
@@ -52,10 +61,33 @@ Rules:
   message — growth means new findings were accepted, which belongs in
   [`triage-decisions.md`](./triage-decisions.md).
 
-## Why a baseline instead of fixing all 666
+## Why a baseline instead of fixing all 229
 
 The 2026-10-05 full-analysis pass adjudicated the bulk as deliberate
 (wire contracts, golden-pinned DTOs, config composition roots — see the
 verdict ledger). A gate that failed on all of them would brick every commit;
 freezing them and failing on NEW findings only converts the one-off firehose
 into a durable ratchet without re-litigating a single verdict.
+
+## Analyzer-subset measurement (R15/T14, 2026-10-08): keep all 14
+
+Measured against the 229-finding baseline × the verdict ledger's per-class
+dispositions, the signal fraction of the full analyzer set is ~2.6% (~6 of
+229: the 4 high-severity STRONG_ID rows under TODO T6 plus borderlines).
+Per-analyzer: STRONG_ID 76 (reject ~70 — wire contracts),
+COMPOSITION_mixin 51 (reject — golden-pinned wire structs), PHANTOM
+64 across TRANSPOSE/COLLISION (reject — branding advice),
+DUPLICATE_TYPE 18 (rejected FP/intentional groups; its one realized fix —
+the T3 `commandOptionApplier` drift guard — already landed),
+large-struct 8 / DO 5 / IFACE_COMPLETE 3 / FLAG_PARAM 2 / BOOL_BLIND 1 /
+base-naming 1 (all reject or FP).
+
+Narrow-or-not verdict: **no narrowing.** The ratchet shape (fail on NEW
+only, tolerate modified/removed) already neutralizes the noise — the 229
+never block a commit — so a subset would buy nothing operationally while
+removing the new-finding tripwires for the two classes that DID produce
+real fixes (T3 split-brain guard from DUPLICATE_TYPE, T5 named-options
+from FLAG_PARAM). The three-day churn measurement (663 → 666 → 229,
+2026-10-05→08) also shows per-line baselines swing ~68% under normal
+development as line-shift re-attribution — re-measure only when upstream
+adds an analyzer; the ratchet absorbs new classes the same way.

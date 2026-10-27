@@ -22,14 +22,18 @@ type OpenAPIRoute struct {
 // The App never learns the concrete route paths (routes are wired by the
 // consumer on their own mux), so this returns operations — not paths. Merge
 // them into your own [openapi.Spec] at the paths you control and serve it
-// with [OpenAPISpecHandler]. The returned slice is a copy; mutating it does
-// not affect the App.
+// with [OpenAPISpecHandler]. The returned slice is a deep copy (each
+// [openapi.Operation] carries cloned slices, maps, and pointers); mutating
+// it does not affect the App.
 func (a *App) OpenAPIRoutes() []OpenAPIRoute {
 	a.openapiMu.Lock()
 	defer a.openapiMu.Unlock()
 
 	out := make([]OpenAPIRoute, len(a.openapiRoutes))
-	copy(out, a.openapiRoutes)
+	for i, route := range a.openapiRoutes {
+		route.Operation = route.Operation.Clone()
+		out[i] = route
+	}
 
 	return out
 }

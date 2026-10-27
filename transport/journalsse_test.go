@@ -2,7 +2,9 @@ package transport
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 
@@ -301,7 +303,7 @@ func seedEventList(t *testing.T, count int) []event.Event {
 	return events
 }
 
-func appendEvents(t *testing.T, store *memory.MemoryStore, events []event.Event) {
+func appendEvents(t *testing.T, store event.Store, events []event.Event) {
 	t.Helper()
 
 	ref := id.StreamRef{ID: events[0].StreamID(), Type: "test"}
@@ -320,4 +322,200 @@ func (j *journalOnlyStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	result := make([]event.Event, 0, len(j.events))
 
 	return append(result, j.events...), nil
+}
+
+func TestJournalSSEStore_CappedReconnectKeepsTail(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+	events := seedEventList(t, 10)
+	appendEvents(t, store, events)
+
+	sseStore := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
+
+	// Reconnect with a cursor at event 3 and a backlog of 7 (> cap): the cap
+	// must keep the MOST RECENT 3 events after the cursor (8, 9, 10) —
+	// head-truncation here would deliver 4, 5, 6 and silently drop 7..10.
+	cursor := events[2].ID().String()
+
+	result, err := sseStore.EventsAfter(sse.NewEventID(cursor))
+	if err != nil {
+		t.Fatalf("EventsAfter: %v", err)
+	}
+
+	if len(result) != 3 {
+		t.Fatalf("expected 3 events (tail of the backlog), got %d", len(result))
+	}
+
+	for i, wantIdx := range []int{7, 8, 9} {
+		if result[i].ID.Get() != events[wantIdx].ID().String() {
+			t.Errorf("result[%d]: expected ID %q, got %q",
+				i, events[wantIdx].ID().String(), result[i].ID.Get())
+		}
+	}
+}
+
+func TestJournalSSEStore_CappedReconnectKeepsTail_FullScanFallback(t *testing.T) {
+	t.Parallel()
+
+	events := seedEventList(t, 10)
+	store := &journalOnlyStore{events: events}
+
+	sseStore := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
+
+	cursor := events[2].ID().String()
+
+	result, err := sseStore.EventsAfter(sse.NewEventID(cursor))
+	if err != nil {
+		t.Fatalf("EventsAfter: %v", err)
+	}
+
+	if len(result) != 3 {
+		t.Fatalf("expected 3 events (tail of the backlog), got %d", len(result))
+	}
+
+	for i, wantIdx := range []int{7, 8, 9} {
+		if result[i].ID.Get() != events[wantIdx].ID().String() {
+			t.Errorf("result[%d]: expected ID %q, got %q",
+				i, events[wantIdx].ID().String(), result[i].ID.Get())
+		}
+	}
+}
+
+// tailReaderStore wraps a *memory.MemoryStore with a ReadLastN capability and
+// counts which read paths a fresh connect actually takes.
+type tailReaderStore struct {
+	*memory.MemoryStore
+
+	tailCalls int
+	lastN     int
+	tailErr   error
+	deliver   int // > 0: over-deliver this many events from ReadLastN
+}
+
+func (t *tailReaderStore) ReadLastN(ctx context.Context, n int) ([]event.Event, error) {
+	t.tailCalls++
+	t.lastN = n
+
+	if t.tailErr != nil {
+		return nil, t.tailErr
+	}
+
+	all, err := t.ReadAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(all) > n {
+		all = all[len(all)-n:]
+	}
+
+	if t.deliver > 0 && len(all) > 0 {
+		// Over-deliver: repeat the tail so the store must truncate.
+		all = append(all, all...)
+	}
+
+	return all, nil
+}
+
+func TestJournalSSEStore_TailReaderServesFreshConnect(t *testing.T) {
+	t.Parallel()
+
+	store := &tailReaderStore{MemoryStore: memory.NewMemoryStore()}
+	events := seedEventList(t, 10)
+	appendEvents(t, store, events)
+
+	sseStore := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
+
+	result, err := sseStore.EventsAfter(sse.EventID{})
+	if err != nil {
+		t.Fatalf("EventsAfter: %v", err)
+	}
+
+	if store.tailCalls != 1 {
+		t.Errorf("fresh connect must use ReadLastN exactly once, got %d calls", store.tailCalls)
+	}
+
+	if store.lastN != 3 {
+		t.Errorf("ReadLastN must receive the replay cap, got n=%d", store.lastN)
+	}
+
+	if len(result) != 3 {
+		t.Fatalf("expected newest 3 events, got %d", len(result))
+	}
+
+	// Ascending tail: events 8, 9, 10.
+	for i, evt := range result {
+		expected := events[7+i].ID().String()
+		if evt.ID.Get() != expected {
+			t.Errorf("result[%d]: expected %q, got %q", i, expected, evt.ID.Get())
+		}
+	}
+}
+
+func TestJournalSSEStore_TailReaderIgnoredForCursorReplay(t *testing.T) {
+	t.Parallel()
+
+	store := &tailReaderStore{MemoryStore: memory.NewMemoryStore()}
+	events := seedEventList(t, 10)
+	appendEvents(t, store, events)
+
+	sseStore := NewJournalSSEStore(store, testMapper)
+
+	// Cursor replay must take the ReadFrom path — the tail is the wrong
+	// window once a cursor exists.
+	result, err := sseStore.EventsAfter(sse.NewEventID(events[2].ID().String()))
+	if err != nil {
+		t.Fatalf("EventsAfter: %v", err)
+	}
+
+	if store.tailCalls != 0 {
+		t.Errorf("cursor replay must NOT use ReadLastN, got %d calls", store.tailCalls)
+	}
+
+	if len(result) != 7 {
+		t.Fatalf("expected 7 events after cursor, got %d", len(result))
+	}
+}
+
+func TestJournalSSEStore_TailReaderErrorSurfaces(t *testing.T) {
+	t.Parallel()
+
+	store := &tailReaderStore{
+		MemoryStore: memory.NewMemoryStore(),
+		tailErr:     errors.New("tail index offline"),
+	}
+	sseStore := NewJournalSSEStore(store, testMapper)
+
+	_, err := sseStore.EventsAfter(sse.EventID{})
+	if err == nil {
+		t.Fatal("expected the ReadLastN error to surface")
+	}
+
+	if !strings.Contains(err.Error(), "tail index offline") {
+		t.Errorf("error should carry the cause, got %v", err)
+	}
+}
+
+func TestJournalSSEStore_TailReaderOverDeliveryTruncated(t *testing.T) {
+	t.Parallel()
+
+	store := &tailReaderStore{MemoryStore: memory.NewMemoryStore(), deliver: 1}
+	events := seedEventList(t, 6)
+	appendEvents(t, store, events)
+
+	sseStore := NewJournalSSEStore(store, testMapper, WithMaxReplay(2))
+
+	result, err := sseStore.EventsAfter(sse.EventID{})
+	if err != nil {
+		t.Fatalf("EventsAfter: %v", err)
+	}
+
+	if len(result) != 2 {
+		t.Fatalf("over-delivering ReadLastN must be truncated to the cap, got %d", len(result))
+	}
+
+	if result[1].ID.Get() != events[5].ID().String() {
+		t.Errorf("truncation must keep the NEWEST events, got tail %q", result[1].ID.Get())
+	}
 }

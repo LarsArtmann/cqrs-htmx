@@ -56,13 +56,21 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.4.0";
+  const VERSION = "1.6.0";
 
   // --- Configuration constants ---
   // To customize: copy this file, change values, serve via SyncWorkerHandlerWith.
   const DB_NAME = "cqrshtmx-sync";
   const STORE = "commands";
-  const DB_VERSION = 1;
+  // v2 (ADR-0056): the pulled event cache and the cursor/backendId state.
+  const EVENTS_STORE = "events";
+  const META_STORE = "meta";
+  const META_KEY = "state";
+  // 1 = ADR-0040 (commands only). 2 = ADR-0056 (events + meta). Bumping this
+  // is what makes a 1.4.0 database run the v2 upgrade: opening an existing
+  // v1 database at version 1 never fires onupgradeneeded, so the new stores
+  // would be missing and every cache transaction would throw NotFoundError.
+  const DB_VERSION = 2;
   const MAX_RETRIES = 10;
   const RETRY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
   const STAGGER_MS = 100; // delay between successive retry messages
@@ -151,6 +159,13 @@
           const database = e.target.result;
           if (!database.objectStoreNames.contains(STORE)) {
             database.createObjectStore(STORE, { keyPath: "commandId" });
+          }
+          // v2 (ADR-0056): the pulled event cache + sync cursor metadata.
+          if (!database.objectStoreNames.contains(EVENTS_STORE)) {
+            database.createObjectStore(EVENTS_STORE, { keyPath: "eventId" });
+          }
+          if (!database.objectStoreNames.contains(META_STORE)) {
+            database.createObjectStore(META_STORE); // key "state"
           }
         };
         req.onsuccess = (e) => {
@@ -332,6 +347,148 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Event cache (ADR-0056): pulled events + sync cursor, persisted so tabs can
+  // read last-known state offline. IndexedDB-only — there is no in-memory
+  // fallback (a cache that pretends to be durable offline would be a lie).
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Read the persisted sync cursor state.
+   * @returns {Promise<{ cursor: string, backendId: string }>}
+   */
+  function getSyncState() {
+    if (!db) return Promise.resolve({ cursor: "", backendId: "" });
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(META_STORE, "readonly");
+        const req = tx.objectStore(META_STORE).get(META_KEY);
+        req.onsuccess = (e) => {
+          const record = e.target.result;
+          resolve({
+            cursor: (record && record.cursor) || "",
+            backendId: (record && record.backendId) || "",
+          });
+        };
+        req.onerror = () => resolve({ cursor: "", backendId: "" });
+      } catch (e) {
+        resolve({ cursor: "", backendId: "" });
+      }
+    });
+  }
+
+  /**
+   * Cache pulled events: persist each event (put — idempotent by eventId),
+   * advance the cursor (never backwards — monotonicity guard; a backend
+   * reset is the one exempt rewind), and detect backend resets (backendId
+   * changed → wipe the cache first, then store the fresh batch, and tell
+   * every tab).
+   * @param {string} cursor - Next pull cursor from the server response.
+   * @param {string} backendId - Backend identity from the server response.
+   * @param {Array<Object>} events - Pulled events (wire shape from /sync/pull).
+   * @returns {Promise<boolean>} true when a backend reset was detected.
+   */
+  function cacheEvents(cursor, backendId, events) {
+    if (!db) return Promise.resolve(false);
+    return getSyncState().then((state) => {
+      const resetDetected =
+        backendId !== "" && state.backendId !== "" && backendId !== state.backendId;
+
+      // Monotonicity: two tabs racing pulls can deliver responses out of
+      // order, so a slower tab's response can carry a cursor BELOW the
+      // already-persisted one (cursors are event-ID ULIDs — they order
+      // lexicographically). Persisting it would silently rewind every
+      // future pull to re-read (or re-filter) old events. Refuse: keep the
+      // newer cursor, still cache the events (put is idempotent by
+      // eventId), and report the kept cursor. A backendId reset legitimately
+      // rewinds the cursor (new backend, new cursor space) — exempt.
+      const cursorRegression =
+        !resetDetected && state.cursor !== "" && cursor !== "" && cursor < state.cursor;
+      const effectiveCursor = cursorRegression ? state.cursor : cursor;
+
+      if (cursorRegression) {
+        // Pinned by jstests ("refuses a regressing cursor"); keep the text
+        // stable — it is the field-diagnosis line for rewind reports.
+        console.warn(
+          "[sync-worker] cursor regression refused: kept " + state.cursor + ", rejected " + cursor,
+        );
+      }
+
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction([EVENTS_STORE, META_STORE], "readwrite");
+          const eventsStore = tx.objectStore(EVENTS_STORE);
+          const metaStore = tx.objectStore(META_STORE);
+
+          if (resetDetected) {
+            eventsStore.clear();
+          }
+
+          for (let i = 0; i < (events || []).length; i++) {
+            eventsStore.put(events[i]);
+          }
+
+          if (cursor && !cursorRegression) {
+            // META_STORE has no keyPath (out-of-line keys): put() MUST carry
+            // the key as the second argument — a keyless put on an out-of-line
+            // store throws DataError synchronously, which would swallow the
+            // cursor write while the already-queued event puts still commit
+            // (observed live: events cached, meta forever empty).
+            metaStore.put(
+              {
+                cursor: effectiveCursor,
+                backendId: backendId || state.backendId,
+              },
+              META_KEY,
+            );
+          }
+
+          tx.oncomplete = () => {
+            if (resetDetected) {
+              broadcast({ type: "sync:reset" });
+            }
+            broadcast({
+              type: "sync:events",
+              cursor: effectiveCursor,
+              count: (events || []).length,
+            });
+            resolve(resetDetected);
+          };
+          tx.onerror = () => resolve(false);
+          tx.onabort = () => resolve(false);
+        } catch (e) {
+          console.warn("[sync-worker] event cache write failed:", e);
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  /**
+   * Read the cached events (offline reads). Returns most-recent-last order.
+   * @returns {Promise<{ events: Array<Object>, cursor: string, backendId: string }>}
+   */
+  function getCachedEvents() {
+    if (!db) return Promise.resolve({ events: [], cursor: "", backendId: "" });
+    return getSyncState().then((state) => {
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction(EVENTS_STORE, "readonly");
+          const req = tx.objectStore(EVENTS_STORE).getAll();
+          req.onsuccess = (e) => {
+            const events = e.target.result || [];
+            events.sort((a, b) => String(a.eventId).localeCompare(String(b.eventId)));
+            resolve({ events: events, cursor: state.cursor, backendId: state.backendId });
+          };
+          req.onerror = () =>
+            resolve({ events: [], cursor: state.cursor, backendId: state.backendId });
+        } catch (e) {
+          resolve({ events: [], cursor: state.cursor, backendId: state.backendId });
+        }
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Flush: read all persisted commands, evict dead ones, distribute retry
   // messages across alive tabs with staggered delivery.
   // ---------------------------------------------------------------------------
@@ -404,12 +561,44 @@
       // Oldest first so long-waited commands get priority
       alive.sort((a, b) => (a.queuedAt || 0) - (b.queuedAt || 0));
 
-      // Increment all retry counts before delivering so a concurrent
-      // flush (after the lock releases) sees updated counts and does
-      // not double-increment the same commands.
+      // ADR-0056 batch push: commands stamped with a commandType go out as
+      // ONE retry-batch (the tab POSTs a single /sync/push); untyped commands
+      // keep the classic per-command HTMX replay (fully backward compatible).
+      const batch = [];
+      const singles = [];
+      for (let i = 0; i < alive.length; i++) {
+        if (alive[i].envelope && alive[i].envelope.commandType) {
+          batch.push(alive[i]);
+        } else {
+          singles.push(alive[i]);
+        }
+      }
+
       const increments = [];
-      for (let j = 0; j < alive.length; j++) {
-        const item = alive[j];
+
+      if (batch.length > 0) {
+        const batchPort = pickPort(batch[0].commandId, portList);
+        if (batchPort) {
+          for (let j = 0; j < batch.length; j++) {
+            increments.push(incrementRetryCount(batch[j].commandId));
+          }
+          try {
+            batchPort.postMessage({
+              type: "retry-batch",
+              commands: batch.map((cmd) => ({
+                commandId: cmd.commandId,
+                envelope: cmd.envelope,
+              })),
+            });
+          } catch (e) {
+            // Batch port dead — fall through: those commands stay queued and
+            // the follow-up flush cycle re-picks a port (round-robin).
+          }
+        }
+      }
+
+      for (let j = 0; j < singles.length; j++) {
+        const item = singles[j];
         const port = pickPort(item.commandId, portList);
         if (!port) continue;
 
@@ -559,6 +748,42 @@
         // reliably, so the tab explicitly requests a flush.
         online = true;
         flush();
+        return;
+      }
+
+      if (data.type === "cache-events") {
+        cacheEvents(data.cursor || "", data.backendId || "", data.events || []);
+        return;
+      }
+
+      if (data.type === "get-state") {
+        getSyncState().then((state) => {
+          try {
+            port.postMessage({
+              type: "sync-state",
+              cursor: state.cursor,
+              backendId: state.backendId,
+            });
+          } catch (e) {
+            /* port gone — the tab will re-ask */
+          }
+        });
+        return;
+      }
+
+      if (data.type === "get-events") {
+        getCachedEvents().then((cached) => {
+          try {
+            port.postMessage({
+              type: "events",
+              events: cached.events,
+              cursor: cached.cursor,
+              backendId: cached.backendId,
+            });
+          } catch (e) {
+            /* port gone */
+          }
+        });
         return;
       }
     };

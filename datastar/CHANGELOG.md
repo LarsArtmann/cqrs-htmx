@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
 
-## [v4.11.0] - 2026-09-19
+- **`NewEventBridge(nil)` fails at construction and `MappedEventTypes` is sorted (2026-10-25, S39).** A nil broadcaster previously constructed fine and panicked only when the FIRST mapped event was handled — far from the cause; `NewEventBridge` now panics immediately with a message naming the fix (`broadcast.NewBroadcaster`). `MappedEventTypes` sorts its result, making it deterministic — the existing test was named `ReturnsSortedCopy` but only asserted `Contains`, so it could not fail on unsorted output; it now asserts the exact order.
+
+## [v4.12.2] - 2026-10-11
+
+### Changed
+
+- **Dependency/floor alignment (2026-10-11 wave):** go-cqrs-lite storage/memory v4.6.2, snapshot v4.6.2, and the 1.27.2 toolchain floor. No API change.
+
+# [v4.11.0] - 2026-09-19
 
 ### Changed
 

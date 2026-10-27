@@ -21,59 +21,30 @@ retry_modifier: conservative
 # commits (documentation notes).
 todo_min_severity: warning
 
-# Shell scripts are owned by treefmt (`nix fmt`: shfmt 2-space indent +
-# shellcheck). BuildFlow's own shfmt would fight that on every staged script;
-# script linting is enforced by treefmt + CI. HTML/min.js are generated or
-# vendored artifacts that must not be reformatted.
+# Shell scripts: BuildFlow's shfmt now honors the treefmt-nix disposition
+# (flake.nix programs.shfmt → -i 2, ZC6 fix 2026-10-09), so the "*.sh"
+# global exclude is GONE — shfmt and shellcheck lint scripts again, agreeing
+# with `nix fmt`. HTML/min.js remain excluded: generated or vendored
+# artifacts that must not be reformatted.
 #
-# GOTCHA (verified 2026-09-20 via `buildflow config view`): a user `exclude:`
-# list REPLACES BuildFlow's built-in defaults — it does NOT merge. Listing only
-# the three repo-specific patterns silently dropped every default (vendor,
-# testdata, *_templ.go, lock files, ...), so formatters lost their protection
-# against generated/vendored trees. The list below therefore mirrors
-# DefaultExcludePatterns() (BuildFlow domain/file/ignore_dirs.go) explicitly,
-# then adds this repo's patterns. Keep both halves in sync when bumping
-# BuildFlow.
+# A user `exclude:` list ADDS to BuildFlow's built-in defaults (merge
+# semantics since BuildFlow b27f4f05b, 2026-09-30, verified in the installed
+# binary) — vendor/testdata/*_templ.go/lock files stay protected without
+# restating them.
 exclude:
-  # --- BuildFlow defaults (do not drop; see gotcha above) ---
-  - "vendor"
-  - ".git"
-  - "node_modules"
-  - ".next"
-  - ".turbo"
-  - ".nuxt"
-  - ".svelte-kit"
-  - ".direnv"
-  - "dist"
-  - "target"
-  - "testdata"
-  - ".golden"
-  - "generated.go"
-  - "*.pb.go"
-  - "*.gen.go"
-  - "*_templ.go"
-  - "__snapshots__"
-  - "__pycache__"
-  - ".pytest_cache"
-  - ".mypy_cache"
-  - ".tox"
-  - ".venv"
-  - "venv"
-  - ".cache"
-  - "reports/"
-  - "flake.lock"
-  - "package-lock.json"
-  - "yarn.lock"
-  - "pnpm-lock.yaml"
-  - "Cargo.lock"
-  - "composer.lock"
-  - "poetry.lock"
-  - "Gemfile.lock"
-  - "mix.lock"
-  # --- Repo-specific ---
   - "*.html"
   - "*.min.js"
-  - "*.sh"
+  # *.templ excluded from ALL buildflow formatting/generation (S48, 2026-10-25):
+  # buildflow's bundled templ binary is version-skewed from the nix-pinned one
+  # (the templ-generate skip below exists for exactly this class), so letting
+  # it format .templ while generation flows through `nix run .#gen` reopens
+  # the formatter→codegen split brain. Canonical chain: treefmt `templ fmt`
+  # (nix-pinned, offline wrapper) for formatting, module-dir `templ generate`
+  # for codegen, and the pre-commit gate check-templ-codegen-staged.sh
+  # (scripts/hooks/pre-commit.template MANUAL EDIT block) refuses a staged
+  # .templ/_templ.go pair that drifted. CI's codegen drift check stays the
+  # push-time backstop.
+  - "*.templ"
   # Committed Tailwind bundles + buildflow's orphan styles.css outputs are
   # NEVER buildflow's business: the canonical minified bundles are built by
   # the flake apps (nix run .#build-adminui-css / .#build-dashboardui-css)
@@ -89,27 +60,28 @@ exclude:
 # nix-pinned templ version. Committed files are verified by `nix run
 # .#check-codegen` instead.
 # jest/vitest/pnpm-audit: Go library, no JS test framework or lockfile.
-# deadnix: not installed. eslint: biome handles JS formatting/linting.
-# dprint-format: dprint.json here scopes dprint to markdown only; markdown
-# formatting waits for a one-time normalization pass (257 files).
+# deadnix: not installed. eslint: not installed; JS formatting rides
+# BuildFlow's prettier-format step (biome.json + the devShell biome binary
+# were removed 2026-10-26 — nothing in treefmt, BuildFlow, or CI ever
+# consumed the config; root-files gate now freezes the root file set).
+# dprint-format: dprint.json REMOVED 2026-10-18 — markdown formatting is
+# treefmt/prettier's job (plan M03, 2026-10-17; see flake.nix). The skip
+# stays so a future dprint detection can never run unscoped defaults.
 #
-# go-version-auto-configure: DESTRUCTIVE here — SKIPPED 2026-09-20 after it
-# corrupted the tree in commit 27057e5c. Two independent failures, both
-# confirmed by reading the vendored SDK (go-version-auto-configure):
-#   1. Its policy is hardcoded to major.minor go directives, so it rewrote this
-#      repo's DELIBERATE `go 1.27.1` floor to `go 1.27` in go.work + 4 module
-#      go.mods (24 modules agree on 1.27.1 — see the AGENTS.md toolchain row;
-#      the patch floor is a repo decision, not drift).
-#   2. Its fixer runs `go mod tidy` after every `go mod edit` (pkg/fix
-#      ensureTidyStable). The verify-tag fixtures under scripts/testdata/ are
-#      go.mod-only modules (no .go files), so tidy deleted EVERY require line,
-#      silently disabling scripts/selftests/test-verify-tag.sh's 12-case guard (it then
-#      passed; the rejects had nothing left to reject). The SDK walker skips
-#      only vendor/node_modules/.git/result — NOT testdata, unlike BuildFlow's
-#      own DefaultExcludePatterns.
-# Re-enable only when BOTH are fixed upstream: testdata (and other fixture
-# trees) pruned from the walk, AND either a policy knob or repo alignment to
-# major.minor go directives. See the AGENTS.md gotcha + TODO_LIST item.
+# go-version-auto-configure UNSKIPPED 2026-10-07 (gvac v0.2.5): the policy
+# knob the 2026-09-20 skip demanded shipped as respect_patch_floor. Both
+# historical failure modes (commit 27057e5c) are structurally closed:
+#   1. The deliberate `go 1.27.1` pins (go.work + modules) are at or below
+#      the installed toolchain — reported by no rule, never rewritten.
+#   2. Detect is clean across the whole tree (verified: /tmp/gvac check
+#      --respect-patch-floor exits 0, including the scripts/testdata
+#      fixtures whose `go 1.26.7` pins are respected too), so the DAG's
+#      findings gate never opens repair, and the fixer's per-edit
+#      `go mod tidy` (which once gutted the verify-tag fixtures) never
+#      runs. CAVEAT: a host with go < 1.26.7 would re-flag the fixtures;
+#      the fleet minimum is exactly 1.26.7. See AGENTS.md gotcha + TODO.
+# tool_options carries the knob; the rest of skip_steps below stays
+# LOAD-BEARING (templ-generate etc.).
 # tailwind-build: skipped — its only output here is the gitignored orphan
 # adminui/styles.css + dashboardui/styles.css (never served, never consumed —
 # AGENTS gotcha 9), and the step class was the 2026-09-23 pretty-bundle
@@ -126,6 +98,15 @@ exclude:
 # E1005/F1001 class regardless of tree health (verified: all 29 module steps
 # red with identical errors on a fully-green tree, 2026-10-05). Licensing is
 # enforced by the repos' own LICENSE files + license-sync, not by go-licenses.
+# skip_steps is LOAD-BEARING: its 2026-10-07 deletion (captured by the
+# auto-commit daemon) let go-version-auto-configure + templ-generate
+# re-damage the tree within the hour. If this block is ever found missing,
+# restore it FIRST (stops active/future runs from re-damaging), then repair
+# the tree from a content-verified pre-damage commit. AGENTS.md gotcha 35.
+tool_options:
+  go-version-auto-configure:
+    respect_patch_floor: true
+
 skip_steps:
   - templ-generate
   - tailwind-build
@@ -134,8 +115,11 @@ skip_steps:
   - pnpm-audit
   - deadnix
   - dprint-format
-  - go-version-auto-configure
-  - license-check
+  # license-check skip removed 2026-10-07: BuildFlow now auto-defers the
+  # go-licenses stdlib failure class (ZC1, "not in std" signature renders as
+  # deferred no-op + INFO finding). The proprietary-relicensing concern below
+  # is documented for history; if E1005/F1001 unknown-license failures ever
+  # surface as REAL failures again, restore this skip.
 
 # fail_on: critical — findings gate RESTORED (2026-09-18, task M8 verification).
 # History: demoted 2026-09-17 (task M3) because the gate was always-red on
@@ -154,9 +138,16 @@ skip_steps:
 # and, for go-version, an explicit removal condition (TODO_LIST P2 toolchain
 # decision). CAVEAT: a go-structure-linter build from the v0.10.0 TAG does
 # not carry the suppression feature; machines running only tagged builds
-# would see the raw findings. Current verification: 5 findings (2 warnings
-# + 3 infos, 0 errors) with BUILDFLOW_NO_RESULT_CACHE=1.
+# would see the raw findings. Re-verified 2026-10-07: go-structure-linter
+# reports 0 findings ("structure is excellent"); the only gate-visible
+# remainder is 1 info (dependabot 20-entry cap for 28 modules) + 1 warning
+# (nix-checker vendorHash staleness — gotcha 31 class: verify via a real
+# nix build before touching the hash).
 # GOTCHA: buildflow's result cache keys on matched FILES — config/binary
 # changes do NOT invalidate it; use BUILDFLOW_NO_RESULT_CACHE=1 when a
 # finding replays after its cause was fixed.
+# Binary provenance (2026-10-07): the 2026-09-18 ~/go/bin shadow build is
+# gone; the active binary is the nix-profile build and lags BuildFlow HEAD
+# (doctor reports binary-freshness as an advisory each run — check it
+# before trusting rule-set-dependent results).
 fail_on: critical

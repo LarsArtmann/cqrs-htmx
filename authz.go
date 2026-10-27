@@ -30,9 +30,15 @@ func Authorize(resource, action string) HandlerOption {
 
 // RequireAuth returns a HandlerOption that requires an authenticated user
 // without checking specific Casbin permissions.
+//
+// The auth mode is monotonic: applying RequireAuth AFTER [Authorize] does not
+// downgrade the handler from permission-checked to merely-authenticated —
+// the stricter mode wins regardless of option order.
 func RequireAuth() HandlerOption {
 	return func(config *handlerConfig) {
-		config.authMode = authRequired
+		if config.authMode == authNone {
+			config.authMode = authRequired
+		}
 	}
 }
 

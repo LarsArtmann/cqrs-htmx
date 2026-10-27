@@ -473,7 +473,7 @@ func TestUser_Clone(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 	original.Credentials = []WebAuthnCredential{
-		{CredentialCore: CredentialCore{ID: []byte("cred-1")}},
+		{ID: []byte("cred-1")},
 	}
 	cloned := original.Clone()
 	if cloned.Email != original.Email {
@@ -488,7 +488,7 @@ func TestUser_Clone(t *testing.T) {
 func TestUser_HasCredential(t *testing.T) {
 	u := &User{
 		Credentials: []WebAuthnCredential{
-			{CredentialCore: CredentialCore{ID: []byte("cred-1")}},
+			{ID: []byte("cred-1")},
 		},
 	}
 	if !u.HasCredential([]byte("cred-1")) {
@@ -531,11 +531,9 @@ func TestExternalAccount(t *testing.T) {
 
 func TestWebAuthnCredential_Clone(t *testing.T) {
 	c := WebAuthnCredential{
-		CredentialCore: CredentialCore{
-			ID:         []byte("cred-1"),
-			PublicKey:  []byte("key"),
-			Transports: []string{"usb", "nfc"},
-		},
+		ID:         []byte("cred-1"),
+		PublicKey:  []byte("key"),
+		Transports: []string{"usb", "nfc"},
 	}
 	cloned := c.Clone()
 	cloned.Transports[0] = "ble"

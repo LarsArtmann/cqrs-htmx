@@ -314,91 +314,54 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Coverage check
-        run: |
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "Root coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 90) { print \"Root coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh .
 
       - name: Usermgmt coverage check
-        run: |
-          cd usermgmt
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "Usermgmt coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 74) { print \"Usermgmt coverage ${COVERAGE}% is below 74% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh usermgmt
         env:
           GOWORK: off
 
       - name: identity-model coverage check
-        run: |
-          cd identity-model
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "identity-model coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 70) { print \"identity-model coverage ${COVERAGE}% is below 70% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh identity-model
         env:
           GOWORK: off
 
       - name: dashboardui coverage check
-        run: |
-          cd dashboardui
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "dashboardui coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 60) { print \"dashboardui coverage ${COVERAGE}% is below 60% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh dashboardui
         env:
           GOWORK: off
 
       - name: dashboardui/core coverage check
         run: |
           cd dashboardui && go test ./core/... -count=1 -coverprofile=core-coverage.out
-          COVERAGE=$(go tool cover -func=core-coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "dashboardui/core coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 80) { print \"dashboardui/core coverage ${COVERAGE}% is below 80% threshold\"; exit 1 } }"
+          cd .. && bash scripts/checks/check-coverage-threshold.sh dashboardui/core dashboardui/core-coverage.out
         env:
           GOWORK: off
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: datastar coverage check
-        run: |
-          cd datastar
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "datastar coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 90) { print \"datastar coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh datastar
         env:
           GOWORK: off
 
       - name: setup coverage check
-        run: |
-          cd setup
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "setup coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 80) { print \"setup coverage ${COVERAGE}% is below 80% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh setup
         env:
           GOWORK: off
 
       - name: systemadapter coverage check
-        run: |
-          cd systemadapter
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "systemadapter coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 70) { print \"systemadapter coverage ${COVERAGE}% is below 70% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh systemadapter
         env:
           GOWORK: off
 
       - name: health coverage check
-        run: |
-          cd health
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "health coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 90) { print \"health coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh health
         env:
           GOWORK: off
 
       - name: auditlog coverage check
-        run: |
-          cd auditlog
-          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "auditlog coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 90) { print \"auditlog coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+        run: bash scripts/checks/check-coverage-threshold.sh auditlog
         env:
           GOWORK: off
 
@@ -430,7 +393,13 @@ jobs:
       - name: golangci-lint (${{ matrix.module }})
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.13.2
+          # v2.13.2 cannot read Go 1.27.2 export data ("export data version 5
+          # is greater than maximum supported version 4"); v2.15.0 parses the
+          # 1.27.2 workspace and matches the flake's nixpkgs golangci-lint,
+          # so `nix run .#lint` and this job render the same verdict. The
+          # errorfamily wrapcheck false-positive class (2.15-only) is ignored
+          # via ignore-package-globs in every wrapcheck-enabled .golangci.yml.
+          version: v2.15.0
           working-directory: ${{ matrix.module }}
           args: "--timeout=5m"
         env:
@@ -544,6 +513,24 @@ jobs:
       - name: Release train self-test
         run: bash scripts/selftests/test-check-release-train.sh
 
+      # Upstream dependency treadmill (S50): per-(repo, tag-prefix) lag for
+      # every NON-cqrs-htmx larsartmann dependency — advisory on lag (an
+      # upstream moving is normal), structural on unknown prefixes / non-
+      # exempt pseudo pins (the A5 bad-awk + sqliteengine-prefix silent-failure
+      # class). Shares the release-train tag cache; ls-remote failures
+      # downgrade to warnings under CI (same rule as the train gate above).
+      - name: Upstream treadmill check (advisory)
+        run: bash scripts/checks/check-upstream-treadmill.sh
+
+      - name: Upstream treadmill self-test
+        run: bash scripts/selftests/test-check-upstream-treadmill.sh
+
+      # The tag rhythm as one command (S51): dry-run by default, refuse on
+      # any red leg; the offline stub self-test is the coverage (order,
+      # refusals, module-path anchor, carrier report).
+      - name: wave-tag self-test
+        run: bash scripts/selftests/test-wave-tag.sh
+
       # GOPRIVATE VCS-cache health (local-machine corruption class: a bare
       # repo under GOMODCACHE/cache/vcs losing its origin breaks hermetic
       # builds with load-error-shaped failures). CI runners resolve via the
@@ -596,6 +583,50 @@ jobs:
       - name: StreamID identity-form self-test
         run: bash scripts/selftests/test-check-streamid-identity.sh
 
+      # Root-declutter (2026-10-26): freeze the tracked non-Go file set at
+      # repo root — the biome.json class of configs nothing consumes. New
+      # root files need a visible baseline bump in the same commit.
+      - name: Root files allowlist check
+        run: bash scripts/checks/check-root-files.sh --strict
+
+      - name: Root files allowlist self-test
+        run: bash scripts/selftests/test-check-root-files.sh
+
+      # Canary (c), gotcha 35: a daemon-captured .buildflow.yml deletion
+      # resurrected documented-destructive steps. The 7 documented skips
+      # must stay listed.
+      - name: BuildFlow skips canary
+        run: bash scripts/checks/check-buildflow-skips.sh
+
+      - name: BuildFlow skips canary self-test
+        run: bash scripts/selftests/test-check-buildflow-skips.sh
+
+      # Canary (b), gotcha 34: the verify-tag fixtures are deliberately
+      # untidy — a tidy sweep strips exactly the lines they exist to carry.
+      - name: Verify-tag fixtures poison canary
+        run: bash scripts/checks/check-verify-tag-fixtures-untidy.sh
+
+      - name: Verify-tag fixtures poison canary self-test
+        run: bash scripts/selftests/test-check-verify-tag-fixtures-untidy.sh
+
+      # Skill-maintenance gates (w15.2/w15.3): the skill's documented
+      # symbols must resolve in code, its Go fences must parse, and module
+      # READMEs must not name APIs that no longer exist.
+      - name: Skill claims drift gate
+        run: bash scripts/checks/check-skill-claims.sh
+
+      - name: Skill claims self-test
+        run: bash scripts/selftests/test-check-skill-claims.sh
+
+      - name: Skill snippets parse gate
+        run: bash scripts/checks/check-skill-snippets.sh
+
+      - name: Skill snippets self-test
+        run: bash scripts/selftests/test-check-skill-snippets.sh
+
+      - name: Module README split-brain scan
+        run: bash scripts/checks/check-readme-splitbrain.sh
+
       # R2/R18: upstream release consumability — a tag whose go.mod carries
       # placeholder pseudo-version requires (templ-components v1.20.0 class)
       # blocks every consumer push with a misleading "unknown revision".
@@ -633,6 +664,49 @@ jobs:
 
       - name: Wait-tree-quiet self-test
         run: bash scripts/selftests/test-wait-tree-quiet.sh
+
+      # Train-preflight (T02, 2026-10-08): one command before a train —
+      # quiescence + surprise + lint + hermetic tests + strict train gate +
+      # the e2e battery as the wave's declared gate (self-skips under CI;
+      # no browser provisioning on runners), with gotcha-2 candidate-count
+      # guards. Runners cannot execute the real stages here; the stub
+      # self-test is the coverage and the real app is the documented
+      # pre-train step (release playbook).
+      - name: Train-preflight self-test
+        run: bash scripts/selftests/test-train-preflight.sh
+
+      # Push-and-watch (2026-10-13): push + watch THIS push's ci.yml run to
+      # terminal state — the wrong-run watch (Dependabot graph update read
+      # as "the" CI run) mechanized away. Stub self-test is the coverage.
+      - name: Push-and-watch self-test
+        run: bash scripts/selftests/test-push-and-watch.sh
+
+      # Verify-remote-tags (2026-10-13): peeled-ref tag audit — the
+      # tag-object vs peeled-commit false-alarm class that first "failed"
+      # 13/13 healthy wave tags. Offline bare-clone self-test is coverage.
+      - name: Verify-remote-tags self-test
+        run: bash scripts/selftests/test-verify-remote-tags.sh
+
+      # Hermetic consumer catch (T04, 2026-10-08; gotcha-30 mechanized): the
+      # stub self-test is the CI coverage; the real gate runs locally via
+      # `nix run .#check-train-consumers-hermetic` before verify-tag --push
+      # (release checklist + playbook §1).
+      - name: Train-consumers-hermetic self-test
+        run: bash scripts/selftests/test-check-train-consumers-hermetic.sh
+
+      # Fixer/gate drift kill (T05): both tools import the shared
+      # status_table lib; the meta-test proves they still agree on
+      # adversarial fixtures (the 2026-10-08 split brain made this class
+      # a two-time offender).
+      - name: Status-table equivalence meta-test
+        run: bash scripts/selftests/test-status-table-equivalence.sh
+
+      # Train-lag early warning (T08): the wrapper's verdict logic (advisory
+      # lag vs broken-gate propagation vs tally guard) is CI-tested with
+      # stubs; the nightly workflow (.github/workflows/train-lag.yml) runs
+      # the real gate on schedule.
+      - name: Train-lag-report self-test
+        run: bash scripts/selftests/test-train-lag-report.sh
 
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
@@ -711,15 +785,52 @@ jobs:
       - name: Status row normalize self-test
         run: bash scripts/selftests/test-normalize-status-rows.sh
 
-      # Advisory tail-budget gate (non-blocking by design; a mid-session
-      # docs/status tail is legitimate) plus its fixture self-test.
+      # Live status tail: the absolute budget is still the goal (advisory),
+      # but growth past docs/status/TAIL_BASELINE is a hard failure — the
+      # corpus can only ratchet down now. Plus the fixture self-test.
+      - name: Docs status tail ratchet
+        run: bash scripts/checks/check-docs-tail-budget.sh --ratchet
+
       - name: Docs status tail-budget self-test
         run: bash scripts/selftests/test-check-docs-tail-budget.sh
+
+      # Whole-corpus ratchet: markdown lines under docs/ against
+      # docs/CORPUS_BASELINE. Deliberate growth is allowed but must bump the
+      # baseline in the same commit, so the corpus cannot drift quietly.
+      - name: Docs corpus budget ratchet
+        run: bash scripts/checks/check-docs-corpus-budget.sh --ratchet
+
+      - name: Docs corpus budget self-test
+        run: bash scripts/selftests/test-check-docs-corpus-budget.sh
+
+      # TODO_LIST hygiene gate: four rules that each caught a real drift class
+      # (planted `[x]` rows, dead struck-title rows, a >30%-dead section, the
+      # 8 KB session-diary header) plus its fixture self-test.
+      - name: TODO hygiene gate
+        run: bash scripts/checks/check-todo-hygiene.sh
+
+      - name: TODO hygiene gate self-test
+        run: bash scripts/selftests/test-check-todo-hygiene.sh
+
+      # The owner-gated archive eviction's tool: proves the keep-list protects
+      # cited files and that the removal is exact and idempotent (no deletion).
+      - name: Archive eviction tool self-test
+        run: bash scripts/selftests/test-evict-archive.sh
+
+      # The archive-pass ritual: row gate BEFORE the move, link re-base AFTER it,
+      # manifest row + baseline ratchet-down in the same run (17 assertions).
+      - name: Archive status tool self-test
+        run: bash scripts/selftests/test-archive-status.sh
 
       # bump-dep.sh discovery self-test (block + single-line require forms,
       # $ anchor, testdata skip) — the 9b3c2e18 regex-gap regression guard.
       - name: bump-dep self-test
         run: bash scripts/selftests/test-bump-dep.sh
+
+      # Staged-templ codegen-drift pre-commit gate self-test (stale pair red,
+      # regenerated pair green, hand-edit caught) — S48 formatter→generate chain.
+      - name: templ codegen-staged self-test
+        run: bash scripts/selftests/test-check-templ-codegen-staged.sh
 
       # Fixture self-test for the /v4-suffix import-path rule inside
       # check-docs-freshness.sh (scripts/lib/docs-import-paths.sh).
@@ -765,6 +876,23 @@ jobs:
         env:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
+
+      # The README quick start is a consumer-facing contract: extract the
+      # fenced example under `## Quick start`, compile it in a throwaway
+      # module against the real root (path replace, GOWORK=off). A README
+      # that lies about its quick start is a red gate, not a review-time
+      # discovery (the 2026-10-17 rewrite session's proof harness, mechanized).
+      - name: README quick-start compile check
+        run: bash scripts/checks/check-readme-quickstart.sh
+        env:
+          GOEXPERIMENT: jsonv2
+
+      # Offline fixture coverage for the gate itself (clean / broken-go /
+      # missing-fence / poisoned cases; GOPROXY=off inside).
+      - name: README quick-start self-test
+        run: bash scripts/selftests/test-check-readme-quickstart.sh
+        env:
+          GOEXPERIMENT: jsonv2
 
   security:
     runs-on: ubuntu-latest
@@ -814,3 +942,86 @@ jobs:
         if: always()
         with:
           sarif_file: results.sarif
+
+  architecture-gate-preflight:
+    # GitHub forbids `secrets` in a job-level `if`, so this probe converts the
+    # presence of SSH_PRIVATE_KEY into a job output. Without it the gate below
+    # reds EVERY pull request at the ssh-agent step while the secret is
+    # unconfigured — a permanent red that trains everyone to ignore the checks.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      has_key: ${{ steps.probe.outputs.has_key }}
+    steps:
+      - name: Probe for the private-repo SSH key
+        id: probe
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -n "$SSH_PRIVATE_KEY" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=architecture-gate skipped::SSH_PRIVATE_KEY is not configured; the EventCatalog breaking-change gate needs the PRIVATE eventcatalog-hub repo. Configure the secret to enable it."
+          fi
+
+  architecture-gate:
+    # Breaking-change gate for the EventCatalog export (hub contract): diffs
+    # the PR's examples/catalog-demo eventcatalog tree against the base
+    # branch's — removed messages/services, changed schemas on unchanged
+    # ids, dropped producers/consumers fail the PR. The gate script lives
+    # in the PRIVATE eventcatalog-hub repo, so this job needs the same
+    # SSH_PRIVATE_KEY secret bank-sync's CI uses. Soft rollout: absent the
+    # secret the job SKIPS (never silently passes); once configured it runs,
+    # and the final step's continue-on-error drops to enforce.
+    if: github.event_name == 'pull_request' && needs.architecture-gate-preflight.outputs.has_key == 'true'
+    needs: architecture-gate-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git for private repos
+        run: git config --global url."ssh://git@github.com/LarsArtmann/".insteadOf "https://github.com/LarsArtmann/"
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+
+      - name: Clone go-cqrs-lite sibling (replace target)
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+
+      - name: Clone the eventcatalog-hub gate
+        run: git clone --depth 1 ssh://git@github.com/LarsArtmann/eventcatalog-hub.git /tmp/ec-hub
+
+      - name: Export PR-head tree
+        run: |
+          cd examples/catalog-demo
+          go build -o /tmp/catalog-demo-head .
+          /tmp/catalog-demo-head -eventcatalog /tmp/export-head -export-only
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Export base tree
+        run: |
+          # Worktree lives NEXT TO the checkout so the ../../go-cqrs-lite
+          # replace directives resolve in the base build exactly like the
+          # head build.
+          git worktree add --detach "${GITHUB_WORKSPACE}/../base-src" "${{ github.event.pull_request.base.sha }}"
+          cd "${GITHUB_WORKSPACE}/../base-src/examples/catalog-demo"
+          go build -o /tmp/catalog-demo-base .
+          /tmp/catalog-demo-base -eventcatalog /tmp/export-base -export-only
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Architecture change gate
+        run: bash /tmp/ec-hub/scripts/check-architecture-changes.sh /tmp/export-base /tmp/export-head
+        continue-on-error: true # enforcing once SSH_PRIVATE_KEY is configured on this repo

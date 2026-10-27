@@ -43,8 +43,8 @@ func snapshotsIndexPage(p pageData, listings []listing.StreamListing, page pagin
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = streamListingPage(p, listings, page, streamListPageConfig{
 			subtitle:   "Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.",
-			emptyTitle: "No aggregates found",
-			emptyMsg:   "Configure a StreamReader to browse snapshots by aggregate.",
+			emptyTitle: p.empty[EmptyStateSnapshotAggregates].Title,
+			emptyMsg:   p.empty[EmptyStateSnapshotAggregates].Message,
 			pagePath:   "/snapshots",
 			linkPath:   "/snapshots",
 			linkText:   "View",
@@ -110,7 +110,7 @@ func snapshotEmptyPage(p pageData) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = layout(p, emptyStatePanel(icons.ArchiveBox, "No snapshot", "")).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout(p, emptyStatePanel(icons.ArchiveBox, p.empty[EmptyStateSnapshots].Title, p.empty[EmptyStateSnapshots].Message)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -185,7 +185,7 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = copyButton(ref.ID.String(), "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = copyButton(ref.ID.String(), "", p.Nonce).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -258,7 +258,7 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = definitionList(snapshotMetaItems(snap)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = definitionList(snapshotMetaItems(snap, p.Nonce)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

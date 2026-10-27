@@ -38,12 +38,12 @@ interfaces you wired and shows only relevant panels.
 The panel meets your app at whatever depth you want — from "give me a URL" to
 "render inside my chrome" to "I'll build the UI myself":
 
-| Mode                          | You own                          | The dashboard owns            | Seam                                             |
-| ----------------------------- | -------------------------------- | ----------------------------- | ------------------------------------------------ |
-| **Destination** (default)     | A mount path + auth middleware   | The whole page, top to bottom | `New` + `Mount`                                  |
-| **Embedded**                  | The app shell (nav, CSS, theme)  | Panel content only            | `Config.Layout`                                  |
-| **From a go-cqrs-lite system**| The DeploymentConfig             | Everything the system exposes | `FromSystem(sys)`                                |
-| **Headless data**             | The entire UI                    | Introspection queries         | the `core` sub-package (next section)            |
+| Mode                           | You own                         | The dashboard owns            | Seam                                  |
+| ------------------------------ | ------------------------------- | ----------------------------- | ------------------------------------- |
+| **Destination** (default)      | A mount path + auth middleware  | The whole page, top to bottom | `New` + `Mount`                       |
+| **Embedded**                   | The app shell (nav, CSS, theme) | Panel content only            | `Config.Layout`                       |
+| **From a go-cqrs-lite system** | The DeploymentConfig            | Everything the system exposes | `FromSystem(sys)`                     |
+| **Headless data**              | The entire UI                   | Introspection queries         | the `core` sub-package (next section) |
 
 ### Destination (zero-config)
 
@@ -122,7 +122,7 @@ Contract (full details on `LayoutFunc`):
   content is styled by the dashboard stylesheets), and skip
   `meta.ScriptURLs`' htmx entry if your shell already loads htmx (never twice).
 - `meta.Nav` is the capability-filtered navigation (`NavLink{Href, Label,
-  Icon, Active}`) — render it, merge it into your sidebar, or drop it.
+Icon, Active}`) — render it, merge it into your sidebar, or drop it.
 - `meta.Nonce` carries the per-request CSP nonce for script tags you emit.
 - HTMX partial swaps and polled regions bypass the shell (no work needed);
   write-action toasts surface via the `dashboardui:toast` HX-Trigger event —
@@ -190,6 +190,8 @@ type Config struct {
     EventBus         event.Bus              // enables SSE live updates
 
     PayloadRenderer  PayloadRenderer        // custom payload formatting
+    PayloadTypes     *PayloadTypeRegistry   // typed per-event-type rendering (nil = package registry)
+    EmptyStateCopy   map[EmptyStateKey]EmptyStateCopy // per-panel empty-state copy overrides
     Title            string                 // sidebar brand text
     BasePath         string                 // URL prefix (default: /dashboard)
     AccentColor      string                 // CSS highlight color
@@ -257,9 +259,15 @@ Every write operation (projection reset, DLQ replay/delete/purge, snapshot
 delete) emits a `dashboardui.audit` log line. Attribution is automatic:
 
 ```json
-{"msg":"dashboardui.audit","op":"dlq.replay","projection":"user-read-model",
- "result":"ok","actor_id":"user-42","actor_name":"ops@example.com",
- "request_id":"req_01HYZ..."}
+{
+	"msg": "dashboardui.audit",
+	"op": "dlq.replay",
+	"projection": "user-read-model",
+	"result": "ok",
+	"actor_id": "user-42",
+	"actor_name": "ops@example.com",
+	"request_id": "req_01HYZ..."
+}
 ```
 
 - **actor_id / actor_name** — from `ActorAuthorizer`, or from your own
@@ -281,6 +289,63 @@ type PayloadRenderer interface {
 
 The default renderer pretty-prints JSON and decodes CBOR to JSON. No consumer
 domain types are needed.
+
+### Typed Payload Rendering
+
+When sniffing raw JSON field sets is the price of a good summary, register a
+typed renderer instead — the payload arrives decoded into YOUR struct, and a
+renamed field becomes a compile-time break, not a silent fallback to
+pretty-JSON:
+
+```go
+type filePayload struct {
+    Name string `json:"name"`
+    Size int64  `json:"size"`
+}
+
+type fileSummary struct{}
+
+func (fileSummary) RenderTyped(p filePayload, _ codec.Encoding) ([]byte, error) {
+    return []byte(fmt.Sprintf("%s (%s)", p.Name, humanize(p.Size))), nil
+}
+
+func main() {
+    dashboardui.RegisterPayloadType("file.uploaded.v1", fileSummary{})
+    // ... New(Config{...}) — no other wiring; unset Config.PayloadTypes
+    // routes through the same package registry.
+}
+```
+
+The typed registry is consulted BEFORE `PayloadRenderer`, for registered event
+types only — unregistered types keep your untyped renderer (or the default
+pretty-print). Decode mismatches (schema drift) degrade to the untyped chain
+instead of failing the render. For test isolation or per-tenant hosts, pass an
+explicit `Config.PayloadTypes = dashboardui.NewPayloadTypeRegistry()` and
+register via `RegisterPayloadTypeIn`.
+
+### Empty-State Copy
+
+Every static empty-state panel carries brand-overridable copy keyed by a typed
+`EmptyStateKey` (`events`, `commands`, `queries`, `dead-letters`, ...). Set
+only what you rebrand; empty fields keep the upstream defaults, and a nil map
+renders byte-identical upstream copy:
+
+```go
+dashboardui.New(dashboardui.Config{
+    // ...
+    EmptyStateCopy: map[dashboardui.EmptyStateKey]dashboardui.EmptyStateCopy{
+        dashboardui.EmptyStateCommands: {
+            Title:   "Quiet",
+            Message: "Commands will show up here once your app dispatches one.",
+        },
+    },
+})
+```
+
+Unknown keys are rejected at `New` — the compiler cannot catch a mistyped map
+key. Dynamic empty states that interpolate record identifiers (a missing
+snapshot for a specific stream, per-projection dead-letter lists) are not
+brandable.
 
 ## SSE Live Updates
 
@@ -408,11 +473,11 @@ package importing the system packages).
 
 Three unauthenticated endpoints for load balancers and Kubernetes probes:
 
-| Endpoint      | Purpose         | 200 Response                             | 503 Response                                |
-| ------------- | --------------- | ---------------------------------------- | ------------------------------------------- |
-| `/-/healthz`  | Liveness probe  | `{"status":"ok"}`                        | `{"status":"shutting_down"}`                |
-| `/-/readyz`   | Readiness probe | `{"status":"ready","ready":true}`        | `{"status":"no_data_source","ready":false}` |
-| `/-/versionz` | Build metadata  | Module, version, Go version, VCS stamp, capabilities, config | —                              |
+| Endpoint      | Purpose         | 200 Response                                                 | 503 Response                                |
+| ------------- | --------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| `/-/healthz`  | Liveness probe  | `{"status":"ok"}`                                            | `{"status":"shutting_down"}`                |
+| `/-/readyz`   | Readiness probe | `{"status":"ready","ready":true}`                            | `{"status":"no_data_source","ready":false}` |
+| `/-/versionz` | Build metadata  | Module, version, Go version, VCS stamp, capabilities, config | —                                           |
 
 All return `application/json` with `Cache-Control: no-store`.
 
@@ -595,7 +660,7 @@ Button link/submit, EmptyState, and DefinitionList render benchmarks.
 Design rationale for the divergences lives in
 [ADR-0053](../docs/adr/0053-dashboardui-templ-components-divergences.md) and the
 adoption-audit series
-([2026-09-23 report](../docs/research/2026-09-23_templ-components-deep-dive.html);
+([2026-10-04 report](../docs/research/2026-10-04_templ-components-deep-dive.html);
 series index: [docs/research/README.md](../docs/research/README.md)).
 
 ### Rebuilding the CSS bundle
@@ -647,7 +712,7 @@ The dashboard follows the same pattern as `adminui/`:
 - `detail_items.go` — Definition-item and small data builders shared by the
   templates
 - `layout.go` — Embedded CSS/JS assets, icon-name mapping
-- `payload.go` — PayloadRenderer interface and default implementation
+- `payload.go` — PayloadRenderer + TypedPayloadRenderer[P] registry and the default implementation
 - `sse.go` — SSE event bridge (event bus to broadcaster)
 
 Rendering is full templ (see the Styling section above); every handler threads

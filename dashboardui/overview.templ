@@ -20,7 +20,7 @@ templ overviewContent(p pageData, stats overviewStats) {
 		@projectionHealthPanel(p.BasePath, stats.Projections)
 	}
 	if len(stats.RecentEvents) > 0 {
-		@recentEventsTable(p.BasePath, stats.RecentEvents)
+		@recentEventsTable(p.BasePath, p.Caps.EventSource, stats.RecentEvents)
 	}
 }
 
@@ -62,11 +62,27 @@ templ overviewStatGrid(stats overviewStats) {
 // overview page and the projection-health partial endpoint (outerHTML
 // swap — the partial response must re-render the REGION itself or polling
 // stops after one refresh).
+//
+// hx-target/hx-select are pinned because the layout wrapper carries
+// data-hx-target="#main-content" + data-hx-select="#main-content" for
+// boosted navigation, and htmx resolves those attributes through the
+// ancestor chain for every ajax element: unpinned, this poll would select
+// #main-content from a partial response that has none and swap an EMPTY
+// fragment into #main-content — blanking the whole page on the first
+// refresh trigger. hx-target="this" pins the swap to the region itself;
+// hx-select="unset" is htmx's documented inheritance neutralizer.
 templ projectionHealthPanel(basePath string, projs []projectionStat) {
 	@htmx.PolledRegion(htmx.PolledRegionProps{
-		BaseProps: utils.BaseProps{ID: "projection-health", Class: "panel"},
-		URL:       basePath + "/-/partials/projection-health",
-		Trigger:   "every 10s, refresh",
+		BaseProps: utils.BaseProps{
+			ID:    "projection-health",
+			Class: "panel",
+			Attrs: templ.Attributes{
+				"hx-target": "this",
+				"hx-select": "unset",
+			},
+		},
+		URL:     basePath + "/-/partials/projection-health",
+		Trigger: "every 10s, refresh",
 	}) {
 		<div class="panel-title">Projection Health</div>
 		@rawDataTable(plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), "", projectionHealthRows(projs))
@@ -77,7 +93,9 @@ templ projectionHealthRows(projs []projectionStat) {
 	for _, pr := range projs {
 		<tr>
 			<td>{ pr.Name }</td>
-			<td>@statusBadge(pr.StatusKind, pr.Status)</td>
+			<td>
+				@statusBadge(pr.StatusKind, pr.Status)
+			</td>
 			<td class="mono">{ pr.Lag }</td>
 			<td>{ strconv.FormatInt(pr.Processed, 10) }</td>
 			<td>{ strconv.FormatInt(pr.Errors, 10) }</td>
@@ -86,24 +104,29 @@ templ projectionHealthRows(projs []projectionStat) {
 }
 
 // recentEventsTable builds the recent-events table for the overview page.
-templ recentEventsTable(basePath string, events []RecentEvent) {
+// Stream links need the EventSource capability (the /aggregates/{type}/{id}
+// routes only register with it); without it the stream renders as plain text
+// instead of linking to a styled 404.
+templ recentEventsTable(basePath string, canInspectStreams bool, events []RecentEvent) {
 	<h2>Recent Events</h2>
-	@rawDataTable(plainHeaders("Time", "Type", "Stream", "Version"), "", recentEventRows(basePath, events))
+	@rawDataTable(plainHeaders("Time", "Type", "Stream", "Version"), "", recentEventRows(basePath, canInspectStreams, events))
 }
 
-templ recentEventRows(basePath string, events []RecentEvent) {
+templ recentEventRows(basePath string, canInspectStreams bool, events []RecentEvent) {
 	for _, e := range events {
 		<tr>
 			<td class="mono" title={ e.Time }>{ recentEventTime(e) }</td>
 			<td><a href={ basePath + "/events/" + e.EventID }><code>{ e.Type }</code></a></td>
-			<td>@recentEventStreamCell(basePath, e)</td>
+			<td>
+				@recentEventStreamCell(basePath, canInspectStreams, e)
+			</td>
 			<td>{ e.Version }</td>
 		</tr>
 	}
 }
 
-templ recentEventStreamCell(basePath string, e RecentEvent) {
-	if e.StreamType != "" {
+templ recentEventStreamCell(basePath string, canInspectStreams bool, e RecentEvent) {
+	if canInspectStreams && e.StreamType != "" {
 		<a href={ basePath + "/aggregates/" + e.StreamType + "/" + e.StreamID } class="mono">{ truncate(e.StreamID, eventIDWidth) }</a>
 	} else {
 		{ truncate(e.StreamID, eventIDWidth) }

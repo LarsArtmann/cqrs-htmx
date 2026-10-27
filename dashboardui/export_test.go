@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 func TestEventsExport_CSV(t *testing.T) {
@@ -100,5 +102,122 @@ func TestCommandsExport_CSV(t *testing.T) {
 
 	if !strings.Contains(w.Body.String(), "Command ID") {
 		t.Error("expected CSV header row")
+	}
+}
+
+// The export must carry the COMPLETE audit trail: the old zero-cursor
+// ReadFrom(zero, exportLimit) returned only the OLDEST exportLimit commands,
+// silently dropping every newer entry, and never paged past one batch.
+func TestCommandsExport_PagesSeekableJournal_CompleteTrail(t *testing.T) {
+	t.Parallel()
+
+	total := exportLimit + 5 // one entry past the old hard cap: forces paging AND proves no truncation
+	cmds := make([]*command.PersistedCommand, 0, total)
+
+	for range total {
+		cmds = append(cmds, makeTestCommand(t))
+	}
+
+	d := MustNew(Config{
+		Journal:        stubJournal{},
+		CommandJournal: &fakeCommandJournal{cmds: cmds},
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/commands?format=csv", nil)
+	d.commandsIndexHandler(w, r)
+
+	if got := strings.Count(w.Body.String(), "test.create"); got != total {
+		t.Errorf("export must contain every command: got %d rows, want %d", got, total)
+	}
+}
+
+// Queries twin: JSON export pages a seekable journal and stays complete.
+func TestQueriesExport_PagesSeekableJournal_CompleteTrail(t *testing.T) {
+	t.Parallel()
+
+	total := exportBatch + 3 // two cursor pages
+	queries := make([]*query.PersistedQuery, 0, total)
+
+	for range total {
+		queries = append(queries, makeTestQuery(t))
+	}
+
+	d := MustNew(Config{
+		Journal:      stubJournal{},
+		QueryJournal: &fakeQueryJournal{queries: queries},
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/queries?format=json", nil)
+	d.queriesIndexHandler(w, r)
+
+	if got := strings.Count(w.Body.String(), `"requestId"`); got != total {
+		t.Errorf("export must contain every query: got %d rows, want %d", got, total)
+	}
+}
+
+// A journal whose cursor never advances must surface as an export error,
+// never as a hang: the pre-guard query-journal fake ignored its cursor and
+// OOM-killed CI runners mid-suite (the exit-143 shutdown class).
+type stallingCommandJournal struct {
+	cmds []*command.PersistedCommand
+}
+
+func (s *stallingCommandJournal) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
+	return s.cmds, nil
+}
+
+func (s *stallingCommandJournal) ReadFrom(
+	_ context.Context,
+	_ id.CommandID,
+	limit int,
+) ([]*command.PersistedCommand, error) {
+	return s.cmds[:limit], nil
+}
+
+func TestLoadAllCommands_CursorStallIsAnErrorNotAHang(t *testing.T) {
+	t.Parallel()
+
+	cmds := make([]*command.PersistedCommand, 0, exportBatch)
+
+	for range exportBatch {
+		cmds = append(cmds, makeTestCommand(t))
+	}
+
+	_, err := loadAllCommands(t.Context(), &stallingCommandJournal{cmds: cmds})
+	if err == nil {
+		t.Fatal("expected a cursor-stall error, got nil")
+	}
+}
+
+type stallingQueryJournal struct {
+	queries []*query.PersistedQuery
+}
+
+func (s *stallingQueryJournal) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery, error) {
+	return s.queries, nil
+}
+
+func (s *stallingQueryJournal) ReadQueriesFrom(
+	_ context.Context,
+	_ id.RequestID,
+	limit int,
+) ([]*query.PersistedQuery, error) {
+	return s.queries[:limit], nil
+}
+
+func TestLoadAllQueries_CursorStallIsAnErrorNotAHang(t *testing.T) {
+	t.Parallel()
+
+	queries := make([]*query.PersistedQuery, 0, exportBatch)
+
+	for range exportBatch {
+		queries = append(queries, makeTestQuery(t))
+	}
+
+	_, err := loadAllQueries(t.Context(), &stallingQueryJournal{queries: queries})
+	if err == nil {
+		t.Fatal("expected a cursor-stall error, got nil")
 	}
 }

@@ -69,6 +69,8 @@ type credentialData struct {
 	Transports      []string `json:"transports,omitempty"`
 	AAGUID          []byte   `json:"aaguid,omitempty"`
 	SignCount       uint32   `json:"sign_count"`
+	UserPresent     bool     `json:"user_present,omitempty"`
+	UserVerified    bool     `json:"user_verified,omitempty"`
 	BackupEligible  bool     `json:"backup_eligible"`
 	BackupState     bool     `json:"backup_state"`
 }
@@ -110,8 +112,8 @@ func toWebAuthnCredential(c credentialData) webauthn.Credential {
 		AttestationType: c.AttestationType,
 		Transport:       toProtocolTransports(c.Transports),
 		Flags: webauthn.CredentialFlags{
-			UserPresent:    true,
-			UserVerified:   true,
+			UserPresent:    c.UserPresent,
+			UserVerified:   c.UserVerified,
 			BackupEligible: c.BackupEligible,
 			BackupState:    c.BackupState,
 		},
@@ -130,6 +132,8 @@ func fromWebAuthnCredential(c *webauthn.Credential) credentialData {
 		Transports:      fromProtocolTransports(c.Transport),
 		AAGUID:          c.Authenticator.AAGUID,
 		SignCount:       c.Authenticator.SignCount,
+		UserPresent:     c.Flags.UserPresent,
+		UserVerified:    c.Flags.UserVerified,
 		BackupEligible:  c.Flags.BackupEligible,
 		BackupState:     c.Flags.BackupState,
 	}
@@ -245,31 +249,43 @@ func (p *Provider) BeginLogin(_ context.Context, userJSON []byte) (options, sess
 	return marshalCeremonyResponse(assertion, session)
 }
 
-// FinishLogin completes the authentication ceremony.
+// FinishLogin completes the authentication ceremony and returns the credential
+// state the assertion produced (signature counter + flags) as JSON.
 // body is the raw assertion response from the authenticator.
 // sessionData is the opaque session returned by BeginLogin.
-func (p *Provider) FinishLogin(ctx context.Context, userJSON, body, sessionData []byte) error {
+//
+// The returned credential MUST be persisted by the caller: go-webauthn advances
+// the signature counter and flags on a copy of the stored credential, and only
+// the caller can write them back. Dropping them (what this method used to do)
+// leaves every assertion compared against the registration-time counter, so
+// clone detection never fires.
+func (p *Provider) FinishLogin(ctx context.Context, userJSON, body, sessionData []byte) ([]byte, error) {
 	user, err := parseUser(userJSON)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	session, err := parseSession(sessionData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/", bytes.NewReader(body))
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "webauthn.create_request", "create request")
+		return nil, errorfamily.WrapInfrastructure(err, "webauthn.create_request", "create request")
 	}
 
-	_, err = p.wa.FinishLogin(&webauthnUser{data: user}, session, req)
+	credential, err := p.wa.FinishLogin(&webauthnUser{data: user}, session, req)
 	if err != nil {
-		return errorfamily.WrapRejection(err, "webauthn.finish_login", "finish login")
+		return nil, errorfamily.WrapRejection(err, "webauthn.finish_login", "finish login")
 	}
 
-	return nil
+	credJSON, err := json.Marshal(fromWebAuthnCredential(credential))
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, "webauthn.marshal_credential", "marshal logged-in credential")
+	}
+
+	return credJSON, nil
 }
 
 // --- helpers ---

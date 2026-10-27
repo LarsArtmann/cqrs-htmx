@@ -28,34 +28,35 @@ type TOTPProvider interface {
 
 ```go
 type WebAuthnProvider interface {
-    BeginRegistration(ctx context.Context, userID, userEmail, userDisplayName string) (sessionData []byte, err error)
-    FinishRegistration(ctx context.Context, sessionData []byte, credentialResponse []byte) (credential WebAuthnCredential, err error)
-    BeginLogin(ctx context.Context, allowedCredentials []WebAuthnCredentialDescriptor) (sessionData []byte, err error)
-    FinishLogin(ctx context.Context, sessionData []byte, assertionResponse []byte) (credentialID []byte, err error)
+    BeginRegistration(ctx context.Context, userJSON []byte) (options, sessionData []byte, err error)
+    FinishRegistration(ctx context.Context, userJSON, body, sessionData []byte) (credentialJSON []byte, err error)
+    BeginLogin(ctx context.Context, userJSON []byte) (options, sessionData []byte, err error)
+    FinishLogin(ctx context.Context, userJSON, body, sessionData []byte) (credentialJSON []byte, err error)
 }
 ```
 
 **Key design points:**
 
-- `sessionData` is `[]byte` (JSON-serialized) — you handle serialization internally
+- `userJSON`/`body`/`sessionData` are `[]byte` (JSON-serialized) — you handle serialization internally; `BeginLogin` receives the user's allowed credentials inside `userJSON`
 - `WebAuthnCredentialDescriptor` is a simple struct with `ID []byte` and `Type string`
-- `WebAuthnCredential` is returned from FinishRegistration with all fields populated
+- `credentialJSON` (registration AND login) is the full credential state as JSON — on login it must carry the assertion-observed state (signature counter + user-present/user-verified/backup flags), because `usermgmt` dispatches `RecordCredentialUse` with it: the stored counter becomes the high-water mark the next assertion must advance past (WebAuthn L3 §7.2 — this is what makes clone detection live), and a regression is rejected as a conflict
+- Credentials created before the sign-counter persistence (identity-model v4.14.0) carry the registration-time state — `UserPresent`/`UserVerified` start `false` until the credential's next login records an assertion
 - The `usermgmt` package handles storing credentials as events
 
-**Reference:** `usermgmt/webauthn/provider.go` — ~200 LOC using `go-webauthn`
+**Reference:** `usermgmt/webauthn/provider.go` — ~300 LOC using `go-webauthn`
 
 ### OAuth2Provider
 
 ```go
 type OAuth2Provider interface {
     BeginLogin(ctx context.Context, provider, state string) (redirectURL, pkceVerifier string, err error)
-    FinishLogin(ctx context.Context, provider, code, pkceVerifier string) (userInfo []byte, err error)
+    FinishLogin(ctx context.Context, providerName, code, pkceVerifier string) (userInfoJSON []byte, err error)
 }
 ```
 
 **Key design points:**
 
-- `userInfo` must be JSON-serialized `OAuth2UserInfo` struct (subject, email, display_name, email_verified)
+- `userInfoJSON` must be JSON-serialized `OAuth2UserInfo` struct (subject, email, display_name, email_verified)
 - PKCE (S256) is mandatory — the verifier is passed back to FinishLogin
 - Multiple providers (Google, GitHub, etc.) can be supported in one implementation
 - The `usermgmt` package handles user matching/registration based on provider+subject and email

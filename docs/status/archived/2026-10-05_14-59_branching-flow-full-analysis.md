@@ -11,23 +11,23 @@
 
 ## Session Stat Summary (verbatim from `branching-flow stats .`)
 
-| Linter | Issues | Severity breakdown |
-|---|---|---|
-| Phantom Types | 499 | 281 critical, 117 high, 36 medium, 65 low — **EXCLUDED per request** |
-| Strong ID Types | 76 | 4 high, 5 medium, 67 low |
-| Mixins | 51 | 1 medium, 50 low |
-| Anti-Patterns | 8 | 8 low |
-| Duplicate Types | 8 actionable | 21 groups total (8 actionable, 3 intentional, 10 false-positive) |
-| samber/do Anti-Patterns | 5 | 5 medium |
-| Flag Parameters | 4 | 2 medium, 2 low |
-| Interface Completeness | 3 | 3 low |
-| Boolean Blindness | 1 | 1 critical |
-| Context Propagation | 0 | — |
-| Naked Return Guard | 0 | — |
-| Panic Conditions | 0 | — |
-| samber/ro Anti-Patterns | 0 | — |
-| Split-Brain Interfaces | 0 | — |
-| **Total** | **655** (incl. phantom) | **~156 excluding phantom** |
+| Linter                  | Issues                  | Severity breakdown                                                   |
+| ----------------------- | ----------------------- | -------------------------------------------------------------------- |
+| Phantom Types           | 499                     | 281 critical, 117 high, 36 medium, 65 low — **EXCLUDED per request** |
+| Strong ID Types         | 76                      | 4 high, 5 medium, 67 low                                             |
+| Mixins                  | 51                      | 1 medium, 50 low                                                     |
+| Anti-Patterns           | 8                       | 8 low                                                                |
+| Duplicate Types         | 8 actionable            | 21 groups total (8 actionable, 3 intentional, 10 false-positive)     |
+| samber/do Anti-Patterns | 5                       | 5 medium                                                             |
+| Flag Parameters         | 4                       | 2 medium, 2 low                                                      |
+| Interface Completeness  | 3                       | 3 low                                                                |
+| Boolean Blindness       | 1                       | 1 critical                                                           |
+| Context Propagation     | 0                       | —                                                                    |
+| Naked Return Guard      | 0                       | —                                                                    |
+| Panic Conditions        | 0                       | —                                                                    |
+| samber/ro Anti-Patterns | 0                       | —                                                                    |
+| Split-Brain Interfaces  | 0                       | —                                                                    |
+| **Total**               | **655** (incl. phantom) | **~156 excluding phantom**                                           |
 
 - Root walk: **292 files**, ~3.4s.
 - Coverage probe: total non-test `.go` files in the tree = 310; `health`=3 files, `auditlog`=2 files both individually walkable and returned **zero** findings. So the 292-file root walk is broad (module-recursive), and health/auditlog's clean result is genuine, not a skipped-module false green.
@@ -41,13 +41,13 @@
 
 - **All 14 non-phantom analyzers executed** against `.` — `anti-patterns`, `boolblind`, `contextguard`, `do`, `dupe`, `flagparam`, `ifacecomplete`, `mixins`, `nakedreturn`, `panic`, `ro`, `splitbrain`, `strong-id`, plus `stats` for the summary. Evidence: `/tmp/bf-all.txt`, `stats` output above.
 - **Clean analyzers confirmed:** Context Propagation, Naked Return, Panic, samber/ro, Split-Brain → 0 findings each.
-- **`do` (5) root-caused → false positive.** All five `do.Invoke` findings are in `examples/samber-do-demo/container.go:308-335`, inside *typed accessor methods* (`Service()`, `Broadcaster()`, `App()`, `Logger()`, `HealthDashboard()`) that deliberately centralize resolution. This is the canonical samber/do provider pattern, not service-locator abuse — the in-file comment says so.
-- **`boolblind` `Capabilities` (1, critical) root-caused → reject.** `dashboardui/core/capabilities.go:61` has 11 bools that are a *named-field projection* of `Config` (presence flags). Bit-flags would destroy readability; the "critical" severity is overstated for a self-documenting projection.
+- **`do` (5) root-caused → false positive.** All five `do.Invoke` findings are in `examples/samber-do-demo/container.go:308-335`, inside _typed accessor methods_ (`Service()`, `Broadcaster()`, `App()`, `Logger()`, `HealthDashboard()`) that deliberately centralize resolution. This is the canonical samber/do provider pattern, not service-locator abuse — the in-file comment says so.
+- **`boolblind` `Capabilities` (1, critical) root-caused → reject.** `dashboardui/core/capabilities.go:61` has 11 bools that are a _named-field projection_ of `Config` (presence flags). Bit-flags would destroy readability; the "critical" severity is overstated for a self-documenting projection.
 - **`strong-id` bulk (76) triaged.** Verified most are intentional wire/boundary strings: `identity-model/events.go` ActorID/TenantID (serialized event payloads), `openapi/builder.go` operationID (spec field), `htmx.go` TriggerID, `ack.go` `commandId` (JS-facing JSON contract), `systemadapter/queries.go` (strings go straight into the engine lookup key).
 - **`mixins` (51) triaged → reject.** Would fragment the flat, golden-pinned 21-event payload structs.
 - **`anti-patterns` (8) triaged → reject.** All `large-struct` on configs / composition roots (`setup.Config`, `usermgmt.ServiceConfig`, `cqrshtmx.handlerConfig`), which is their job. `core.DefaultPayloadRenderer` `base-naming` is a default-impl name, fine.
 - **`ifacecomplete` (3) triaged → reject.** `LockoutStore`, `TOTPProvider`, `WebAuthnSessionStore` are the extension seams satisfied structurally by the `totp`/`webauthn`/`oauth2` strategy modules. Single-impl is intentional.
-- **`dupe` group 1 root-caused.** `commandOptionApplier` is duplicated in `handler.go:343` and `usermgmt/audit_context.go:19` — identical interface + near-identical doc comment, duplicated *because both are unexported and root↔usermgmt cannot share*. Documented pattern; nothing guards drift.
+- **`dupe` group 1 root-caused.** `commandOptionApplier` is duplicated in `handler.go:343` and `usermgmt/audit_context.go:19` — identical interface + near-identical doc comment, duplicated _because both are unexported and root↔usermgmt cannot share_. Documented pattern; nothing guards drift.
 - **Subprocess hygiene verified.** Long-running `stats` probe was correctly auto-backgrounded and drained via `job_output`.
 
 ---
@@ -59,7 +59,7 @@
   - `systemadapter/views.go:35` `CredentialView`
   - `usermgmt/webauthn/provider.go:65` `credentialData`
   - `usermgmt/webauthn_service.go:21` `webAuthnUserCred`
-  Shared fields: `AAGUID, AttestationType, BackupEligible, BackupState, ID, PublicKey, SignCount, Transports`. **What works:** identified precisely with line numbers. **Open:** whether any can alias/embed vs redeclare without coupling domain↔adapter. **Blocker:** needs a domain-intent decision (question g2). **Effort:** M. — **Routed 2026-10-05:** decision memo → TODO_LIST (R11); the intent question → ROADMAP OQ28.
+    Shared fields: `AAGUID, AttestationType, BackupEligible, BackupState, ID, PublicKey, SignCount, Transports`. **What works:** identified precisely with line numbers. **Open:** whether any can alias/embed vs redeclare without coupling domain↔adapter. **Blocker:** needs a domain-intent decision (question g2). **Effort:** M. — **Routed 2026-10-05:** decision memo → TODO_LIST (R11); the intent question → ROADMAP OQ28.
 - **`strong-id` severity split — partially triaged.** The `stats` line reports 4 high / 5 medium / 67 low, but the finding table carries no severity column, so I could not attribute severity per row and lumped all 76 together before selecting the few real candidates. **Open:** re-run with a severity filter to isolate the 4 high items. **Effort:** S. — **Routed 2026-10-05:** ROADMAP (R10).
 - ~~**Section (f) harvest — not performed.** Per the `status-report` skill + AGENTS.md gotcha 20, the Top-N list must be routed into `TODO_LIST.md`/`ROADMAP.md` via `docs-health` HARVEST. Deferred pending the operator's "wait for instructions". **Effort:** S.~~ done at `471c0933`
 
@@ -78,9 +78,9 @@
 
 ## d) TOTALLY FUCKED UP!
 
-Honest read: **nothing is broken in the repo.** No test/build harm was done — this session only read. But the *analysis itself* has real defects worth naming rather than hiding:
+Honest read: **nothing is broken in the repo.** No test/build harm was done — this session only read. But the _analysis itself_ has real defects worth naming rather than hiding:
 
-- **Severity-blind triage (self-inflicted).** I ranked findings by eyeballing file/symbol importance instead of by the tool's own severity. The `stats` output says `strong-id` has **4 high**, `do` has **5 medium**, `flagparam` has **2 medium**, `boolblind` has **1 critical** — I dismissed the two "medium/high" clusters (`do`, `boolblind`) as false positives *after* reading source (correctly), but I never proved which 4 `strong-id` rows are "high". **Severity: blocks nothing, degrades report precision. Root cause: the finding table omits a severity column and I didn't compensate with a filtered re-run.**
+- **Severity-blind triage (self-inflicted).** I ranked findings by eyeballing file/symbol importance instead of by the tool's own severity. The `stats` output says `strong-id` has **4 high**, `do` has **5 medium**, `flagparam` has **2 medium**, `boolblind` has **1 critical** — I dismissed the two "medium/high" clusters (`do`, `boolblind`) as false positives _after_ reading source (correctly), but I never proved which 4 `strong-id` rows are "high". **Severity: blocks nothing, degrades report precision. Root cause: the finding table omits a severity column and I didn't compensate with a filtered re-run.**
 - **Coverage asserted from a file count, not from a load log.** I inferred "all modules walked" from `292 vs 310` files, plus a 5-module spot probe. That is circumstantial; a module that failed to type-load could hide here. **Severity: false-green risk (the AGENTS.md gotcha-2 class). Root cause: I did not capture a per-module load/candidate count.** Mitigation: the spot probe (health/auditlog/oauth2/totp/setup) all returned sane file counts, so the risk is low but not zero.
 - **One recommendation (`boolblind` = critical) as literally printed is misleading.** If a consumer greps for "critical" findings they'll hit `Capabilities` 11-bool first — the loudest item in the report is a non-issue. **Mitigation: this report labels it explicitly rejected.**
 
@@ -89,6 +89,7 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 ## e) WHAT WE SHOULD IMPROVE!
 
 **Process (this session):**
+
 1. **Rank by the tool's severity, not by intuition.** Use `stats` severity buckets to drive the shortlist; re-run with filters to isolate high/medium rows when the table is severity-blind. Concrete: for `strong-id`, get the 4 high rows before writing the verdict.
 2. **Prove coverage with a count, don't infer it.** Record per-module candidate counts (the AGENTS.md "PRINT ITS CANDIDATE COUNT" rule) so a skipped module fails loudly instead of silently.
 3. **State the false-positive verdict next to the finding**, as done here for `do`/`boolblind` — a raw analyzer dump without an adjudication table is noise.
@@ -110,6 +111,7 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 ## f) Top next tasks (up to 50; ranked; later items are ROADMAP fuel)
 
 ### Act-on shortlist (the findings worth investigation)
+
 1. Investigate credential 4× duplication → decide alias/embed vs keep — **High / M / Quality** (g4/g5) — **Routed 2026-10-05:** TODO_LIST (R11 memo) + ROADMAP OQ28 (owner intent)
 2. ~~Add drift guard or cross-link comment for `commandOptionApplier` split brain — **Medium / S / Cleanup**~~ done at `84b7fe3a`
 3. ~~Type `pendingTOTPStore.Save/Consume` with `identitymodel.UserID` — **Medium / S / Quality**~~ done-rescoped at `9f25f526` (typed key breaks the published seam, v5 candidate; key contract documented)
@@ -118,6 +120,7 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 6. ~~Whitelist the intentional strong-id wire/boundary hits in a baseline — **Medium / S / Cleanup**~~ done at `94a92e6f` (the SARIF baseline freezes every adjudicated finding)
 
 ### Analysis hardening
+
 7. Produce per-module candidate/load counts for a `branching-flow` run — **High / S / Analysis** — **Routed 2026-10-05:** TODO_LIST (R12)
 8. ~~Build `.branching-flow` baseline + diff workflow — **High / M / Tooling**~~ done at `94a92e6f` (native `--baseline`; gate + CI + self-test)
 9. Capture machine-readable (JSON) output for CI consumption — **Medium / M / Tooling** — **Routed 2026-10-05:** ROADMAP (T10/R23)
@@ -125,18 +128,21 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 11. ~~Document the severity-blind-table pitfall in this repo's analysis runbook — **Low / S / Documentation**~~ done (gotcha 26: "the `stats` severity table is BLIND to triage")
 
 ### Gate / CI integration (decision-gated)
+
 12. ~~Decide whether `branching-flow` becomes a gate — **High / S / Decision**~~ done 2026-10-05: YES, all 14 analyzers, fail-on-NEW (`94a92e6f`)
 13. ~~If yes: flake app `.#check-branching-flow` with `GOTOOLCHAIN=local` + goPkg — **High / M / Tooling**~~ done at `94a92e6f`
 14. ~~If yes: fixture self-test + `check-modules` stage + CI step + README line (atomic) — **High / L / Tooling**~~ done at `94a92e6f` (gotcha-19 atomic set)
 15. If yes: choose the analyzer subset (likely `contextguard`, `splitbrain`, `dupe`, `strong-id`, `flagparam`, `boolblind`) — **Medium / S / Decision** — **Routed 2026-10-05:** TODO_LIST (R15; default = all 14 until tuned)
 
 ### Credential/DTO cleanup
+
 16. Audit `systemadapter/views.go` views vs identity-model cores for alias opportunities — **Medium / M / Quality**
 17. Audit `usermgmt/webauthn/provider.go` `credentialData` vs `CredentialCore` — **Medium / M / Quality**
 18. Audit `webAuthnUserCred` (`usermgmt/webauthn_service.go:21`) for removal — **Medium / S / Quality**
 19. Add a domain-language entry for "credential" boundaries — **Low / S / Documentation**
 
 ### Small quality wins
+
 20. Investigate `navItem` dup (adminui/dashboardui) — likely intentional, add comment — **Low / S / Cleanup**
 21. `ifacecomplete` — annotate the 3 seam interfaces as intentional single-impl — **Low / S / Cleanup**
 22. `boolblind` — annotate `Capabilities` as an accepted projection — **Low / S / Cleanup**
@@ -145,11 +151,13 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 25. ~~Re-check `flagparam` `buildHandlerConfigChecked typeIsZero` (low, not-last bool) — **Low / S / Quality**~~ Won't implement — the triage ledger rejected both remaining flag-param findings (2026-10-05, `docs/analysis/triage-decisions.md`)
 
 ### Loop-closing / hygiene
+
 26. ~~Route items 1-25 into `TODO_LIST.md`/`ROADMAP.md` via docs-health HARVEST — **High / S / Documentation**~~ done at `471c0933`
 27. ~~Mark this report annotated once harvested — **Low / S / Documentation**~~ done 2026-10-05 (this blockquote + inline markers)
 28. ~~Note `branching-flow` v0.2.0 in memory as a known tool — **Low / S / Documentation**~~ done (absorbed into AGENTS gotcha 26)
 
 ### Speculative / ROADMAP
+
 29. Evaluate `phantom` findings separately with a tuned baseline (499 raw) — **Low / L / Analysis**
 30. Evaluate `mixins` for the non-wire structs only (`adminui`, `dashboardui`) — **Low / M / Quality**
 31. Evaluate `strong-id` fix for `systemadapter/queries.go` internal params — **Low / M / Quality**

@@ -3,6 +3,12 @@ package identitymodel
 // DefaultRBACModel is the Casbin PERM model for RBAC-with-domains authorization.
 // It defines request and policy structures, role definitions (g for domain-scoped,
 // g2 for global hierarchy), and matchers that check subject/domain/object/action.
+//
+// g2 is documentation-grade: Casbin keeps one role manager per role definition,
+// so an edge written to g2 never composes with a grant written to g. The
+// hierarchy that actually fires is mirrored into g per domain by
+// EnsureRoleHierarchy (see authz_hierarchy.go); consumers who replace this
+// model must keep a domain-scoped 3-argument g for that to work.
 const DefaultRBACModel = `[request_definition]
 r = sub, dom, obj, act
 

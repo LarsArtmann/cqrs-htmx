@@ -34,12 +34,7 @@ func (s *Spec) Schema(name string, schema *Schema) *Spec {
 // (Get, Post, ...) is constructed with the Get/Post/... constructors. If the
 // path already exists, operations are merged into the existing PathItem.
 func (s *Spec) Path(path string, operations ...*opBuilder) *Spec {
-	item := s.Paths[path]
-
-	if item == nil {
-		item = &PathItem{}
-		s.Paths[path] = item
-	}
+	item := s.pathItem(path)
 
 	for _, op := range operations {
 		op.apply(item)
@@ -48,16 +43,62 @@ func (s *Spec) Path(path string, operations ...*opBuilder) *Spec {
 	return s
 }
 
+// PathOp attaches an already-built Operation to a path, using the operation's
+// own HTTPMethod (set by the Get/Post/... constructors and carried through
+// Op()). This is the seam for attaching operation metadata shipped by a
+// library — e.g. cqrshtmx.SyncPullOpenAPIOp() — without redeclaring it in
+// builder calls. It panics when the operation carries no HTTPMethod (only
+// literally-constructed Operations can lack one). If the path already exists,
+// the operation is merged into the existing PathItem.
+func (s *Spec) PathOp(path string, operation Operation) *Spec {
+	if operation.HTTPMethod == "" {
+		panic("openapi: PathOp: operation has no HTTPMethod (build it with Get/Post/... and .Op())")
+	}
+
+	item := s.Paths[path]
+
+	if item == nil {
+		item = &PathItem{}
+		s.Paths[path] = item
+	}
+
+	(&opBuilder{method: operation.HTTPMethod, op: &operation}).apply(item)
+
+	return s
+}
+
+// pathItem returns the PathItem for path, creating and registering an empty
+// one when absent. Shared by Path and PathOp — the get-or-create contract
+// (existing operations are merged, never replaced) lives in exactly one place.
+func (s *Spec) pathItem(path string) *PathItem {
+	item := s.Paths[path]
+
+	if item == nil {
+		item = &PathItem{}
+		s.Paths[path] = item
+	}
+
+	return item
+}
+
 // --- operation constructors ---
 
 // opBuilder carries an HTTP method + Operation and applies it to a PathItem.
 // Instances are created by Get, Post, Put, Patch, Delete, Head, Options.
 type opBuilder struct {
-	method string
-	op     *Operation
+	method   string
+	op       *Operation
+	lastResp *Response
 }
 
 func (b *opBuilder) apply(item *PathItem) {
+	// A second registration of the same method would silently REPLACE the
+	// first operation — fail fast instead (matching PathOp's panic posture).
+	if b.op != nil && item.hasMethod(b.method) {
+		panic("openapi: method \"" + b.method + "\" already registered on this path — " +
+			"a second registration would silently replace the first")
+	}
+
 	switch b.method {
 	case "get":
 		item.Get = b.op
@@ -188,31 +229,66 @@ func (b *opBuilder) JSONBodyOpt(schema *Schema) *opBuilder {
 	return b
 }
 
-// Response adds a response for the given status code. The optional content
-// MediaTypes (typically produced by JSON(schema)) attach response bodies.
+// Response adds a response for the given status code. With exactly one
+// content MediaType it is keyed application/json (the conventional case —
+// pass JSON(schema)). To serve a non-JSON body, or several media types, use
+// [opBuilder.ResponseWithContent].
 func (b *opBuilder) Response(status int, description string, content ...*MediaType) *opBuilder {
 	resp := &Response{Description: description}
 
-	if len(content) > 0 {
-		resp.Content = map[string]*MediaType{}
-
-		for i, media := range content {
-			// JSON is the conventional key; for the common single-JSON-body
-			// case we use application/json explicitly.
-			resp.Content[jsonMediaType] = media
-
-			_ = i // placeholder: additional media types beyond JSON would key by their content type
-		}
+	switch len(content) {
+	case 0:
+	case 1:
+		resp.Content = map[string]*MediaType{jsonMediaType: content[0]}
+	default:
+		panic("openapi: Response: multiple content MediaTypes cannot be keyed automatically — " +
+			"use ResponseWithContent to name each content type")
 	}
 
 	b.op.Responses[status] = resp
+	b.lastResp = resp
+
+	return b
+}
+
+// ResponseWithContent adds a response with EXPLICIT media-type keys, e.g.
+// text/event-stream for SSE or text/html for HTMX partial responses:
+//
+//	.ResponseWithContent(200, "live feed", map[string]*openapi.MediaType{
+//		"text/event-stream": openapi.EventStream(),
+//	})
+//
+// The map is used as given; JSON(schema) remains the application/json helper.
+func (b *opBuilder) ResponseWithContent(status int, description string, content map[string]*MediaType) *opBuilder {
+	resp := &Response{Description: description, Content: content}
+	b.op.Responses[status] = resp
+	b.lastResp = resp
+
+	return b
+}
+
+// RespHeader documents a response header on the response most recently added
+// via Response or NoContent. Panics when no response was added yet — order the
+// call directly after the Response it decorates.
+func (b *opBuilder) RespHeader(name string, schema *Schema, description string) *opBuilder {
+	if b.lastResp == nil {
+		panic("openapi: RespHeader: no response to decorate (call Response or NoContent first)")
+	}
+
+	if b.lastResp.Headers == nil {
+		b.lastResp.Headers = map[string]*Header{}
+	}
+
+	b.lastResp.Headers[name] = &Header{Description: description, Schema: schema}
 
 	return b
 }
 
 // NoContent adds a response for the given status code with no body (e.g. 204).
 func (b *opBuilder) NoContent(status int, description string) *opBuilder {
-	b.op.Responses[status] = &Response{Description: description}
+	resp := &Response{Description: description}
+	b.op.Responses[status] = resp
+	b.lastResp = resp
 
 	return b
 }

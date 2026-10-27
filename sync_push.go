@@ -1,0 +1,331 @@
+package cqrshtmx
+
+import (
+	"context"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+	"io"
+	"log/slog"
+	"net/http"
+	"strings"
+	"sync"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+)
+
+// MaxSyncPushBatch is the maximum number of command envelopes accepted in one
+// batch push. Larger batches are rejected whole (400) before any dispatch —
+// the guard exists to protect the server, not to rate-limit the client.
+const MaxSyncPushBatch = 100
+
+// SyncPushStatus is the outcome status of one pushed envelope (the status
+// wire field). The type makes the vocabulary nameable in consumer code; it
+// serializes as its plain string value.
+type SyncPushStatus string
+
+// Sync push outcome statuses (see [SyncPushResult]).
+const (
+	SyncPushStatusConfirmed SyncPushStatus = "confirmed"
+	SyncPushStatusRejected  SyncPushStatus = "rejected"
+)
+
+// SyncPushEnvelope is one queued command as sent by the offline sync client.
+// Body is the exact request body the single-command endpoint's decoder
+// expects (JSON or form-encoded — match ContentType accordingly); commandId is
+// the client-minted ULID used for ACK correlation and idempotent retries.
+type SyncPushEnvelope struct {
+	CommandID   string `json:"commandId"`
+	Type        string `json:"type"`
+	Body        string `json:"body"`
+	ContentType string `json:"contentType,omitempty"`
+}
+
+// SyncPushRequest is the batch push request body.
+type SyncPushRequest struct {
+	Commands []SyncPushEnvelope `json:"commands"`
+}
+
+// SyncPushError is the error detail attached to a rejected outcome. Family is
+// the client's retry contract: "rejection"/"conflict" are permanent (surface
+// to the user, drop from the queue), "transient" is retryable (re-queue),
+// "corruption"/"infrastructure" are permanent-failures (drop + log).
+type SyncPushError struct {
+	Message string `json:"message"`
+	Code    string `json:"code,omitempty"`
+	Family  string `json:"family"`
+}
+
+// SyncPushResult is the outcome of one envelope. Commands answer with
+// outcomes, never domain state (Axon CommandGateway semantics) — state arrives
+// via pull or SSE.
+type SyncPushResult struct {
+	CommandID string         `json:"commandId"`
+	Status    SyncPushStatus `json:"status"`
+	Error     *SyncPushError `json:"error,omitempty"`
+}
+
+// UnmarshalJSONFrom decodes a [SyncPushResult] and enforces the status/error
+// union: a confirmed outcome carries no error, a rejected outcome carries
+// one. Anything else is a producer bug or a truncated body — it fails the
+// decode instead of silently yielding an outcome the client cannot act on.
+func (r *SyncPushResult) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	type syncPushResultWire SyncPushResult
+
+	var wire syncPushResultWire
+	if err := json.UnmarshalDecode(dec, &wire); err != nil {
+		return err //nolint:wrapcheck // decode error passes through; wire contract
+	}
+
+	*r = SyncPushResult(wire)
+
+	switch r.Status {
+	case SyncPushStatusConfirmed:
+		if r.Error != nil {
+			return errorfamily.Newf(errorfamily.Corruption,
+				"cqrshtmx.sync.push.status_union",
+				"confirmed outcome must not carry an error (command %q)", r.CommandID)
+		}
+	case SyncPushStatusRejected:
+		if r.Error == nil {
+			return errorfamily.Newf(errorfamily.Corruption,
+				"cqrshtmx.sync.push.status_union",
+				"rejected outcome must carry an error (command %q)", r.CommandID)
+		}
+	default:
+		return errorfamily.Newf(errorfamily.Corruption,
+			"cqrshtmx.sync.push.status_union",
+			"unknown status %q (command %q)", r.Status, r.CommandID)
+	}
+
+	return nil
+}
+
+// SyncPushResponse is the batch push response body. The endpoint answers 200
+// whenever the batch itself was processable; per-command failures live in the
+// results.
+type SyncPushResponse struct {
+	Results []SyncPushResult `json:"results"`
+}
+
+// commandRegistry retains the per-type handler configuration from every
+// App.Command / CommandTyped registration so SyncPushHandler can replay the
+// endpoint pipeline for batch envelopes without a second registration
+// surface. Safe for concurrent use.
+type commandRegistry struct {
+	mu      sync.Mutex
+	configs map[command.Type]*handlerConfig
+}
+
+// remember retains a command registration. Later registrations for the same
+// type win (mirrors route registration semantics: the last wiring is the live
+// one).
+func (r *commandRegistry) remember(cmdType command.Type, config *handlerConfig) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.configs == nil {
+		r.configs = make(map[command.Type]*handlerConfig)
+	}
+
+	r.configs[cmdType] = config
+}
+
+// lookup returns a retained command registration.
+func (r *commandRegistry) lookup(cmdType command.Type) (*handlerConfig, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	config, ok := r.configs[cmdType]
+
+	return config, ok
+}
+
+// SyncPushHandler returns an http.HandlerFunc implementing the write half of
+// the frontend sync protocol (ADR-0056): a batched, per-command-outcome push
+// of queued commands.
+//
+//	POST {commands: [{commandId, type, body, contentType}]}
+//	  → {results: [{commandId, status: "confirmed"|"rejected", error?}]}
+//
+// Each envelope replays the SAME pipeline its single-command endpoint uses —
+// authorization, decoding, request guards, context enrichment, dispatch —
+// against a synthesized request carrying the envelope body plus the outer
+// request's headers and context. No new per-command registration is needed:
+// the types are the ones already registered via [App.Command] /
+// CommandTyped.
+//
+// The envelope's commandId is stamped as X-Command-Id on the synthesized
+// request, so AfterDispatch hooks like Broadcaster.BroadcastOnAck fire per
+// command and consumer idempotency middleware can dedup retries.
+//
+// Batch failures are isolated: unknown types, decoding failures, and rejections
+// answer per-command without aborting the batch. Only malformed requests
+// (wrong method, undecodable body, empty/oversized batch) fail whole with 4xx.
+//
+// CSRF is validated once on the outer POST by the surrounding middleware;
+// inner envelopes are not independently reachable and do not re-validate.
+func (a *App) SyncPushHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeSyncError(w, http.StatusMethodNotAllowed, "cqrshtmx.sync.push.method_not_allowed",
+				"sync push is a POST endpoint")
+
+			return
+		}
+
+		if a.commands == nil {
+			writeSyncError(w, http.StatusServiceUnavailable, "cqrshtmx.sync.push.no_commands",
+				"no command dispatcher configured")
+
+			return
+		}
+
+		var body io.Reader = r.Body
+		if a.maxBodySize > 0 {
+			body = http.MaxBytesReader(w, r.Body, a.maxBodySize)
+		}
+
+		var req SyncPushRequest
+		if err := json.UnmarshalRead(body, &req); err != nil {
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.push.decode",
+				"request body must be a JSON batch of commands")
+
+			return
+		}
+
+		if len(req.Commands) == 0 {
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.push.empty",
+				"commands must not be empty")
+
+			return
+		}
+
+		if len(req.Commands) > MaxSyncPushBatch {
+			writeSyncError(w, http.StatusBadRequest, "cqrshtmx.sync.push.too_large",
+				"batch exceeds MaxSyncPushBatch envelopes")
+
+			return
+		}
+
+		results := make([]SyncPushResult, 0, len(req.Commands))
+		for _, envelope := range req.Commands {
+			results = append(results, a.dispatchSyncPushEnvelope(r.Context(), r, envelope))
+		}
+
+		_ = WriteJSON(
+			w,
+			http.StatusOK,
+			SyncPushResponse{Results: results},
+		)
+	}
+}
+
+// dispatchSyncPushEnvelope replays the endpoint pipeline for one envelope and
+// returns its outcome. It never panics upward on domain errors: every failure
+// path becomes a rejected result with a classified family.
+func (a *App) dispatchSyncPushEnvelope(ctx context.Context, r *http.Request, envelope SyncPushEnvelope) SyncPushResult {
+	if envelope.CommandID == "" {
+		return rejectedSyncPushResult("", "cqrshtmx.sync.push.command_id_missing",
+			"commandId is required", event.Rejection)
+	}
+
+	cmdType := command.Type(envelope.Type)
+
+	config, ok := a.commandRegistry.lookup(cmdType)
+	if !ok || config.commandDecoder == nil {
+		return rejectedSyncPushResult(envelope.CommandID, "cqrshtmx.sync.push.unknown_type",
+			"unknown command type: "+envelope.Type, event.Rejection)
+	}
+
+	inner := synthesizeSyncPushRequest(ctx, r, envelope)
+
+	if err := a.executeAuthorization(inner, config); err != nil {
+		return rejectedSyncPushResult(envelope.CommandID, ErrorCode(err), err.Error(),
+			errorfamily.Classify(err))
+	}
+
+	cmd, err := config.commandDecoder(inner)
+	if err != nil || cmd == nil {
+		if err == nil {
+			err = errDecoderReturnedNil
+		}
+
+		return rejectedSyncPushResult(envelope.CommandID, "cqrshtmx.sync.push.decode_failed",
+			"decode "+envelope.Type+" failed: "+err.Error(), event.Rejection)
+	}
+
+	if config.requestGuard != nil {
+		if err := config.requestGuard(inner, cmd); err != nil {
+			return rejectedSyncPushResult(envelope.CommandID, ErrorCode(err), err.Error(),
+				errorfamily.Classify(err))
+		}
+	}
+
+	dispatchCtx, cancel := a.timeoutCtx(ctx, config)
+	defer cancel()
+
+	enrichCommandFromContext(dispatchCtx, cmd)
+
+	dispatchErr := a.commands.Dispatch(dispatchCtx, cmd)
+
+	// The afterDispatch hook runs per envelope with the synthesized request,
+	// so ACK-style hooks (BroadcastOnAck reads X-Command-Id) fire per command.
+	a.afterDispatchHook(dispatchCtx, inner, dispatchErr)
+
+	if dispatchErr != nil {
+		return rejectedSyncPushResult(envelope.CommandID, ErrorCode(dispatchErr),
+			SafeDetail(dispatchErr, MapError(dispatchErr), false),
+			errorfamily.Classify(dispatchErr))
+	}
+
+	slog.DebugContext(dispatchCtx, "cqrs-htmx: sync push confirmed",
+		slog.String("commandId", envelope.CommandID),
+		slog.String("commandType", envelope.Type),
+	)
+
+	return SyncPushResult{CommandID: envelope.CommandID, Status: SyncPushStatusConfirmed, Error: nil}
+}
+
+// synthesizeSyncPushRequest clones the outer request with the envelope's body.
+// Headers (session cookies, X-Client-Id, CSRF-free content headers) and
+// context (user ID, actor, correlation) carry over unchanged, so decoders and
+// authz behave exactly as on the single-command endpoint. X-Command-Id is
+// (re)stamped from the envelope for ACK correlation and idempotent retries.
+func synthesizeSyncPushRequest(ctx context.Context, r *http.Request, envelope SyncPushEnvelope) *http.Request {
+	inner := r.Clone(ctx)
+
+	contentType := envelope.ContentType
+	if contentType == "" {
+		contentType = ContentTypeJSON
+	}
+
+	inner.Header = inner.Header.Clone()
+	inner.Header.Set("Content-Type", contentType)
+	inner.Header.Set(CommandIDHeader, envelope.CommandID)
+
+	inner.Body = io.NopCloser(strings.NewReader(envelope.Body))
+	inner.ContentLength = int64(len(envelope.Body))
+
+	return inner
+}
+
+// rejectedSyncPushResult builds a rejected outcome. The unknown family (a
+// zero-value classification) defaults to Rejection so clients always see a
+// decidable retry contract.
+func rejectedSyncPushResult(commandID, code, message string, family errorfamily.Family) SyncPushResult {
+	if family.String() == "unknown" {
+		family = errorfamily.Rejection
+	}
+
+	return SyncPushResult{
+		CommandID: commandID,
+		Status:    SyncPushStatusRejected,
+		Error: &SyncPushError{
+			Message: message,
+			Code:    code,
+			Family:  family.String(),
+		},
+	}
+}

@@ -7,6 +7,7 @@
 #   3. tail over budget with --strict                  -> exit 1
 #   4. README.md is excluded from the count
 #   5. --budget override honored
+#   6-10. ratchet mode: at baseline / over baseline / below baseline / missing / malformed
 #
 # Usage: bash scripts/selftests/test-check-docs-tail-budget.sh
 set -uo pipefail
@@ -91,6 +92,83 @@ else
   echo "  FAIL 5: --budget 0 should report over budget; output:" >&2
   printf '%s\n' "$out" | sed 's/^/      /' >&2
   fail=$((fail + 1))
+fi
+
+# --- ratchet mode (blocking) -------------------------------------------------
+
+# Case 6: ratchet at the baseline is green.
+make_root "$WORK/ratchet-at" 3
+echo 3 >"$WORK/ratchet-at/docs/status/TAIL_BASELINE"
+if out=$(run_gate "$WORK/ratchet-at" --ratchet) && printf '%s' "$out" | grep -q "ratchet"; then
+  echo "  ok 6: ratchet at baseline passes"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 6: ratchet at baseline should pass; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 7: growth past the baseline is a hard failure.
+echo 2 >"$WORK/ratchet-at/docs/status/TAIL_BASELINE"
+if out=$(run_gate "$WORK/ratchet-at" --ratchet); then
+  echo "  FAIL 7: ratchet over baseline should fail; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+else
+  if printf '%s' "$out" | grep -q "exceed the ratchet baseline"; then
+    echo "  ok 7: ratchet over baseline fails"
+    pass=$((pass + 1))
+  else
+    echo "  FAIL 7: wrong failure text; output:" >&2
+    printf '%s\n' "$out" | sed 's/^/      /' >&2
+    fail=$((fail + 1))
+  fi
+fi
+
+# Case 8: shrinking below the baseline warns but passes (lower the baseline).
+make_root "$WORK/ratchet-below" 2
+echo 5 >"$WORK/ratchet-below/docs/status/TAIL_BASELINE"
+if out=$(run_gate "$WORK/ratchet-below" --ratchet) && printf '%s' "$out" | grep -q "BELOW the baseline"; then
+  echo "  ok 8: ratchet below baseline warns and passes"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 8: ratchet below baseline should warn; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 9: missing baseline is a failure (no silent pass).
+make_root "$WORK/ratchet-none" 2
+if out=$(run_gate "$WORK/ratchet-none" --ratchet); then
+  echo "  FAIL 9: missing baseline should fail; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+else
+  if printf '%s' "$out" | grep -q "needs .*TAIL_BASELINE"; then
+    echo "  ok 9: missing baseline fails"
+    pass=$((pass + 1))
+  else
+    echo "  FAIL 9: wrong failure text; output:" >&2
+    printf '%s\n' "$out" | sed 's/^/      /' >&2
+    fail=$((fail + 1))
+  fi
+fi
+
+# Case 10: malformed baseline is a failure.
+echo "many" >"$WORK/ratchet-at/docs/status/TAIL_BASELINE"
+if out=$(run_gate "$WORK/ratchet-at" --ratchet); then
+  echo "  FAIL 10: malformed baseline should fail; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+else
+  if printf '%s' "$out" | grep -q "single integer"; then
+    echo "  ok 10: malformed baseline fails"
+    pass=$((pass + 1))
+  else
+    echo "  FAIL 10: wrong failure text; output:" >&2
+    printf '%s\n' "$out" | sed 's/^/      /' >&2
+    fail=$((fail + 1))
+  fi
 fi
 
 echo ""

@@ -507,14 +507,14 @@ Too narrow. Only solves JSON assertions, leaving HTML, headers, and status codes
 
 | Feature                  | go-snaps        | cupaloy     | Golden Files | Custom Matcher |
 | ------------------------ | --------------- | ----------- | ------------ | -------------- |
-| **Dynamic masking**      | ✅ Built-in     | ❌ None     | ⚠️ Manual     | ⚠️ Manual       |
-| **Ginkgo native**        | ✅ Yes          | ✅ Yes      | ⚠️ Clunky     | ✅ Yes         |
-| **JSON formatting**      | ✅ Yes          | ❌ No       | ⚠️ Manual     | ✅ Yes         |
+| **Dynamic masking**      | ✅ Built-in     | ❌ None     | ⚠️ Manual    | ⚠️ Manual      |
+| **Ginkgo native**        | ✅ Yes          | ✅ Yes      | ⚠️ Clunky    | ✅ Yes         |
+| **JSON formatting**      | ✅ Yes          | ❌ No       | ⚠️ Manual    | ✅ Yes         |
 | **Auto cleanup**         | ✅ Yes          | ✅ Yes      | ❌ No        | ❌ No          |
-| **HTTP response helper** | ✅ Easy         | ⚠️ Custom    | ⚠️ Custom     | ❌ No          |
+| **HTTP response helper** | ✅ Easy         | ⚠️ Custom   | ⚠️ Custom    | ❌ No          |
 | **Zero deps**            | ❌ 1 dep        | ❌ 1 dep    | ✅ Yes       | ✅ Yes         |
-| **Active maintenance**   | ✅ 2026         | ⚠️ 2022      | N/A (you)    | N/A (you)      |
-| **CI integration**       | ✅ Built-in     | ✅ Built-in | ⚠️ Custom     | ⚠️ Custom       |
+| **Active maintenance**   | ✅ 2026         | ⚠️ 2022     | N/A (you)    | N/A (you)      |
+| **CI integration**       | ✅ Built-in     | ✅ Built-in | ⚠️ Custom    | ⚠️ Custom      |
 | **Snapshot inline**      | ✅ Experimental | ❌ No       | ❌ No        | ❌ No          |
 | **Learning curve**       | Low             | Very low    | Medium       | Medium         |
 

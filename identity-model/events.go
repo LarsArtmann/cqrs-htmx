@@ -47,6 +47,18 @@ type CredentialRemovedPayload struct {
 	ID            []byte `json:"id"`
 }
 
+// CredentialUsedPayload records the credential state observed during one
+// successful WebAuthn assertion: the signature counter (the clone-detection
+// high-water mark) and the flags the authenticator reported.
+type CredentialUsedPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	CredentialID  []byte `json:"credential_id"`
+	SignCount     uint32 `json:"sign_count"`
+	UserPresent   bool   `json:"user_present,omitempty"`
+	UserVerified  bool   `json:"user_verified,omitempty"`
+	BackupState   bool   `json:"backup_state"`
+}
+
 type EmailVerifiedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	Email         string `json:"email"`
@@ -131,6 +143,58 @@ type BotRegisteredPayload struct {
 type BotDeletedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	Reason        string `json:"reason"`
+}
+
+// --- Auth audit event payloads ---
+//
+// The three auth events (LoginSucceeded, LoginFailed, RegistrationClosed)
+// are SECURITY AUDIT facts, not user state: they are appended to dedicated
+// Auth-typed streams (one fresh stream per event) so login volume never
+// grows the user aggregate a command must fold on every dispatch. Never
+// place them on user streams — see docs/guides/actor-and-audit-trail.md.
+
+// AuthMethod is the bounded vocabulary of authentication methods recorded
+// in auth audit payloads.
+type AuthMethod string
+
+const (
+	AuthMethodWebAuthN AuthMethod = "webauthn"
+	AuthMethodTOTP     AuthMethod = "totp"
+	AuthMethodOAuth2   AuthMethod = "oauth2"
+)
+
+// AuthFailureReason is the bounded vocabulary of login failure reason
+// classes. Values are coarse classifications, never provider error text or
+// credential material — the payload must be safe to journal verbatim.
+type AuthFailureReason string
+
+const ( //cqrs-lint:ignore(S001) AuthFailureTokenExchange is an enum value for a login-failure reason class, not a secret
+	AuthFailureNoCredentials  AuthFailureReason = "no_credentials"
+	AuthFailureCeremonyFailed AuthFailureReason = "ceremony_failed"
+	AuthFailureCodeInvalid    AuthFailureReason = "code_invalid"
+	AuthFailureStateInvalid   AuthFailureReason = "state_invalid"
+	AuthFailureProviderMismat AuthFailureReason = "provider_mismatch"
+	AuthFailureTokenExchange  AuthFailureReason = "token_exchange"
+	AuthFailureNoEmail        AuthFailureReason = "no_email"
+)
+
+type LoginSucceededPayload struct {
+	SchemaVersion int        `json:"schema_version"`
+	Method        AuthMethod `json:"method"`
+	// Provider qualifies AuthMethodOAuth2 (e.g. "google"); empty otherwise.
+	Provider string `json:"provider,omitempty"`
+}
+
+type LoginFailedPayload struct {
+	SchemaVersion int               `json:"schema_version"`
+	Method        AuthMethod        `json:"method"`
+	Reason        AuthFailureReason `json:"reason"`
+	// Provider qualifies AuthMethodOAuth2; empty otherwise.
+	Provider string `json:"provider,omitempty"`
+}
+
+type RegistrationClosedPayload struct {
+	SchemaVersion int `json:"schema_version"`
 }
 
 // marshalJSONOrWrap serializes v with encoding/json and wraps any error as

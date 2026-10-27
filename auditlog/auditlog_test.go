@@ -1,6 +1,7 @@
 package auditlog
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -101,4 +102,24 @@ func TestWithAuditLog_InvalidConfigReturnsOrchestrationError(t *testing.T) {
 	require.Nil(t, setup)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cqrshtmx.auditlog.setup_failed")
+}
+
+// TestSetup_ShutdownWorksInMountedMode pins S39/w03.3: the documented mounted
+// mode (Viewer handled by the consumer's own mux) has a shutdown story —
+// Setup.Shutdown flushes and drains the viewer without ListenAndServe, and
+// the completion marker unblocks the final report first.
+func TestSetup_ShutdownWorksInMountedMode(t *testing.T) {
+	t.Parallel()
+
+	setup, err := WithAuditLog(auditlog.Config{}, live.Config{Prefix: "/audit"})
+	require.NoError(t, err)
+
+	require.Equal(t, 0, setup.Viewer.ClientCount(), "no clients before shutdown")
+
+	setup.SignalComplete()
+
+	err = setup.Shutdown(context.Background())
+	require.NoError(t, err, "mounted-mode Shutdown must flush + drain cleanly")
+
+	require.Equal(t, 0, setup.Viewer.ClientCount(), "drain disconnects every viewer")
 }

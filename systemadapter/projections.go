@@ -2,7 +2,6 @@ package systemadapter
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -117,12 +116,13 @@ func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*Pro
 
 	authz, err := usermgmt.NewAuthz()
 	if err != nil {
-		return nil, fmt.Errorf("systemadapter: create authz: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err, "systemadapter.create_authz", "create authz")
 	}
 
 	casbinProj, err := usermgmt.NewCasbinProjection(authz)
 	if err != nil {
-		return nil, fmt.Errorf("systemadapter: create casbin projection: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err,
+			"systemadapter.create_casbin_projection", "create casbin projection")
 	}
 
 	pl := &ProjectionLayer{
@@ -156,7 +156,8 @@ func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*Pro
 		projectionhost.WithBatchSize(projectionBatchSize),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("systemadapter: create projection host: %w", err)
+		return nil, errorfamily.WrapInfrastructure(err,
+			"systemadapter.create_projection_host", "create projection host")
 	}
 
 	projections := []projection.Projection{
@@ -170,7 +171,8 @@ func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*Pro
 
 	for _, p := range projections {
 		if err := host.Register(p); err != nil {
-			return nil, fmt.Errorf("systemadapter: register projection %q: %w", p.Name(), err)
+			return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure,
+				"systemadapter.register_projection", "register projection %q", p.Name())
 		}
 	}
 
@@ -183,7 +185,7 @@ func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*Pro
 // NewProjectionLayer and before dispatching commands.
 func (pl *ProjectionLayer) Start(ctx context.Context) error {
 	if err := pl.Host.Start(ctx); err != nil {
-		return fmt.Errorf("systemadapter: start projection host: %w", err)
+		return errorfamily.WrapInfrastructure(err, "systemadapter.start_projection_host", "start projection host")
 	}
 
 	return nil
@@ -192,7 +194,7 @@ func (pl *ProjectionLayer) Start(ctx context.Context) error {
 // Stop gracefully stops the projection host. Safe to call multiple times.
 func (pl *ProjectionLayer) Stop() error {
 	if err := pl.Host.Stop(); err != nil {
-		return fmt.Errorf("systemadapter: stop projection host: %w", err)
+		return errorfamily.WrapInfrastructure(err, "systemadapter.stop_projection_host", "stop projection host")
 	}
 
 	return nil

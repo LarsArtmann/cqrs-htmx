@@ -21,12 +21,10 @@ type ExternalAccount struct {
 // NewExternalAccount constructs an ExternalAccount from its field values.
 func NewExternalAccount(provider, subject, email, displayName string, linkedAt time.Time) ExternalAccount {
 	return ExternalAccount{
-		ExternalAccountCore: ExternalAccountCore{
-			Provider:    provider,
-			Subject:     subject,
-			Email:       email,
-			DisplayName: displayName,
-		},
-		LinkedAt: linkedAt,
+		Provider:    provider,
+		Subject:     subject,
+		Email:       email,
+		DisplayName: displayName,
+		LinkedAt:    linkedAt,
 	}
 }

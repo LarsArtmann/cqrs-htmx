@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 	"testing"
 	"time"
@@ -110,10 +111,8 @@ func TestStartProjectionHost_CustomDrainTimeout(t *testing.T) {
 	t.Cleanup(func() { closeBus(bus) })
 
 	slow := &slowProjection{
-		stubProjection: stubProjection{
-			name:  "slow",
-			types: []event.Type{evt.Type()},
-		},
+		name:  "slow",
+		types: []event.Type{evt.Type()},
 		delay: 2 * time.Second,
 	}
 
@@ -157,10 +156,8 @@ func TestStartProjectionHost_AsyncSkipsDrain(t *testing.T) {
 	t.Cleanup(func() { closeBus(bus) })
 
 	slow := &slowProjection{
-		stubProjection: stubProjection{
-			name:  "slow",
-			types: []event.Type{evt.Type()},
-		},
+		name:  "slow",
+		types: []event.Type{evt.Type()},
 		delay: 2 * time.Second,
 	}
 
@@ -227,4 +224,32 @@ func TestNewEventSourcedSetup_AsyncStartup(t *testing.T) {
 
 	t.Fatalf("projections did not reach ready state within timeout; statuses: %+v",
 		setup.ProjectionStatuses())
+}
+
+// journalOnlyStore embeds event.Store without promoting event.Journal — the
+// shape that triggers journalFromStore's empty-memory fallback.
+type journalOnlyStore struct {
+	event.Store
+}
+
+// TestJournalFromStore_WarnsOnFallback pins S37f: a store that does not
+// implement event.Journal yields an EMPTY in-memory journal (projections
+// replay nothing) — that fallback must warn loudly instead of passing
+// silently, so production consumers discover the misconfiguration at
+// startup rather than after their first rebuild.
+func TestJournalFromStore_WarnsOnFallback(t *testing.T) {
+	var buf syncBuffer
+
+	original := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelWarn})))
+	t.Cleanup(func() { slog.SetDefault(original) })
+
+	journal := journalFromStore(journalOnlyStore{})
+	if journal == nil {
+		t.Fatal("fallback must still return a usable (empty) journal")
+	}
+
+	if !strings.Contains(buf.String(), "does not implement event.Journal") {
+		t.Fatalf("expected empty-store fallback warning, got log:\n%s", buf.String())
+	}
 }

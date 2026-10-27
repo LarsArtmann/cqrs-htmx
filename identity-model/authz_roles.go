@@ -89,7 +89,18 @@ func (a *Authz) UsersForRole(role Role, domain TenantID) ([]string, error) {
 		)
 	}
 
-	return u, nil
+	// The domain-scoped role manager also carries the role-to-role hierarchy
+	// edges, so Casbin can report a role name as if it were a subject. Users
+	// are the only valid subjects here.
+	users := make([]string, 0, len(u))
+	for _, subject := range u {
+		if Role(subject).Valid() {
+			continue
+		}
+		users = append(users, subject)
+	}
+
+	return users, nil
 }
 
 // RolesForActor returns the direct roles assigned to an actor in a tenant.
@@ -99,7 +110,13 @@ func (a *Authz) RolesForActor(actorID ActorID, tenantID TenantID) ([]Role, error
 	if actorID.Kind() != ActorUser {
 		return nil, nil
 	}
-	return a.RolesForUser(NewUserID(actorID.String()), tenantID)
+
+	uid, err := ParseUserID(actorID.Raw())
+	if err != nil {
+		return nil, err
+	}
+
+	return a.RolesForUser(uid, tenantID)
 }
 
 // ImplicitRolesForActor returns all roles assigned to an actor in a tenant,
@@ -110,5 +127,11 @@ func (a *Authz) ImplicitRolesForActor(actorID ActorID, tenantID TenantID) ([]Rol
 	if actorID.Kind() != ActorUser {
 		return nil, nil
 	}
-	return a.ImplicitRolesForUser(NewUserID(actorID.String()), tenantID)
+
+	uid, err := ParseUserID(actorID.Raw())
+	if err != nil {
+		return nil, err
+	}
+
+	return a.ImplicitRolesForUser(uid, tenantID)
 }

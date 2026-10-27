@@ -163,11 +163,12 @@ contract. The SQL read models therefore stay on the v4 trains unchanged.
 
 ## Sweep protocol for the v5 cut
 
+0. Run the migration codemod on consumer trees: `go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest ./...` (dry-run report; `-apply` writes). It mechanically executes classes 1–3 (rules R1/R2/R3/R9/R10 — including the R3 `.Raw()` manual findings) with symbol tables DERIVED from the installed version's own alias declarations, so it cannot drift from this inventory's source files. (Note: the `cqrs-upgrade` tool referenced in §5c's 2026-09-20 count is go-cqrs-lite's separate `cmd/cqrs-upgrade`; `cqrs-htmx-upgrade` is this repo's.)
 1. Delete classes 1-3 files/symbols (mechanical — the aliases are transparent;
    no consumer-invisible behavior changes).
 2. Apply class 4 decisions per item (each has a written rationale).
 3. Run: `nix run .#build`, `.#test`, `.#lint`, `bash
-   scripts/checks/check-module-isolation.sh`, `nix run .#check-release-train`,
+scripts/checks/check-module-isolation.sh`, `nix run .#check-release-train`,
    `nix run .#check-docs-links` — then a docs sweep for
    `cqrshtmx.CSRF|cqrshtmx.SecurityHeaders|Broadcaster.Raw|usermgmt.User.*Payload`
    references in guides/examples.

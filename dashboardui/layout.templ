@@ -36,7 +36,7 @@ templ layout(p pageData, content templ.Component) {
 				// and applies .dark + color-scheme before first paint.
 				@dashboardStylesheets(p.Nonce, p.BasePath)
 				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
-				<script src={ p.BasePath + "/-/dashboard.js" } defer></script>
+				<script src={ p.BasePath + "/-/dashboard.js" } data-base-path={ p.BasePath } defer></script>
 			</head>
 			<body>
 				<a href="#main-content" class="skip-link">Skip to content</a>
@@ -70,9 +70,12 @@ templ layout(p pageData, content templ.Component) {
 
 // accentStyle renders the per-instance accent color as a tiny inline style
 // tag (the one intentional inline style exception; templ treats <style>
-// content as raw text, so the value is escaped in Go first).
+// content as raw text, so the value is escaped in Go first). The tag carries
+// the page's CSP nonce when one is set — without it, nonce-CSP consumers
+// silently drop the accent (adminui's accentStyleTag is the reference).
 templ accentStyle(p pageData) {
-	@templ.Raw("<style>:root{--accent:" + esc(p.Accent) + ";}</style>\n")
+	{{ styleTag := accentStyleTag(p) }}
+	@templ.Raw(styleTag + "\n")
 }
 
 // sidebar renders the dashboard navigation rail.

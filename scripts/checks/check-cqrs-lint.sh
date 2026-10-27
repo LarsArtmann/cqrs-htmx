@@ -11,9 +11,9 @@
 # no longer fires is an ERROR: stale suppressions are lies that accrete; act
 # on the tool's "safe to remove" hints instead of keeping them, gotcha 13).
 #
-# cqrs-lint shells out to `go list`: goPkg (1.27.1) + GOTOOLCHAIN=local are
-# REQUIRED or every module fails with load errors (the ambient go cannot load
-# the 1.27.1 workspace).
+# cqrs-lint shells out to `go list`: goPkg (the pinned flake toolchain) +
+# GOTOOLCHAIN=local are REQUIRED or every module fails with load errors (the
+# ambient go cannot load the workspace floor).
 #
 # Usage: bash scripts/checks/check-cqrs-lint.sh [module-dir...]   (default: the gate list)
 set -uo pipefail

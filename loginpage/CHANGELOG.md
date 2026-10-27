@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`Config.NoWebAuthn` (W14/S36 follow-through, 2026-10-26).** Page-level counterpart of `Config.NoOAuth2`: force-hides the passkey form and the registration section on THIS page while the shared `*usermgmt.Service` keeps its WebAuthn provider for other surfaces (the service and its mounted endpoints are untouched). Unlocks the OAuth-only recipe on a shared service — `NoWebAuthn` + `AutoRedirect` + a sole provider turns the page into a pure OAuth2 entry point (302 straight to the begin URL). Mutually exclusive with `Config.NoOAuth2` (rejected at `New`: a page with no sign-in method at all is a misconfiguration). README §One-click sign-in documents the recipe and the session semantics (the page is session-agnostic by design; wrap the route with a session gate such as `setup.RequireSessionRedirect` to let signed-in visitors skip it).
+
+### Changed
+
+- **`Config.AuthPrefix` is now validated at `New`.** The prefix feeds every auth link target and the `AutoRedirect` 302 `Location` header, so it must be empty or a root-relative path (leading `/`, not protocol-relative `//host`): bare-relative values (`"api"`) mis-resolve against the page URL and protocol-relative values redirect off-site. Previously such values were silently accepted.
+
+### Fixed
+
+- **WebAuthn ceremonies work against real usermgmt responses (S57/W10, 2026-10-25).** The embedded JS read `begin.options.challenge` (and `user.id` / `allowCredentials` / `excludeCredentials`) directly off the begin endpoint's response — but usermgmt's `/auth/webauthn/{login,register}/begin` return the browser options wrapped in a `{"publicKey": {...}}` envelope, so every real ceremony crashed in the browser with `Cannot read properties of undefined (reading 'replace')`. Found by the first browser-level proof this page ever had (the Playwright virtual-authenticator E2E in `e2e/tests/loginpage-webauthn.spec.ts`); the node smoke suite had only ever fed bare options objects. Both `prepareLoginOptions` and `prepareRegOptions` now unwrap the envelope first (bare objects keep working); pinned by a new jstests case using the exact usermgmt wire shape.
+
+- **`NewPageData` (Option B) now populates Nonce, Theme, CSRF, and the error message from the request (S36, 2026-10-25).** Consumers embedding the login form via `NewPageData` into their own layout got a `PageData` with an empty Nonce and no Theme — under the recommended nonce-CSP the embedded scripts were dead, and SSR theming was silently lost. Both construction paths (`ServeHTTP` and `NewPageData`) now share one request-scoped enrichment helper; a hostile nonce is sanitized the same way in both. Pinned by `TestNewPageData_PopulatesNonceAndTheme`.
+
+- **Favicon data-URI percent-encoding (2026-10-18 full-code-review wave).** The inline SVG favicon carried the raw accent color (`fill='#4f46e5'`) unencoded — data-URI content ends at the first `#`, so every hex accent (the default!) truncated the URI at the fragment boundary and no favicon ever rendered. The SVG is now `url.QueryEscape`-encoded; tests pin `%23` and reject any raw `#`.
+
+## [v4.13.0] - 2026-10-14
+
+### Added
+
+- **`Config.AutoRedirect`** — when OAuth2 is the page's ONLY sign-in method (WebAuthn unconfigured, exactly one provider visible), `GET` answers with a 302 straight to `{AuthPrefix}/auth/oauth/{provider}/begin` instead of rendering a button the visitor would only click once. Multiple providers render the page normally (the visitor must choose); WebAuthn always wins the page. Mutually exclusive with `Config.NoOAuth2` (rejected at `New`). The setup module passes it through as `setup.Config.LoginAutoRedirect`.
+
+## [v4.12.3] - 2026-10-11
+
+### Added
+
+- **node:test smoke suite for the embedded WebAuthn JS (2026-10-11).** `go test ./...` now also runs `internal/jstests/login.test.js` through `node --test` when node is on PATH (clean skip otherwise): seeded Base64URL property round-trips (x200), serializer shape goldens, and prepare* decoding — generated with the tool under test, never hand-derived. `login.js` gained three browser-inert guards (lazy config parse, DOMContentLoaded wiring, CommonJS export tail) so the same file is testable in node and runs unchanged in the browser. The goldens cover the exact bytes browsers must produce for WebAuthn ceremonies.
+
 ### Changed
 
 - **Rebuilt on the templ-components design system.** The hand-rolled `lp-*`
@@ -41,7 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `Config.CSSPath` is now validated to be a root-relative path or absolute http(s) URL, rejecting executable schemes like `javascript:`.
 - Corrected the `Config.OAuth2Buttons` field doc: a nil/empty slice **auto-detects** configured providers (the previous comment claimed an empty slice hides all buttons — it never did).
 
-## [v4.11.0] - 2026-09-19
+# [v4.11.0] - 2026-09-19
 
 ### Changed
 

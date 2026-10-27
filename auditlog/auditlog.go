@@ -1,6 +1,8 @@
 package auditlog
 
 import (
+	"context"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 	auditlog "github.com/larsartmann/samber-do-auditlog"
 	"github.com/larsartmann/samber-do-auditlog/live"
@@ -43,4 +45,29 @@ func WithAuditLog(auditCfg auditlog.Config, viewerCfg live.Config) (*Setup, erro
 		Plugin: plugin,
 		Viewer: viewer,
 	}, nil
+}
+
+// Shutdown drains the live viewer for MOUNTED mode: it flushes the forwarder
+// (when one is attached) and drains the SSE broadcaster, disconnecting every
+// viewer with a clean end-of-stream. It works without ListenAndServe — the
+// documented mount path (mux.Handle("<prefix>/", setup.Viewer)) owns the
+// HTTP server, and only the viewer's own plumbing is drained here.
+//
+// Call it from the application's shutdown path:
+//
+//	setup.SignalComplete()      // mark the container lifecycle finished
+//	_ = setup.Shutdown(ctx)     // flush + drain the viewer
+//	_ = injector.Shutdown()
+//
+// Returns ctx.Err() when the context fires before the drain completes.
+func (s *Setup) Shutdown(ctx context.Context) error {
+	//nolint:wrapcheck // passthrough: caller checks ctx.Err() sentinels (context.Canceled)
+	return s.Viewer.Shutdown(ctx)
+}
+
+// SignalComplete marks the container lifecycle as finished: SSE handlers
+// waiting on the completion marker unblock and send the final report before
+// [Setup.Shutdown] drains them. Optional but recommended before Shutdown.
+func (s *Setup) SignalComplete() {
+	s.Viewer.SignalComplete()
 }

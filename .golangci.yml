@@ -1,7 +1,7 @@
 version: "2"
 run:
     timeout: 5m
-    go: 1.27.1
+    go: "1.27"
     build-tags:
         - goexperiment.arenas
         - goexperiment.goroutineleakprofile
@@ -283,6 +283,9 @@ linters:
                 - .WithMessage(
                 - .WithMessagef(
                 - .WithStack(
+            ignore-package-globs:
+                - github.com/larsartmann/go-error-family*
+                - github.com/larsartmann/go-cqrs-lite/event/*
     exclusions:
         generated: lax
         rules:
@@ -323,7 +326,7 @@ linters:
                 - testpackage
             - path: _test\.go
               linters:
-                - exhaustruct
+                - exhaustruct_v5
                 - testpackage
                 - gochecknoglobals
                 - funlen
@@ -337,10 +340,9 @@ linters:
                 - recvcheck
                 - contextcheck
                 - exhaustive
-                - exhaustruct_v5
             - path: benchmark_server_test\.go$
               linters:
-                - exhaustruct
+                - exhaustruct_v5
                 - errcheck
             - path: _reexport\.go$
               linters:
@@ -400,5 +402,5 @@ formatters:
             - mock_.*\.go$
             - usermgmt/
 issues:
-    max-issues-per-linter: 50
-    max-same-issues: 10
+    max-issues-per-linter: 0
+    max-same-issues: 0

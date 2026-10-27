@@ -40,9 +40,14 @@ func monoSpan(s string) string {
 	return "<span class=\"mono\">" + s + "</span>"
 }
 
-// payloadBytes renders an event's payload through the configured renderer.
-func payloadBytes(renderer PayloadRenderer, evt event.Event) []byte {
-	return renderPayload(renderer, evt)
+// payloadBytes renders an event's payload: the typed registry first (only
+// for registered types), then the configured renderer.
+func payloadBytes(config Config, evt event.Event) []byte {
+	if out, ok := config.PayloadTypes.Render(evt.Type(), evt.Payload(), evt.Encoding()); ok {
+		return out
+	}
+
+	return renderPayload(config.PayloadRenderer, evt)
 }
 
 // combinedFilterSortParams joins the filter and sort query params preserved
@@ -99,12 +104,13 @@ func eventCustomMetaItems(custom map[event.MetadataKey]string) []display.Definit
 
 // projectionDetailItems builds the projection detail definition list:
 // checkpoint with copy button, status, and last error (or explicit "none").
-func projectionDetailItems(proj projectionStat) []display.DefinitionItem {
+func projectionDetailItems(proj projectionStat, nonce string) []display.DefinitionItem {
 	items := []display.DefinitionItem{
 		defItemCopy(
 			"Checkpoint",
 			monoSpan(esc(truncate(proj.Checkpoint, listIDWidth))),
 			proj.Checkpoint,
+			nonce,
 		),
 		defItem("Status", proj.Status),
 	}
@@ -128,24 +134,24 @@ type prefixedActorID interface {
 // metadataItems builds the correlation, causation, actor, and request
 // definition items shared by the command, query, and event detail pages.
 // Blank IDs and zero actors are omitted.
-func metadataItems(corrID, causID, reqID string, actorID prefixedActorID) []display.DefinitionItem {
+func metadataItems(corrID, causID, reqID string, actorID prefixedActorID, nonce string) []display.DefinitionItem {
 	items := make([]display.DefinitionItem, 0, maxMetadataItems)
 
 	if corrID != "" {
-		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
+		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID, nonce))
 	}
 
 	if causID != "" {
-		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID))
+		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID, nonce))
 	}
 
 	if !actorID.IsZero() {
 		actorPrefixed := actorID.PrefixedString()
-		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed))
+		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed, nonce))
 	}
 
 	if reqID != "" {
-		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID))
+		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID, nonce))
 	}
 
 	return items
@@ -153,20 +159,20 @@ func metadataItems(corrID, causID, reqID string, actorID prefixedActorID) []disp
 
 // commandMetaItems builds the command detail metadata items: stream facts
 // plus correlation, causation, and actor IDs when present.
-func commandMetaItems(cmd *command.PersistedCommand) []display.DefinitionItem {
+func commandMetaItems(cmd *command.PersistedCommand, nonce string) []display.DefinitionItem {
 	meta := cmd.Metadata()
 
 	metaItems := metadataItems(
 		meta.CorrelationID.String(), meta.CausationID.String(),
-		meta.RequestID.String(), meta.ActorID,
+		meta.RequestID.String(), meta.ActorID, nonce,
 	)
 	items := make([]display.DefinitionItem, 0, baseCommandMetaItems+len(metaItems))
 	items = append(items,
 		defItem("Command Type", string(cmd.Type())),
 		defItem("Stream Type", string(cmd.StreamType())),
-		defItemCopy("Stream ID", monoSpan(esc(cmd.StreamID().String())), cmd.StreamID().String()),
+		defItemCopy("Stream ID", monoSpan(esc(cmd.StreamID().String())), cmd.StreamID().String(), nonce),
 		defItem("Received At", cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
-		defItemCopy("Command ID", monoSpan(esc(cmd.ID().String())), cmd.ID().String()),
+		defItemCopy("Command ID", monoSpan(esc(cmd.ID().String())), cmd.ID().String(), nonce),
 	)
 	items = append(items, metaItems...)
 
@@ -174,18 +180,18 @@ func commandMetaItems(cmd *command.PersistedCommand) []display.DefinitionItem {
 }
 
 // queryMetaItems builds the query detail metadata items.
-func queryMetaItems(q *query.PersistedQuery) []display.DefinitionItem {
+func queryMetaItems(q *query.PersistedQuery, nonce string) []display.DefinitionItem {
 	meta := q.Metadata()
 
 	metaItems := metadataItems(
 		meta.CorrelationID.String(), meta.CausationID.String(),
-		meta.RequestID.String(), meta.ActorID,
+		meta.RequestID.String(), meta.ActorID, nonce,
 	)
 	items := make([]display.DefinitionItem, 0, baseQueryMetaItems+len(metaItems))
 	items = append(items,
 		defItem("Query Type", string(q.Type())),
 		defItem("Received At", q.ReceivedAt().Format("2006-01-02 15:04:05")),
-		defItemCopy("Request ID", monoSpan(esc(q.ID().String())), q.ID().String()),
+		defItemCopy("Request ID", monoSpan(esc(q.ID().String())), q.ID().String(), nonce),
 	)
 	items = append(items, metaItems...)
 
@@ -193,7 +199,7 @@ func queryMetaItems(q *query.PersistedQuery) []display.DefinitionItem {
 }
 
 // dlqEntryErrorItems builds the DLQ entry detail error definition items.
-func dlqEntryErrorItems(entry projectionhost.DeadLetterEntry) []display.DefinitionItem {
+func dlqEntryErrorItems(entry projectionhost.DeadLetterEntry, nonce string) []display.DefinitionItem {
 	items := []display.DefinitionItem{
 		defItem("Event Type", entry.EventType),
 		defItem("Event ID", entry.EventID),
@@ -202,7 +208,7 @@ func dlqEntryErrorItems(entry projectionhost.DeadLetterEntry) []display.Definiti
 	if entry.StreamID != "" {
 		items = append(
 			items,
-			defItemCopy("Stream ID", monoSpan(esc(entry.StreamID)), entry.StreamID),
+			defItemCopy("Stream ID", monoSpan(esc(entry.StreamID)), entry.StreamID, nonce),
 		)
 	}
 
@@ -220,10 +226,10 @@ func dlqEntryErrorItems(entry projectionhost.DeadLetterEntry) []display.Definiti
 }
 
 // snapshotMetaItems builds the snapshot detail metadata items.
-func snapshotMetaItems(snap *snapshot.Snapshot) []display.DefinitionItem {
+func snapshotMetaItems(snap *snapshot.Snapshot, nonce string) []display.DefinitionItem {
 	return []display.DefinitionItem{
 		defItem("Stream Type", string(snap.StreamType)),
-		defItemCopy("Stream ID", monoSpan(esc(snap.StreamID.String())), snap.StreamID.String()),
+		defItemCopy("Stream ID", monoSpan(esc(snap.StreamID.String())), snap.StreamID.String(), nonce),
 		defItem("Version", snap.Version.String()),
 		defItem("Created At", snap.CreatedAt.Format(time.RFC3339)),
 		defItem("State Size", humanByteSize(len(snap.State))),
@@ -249,10 +255,10 @@ func (d *Dashboard) snapshotStateText(state []byte) string {
 // eventMetaItems builds the metadata definition items for an event detail
 // page: stream/version/encoding facts plus correlation, causation, actor,
 // and request IDs when present.
-func eventMetaItems(evt event.Event, meta event.Metadata) []display.DefinitionItem {
+func eventMetaItems(evt event.Event, meta event.Metadata, nonce string) []display.DefinitionItem {
 	items := []display.DefinitionItem{
 		defItem("Stream Type", string(evt.StreamType())),
-		defItemCopy("Stream ID", monoSpan(esc(evt.StreamID().String())), evt.StreamID().String()),
+		defItemCopy("Stream ID", monoSpan(esc(evt.StreamID().String())), evt.StreamID().String(), nonce),
 		defItem("Version", evt.Version().String()),
 		defItem("Schema Version", strconv.FormatInt(int64(evt.SchemaVersion()), 10)),
 		defItem("Encoding", string(evt.Encoding())),
@@ -261,7 +267,7 @@ func eventMetaItems(evt event.Event, meta event.Metadata) []display.DefinitionIt
 
 	items = append(items, metadataItems(
 		meta.CorrelationID.String(), meta.CausationID.String(),
-		meta.RequestID.String(), meta.ActorID,
+		meta.RequestID.String(), meta.ActorID, nonce,
 	)...)
 
 	if deadline, ok := evt.Deadline(); ok {

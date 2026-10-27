@@ -23,8 +23,18 @@ type UserState struct {
 }
 
 // Exists reports whether the user has been registered (has at least one event).
+// It stays true after UserDeleted: a deleted user still HAS history. Use
+// [UserState.IsActive] for the write-path liveness gate instead.
 func (s UserState) Exists() bool {
 	return s.Email != ""
+}
+
+// IsActive reports whether the user is usable: registered and not deleted.
+// Deciders gate commands on this (not on Exists) so tombstoned streams stop
+// accepting writes. Additive (S38c): every existing Exists() semantic is
+// unchanged.
+func (s UserState) IsActive() bool {
+	return s.Exists() && !s.Deleted
 }
 
 // MembershipState is the aggregate state for a Membership (actor+tenant pair).
@@ -35,7 +45,9 @@ type MembershipState struct {
 	Removed  bool
 }
 
-// Exists reports whether the membership has been added (has at least one event).
+// Exists reports whether the membership is currently in effect: MemberRemoved
+// folds to Removed=true and Exists() goes false. Unlike UserState, no
+// IsActive split is needed — Exists already carries the liveness semantics.
 func (s MembershipState) Exists() bool {
 	return !s.ActorID.IsZero() && !s.Removed
 }
@@ -88,9 +100,18 @@ type BotState struct {
 	Deleted   bool
 }
 
-// Exists reports whether the bot has been registered (has at least one event).
+// Exists reports whether the bot has been registered and not deleted. The
+// Deleted tombstone is already folded here, so no separate IsActive split is
+// required; [BotState.IsActive] exists as the uniform-vocabulary alias.
 func (s BotState) Exists() bool {
 	return s.Name != "" && !s.Deleted
+}
+
+// IsActive reports whether the bot is usable. BotState.Exists already folds
+// the Deleted tombstone, so this is the uniform alias letting callers write
+// `state.IsActive()` across every aggregate (S38c).
+func (s BotState) IsActive() bool {
+	return s.Exists()
 }
 
 // FoldUser applies an event to the current UserState, returning the new state.
@@ -151,17 +172,18 @@ func FoldUser(
 		next.Credentials = append(next.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
 
 	case EventCredentialRemoved:
-		p, err := UnmarshalPayload[CredentialRemovedPayload](evt)
+		var err error
+		next, err = applyCredentialRemoved(next, evt)
 		if err != nil {
 			return state, err
 		}
-		filtered := make([]WebAuthnCredential, 0, len(next.Credentials))
-		for _, c := range next.Credentials {
-			if !bytes.Equal(c.ID, p.ID) {
-				filtered = append(filtered, c)
-			}
+
+	case EventCredentialUsed:
+		var err error
+		next, err = applyCredentialUsed(next, evt)
+		if err != nil {
+			return state, err
 		}
-		next.Credentials = filtered
 
 	case EventEmailVerified:
 		_, err := UnmarshalPayload[EmailVerifiedPayload](evt)
@@ -176,7 +198,7 @@ func FoldUser(
 			return state, err
 		}
 		next.TOTPEnabled = true
-		next.TOTPSecret = p.Secret
+		next.TOTPSecret = slices.Clone(p.Secret)
 
 	case EventTOTPDisabled:
 		next.TOTPEnabled = false
@@ -188,13 +210,11 @@ func FoldUser(
 			return state, err
 		}
 		next.ExternalAccounts = append(next.ExternalAccounts, ExternalAccount{
-			ExternalAccountCore: ExternalAccountCore{
-				Provider:    p.Provider,
-				Subject:     p.Subject,
-				Email:       p.Email,
-				DisplayName: p.DisplayName,
-			},
-			LinkedAt: evt.OccurredAt(),
+			Provider:    p.Provider,
+			Subject:     p.Subject,
+			Email:       p.Email,
+			DisplayName: p.DisplayName,
+			LinkedAt:    evt.OccurredAt(),
 		})
 
 	case EventExternalAccountUnlinked:
@@ -239,8 +259,12 @@ func FoldMembership(
 		if err != nil {
 			return state, err
 		}
+		tenantID, err := ParseTenantID(p.TenantID)
+		if err != nil {
+			return state, err
+		}
 		next.ActorID = NewActorID(kind, p.ActorID)
-		next.TenantID = NewTenantID(p.TenantID)
+		next.TenantID = tenantID
 		next.Roles = roles
 		next.Removed = false
 
@@ -284,6 +308,11 @@ func FoldTenant(
 		next.DisplayName = p.DisplayName
 		next.Suspended = false
 		next.Deleted = false
+		// Clear tombstone/suspension reasons too: a recreated tenant must not
+		// inherit the previous incarnation's reasons (FoldUser resets the
+		// whole state; TenantState.IsValid would reject the stale reasons).
+		next.SuspendReason = ""
+		next.DeleteReason = ""
 
 	case EventTenantSuspended:
 		p, err := UnmarshalPayload[TenantSuspendedPayload](evt)
@@ -334,7 +363,7 @@ func FoldBot(
 		scopes := slices.Clone(p.Scopes)
 		next.Name = p.Name
 		next.OwnerID = p.OwnerID
-		next.TokenHash = p.TokenHash
+		next.TokenHash = slices.Clone(p.TokenHash)
 		next.Scopes = scopes
 		next.Deleted = false
 
@@ -367,4 +396,60 @@ func ActorKindFromString(s string) (ActorKind, error) {
 			"unknown actor kind: "+s,
 		)
 	}
+}
+
+// applyCredentialUsed applies a CredentialUsed event to the credential it
+// names. It copies the credential slice before writing: FoldUser's `next :=
+// state` is a shallow copy, so mutating an element in place would write
+// through to the caller's state and make folding impure.
+func applyCredentialUsed(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[CredentialUsedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	use := CredentialUse{
+		CredentialID: p.CredentialID,
+		SignCount:    p.SignCount,
+		UserPresent:  p.UserPresent,
+		UserVerified: p.UserVerified,
+		BackupState:  p.BackupState,
+	}
+
+	credentials := make([]WebAuthnCredential, len(state.Credentials))
+	copy(credentials, state.Credentials)
+
+	for i := range credentials {
+		if bytes.Equal(credentials[i].ID, p.CredentialID) {
+			credentials[i] = credentials[i].ApplyUse(use)
+			state.Credentials = credentials
+			return state, nil
+		}
+	}
+
+	return state, errorfamily.NewCorruption(
+		"identity.credential_used.unknown_credential",
+		"CredentialUsed event for a credential the stream never added",
+	)
+}
+
+// applyCredentialRemoved drops the credential the event names, allocating a new
+// slice so folding never writes through to the caller's state.
+func applyCredentialRemoved(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[CredentialRemovedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	filtered := make([]WebAuthnCredential, 0, len(state.Credentials))
+
+	for _, c := range state.Credentials {
+		if !bytes.Equal(c.ID, p.ID) {
+			filtered = append(filtered, c)
+		}
+	}
+
+	state.Credentials = filtered
+
+	return state, nil
 }

@@ -139,15 +139,23 @@ func (h *Handler) writeErrorPage(w http.ResponseWriter, r *http.Request, status 
 		http.Error(w, title, status)
 		return
 	}
+	h.respondErrorHTML(w, r, status, title, b.String())
+}
+
+// respondErrorHTML writes a fully rendered error-page body: bare for HTMX
+// swaps, inside the panel Layout for navigations. The header trio and the
+// HTMX branch are shared by writeErrorPage and notFoundHandler so the two
+// cannot drift.
+func (h *Handler) respondErrorHTML(w http.ResponseWriter, r *http.Request, status int, title, body string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	if cqrshtmx.IsHTMXRequest(r) {
-		_, _ = w.Write([]byte(b.String()))
+		_, _ = w.Write([]byte(body))
 		return
 	}
 	page := h.page(title, "", nil, r)
-	if err := Layout(page, templ.Raw(b.String())).Render(r.Context(), w); err != nil {
+	if err := Layout(page, templ.Raw(body)).Render(r.Context(), w); err != nil {
 		slog.ErrorContext(r.Context(), "adminui: render error page", "error", err)
 	}
 }
@@ -164,15 +172,5 @@ func (h *Handler) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "page not found", http.StatusNotFound)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(http.StatusNotFound)
-	if cqrshtmx.IsHTMXRequest(r) {
-		_, _ = w.Write([]byte(b.String()))
-		return
-	}
-	page := h.page("Page not found", "", nil, r)
-	if err := Layout(page, templ.Raw(b.String())).Render(r.Context(), w); err != nil {
-		slog.ErrorContext(r.Context(), "adminui: render 404 page", "error", err)
-	}
+	h.respondErrorHTML(w, r, http.StatusNotFound, "Page not found", b.String())
 }

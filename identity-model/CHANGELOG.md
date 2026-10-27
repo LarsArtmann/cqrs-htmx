@@ -6,7 +6,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Added
+
+- **Strict branded-ID reconstruction (S38 a/b):** `ParseTenantID`/`ParseBotID` — the strict counterparts to `NewTenantID`/`NewBotID`. They strip exactly one leading display prefix (`Tenant:`/`Bot:`) and reject empty or whitespace-padded values (Rejection family) — the ambiguous forms that would otherwise silently become distinct identities. `FoldMembership` now reconstructs `TenantID` through `ParseTenantID`, so journaled events with ambiguous tenant references are rejected at replay time. `GenerateUserID` preserves ULID time-ordering (minted later ⇒ sorts later across millisecond boundaries; pinned by test).
+
+- **`UserState.IsActive`/`BotState.IsActive` (S38c, additive):** the uniform write-path liveness gate — `Exists() && !Deleted` for users (a deleted user still HAS history, so `Exists` keeps its "has events" meaning), the existing-tombstone mirror for bots. `MembershipState.Exists` already folds `Removed`, so no split was needed there; documented on the type.
+
+### Changed
+
+- **`NotConfigured` errors are now Rejection, not Transient (S38e):** `ErrEmailVerificationNotConfigured`, `ErrTOTPNotConfigured`, and `ErrOAuthNotConfigured` answer 400-class instead of 503 — a missing deployment configuration is permanent for this deployment, and a retryable signal would tell clients a retry can help when it cannot. Consumers mapping error families to HTTP statuses see the correction; none of the in-tree suites pinned the old 503s.
+
+- **Command slice accessors return copies (S38f):** `RegisterUserCmd.Roles`, `RemoveCredentialCmd.CredentialID`, `EnableTOTPCmd.Secret`, `AddMemberCmd.Roles`, `UpdateMemberRolesCmd.Roles`, `RegisterBotCmd.TokenHash`, `RegisterBotCmd.Scopes` now return `slices.Clone` — mutating a returned slice can no longer write through to the command (commands are immutable once constructed; the TOTP secret and bot token hash are credential material).
+
+### Fixed
+
+- **`NewAuthz` no longer seeds `g2` into custom models without a `g2` section (S38d):** `AddNamedGroupingPolicy("g2", ...)` errors against an undeclared section, so a consumer model without `g2` failed construction. Seeding is now guarded (and extracted into `seedDefaultRoleHierarchy`); default-model behavior is unchanged.
+
+- **Role resolution for actors is strict (S38g):** `RolesForActor`/`ImplicitRolesForActor` and `ActorIDAsUserID` parse actor identifiers through `ParseUserID` instead of the deprecated hash-masking `NewUserID` — a non-ULID subject now surfaces as a parse failure instead of silently colliding with an unrelated synthetic user.
+
+## [v4.14.0] - 2026-10-25
+
+### Added
+
+- **WebAuthn credential-use recording — the clone-detection data model.** `CredentialUse` (credential ID, signature counter, UP/UV/backup flags observed during one successful assertion), the `RecordCredentialUse` command + `CredentialUsed` event (payload carries counter + flags), `WebAuthnCredential.CounterRegressed(next)` implementing the WebAuthn L3 §7.2 step-17 clone signal (0→0 is not a regression; any non-zero count that fails to advance is), and fold/read-model support so the LAST assertion's state is what the next one compares against. Without it, clone detection compared every assertion to the registration-time counter and never fired.
+
+### Changed
+
+- **`WebAuthnProvider.FinishLogin` now returns `(credentialJSON []byte, err error)`.** The provider returns the credential state the assertion produced so the service can persist it. Technically breaking for custom implementors of the interface (the in-tree `usermgmt/webauthn` provider is updated in the same train); shipped as a minor following the v4.7.0 precedent — the interface has one official implementation and keeping clone detection dead was the greater harm.
+
+### Fixed
+
+- **Role hierarchy now fires, and `Authz.Apply` is atomic as documented.** Casbin keeps one role manager per role definition, so the `g2` edges `NewAuthz` seeded never composed with the domain-scoped `g` grants that assign roles: a user granted `user` was denied what `viewer` allows (admin only looked correct because the seed policy gives it `*/*/*`). The hierarchy is mirrored into `g` per domain by `EnsureRoleHierarchy` (called from `AddGroupPolicy`, `Apply`, and `NewAuthz`; idempotent, replay-safe, tenant-scoped), and `UsersForRole` no longer reports role names as subjects. `Apply` now rolls the whole batch back when one operation fails instead of leaving earlier operations committed. Consumers listing `GroupPolicies()` should count grants by non-role subjects: the hierarchy edges are rows too.
+
+## [v4.13.0] - 2026-10-19
+
+### Added
+
+- **Auth audit event vocabulary (cqrs-htmx#23):** `AggregateTypeAuth` stream type plus three event types — `LoginSucceeded`, `LoginFailed`, `RegistrationClosed` — with payload structs (`LoginSucceededPayload{Method,Provider}`, `LoginFailedPayload{Method,Reason,Provider}`, `RegistrationClosedPayload{SchemaVersion}`) and two bounded vocabularies: `AuthMethod` (webauthn | totp | oauth2) and `AuthFailureReason` (no_credentials, ceremony_failed, code_invalid, state_invalid, provider_mismatch, token_exchange, no_email). These are SECURITY AUDIT facts, not user state: emitters place each event on its OWN Auth-typed stream so login volume never grows the user aggregate, and reason classes are coarse by contract — never raw provider error text, never secrets. Additive; no existing event, fold, or payload changes.
+
+### Fixed
+
+- **Fold-aliasing invariant violations + guards (2026-10-18 full-code-review wave).** `FoldUser`'s `TOTPSecret` and `FoldBot`'s `TokenHash` retained payload-owned `[]byte` slices despite the package's own "every slice taken from a payload is defensively copied at the fold site" invariant (`doc.go`) — both now `slices.Clone`. `TenantCreated` clears stale `SuspendReason`/`DeleteReason` (a recreated tenant inherited its previous incarnation's reasons and failed `IsValid`). `MustParseUserID` routes through the brand-prefix-tolerant `ParseUserID` (previously panicked where its non-Must sibling succeeded). `User.MarshalJSON` marshals a nil receiver as `null` (previously nil-deref'd on `len(u.Credentials)`).
+
+## [v4.12.3] - 2026-10-11
+
+### Fixed
+
+- **Canonical nested struct literals for embedded cores (exhaustruct, 2026-10-11).** `ExternalAccount` construction sites now use the explicit `ExternalAccountCore: ExternalAccountCore{...}` form instead of promoted-key literals — identical runtime behavior, unambiguous for readers and linters alike.
+- **Go toolchain floor raised 1.27.1 -> 1.27.2 (security, 2026-10-11).** `go.mod` declares `go 1.27.2` (GO-2026-6603/6611/6613/6617 stdlib fixes); consumers on 1.27.2+ see no change.
+
+# [v4.12.2] - 2026-10-08
+
+### Changed
+
+- **Fold defensive copies modernized to `slices.Clone` (no behavior change):** `FoldMembership` (roles ×2) and `FoldBot` (scopes) replace the `make`+`copy` pairs with `slices.Clone`; the payload-slices-alias-event-bytes invariant (every slice taken from a payload is defensively copied at the fold site) is now documented in `doc.go` so future folds keep it.
+- **Dependency alignment:** `go-cqrs-lite id/v4 v4.7.0→v4.7.2` (race-red patch wave), indirects `snapshot/v4 v4.6.2`, `storage/memory/v4 v4.6.2`, `fxamacker/cbor/v2 v2.9.6`.
+
+### Added
+
+- **`TestUserID_ParseBrandPrefix_Policy` — the `ParseUserID` prefix-strip policy is pinned (6 subtests):** known brand prefixes strip and parse, unknown brands strip the same way (generic policy, not a whitelist), multi-colon and non-ULID tails reject, brand-only strings reject, and the leading-colon quirk is pinned as documented behavior. Mechanizes the D13 decision input (`docs/drafts/2026-10-07-d13-parseuserid-prefix-policy-memo.md`).
 
 ## [v4.12.1] - 2026-10-05
 

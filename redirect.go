@@ -24,11 +24,13 @@ func HTMXRedirect(w http.ResponseWriter, r *http.Request, path string) {
 }
 
 // SafeRedirectPath returns path if it is a safe same-origin redirect target
-// (starts with "/" but not "//"), otherwise "/". Protocol-relative URLs ("//")
-// and scheme-bearing URLs ("https://...") are rejected because browsers would
+// (starts with "/" but not "//" or "/\"), otherwise "/". Protocol-relative
+// URLs ("//"), scheme-bearing URLs ("https://..."), and backslash variants
+// ("/\\evil.com" — WHATWG URL parsing treats "\" as "/" in special schemes,
+// so browsers would follow it off-site) are rejected because browsers would
 // follow them off-site, enabling open-redirect attacks.
 func SafeRedirectPath(path string) string {
-	if path == "" || path[0] != '/' || len(path) > 1 && path[1] == '/' {
+	if path == "" || path[0] != '/' || len(path) > 1 && (path[1] == '/' || path[1] == '\\') {
 		return "/"
 	}
 
