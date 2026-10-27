@@ -291,7 +291,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	}
 
 	if err := s.recordCredentialUse(ctx, userID, credJSON); err != nil {
-		return nil, err
+		return nil, err //nolint:erraudit // HELPER: recordCredentialUse attaches user_id to every error it returns; sessionKey derives from user_id
 	}
 
 	s.webauthnSessions.Delete(sessionKey)

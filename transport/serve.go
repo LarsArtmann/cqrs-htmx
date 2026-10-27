@@ -192,7 +192,7 @@ type replayAdjustedStore struct {
 func (s *replayAdjustedStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
 	events, err := s.inner.EventsAfter(lastID)
 	if err != nil {
-		//nolint:wrapcheck // adapter propagates the store error verbatim
+		//nolint:wrapcheck,erraudit // FP: cursor context is not lost — the SSE handler logs lastEventID on both replay-failure paths below
 		return nil, err
 	}
 
