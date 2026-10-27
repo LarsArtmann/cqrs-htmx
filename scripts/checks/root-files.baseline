@@ -1,4 +1,5 @@
 .buildflow.yml
+.codespellrc
 .cqrs-lint.json
 .editorconfig
 .eventcatalog-hub.json
