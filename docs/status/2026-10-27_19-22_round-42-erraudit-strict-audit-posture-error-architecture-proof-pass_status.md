@@ -23,7 +23,7 @@
 
 ## b) PARTIALLY DONE
 
-1. **`golangci-lint` verification** — the scoped `-s 'golangci-lint@root'` invocation did NOT scope (all modules ran; qualifier syntax needs a follow-up) but the fleet-wide golangci steps executed three times without a failure line, and the 18:58 `buildflow format` run reported **328 success, 0 failed** with all code edits in place. Verdict: green, via full-fleet evidence rather than a scoped rc (the `-s` scoping question is itself a small open item).
+1. ~~**`golangci-lint` verification**~~ CLOSED at close-out (~19:45): scoped direct runs with TRUE exit codes — root `golangci-lint run` rc=0 and `usermgmt` rc=0, zero issues each (golangci's "unknown linters in //nolint directives: erraudit" warning is the expected two-token topology, gotcha 8). The buildflow `-s` qualifier-scoping quirk remains open as tooling trivia, no longer load-bearing. (The first confirmation attempt repeated the §d3 pipe-status lapse — `| tail; echo $?` — caught and re-run.)
 2. **The owner's literal command `erraudit lint ./... --max` still exits 2** — by recorded design (posture disable required). The exact command cannot be made green without either the disable flag or harmful API churn (§a1).
 3. **Filtered-path replay logging (serve.go:368)** — annotated as covered but the new test mechanizes the UNFILTERED path only; the filtered path's identical log line is untested.
 4. **Milestone commits** — the auto-commit daemon swept the working tree (9292936f on master, later commits on this branch); no deliberate milestone commit was made by this session (harness forbids committing without explicit owner request).
@@ -32,7 +32,7 @@
 ## c) NOT STARTED
 
 1. **Merging this branch with master** — required before anything else lands (see §d1).
-2. **TODO_LIST/ROADMAP harvest** of this report's §f list (docs-health HARVEST).
+2. ~~**TODO_LIST/ROADMAP harvest**~~ DONE at close-out (~19:50): §f routed into `TODO_LIST.md` (merge row in P1 owner-gated per §g1; strict-sweep cluster, error-context/CHANGELOG row, and test/docs tails in P2; owner-gated items marked in-row). Items already done by this same close-out were dropped per HARVEST rule 3 (golangci confirm, the harvest itself); §f18 + §f21 were EXECUTED in-session instead of routed (session-start runbook: branch-check-first command + strict-audit finish item; `docs/agents-notes.md`: dated arc entry; corpus baseline → 34155). Hygiene gate green (79 rows, 0 dead).
 3. **CI/check-modules wiring for the canonical strict sweep** — the strict audit is currently a documented manual invocation; `erraudit-inventory`'s CI coverage is the offline stub self-test only.
 4. **Structured error JSON:** `errorfamily` `ErrorContext()` values render into logs (logging.go:279) but NOT into the RFC 7807 problem-details body (`structured_error.go` carries only request-ID context) — machine context is invisible to API clients.
 5. **Upstream erraudit feedback:** (a) project-level config file so `--disable generic_return` isn't per-invocation folklore; (b) `lint`'s misleading `--modules=all` hint; (c) `generic_return` FP class for callback-bound generic functions.
@@ -97,3 +97,5 @@
 ---
 
 **Verification state at write time:** build green (root, usermgmt, cmd) · transport/usermgmt/cmd/root-targeted/integration tests green · `erraudit-inventory` TOTAL=0 (29 modules) · `lint --max --disable generic_return` rc 0 (root + all 28 nested modules) · `nolint-audit` 0 stale (root, usermgmt) · corpus ratchet + tail budget green (after round-40 archive + baseline 34141) · golangci green fleet-wide via buildflow (scoped-rc confirmation open) · full test battery NOT run.
+
+**Close-out addendum (2026-10-27 ~19:55):** strict sweep re-verified live — 29/29 modules rc=0 · golangci scoped rc=0 confirmed (root + usermgmt, true exit codes) · TODO_LIST harvest landed (hygiene gate green) · §f18/§f21 executed in-session (runbook + agents-notes; corpus baseline 34141 → 34155, ratchet green) · battery: the first `.#test` run's visible tail was all-ok but BOTH the early-module output and the true rc were lost to a `| tail` pipe (the §d3 class, twice in one day) — re-running with full log + direct rc capture, verdict lands in the log at `/tmp/battery-round42.log`.
