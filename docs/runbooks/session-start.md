@@ -3,7 +3,7 @@
 > The smallest reliable orientation for a fresh session. Everything else is optional reading.
 
 ```bash
-git status --short && git log --oneline -5      # 1. where the tree actually is
+git branch --show-current && git status --short && git log --oneline -5   # 1. WHERE AM I — branch first: the auto-commit daemon + owner branch switches relocate work silently (round-42 split-brain)
 cat CURRENT_FOCUS.md                            # 2. the ONE active thread + its "done when"
 nix run .#check-modules                         # 3. is the tree green before I touch it?
 ```

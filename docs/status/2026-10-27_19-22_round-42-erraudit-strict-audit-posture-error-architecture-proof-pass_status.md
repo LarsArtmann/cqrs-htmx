@@ -23,7 +23,7 @@
 
 ## b) PARTIALLY DONE
 
-1. **`golangci-lint@root` verification** — first run failed on a qualifier typo (`.` not a module name; must be `root`); rerun was in flight at report-write time; only timing-regression lines visible in the tail, no findings block, rc unverified at write time.
+1. **`golangci-lint` verification** — the scoped `-s 'golangci-lint@root'` invocation did NOT scope (all modules ran; qualifier syntax needs a follow-up) but the fleet-wide golangci steps executed three times without a failure line, and the 18:58 `buildflow format` run reported **328 success, 0 failed** with all code edits in place. Verdict: green, via full-fleet evidence rather than a scoped rc (the `-s` scoping question is itself a small open item).
 2. **The owner's literal command `erraudit lint ./... --max` still exits 2** — by recorded design (posture disable required). The exact command cannot be made green without either the disable flag or harmful API churn (§a1).
 3. **Filtered-path replay logging (serve.go:368)** — annotated as covered but the new test mechanizes the UNFILTERED path only; the filtered path's identical log line is untested.
 4. **Milestone commits** — the auto-commit daemon swept the working tree (9292936f on master, later commits on this branch); no deliberate milestone commit was made by this session (harness forbids committing without explicit owner request).
@@ -96,4 +96,4 @@
 
 ---
 
-**Verification state at write time:** build green (root, usermgmt, cmd) · transport/usermgmt/cmd/root-targeted/integration tests green · `erraudit-inventory` TOTAL=0 (29 modules) · `lint --max --disable generic_return` rc 0 (root + all 28 nested modules) · `nolint-audit` 0 stale (root, usermgmt) · corpus ratchet + tail budget green · `golangci-lint@root` in flight · full battery NOT run.
+**Verification state at write time:** build green (root, usermgmt, cmd) · transport/usermgmt/cmd/root-targeted/integration tests green · `erraudit-inventory` TOTAL=0 (29 modules) · `lint --max --disable generic_return` rc 0 (root + all 28 nested modules) · `nolint-audit` 0 stale (root, usermgmt) · corpus ratchet + tail budget green (after round-40 archive + baseline 34141) · golangci green fleet-wide via buildflow (scoped-rc confirmation open) · full test battery NOT run.
