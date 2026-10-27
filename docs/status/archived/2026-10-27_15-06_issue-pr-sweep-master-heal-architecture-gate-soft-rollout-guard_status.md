@@ -1,5 +1,9 @@
 # Issue/PR sweep — master healed (train lag 6→0), architecture-gate soft-rollout hole fixed, PR #33 content reviewed
 
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-17_round-39-execution-issue32-bounded-auditlog-archive-branching-flow-proof_status.md`](../2026-10-27_16-17_round-39-execution-issue32-bounded-auditlog-archive-branching-flow-proof_status.md), which round-39 is the same task thread carried to execution: it implements issue #32 (the 15-06 section-f rows 21-28), routes that report's section-f into TODO_LIST (8 rows) and ROADMAP, re-verifies the two PR-#33 defects with a ready-to-apply patch, closes the 15-06 section-b6 treadmill gap, and re-asks 15-06's one open question (PR-queue ownership) in its own section g. Nothing in the 15-06 report remains unactioned.. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-27 (round-39 (2026-10-27, issue/PR sweep → execution)).**
+
 **Date:** 2026-10-27 15:06 CET · **Reporter:** GitHub-queue review session (issue + PR sweep) · **Head at report:** `ebfcd5e2` (master, **pushed and CI-GREEN** — run 40512643594: 17 success, 2 skipped-by-event) · **Trigger:** "Review all GitHub Issues and PRs!" (issued twice, verbatim — see §d9) · **Scope:** this session's run only · **Box load:** ~100–165 throughout (drove a targeted verification strategy over the composite battery)
 
 > **Format override (flagged per the status-report skill):** this report is `.md` because the operator named the `.md` path explicitly. The skill's canonical format is HTML; the operator's instruction wins, and no propagation of this one-off back into the skill is intended.
@@ -117,7 +121,7 @@ I audited the whole GitHub queue (15 issues / 18 PRs all-state; **2 open issues,
 | # | Task | Impact | Effort | Category |
 | --- | --- | --- | --- | --- |
 | 1 | Re-run `check-release-train --refresh-cache --strict-lag 0` immediately before pushing (gotcha 39: the tail grows while you sweep) | Critical | S | Bug |
-| 2 | ~~Push master (`409b67d7..ebfcd5e2`)~~ DONE by the daemon — CI 40512643594 green; next push should still run `.#push-and-watch` | Done | S | Process |
+| ~~2~~ | ~~Push master (`409b67d7..ebfcd5e2`)~~ DONE by the daemon — CI 40512643594 green; next push should still run `.#push-and-watch` | ~~Done~~ | ~~S~~ | ~~Process~~ |
 | 3 | On `docs/readme-table-of-contents`: delete the Go Report Card badge line | High | S | Documentation |
 | 4 | On the same branch: change the release badge filter `%5Ev4` → `v4.*` (renders `v4.14.1`) | High | S | Documentation |
 | 5 | Push the branch, confirm PR #33 green, merge it | High | S | Process |
