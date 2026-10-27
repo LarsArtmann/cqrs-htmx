@@ -156,6 +156,12 @@ _ = svc.EventBus().SubscribeAll(func(_ context.Context, evt event.Event) error {
   are appended best-effort. The full actor/causation/correlation model —
   auto-wired by `NewService` onto every dispatch — is the
   [actor-and-audit-trail guide](../docs/guides/actor-and-audit-trail.md).
+- **Bounded audit window:** the in-memory audit log retains the most recent
+  `DefaultAuditLogLimit` (10,000) entries and evicts the oldest as new events
+  arrive, so a long-running service cannot grow the slice for the lifetime of
+  the process; `NewAuditLogWithLimit(n)` sizes the window and `Dropped()`
+  counts the evictions. The projection is a bounded recent-window; the journal
+  (and the Auth-typed audit streams) is the durable record.
 
 ## Development
 
