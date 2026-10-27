@@ -1,6 +1,7 @@
 # cqrs-htmx
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
+[![Release](https://img.shields.io/github/v/tag/LarsArtmann/cqrs-htmx?filter=v4.*&sort=semver&label=release)](https://github.com/LarsArtmann/cqrs-htmx/releases)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
@@ -11,6 +12,13 @@
 ```bash
 go get github.com/larsartmann/cqrs-htmx/v4
 ```
+
+<p align="center">
+  <a href="docs/screenshots/dark/dashboard-overview.png">
+    <img src="docs/screenshots/dark/dashboard-overview.png" alt="cqrs-htmx event-store observability dashboard (dark theme)" width="860">
+  </a>
+</p>
+<p align="center"><sub>The optional <a href="dashboardui/README.md">dashboardui</a> module — live event-store observability. More shots in <a href="docs/screenshots/">docs/screenshots</a> (light + dark).</sub></p>
 
 Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` and stop writing glue: request decoding, Casbin authorization, validation, HTMX response headers, partial-vs-full rendering, error-to-status mapping, and SSE fan-out are all `HandlerOption`s. Event-sourced user management (passkeys, OAuth2, TOTP), a ready-made admin panel, an event-store observability dashboard, and a one-call full-stack setup exist as optional modules — entirely out of your way until you want them.
 
@@ -33,6 +41,23 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 > [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) (event sourcing core)
 > for a complete server-rendered Go web stack with zero framework lock-in.
 > The stack, piece by piece: [docs/goth-stack.md](docs/goth-stack.md).
+
+## Contents
+
+- [Why](#why) — the glue this library deletes
+- [What you get](#what-you-get) — feature map at a glance
+- [Install](#install) — one import, or pick individual modules
+- [Quick start](#quick-start) — first endpoint in minutes
+- [The composition model](#the-composition-model) — how `HandlerOption`s compose
+- [Choose your integration path](#choose-your-integration-path) — setup SDK vs hand-wiring
+- [The modules](#the-modules) — usermgmt, adminui, dashboardui, setup, datastar
+- [Realtime: SSE and offline sync](#realtime-sse-and-offline-sync)
+- [Error handling](#error-handling) — domain errors → HTTP status mapping
+- [Ready-made UIs & the one-call setup](#ready-made-uis--the-one-call-setup)
+- [Examples](#examples) — 13 runnable, tested demos
+- [Documentation](#documentation) — 30+ guides, ADRs, runbooks
+- [Versioning & migrations](#versioning--migrations) — v2→v3→v4→v5 + upgrade codemod
+- [Contributing](#contributing) · [License](#license) (MIT)
 
 ## Why
 
