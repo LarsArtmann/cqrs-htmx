@@ -1,16 +1,25 @@
 # cqrs-htmx
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
+[![Release](https://img.shields.io/github/v/tag/LarsArtmann/cqrs-htmx?filter=%5Ev4&sort=semver&label=release)](https://github.com/LarsArtmann/cqrs-htmx/releases)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
 [![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](docs/goth-stack.md)
+[![Go Report Card](https://goreportcard.com/badge/github.com/larsartmann/cqrs-htmx/v4)](https://goreportcard.com/report/github.com/larsartmann/cqrs-htmx/v4)
 
 **CQRS + event sourcing for server-rendered Go apps — wired to HTTP and HTMX in one declarative line per endpoint.**
 
 ```bash
 go get github.com/larsartmann/cqrs-htmx/v4
 ```
+
+<p align="center">
+  <a href="docs/screenshots/dark/dashboard-overview.png">
+    <img src="docs/screenshots/dark/dashboard-overview.png" alt="cqrs-htmx event-store observability dashboard (dark theme)" width="860">
+  </a>
+</p>
+<p align="center"><sub>The optional <a href="dashboardui/README.md">dashboardui</a> module — live event-store observability. More shots in <a href="docs/screenshots/">docs/screenshots</a> (light + dark).</sub></p>
 
 Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` and stop writing glue: request decoding, Casbin authorization, validation, HTMX response headers, partial-vs-full rendering, error-to-status mapping, and SSE fan-out are all `HandlerOption`s. Event-sourced user management (passkeys, OAuth2, TOTP), a ready-made admin panel, an event-store observability dashboard, and a one-call full-stack setup exist as optional modules — entirely out of your way until you want them.
 
