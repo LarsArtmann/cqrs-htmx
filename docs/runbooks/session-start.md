@@ -26,3 +26,9 @@ nix run .#check-modules                         # 3. is the tree green before I 
 4. Same rule for the whole corpus: markdown under `docs/` past `docs/CORPUS_BASELINE`
    fails `check-docs-corpus-budget --ratchet`, so either shrink something or bump the
    baseline in the commit that justifies the growth.
+5. If the session touched error construction or `//nolint:erraudit` directives: run the
+   canonical strict audit per module — `GOEXPERIMENT=jsonv2 erraudit lint ./... --max
+   --disable generic_return` — plus `nix run .#erraudit-inventory`. The disable flag is
+   the recorded posture, not an escape hatch (gotcha 44: `--max` bypasses ALL nolints,
+   and `generic_return` fires on the decoder's callback-bound identity, a documented FP
+   class — an annotation asserts an invariant a test backs, never the reverse).
