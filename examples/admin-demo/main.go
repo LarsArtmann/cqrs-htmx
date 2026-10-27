@@ -203,10 +203,15 @@ func seed(ctx context.Context, svc *usermgmt.Service) (string, string) {
 		log.Fatalf("register admin: %v", err)
 	}
 	// Grant super_admin so the panel's default role-based authorizer admits the
-	// demo admin. This exercises the real authorization path (not a bypass).
-	if err := svc.Authz().AddGroupPolicy(identitymodel.GroupPolicy{
-		Subject: adminID.Get().String(), Role: identitymodel.RoleSuperAdmin, Domain: "*",
-	}); err != nil {
+	// demo admin. Seeded through the event-sourced membership path (journalled,
+	// re-derived by the CasbinProjection) so the grant survives a projection
+	// rebuild; Authz().AddGroupPolicy is not journalled (#34).
+	if err := svc.AddMember(
+		ctx,
+		identitymodel.ActorIDFromUser(adminID),
+		identitymodel.NewTenantID("*"),
+		[]identitymodel.Role{identitymodel.RoleSuperAdmin},
+	); err != nil {
 		log.Fatalf("grant super_admin: %v", err)
 	}
 

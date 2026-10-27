@@ -11,6 +11,7 @@ import (
 	"time"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-sse"
@@ -297,4 +298,66 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	if !patchFound {
 		t.Fatal("DataStar signal patch not delivered on the open /ds/events connection")
 	}
+}
+
+// TestSeedGrant_SurvivesProjectionRebuild pins issue #34: the demo grants
+// super_admin through the event-sourced membership path, so re-deriving the
+// CasbinProjection from the journal re-grants it. The old out-of-band
+// Authz().AddGroupPolicy write (never journalled) evaporated on the first
+// rebuild, leaving a silent 401 for the demo admin.
+func TestSeedGrant_SurvivesProjectionRebuild(t *testing.T) {
+	ctx := t.Context()
+
+	bundle, err := setup.New(setup.Config{ //nolint:exhaustruct // demo uses in-memory defaults
+		Title:     "Setup Demo Rebuild Test",
+		LogoutURL: "/dev-logout",
+		ServiceConfig: &usermgmt.ServiceConfig{
+			MaxUsers: 50,
+		},
+	})
+	if err != nil {
+		t.Fatalf("setup.New: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	_ = seed(ctx, bundle)
+
+	adminID := identitymodel.SyntheticUserID(adminUserID)
+	adminActor := identitymodel.ActorIDFromUser(adminID)
+
+	assertSuperAdmin := func(stage string) {
+		t.Helper()
+
+		// The membership read model is derived from journalled MemberAdded
+		// events only — the discriminating half of this test: the old
+		// out-of-band Authz().AddGroupPolicy write left it EMPTY while the
+		// Casbin enforcer looked warm.
+		var seeded bool
+		for _, m := range bundle.Service.TenantMembers(ctx, identitymodel.NewTenantID("*")) {
+			if m.ActorID == adminActor && m.HasRole(identitymodel.RoleSuperAdmin) {
+				seeded = true
+				break
+			}
+		}
+		if !seeded {
+			t.Fatalf("admin membership missing from the event-sourced read model after %s (out-of-band casbin write?)", stage)
+		}
+
+		ok, err := bundle.Service.Authz().Enforce(
+			adminID.Get().String(), "*", "users", identitymodel.ActionAll,
+		)
+		if err != nil {
+			t.Fatalf("enforce after %s: %v", stage, err)
+		}
+		if !ok {
+			t.Fatalf("super_admin grant missing after %s (out-of-band casbin write?)", stage)
+		}
+	}
+
+	assertSuperAdmin("seed")
+
+	if err := bundle.Service.RebuildProjection(ctx, "casbin-projection"); err != nil {
+		t.Fatalf("RebuildProjection(casbin-projection): %v", err)
+	}
+	assertSuperAdmin("projection rebuild")
 }
