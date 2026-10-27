@@ -1,6 +1,6 @@
 # Round 33: W08 verified · W10 landed a REAL loginpage bug fix · W11 five splits landed · W12 gates 2/4 · master RED on a split-shifted gate pin
 
-> **ANNOTATED 2026-10-26** — ~~this report~~ **SUPERSEDED** by [`2026-10-26_20-50_round-34-master-healed-s001-unmasked-w14-1-2-landed-w14-3-unverified_status.md`](../2026-10-26_20-50_round-34-master-healed-s001-unmasked-w14-1-2-landed-w14-3-unverified_status.md), which owner interrupt: round-34 reports the heal+landing and carries the open g-questions forward. Strike depth:
+> **ANNOTATED 2026-10-26** — ~~this report~~ **SUPERSEDED** by [`2026-10-26_20-50_round-34-master-healed-s001-unmasked-w14-1-2-landed-w14-3-unverified_status.md`](2026-10-26_20-50_round-34-master-healed-s001-unmasked-w14-1-2-landed-w14-3-unverified_status.md), which owner interrupt: round-34 reports the heal+landing and carries the open g-questions forward. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-26 (round-23 (2026-10-26)).**
 

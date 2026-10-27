@@ -1,5 +1,9 @@
 # Round 34 — master healed (streamid re-pin), cqrs-lint S001 unmasked+fixed, W14.1/W14.2 landed, W14.3 committed-but-unverified
 
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md`](../2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md), which superseded by round-35 (w14.3 verified+fixed, W14/W15 complete, W17 verdicts). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-27 (round-23 (2026-10-27)).**
+
 > Session 2026-10-26 ~15:00–20:50 CET. Lane W01–W08/W10–W12/W14/W15/W17 (sibling owns W09/W13/W16).
 > Supersedes the round-33 report (archived under this one); round-33's §g questions are carried
 > unchanged in §g below. CI was RED on master at session start; it is GREEN now.
