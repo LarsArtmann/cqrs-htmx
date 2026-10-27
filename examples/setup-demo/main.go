@@ -179,9 +179,16 @@ func seed(ctx context.Context, bundle *setup.Bundle) string {
 		log.Fatalf("register admin: %v", err)
 	}
 
-	if err := bundle.Service.Authz().AddGroupPolicy(identitymodel.GroupPolicy{
-		Subject: adminID.Get().String(), Role: identitymodel.RoleSuperAdmin, Domain: "*",
-	}); err != nil {
+	// Seed through the event-sourced membership path: the grant is journalled
+	// and re-derived by the CasbinProjection, so it survives a projection
+	// rebuild. Authz().AddGroupPolicy writes the enforcer directly and is not
+	// journalled — that shortcut taught consumers the wrong pattern (#34).
+	if err := bundle.Service.AddMember(
+		ctx,
+		identitymodel.ActorIDFromUser(adminID),
+		identitymodel.NewTenantID("*"),
+		[]identitymodel.Role{identitymodel.RoleSuperAdmin},
+	); err != nil {
 		log.Fatalf("grant super_admin: %v", err)
 	}
 
