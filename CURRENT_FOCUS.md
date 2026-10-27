@@ -4,42 +4,43 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-10-25 16:00 · **Owner:** Lars · **Module count:** 29 (`go.work`)
+**As of:** 2026-10-27 01:30 · **Owner:** Lars · **Module count:** 29 (`go.work`)
 
 ## The active thread
 
-**Finish Wave D on the two-session tree: the docs lane is CLOSED, the push is held on
-the module lane's lint red, and the module lane (W04–W15) continues.**
-Plan of record:
-[`docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md`](docs/planning/2026-10-24_05-36_SUPERB-master-plan-docs-eviction-delivery-and-backlog-burn-down.md)
+**Wave D module lane is EXECUTED to its final receipt; three owner questions gate the
+epilogue.** Plan of record:
+[`docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md`](docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md)
 
-- the 10-42/10-43 lane split (docs lane: W09/W13/W16/W17-verdicts/quartet/sync-tails — ALL DONE).
+**State (round-35 receipt, 2026-10-26/27):** W12 checkpoint green; W14.1–W14.6 and
+W15.2–W15.5 landed (the W14.3 export-walker hang was the session's P1 — root-caused,
+stall-guarded, CI-healed); the final battery is CI-authoritative (box load 150+
+made the local legs an honest refusal). Master green. Remaining on THIS lane:
+nothing executable without the owner.
 
-**State:** sync tails shipped as assets v1.6.0 (`5e0fb368`); battery run green
-except lint — **7 findings, all in the sibling's W03 code** (root/transport ×5,
-auditlog ×1, usermgmt ×2; inventory in the receipt §b1). 14 commits sit unpushed;
-pushing them before that lint is green would turn master's CI red.
-
-**Done when:** sibling lint findings fixed → `nix run .#lint` rc=0 → push the
-stack through the strict pre-push gates → CI terminal green → `.#verify-remote-tags`
-→ push receipt appended.
+**Done when:** the owner answers the round-34 §g packet — (1) branching-flow
+baseline refresh (+46/−40 drift, held), (2) upstream filings + W04 defaults
+ratification (held), (3) release timing for loginpage `NoWebAuthn` + the dashboardui
+fixes (default taken: batch into the next train, not mid-wave) — plus the two
+dashboardui tail sub-items (page-size off-menu, browser e2e smoke) that ride the next
+dashboardui change.
 
 ## The next thread (start immediately after)
 
-**The module lane's plan of record continues: W04 (identity-model tails) → W05–W08
-→ W10/W11 → W12 checkpoint → W14/W15 → W17-final receipt** (their sequencing lives
-in `docs/status/2026-10-25_15-22_*.md` §f). First action there: the missing
-usermgmt/CHANGELOG S39 receipt, then the lint fixes above (their §b2 gap).
+Whatever the owner's §g answers unlock first: the S55 packet chains (cqrs-lint fleet
+swap → CI wiring, ReadLastN upstream), the branching-flow re-identification +
+baseline refresh as one act, or the release train. The sibling lane (W09/W13/W16)
+closes independently; the 10-42 plan's terminal DONE line waits for both lanes.
 
 ## Resolved since the last update
 
-**The docs lane of Wave D is closed** (receipt:
-[`docs/status/2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md`](docs/status/archived/2026-10-25_15-57_wave-d-lane-closed-sync-tails-v1-6-0-battery-run-push-held-on-sibling-lint_status.md)):
-W09 master-healing, W13 owner packet (S55+S56, on origin), W16 fixed-upstream
-verdict, W17 verdicts ×8, docs-truth quartet, sync tails s.1–s.4 (cursor
-monotonicity guard + v1→v2 upgrade pins + guide spec/budget/CSP sections).
-Master green at `3ff9e0de`; battery: test rc=0 · coverage rc=0 ·
-check-modules 58/59 (branching-flow +22, owner-gated) · lint red = sibling's.
+**The module lane's W14+W15+W17 verdicts** (receipt:
+[`docs/status/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md`](docs/status/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md)):
+master healed from the w14.3 CI-killer (cursor-ignoring fake → OOM class), journal
+walkers stall-guarded everywhere, snapshot 404/500 split, boost-inheritance guard,
+root-files allowlist gate, coverage thresholds single-sourced + fail-loud, tooling
+canaries a–g, skill-maintenance gates ×3 (caught real skill drift), 8 parked-row
+verdicts confirmed, TODO swept (58 rows, hygiene green).
 
 ## Ground rules that keep this honest
 
