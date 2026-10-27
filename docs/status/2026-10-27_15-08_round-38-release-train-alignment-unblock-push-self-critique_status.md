@@ -21,12 +21,12 @@
 
 1. **The alignment landed as daemon chore commits** (`30dbc49c`, `7b3885a2`), not as the two reviewable `chore(deps): bump …` commits the runbook prescribes. Content fully verified (§a3–a7); the review surface (which sweep, which version, why) lives only in this report. Root cause: the owner's sweeps ran without `--commit`, and my rescue commit was hook-blocked under load.
 2. **BuildFlow step verdicts are locally stale-failed:** the pre-commit buildflow run failed 9 steps under external load (§d3) and was never re-run clean. The SUBSTANCE is covered — CI's jobs (lint/test/build/security/mod-tidy) are the same checks and are green — but `buildflow --failed-only` on an idle box has not discharged its own history. Close-the-loop per the buildflow skill is pending.
-3. **Nix FOD hash suspected stale, unverified:** the buildflow doctor warned `vendorHash in vendorHash.nix may be stale — go.sum was modified after the hash was last set … until then nix build fails with a hash mismatch`. The sweeps changed 5 go.sums; nobody ran `buildflow -s nix-hash-fix --fix` or `nix build` since. CI green does NOT cover the nix FOD path (CI builds via setup-go). `hash.nix` + `vendorHash.nix` exist and are flake-referenced. Strong indication, zero minutes spent verifying — deliberately, per the owner's "report, don't research" instruction.
+3. **Nix FOD hash alarm — VERIFIED FALSE POSITIVE (gotcha 31):** the buildflow doctor warned `vendorHash in vendorHash.nix may be stale — go.sum was modified after the hash was last set`. Verified at 15:3x: `vendorHash.nix`/`hash.nix` belong to the BENCHSTAT derivation only ("Unrelated to this repo's own go.sum files" per the file's own header), gotcha 31 documents this exact misattribution class, and the deciding receipt — `nix build .#benchstat` — is GREEN (rc=0). No hash was edited (the gotcha's rule: never edit a hash off the checker's finding alone). Post-report continuation session caught this before running `nix-hash-fix` off the warning.
 4. **The rode-along ci.yml change is shipped and (post-hoc) confirmed deliberate:** the sibling 15-06 report documents it as its own verified fix for the PR brown-out (every PR carried a permanent red at the `ssh-agent` step while `SSH_PRIVATE_KEY` is unset). Still §d4-honest: I pushed it before I knew that — the disclosure came from their report, not from a pre-push check.
 
 ## c) NOT STARTED
 
-1. `buildflow -s nix-hash-fix --fix` (or a plain `nix build` confirmation) for the suspected-stale vendorHash — the single most likely red thing on master right now.
+1. ~~`buildflow -s nix-hash-fix --fix` (or a plain `nix build` confirmation) for the suspected-stale vendorHash — the single most likely red thing on master right now.~~ RESOLVED post-report: false positive (§b3) — `nix build .#benchstat` green, no action.
 2. `buildflow --failed-only` clean rerun to discharge the 9 load-transient step failures.
 3. The FIX RECIPE patch: `check-release-train.sh` prints the bump-dep commands WITHOUT `--commit --lint` (wave-tag uses both) — the printed recipe invited exactly the §b1 shredding.
 4. docs-health HARVEST of this report's §f into TODO_LIST/ROADMAP rows.
@@ -46,17 +46,17 @@
 1. **Actor-collision pre-check for scripted recipes:** before executing any pasted fix recipe, check for live/recent execution (`ps`, fresh `/tmp/<tool>-*.log`). Better: bake it into `bump-dep.sh` — "another sweep wrote a log <10 min ago" warning — so the guard is proactive, not refusal-lucky.
 2. **The FIX RECIPE should print the safe invocation:** `--commit --lint` on both lines (matching wave-tag's documented sweep). This one edit kills the §b1 presentation-shredding class for every future gate-blocking push.
 3. **Load-awareness before heavyweight legs:** an `uptime` check (or `wait-tree-quiet`) gate before pre-commit buildflow / full batteries. The 9 false failures under load 85 are gotcha-42-adjacent (timeout ≠ failure proof) and they cost a clean commit.
-4. **The bump runbook needs a nix-hash leg:** bump-dep touches go.sums → the vendorHash FOD goes stale → `nix build` red until `nix-hash-fix`. The runbook (`docs/runbooks/dependency-train-bump.md`) and/or bump-dep's post-sweep hints should name it; today it is only discoverable via a buildflow doctor warning.
+4. **The bump runbook needs a gotcha-31 pointer (corrected from "nix-hash leg"):** a go.sum-touching sweep trips buildflow's stale-vendorHash warning EVERY time; the runbook should say "expected — gotcha 31 FP class, verify with `nix build .#benchstat`, never edit the hash off the warning" so the next session skips the detour this report's §b3 took.
 5. **Pre-push rider disclosure:** when a push will carry dirty files I didn't author, name them BEFORE pushing. The daemon makes this racy, but a `git diff --stat HEAD` read at push-prep time catches most of it.
 6. **Don't restate derived counts from memory:** the 19-vs-21 slip (§d6) is the counts-rot class this repo mechanized against; receipts should be paste-verified, not recalled.
 
 ## f) Up to 50 things next (ordered by impact; ★ = needs an owner answer)
 
-1. ★ Verify + fix the stale vendorHash: `nix build` to confirm, `buildflow -s nix-hash-fix --fix` to repair (§b3) — cheapest possible master-red prevention.
+1. ~~★ Verify + fix the stale vendorHash: `nix build` to confirm, `buildflow -s nix-hash-fix --fix` to repair (§b3) — cheapest possible master-red prevention.~~ RESOLVED: gotcha-31 false positive; `nix build .#benchstat` green; no action.
 2. `buildflow --failed-only` on an idle box; discharge the 9 load-transient failures (§b2).
 3. Patch `check-release-train.sh`'s FIX RECIPE to print `--commit --lint` invocations (§e2).
 4. `bump-dep.sh`: recent-sweep detection hint (fresh `/tmp/bump-dep-*.log` mtime → warn + name the PID log) (§e1).
-5. Add the nix-hash step to the dependency-train-bump runbook + bump-dep post-sweep output (§e4).
+5. Add the gotcha-31 pointer to the dependency-train-bump runbook (§e4, corrected) — executed by the continuation session.
 6. Pre-push load check: `uptime` guard or `wait-tree-quiet` integration before heavyweight hooks (§e3).
 7. ci.yml rider: CONFIRMED deliberate by the sibling 15-06 report — no action; its open tail (configure `SSH_PRIVATE_KEY`, then drop the architecture-gate's `continue-on-error`) stays on that session's ledger.
 8. Verify the preflight job's behavior on a real PR (master pushes can never exercise it — the `pull_request`-only `if`).
