@@ -73,7 +73,7 @@ require (
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.5 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	github.com/go-logfmt/logfmt v0.6.1 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

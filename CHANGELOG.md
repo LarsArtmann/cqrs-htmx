@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Security
+
+- **Dependency: `go-jose/v4` patched to v4.1.6 (CVE-2026-116587 / GHSA-mgcc-cww5-fp2q, high — DoS when parsing JWKs that contain RSA keys).** Every vulnerable pin (`<= 4.1.5`) in the workspace moved to the first patched release: `usermgmt/oauth2` (direct) and `integration_test` (indirect, through the OIDC provider stack). The library exposes no go-jose API of its own, so this is a pure dependency patch: no source change, wire shape unchanged. Dependabot reported one vulnerable pin as three alerts (root `go.mod`, `usermgmt/oauth2/go.mod`, `integration_test/go.mod`); root carries no `go-jose` require at all, so that alert is a stale SBOM mapping with nothing to patch.
+
 ### Fixed
 
 - **usermgmt v4.17.0: the audit-log projection is bounded (implements #32; full receipt in `usermgmt/CHANGELOG.md` [v4.17.0]).** The in-memory audit log was an unbounded slice for the process lifetime (a real adoption blocker: webphone left the projection UNWIRED for exactly this reason). It is now a ring retaining the newest `DefaultAuditLogLimit` (10,000) entries, sized via `NewAuditLogWithLimit(n)` (non-positive falls back to the default — no unbounded escape hatch), with `Limit()`/`Dropped()` making eviction visible; the journal remains the durable record. Pinned by five tests including the cap through a real `Service` dispatch path. Released as `usermgmt/v4.17.0`.
