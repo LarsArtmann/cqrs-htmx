@@ -340,7 +340,10 @@ func TestSeedGrant_SurvivesProjectionRebuild(t *testing.T) {
 			}
 		}
 		if !seeded {
-			t.Fatalf("admin membership missing from the event-sourced read model after %s (out-of-band casbin write?)", stage)
+			t.Fatalf(
+				"admin membership missing from the event-sourced read model after %s (out-of-band casbin write?)",
+				stage,
+			)
 		}
 
 		ok, err := bundle.Service.Authz().Enforce(
