@@ -1,6 +1,6 @@
 # Round 38 — release-train alignment unblock: catalog v4.11.0 + system v4.16.0 swept, push landed, CI green — with an honest collision/self-critique ledger
 
-> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md`](../2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md), which round-41 is the round-38 §f execution continuation: it resolved round-38's §c1/§f1 in place (vendorHash proven false positive, gotcha 43), discharged the buildflow stale steps, hardened the FIX RECIPE, and carries round-38's still-open §f11 in its own §f10. Strike depth:
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md`](2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md), which round-41 is the round-38 §f execution continuation: it resolved round-38's §c1/§f1 in place (vendorHash proven false positive, gotcha 43), discharged the buildflow stale steps, hardened the FIX RECIPE, and carries round-38's still-open §f11 in its own §f10. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-27 (round-42 (2026-10-27, issue/PR merge + fix sweep)).**
 

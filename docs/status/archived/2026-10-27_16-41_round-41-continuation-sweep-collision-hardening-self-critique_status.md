@@ -1,5 +1,9 @@
 # Round 41 — continuation: sweep-collision hardening executed and verified; the gotcha-31 near-miss caught; three commit races lost; corpus/tail trued under an active sibling
 
+> **ANNOTATED 2026-10-28** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md`](../2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md), which Round 43 carried the sweep-collision hardening into shipped tooling (bump-dep receipt, gate self-tests) and round 44 closed the queue sweep with a release tag, so the round-41 self-critique has no live consumer.. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-28 (round-44 (2026-10-28)).**
+
 **Date:** 2026-10-27 16:38 CET · **Reporter:** Crush continuation session (round-38 §f execution, "execute until done") · **Head at continuation start:** `ebfcd5e2` (pushed, CI green) · **Head at close:** `a4144806`+ (local-only, ~10 ahead of origin; NOT pushed — owner cadence) · **Trigger:** "READ, UNDERSTAND, RESEARCH, REFLECT. Break this down into multiple actionable steps… Execute and Verify them one step at a time."
 
 **Scope note:** session-scoped. The sibling session (now round-39/40, 16:17/16:37) ran CONCURRENTLY throughout — it archived round-36 (resolving round-38's §g1 tail breach), harvested BOTH reports into TODO/ROADMAP, implemented issue #32's bounded AuditLog, wrote its own report, and won two of my three commit races. Division of labor was honored by detection, not coordination. **Renumber note:** the sibling answered the same owner status-demand one minute earlier with its own "round-40" file — this report renumbered 40→41 (title + filename) to keep the round series unambiguous.

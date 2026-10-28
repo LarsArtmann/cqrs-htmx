@@ -1,6 +1,6 @@
 # Round 40 — status + self-critique over round 39: what I forgot, what I could have done better, what still needs improving (bounded AuditLog shipped, tail healed, `check-modules` split-brain found, one held red proven pre-existing)
 
-> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md`](../2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md), which rotated out of the live tail; thread continues in round-41, latest session state in round-42. Strike depth:
+> **ANNOTATED 2026-10-27** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md`](2026-10-27_16-41_round-41-continuation-sweep-collision-hardening-self-critique_status.md), which rotated out of the live tail; thread continues in round-41, latest session state in round-42. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-27 (round-23 (2026-10-27)).**
 
