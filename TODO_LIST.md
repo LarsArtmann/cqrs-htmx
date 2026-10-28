@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-10-27 (round-42 erraudit strict-audit harvest: posture verified green 29/29 modules + golangci rc=0 both scoped runs; §f routed below — strict-sweep wiring owner-gated, branch merge pending §g1) · 29 Go modules · open items only.
+**Updated:** 2026-10-28 (round-44 queue sweep: master green, `usermgmt/v4.17.0` tagged and consumed by all 11 carriers, go-jose CVE patched, #32 closed; the #33/nits and queue-runbook rows are done and removed) · 29 Go modules · open items only.
 
 > Current thread: [CURRENT_FOCUS.md](CURRENT_FOCUS.md). History lives in [CHANGELOG.md](CHANGELOG.md); session reports in `docs/status/`.
 
