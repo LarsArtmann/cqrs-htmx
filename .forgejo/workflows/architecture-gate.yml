@@ -63,5 +63,5 @@ jobs:
           rm -rf /tmp/hub-gate
           git clone -q --depth 1 https://forgejo.home.lan/lars/eventcatalog-hub.git /tmp/hub-gate
           bash /tmp/hub-gate/scripts/check-architecture-changes.sh \
-            work/gate/base/eventcatalog \
-            work/gate/head/eventcatalog
+            work/gate/base \
+            work/gate/head
