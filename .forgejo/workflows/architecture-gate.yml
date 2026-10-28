@@ -1,0 +1,67 @@
+# Breaking-change gate for cqrs-htmx's catalog surface (the
+# examples/catalog-demo export; license-free recipe from the
+# eventcatalog-hub README § "Breaking-change gates").
+#
+# Diffs the PR's exported EventCatalog tree against origin/master's on
+# every pull request and fails on the breaking classes (message/service
+# removed, schema changed for the same version, producer/consumer
+# shrink). Additive changes pass with info lines.
+#
+# One-time owner setup: create the repo secret HUB_GATE_TOKEN — a
+# Forgejo PAT with read:repository scope (same class as the hub's
+# GIT_CLONE_TOKEN). Without it the private-module rewrite below cannot
+# authenticate and this job fails loudly at the first module fetch.
+name: architecture-gate
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  architecture-gate:
+    runs-on: native:host
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Export base and head catalogs
+        # Binaries exec from /tmp (the runner workspace is mounted noexec
+        # inside the job namespace — the hub's run-14 lesson); the export
+        # TREES stay in the workspace (no exec needed). The catalog-demo
+        # has its own go.mod, so GOWORK=off is belt-and-braces only.
+        env:
+          HUB_GATE_TOKEN: ${{ secrets.HUB_GATE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HUB_GATE_TOKEN:-}" ]; then
+            echo "::error::HUB_GATE_TOKEN secret is not set — see the header comment in this workflow."
+            exit 1
+          fi
+          export GIT_CONFIG_GLOBAL="$PWD/work/gate-gitconfig"
+          mkdir -p work
+          cat >"$GIT_CONFIG_GLOBAL" <<EOF
+          [url "https://x-access-token:${HUB_GATE_TOKEN}@forgejo.home.lan/lars/"]
+          	insteadOf = https://github.com/LarsArtmann/
+          	insteadOf = https://github.com/larsartmann/
+          EOF
+          export GOPRIVATE='github.com/LarsArtmann/*,github.com/larsartmann/*'
+          nix shell nixpkgs#go_1_27 nixpkgs#gcc -c bash -c '
+            set -euo pipefail
+            export GOTOOLCHAIN=auto GOWORK=off
+            mkdir -p /tmp/gate work/gate
+            git checkout -q origin/master
+            (cd examples/catalog-demo && go build -o /tmp/gate/base-bin .)
+            /tmp/gate/base-bin -eventcatalog work/gate/base -export-only || true
+            git checkout -q -
+            (cd examples/catalog-demo && go build -o /tmp/gate/head-bin .)
+            /tmp/gate/head-bin -eventcatalog work/gate/head -export-only || true
+          '
+
+      - name: Gate on breaking architecture changes
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/hub-gate
+          git clone -q --depth 1 https://forgejo.home.lan/lars/eventcatalog-hub.git /tmp/hub-gate
+          bash /tmp/hub-gate/scripts/check-architecture-changes.sh \
+            work/gate/base/eventcatalog \
+            work/gate/head/eventcatalog
