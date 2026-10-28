@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.3
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.13.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.16.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
@@ -15,6 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/larsartmann/httputil v1.7.0
 )
@@ -59,7 +60,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
