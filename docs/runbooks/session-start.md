@@ -1,12 +1,18 @@
-# Session start — three commands
+# Session start — four commands
 
 > The smallest reliable orientation for a fresh session. Everything else is optional reading.
 
 ```bash
-git branch --show-current && git status --short && git log --oneline -5   # 1. WHERE AM I — branch first: the auto-commit daemon + owner branch switches relocate work silently (round-42 split-brain)
+git fetch origin --tags && git branch --show-current && git status --short && git log --oneline -5   # 1. WHERE AM I — fetch FIRST (a stale local origin/master silently omits just-landed merges), then branch: the auto-commit daemon + owner branch switches relocate work silently (round-42 split-brain)
 cat CURRENT_FOCUS.md                            # 2. the ONE active thread + its "done when"
 nix run .#check-modules                         # 3. is the tree green before I touch it?
+nix run .#check-release-train -- --refresh-cache --strict-lag 0   # 4. has upstream tagged anything since? (a docs-only commit can redden master)
 ```
+
+> **One writer per worktree.** The daemon commits whatever branch is checked out in the
+> shared tree, so a second session working there collects work it never wrote. Start
+> queue/release work in a dedicated worktree (`git worktree add /tmp/cqrs-work -b <branch>
+> origin/master`) — after the fetch above.
 
 ## What is loaded automatically (and what is not)
 
