@@ -1,5 +1,9 @@
 # Round 42 — erraudit strict-audit remediation + error-architecture proof pass
 
+> **ANNOTATED 2026-10-28** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md`](../2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md), which Round 42's erraudit posture verdict was carried into round 43's shipped tooling and round 44's release work; its open tails (#32 release, #33 nits, queue runbook) are all resolved or tracked in TODO_LIST, so it has no live consumer.. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-10-28 (round-44 close-out (2026-10-28)).**
+
 **Session:** 2026-10-27, ~17:45–19:25 CET · **Branch:** `docs/readme-table-of-contents` (master diverges — see §d1)
 **Trigger:** `erraudit lint ./... --max` → 15 `generic_return` warnings, exit 2. Mid-session owner challenge: *"You sure our error management is superb!??!?! … any your not just lazy?"* — which converted a suppress-and-move-on pass into a genuine error-architecture audit.
 
