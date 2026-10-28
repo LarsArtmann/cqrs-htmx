@@ -18,6 +18,7 @@ import (
 	loginpage "github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	usermgmtwebauthn "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 )
 
@@ -37,15 +38,17 @@ func mountLoginPage(mux *http.ServeMux) error {
 		RPOrigins:     []string{e2eWebAuthnOrigin},
 	})
 	if err != nil {
-		return err
+		return errorfamily.WrapInfrastructure(err, "e2e.server.webauthn_provider_failed", "build the WebAuthn provider")
 	}
 
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{WebAuthn: passkeys})
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct_v5 // e2e defaults
+		WebAuthn: passkeys,
+	})
 	if err != nil {
-		return err
+		return errorfamily.WrapInfrastructure(err, "e2e.server.usermgmt_service_failed", "build the usermgmt service")
 	}
 
-	login, err := loginpage.New(loginpage.Config{
+	login, err := loginpage.New(loginpage.Config{ //nolint:exhaustruct_v5 // e2e: in-memory defaults
 		Service: svc,
 		Title:   "E2E Sign in",
 		Brand:   "cqrs-htmx e2e",
@@ -55,7 +58,7 @@ func mountLoginPage(mux *http.ServeMux) error {
 		Redirect:         "/post-login",
 	})
 	if err != nil {
-		return err
+		return errorfamily.WrapInfrastructure(err, "e2e.server.loginpage_failed", "build the login page")
 	}
 
 	sub := http.NewServeMux()
