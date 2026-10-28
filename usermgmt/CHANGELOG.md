@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.17.0] - 2026-10-27
+
 ### Added
 
 - **Explicit envelope schema-version stamping (2026-10-25, S58/plan W07; cqrs-lint D013).** Every `event.New` construction site (21 lifecycle deciders + the auth-audit helper covering the 3 audit events) now passes `event.WithSchemaVersion(1)` alongside the codec option. The value is the same one the constructor already defaulted to, so stored records, wire bytes, and replay behavior are byte-identical (verified: full hermetic suite green, no golden drift) — the change makes the envelope schema version EXPLICIT at every construction site, which is the prerequisite for retrofittable upcasting: once a v2 envelope exists, implicit-1 constructors can no longer be found mechanically. Note the two version axes stay distinct: the payload-embedded `SchemaVersion` field (identity-model `CurrentSchemaVersion`, currently 2, upcast at fold time) is unaffected by this envelope-level stamp.

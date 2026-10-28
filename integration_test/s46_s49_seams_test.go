@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	snapshot "github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	eventstore "github.com/larsartmann/go-cqrs-lite/storage/v4"
+	gohealth "github.com/larsartmann/go-health"
 	doauditlog "github.com/larsartmann/samber-do-auditlog"
 	"github.com/larsartmann/samber-do-auditlog/live"
 	"github.com/samber/do/v2"
@@ -80,9 +81,11 @@ func TestSetup_DocsConfigMismatchRejected(t *testing.T) {
 }
 
 // TestHealth_RecorderChain_MergesProjectionsAndAuditPlugin is the S46b chain
-// proof: RecorderChain(Recorder(svc), auditPlugin) reports the projection
+// proof: ChainRecorders(Recorder(svc), auditPlugin) reports the projection
 // checks AND composes with the audit plugin's own HealthRecorder — the
-// "one probe" composition from the auditlog row, executed for real.
+// "one probe" composition from the auditlog row, executed for real. It
+// calls the upstream chain directly: health.RecorderChain is deprecated
+// precisely because its own merge dropped detailed durations.
 func TestHealth_RecorderChain_MergesProjectionsAndAuditPlugin(t *testing.T) {
 	t.Parallel()
 
@@ -96,7 +99,14 @@ func TestHealth_RecorderChain_MergesProjectionsAndAuditPlugin(t *testing.T) {
 
 	injector := do.New()
 
-	chain := health.RecorderChain(health.Recorder(svc), auditSetup.Plugin)
+	chain := gohealth.ChainRecorders(health.Recorder(svc), auditSetup.Plugin)
+
+	// The upstream chain always satisfies the detailed interface, so the
+	// projection durations Recorder() reports survive the merge. The
+	// deprecated wrapper did not, which is why this path must stay pinned.
+	_, detailed := chain.(gohealth.DetailedHealthRecorder)
+	require.True(t, detailed, "the chain must keep detailed durations across the merge")
+
 	results := chain.RecordHealthCheckWithContext(t.Context(), injector)
 	require.NotEmpty(t, results, "the chain must report the service's projection checks")
 
@@ -105,7 +115,7 @@ func TestHealth_RecorderChain_MergesProjectionsAndAuditPlugin(t *testing.T) {
 	}
 
 	// Nil recorders are skipped by contract; the chain still reports.
-	withNil := health.RecorderChain(health.Recorder(svc), nil, auditSetup.Plugin)
+	withNil := gohealth.ChainRecorders(health.Recorder(svc), nil, auditSetup.Plugin)
 	require.NotEmpty(t, withNil.RecordHealthCheckWithContext(t.Context(), injector))
 }
 
