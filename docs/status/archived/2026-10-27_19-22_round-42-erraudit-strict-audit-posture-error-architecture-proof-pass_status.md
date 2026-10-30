@@ -1,6 +1,6 @@
 # Round 42 — erraudit strict-audit remediation + error-architecture proof pass
 
-> **ANNOTATED 2026-10-28** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md`](../2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md), which Round 42's erraudit posture verdict was carried into round 43's shipped tooling and round 44's release work; its open tails (#32 release, #33 nits, queue runbook) are all resolved or tracked in TODO_LIST, so it has no live consumer.. Strike depth:
+> **ANNOTATED 2026-10-28** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md`](2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md), which Round 42's erraudit posture verdict was carried into round 43's shipped tooling and round 44's release work; its open tails (#32 release, #33 nits, queue runbook) are all resolved or tracked in TODO_LIST, so it has no live consumer.. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-28 (round-44 close-out (2026-10-28)).**
 

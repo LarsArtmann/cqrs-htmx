@@ -1,6 +1,6 @@
 # Round 41 — continuation: sweep-collision hardening executed and verified; the gotcha-31 near-miss caught; three commit races lost; corpus/tail trued under an active sibling
 
-> **ANNOTATED 2026-10-28** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md`](../2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md), which Round 43 carried the sweep-collision hardening into shipped tooling (bump-dep receipt, gate self-tests) and round 44 closed the queue sweep with a release tag, so the round-41 self-critique has no live consumer. Strike depth:
+> **ANNOTATED 2026-10-28** — ~~this report~~ **SUPERSEDED** by [`2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md`](2026-10-27_21-57_round-43-issue-pr-merge-sweep-usermgmt-release-in-flight_status.md), which Round 43 carried the sweep-collision hardening into shipped tooling (bump-dep receipt, gate self-tests) and round 44 closed the queue sweep with a release tag, so the round-41 self-critique has no live consumer. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-10-28 (round-44 (2026-10-28)).**
 

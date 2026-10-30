@@ -1,5 +1,9 @@
 # Round 43 — erraudit close-out: verification battery, harvest, and the second branch switch
 
+> **ANNOTATED 2026-10-30** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-10-30 (round-45 (2026-10-30)).**
+> The next session in the same arc is [`2026-10-28_14-26_round-44-close-out-self-review-shipped-gaps-and-cache-triage_status.md`](../2026-10-28_14-26_round-44-close-out-self-review-shipped-gaps-and-cache-triage_status.md), which superseded.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Session:** 2026-10-27, ~19:30–20:10 CET · **Tree at write time:** `master` (23e0fb37) — the owner switched the tree from `docs/readme-table-of-contents` to master and merged `origin/master` (825e4ba5) MID-CLOSE-OUT; every verification verdict below was captured on the BRANCH tree before the switch, and the close-out work is daemon-committed there (branch tip `04c1e40d`). This report is written on master per the standing order; the merge will unify the two histories.
 **Trigger:** owner instruction to continue the round-42 close-out until everything works ("keep going until you think you did a great job"), then a full-status demand with a self-critique.
 
