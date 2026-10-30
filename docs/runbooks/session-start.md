@@ -12,7 +12,7 @@ nix run .#check-release-train -- --refresh-cache --strict-lag 0   # 4. has upstr
 > **One writer per worktree.** The daemon commits whatever branch is checked out in the
 > shared tree, so a second session working there collects work it never wrote. Start
 > queue/release work in a dedicated worktree (`git worktree add /tmp/cqrs-work -b <branch>
-> origin/master`) — after the fetch above.
+origin/master`) — after the fetch above.
 
 ## What is loaded automatically (and what is not)
 
@@ -34,7 +34,7 @@ nix run .#check-release-train -- --refresh-cache --strict-lag 0   # 4. has upstr
    baseline in the commit that justifies the growth.
 5. If the session touched error construction or `//nolint:erraudit` directives: run the
    canonical strict audit per module — `GOEXPERIMENT=jsonv2 erraudit lint ./... --max
-   --disable generic_return` — plus `nix run .#erraudit-inventory`. The disable flag is
+--disable generic_return` — plus `nix run .#erraudit-inventory`. The disable flag is
    the recorded posture, not an escape hatch (gotcha 44: `--max` bypasses ALL nolints,
    and `generic_return` fires on the decoder's callback-bound identity, a documented FP
    class — an annotation asserts an invariant a test backs, never the reverse).

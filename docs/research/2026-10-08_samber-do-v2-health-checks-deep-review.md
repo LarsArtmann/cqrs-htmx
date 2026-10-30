@@ -592,3 +592,9 @@ patterns (`mux.HandleFunc("GET /x", ...)`) is fine, but a method-scoped
 duplicate of the same path panics Go 1.22+ ServeMux. Demo mounts RegisterRoutes
 BEFORE method-scoped routes on distinct paths; note candidate for the
 go-health repo (its README examples assume bare paths).
+
+> **Superseded-by (2026-10-30):** round 2 of this review is
+> [`2026-10-30_samber-do-v2-health-checks-deep-review-round-2.md`](2026-10-30_samber-do-v2-health-checks-deep-review-round-2.md)
+> — re-verifies every roadmap item above against source (all landed or
+> owner-gated), re-scores the four dimensions (9/10), and re-ranks what
+> remains (T12 error codes top). Findings here are history, not live claims.

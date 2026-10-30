@@ -7,7 +7,7 @@ this repo — every numbered rule was learned by getting it wrong once.
 ## 0. Preconditions
 
 - `git fetch origin --tags` **before anything else**. `git worktree add <dir>
-  origin/master` resolves the LOCAL `origin/master` ref; without a fresh fetch
+origin/master` resolves the LOCAL `origin/master` ref; without a fresh fetch
   the new branch silently omits the merges you just landed (this cost an extra
   merge cycle and a CHANGELOG conflict on 2026-10-27).
 - One writer per worktree. The auto-commit daemon follows **HEAD**, not intent:
@@ -65,7 +65,7 @@ nix run .#check-release-train -- --refresh-cache --strict-lag 0
 nix run .#check-modules
 ```
 
-Both gates fail on *growth*, so the fix is an archive pass
+Both gates fail on _growth_, so the fix is an archive pass
 (`nix run .#archive-status -- <spec.tsv>`) or a dependency sweep
 (`scripts/tools/bump-dep.sh '<module>$' <version> --commit --lint`), never a
 baseline bump without the accompanying shrink.
@@ -121,10 +121,10 @@ smallest useful first step — closing them loses the demand signal.
 
 ## Failure modes seen in practice
 
-| Symptom                                        | Cause                                                     | Move                                                                    |
-| ---------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Push blocked by release-train `rc=3`           | upstream tagged a new release minutes ago                 | run the printed `bump-dep` recipe, re-verify with `--refresh-cache`     |
-| `gh` returns `HTTP 401` / "token is invalid"   | keyring/API session dropped; git-over-SSH still works     | keep landing via git; retry `gh auth status` before issue/PR mutations  |
-| `git push` "behind its remote counterpart"     | another session pushed during your verification           | `git fetch` + `git rebase origin/master`, re-verify, push again          |
-| lint fails with `no go files to analyze`       | shared module/build cache truncated by a full disk        | check `df /mnt/buildcache`; purge the corrupted cache before triage     |
-| sweep refuses: "dirty tree … 15m sweep log"    | a concurrent or interrupted `bump-dep` run                | finish or discard that sweep first; never interleave go.mod writes      |
+| Symptom                                      | Cause                                                 | Move                                                                   |
+| -------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| Push blocked by release-train `rc=3`         | upstream tagged a new release minutes ago             | run the printed `bump-dep` recipe, re-verify with `--refresh-cache`    |
+| `gh` returns `HTTP 401` / "token is invalid" | keyring/API session dropped; git-over-SSH still works | keep landing via git; retry `gh auth status` before issue/PR mutations |
+| `git push` "behind its remote counterpart"   | another session pushed during your verification       | `git fetch` + `git rebase origin/master`, re-verify, push again        |
+| lint fails with `no go files to analyze`     | shared module/build cache truncated by a full disk    | check `df /mnt/buildcache`; purge the corrupted cache before triage    |
+| sweep refuses: "dirty tree … 15m sweep log"  | a concurrent or interrupted `bump-dep` run            | finish or discard that sweep first; never interleave go.mod writes     |
