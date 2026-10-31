@@ -11,8 +11,12 @@ nix run .#check-release-train -- --refresh-cache --strict-lag 0   # 4. has upstr
 
 > **One writer per worktree.** The daemon commits whatever branch is checked out in the
 > shared tree, so a second session working there collects work it never wrote. Start
-> queue/release work in a dedicated worktree (`git worktree add /tmp/cqrs-work -b <branch>
-origin/master`) — after the fetch above.
+> queue/release work in a dedicated worktree (`git worktree add /tmp/cqrs-work -b <branch>`.
+> Before ANY tree-mutating batch step (sweeps, trains, archive passes), run
+> `PREFLIGHT_EXPECTED_BRANCH=master bash scripts/tools/preflight-tree-check.sh` — it aborts
+> on a dirty tree / foreign in-flight commits and WARNS on a sibling's branch or a
+> dependency sweep in flight (round-45 M17).
+> origin/master`) — after the fetch above.
 
 ## What is loaded automatically (and what is not)
 
