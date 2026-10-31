@@ -145,12 +145,12 @@ func TestPanel_UnlinkRouteWired(t *testing.T) {
 		t.Fatal("UnlinkExternalAccount with OAuth2 unconfigured: nil error, want not-configured sentinel")
 	}
 	var want int
-	family := errorfamily.Classify(svcErr)
-	if family == errorfamily.Rejection {
+	switch family := errorfamily.Classify(svcErr); family {
+	case errorfamily.Rejection, errorfamily.Conflict:
 		want = http.StatusBadRequest
-	} else if family == errorfamily.Transient {
+	case errorfamily.Transient:
 		want = http.StatusServiceUnavailable
-	} else {
+	case errorfamily.Corruption, errorfamily.Infrastructure, errorfamily.Orchestration:
 		t.Fatalf("unexpected family %v for not-configured sentinel", family)
 	}
 	if probe.Code != want {
