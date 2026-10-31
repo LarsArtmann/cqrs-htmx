@@ -83,5 +83,28 @@ if [ "$abort" -ne 0 ]; then
   exit 1
 fi
 
+# B: expected-branch assertion (round-45 M17; WARN-ONLY — the shared-tree
+# sweep that ran on a sibling's branch mutates someone else's in-flight
+# work). Set PREFLIGHT_EXPECTED_BRANCH (e.g. master) to arm; a mismatch
+# prints a warning but never aborts on its own.
+if [ -n "${PREFLIGHT_EXPECTED_BRANCH:-}" ]; then
+  current_branch="$(git branch --show-current 2>/dev/null)"
+  if [ "$current_branch" != "$PREFLIGHT_EXPECTED_BRANCH" ]; then
+    echo "preflight: WARNING — on branch '$current_branch', expected '${PREFLIGHT_EXPECTED_BRANCH}'; a sweep on a sibling's branch mutates someone else's in-flight work" >&2
+  fi
+fi
+
+# S: sibling sweep in flight (round-45 M17; WARN-ONLY — the same probes
+# bump-dep's own collision check uses: a fresh /tmp/bump-dep-*.log mtime
+# plus a live bump-dep process, own PID excluded).
+sibling_log="$(find /tmp -maxdepth 1 -name 'bump-dep-*.log' -mmin -15 -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+if [ -n "$sibling_log" ]; then
+  echo "preflight: WARNING — a dependency-sweep log was written within the last 15m: ${sibling_log}" >&2
+fi
+live_sweeps="$(pgrep -f 'scripts/tools/bump-dep.sh' 2>/dev/null | grep -vx "$$" || true)"
+if [ -n "$live_sweeps" ]; then
+  echo "preflight: WARNING — a bump-dep sweep appears LIVE (pid(s): ${live_sweeps}); interleaved sweeps shred each other's go.mod writes" >&2
+fi
+
 echo "preflight: OK — tree clean, no foreign in-flight activity (window ${RECENCY}s)"
 exit 0

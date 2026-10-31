@@ -104,3 +104,46 @@ cd "$SCRIPT_DIR/../.." || exit 1
 
 echo "== $pass passed, $fail failed"
 [ "$fail" -eq 0 ]
+
+# --- M17: expected-branch + sibling-sweep warnings (warn-only) ---
+# Note: these run against the REAL repo state, so assertions are on the
+# warn/silent CONTRACT, not on specific tree state.
+out=$(PREFLIGHT_EXPECTED_BRANCH=zzz-no-such-branch PREFLIGHT_RECENCY_SECONDS=0 bash "$CHECKER" 2>&1)
+rc=$?
+if printf '%s\n' "$out" | grep -q "WARNING — on branch"; then
+  echo "ok   m17: mismatched expected-branch warns"
+else
+  echo "FAIL m17: branch-mismatch warning missing"
+  printf '%s\n' "$out" | head -4
+  fail=$((fail + 1))
+fi
+CURRENT_BRANCH="$(git branch --show-current)"
+out=$(PREFLIGHT_EXPECTED_BRANCH="$CURRENT_BRANCH" PREFLIGHT_RECENCY_SECONDS=0 bash "$CHECKER" 2>&1)
+if printf '%s\n' "$out" | grep -q "expected '" ; then
+  echo "FAIL m17: matching branch must be silent about the branch"
+  printf '%s\n' "$out" | head -4
+  fail=$((fail + 1))
+else
+  echo "ok   m17: matching expected-branch stays silent"
+fi
+
+# Sibling-sweep probes: plant a fresh log and a live marker process.
+SLOG="/tmp/bump-dep-m17-fixture-$$.log"
+: >"$SLOG"
+MARKER_DIR="/tmp/preflight-marker-$$/scripts/tools"
+mkdir -p "$MARKER_DIR"
+printf '#!/usr/bin/env bash\nsleep 5\n' >"$MARKER_DIR/bump-dep.sh-marker"
+chmod +x "$MARKER_DIR/bump-dep.sh-marker"
+bash "$MARKER_DIR/bump-dep.sh-marker" &
+MPID=$!
+out=$(PREFLIGHT_RECENCY_SECONDS=0 bash "$CHECKER" 2>&1)
+kill "$MPID" 2>/dev/null
+rm -rf "$MARKER_DIR" "$SLOG"
+if printf '%s\n' "$out" | grep -q "dependency-sweep log was written" &&
+  printf '%s\n' "$out" | grep -q "appears LIVE"; then
+  echo "ok   m17: sibling-sweep warnings fire (fresh log + live PID)"
+else
+  echo "FAIL m17: sibling-sweep warnings missing"
+  printf '%s\n' "$out" | head -6
+  fail=$((fail + 1))
+fi
