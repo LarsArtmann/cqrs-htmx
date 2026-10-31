@@ -177,7 +177,9 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 		wantClass  string
 	}{
 		{"good-proj", statusGood, "bg-green-100"},
-		{"warn-proj", statusWarn, "bg-yellow-100"},
+		// amber since templ-components v1.26.0 unified the semantic warning
+		// hue (yellow → amber ramp; intentional upstream pixel diff).
+		{"warn-proj", statusWarn, "bg-amber-100"},
 		{"bad-proj", statusBad, "bg-red-100"},
 		{"neutral-proj", statusNeutral, "bg-gray-100"},
 	}
