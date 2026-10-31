@@ -17,14 +17,25 @@
 # ERRAUDIT_BIN overrides the binary (default: `erraudit` from PATH) — the
 # fixture self-test uses it to run offline with a stub.
 #
-# Usage: bash scripts/checks/erraudit-inventory.sh [--gate] [repo-root]
+# Usage: bash scripts/checks/erraudit-inventory.sh [--gate] [--strict] [repo-root]
+#
+# --strict (round-45 M12; M01 verdict 5 = ADVISORY FIRST): per-module sweep
+# runs `erraudit <mod> --max --disable generic_return` (gotcha 44's canonical
+# strict audit — --max bypasses nolint, generic_return is the documented
+# posture mismatch). Strict rc semantics: 0 = clean, 2 = findings (expected —
+# counted, not failed); any other rc = tool failure. The flake app
+# `.#check-erraudit-strict` runs this ADVISORY (always green, report-only);
+# blocking promotion waits for a green advisory month (tracked in TODO_LIST).
+# `--strict --gate` is the FUTURE blocking shape (fails on TOTAL > 0).
 set -uo pipefail
 
 GATE=0
+STRICT=0
 ROOT=""
 for arg in "$@"; do
   case "$arg" in
   --gate) GATE=1 ;;
+  --strict) STRICT=1 ;;
   *) ROOT="$arg" ;;
   esac
 done
@@ -63,12 +74,23 @@ total=0
 failed=0
 while IFS= read -r moddir; do
   [ -z "$moddir" ] && continue
-  csv=$("$ERRAUDIT_BIN" "$moddir" --violations-only --severity critical --format csv 2>/dev/null)
-  rc=$?
-  if [ "$rc" -ne 0 ]; then
-    echo "erraudit-inventory: FAILED — erraudit rc=$rc in $moddir" >&2
-    failed=$((failed + 1))
-    continue
+  if [ "$STRICT" -eq 1 ]; then
+    csv=$("$ERRAUDIT_BIN" "$moddir" --max --disable generic_return --format csv 2>/dev/null)
+    rc=$?
+    # Strict: 0 = clean, 2 = findings (counted); anything else = tool failure.
+    if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then
+      echo "erraudit-inventory: FAILED — erraudit --max rc=$rc in $moddir" >&2
+      failed=$((failed + 1))
+      continue
+    fi
+  else
+    csv=$("$ERRAUDIT_BIN" "$moddir" --violations-only --severity critical --format csv 2>/dev/null)
+    rc=$?
+    if [ "$rc" -ne 0 ]; then
+      echo "erraudit-inventory: FAILED — erraudit rc=$rc in $moddir" >&2
+      failed=$((failed + 1))
+      continue
+    fi
   fi
   count=$(printf '%s\n' "$csv" | tail -n +2 | grep -c . || true)
   total=$((total + count))
