@@ -4,43 +4,33 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-10-27 01:30 · **Owner:** Lars · **Module count:** 29 (`go.work`)
+**As of:** 2026-10-31 07:50 · **Owner:** Lars · **Module count:** 29 (`go.work`)
 
 ## The active thread
 
-**Wave D module lane is EXECUTED to its final receipt; three owner questions gate the
-epilogue.** Plan of record:
-[`docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md`](docs/planning/2026-10-25_10-42_SUPERB-wave-d-completion-code-fidelity-to-closure-pareto-plan.md)
+**Round 45 landed and pushed (`82ddd1b8`): the samber/do × health thread is CLOSED** —
+round-2 verdict 9/10, all five owner decisions executed on defaults (T12 wire rename
+shipped; `RecorderChain` docs migrated; T13 closed; `InvokeAs` filing authorized+drafted;
+erraudit strict = advisory month started), the 3-family train cut locally and the
+push blocker resolved (train lag 0), five new gates landed (readme-badges, pr-secrets,
+dependabot watch, coverage self-test, check-modules parity lock), and the backlog
+burned: 5 TODO rows closed, 15 parked rows re-audited with dated verdicts.
+Receipt: [`docs/status/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md`](docs/status/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md).
 
-**State (round-35 receipt, 2026-10-26/27):** W12 checkpoint green; W14.1–W14.6 and
-W15.2–W15.5 landed (the W14.3 export-walker hang was the session's P1 — root-caused,
-stall-guarded, CI-healed); the final battery is CI-authoritative (box load 150+
-made the local legs an honest refusal). Master green. Remaining on THIS lane:
-nothing executable without the owner.
+**Done when** (met): the final battery 5× rc=0 on a PUSHED commit — check-modules 78/78,
+`.#test` rc=0, coverage-gate 15/15, `.#lint` rc=0, erraudit --gate TOTAL=0, pre-push
+gates green.
 
-**Done when:** the owner answers the round-34 §g packet — (1) branching-flow
-baseline refresh (+46/−40 drift, held), (2) upstream filings + W04 defaults
-ratification (held), (3) release timing for loginpage `NoWebAuthn` + the dashboardui
-fixes (default taken: batch into the next train, not mid-wave) — plus the two
-dashboardui tail sub-items (page-size off-menu, browser e2e smoke) that ride the next
-dashboardui change.
+## The next thread (pick ONE)
 
-## The next thread (start immediately after)
-
-Whatever the owner's §g answers unlock first: the S55 packet chains (cqrs-lint fleet
-swap → CI wiring, ReadLastN upstream), the branching-flow re-identification +
-baseline refresh as one act, or the release train. The sibling lane (W09/W13/W16)
-closes independently; the 10-42 plan's terminal DONE line waits for both lanes.
-
-## Resolved since the last update
-
-**The module lane's W14+W15+W17 verdicts** (receipt:
-[`docs/status/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md`](docs/status/archived/2026-10-27_01-30_round-35-w14-w15-landed-ci-battery-of-record-8-verdicts-parked-rows-held-gates-named_status.md)):
-master healed from the w14.3 CI-killer (cursor-ignoring fake → OOM class), journal
-walkers stall-guarded everywhere, snapshot 404/500 split, boost-inheritance guard,
-root-files allowlist gate, coverage thresholds single-sourced + fail-loud, tooling
-canaries a–g, skill-maintenance gates ×3 (caught real skill drift), 8 parked-row
-verdicts confirmed, TODO swept (58 rows, hygiene green).
+1. **Advisory month for erraudit strict** (passive): let `.#check-erraudit-strict`
+   accumulate a green month at TOTAL ≤ 303, then flip `--strict --gate` (TODO watch row).
+2. **File the samber/do `InvokeAs` issue** (owner click): draft ready at
+   `docs/proposals/upstream/samber-do-invokeas-map-order-scan.md`, repro verified twice
+   on v2.1.0; M01 verdict 4 authorizes.
+3. **10-42 Wave-D remainder** (W01 S37 tails, W07 schema stamping) on its own trigger —
+   the two dashboardui tail sub-items (page-size off-menu pins, browser e2e smoke) ride
+   the next dashboardui change (verified: pins exist; browser legs are CI-gated).
 
 ## Ground rules that keep this honest
 

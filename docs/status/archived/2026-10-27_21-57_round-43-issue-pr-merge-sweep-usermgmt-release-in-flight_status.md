@@ -1,7 +1,7 @@
 # Round 43 — issue/PR sweep: both PRs landed, #34 fixed and merged, #33 superseded, master healed twice, the sibling's 16-commit session rescued from a dead branch, and the usermgmt v4.17.0 release left mid-flight
 
 > **ANNOTATED 2026-10-30** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-10-30 (round-45 (2026-10-30)).**
-> The next session in the same arc is [`2026-10-28_13-55_round-44-queue-sweep-release-cut-cve-patch-and-cache-corruption_status.md`](../2026-10-28_13-55_round-44-queue-sweep-release-cut-cve-patch-and-cache-corruption_status.md), which superseded.
+> The next session in the same arc is [`2026-10-28_13-55_round-44-queue-sweep-release-cut-cve-patch-and-cache-corruption_status.md`](2026-10-28_13-55_round-44-queue-sweep-release-cut-cve-patch-and-cache-corruption_status.md), which superseded.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Date:** 2026-10-27 21:57 CET · **Reporter:** Crush (owner demand: "All PRs and GitHub Issues … review and merge and fix") · **Head pushed by this session:** `aed1f512` (origin/master; local shared-tree master was `f2d8379d`, strictly behind) · **CI:** green on `b798c844`, **RED on `aed1f512`** (upstream go-health v0.8.1 lag, fix verified but uncommitted) · **Trigger:** "READ, UNDERSTAND, RESEARCH, REFLECT … review and merge and fix … keep going until everything works."
