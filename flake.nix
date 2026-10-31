@@ -1245,8 +1245,8 @@
                     )
                     red=0
                     for stage in "''${stages[@]}"; do
-                      name="${stage%%:*}"
-                      cmd="${stage#*:}"
+                      name="''${stage%%:*}"
+                      cmd="''${stage#*:}"
                       if output=$($cmd 2>&1); then
                         echo "  PASS $name"
                       else
