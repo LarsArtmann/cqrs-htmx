@@ -30,3 +30,7 @@ Enumerated from source (readiness.go, projection_readiness.go, health/probe.go, 
 | `config_invalid`                                        | app.go:150                  | unchanged — out of T12 scope (construction-time config guard, not a health/readiness wire event); residual noted for a future namespace pass |
 
 No Go test asserts any old code string (verified by grep 2026-10-31: health tests assert message substrings only; projection_readiness_test.go's `nil_provider_fails_closed` is a case name). Wire-visible → CHANGELOG receipts in root + health in the same change.
+
+## M07 addendum — `Recorder(nil)` verdict (2026-10-31)
+
+**KEEP the documented construction panic.** `health.Recorder(nil)` panics at construction with a clear message, shipped and published in health v4.14.0 (2026-10-28). A `(recorder, error)` signature would break the published API one train after release for a case the panic already fails loud and early — a nil recorder is a wiring bug, not a runtime condition callers should handle. The existing pin test (health's `TestRecorder_NilPanics`) stays the contract.
