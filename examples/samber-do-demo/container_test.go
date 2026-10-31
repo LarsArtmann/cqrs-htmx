@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	cqrshtmxhealth "github.com/larsartmann/cqrs-htmx/health/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -355,5 +357,84 @@ func TestHelloCommandEndToEnd(t *testing.T) {
 	defer rejected.Body.Close()
 	if rejected.StatusCode == http.StatusOK {
 		t.Fatal("empty-name Hello dispatch: status = 200, want an error status (handler rejects empty names)")
+	}
+}
+
+// fakeFailingProvider is a ProjectionStatusProvider whose critical projection
+// reports failed — the deterministic failure path the real service cannot
+// reach without killing a goroutine.
+type fakeFailingProvider struct{}
+
+func (fakeFailingProvider) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntry {
+	return []cqrshtmx.ProjectionStatusEntry{
+		{
+			Name:      "user-read-model",
+			Status:    cqrshtmx.ProjectionStatusFailed,
+			Processed: 42,
+			Errors:    1,
+			LastError: "disk on fire",
+		},
+		{Name: "casbin-projection", Status: cqrshtmx.ProjectionStatusLive, Processed: 99},
+	}
+}
+
+// TestHealthRoutes_FailedCritical_Answers503AndDashboardShowsIt pins the
+// FAILURE path of the demo's resilience story: every other health test pins a
+// pass path, so a critical projection flipping to failed must (a) fail the
+// readiness gate with 503 (never green-light traffic on a dead projection)
+// and (b) render the failed verdict — name and status — on the dashboard, so
+// a human opening /health-ui sees WHY the pod is unready.
+func TestHealthRoutes_FailedCritical_Answers503AndDashboardShowsIt(t *testing.T) {
+	probe, err := cqrshtmxhealth.NewProbe(fakeFailingProvider{},
+		gohealth.WithCriticalServices("user-read-model", "casbin-projection"),
+		gohealth.WithVersion("samber-do-demo"),
+	)
+	if err != nil {
+		t.Fatalf("NewProbe: %v", err)
+	}
+	if err := probe.Start(context.Background()); err != nil {
+		t.Fatalf("probe.Start: %v", err)
+	}
+	defer probe.Shutdown()
+
+	mux := http.NewServeMux()
+	probe.RegisterRoutes(mux, gohealth.DefaultRoutes())
+	dashboard := cqrshtmxhealth.NewDashboard(probe)
+	mux.Handle("/health-ui", dashboard.Handler())
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	ready, err := http.Get(srv.URL + "/readyz")
+	if err != nil {
+		t.Fatalf("GET /readyz: %v", err)
+	}
+	readyBody, _ := io.ReadAll(ready.Body)
+	ready.Body.Close()
+	if ready.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf(
+			"GET /readyz with a failed critical projection: status = %d, want 503 (body: %s)",
+			ready.StatusCode,
+			readyBody,
+		)
+	}
+	if !strings.Contains(string(readyBody), "disk on fire") {
+		t.Errorf("readyz body must carry the projection's last error for operators, got: %s", readyBody)
+	}
+
+	ui, err := http.Get(srv.URL + "/health-ui")
+	if err != nil {
+		t.Fatalf("GET /health-ui: %v", err)
+	}
+	defer ui.Body.Close()
+	if ui.StatusCode != http.StatusOK {
+		t.Fatalf("GET /health-ui: status = %d (the dashboard must render, not fail, when checks fail)", ui.StatusCode)
+	}
+	uiBody, _ := io.ReadAll(ui.Body)
+	if !strings.Contains(string(uiBody), "user-read-model") {
+		t.Error("dashboard must name the failed projection")
+	}
+	if !strings.Contains(strings.ToLower(string(uiBody)), "fail") {
+		t.Error("dashboard must render the failed verdict for the failed projection")
 	}
 }
