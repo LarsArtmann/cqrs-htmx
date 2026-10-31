@@ -1115,7 +1115,7 @@
 
             check-modules = {
               type = "app";
-              meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, release train, replaces, docs). Default: abort at first red. --report: run every stage and print a red/green summary (exit 1 if any failed)";
+              meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, release train, replaces, docs). DEFAULT: run EVERY stage, print a red/green summary, exit 1 if any failed (report-then-fail since round-45 M11 — abort-at-first-red let a local green skip ~24 stages, the gotcha-40-local class). --sequential: abort at first red (fast partial pass). --report: alias of the default.";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-modules";
@@ -1125,8 +1125,53 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    if [ "''${1:-}" = "--report" ]; then
-                      stages=(
+                    if [ "''${1:-}" = "--sequential" ]; then
+                      bash bash scripts/checks/check-module-isolation.sh
+                      bash bash scripts/checks/check-dep-budgets.sh
+                      bash bash scripts/selftests/test-check-dep-budgets.sh
+                      bash bash scripts/checks/check-go-toolchain.sh
+                      bash bash scripts/checks/check-workspace-build.sh
+                      bash bash scripts/selftests/test-check-workspace-build.sh
+                      bash bash scripts/checks/check-version-drift.sh --strict
+                      bash bash scripts/checks/check-release-train.sh
+                      bash bash scripts/checks/check-upstream-treadmill.sh
+                      bash bash scripts/selftests/test-check-upstream-treadmill.sh
+                      bash bash scripts/selftests/test-wave-tag.sh
+                      bash bash scripts/checks/check-vcs-cache.sh
+                      bash bash scripts/selftests/test-check-vcs-cache.sh
+                      bash bash scripts/checks/check-css-bundles.sh
+                      bash bash scripts/selftests/test-check-css-bundles.sh
+                      bash bash scripts/checks/check-css-bundle-classes.sh
+                      bash bash scripts/selftests/test-check-css-bundle-classes.sh
+                      bash bash scripts/checks/check-replace-directives.sh
+                      bash bash scripts/checks/check-docs-freshness.sh
+                      bash bash scripts/selftests/test-check-docs-freshness.sh
+                      bash bash scripts/checks/check-docs-links.sh
+                      bash bash scripts/checks/check-readme-quickstart.sh
+                      bash bash scripts/selftests/test-check-readme-quickstart.sh
+                      bash bash scripts/checks/check-status-annotations.sh
+                      bash bash scripts/selftests/test-check-status-annotations.sh
+                      bash python3 scripts/checks/check-status-rows.py
+                      bash bash scripts/selftests/test-check-status-rows.sh
+                      bash bash scripts/selftests/test-normalize-status-rows.sh
+                      bash bash scripts/checks/check-todo-hygiene.sh
+                      bash bash scripts/selftests/test-check-todo-hygiene.sh
+                      bash bash scripts/selftests/test-evict-archive.sh
+                      bash bash scripts/selftests/test-archive-status.sh
+                      bash bash scripts/checks/check-docs-tail-budget.sh --ratchet
+                      bash bash scripts/checks/check-docs-corpus-budget.sh --ratchet
+                      bash bash scripts/selftests/test-check-docs-corpus-budget.sh
+                      bash bash scripts/selftests/test-bump-dep.sh
+                      bash bash scripts/selftests/test-check-templ-codegen-staged.sh
+                      bash bash scripts/checks/check-session-route-wrappers.sh
+                      bash bash scripts/selftests/test-check-session-route-wrappers.sh
+                      bash bash scripts/checks/check-branching-flow.sh
+                      bash bash scripts/selftests/test-check-branching-flow.sh
+                      echo ""
+                      echo "All module architecture checks passed"
+                      exit 0
+                    fi
+                    stages=(
                         "module-isolation:bash scripts/checks/check-module-isolation.sh"
                         "dep-budgets:bash scripts/checks/check-dep-budgets.sh"
                         "dep-budgets-self-test:bash scripts/selftests/test-check-dep-budgets.sh"
@@ -1197,70 +1242,26 @@
                         "selftest-env-leaks-self-test:bash scripts/selftests/test-check-selftest-env-leaks.sh"
                         "branching-flow:bash scripts/checks/check-branching-flow.sh"
                         "branching-flow-self-test:bash scripts/selftests/test-check-branching-flow.sh"
-                      )
-                      red=0
-                      for stage in "''${stages[@]}"; do
-                        name="''${stage%%:*}"
-                        cmd="''${stage#*:}"
-                        if output=$($cmd 2>&1); then
-                          echo "  ✅ $name"
-                        else
-                          echo "  ❌ $name"
-                          printf '%s\n' "$output" | sed 's/^/      /' | tail -15
-                          red=$((red + 1))
-                        fi
-                      done
-                      echo ""
-                      if [ "$red" -gt 0 ]; then
-                        echo "✗ $red of ''${#stages[@]} module architecture checks failed"
-                        exit 1
+                    )
+                    red=0
+                    for stage in "''${stages[@]}"; do
+                      name="${stage%%:*}"
+                      cmd="${stage#*:}"
+                      if output=$($cmd 2>&1); then
+                        echo "  PASS $name"
+                      else
+                        echo "  FAIL $name"
+                        printf '%s\n' "$output" | sed 's/^/      /' | tail -15
+                        red=$((red + 1))
                       fi
-                      echo "✓ All ''${#stages[@]} module architecture checks passed"
-                      exit 0
-                    fi
-                    bash scripts/checks/check-module-isolation.sh
-                    bash scripts/checks/check-dep-budgets.sh
-                    bash scripts/selftests/test-check-dep-budgets.sh
-                    bash scripts/checks/check-go-toolchain.sh
-                    bash scripts/checks/check-workspace-build.sh
-                    bash scripts/selftests/test-check-workspace-build.sh
-                    bash scripts/checks/check-version-drift.sh --strict
-                    bash scripts/checks/check-release-train.sh
-                    bash scripts/checks/check-upstream-treadmill.sh
-                    bash scripts/selftests/test-check-upstream-treadmill.sh
-                    bash scripts/selftests/test-wave-tag.sh
-                    bash scripts/checks/check-vcs-cache.sh
-                    bash scripts/selftests/test-check-vcs-cache.sh
-                    bash scripts/checks/check-css-bundles.sh
-                    bash scripts/selftests/test-check-css-bundles.sh
-                    bash scripts/checks/check-css-bundle-classes.sh
-                    bash scripts/selftests/test-check-css-bundle-classes.sh
-                    bash scripts/checks/check-replace-directives.sh
-                    bash scripts/checks/check-docs-freshness.sh
-                    bash scripts/selftests/test-check-docs-freshness.sh
-                    bash scripts/checks/check-docs-links.sh
-                    bash scripts/checks/check-readme-quickstart.sh
-                    bash scripts/selftests/test-check-readme-quickstart.sh
-                    bash scripts/checks/check-status-annotations.sh
-                    bash scripts/selftests/test-check-status-annotations.sh
-                    python3 scripts/checks/check-status-rows.py
-                    bash scripts/selftests/test-check-status-rows.sh
-                    bash scripts/selftests/test-normalize-status-rows.sh
-                    bash scripts/checks/check-todo-hygiene.sh
-                    bash scripts/selftests/test-check-todo-hygiene.sh
-                    bash scripts/selftests/test-evict-archive.sh
-                    bash scripts/selftests/test-archive-status.sh
-                    bash scripts/checks/check-docs-tail-budget.sh --ratchet
-                    bash scripts/checks/check-docs-corpus-budget.sh --ratchet
-                    bash scripts/selftests/test-check-docs-corpus-budget.sh
-                    bash scripts/selftests/test-bump-dep.sh
-                    bash scripts/selftests/test-check-templ-codegen-staged.sh
-                    bash scripts/checks/check-session-route-wrappers.sh
-                    bash scripts/selftests/test-check-session-route-wrappers.sh
-                    bash scripts/checks/check-branching-flow.sh
-                    bash scripts/selftests/test-check-branching-flow.sh
+                    done
                     echo ""
-                    echo "✓ All module architecture checks passed"
+                    if [ "$red" -gt 0 ]; then
+                      echo "FAILED: $red of ''${#stages[@]} module architecture checks failed"
+                      exit 1
+                    fi
+                    echo "OK: all ''${#stages[@]} module architecture checks passed"
+                    exit 0
                   '';
                 }
               );
