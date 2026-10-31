@@ -46,11 +46,21 @@ if [ ! -f "$profile" ]; then
   exit 1
 fi
 
-# Measure from the profile's directory: coverage profiles carry
-# source-module-relative paths, so running `go tool cover` from elsewhere
-# (repo root) cannot resolve them (the first CI run of this script failed
-# exactly there — the old inline steps always cd'd first).
-cov=$(cd "$(dirname "$profile")" && go tool cover -func="$(basename "$profile")" |
+# Measure from a directory that carries the MODULE CONTEXT for the profile's
+# package paths: `go tool cover -func` resolves the profile's module-relative
+# source paths through Go's module resolution, so the measure site must be
+# the module (repo root for the root row), NOT the profile's own directory —
+# /tmp profiles (the coverage-gate app's mktemp shape) have no go.mod and
+# fail with "no required module provides package ..." (round-45 M27 fix; the
+# 10-27 profile-dir change was verified only against CI's in-module profiles
+# and never re-run through the flake app). Module rows measure from the
+# module dir — identical to CI's `cd <module>` shape; the root row measures
+# from the repo root.
+case "$module" in
+".") measure_dir="$REPO_ROOT" ;;
+*) measure_dir="$REPO_ROOT/$module" ;;
+esac
+cov=$(cd "$measure_dir" && go tool cover -func="$profile" |
   tail -1 | grep -oP '\d+\.\d+(?=%)' || true)
 case "$cov" in
 '' | *[!0-9.]*)
