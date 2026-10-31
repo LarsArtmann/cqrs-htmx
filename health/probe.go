@@ -168,16 +168,16 @@ func checkError(entry cqrshtmx.ProjectionStatusEntry) error {
 		return nil
 
 	case cqrshtmx.ProjectionStatusFailed:
-		return errorfamily.NewInfrastructure("cqrshtmx.health.projection_failed",
+		return errorfamily.NewInfrastructure("cqrshtmx.projection.failed",
 			fmt.Sprintf("projection %q failed: %s", entry.Name, entry.LastError))
 	case cqrshtmx.ProjectionStatusIdle, cqrshtmx.ProjectionStatusRunning, cqrshtmx.ProjectionStatusBackoff:
-		return errorfamily.NewTransient("cqrshtmx.health.projection_draining",
+		return errorfamily.NewTransient("cqrshtmx.projection.draining",
 			fmt.Sprintf("projection %q is %q (catching up)", entry.Name, entry.Status))
 	default:
 		// Unknown statuses stay transient (not-ready, retry) but are worded
 		// honestly — calling an unrecognized state "catching up" would be a
 		// guess presented as a diagnosis.
-		return errorfamily.NewTransient("cqrshtmx.health.projection_unknown_status",
+		return errorfamily.NewTransient("cqrshtmx.projection.unknown_status",
 			fmt.Sprintf("projection %q reported unrecognized status %q (treated as not-ready)",
 				entry.Name, entry.Status))
 	}

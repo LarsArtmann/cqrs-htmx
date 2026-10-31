@@ -82,7 +82,7 @@ func ProjectionReadinessCheck(provider ProjectionStatusProvider) NamedCheck {
 			// wiring bug, and reporting healthy would green-light traffic with
 			// no evidence that projections ever drained. The sibling status
 			// handler fails closed for the same reason.
-			return errorfamily.NewInfrastructure("projection.readiness.nil_provider",
+			return errorfamily.NewInfrastructure("cqrshtmx.projection.readiness.nil_provider",
 				"ProjectionReadinessCheck: status provider is nil — readiness cannot be evaluated")
 		}
 
@@ -94,7 +94,7 @@ func ProjectionReadinessCheck(provider ProjectionStatusProvider) NamedCheck {
 			}
 
 			if s.Status == ProjectionStatusFailed {
-				return errorfamily.NewInfrastructure("projection.failed",
+				return errorfamily.NewInfrastructure("cqrshtmx.projection.failed",
 					fmt.Sprintf("projection %q has failed: %s", s.Name, s.LastError))
 			}
 
@@ -103,7 +103,7 @@ func ProjectionReadinessCheck(provider ProjectionStatusProvider) NamedCheck {
 		}
 
 		if len(draining) > 0 {
-			return errorfamily.NewTransient("projection.draining",
+			return errorfamily.NewTransient("cqrshtmx.projection.draining",
 				"projections still draining: "+strings.Join(draining, ", "))
 		}
 
