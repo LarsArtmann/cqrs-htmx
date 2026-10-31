@@ -1246,7 +1246,7 @@
                       "check-modules-parity-self-test:bash scripts/selftests/test-check-modules-parity.sh"
                       "readme-badges:bash scripts/checks/check-readme-badges.sh"
                       "readme-badges-self-test:bash scripts/selftests/test-check-readme-badges.sh"
-                      "pr-secrets:bash scripts/checks/check-pr-secrets.py"
+                      "pr-secrets:python3 scripts/checks/check-pr-secrets.py"
                       "pr-secrets-self-test:bash scripts/selftests/test-check-pr-secrets.sh"
                       "dependabot-alerts:bash scripts/checks/check-dependabot-alerts.sh"
                       "coverage-threshold-self-test:bash scripts/selftests/test-check-coverage-threshold.sh"

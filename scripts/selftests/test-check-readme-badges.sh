@@ -75,7 +75,9 @@ cat >"$TMP/fetch-dead" <<'STUB'
 exit 1
 STUB
 chmod +x "$TMP/fetch-dead"
-out=$(BADGE_FETCHER="$TMP/fetch-dead" bash "$CHECK" "$README" 2>&1)
+# env -u CI: the local-exit-4 branch must hold even on a runner (the
+# selftest-env-leaks gate requires CI-stripping for CI-branching checkers).
+out=$(env -u CI BADGE_FETCHER="$TMP/fetch-dead" bash "$CHECK" "$README" 2>&1)
 check "fetch error exits 4 locally" 4 $? 'exit 4' "$out"
 
 out=$(CI=true BADGE_FETCHER="$TMP/fetch-dead" bash "$CHECK" "$README" 2>&1)
