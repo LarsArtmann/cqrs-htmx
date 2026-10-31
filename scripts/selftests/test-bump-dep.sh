@@ -257,13 +257,18 @@ fi
 # so the sweep proceeds to its (offline-failing) work — warnings only.
 COLLIDE_LOG="/tmp/bump-dep-collision-fixture-$$.log"
 : >"$COLLIDE_LOG"
-# $0 trick: sh -c 'sleep 6' NAME puts NAME (carrying the pgrep pattern) in the
-# process cmdline, so pgrep -f 'scripts/tools/bump-dep.sh' finds it.
-sh -c 'sleep 6' "/tmp/fixtures/scripts/tools/bump-dep.sh" &
+# A marker script whose PATH carries the pgrep pattern: the process cmdline is
+# `bash /tmp/.../scripts/tools/bump-dep.sh-marker` — pgrep -f matches the
+# substring. (sh -c 'sleep' NAME exec-optimizes the name away.)
+MARKER_DIR="/tmp/bump-dep-marker-$$/scripts/tools"
+mkdir -p "$MARKER_DIR"
+printf '#!/usr/bin/env bash\nsleep 8\n' >"$MARKER_DIR/bump-dep.sh-marker"
+chmod +x "$MARKER_DIR/bump-dep.sh-marker"
+bash "$MARKER_DIR/bump-dep.sh-marker" &
 MARKER_PID=$!
 out=$(BUMP_DEP_NO_NETWORK=1 run_bump 'larsartmann/exmod' v9.9.9)
 kill "$MARKER_PID" 2>/dev/null
-rm -f "$COLLIDE_LOG"
+rm -rf "/tmp/bump-dep-marker-$$" "$COLLIDE_LOG"
 if printf '%s' "$out" | grep -q "a sweep log was written within the last 15m" &&
   printf '%s' "$out" | grep -q "another bump-dep sweep appears LIVE"; then
   echo "  ok 12: fresh-log and live-PID collision warnings both fire"
