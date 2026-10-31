@@ -1248,6 +1248,7 @@
                       "readme-badges-self-test:bash scripts/selftests/test-check-readme-badges.sh"
                       "pr-secrets:bash scripts/checks/check-pr-secrets.py"
                       "pr-secrets-self-test:bash scripts/selftests/test-check-pr-secrets.sh"
+                      "dependabot-alerts:bash scripts/checks/check-dependabot-alerts.sh"
                     )
                     red=0
                     for stage in "''${stages[@]}"; do
@@ -1268,6 +1269,24 @@
                     fi
                     echo "OK: all ''${#stages[@]} module architecture checks passed"
                     exit 0
+                  '';
+                }
+              );
+            };
+
+            check-dependabot-alerts = {
+              type = "app";
+              meta.description = "ADVISORY dependabot-alert watch (gh api; auth-absent = CI warning / local exit 3; manifest-path trap printed) — round-45 M18";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-dependabot-alerts";
+                  runtimeInputs = [
+                    pkgs.gh
+                    pkgs.jq
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-dependabot-alerts.sh "$@"
                   '';
                 }
               );
