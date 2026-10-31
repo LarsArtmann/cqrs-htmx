@@ -2387,7 +2387,7 @@
               description = "Run tests and fail if coverage drops below thresholds (single-sourced in scripts/checks/coverage-thresholds.tsv; fail-loud on failed test runs)";
               text = ''
                 fail=0
-                while IFS=$'\t' read -r mod threshold; do
+                while IFS=$'\t' read -r mod _; do
                   case "$mod" in ""|'#'*) continue ;; esac
                   profile=$(mktemp /tmp/cov.XXXXXX)
                   if [ -f "$mod/go.mod" ]; then

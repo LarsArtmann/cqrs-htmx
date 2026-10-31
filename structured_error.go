@@ -121,6 +121,7 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 	}
 
 	contextual, _ := err.(interface{ ErrorContext() map[string]string })
+
 	var errContext map[string]string
 	if status < 500 && contextual != nil {
 		// Client-fault statuses carry the context — it describes the caller's
