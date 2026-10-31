@@ -1,5 +1,9 @@
 # Round 45 — samber/do × health closure, decision batch, backlog burn-down (2026-10-31)
 
+> **ANNOTATED 2026-10-31** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-10-31 (round-45 self-critique (2026-10-31)).**
+> The next session in the same arc is [`2026-10-31_09-26_round-45-self-critique-comprehensive-status-update_status.md`](../2026-10-31_09-26_round-45-self-critique-comprehensive-status-update_status.md), which superseded.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Scope:** the round-45 Pareto plan executed end-to-end: M01–M27 (decision batch, T12 wire rename, 3-family dependency train, failure-mode tests, five new gates, RFC 7807 context, doc-truth pack, TODO truth pass, upstream drafts, delivery prep, parked-row audit, final battery). **Push landed:** `158e86f6..82ddd1b8` (48 commits) — the session-opening push blocker (92 train-lag requires, rc=3) resolved by the M06 family train, pre-push gates green.
 
 ## a. What shipped (receipts = commit subjects; this is the index, not the detail)

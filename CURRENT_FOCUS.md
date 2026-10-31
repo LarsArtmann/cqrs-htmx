@@ -15,7 +15,7 @@ erraudit strict = advisory month started), the 3-family train cut locally and th
 push blocker resolved (train lag 0), five new gates landed (readme-badges, pr-secrets,
 dependabot watch, coverage self-test, check-modules parity lock), and the backlog
 burned: 5 TODO rows closed, 15 parked rows re-audited with dated verdicts.
-Receipt: [`docs/status/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md`](docs/status/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md).
+Receipt: [`docs/status/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md`](docs/status/archived/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md).
 
 **Done when** (met): the final battery 5× rc=0 on a PUSHED commit — check-modules 78/78,
 `.#test` rc=0, coverage-gate 15/15, `.#lint` rc=0, erraudit --gate TOTAL=0, pre-push
