@@ -77,36 +77,32 @@ check "unknown row exits 1" 1 $? "no threshold row" "$out"
 out=$(bash "$CHECK" . "$TMP/definitely-absent.out" 2>&1)
 check "missing profile exits 1 (canary)" 1 $? 'profile missing' "$out"
 
-# CI-shape leg: real profile via a real `go test -coverprofile` (GOWORK=off,
-# the workflow's env), then the checker invoked from a REPO-ROOT-LIKE cwd
-# with the module row form the workflow uses.
-mkmod "$TMP/mod-high" yes
-mkmod "$TMP/mod-low" no
-source "$REPO_ROOT/scripts/lib/go-cache-env.sh" >/dev/null 2>&1 || true
-
-(cd "$TMP/mod-high" && GOWORK=off GOEXPERIMENT=jsonv2 go test ./... -count=1 -coverprofile=coverage.out >/dev/null 2>&1)
-(cd "$TMP/mod-low" && GOWORK=off GOEXPERIMENT=jsonv2 go test ./... -count=1 -coverprofile=coverage.out >/dev/null 2>&1)
-[ -f "$TMP/mod-high/coverage.out" ] || {
-  echo "FAIL setup: high profile not generated"
+# CI-shape leg: a REAL root-module profile (the exact artifact the root row
+# consumes), then the checker invoked with an explicit profile — the
+# coverage-gate app's shape (m27: explicit profiles must WIN over defaults,
+# and the measure site must be the repo root for the root row).
+ROOT_PROFILE="$TMP/root-coverage.out"
+(cd "$REPO_ROOT" && GOWORK=off GOEXPERIMENT=jsonv2 go test ./... -count=1 -coverprofile="$ROOT_PROFILE" >/dev/null 2>&1)
+[ -f "$ROOT_PROFILE" ] || {
+  echo "FAIL setup: root profile not generated"
   exit 1
 }
 
-# The TSV only knows real rows; hand the checker an EXPLICIT profile for the
-# fixture modules (the [profile] argument form) — the row form's
-# repo-root resolution is exercised against the REAL root module below.
-out=$(bash "$CHECK" . "$TMP/mod-high/coverage.out" 2>&1)
+out=$(bash "$CHECK" . "$ROOT_PROFILE" 2>&1)
 rc=$?
-# The root row's threshold is high; a 100% fixture may still legitimately
-# pass or fail — assert the PARSE path worked (no "could not parse").
 if printf '%s\n' "$out" | grep -q 'could not parse'; then
   echo "FAIL ci-shape parse: real profile unparsable"
   printf '%s\n' "$out" | head -5
   failures=$((failures + 1))
 else
-  echo "ok   ci-shape: real go-test profile parses (rc=$rc against the root threshold)"
+  echo "ok   ci-shape: real root profile parses against the root threshold (rc=$rc)"
 fi
 
-out=$(bash "$CHECK" . "$TMP/mod-low/coverage.out" 2>&1)
+# Under-threshold leg: a parsable profile whose total is driven to ~0 by
+# keeping only the mode line (the threshold-miss path with a REAL-shaped
+# profile).
+grep '^mode:' "$ROOT_PROFILE" >"$TMP/low.out"
+out=$(bash "$CHECK" . "$TMP/low.out" 2>&1)
 if [ "$?" -eq 1 ] && printf '%s\n' "$out" | grep -qi 'below\|under\|threshold'; then
   echo "ok   under-threshold profile fails"
 else
@@ -115,14 +111,12 @@ else
   failures=$((failures + 1))
 fi
 
-# Unparsable profile: garbage bytes.
+# Unparsable profile: garbage bytes (the canary must fire, never pass).
 printf 'not a coverage profile\n' >"$TMP/garbage.out"
 out=$(bash "$CHECK" . "$TMP/garbage.out" 2>&1)
 if printf '%s\n' "$out" | grep -q 'could not parse'; then
-  check "unparsable profile fails (canary)" 1 0 'could not parse' "$out"
+  echo "ok   unparsable profile fails (canary)"
 else
-  # Some `go tool cover` versions exit non-zero with their own message
-  # before the checker's parse guard — either way it must NOT pass.
   rc=$?
   if [ "$rc" -eq 1 ]; then
     echo "ok   unparsable profile fails (canary, tool-native error)"
