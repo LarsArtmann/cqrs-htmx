@@ -102,6 +102,58 @@ chmod +x "$TMP/fake-crash"
 out=$(ERRAUDIT_BIN="$TMP/fake-crash" bash "$INVENTORY" "$TMP/ws" 2>&1)
 check "erraudit-failure guard fails" 1 $? 'rc=7' "$out"
 
+# --- Strict mode (round-45 M12) ---
+
+# The strict stub MUST receive the canonical strict flags (gotcha 44:
+# --max --disable generic_return) — assert the invocation shape, then emit
+# one finding row so the counting path is exercised too. rc 2 = findings,
+# which is ADVISORY green (M01 verdict 5).
+STRICT_ARGS_CAPTURE="$TMP/strict-args.txt"
+cat >"$TMP/fake-strict" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >"$STRICT_ARGS_CAPTURE"
+echo "Type,Severity,File,Line,Column,Message,Explanation"
+echo "context_loss,critical,service.go,10,2,lost x,why"
+exit 2
+STUB
+chmod +x "$TMP/fake-strict"
+out=$(ERRAUDIT_BIN="$TMP/fake-strict" bash "$INVENTORY" --strict "$TMP/ws" 2>&1)
+rc=$?
+if [ "$rc" -eq 0 ] &&
+  grep -q -- '--max' "$STRICT_ARGS_CAPTURE" &&
+  grep -q -- '--disable generic_return' "$STRICT_ARGS_CAPTURE" &&
+  printf '%s\n' "$out" | grep -q 'mod-a: 1' &&
+  printf '%s\n' "$out" | grep -q 'TOTAL=2'; then
+  echo "ok   strict: canonical flags used, findings counted, rc 2 = advisory green"
+else
+  echo "FAIL strict: rc=$rc args=$(cat "$STRICT_ARGS_CAPTURE" 2>/dev/null)"
+  printf '%s\n' "$out" | head -8
+  failures=$((failures + 1))
+fi
+
+# Strict clean: rc 0 with empty CSV → TOTAL=0, still advisory green.
+cat >"$TMP/fake-strict-clean" <<'STUB'
+#!/usr/bin/env bash
+echo "Type,Severity,File,Line,Column,Message,Explanation"
+exit 0
+STUB
+chmod +x "$TMP/fake-strict-clean"
+out=$(ERRAUDIT_BIN="$TMP/fake-strict-clean" bash "$INVENTORY" --strict "$TMP/ws" 2>&1)
+check "strict clean: TOTAL=0 advisory green" 0 $? 'TOTAL=0' "$out"
+
+# Strict tool failure: rc 7 (neither 0 nor 2) fails the sweep.
+cat >"$TMP/fake-strict-crash" <<'STUB'
+#!/usr/bin/env bash
+exit 7
+STUB
+chmod +x "$TMP/fake-strict-crash"
+out=$(ERRAUDIT_BIN="$TMP/fake-strict-crash" bash "$INVENTORY" --strict "$TMP/ws" 2>&1)
+check "strict tool-failure guard fails" 1 $? 'rc=7' "$out"
+
+# Strict + gate (the FUTURE blocking shape): TOTAL>0 must fail.
+out=$(ERRAUDIT_BIN="$TMP/fake-strict" bash "$INVENTORY" --strict --gate "$TMP/ws" 2>&1)
+check "strict --gate fails on TOTAL>0 (future blocking shape)" 1 $? 'gate mode' "$out"
+
 if [ "$failures" -gt 0 ]; then
   echo "erraudit-inventory self-test: $failures FAILURE(S)"
   exit 1

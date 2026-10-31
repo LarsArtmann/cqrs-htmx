@@ -1220,6 +1220,7 @@
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
                         "templ-codegen-staged-self-test:bash scripts/selftests/test-check-templ-codegen-staged.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
+                      "erraudit-strict-advisory:bash scripts/checks/erraudit-inventory.sh --strict"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                         "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
@@ -1263,6 +1264,21 @@
                     fi
                     echo "OK: all ''${#stages[@]} module architecture checks passed"
                     exit 0
+                  '';
+                }
+              );
+            };
+
+            check-erraudit-strict = {
+              type = "app";
+              meta.description = "ADVISORY strict erraudit sweep (gotcha 44 canonical: --max --disable generic_return per module) — report-only until a green advisory month, then promote to blocking (M01 verdict 5, round-45 M12)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-erraudit-strict";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/erraudit-inventory.sh --strict "$@"
                   '';
                 }
               );

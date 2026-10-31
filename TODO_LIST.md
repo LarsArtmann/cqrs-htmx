@@ -156,3 +156,5 @@ _Fed by every report §g; full evidence in [`docs/proposals/2026-10-01_owner-dec
 ---
 
 _For completed work, see [CHANGELOG.md](CHANGELOG.md) and [git log](https://github.com/larsartmann/cqrs-htmx/commits/master). For long-term vision, v5 plans, and rejected ideas, see [ROADMAP.md](ROADMAP.md)._
+
+- [ ] **erraudit strict promotion watch (round-45 M12, M01 verdict 5)** — the advisory strict sweep (`nix run .#check-erraudit-strict`, baseline 2026-10-31: TOTAL=303 across 29 modules) runs non-blocking in check-modules. If a re-run lands a full calendar month with TOTAL unchanged-or-lower, flip the flake app + check-modules stage to `--strict --gate` (the blocking shape is already implemented + self-tested).
