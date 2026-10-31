@@ -4,9 +4,10 @@
 #
 # For every go.mod that requires a module matching <module-pattern>, set the
 # require to <version>, then run hermetic tidy + `go mod verify` + build + vet
-# per module (and, with --lint, hermetic golangci-lint — the leg that catches
-# linter-visible regressions a fresh require can drag in, e.g. a bumped
-# dependency whose API now trips exhaustruct/wrapcheck in the consuming module). Digit-safe pattern matching (the `[a-z/-]+` class once silently
+# per module. Hermetic golangci-lint runs by DEFAULT (the leg that catches
+# linter-visible regressions a fresh require can drag in — a bumped dependency
+# whose API now trips exhaustruct/wrapcheck in the consuming module); opt out
+# with --no-lint. Digit-safe pattern matching (the `[a-z/-]+` class once silently
 # skipped usermgmt/oauth2). Matches BOTH the block-require form
 # (`\tgithub.com/x v1.0.0`) AND the single-line form
 # (`require github.com/x v1.0.0`) — the 9b3c2e18 gap that needed a hand-fix
@@ -14,7 +15,7 @@
 #
 # Usage:
 #   scripts/tools/bump-dep.sh <module-substring-or-regex> <version> \
-#       [--dry-run] [--commit] [--no-verify] [--lint] [--message <tpl>]
+#       [--dry-run] [--commit] [--no-verify] [--no-lint] [--message <tpl>]
 # Example:
 #   scripts/tools/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0
 #   scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0   # $ = exact module only
@@ -32,14 +33,16 @@
 #                 commit in-process — sweep + verification land as ONE commit
 #                 (beats the auto-commit daemon shredding them apart)
 #   --no-verify   skip the per-module `go mod verify` step (default: on)
-#   --lint        after the sweep, run hermetic golangci-lint in every bumped
-#                 module (own .golangci.yml, GOWORK=off); a lint failure fails
-#                 the sweep naming the module. BUMP_DEP_LINT overrides the
-#                 command (offline fixture self-test)
+#   --no-lint     skip the per-module hermetic golangci-lint leg (lint is
+#                 DEFAULT-ON since round-45 M10 — the 2026-10-12 master-red
+#                 and 2026-10-27 actor-collision classes both trace to sweeps
+#                 that skipped it)
+#   --lint        accepted for backward compatibility (lint is now the default)
 #
 # Env:
 #   BUMP_DEP_ROOT  scan root override (fixture self-test). When set, the git
 #                  dirty-check and --commit are skipped (fixtures are not repos).
+#   BUMP_DEP_LINT  overrides the lint command (offline fixture self-test)
 #
 # Exit: 0 = all touched modules green; 1 = any failure (names the module)
 #
@@ -52,7 +55,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DRY=0
 COMMIT=0
 VERIFY=1
-LINT=0
+LINT=1
 LINT_LABEL=""
 MSG_TEMPLATE=""
 positional=()
@@ -62,6 +65,7 @@ while [ "$#" -gt 0 ]; do
   --commit) COMMIT=1 ;;
   --no-verify) VERIFY=0 ;;
   --lint) LINT=1 ;;
+  --no-lint) LINT=0 ;;
   --message)
     if [ "$#" -lt 2 ]; then
       echo "bump-dep: --message requires a value" >&2
@@ -79,7 +83,7 @@ done
 # the historical one-line subject.
 
 if [ "${#positional[@]}" -lt 2 ]; then
-  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify] [--lint] [--message <tpl>]" >&2
+  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify] [--no-lint] [--message <tpl>]" >&2
   echo "  --message <tpl>: commit subject; {pattern} and {version} placeholders" >&2
   exit 2
 fi
@@ -93,16 +97,25 @@ if [ -n "${BUMP_DEP_ROOT:-}" ]; then
 else
   SCAN_ROOT="$REPO_ROOT"
   cd "$REPO_ROOT" || exit 1
-  # Collision forensics (2026-10-27, the round-38 interleave): name a recent
-  # sweep BEFORE the dirty-tree refusal below blames an unnamed "dirty tree" —
-  # two actors running the same gate-printed FIX RECIPE collided exactly this
-  # way; the refusal alone hid the cause until /tmp was read by hand.
-  recent_sweep_log="$(find /tmp -maxdepth 1 -name 'bump-dep-*.log' -mmin -15 -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
-  if [ -n "$recent_sweep_log" ]; then
-    echo "bump-dep: NOTE — a sweep log was written within the last 15m: $recent_sweep_log" >&2
-    echo "bump-dep: if another session is mid-sweep, let it finish and verify its PASS" >&2
-    echo "bump-dep: table instead of interleaving go.mod writes." >&2
-  fi
+fi
+# Collision forensics (2026-10-27, the round-38 interleave): name a recent
+# sweep BEFORE any dirty-tree refusal blames an unnamed "dirty tree" — two
+# actors running the same gate-printed FIX RECIPE collided exactly this way.
+# (M10) Runs in BOTH modes so the fixture self-test can pin it; it is a
+# warning, never a refusal. Two probes: a fresh sweep LOG (mtime) and a LIVE
+# bump-dep process (pgrep, own PID excluded).
+recent_sweep_log="$(find /tmp -maxdepth 1 -name 'bump-dep-*.log' -mmin -15 -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+if [ -n "$recent_sweep_log" ]; then
+  echo "bump-dep: NOTE — a sweep log was written within the last 15m: $recent_sweep_log" >&2
+  echo "bump-dep: if another session is mid-sweep, let it finish and verify its PASS" >&2
+  echo "bump-dep: table instead of interleaving go.mod writes." >&2
+fi
+live_sweeps="$(pgrep -f 'scripts/tools/bump-dep.sh' 2>/dev/null | grep -vx "$$" || true)"
+if [ -n "$live_sweeps" ]; then
+  echo "bump-dep: WARNING — another bump-dep sweep appears LIVE (pid(s): $live_sweeps)." >&2
+  echo "bump-dep: interleaved sweeps shred each other's go.mod writes — wait for it." >&2
+fi
+if [ -z "${BUMP_DEP_ROOT:-}" ]; then
   if ! git diff --quiet || ! git diff --cached --quiet; then
     echo "bump-dep: REFUSING to run on a dirty tree — the auto-commit daemon makes interleaved sweeps unreviewable. Commit or stash first." >&2
     exit 1

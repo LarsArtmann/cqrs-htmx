@@ -227,6 +227,53 @@ else
   fail=$((fail + 1))
 fi
 
+# Case 10 (M10): lint is DEFAULT-ON — a sweep with NO lint flag still runs the
+# lint leg (same stub, marker absent = lint passes).
+out=$(BUMP_DEP_NO_NETWORK=1 BUMP_DEP_LINT="$LINT_STUB" run_bump 'larsartmann/exmod' v9.9.9)
+if printf '%s' "$out" | grep -q "==> lint ./a" &&
+  ! printf '%s' "$out" | grep -q "FAIL (lint"; then
+  echo "  ok 10: lint leg runs by default (no flag needed)"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 10: default-on lint leg did not run; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 11 (M10): --no-lint opts out — no lint lines at all.
+out=$(BUMP_DEP_NO_NETWORK=1 BUMP_DEP_LINT="$LINT_STUB" run_bump 'larsartmann/exmod' v9.9.9 --no-lint)
+if ! printf '%s' "$out" | grep -q "==> lint"; then
+  echo "  ok 11: --no-lint skips the lint leg"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 11: --no-lint still ran the lint leg; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 12 (M10): collision warnings fire. Plant a fresh sweep log (mtime probe)
+# and a live process whose cmdline matches the sweep pattern (PID probe), then
+# assert both warnings appear. The fixture path skips the dirty-tree refusal,
+# so the sweep proceeds to its (offline-failing) work — warnings only.
+COLLIDE_LOG="/tmp/bump-dep-collision-fixture-$$.log"
+: >"$COLLIDE_LOG"
+# $0 trick: sh -c 'sleep 6' NAME puts NAME (carrying the pgrep pattern) in the
+# process cmdline, so pgrep -f 'scripts/tools/bump-dep.sh' finds it.
+sh -c 'sleep 6' "/tmp/fixtures/scripts/tools/bump-dep.sh" &
+MARKER_PID=$!
+out=$(BUMP_DEP_NO_NETWORK=1 run_bump 'larsartmann/exmod' v9.9.9)
+kill "$MARKER_PID" 2>/dev/null
+rm -f "$COLLIDE_LOG"
+if printf '%s' "$out" | grep -q "a sweep log was written within the last 15m" &&
+  printf '%s' "$out" | grep -q "another bump-dep sweep appears LIVE"; then
+  echo "  ok 12: fresh-log and live-PID collision warnings both fire"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 12: collision warnings missing; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
 echo ""
 if [ "$fail" -gt 0 ]; then
   echo "test-bump-dep: $fail case(s) FAILED"
