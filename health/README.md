@@ -31,6 +31,9 @@ deprecated forwarding alias kept for source compatibility.)
 
 ## Semantics
 
+The full seven-surface wire map (paths, auth, schemas, vocabulary mapping,
+drain awareness) lives in [`docs/guides/health-surfaces.md`](../docs/guides/health-surfaces.md).
+
 A projection is healthy when its worker is `live` or `stopped` (identical to
 `cqrshtmx.ProjectionReadinessCheck`). Drain states (`idle`, `running`,
 `backoff`, `draining`) report a transient error ("catching up"); `failed`

@@ -93,7 +93,10 @@ deadline.
 
 `Run` (and `RunHandler`) stop the server gracefully but do not flip readiness
 while draining — in-flight LB health checks keep seeing whatever the mounted
-`/health` last reported. For a production drain sequence, serve with
+`/health` last reported (closed won't-fix 2026-10-31, decision record
+`docs/decisions/2026-10-31_round45-m01-decision-batch.md` §M08; the full
+surface map is [`docs/guides/health-surfaces.md`](../docs/guides/health-surfaces.md)).
+For a production drain sequence, serve with
 `RunWithAppkit`: go-appkit's service flips `/health/ready` to 503 the moment
 shutdown begins, waits `DrainDelay` (2s default — time for load balancers to
 observe the flip and stop routing), then stops accepting connections and

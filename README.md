@@ -102,7 +102,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 **Production posture**
 
 - **Async projection startup** — bind HTTP while projections replay in the background; `ProjectionReadinessCheck` answers 503 until every worker is live, so load balancers hold traffic for zero-downtime restarts ([guide](docs/guides/async-projection-startup.md))
-- **Projection health & rebuilds** — live status endpoints, `/health` wiring, and one-call `RebuildProjection(ctx, name)` replay ([guides](docs/guides/projection-health-monitoring.md))
+- **Projection health & rebuilds** — live status endpoints, `/health` wiring, and one-call `RebuildProjection(ctx, name)` replay ([guides](docs/guides/projection-health-monitoring.md)); the full surface map (7 health surfaces, vocabularies, drain semantics) lives in the [health-surfaces guide](docs/guides/health-surfaces.md)
 - **SQL event stores** — Postgres, SQLite, and MySQL via go-cqrs-lite storage: auto-migrating schemas, automatic error classification, one-call setup templates ([MySQL guide](docs/guides/mysql-setup.md))
 - **API documentation surfaces** — a dependency-free [OpenAPI 3.1 builder](openapi/) (`WithOpenAPI` attaches metadata per endpoint), an immutable [EventCatalog](docs/guides/event-catalog-guide.md) for the published event language, and projection-status JSON for alerting
 - **Security middleware** — `RecommendedSecurityMiddleware()` (security headers + per-request CSP nonce + panic recovery); CSRF, rate limiting, CORS, compression, and Server-Timing via the companion [httputil](https://github.com/larsartmann/httputil) library — all opt-in ([guide](docs/guides/leveraging-httputil.md))
