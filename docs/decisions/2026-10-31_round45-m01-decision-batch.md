@@ -38,3 +38,23 @@ No Go test asserts any old code string (verified by grep 2026-10-31: health test
 ## M08 addendum — T13 dated verdict (2026-10-31)
 
 **CLOSED WON'T-FIX.** `Bundle.MarkDraining()` is not built: `RunWithAppkit` is the documented production drain path (setup README §"Drain posture" — appkit flips `/health/ready` to 503 at shutdown begin, waits `DrainDelay`, then drains; `/health/live` stays 200 so a journal drain never restarts the pod). Plain `Run`/`RunHandler` keep the deliberate no-readiness-flip semantics: they stop gracefully but never fake a readiness flip a load balancer did not observe — adding a second, manual drain mechanism would create two truths for one lifecycle moment. TODO row T13 removed with this verdict as its record.
+
+## M26 addendum — parked-row audit, dated verdicts (2026-10-31)
+
+Every parked row re-checked; verdicts:
+
+1. **Stripe S00 gate** — STAYS PARKED (re-affirmed): still no demand artifact, still no MoR decision; the plan of record (26 milestones) is preserved; nothing executed without its gate.
+2. **V007 criterion (declarative Hydrator upstream)** — STAYS UNMET (re-verified 2026-10-31): newest `system/v4` tag is v4.9.0 and no declarative Hydrator equivalent has shipped; the 68 SQLViewStore findings remain gated.
+3. **Appkit ADR-0052** — STAYS v5-WINDOW (re-verified): appkit v0.9.0 is the newest tag; the adoption trigger remains the v5-window revisit, not an appkit release.
+4. **E005 filing (cqrs-lint cross-module registration)** — STAYS DRAFTED (`docs/proposals/2026-10-01_cqrs-lint-e005-cross-module-registration.md`); filing is owner-gated pending cqrs-lint's installable distribution (same trigger as the doanalyzerv2 gate).
+5. **GCL cross-repo debt (stack/v4 removal, seed dependency)** — STAYS with go-cqrs-lite's ROADMAP (their owner decision, already recorded there).
+6. **buildcache watch** — STAYS PASSIVE: `/mnt/buildcache` healthy this session (no IO errors; the go-cache-env fallback never tripped).
+7. **NewProjectionLayer deprecation** — STAYS DEPRECATED (ADR-0051; the declarative path is canonical; checkpoint/DLQ limitation documented in the declarative-projections guide).
+8. **datastar-demo** — STAYS as-is (demo-only surface; no consumer-visible delta).
+9. **templ micro (loginpage coverage re-pin, quiet window)** — STAYS QUIET-WINDOW-GATED (bench/coverage re-pins under load are the documented refusal class; row 43's remaining leg).
+10. **PapDashboard reply** — STAYS OWNER-SENT (draft + verified prerequisites ready since 2026-10-01; sending is the owner's act).
+11. **v5 auto-upgrade tooling** — STAYS PARKED until the v5 window opens (premature before the cutover).
+12. **Scorecard timing variance** — STAYS LOW-PRIORITY (41s→10s class = cold cache vs load; no evidentiary impact).
+13. **`RequireSession` export** — STAYS EXPORTED AS-IS (the exported gates are the documented consumer surface; no drift found).
+14. **README TOC** — STAYS NO (revisit date 2026-11-17 stands; heading structure unchanged this session).
+15. **doanalyzerv2 gate** — STAYS OWNER-GATED (branching-flow ships no Go-installable distribution yet; F6's roadmap item 6 stands).
