@@ -1246,6 +1246,8 @@
                       "check-modules-parity-self-test:bash scripts/selftests/test-check-modules-parity.sh"
                       "readme-badges:bash scripts/checks/check-readme-badges.sh"
                       "readme-badges-self-test:bash scripts/selftests/test-check-readme-badges.sh"
+                      "pr-secrets:bash scripts/checks/check-pr-secrets.py"
+                      "pr-secrets-self-test:bash scripts/selftests/test-check-pr-secrets.sh"
                     )
                     red=0
                     for stage in "''${stages[@]}"; do
@@ -1266,6 +1268,21 @@
                     fi
                     echo "OK: all ''${#stages[@]} module architecture checks passed"
                     exit 0
+                  '';
+                }
+              );
+            };
+
+            check-pr-secrets = {
+              type = "app";
+              meta.description = "No-permanently-red-PR gate: every pull_request job consuming secrets.* must be skip-gated on a presence probe (the architecture-gate-preflight shape) — round-45 M16";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-pr-secrets";
+                  runtimeInputs = [ pkgs.python3 ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    python3 scripts/checks/check-pr-secrets.py "$@"
                   '';
                 }
               );
