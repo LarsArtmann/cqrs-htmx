@@ -13,20 +13,35 @@ FLAKE="$REPO_ROOT/flake.nix"
 
 fail=0
 pass=0
-ok() { echo "  ok $1: $2"; pass=$((pass + 1)); }
-bad() { echo "  FAIL $1: $2" >&2; fail=$((fail + 1)); }
+ok() {
+  echo "  ok $1: $2"
+  pass=$((pass + 1))
+}
+bad() {
+  echo "  FAIL $1: $2" >&2
+  fail=$((fail + 1))
+}
 
 # Extract the check-modules app block.
 block="$(awk '/^            check-modules = \{/{flag=1} flag{print} flag && /^            \};$/{exit}' "$FLAKE")"
-[ -n "$block" ] || { bad 0 "check-modules block not found in flake.nix"; exit 1; }
+[ -n "$block" ] || {
+  bad 0 "check-modules block not found in flake.nix"
+  exit 1
+}
 
 # Stage array entries: quoted "name:cmd" lines between stages=( and the ).
 stage_entries="$(awk '/stages=\(/{flag=1;next} flag && /^\s*\)/{exit} flag' <<<"$block" | grep -oE '"[a-z0-9-]+:(bash|python3) [^"]+"')"
-[ -n "$stage_entries" ] || { bad 1 "stage array not found"; exit 1; }
+[ -n "$stage_entries" ] || {
+  bad 1 "stage array not found"
+  exit 1
+}
 
 # Sequential branch: `bash <cmd>` lines between the --sequential guard and its exit 0.
 seq_cmds="$(awk '/"--sequential"/{flag=1;next} flag && /exit 0/{exit} flag' <<<"$block" | grep -oE '(bash|python3) scripts[^"]*$' | sed -E 's/^(bash|python3) //')"
-[ -n "$seq_cmds" ] || { bad 2 "sequential branch not found"; exit 1; }
+[ -n "$seq_cmds" ] || {
+  bad 2 "sequential branch not found"
+  exit 1
+}
 
 # Check 1: stage names are unique.
 dups="$(cut -d: -f1 <<<"$stage_entries" | sort | uniq -d)"
