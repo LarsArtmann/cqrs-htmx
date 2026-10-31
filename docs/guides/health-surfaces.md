@@ -1,0 +1,40 @@
+# Health surfaces — the wire-format map
+
+Seven surfaces answer "is this healthy" across the repo. They differ in AUTH,
+SCHEMA, STATUS VOCABULARY, and DRAIN-AWARENESS. This map ends the vocabulary
+drift: pick a surface by what must gate, then wire alerts against ITS column.
+Cross-links: [health README](../../health/README.md) (which surface for which
+consumer), [setup README](../../setup/README.md) § Drain posture, root
+`readiness.go` / `projection_status_handler.go` / `app.go`.
+
+| # | Surface | Mount (typical) | Auth | Body schema | Status vocabulary | Drain-aware? |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | root `App.HealthHandler()` | any (consumer mux) | none built-in | `{"status":"ok"\|"unhealthy","error":...}` | `ok` / `unhealthy` | NO — dispatcher-presence only: 200 while ≥1 dispatcher is configured, 503 otherwise. Deliberately shallow; pair with 2 or 4. |
+| 2 | root `ReadinessHandler(checks...)` | `/health` (consumer) | none built-in (gate it yourself — `setup.RequireSession` is NOT applied here) | go-health-shaped JSON (`{"status":...,"checks":{name:{"status","error"}}}`) | `ok` / `fail` / `degraded` (per check; HTTP 503 on any fail) | YES when `ProjectionReadinessCheck(svc)` + `HubReadinessCheck(hub)` are wired: drain states → `degraded` (503 "still draining"), `failed` → `fail`; nil provider fails CLOSED (`cqrshtmx.projection.readiness.nil_provider`). |
+| 3 | root `ProjectionStatusHandler(provider)` | `/projections` (consumer) | none built-in | array of `ProjectionStatusEntry` (`name,status,checkpoint,processed,errors,restarts,lagMs,lastError`; 503 on nil provider) | worker states: `live` / `stopped` / `idle` / `running` / `backoff` / `draining` / `failed` | YES — this is the raw vocabulary source; 200 even when a projection has failed (observability surface, not a gate). |
+| 4 | setup `HealthPath` (default `/health`) | bundle mux | none (public by design) | same schema family as 2 (`ReadinessHandler` + built-ins + `Config.HealthChecks`) | `ok` / `fail` / `degraded` | YES — built-in projection + SSE-hub checks (skip naturally on `DisableService`); consumer checks append fail-fast. `DisableService` + zero checks = constant 200 (documented honesty clause). |
+| 5 | setup `RunWithAppkit` | appkit `/health` + `/health/ready` + `/health/live` | none | appkit's probe JSON (mount the bundle `HealthPath` on a DISTINCT path to also serve the rich body) | appkit `pass`/`fail` (+ bundle check names) | YES — the production drain path: `/health/ready` flips 503 the moment shutdown begins, holds `DrainDelay` (2s default), `/health/live` stays 200 so a journal drain never restarts the pod. |
+| 6 | health probe routes (`RegisterRoutes` + `DefaultRoutes`) | `/healthz` `/readyz` `/startupz` | method-less patterns upstream — mount GET-scoped (go-health README caveat, M20 filing) | go-health response: `{"status":...,"checks":{...,"duration_ns":...}}` | `pass` / `warn` / `fail` (go-health); liveness = process-up, readiness = critical checks, startup = latched | YES — projection checks mirror `ProjectionReadinessCheck` semantics (`live`/`stopped` healthy; drain → transient; `failed` → infrastructure, carrying `lastError`); codes now `cqrshtmx.projection.*` (T12). |
+| 7 | health `NewDashboard(probe)` | `/health-ui` (consumer) | none built-in — gate before mounting | rendered HTML over surface 6's cached batch (auto-refresh) | renders 6's vocabulary as human states | YES — reads the same probe cache; renders the FAILED verdict (name + status), not empty-green (pinned by the demo failure-path test). |
+
+## Vocabulary mapping
+
+| Concept | Surfaces 2/4 (root/setup) | Surface 6/7 (go-health) | Surface 3 (raw worker states) | Surface 5 (appkit) |
+| --- | --- | --- | --- | --- |
+| healthy | `ok` | `pass` | `live`, `stopped` | pass |
+| still catching up | `degraded` (503) | transient error entry | `idle`, `running`, `backoff`, `draining` | fail (not ready) |
+| broken | `fail` (503) | `fail` | `failed` | fail (not ready) |
+| feed dead | hub check `fail` (503) | n/a (wire via check 2) | n/a | fail via ReadyCheck |
+
+Error codes (wire-visible, one namespace since T12): `cqrshtmx.projection.failed`,
+`cqrshtmx.projection.draining`, `cqrshtmx.projection.unknown_status`,
+`cqrshtmx.projection.readiness.nil_provider`, `cqrshtmx.readiness.check_timeout`,
+`cqrshtmx.sse.hub_closed`, `cqrshtmx.sse.hub_draining`. Alert on these, not on
+prose.
+
+## Picking a surface
+
+- Kubernetes pod gating → 5 (`RunWithAppkit`) or 2/4 with the projection + hub checks.
+- Alerting on projection health → 3 (raw states) or scrape 6's `checks` JSON.
+- Human diagnosis → 7 over 6; the dashboard names WHAT failed, the probes say THAT it failed.
+- "Is the HTTP stack alive at all" → 1 (and never alone for data-path gating).

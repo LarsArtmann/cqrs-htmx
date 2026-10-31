@@ -34,3 +34,7 @@ No Go test asserts any old code string (verified by grep 2026-10-31: health test
 ## M07 addendum — `Recorder(nil)` verdict (2026-10-31)
 
 **KEEP the documented construction panic.** `health.Recorder(nil)` panics at construction with a clear message, shipped and published in health v4.14.0 (2026-10-28). A `(recorder, error)` signature would break the published API one train after release for a case the panic already fails loud and early — a nil recorder is a wiring bug, not a runtime condition callers should handle. The existing pin test (health's `TestRecorder_NilPanics`) stays the contract.
+
+## M08 addendum — T13 dated verdict (2026-10-31)
+
+**CLOSED WON'T-FIX.** `Bundle.MarkDraining()` is not built: `RunWithAppkit` is the documented production drain path (setup README §"Drain posture" — appkit flips `/health/ready` to 503 at shutdown begin, waits `DrainDelay`, then drains; `/health/live` stays 200 so a journal drain never restarts the pod). Plain `Run`/`RunHandler` keep the deliberate no-readiness-flip semantics: they stop gracefully but never fake a readiness flip a load balancer did not observe — adding a second, manual drain mechanism would create two truths for one lifecycle moment. TODO row T13 removed with this verdict as its record.
