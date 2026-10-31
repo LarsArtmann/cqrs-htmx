@@ -47,7 +47,7 @@ func main() {
 	}
 
 	if err := runCLI(paths, *apply, *verbose); err != nil {
-		fatalf("%v", err)
+		fatalErr(err)
 	}
 }
 
@@ -112,9 +112,16 @@ func printReport(reports []fileReport, apply, verbose bool) {
 	}
 }
 
-func fatalf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, "cqrs-htmx-upgrade: "+format+"\n", args...)
-	os.Exit(1)
+// fatalErr reports err and exits with the FAMILY-derived exit code
+// (round-45 M13, closing the "exit codes are 1 pending family-based mapping"
+// note in the 2026-10-27 receipt): go-error-family's HandleError maps
+// Rejection/Conflict (caller-input faults, where scripts should stop and let
+// the human fix input) to 1, and Transient/Infrastructure/Corruption
+// (environment or data faults, where a retry or investigation is the right
+// reflex) to its own non-1 codes.
+func fatalErr(err error) {
+	fmt.Fprintf(os.Stderr, "cqrs-htmx-upgrade: %v\n", err)
+	os.Exit(errorfamily.HandleError(err))
 }
 
 // printFileFindings prints one file's edits and manual findings. The CLI's

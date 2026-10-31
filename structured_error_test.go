@@ -195,7 +195,9 @@ var _ = Describe("StructuredError", func() {
 		It("omits the context field entirely when the error carries none", func() {
 			data, err := json.Marshal(cqrshtmx.NewStructuredError(cqrshtmx.ErrValidationFailed, nil))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(data)).NotTo(ContainSubstring("context"), "omitempty must keep the wire shape unchanged for context-less errors")
+			Expect(
+				string(data),
+			).NotTo(ContainSubstring("context"), "omitempty must keep the wire shape unchanged for context-less errors")
 		})
 	})
 })
