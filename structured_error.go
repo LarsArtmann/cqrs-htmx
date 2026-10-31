@@ -70,6 +70,15 @@ type StructuredError struct {
 	// application/problem+json. Empty when the error has no Code() method.
 	Code string `json:"code,omitempty"`
 
+	// Context carries the error's machine-readable context entries (RFC 7807
+	// extension) — go-error-family's ErrorContext() map (form_key,
+	// max_body_size, ...). Machine context lets API clients REACT (re-render
+	// the offending form field, re-size the body) instead of only displaying
+	// prose. Populated ONLY for client-fault statuses (<500) — the same
+	// redaction rule as Detail: 5xx context entries are internal diagnostic
+	// material and never reach the wire. Empty when none applies.
+	Context map[string]string `json:"context,omitempty"`
+
 	cause error `json:"-"`
 }
 
@@ -111,6 +120,16 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 		}
 	}
 
+	contextual, _ := err.(interface{ ErrorContext() map[string]string })
+	var errContext map[string]string
+	if status < 500 && contextual != nil {
+		// Client-fault statuses carry the context — it describes the caller's
+		// input (the same reason Detail stays raw below 500). 5xx redacts BOTH
+		// detail and context: context entries (user_id, paths, sizes) are
+		// internal diagnostic material, not public-safe payloads.
+		errContext = contextual.ErrorContext()
+	}
+
 	return StructuredError{
 		Type:     familyType(family),
 		Title:    statusTitle(status),
@@ -121,6 +140,7 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 		Fix:      family.DefaultFix(),
 		Instance: instance,
 		Code:     ErrorCode(err),
+		Context:  errContext,
 		cause:    err,
 	}
 }

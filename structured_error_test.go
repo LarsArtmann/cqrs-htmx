@@ -163,4 +163,39 @@ var _ = Describe("StructuredError", func() {
 			Expect(decoded).To(Equal(original))
 		})
 	})
+
+	Describe("Context (RFC 7807 extension, round-45 M13)", func() {
+		It("carries machine context to API clients for client-fault statuses", func() {
+			base := errorfamily.Wrapf(cqrshtmx.ErrRequestTooLarge, errorfamily.Rejection,
+				"cqrshtmx.decode.body.too_large", "body of 200 bytes exceeds limit")
+			err := base.WithContextAny("max_body_size", 100)
+			se := cqrshtmx.NewStructuredError(err, nil)
+
+			Expect(se.Status).To(Equal(http.StatusRequestEntityTooLarge))
+			Expect(se.Context).To(HaveKeyWithValue("max_body_size", "100"))
+		})
+
+		It("carries form_key context for ambiguous form keys", func() {
+			err := errorfamily.NewRejection("cqrshtmx.decode.form.key_collision",
+				"ambiguous form key").WithContext("form_key", "Name")
+			se := cqrshtmx.NewStructuredError(err, nil)
+
+			Expect(se.Context).To(HaveKeyWithValue("form_key", "Name"))
+		})
+
+		It("redacts context on server faults (5xx), mirroring the Detail rule", func() {
+			err := errorfamily.NewInfrastructure("cqrshtmx.test.internal",
+				"internal failure").WithContext("user_id", "u-123")
+			se := cqrshtmx.NewStructuredError(err, nil)
+
+			Expect(se.Status).To(BeNumerically(">=", 500))
+			Expect(se.Context).To(BeEmpty(), "5xx context entries are internal diagnostics and must not reach the wire")
+		})
+
+		It("omits the context field entirely when the error carries none", func() {
+			data, err := json.Marshal(cqrshtmx.NewStructuredError(cqrshtmx.ErrValidationFailed, nil))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(data)).NotTo(ContainSubstring("context"), "omitempty must keep the wire shape unchanged for context-less errors")
+		})
+	})
 })
