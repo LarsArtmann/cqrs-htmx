@@ -35,11 +35,16 @@ if [ -z "$threshold" ]; then
 fi
 
 if [ -z "$profile" ]; then
-  profile="$REPO_ROOT/$module/coverage.out"
+  if [ "$module" = "." ]; then
+    profile="$REPO_ROOT/coverage.out"
+  else
+    profile="$REPO_ROOT/$module/coverage.out"
+  fi
 fi
-if [ "$module" = "." ]; then
-  profile="$REPO_ROOT/coverage.out"
-fi
+# An EXPLICITLY passed profile wins over every default (round-45 M27: the
+# root-row default used to overwrite it unconditionally, so the coverage-gate
+# app's mktemp profile was clobbered and the root row always read "profile
+# missing").
 
 if [ ! -f "$profile" ]; then
   echo "✗ coverage-threshold: profile missing: $profile (run the tests with -coverprofile first)" >&2
