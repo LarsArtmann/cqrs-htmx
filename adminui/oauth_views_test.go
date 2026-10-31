@@ -114,10 +114,12 @@ func TestPanel_UserDetailShowsExternalCard(t *testing.T) {
 
 // TestPanel_UnlinkRouteWired verifies the unlink route is mounted and calls the
 // Service. For a service without OAuth2 configured, UnlinkExternalAccount
-// returns a transient-family error (usermgmt.oauth_not_configured), so the
-// handler maps it to 503 with a themed error page + toast via
-// writeActionError (family-derived status instead of the old flat 400). This
-// proves the route → handler → service path is wired end-to-end.
+// returns usermgmt.oauth_not_configured — a Rejection-family error since the
+// S38e policy (a missing deployment configuration is permanent for this
+// deployment, never retryable; pinned by identity-model's
+// TestNotConfiguredErrors_ArePermanent) — so the handler family-derives 400
+// with a themed error page + toast via writeActionError. This proves the
+// route → handler → service path is wired end-to-end.
 func TestPanel_UnlinkRouteWired(t *testing.T) {
 	ctx := context.Background()
 	admin := mustUser(t, "admin@example.com")
@@ -135,8 +137,8 @@ func TestPanel_UnlinkRouteWired(t *testing.T) {
 	unlinkURL := "/admin/users/" + created.User.ID.Get().String() + "/external/google/unlink"
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, unlinkURL, nil))
 
-	if rec.Code != http.StatusServiceUnavailable {
-		t.Errorf("unlink (oauth not configured): status = %d, want 503; body=%s",
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("unlink (oauth not configured): status = %d, want 400; body=%s",
 			rec.Code, rec.Body.String())
 	}
 	if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {
