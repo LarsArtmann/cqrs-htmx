@@ -12,6 +12,7 @@ import (
 	"github.com/a-h/templ"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // renderComponent renders a templ component to a string for assertions.
@@ -114,12 +115,14 @@ func TestPanel_UserDetailShowsExternalCard(t *testing.T) {
 
 // TestPanel_UnlinkRouteWired verifies the unlink route is mounted and calls the
 // Service. For a service without OAuth2 configured, UnlinkExternalAccount
-// returns usermgmt.oauth_not_configured — a Rejection-family error since the
-// S38e policy (a missing deployment configuration is permanent for this
-// deployment, never retryable; pinned by identity-model's
-// TestNotConfiguredErrors_ArePermanent) — so the handler family-derives 400
-// with a themed error page + toast via writeActionError. This proves the
-// route → handler → service path is wired end-to-end.
+// returns usermgmt.oauth_not_configured, and the handler derives the HTTP
+// status from the error FAMILY via writeActionError (themed error page +
+// toast). The expected status is derived from the family the RESOLVED
+// identity-model actually returns — the S38e policy flipped the sentinel to
+// Rejection (400) on master, but published tags one train behind still carry
+// Transient (503), and this suite must hold in both workspace and hermetic
+// (GOWORK=off, published tags) modes. The version-stable pin is: handler
+// status == family-derived status.
 func TestPanel_UnlinkRouteWired(t *testing.T) {
 	ctx := context.Background()
 	admin := mustUser(t, "admin@example.com")
@@ -133,15 +136,28 @@ func TestPanel_UnlinkRouteWired(t *testing.T) {
 		t.Fatalf("register: %v", err)
 	}
 
-	rec := httptest.NewRecorder()
-	unlinkURL := "/admin/users/" + created.User.ID.Get().String() + "/external/google/unlink"
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, unlinkURL, nil))
+	probe := httptest.NewRecorder()
+	probeURL := "/admin/users/" + created.User.ID.Get().String() + "/external/google/unlink"
+	h.ServeHTTP(probe, httptest.NewRequest(http.MethodPost, probeURL, nil))
 
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("unlink (oauth not configured): status = %d, want 400; body=%s",
-			rec.Code, rec.Body.String())
+	svcErr := svc.UnlinkExternalAccount(ctx, created.User.ID, "google")
+	if svcErr == nil {
+		t.Fatal("UnlinkExternalAccount with OAuth2 unconfigured: nil error, want not-configured sentinel")
 	}
-	if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {
+	var want int
+	switch errorfamily.Classify(svcErr) {
+	case errorfamily.Rejection:
+		want = http.StatusBadRequest
+	case errorfamily.Transient:
+		want = http.StatusServiceUnavailable
+	default:
+		t.Fatalf("unexpected family %v for not-configured sentinel", errorfamily.Classify(svcErr))
+	}
+	if probe.Code != want {
+		t.Errorf("unlink (oauth not configured): status = %d, want family-derived %d; body=%s",
+			probe.Code, want, probe.Body.String())
+	}
+	if !strings.Contains(probe.Header().Get("HX-Trigger"), "adminui:toast") {
 		t.Error("expected error toast HX-Trigger header")
 	}
 }
