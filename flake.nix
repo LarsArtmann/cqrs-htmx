@@ -1244,6 +1244,8 @@
                         "branching-flow:bash scripts/checks/check-branching-flow.sh"
                         "branching-flow-self-test:bash scripts/selftests/test-check-branching-flow.sh"
                       "check-modules-parity-self-test:bash scripts/selftests/test-check-modules-parity.sh"
+                      "readme-badges:bash scripts/checks/check-readme-badges.sh"
+                      "readme-badges-self-test:bash scripts/selftests/test-check-readme-badges.sh"
                     )
                     red=0
                     for stage in "''${stages[@]}"; do
@@ -1264,6 +1266,21 @@
                     fi
                     echo "OK: all ''${#stages[@]} module architecture checks passed"
                     exit 0
+                  '';
+                }
+              );
+            };
+
+            check-readme-badges = {
+              type = "app";
+              meta.description = "Resolve every img.shields.io badge in README.md to its JSON truth (fails on no-tags/inaccessible/lying verdicts; network failure = warning under CI, exit 4 locally) — round-45 M15";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-readme-badges";
+                  runtimeInputs = [ pkgs.curl ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-readme-badges.sh "$@"
                   '';
                 }
               );

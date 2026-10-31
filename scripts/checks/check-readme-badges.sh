@@ -27,7 +27,10 @@ done
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 README="${README:-$REPO_ROOT/README.md}"
 
-[ -f "$README" ] || { echo "check-readme-badges: FAILED — no README at $README" >&2; exit 1; }
+[ -f "$README" ] || {
+  echo "check-readme-badges: FAILED — no README at $README" >&2
+  exit 1
+}
 
 fetch() {
   if [ -n "${BADGE_FETCHER:-}" ]; then
@@ -43,7 +46,7 @@ fetch() {
 
 # Extract shields URLs and normalize to their .json form (insert .json before
 # the query string; append when there is none).
-urls="$(grep -oE 'https://img\.shields\.io/[^) "]+\)?' "$README" | sort -u || true)"
+urls="$(grep -oE 'https://img\.shields\.io/[^) "]+[^) ".,]' "$README" | sort -u || true)"
 if [ -z "$urls" ]; then
   echo "check-readme-badges: no img.shields.io badges found — nothing to resolve"
   exit 0
@@ -81,6 +84,9 @@ while IFS= read -r url; do
   echo "  ✅ $json_url"
 done <<<"$urls"
 
-[ "$red" -gt 0 ] && { echo "check-readme-badges: $red lying badge(s) of $count" >&2; exit 1; }
+[ "$red" -gt 0 ] && {
+  echo "check-readme-badges: $red lying badge(s) of $count" >&2
+  exit 1
+}
 echo "check-readme-badges: $count badge(s) resolved${warned:+, $warned CI-warned}"
 exit 0
