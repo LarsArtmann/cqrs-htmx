@@ -513,6 +513,12 @@ type Config struct {
 	// Handler/Middleware chain composition. Close is a no-op (and stays
 	// idempotent) on a shell bundle.
 	//
+	// Honesty note: with no HealthChecks configured, /health answers a
+	// constant 200 {"status":"ok"} — with nothing wired there is nothing to
+	// be unready about, and no projection gating exists to inherit (the
+	// service that would own it is absent). If you expected projection
+	// health from the gate, register your own NamedChecks.
+	//
 	// For consumers that authenticate against an EXTERNAL authority (PBX
 	// directory, corporate SSO, their own OIDC integration) and want the
 	// tested lifecycle and readiness composition without carrying a dormant

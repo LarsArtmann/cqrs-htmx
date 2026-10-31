@@ -43,10 +43,11 @@ projection health in one probe:
 
 ```go
 probe := gohealth.New(injector, gohealth.WithHealthRecorder(
-    health.RecorderChain(health.Recorder(svc), setup.Plugin),
+    gohealth.ChainRecorders(health.Recorder(svc), setup.Plugin),
 ))
 ```
 
-`health.RecorderChain` merges the recorders in order (later ones win name
-collisions); see the [health module's README](../health/README.md) for the
-full surface map.
+`gohealth.ChainRecorders` merges the recorders in order (later ones win name
+collisions) and always satisfies go-health's detailed interface, so per-check
+durations survive the merge; see the [health module's README](../health/README.md)
+for the full surface map.

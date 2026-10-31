@@ -9,13 +9,13 @@ Consumers who do not import this module pay zero dependency cost.
 
 ## Which surface for which consumer
 
-| You want                                                                                | Surface                                                                                                        |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Kubernetes liveness/readiness/startup probes for a `*usermgmt.Service`, no DI container | `health.NewProbe(svc, ...)` → `Start` → `RegisterRoutes`                                                       |
-| One probe checking DI services AND projections                                          | `gohealth.New(injector, gohealth.WithHealthRecorder(health.Recorder(svc)))`                                    |
-| One probe also observing DI lifecycle (samber-do-auditlog) next to projections          | `gohealth.New(injector, gohealth.WithHealthRecorder(health.RecorderChain(health.Recorder(svc), auditPlugin)))` |
-| A human dashboard over any of the above                                                 | `health.NewDashboard(probe)`                                                                                   |
-| Only readiness on `/health` (no go-health at all)                                       | root's `cqrshtmx.ProjectionReadinessCheck` + `ReadinessHandler`, or the `setup` module's gated `/health`       |
+| You want                                                                                | Surface                                                                                                           |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Kubernetes liveness/readiness/startup probes for a `*usermgmt.Service`, no DI container | `health.NewProbe(svc, ...)` → `Start` → `RegisterRoutes`                                                          |
+| One probe checking DI services AND projections                                          | `gohealth.New(injector, gohealth.WithHealthRecorder(health.Recorder(svc)))`                                       |
+| One probe also observing DI lifecycle (samber-do-auditlog) next to projections          | `gohealth.New(injector, gohealth.WithHealthRecorder(gohealth.ChainRecorders(health.Recorder(svc), auditPlugin)))` |
+| A human dashboard over any of the above                                                 | `health.NewDashboard(probe)`                                                                                      |
+| Only readiness on `/health` (no go-health at all)                                       | root's `cqrshtmx.ProjectionReadinessCheck` + `ReadinessHandler`, or the `setup` module's gated `/health`          |
 
 Every projection check carries the shared `ProjectionStatuses()` read time as
 `duration_ns`, on every path (the recorder implements go-health's optional
@@ -24,8 +24,10 @@ Every projection check carries the shared `ProjectionStatuses()` read time as
 Note: `gohealth.WithHealthRecorder` passed to `NewProbe` is refused at
 `Start` (go-health v0.8.0's `ErrRecorderNotApplicable`) instead of being
 silently dropped — the provider owns the batch. Compose extra recorders with
-`RecorderChain` and build the probe yourself, as in the table above. The chain
-preserves `duration_ns` from detailed members.
+upstream `gohealth.ChainRecorders` and build the probe yourself, as in the
+table above. The chain always satisfies the detailed interface, so it
+preserves `duration_ns` from detailed members. (`health.RecorderChain` is a
+deprecated forwarding alias kept for source compatibility.)
 
 ## Semantics
 

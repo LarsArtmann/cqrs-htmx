@@ -344,3 +344,13 @@ findings F1-F3/F5-F9 are closed and test-pinned (§2), F8 survives as T12 (F1
 here), F4/F12 remain owner-gated docs posture. Next round should open by
 checking T12's train status and re-running the §4 sweep — ideally mechanized
 by then (roadmap 6).
+
+ERRATA (2026-10-31, round-45 M04, append-only): §2 item 3 said the deprecated
+`RecorderChain` alias "rides the next health train" — it RODE IT: health
+v4.14.0 published 2026-10-28 (receipt `b79e2b50`), so the
+deprecation-forward, the go-health v0.8.1 pin, and the
+`projection_unknown_status` honesty wording are all PUBLISHED, not pending.
+Additionally, F1/T12 EXECUTED the same day under decision verdict 1
+(`docs/decisions/2026-10-31_round45-m01-decision-batch.md`): root + bridge
+projection-health codes collapsed into the `cqrshtmx.projection.*` namespace
+(wire-visible; root + health CHANGELOG receipts in the same change).

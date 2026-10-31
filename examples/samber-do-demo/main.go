@@ -5,7 +5,7 @@
 //   - Composition root with cleanup function (NewContainer)
 //   - Eager foundation values (AppConfig via ProvideValue)
 //   - Lazy singletons (*usermgmt.Service, *cqrshtmx.App via Provide)
-//   - Named services (TOTP auth provider via ProvideNamed)
+//   - Interface alias (TOTP auth provider via do.As + InvokeAs, single-satisfier)
 //   - Lifecycle adapter (serviceLifecycle implements ShutdownerWithContextAndError)
 //   - Typed accessors (Container.Service(), Container.App(), etc.)
 //
