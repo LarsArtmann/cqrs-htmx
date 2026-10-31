@@ -78,11 +78,11 @@ require (
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
 	github.com/larsartmann/httputil v1.7.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
-	github.com/larsartmann/templ-components v1.24.0 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.24.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.24.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.24.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.24.0 // indirect
+	github.com/larsartmann/templ-components v1.26.0 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.26.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.26.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.26.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.26.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

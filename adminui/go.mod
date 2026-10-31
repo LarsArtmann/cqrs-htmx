@@ -9,11 +9,11 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.14.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/httputil v1.7.0
-	github.com/larsartmann/templ-components v1.24.0
-	github.com/larsartmann/templ-components/errorpage v1.24.0
-	github.com/larsartmann/templ-components/htmx v1.24.0
-	github.com/larsartmann/templ-components/icons v1.24.0
-	github.com/larsartmann/templ-components/utils v1.24.0
+	github.com/larsartmann/templ-components v1.26.0
+	github.com/larsartmann/templ-components/errorpage v1.26.0
+	github.com/larsartmann/templ-components/htmx v1.26.0
+	github.com/larsartmann/templ-components/icons v1.26.0
+	github.com/larsartmann/templ-components/utils v1.26.0
 )
 
 require (
