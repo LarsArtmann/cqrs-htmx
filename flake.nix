@@ -1249,6 +1249,7 @@
                       "pr-secrets:bash scripts/checks/check-pr-secrets.py"
                       "pr-secrets-self-test:bash scripts/selftests/test-check-pr-secrets.sh"
                       "dependabot-alerts:bash scripts/checks/check-dependabot-alerts.sh"
+                      "coverage-threshold-self-test:bash scripts/selftests/test-check-coverage-threshold.sh"
                     )
                     red=0
                     for stage in "''${stages[@]}"; do

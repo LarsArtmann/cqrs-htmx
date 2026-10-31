@@ -86,7 +86,10 @@ source "$REPO_ROOT/scripts/lib/go-cache-env.sh" >/dev/null 2>&1 || true
 
 (cd "$TMP/mod-high" && GOWORK=off GOEXPERIMENT=jsonv2 go test ./... -count=1 -coverprofile=coverage.out >/dev/null 2>&1)
 (cd "$TMP/mod-low" && GOWORK=off GOEXPERIMENT=jsonv2 go test ./... -count=1 -coverprofile=coverage.out >/dev/null 2>&1)
-[ -f "$TMP/mod-high/coverage.out" ] || { echo "FAIL setup: high profile not generated"; exit 1; }
+[ -f "$TMP/mod-high/coverage.out" ] || {
+  echo "FAIL setup: high profile not generated"
+  exit 1
+}
 
 # The TSV only knows real rows; hand the checker an EXPLICIT profile for the
 # fixture modules (the [profile] argument form) — the row form's
@@ -138,7 +141,11 @@ if [ -f "$REPO_ROOT/coverage.out" ]; then
   rc=$?
   case "$rc" in
   0 | 1) echo "ok   live root shape: rc=$rc (artifact present; pass/fail both honest)" ;;
-  *) echo "FAIL live root shape: unexpected rc=$rc"; printf '%s\n' "$out" | head -3; failures=$((failures + 1)) ;;
+  *)
+    echo "FAIL live root shape: unexpected rc=$rc"
+    printf '%s\n' "$out" | head -3
+    failures=$((failures + 1))
+    ;;
   esac
 else
   out=$(cd "$REPO_ROOT" && bash scripts/checks/check-coverage-threshold.sh . 2>&1)
