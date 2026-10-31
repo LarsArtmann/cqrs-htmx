@@ -1242,6 +1242,7 @@
                         "selftest-env-leaks-self-test:bash scripts/selftests/test-check-selftest-env-leaks.sh"
                         "branching-flow:bash scripts/checks/check-branching-flow.sh"
                         "branching-flow-self-test:bash scripts/selftests/test-check-branching-flow.sh"
+                      "check-modules-parity-self-test:bash scripts/selftests/test-check-modules-parity.sh"
                     )
                     red=0
                     for stage in "''${stages[@]}"; do
@@ -2067,13 +2068,18 @@
             check-train-consumers-hermetic = {
               type = "app";
               meta.description = "Pre-publish hermetic consumer catch (gotcha-30 mechanized): GOWORK=off build+vet+test for every module with go.mod/go.sum changes vs origin/master — run BEFORE verify-tag --push";
-              # goPkg: the hermetic pipeline shells out to `go`; without the
-              # 1.27.1 toolchain the ambient go cannot load the workspace floor.
-              runtimeInputs = [ goPkg ];
-              text = ''
-                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                bash scripts/checks/check-train-consumers-hermetic.sh "$@"
-              '';
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-train-consumers-hermetic";
+                  # goPkg: the hermetic pipeline shells out to `go`; without the
+                  # 1.27.1 toolchain the ambient go cannot load the workspace floor.
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-train-consumers-hermetic.sh "$@"
+                  '';
+                }
+              );
             };
 
             test-check-train-consumers-hermetic = {
@@ -2115,14 +2121,19 @@
             train-lag-report = {
               type = "app";
               meta.description = "Early-warning train-lag report: runs the strict release-train gate and surfaces the lag table + fix recipe advisory-style (never red on lag; broken gates stay loud). Nightly workflow + manual";
-              runtimeInputs = [
-                pkgs.git
-                pkgs.coreutils
-              ];
-              text = ''
-                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                bash scripts/checks/train-lag-report.sh "$@"
-              '';
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "train-lag-report";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/train-lag-report.sh "$@"
+                  '';
+                }
+              );
             };
 
             test-train-lag-report = {
