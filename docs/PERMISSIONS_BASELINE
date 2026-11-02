@@ -1,0 +1,16 @@
+# docs/PERMISSIONS_BASELINE — the levels docs/PERMISSIONS.md may not drop below.
+# Format: <service> <TAB> <level>. '?' rows are unverified and not ratcheted.
+# Regenerate: bash scripts/checks/check-permission-maturity.sh --update-baseline
+bank-sync	L1
+browser-history	L1
+cqrs-htmx	L3
+crm	L0
+crush-daily	L1
+dnsblockd	L1
+file-and-image-renamer	L1
+games/SwettySwipperWeb	L1
+github-local-sync	L1
+InboxClean	L1
+journal	L1
+sperrmuell-direct	L1
+webphone	L1

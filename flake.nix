@@ -1165,6 +1165,10 @@
                       bash bash scripts/selftests/test-check-templ-codegen-staged.sh
                       bash bash scripts/checks/check-session-route-wrappers.sh
                       bash bash scripts/selftests/test-check-session-route-wrappers.sh
+                      bash bash scripts/checks/check-permission-surface.sh
+                      bash bash scripts/selftests/test-check-permission-surface.sh
+                      bash bash scripts/checks/check-permission-maturity.sh --ratchet
+                      bash bash scripts/selftests/test-check-permission-maturity.sh
                       bash bash scripts/checks/check-branching-flow.sh
                       bash bash scripts/selftests/test-check-branching-flow.sh
                       echo ""
@@ -1224,6 +1228,10 @@
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                         "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
+                        "permission-surface:bash scripts/checks/check-permission-surface.sh"
+                        "permission-surface-self-test:bash scripts/selftests/test-check-permission-surface.sh"
+                        "permission-maturity:bash scripts/checks/check-permission-maturity.sh --ratchet"
+                        "permission-maturity-self-test:bash scripts/selftests/test-check-permission-maturity.sh"
                         "streamid-identity:bash scripts/checks/check-streamid-identity.sh"
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
                         "root-files:bash scripts/checks/check-root-files.sh --strict"
@@ -1711,6 +1719,82 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-todo-hygiene.sh
+                  '';
+                }
+              );
+            };
+
+            check-permission-surface = {
+              type = "app";
+              meta.description = "Fail on the four authorization anti-patterns: ephemeral grants, untyped engine calls, raw engine calls, re-coded denial sentinels";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-permission-surface";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-permission-surface.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-permission-surface = {
+              type = "app";
+              meta.description = "Fixture self-test for check-permission-surface.sh (5 cases: clean/4 planted violations/suppression/test-exempt/definition site)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-permission-surface";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-permission-surface.sh
+                  '';
+                }
+              );
+            };
+
+            check-permission-maturity = {
+              type = "app";
+              meta.description = "docs/PERMISSIONS.md ratchet: a service's declared authorization level may not drop (--ratchet enforces; default advisory)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-permission-maturity";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-permission-maturity.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-permission-maturity = {
+              type = "app";
+              meta.description = "Fixture self-test for check-permission-maturity.sh (8 cases: same/raised/dropped/advisory/vanished/unknown/new/update-baseline)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-permission-maturity";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-permission-maturity.sh
                   '';
                 }
               );

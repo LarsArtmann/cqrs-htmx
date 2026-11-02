@@ -574,6 +574,24 @@ jobs:
       - name: Session route wrapper self-test
         run: bash scripts/selftests/test-check-session-route-wrappers.sh
 
+      # ADR-0057: the four authorization anti-patterns that made the 2026-11-02
+      # consumer audit expensive — ephemeral grants, untyped engine calls, raw
+      # engine calls, and denial sentinels re-coded per module. Fixture
+      # self-test plants one violation per rule.
+      - name: Permission surface check
+        run: bash scripts/checks/check-permission-surface.sh
+
+      - name: Permission surface self-test
+        run: bash scripts/selftests/test-check-permission-surface.sh
+
+      # docs/PERMISSIONS.md is the inventory of record: a service's declared
+      # authorization level may only improve.
+      - name: Permission maturity ratchet
+        run: bash scripts/checks/check-permission-maturity.sh --ratchet
+
+      - name: Permission maturity self-test
+        run: bash scripts/selftests/test-check-permission-maturity.sh
+
       # Gotcha-25/D12 invariant: StreamID().String() is display-form
       # (StreamMarker-branded under the in-flight id train), never identity.
       # Pinned display allowlist; identity positions use .Get().

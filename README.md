@@ -90,7 +90,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 
 - **Event-sourced user management** — the [`usermgmt`](usermgmt/README.md) module: register/login/logout/me, sessions, roles, tenants, bots, account lockout, audit log; SQL stores for SQLite, Postgres, and MySQL
 - **Passwordless auth** — WebAuthn/passkeys by default; [TOTP MFA](usermgmt/totp/) and [OAuth2/OIDC](usermgmt/oauth2/) as independent sub-modules (import only what you need — zero auth deps in core)
-- **Casbin authorization** — `Authorize(resource, action)` gates dispatch; domain/tenant-aware RBAC with a projection that derives policies from identity events
+- **Authorization you can prove** — `Authorize(resource, action)` / `AuthorizeIn(domain, …)` / `AuthorizeRequest(resolver)` gate dispatch; one `Request`/`Decision` contract with a reason for every answer, shared denial codes that survive module boundaries, and **durable grants** (`Service.GrantRoles` dispatches the membership commands, so a role survives restart, rebuild, and a second instance). The `authztest` package proves the declared posture of every route ([guide](docs/guides/authorization-system.md), [maturity system](docs/PERMISSIONS.md), [ADR-0057](docs/adr/0057-authorization-contract.md))
 - **Actor + audit chain built-in** — every event carries who acted (user/bot/system), impersonation chains, and correlation/request IDs, auto-derived from the HTTP session; auth-audit events (`LoginSucceeded`/`LoginFailed`/`RegistrationClosed`) ride their own streams and fold into the audit log ([guide](docs/guides/actor-and-audit-trail.md))
 
 **Realtime**

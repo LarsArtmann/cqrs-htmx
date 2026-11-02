@@ -309,6 +309,39 @@ mux.Handle("POST /games/{id}/delete", app.Command("DeleteGame",
 
 > **Auth error sentinels -> HTTP status:** `cqrshtmx.ErrUnauthorized` -> 401, `cqrshtmx.ErrForbidden` -> 403, `cqrshtmx.ErrValidationFailed` -> 400, `cqrshtmx.ErrRequestTooLarge` -> 413, `cqrshtmx.ErrMethodNotAllowed` -> 405.
 
+### Authorization: the contract, and the one durable way to grant
+
+Two rules carry almost all of it. **Grant through the event-sourced path** (a grant written into the enforcer is not an event and vanishes on restart), and **ask one question type** so the answer carries a reason.
+
+```go
+// 1. Grant (durable: dispatches the membership commands, replayed by the projection).
+err := svc.GrantRoles(ctx, usermgmt.ActorIDFromUser(userID),
+    identitymodel.NewTenantID(identitymodel.WildcardDomain),
+    []identitymodel.Role{identitymodel.RoleSuperAdmin})
+
+// 2. Decide (any cqrshtmx.PermissionChecker; *identitymodel.Authz satisfies it structurally).
+decision, err := cqrshtmx.Decide(svc.Authz(), cqrshtmx.Request{
+    Subject:  userID.String(),
+    Domain:   tenantID,
+    Resource: cqrshtmx.Resource{Type: "orders", ID: orderID},
+    Action:   "read",
+})
+
+// 3. Branch on the REASON, not just the boolean.
+switch decision.Reason {
+case cqrshtmx.ReasonNotAuthenticated: // 401
+case cqrshtmx.ReasonNoMatchingPolicy: // 403 -- the grant is missing
+case cqrshtmx.ReasonDeniedByPolicy:   // 403 -- a rule refused
+case cqrshtmx.ReasonAllowed:          // proceed
+}
+```
+
+- `Service.GrantRoles` / `RevokeRoles` / `HasAdminGrant` are the durable surface. `Authz.AddGroupPolicy` is **deprecated** (ephemeral) -- `Authz.ApplyGroupPolicy` exists only for projections.
+- Handler options: `Authorize(resource, action)` asks in the wildcard domain, `AuthorizeIn(domain, resource, action)` scopes to a tenant, `AuthorizeRequest(resolver)` derives the whole question from the request.
+- `cqrshtmx.IsForbidden(err)` / `IsUnauthorized(err)` recognise a denial from ANY module (code-based, walks the unwrap chain). `errors.Is` against a single sentinel only ever matches one of them.
+- `setup.New` logs a boot warning when the admin panel is mounted but nobody holds `admin`/`super_admin` in `*` -- that warning means step 1 is missing.
+- Gates: `nix run .#check-permission-surface` (four anti-patterns) and `nix run .#check-permission-maturity` (`docs/PERMISSIONS.md` level ratchet).
+
 ### Middleware + serving htmx.js
 
 ```go
@@ -537,6 +570,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`docs/guides/sse-and-datastar.md`** -- the Broadcaster duality guide: `Hub()` accessor, `NewBroadcasterFromHub` cross-transport hub sharing (both adapters embed the hub; `Raw()`/`NewBroadcasterFromRaw` are deprecated v5-removal aliases), and HTMX vs Datastar transport comparison.
 - **`docs/guides/frontend-sync.md`** -- ADR-0056 frontend sync: cursor-based `SyncPullHandler` event pull (ETag + permission filter), `App.SyncPushHandler` batched push, sync assets.
 - **`docs/guides/datastar-integration.md`** -- the DataStar adapter: signals, SSE response builder, EventBridge wiring.
+- **`docs/guides/authorization-system.md`** -- the authorization system end to end: durable grants, route posture, `Decide`/`AuthorizeIn`/`AuthorizeRequest`, the 401/403/200 proof matrix, SSP/CSP-adjacent notes. `docs/PERMISSIONS.md` is the L0-L4 maturity system + per-service inventory; `docs/adr/0057-authorization-contract.md` and `0058-defer-relationship-based-authorization.md` are the decisions.
 - **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof), `examples/middleware-showcase/` (all 8 httputil HTTP middleware in a single validated `MiddlewareStack`: recovery, security headers, metrics, CORS, client IP, rate limiting, compression, ETag), `examples/setup-demo/` (one-call full-stack), `examples/sync-demo/` (executable ADR-0056 guide), `examples/datastar-demo/` (DataStar adapter).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 
