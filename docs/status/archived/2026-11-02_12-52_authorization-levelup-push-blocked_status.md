@@ -1,5 +1,9 @@
 # Status: authorization level-up executed — three commits ready, push blocked on a diverged master
 
+> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-11-02_16-23_authorization-train-five-tags-and-four-reds_status.md`](../2026-11-02_16-23_authorization-train-five-tags-and-four-reds_status.md), which the successor records the push unblocked, the rebase landed by a concurrent session, and the five-tag train that closed the root-tag gap, plus the four CI reds that replaced the blocker. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-02 (round-46 train (2026-11-02)).**
+
 **Date:** 2026-11-02 12:52 CET
 **Branch:** `master` — 3 commits ahead of `origin/master`, **1 commit behind it**
 **Verdict:** the library work and the system work are done and verified per-module. The push was rejected (non-fast-forward): origin gained `7d1674a0` (a fleet golangci-lint config convergence) while this session was running. Nothing is lost; the next action is a rebase, not a rewrite.
@@ -11,7 +15,7 @@
 The instruction was: every downstream service handles permissions badly; level it
 up everywhere — **but with a system**. The plan of record that came out of the
 preceding audit
-([`docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md`](../planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md))
+([`docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md`](../../planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md))
 turned that into 20 milestones and four named defects:
 
 | # | Defect | Why it mattered |

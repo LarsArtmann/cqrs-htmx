@@ -1,6 +1,6 @@
 # Status: authorization level-up executed (ADR-0057/0058) — plan, receipts, and the consumer frontier
 
-> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-11-02_12-52_authorization-levelup-push-blocked_status.md`](../2026-11-02_12-52_authorization-levelup-push-blocked_status.md), which the successor carries the same execution receipt plus the push-block verdict, the honest verification gap list, and the ordered next steps. Strike depth:
+> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-11-02_12-52_authorization-levelup-push-blocked_status.md`](2026-11-02_12-52_authorization-levelup-push-blocked_status.md), which the successor carries the same execution receipt plus the push-block verdict, the honest verification gap list, and the ordered next steps. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-02 (round-45 authz level-up (2026-11-02)).**
 
