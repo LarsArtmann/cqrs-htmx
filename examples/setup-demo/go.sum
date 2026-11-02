@@ -149,8 +149,8 @@ github.com/larsartmann/cqrs-htmx/setup/v4 v4.15.0 h1:8eyuyD/rxFyqy2ZlmiXc6l4KVqX
 github.com/larsartmann/cqrs-htmx/setup/v4 v4.15.0/go.mod h1:1eDI8deeJQORtDCrX9gH91OIsMQ8ORos3jOJ0UbkHuQ=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.17.0 h1:YK87k0CvZhIbMtvjTiHaMcG4Wy1ahaqKi7GvOsm90LE=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.17.0/go.mod h1:Tr7WGuf3pktco4+9dxmvCEjIvpr3Lbrq/CSATdES0yc=
-github.com/larsartmann/cqrs-htmx/v4 v4.14.1 h1:ZcMc6o55bnYFH8u7Ae9t8a2yxt6iLHUc70MRpWkLfFQ=
-github.com/larsartmann/cqrs-htmx/v4 v4.14.1/go.mod h1:TPQzgHhx+ZBGkdNUumWwiKqH7Lg3l8LR5t0PefBNijI=
+github.com/larsartmann/cqrs-htmx/v4 v4.15.0 h1:gUWdLbW+9KULoN9Iu3/u6rdTbVBf5PbLpfeZnM7cMnc=
+github.com/larsartmann/cqrs-htmx/v4 v4.15.0/go.mod h1:uYh+kvBHYcYXntayGBVrTh8ugKZd8qQoNG2HQJXeo4M=
 github.com/larsartmann/go-appkit v0.9.0 h1:rOKVw+AWDJ5xR9H+ulveJ0cqln3HsZBdTD80tbZV1gY=
 github.com/larsartmann/go-appkit v0.9.0/go.mod h1:Q+eQwk/zyQO0iXqlsaf55Q3hV+j/ieyvOPZNyPYwYns=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=

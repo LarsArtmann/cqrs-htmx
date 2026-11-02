@@ -126,8 +126,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1 h1:50h3ypO0I346KBzghWN
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1/go.mod h1:84IPSUojaxGSlhIkJhzTM3Jt1XmRCutvZznlop/uocY=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.17.0 h1:YK87k0CvZhIbMtvjTiHaMcG4Wy1ahaqKi7GvOsm90LE=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.17.0/go.mod h1:Tr7WGuf3pktco4+9dxmvCEjIvpr3Lbrq/CSATdES0yc=
-github.com/larsartmann/cqrs-htmx/v4 v4.14.1 h1:ZcMc6o55bnYFH8u7Ae9t8a2yxt6iLHUc70MRpWkLfFQ=
-github.com/larsartmann/cqrs-htmx/v4 v4.14.1/go.mod h1:TPQzgHhx+ZBGkdNUumWwiKqH7Lg3l8LR5t0PefBNijI=
+github.com/larsartmann/cqrs-htmx/v4 v4.15.0 h1:gUWdLbW+9KULoN9Iu3/u6rdTbVBf5PbLpfeZnM7cMnc=
+github.com/larsartmann/cqrs-htmx/v4 v4.15.0/go.mod h1:uYh+kvBHYcYXntayGBVrTh8ugKZd8qQoNG2HQJXeo4M=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=
 github.com/larsartmann/go-branded-id v0.7.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-codec v0.3.3 h1:aKwY9YaUnawfcUxNNgfEb/6xQa8HJsrS7QHSOmnQUpU=
