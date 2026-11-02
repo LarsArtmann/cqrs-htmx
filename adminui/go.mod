@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/a-h/templ v0.3.1070
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/httputil v1.7.0
