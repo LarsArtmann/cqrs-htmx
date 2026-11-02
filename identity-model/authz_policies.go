@@ -196,7 +196,32 @@ func (a *Authz) mutatePolicy(p Policy, action string, fn func(...any) (bool, err
 
 // AddGroupPolicy assigns a role to a subject in a domain, seeding the role
 // hierarchy for that domain first so inherited permissions resolve.
+//
+// Deprecated: this writes straight into the in-memory enforcer. It is not an
+// event, so the grant does not survive a restart, a projection rebuild, or a
+// second instance of the service — all of those reconstruct policies from the
+// journal alone. Grant roles through the event-sourced path instead
+// (usermgmt.Service.GrantRoles, or the AddMember / UpdateMemberRoles
+// commands), which the Casbin projection replays.
+//
+// Kept in v4 for consumers that seed a throwaway enforcer (tests, in-memory
+// fixtures); it is removed in v5.
 func (a *Authz) AddGroupPolicy(g GroupPolicy) error {
+	return a.ApplyGroupPolicy(g)
+}
+
+// ApplyGroupPolicy assigns a role to a subject in a domain, seeding the role
+// hierarchy for that domain first so inherited permissions resolve.
+//
+// It is the projection write path — the method a replaying projection uses to
+// materialize a grant that already exists as an event. Unlike the deprecated
+// [Authz.AddGroupPolicy] it carries no durability warning: its callers derive
+// the grant from the journal, so replaying the journal restores it.
+//
+// Consumers granting roles imperatively want usermgmt.Service.GrantRoles, not
+// this method: a grant made here is invisible to the journal and disappears on
+// the next restart.
+func (a *Authz) ApplyGroupPolicy(g GroupPolicy) error {
 	if a.enforcer == nil {
 		return ErrEnforcerNotInitialized
 	}

@@ -64,6 +64,18 @@ func AssignableRoles() []Role {
 	return []Role{RoleViewer, RoleUser, RoleAdmin, RoleOwner}
 }
 
+// WildcardDomain is the authorization domain that matches every tenant. Global
+// grants — super_admin, the admin panel's bootstrap admin — live here rather
+// than in a tenant domain, so one grant covers the whole installation.
+const WildcardDomain = "*"
+
+// AdminRoles returns the roles that confer administrative access, most
+// privileged first. It is the single vocabulary the admin panel and the
+// bootstrap diagnostic agree on.
+func AdminRoles() []Role {
+	return []Role{RoleSuperAdmin, RoleAdmin}
+}
+
 // Policy defines a single RBAC rule: who can do what, with an allow/deny effect.
 type Policy struct {
 	Subject Role

@@ -447,6 +447,11 @@ func ServeDomainEvents(
 			return
 		}
 
+		// A server-wide WriteTimeout would sever this deliberately open
+		// stream; clear it on this connection only (see ClearWriteDeadline).
+		// Placed after the error paths above so a 400/503 keeps its deadline.
+		ClearWriteDeadline(w)
+
 		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
 

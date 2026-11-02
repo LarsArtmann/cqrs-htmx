@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // All authorization types, the Casbin-backed Authz engine, and the default RBAC
@@ -67,3 +68,10 @@ func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
 func AssignableRoles() []Role {
 	return identitymodel.AssignableRoles()
 }
+
+// Compile-time proof that the identity model's engine satisfies the root
+// package's authorization seam (cqrshtmx.PermissionChecker). usermgmt is the
+// only module that can see both sides: root must stay domain-free, and
+// identity-model must stay HTTP-free, so the interface lives in root and the
+// implementation in identity-model with no import in either direction.
+var _ cqrshtmx.PermissionChecker = (*Authz)(nil)

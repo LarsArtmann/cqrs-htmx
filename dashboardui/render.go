@@ -13,7 +13,6 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-	"github.com/larsartmann/httputil"
 	"github.com/larsartmann/templ-components/errorpage"
 )
 
@@ -76,7 +75,7 @@ func (d *Dashboard) renderError(
 
 	if r != nil {
 		ctx = r.Context()
-		nonce = httputil.NonceFromRequest(r)
+		nonce = d.nonce(r)
 		path = r.URL.Path
 	}
 

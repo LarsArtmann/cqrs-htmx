@@ -135,7 +135,9 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 // errContext is included in the wrapped error message (e.g. "on register").
 func (p *CasbinProjection) addRolesFor(subject, domain string, roles []Role, errContext string) error {
 	for _, role := range roles {
-		if err := p.authz.AddGroupPolicy(GroupPolicy{
+		// ApplyGroupPolicy, not the deprecated AddGroupPolicy: this grant is
+		// derived from an event, so a journal replay restores it.
+		if err := p.authz.ApplyGroupPolicy(GroupPolicy{
 			Subject: subject, Role: role, Domain: domain,
 		}); err != nil {
 			return errorfamily.Wrapf(

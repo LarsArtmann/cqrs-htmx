@@ -153,6 +153,10 @@ func (b *Broadcaster) broadcastOnErrorHook(
 // creates a stream, subscribes, sends a "connected" event, pumps events until
 // the client disconnects, then unsubscribes and closes the stream.
 func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
+	// A server-wide WriteTimeout would sever this deliberately open stream;
+	// clear it on this connection only (see transport.ClearWriteDeadline).
+	cqrshtmxtransport.ClearWriteDeadline(w)
+
 	stream := sse.NewStream(w, r)
 	defer func() {
 		if err := stream.Close(); err != nil {

@@ -54,8 +54,10 @@ func (m authMode) String() string {
 
 type handlerConfig struct {
 	authMode       authMode
+	domain         string
 	resource       string
 	action         string
+	authzRequest   func(*http.Request) (Request, error)
 	commandDecoder CommandDecoder
 	queryDecoder   QueryDecoder
 	render         RenderFunc

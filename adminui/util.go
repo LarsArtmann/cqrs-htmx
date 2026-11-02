@@ -20,7 +20,13 @@ func errConfig(msg string) error {
 }
 
 // errForbidden is the Rejection returned when a user lacks panel access.
-var errForbidden error = errorfamily.NewRejection("adminui.forbidden", "access denied")
+//
+// It aliases identity-model's sentinel instead of defining an adminui-specific
+// code, so a caller can recognise a denial with cqrshtmx.IsForbidden
+// (code "forbidden") no matter which module produced it. The former
+// "adminui.forbidden" code made the panel's 403 the one denial a shared
+// classifier could not see.
+var errForbidden error = identitymodel.ErrForbidden
 
 // roleBadgeType maps a role string to a templ-components BadgeType.
 func roleBadgeType(role string) display.BadgeType {

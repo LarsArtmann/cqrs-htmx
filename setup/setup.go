@@ -13,7 +13,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-	"github.com/larsartmann/httputil"
 )
 
 // New creates a fully wired [Bundle] from a single [Config].
@@ -122,6 +121,10 @@ func newBundle(cfg Config) (*Bundle, error) {
 			return nil, err
 		}
 	}
+
+	// Loud but non-fatal: a mounted panel nobody can reach is the most
+	// expensive silent misconfiguration in this bundle (see diagnostics.go).
+	bundle.warnOnUnreachableAdminPanel()
 
 	return bundle, nil
 }
@@ -283,6 +286,7 @@ func (b *Bundle) attachAdmin() error {
 		AccentColor: b.config.AccentColor,
 		LogoutURL:   b.config.LogoutURL,
 		SSEURL:      b.config.SSEURL,
+		NonceFunc:   b.config.NonceFunc,
 	})
 	if err != nil {
 		return errorfamily.WrapRejection(
@@ -339,7 +343,7 @@ func (b *Bundle) attachLogin() error {
 		// carry that same nonce or the browser blocks them. No nonce in the
 		// request context (consumer disabled the security layer) renders the
 		// scripts unchanged, without a nonce attribute.
-		NonceFromRequest: httputil.NonceFromRequest,
+		NonceFromRequest: b.config.nonceFunc(),
 	})
 	if err != nil {
 		return errorfamily.WrapRejection(
@@ -405,6 +409,7 @@ func buildDashboardConfig(
 		AccentColor:          cfg.AccentColor,
 		Authorizer:           cfg.DashboardAuthorizer,
 		Layout:               cfg.DashboardLayout,
+		NonceFunc:            cfg.NonceFunc,
 		SSEHeartbeatInterval: cfg.SSEHeartbeatInterval,
 		SSEMaxReplay:         cfg.SSEMaxReplay,
 	}

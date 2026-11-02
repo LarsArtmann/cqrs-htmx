@@ -423,6 +423,19 @@ type Config struct {
 	// Use for alerting (Slack, PagerDuty, etc.). Nil = no callback.
 	OnProjectionFailed func(projectionName, lastError string)
 
+	// NonceFunc resolves the per-request CSP nonce used by the panels' inline
+	// scripts (admin, dashboard, login). Nil (the default) uses
+	// httputil.NonceFromRequest, which reads the value httputil.Nonce puts into
+	// the request context — the middleware this bundle installs — so the default
+	// is right for the common case.
+	//
+	// Set it when your nonce lives somewhere else: a custom context key, an
+	// upstream proxy's header, or a generator you own. It must return the SAME
+	// nonce the response's Content-Security-Policy header advertises, or the
+	// browser blocks the panels' scripts. The value is rendered verbatim into a
+	// script attribute, so return exactly what you put in the CSP header.
+	NonceFunc func(*http.Request) string
+
 	// AsyncStartup controls whether New blocks until projections finish their
 	// initial journal drain. When false (the default), the bundle blocks until
 	// all projections catch up before returning — the HTTP server cannot bind
@@ -582,4 +595,15 @@ func (c Config) withDefaults() Config {
 	}
 
 	return cfg
+}
+
+// nonceFunc resolves the per-request CSP nonce provider for the panels:
+// Config.NonceFunc when the consumer supplied one, httputil.NonceFromRequest
+// otherwise (the value the bundle's own security middleware puts in context).
+func (c Config) nonceFunc() func(*http.Request) string {
+	if c.NonceFunc != nil {
+		return c.NonceFunc
+	}
+
+	return httputil.NonceFromRequest
 }

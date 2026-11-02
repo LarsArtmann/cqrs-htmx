@@ -168,6 +168,15 @@ type Config struct {
 	// its own complete standalone document (the mount-and-go destination).
 	Layout LayoutFunc
 
+	// NonceFunc resolves the per-request CSP nonce carried by every inline
+	// script the dashboard renders (shell, error pages, 404 page). Nil (the
+	// default) uses httputil.NonceFromRequest, which reads the value
+	// httputil.Nonce puts into the request context. Set it when your nonce
+	// lives elsewhere — a custom context key, an upstream header, or a
+	// generator you own — and return the exact string your CSP header
+	// advertises.
+	NonceFunc func(*http.Request) string
+
 	// LogoutURL, if set, renders a logout link at the bottom of the sidebar.
 	// Typically "/logout" or similar. If empty, no logout link is shown.
 	// Ignored when Layout is set (the consumer shell owns navigation chrome).

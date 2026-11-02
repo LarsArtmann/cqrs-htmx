@@ -3,6 +3,7 @@ package cqrshtmx
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -20,8 +21,13 @@ type UserIDExtractor func(r *http.Request) (UserID, error)
 // Authorize returns a HandlerOption that checks Casbin permissions.
 // The subject is extracted from the request context (via UserIDExtractor).
 // If no user ID is found, the request is rejected as unauthorized.
+//
+// The question is asked in the wildcard domain, so only global policies answer
+// it. Use [AuthorizeIn] for a tenant-scoped check or [AuthorizeRequest] when the
+// question depends on the request.
 func Authorize(resource, action string) HandlerOption {
 	return func(config *handlerConfig) {
+		config.domain = WildcardDomain
 		config.resource = resource
 		config.action = action
 		config.authMode = authAuthorized
@@ -77,6 +83,9 @@ func RequestGuard(guard RequestGuardFunc) HandlerOption {
 // Enforce checks authorization policy for the given subject, resource, and action.
 // Returns ErrForbidden if the policy denies the request.
 // Returns ErrEnforcerNil if the enforcer is nil.
+//
+// The question is asked in the wildcard domain, so only policies and grants in
+// "*" can answer it. For tenant-scoped checks use [EnforceIn].
 func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
 		return errorfamily.NewInfrastructure("enforcer_nil",
@@ -84,7 +93,7 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 				subject, resource, action)).WithCause(ErrEnforcerNil)
 	}
 
-	ok, err := enforcer.Enforce(subject, resource, action)
+	ok, err := enforceRequest(enforcer, subject, WildcardDomain, resource, action)
 	if err != nil {
 		return errorfamily.NewTransient("enforce_failed",
 			fmt.Sprintf("casbin enforce failed for subject=%s resource=%s action=%s",
@@ -100,9 +109,76 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	return nil
 }
 
+// EnforceIn checks authorization policy for the given subject, domain,
+// resource, and action. Returns ErrForbidden if the policy denies the request,
+// ErrEnforcerNil if the enforcer is nil.
+//
+// This is the four-argument shape the shipped RBAC model declares
+// (subject, domain, object, action). A three-argument call against that model is
+// a request-size mismatch, which Casbin reports as an error — which is how a
+// denial through the older three-argument path surfaced as HTTP 503 instead of
+// 403.
+func EnforceIn(enforcer Enforcer, subject, domain, resource, action string) error {
+	if enforcer == nil {
+		return errorfamily.NewInfrastructure("enforcer_nil",
+			fmt.Sprintf("enforcer is nil for subject=%s domain=%s resource=%s action=%s",
+				subject, domain, resource, action)).WithCause(ErrEnforcerNil)
+	}
+
+	ok, err := enforceRequest(enforcer, subject, domain, resource, action)
+	if err != nil {
+		return errorfamily.NewTransient("enforce_failed",
+			fmt.Sprintf("casbin enforce failed for subject=%s domain=%s resource=%s action=%s",
+				subject, domain, resource, action)).WithCause(err)
+	}
+
+	if !ok {
+		return errorfamily.NewRejection("forbidden",
+			fmt.Sprintf("subject=%s domain=%s resource=%s action=%s",
+				subject, domain, resource, action)).
+			WithCause(ErrForbidden)
+	}
+
+	return nil
+}
+
+// enforceRequest asks the enforcer, adapting to the arity its model declares.
+//
+// The library ships a four-field model (subject, domain, object, action) and
+// its own engine enforces in that shape, but a consumer may bring a
+// three-field model (subject, object, action). Casbin rejects a call whose
+// argument count does not match the model's request definition, so no single
+// arity is correct for both. The four-argument call goes first — it is the
+// documented model — and a request-size rejection falls back to three.
+//
+// Falling back on the error text is unpleasant, but the alternative is widening
+// the duck-typed Enforcer interface with a model introspection method, which
+// would push a Casbin detail into every implementer's surface.
+func enforceRequest(enforcer Enforcer, subject, domain, resource, action string) (bool, error) {
+	ok, err := enforcer.Enforce(subject, domain, resource, action)
+	if err == nil {
+		return ok, nil
+	}
+
+	if !isRequestSizeError(err) {
+		return false, err //nolint:wrapcheck // callers wrap with request context
+	}
+
+	return enforcer.Enforce(subject, resource, action) //nolint:wrapcheck // callers wrap with request context
+}
+
+// isRequestSizeError reports whether err is Casbin's arity rejection.
+func isRequestSizeError(err error) bool {
+	return strings.Contains(err.Error(), "invalid request size")
+}
+
 func (a *App) executeAuthorization(r *http.Request, config *handlerConfig) error {
 	if config.authMode == authNone {
 		return nil
+	}
+
+	if config.authzRequest != nil {
+		return a.authorizeWithRequest(r, config)
 	}
 
 	userID := UserIDFromContext(r.Context())
@@ -116,7 +192,7 @@ func (a *App) executeAuthorization(r *http.Request, config *handlerConfig) error
 	}
 
 	if config.authMode == authAuthorized {
-		return Enforce(a.enforcer, userID.String(), config.resource, config.action)
+		return EnforceIn(a.enforcer, userID.String(), config.domain, config.resource, config.action)
 	}
 
 	return nil

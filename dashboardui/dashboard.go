@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
-	"github.com/larsartmann/httputil"
 )
 
 // Dashboard is the CQRS/ES observability panel. Build it with [New],
@@ -117,7 +116,7 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		Nav:       nav,
 		LogoutURL: d.config.LogoutURL,
 		CSRFToken: csrfToken(r),
-		Nonce:     httputil.NonceFromRequest(r),
+		Nonce:     d.nonce(r),
 		ReadOnly:  d.config.ReadOnly,
 		Caps:      d.caps,
 		HTMX:      cqrshtmx.IsHTMXRequest(r),
