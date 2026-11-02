@@ -30,6 +30,10 @@ vendor/
 /coverage
 # Build artifacts (root-level compiled binaries)
 /cqrs-htmx
+# `go build ./cmd/...` drops the binary next to its source (7.9 MB, caught by
+# CI's large-file guard 2026-11-02); name each one explicitly so no pattern can
+# ever shadow a source file.
+/cmd/cqrs-htmx-upgrade/cqrs-htmx-upgrade
 /basic
 /datastar-demo
 /catalog-demo
