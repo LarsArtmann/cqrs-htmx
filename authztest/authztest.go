@@ -1,5 +1,10 @@
 // Package authztest proves that an HTTP surface enforces the access posture it
-// claims.
+// claims, and that the grants behind it behave.
+//
+// [Suite] is the posture matrix: every declared route must refuse the callers
+// the declaration says it refuses. [GrantSuite] is the half a posture matrix
+// cannot see: a grant stays in its tenant, a revoke removes authority, and a
+// grant outlives the process that made it.
 //
 // It exists because the 2026-11-02 consumer audit found zero authorization tests
 // across 17 services: every surface had a gate somebody wrote once, and nothing
@@ -7,9 +12,9 @@
 // turns "we check permissions" into "we check permissions, and here is the test
 // that says so".
 //
-// The package imports net/http/httptest and testing, so it is a test-only
-// dependency: consumers import it from _test.go files and it never reaches a
-// production binary.
+// The package imports net/http/httptest, testing, and this module's
+// Request/Decision contract, so it is a test-only dependency: consumers import
+// it from _test.go files and it never reaches a production binary.
 //
 // # Fail-closed by construction
 //
