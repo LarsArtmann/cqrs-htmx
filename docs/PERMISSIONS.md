@@ -160,6 +160,38 @@ failure mode this exists to prevent.
 that nobody declared is invisible to the matrix, and invisible is how a gate goes
 missing.
 
+### Proving the grants behind it: `authztest.GrantSuite`
+
+The posture matrix answers "does this route refuse the wrong caller?". It cannot
+see the defect that costs the most: the grant itself. `GrantSuite` proves the
+three properties that matter, each case self-contained:
+
+```go
+suite := authztest.GrantSuite{
+    Checker:       svc.Authz(),          // cqrshtmx.PermissionChecker
+    Governor:      governor{svc: svc},   // GrantRoles + RevokeRoles, string-shaped
+    Subject:       "user-1",
+    Tenant:        "acme",
+    ForeignTenant: "globex",             // required: isolation needs a comparison
+    Roles:         []string{"staff"},
+    ResourceType:  "orders",
+    Action:        "read",
+    Fresh:         func(t *testing.T) cqrshtmx.PermissionChecker { return reopen(t).Authz() },
+}
+
+suite.ProveTenantIsolation(t) // allowed in acme, denied in globex
+suite.ProveRevocation(t)      // grant → allowed → revoke → denied
+suite.ProveDurability(t)      // grant → fresh process → still allowed
+```
+
+`ProveRevocation` asserts the grant authorized *before* revoking, so a deny
+afterwards cannot be an accident of a grant that never worked. `ProveDurability`
+builds the second checker **after** the grant, from durable state alone — that is
+the 2026-11-02 defect mechanized (a grant written into an in-memory enforcer
+vanishes on restart). Run either suite after the projections have drained: under
+`AsyncStartup` poll readiness first, or a green result means "replay had not
+arrived yet".
+
 ## Onboarding a service (5 steps)
 
 1. **Enumerate.** List every route with method, path, and who may call it. Public
@@ -172,6 +204,8 @@ missing.
    wildcard check answers only global policies.
 4. **Prove it.** Add 401 / 403 / 200 tests plus a tenant-isolation case. A test
    that passes when the authorization call is deleted proves nothing.
+   `authztest.Suite` + `authztest.GrantSuite` are that test — see
+   [`authztest/README.md`](../authztest/README.md) for the full surface.
 5. **Ratchet it.** Commit the posture list and add the service's row here; the
    maturity gate fails on a dropped level.
 

@@ -4,33 +4,46 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-10-31 07:50 · **Owner:** Lars · **Module count:** 29 (`go.work`)
+**As of:** 2026-11-02 15:25 · **Owner:** Lars · **Module count:** 29 (`go.work`)
 
 ## The active thread
 
-**Round 45 landed and pushed (`82ddd1b8`): the samber/do × health thread is CLOSED** —
-round-2 verdict 9/10, all five owner decisions executed on defaults (T12 wire rename
-shipped; `RecorderChain` docs migrated; T13 closed; `InvokeAs` filing authorized+drafted;
-erraudit strict = advisory month started), the 3-family train cut locally and the
-push blocker resolved (train lag 0), five new gates landed (readme-badges, pr-secrets,
-dependabot watch, coverage self-test, check-modules parity lock), and the backlog
-burned: 5 TODO rows closed, 15 parked rows re-audited with dated verdicts.
-Receipt: [`docs/status/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md`](docs/status/archived/2026-10-31_07-45_round-45-decision-batch-family-train-and-gate-hardening_status.md).
+**Round 46 — the permission system.** Authorization is now a single contract, one
+durable write path, a proof kit, and a ratchet instead of four decision shapes and
+three "is this an admin?" predicates. The library half is written, committed, and
+pushed; what is open is **publishing it**: master's CI is red with the
+root-tag-gap class ([gotcha 30](docs/gotchas.md#gotcha-30)) because six modules
+use symbols that only exist on HEAD.
 
-**Done when** (met): the final battery 5× rc=0 on a PUSHED commit — check-modules 78/78,
-`.#test` rc=0, coverage-gate 15/15, `.#lint` rc=0, erraudit --gate TOTAL=0, pre-push
-gates green.
+- Contract: `cqrshtmx.Request` / `Decision` / `Decide` + `IsForbidden` /
+  `IsUnauthorized` ([ADR-0057](docs/adr/0057-authorization-contract.md)).
+- Durable grants: `Service.GrantRoles` / `RevokeRoles` / `HasAdminGrant` over the
+  membership journal ([gotcha 45](docs/gotchas.md#gotcha-45)).
+- Proof kit: [`authztest`](authztest/README.md) — posture matrix plus grant
+  semantics (tenant isolation, revoke, durability).
+- Gates: `check-permission-surface` (four anti-patterns) and
+  `check-permission-maturity` (`--ratchet` over the declared levels).
+- Guide: [docs/guides/authorization-system.md](docs/guides/authorization-system.md);
+  ladder + inventory: [docs/PERMISSIONS.md](docs/PERMISSIONS.md); plan:
+  [docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md](docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md).
+
+**Done when** master's CI is green with `identity-model`, root, `usermgmt`,
+`dashboardui`, `adminui`, and `setup` tagged on the symbols they now consume, the
+grant suite is exercised against the real service in `integration_test`, and each
+of our own admin/dashboard routes has a declared posture checked by
+`authztest.Undeclared`.
 
 ## The next thread (pick ONE)
 
-1. **Advisory month for erraudit strict** (passive): let `.#check-erraudit-strict`
-   accumulate a green month at TOTAL ≤ 303, then flip `--strict --gate` (TODO watch row).
-2. **File the samber/do `InvokeAs` issue** (owner click): draft ready at
-   `docs/proposals/upstream/samber-do-invokeas-map-order-scan.md`, repro verified twice
-   on v2.1.0; M01 verdict 4 authorizes.
-3. **10-42 Wave-D remainder** (W01 S37 tails, W07 schema stamping) on its own trigger —
-   the two dashboardui tail sub-items (page-size off-menu pins, browser e2e smoke) ride
-   the next dashboardui change (verified: pins exist; browser legs are CI-gated).
+1. **Consumer waves** — one repo at a time, each with its own tests:
+   `browser-history` (`reconcileSuperAdmins` → `GrantRoles`), `InboxClean`
+   (delete `sseDeadlineFree`), `SwettySwipperWeb` (drop the `Count() > 0` guard),
+   `crm` (seed an admin or `DisableAdmin`). The exact call to replace is the
+   "Next step" column of [docs/PERMISSIONS.md](docs/PERMISSIONS.md).
+2. **Promote the maturity gate** from "blocking but unexercised" to "blocking and
+   proven" after two green waves.
+3. **Advisory month for erraudit strict** (passive): green month at TOTAL ≤ 303,
+   then flip `--strict --gate`.
 
 ## Ground rules that keep this honest
 

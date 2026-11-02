@@ -101,6 +101,9 @@ scan() {
 
     local skip=0
     for allowed in "${skip_paths[@]}"; do
+      # $allowed is a GLOB on purpose (the callers pass 'identity-model/*'),
+      # so the unquoted pattern is the behaviour, not an accident.
+      # shellcheck disable=SC2254
       case "$clean" in
       $allowed)
         skip=1

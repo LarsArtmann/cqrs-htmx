@@ -341,6 +341,7 @@ case cqrshtmx.ReasonAllowed:          // proceed
 - `cqrshtmx.IsForbidden(err)` / `IsUnauthorized(err)` recognise a denial from ANY module (code-based, walks the unwrap chain). `errors.Is` against a single sentinel only ever matches one of them.
 - `setup.New` logs a boot warning when the admin panel is mounted but nobody holds `admin`/`super_admin` in `*` -- that warning means step 1 is missing.
 - Gates: `nix run .#check-permission-surface` (four anti-patterns) and `nix run .#check-permission-maturity` (`docs/PERMISSIONS.md` level ratchet).
+- Proof kit: `authztest.Suite` proves route postures (401/403/200 + undeclared routes); `authztest.GrantSuite` proves tenant scoping, revoke, and restart durability. Both fail-closed. See `authztest/README.md`.
 
 ### Middleware + serving htmx.js
 

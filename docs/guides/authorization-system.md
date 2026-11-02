@@ -177,6 +177,32 @@ wildcard check passes it, a domain check does not.
 A test that still passes when you delete the `Authorize` option proves nothing
 about authorization. Make the removal break the suite before you merge.
 
+### The kit that writes those four tests for you
+
+`authztest.Suite` proves the posture table above; `authztest.GrantSuite` proves
+the grant behind it (tenant scoping, revoke, durability across a restart). Both
+are fail-closed — a declaration that cannot be tested is an error, not a skip.
+[`authztest/README.md`](../../authztest/README.md) is the full surface; the short
+version:
+
+```go
+authztest.Suite{Handler: mux, Routes: routes, Anonymous: anon,
+    Unprivileged: asUser("member"), Privileged: asUser("admin")}.Run(t)
+
+grants := authztest.GrantSuite{Checker: svc.Authz(), Governor: gov,
+    Subject: "user-1", Tenant: "acme", ForeignTenant: "globex",
+    Roles: []string{"staff"}, ResourceType: "orders", Action: "read",
+    Fresh: reopen}
+grants.ProveTenantIsolation(t)
+grants.ProveRevocation(t)
+grants.ProveDurability(t)
+```
+
+`GrantSuite.ProveDurability` is the mechanized form of the defect that started
+this work: a grant written into an in-memory enforcer reads back as allowed
+in-process and as denied after a restart. It builds the second checker from
+durable state **after** granting, so it cannot pass on a cached engine.
+
 ## Streaming and CSP notes
 
 Two consumer workarounds were symptoms of library gaps that are now closed:
