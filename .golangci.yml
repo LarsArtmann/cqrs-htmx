@@ -16,13 +16,11 @@ output:
     formats: {}
 linters:
     enable:
-        - arangolint
         - asasalint
         - asciicheck
         - bidichk
         - bodyclose
         - canonicalheader
-        - clickhouselint
         - containedctx
         - contextcheck
         - copyloopvar
@@ -273,6 +271,9 @@ linters:
                 - js
             ignore-type-assert-ok: true
         wrapcheck:
+            ignore-package-globs:
+                - github.com/larsartmann/go-error-family*
+                - github.com/larsartmann/go-cqrs-lite/event/*
             ignore-sigs:
                 - .Errorf(
                 - errors.New(
@@ -283,9 +284,6 @@ linters:
                 - .WithMessage(
                 - .WithMessagef(
                 - .WithStack(
-            ignore-package-globs:
-                - github.com/larsartmann/go-error-family*
-                - github.com/larsartmann/go-cqrs-lite/event/*
     exclusions:
         generated: lax
         rules:
