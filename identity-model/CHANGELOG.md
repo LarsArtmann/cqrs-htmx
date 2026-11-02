@@ -8,11 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **The decision seam: `Authz.Check`, `WildcardDomain`, `AdminRoles()` (authorization level-up, 2026-11-02).** `Authz.Check(subject, domain, resource, action) (bool, []string, error)` answers one authorization question with the matched policy rows, and satisfies `cqrshtmx.PermissionChecker` **structurally** — the identity model still imports no HTTP, and the root package still imports no Casbin. `WildcardDomain` names the installation-wide domain (the literal `*`, previously spelled inline in three places), and `AdminRoles()` returns the admin tier (`super_admin`, `admin`) so "is anybody an admin?" stops being re-implemented per consumer. Additive only.
+
+- **`Authz.ApplyGroupPolicy` — the projection write seam.** The event-sourced `CasbinProjection` now writes through `ApplyGroupPolicy`, so replaying a membership event carries no deprecation warning. See the deprecation below for the consumer-facing rule.
+
 - **Strict branded-ID reconstruction (S38 a/b):** `ParseTenantID`/`ParseBotID` — the strict counterparts to `NewTenantID`/`NewBotID`. They strip exactly one leading display prefix (`Tenant:`/`Bot:`) and reject empty or whitespace-padded values (Rejection family) — the ambiguous forms that would otherwise silently become distinct identities. `FoldMembership` now reconstructs `TenantID` through `ParseTenantID`, so journaled events with ambiguous tenant references are rejected at replay time. `GenerateUserID` preserves ULID time-ordering (minted later ⇒ sorts later across millisecond boundaries; pinned by test).
 
 - **`UserState.IsActive`/`BotState.IsActive` (S38c, additive):** the uniform write-path liveness gate — `Exists() && !Deleted` for users (a deleted user still HAS history, so `Exists` keeps its "has events" meaning), the existing-tombstone mirror for bots. `MembershipState.Exists` already folds `Removed`, so no split was needed there; documented on the type.
 
 ### Changed
+
+- **`Authz.AddGroupPolicy` is DEPRECATED (not removed in v4).** It writes straight into the in-memory enforcer: not an event, so the grant does not survive a restart, a projection rebuild, or a second service instance, all of which reconstruct policy from the journal. Grant through the event-sourced path instead (`usermgmt.Service.GrantRoles`, or the `AddMember` / `UpdateMemberRoles` commands); `ApplyGroupPolicy` exists for projections only. Scheduled for removal in v5 — see ADR-0057 and gotcha 45.
 
 - **`NotConfigured` errors are now Rejection, not Transient (S38e):** `ErrEmailVerificationNotConfigured`, `ErrTOTPNotConfigured`, and `ErrOAuthNotConfigured` answer 400-class instead of 503 — a missing deployment configuration is permanent for this deployment, and a retryable signal would tell clients a retry can help when it cannot. Consumers mapping error families to HTTP statuses see the correction; none of the in-tree suites pinned the old 503s.
 

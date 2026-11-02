@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Durable role grants: `Service.GrantRoles` / `RevokeRoles` / `HasAdminGrant` (authorization level-up, 2026-11-02).** `GrantRoles(ctx, actorID, tenantID, roles)` dispatches the existing `AddMember` command and falls back to `UpdateMemberRoles` on a conflict, so it **converges** — a bootstrap grant can run unconditionally on every start. No new event type, no projection change: membership events already carried this, and the `CasbinProjection` already replayed them. That is precisely what was missing in practice (a fresh enforcer per setup + an event-only replay meant an imperative `AddGroupPolicy` grant evaporated on restart; three downstream services had invented workarounds). Roles are validated before dispatch, so a typo is a rejection instead of a policy row nothing ever queries. `RevokeRoles` reuses `RemoveMember` (also journalled). `HasAdminGrant(domain)` answers "does anybody hold the admin tier here?", skipping the mirrored role-hierarchy rows that `GroupPolicies()` also returns — without that filter, seeding a domain's hierarchy alone reports an admin that does not exist (gotcha 45).
+
+### Changed
+
+- **`*Authz` satisfies `cqrshtmx.PermissionChecker`, asserted at compile time here.** usermgmt is the only module that sees both the HTTP contract and the Casbin engine, so the structural assertion lives here: adding a method to the interface or changing the engine's signature breaks this build first.
+
 ## [v4.17.0] - 2026-10-27
 
 ### Added
