@@ -36,6 +36,7 @@ func newDeadlineSpy() *deadlineSpy {
 func (s *deadlineSpy) SetWriteDeadline(t time.Time) error {
 	s.calls++
 	s.last = t
+
 	if t.IsZero() {
 		s.cleared = true
 	}
@@ -139,11 +140,13 @@ func TestSSESurvivesServerWriteTimeout(t *testing.T) {
 	mux.HandleFunc("GET /slow", func(w http.ResponseWriter, _ *http.Request) {
 		// Writes well past the server write timeout.
 		time.Sleep(deliverAfter)
+
 		_, _ = w.Write([]byte("late"))
 	})
 
 	srv := httptest.NewUnstartedServer(mux)
 	srv.Config.WriteTimeout = writeTimeout
+
 	srv.Start()
 	defer srv.Close()
 

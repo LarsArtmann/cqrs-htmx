@@ -20,6 +20,7 @@
 package authztest
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -108,6 +109,22 @@ type Suite struct {
 // first problem found, so a broken suite fails loudly instead of silently
 // skipping cases.
 func (s Suite) Verify() error {
+	if err := s.verifyWiring(); err != nil {
+		return err
+	}
+
+	for _, route := range s.Routes {
+		if err := s.verifyRoute(route); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// verifyWiring checks the suite-level requirements: a handler to probe, routes
+// to probe, and an anonymous actor to prove the public case with.
+func (s Suite) verifyWiring() error {
 	if s.Handler == nil {
 		return errorfamily.NewRejection("authztest.handler_nil", "Suite.Handler is required")
 	}
@@ -126,48 +143,53 @@ func (s Suite) Verify() error {
 		)
 	}
 
-	for _, route := range s.Routes {
-		if !route.Posture.Valid() {
-			return errorfamily.NewRejection(
-				"authztest.posture_unknown",
-				fmt.Sprintf("%s declares posture %q, which is not public/authenticated/role", route, route.Posture),
-			)
-		}
+	return nil
+}
 
-		if route.Method == "" || route.Path == "" {
-			return errorfamily.NewRejection(
-				"authztest.route_incomplete",
-				"every route needs a Method and a Path",
-			)
-		}
+// verifyRoute checks one declaration and, crucially, that the actors needed to
+// prove it exist. A missing actor is an error, never a skipped case.
+func (s Suite) verifyRoute(route Route) error {
+	if !route.Posture.Valid() {
+		return errorfamily.NewRejection(
+			"authztest.posture_unknown",
+			fmt.Sprintf("%s declares posture %q, which is not public/authenticated/role", route, route.Posture),
+		)
+	}
 
-		if route.Why == "" {
-			return errorfamily.NewRejection(
-				"authztest.route_unjustified",
-				fmt.Sprintf("%s declares a posture without a Why", route),
-			)
-		}
+	if route.Method == "" || route.Path == "" {
+		return errorfamily.NewRejection(
+			"authztest.route_incomplete",
+			"every route needs a Method and a Path",
+		)
+	}
 
-		if route.Posture != Public && s.Privileged == nil {
-			return errorfamily.NewRejection(
-				"authztest.privileged_nil",
-				fmt.Sprintf("%s is gated but Suite.Privileged is nil", route),
-			)
-		}
+	if route.Why == "" {
+		return errorfamily.NewRejection(
+			"authztest.route_unjustified",
+			fmt.Sprintf("%s declares a posture without a Why", route),
+		)
+	}
 
-		if route.Posture == RoleGated && s.Unprivileged == nil {
-			return errorfamily.NewRejection(
-				"authztest.unprivileged_nil",
-				fmt.Sprintf("%s is role-gated but Suite.Unprivileged is nil — the 403 case cannot be proven", route),
-			)
-		}
+	if route.Posture != Public && s.Privileged == nil {
+		return errorfamily.NewRejection(
+			"authztest.privileged_nil",
+			fmt.Sprintf("%s is gated but Suite.Privileged is nil", route),
+		)
+	}
+
+	if route.Posture == RoleGated && s.Unprivileged == nil {
+		return errorfamily.NewRejection(
+			"authztest.unprivileged_nil",
+			fmt.Sprintf("%s is role-gated but Suite.Unprivileged is nil — the 403 case cannot be proven", route),
+		)
 	}
 
 	return nil
 }
 
-// Run executes the matrix. Every failure is reported through tb, so one run
-// lists every broken declaration instead of only the first.
+// Run executes the matrix, one parallel subtest per route. Every failure is
+// reported through t, so one run lists every broken declaration instead of only
+// the first.
 func (s Suite) Run(t *testing.T) {
 	t.Helper()
 
@@ -179,64 +201,76 @@ func (s Suite) Run(t *testing.T) {
 
 	for _, route := range s.Routes {
 		t.Run(route.String(), func(t *testing.T) {
+			t.Parallel()
 			t.Helper()
 			s.probe(t, route)
 		})
 	}
 }
 
-// probe runs the postures' expected cases for one route.
-func (s Suite) probe(tb testingTB, route Route) {
+// probe runs the posture's expected cases for one route.
+func (s Suite) probe(report testingTB, route Route) {
 	anonStatus := s.status(route, s.Anonymous)
 
 	switch route.Posture {
 	case Public:
-		if anonStatus == http.StatusUnauthorized || anonStatus == http.StatusForbidden {
-			tb.Errorf(
-				"declared public but refused an anonymous caller with %d — either the route is gated or the declaration is stale",
-				anonStatus,
-			)
-		}
-
+		s.probePublic(report, anonStatus)
 	case Authenticated:
-		if !denied(anonStatus) {
-			tb.Errorf(
-				"declared authenticated but an anonymous caller got %d, want 401/403",
-				anonStatus,
-			)
-		}
-
-		if s.Unprivileged != nil {
-			if got := s.status(route, s.Unprivileged); denied(got) {
-				tb.Errorf("declared authenticated but an authenticated caller got %d", got)
-			}
-		}
-
-		if got := s.status(route, s.Privileged); denied(got) {
-			tb.Errorf("declared authenticated but the privileged caller got %d", got)
-		}
-
+		s.probeAuthenticated(report, route, anonStatus)
 	case RoleGated:
-		if !denied(anonStatus) {
-			tb.Errorf("declared role-gated but an anonymous caller got %d, want 401/403", anonStatus)
-		}
+		s.probeRoleGated(report, route, anonStatus)
+	}
+}
 
-		if got := s.status(route, s.Unprivileged); got != http.StatusForbidden {
-			tb.Errorf(
-				"role-gated route answered an authenticated caller WITHOUT the role with %d, want 403 (a 200 here is the missing-gate bug)",
-				got,
-			)
-		}
+// probePublic asserts the route answers an anonymous caller.
+func (s Suite) probePublic(report testingTB, anonStatus int) {
+	if denied(anonStatus) {
+		report.Errorf(
+			"declared public but refused an anonymous caller with %d — either the route is gated or the declaration is stale",
+			anonStatus,
+		)
+	}
+}
 
-		if got := s.status(route, s.Privileged); denied(got) {
-			tb.Errorf("role-gated route refused the privileged caller with %d", got)
+// probeAuthenticated asserts an anonymous caller is refused and an
+// authenticated one is not.
+func (s Suite) probeAuthenticated(report testingTB, route Route, anonStatus int) {
+	if !denied(anonStatus) {
+		report.Errorf("declared authenticated but an anonymous caller got %d, want 401/403", anonStatus)
+	}
+
+	if s.Unprivileged != nil {
+		if got := s.status(route, s.Unprivileged); denied(got) {
+			report.Errorf("declared authenticated but an authenticated caller got %d", got)
 		}
+	}
+
+	if got := s.status(route, s.Privileged); denied(got) {
+		report.Errorf("declared authenticated but the privileged caller got %d", got)
+	}
+}
+
+// probeRoleGated asserts the 403 case: authenticated, but without the role.
+func (s Suite) probeRoleGated(report testingTB, route Route, anonStatus int) {
+	if !denied(anonStatus) {
+		report.Errorf("declared role-gated but an anonymous caller got %d, want 401/403", anonStatus)
+	}
+
+	if got := s.status(route, s.Unprivileged); got != http.StatusForbidden {
+		report.Errorf(
+			"role-gated route answered an authenticated caller WITHOUT the role with %d, want 403 (a 200 here is the missing-gate bug)",
+			got,
+		)
+	}
+
+	if got := s.status(route, s.Privileged); denied(got) {
+		report.Errorf("role-gated route refused the privileged caller with %d", got)
 	}
 }
 
 // status issues one probe and returns the response status.
 func (s Suite) status(route Route, actor Actor) int {
-	req := httptest.NewRequest(route.Method, route.Path, nil)
+	req := httptest.NewRequestWithContext(context.Background(), route.Method, route.Path, nil)
 
 	if actor != nil {
 		if withCreds := actor(req); withCreds != nil {

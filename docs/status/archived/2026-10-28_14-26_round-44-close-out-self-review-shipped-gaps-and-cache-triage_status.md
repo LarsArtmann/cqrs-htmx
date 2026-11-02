@@ -1,5 +1,9 @@
 # Round 44 close-out — self-review: what shipped, what I missed, and the traps worth keeping
 
+> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-10-30_22-00_samber-do-health-round2-review-baseline-repairs_status.md`](2026-10-30_22-00_samber-do-health-round2-review-baseline-repairs_status.md), which the samber/do × health round-2 review re-baselined the gates this report triaged, and its cache repairs superseded the triage list. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-02 (authorization level-up (2026-11-02)).**
+
 **Date:** 2026-10-28 14:26 · **Branch:** `master` @ `98ff3e38` · **CI:** run `40693087362` → success
 
 Scope of this report: the queue-sweep round only (rounds 43 → 44 continuation). It is a
