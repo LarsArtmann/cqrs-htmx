@@ -85,7 +85,7 @@ graph TD
 ### 5. Projection Health
 
 - [ ] **Monitor projection lag** — `cqrshtmx.ProjectionStatusHandler(provider)` serves live projection status
-- [ ] **Wire DLQ** — projectionhost's dead-letter queue captures failed events for replay
+- [ ] **Wire DLQ** — projectionhost's dead-letter queue captures failed events for replay. The usermgmt default is already durable when the event store is SQLite-dialect (`durableDeadLetterStore` puts `projection_dead_letters` on the same database — poison entries survive restarts); in-memory deployments and postgres/mysql dialects keep the in-memory store (go-cqrs-lite ships no dialect-correct SQL DLQ for them at the pinned version — override with `projectionhost.WithDeadLetterStore` if you need durability there)
 - [ ] **See** `docs/guides/projection-health-monitoring.md`
 
 ### 6. Operational Recovery

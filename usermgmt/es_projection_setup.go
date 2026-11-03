@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -68,6 +69,35 @@ func StartProjections(
 	)
 }
 
+// durableDeadLetterStore returns a restart-durable dead-letter store when the
+// journal is a SQLite-dialect SQL event store: poison events then survive
+// restarts on the same database instead of evaporating with the process.
+// Every other deployment (in-memory stores, postgres/mysql dialects) keeps
+// the in-memory store — go-cqrs-lite ships no dialect-correct SQL DLQ for
+// postgres/mysql at the pinned version, and creating the SQLite-dialect
+// projection_dead_letters table on those databases would fail at startup.
+// Consumers override either default via hostOpts (options apply last-wins).
+func durableDeadLetterStore(
+	ctx context.Context,
+	journal event.Journal,
+) (projectionhost.DeadLetterStore, error) {
+	sqlStore, ok := journal.(*SQLEventStore)
+	if !ok {
+		return projectionhost.NewMemoryDeadLetterStore(), nil
+	}
+	if _, isSQLite := sqlStore.Dialect.(sqlpkg.SQLiteDialect); !isSQLite {
+		return projectionhost.NewMemoryDeadLetterStore(), nil
+	}
+
+	dlq, err := projectionhost.NewSQLiteDeadLetterStore(ctx, sqlStore.DB)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			"usermgmt.projection.dlq_create_failed",
+			"create SQLite dead-letter store on the event store's database")
+	}
+	return dlq, nil
+}
+
 // startProjectionHost is the shared projection-host factory used by both
 // StartProjections (initial startup) and RebuildProjection (rebuild after
 // reset). It validates the journal, creates a projectionhost.Host with a
@@ -112,10 +142,15 @@ func startProjectionHost(
 		store = newHydrationAwareCheckpointStore(store, projections)
 	}
 
+	dlq, err := durableDeadLetterStore(ctx, journal)
+	if err != nil {
+		return nil, err
+	}
+
 	allOpts := append([]projectionhost.HostOption{
 		projectionhost.WithSubscriber(bus),
-		//cqrs-lint:ignore(C017) library default DLQ; consumers can override via hostOpts for persistent backends
-		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
+		//cqrs-lint:ignore(C017) durable-when-SQLite default (durableDeadLetterStore); consumers override via hostOpts (last wins)
+		projectionhost.WithDeadLetterStore(dlq, 0),
 	}, hostOpts...)
 
 	//cqrs-lint:ignore(P008) default batch size is appropriate for library default; consumers tune via hostOpts
