@@ -254,6 +254,7 @@
                 pkgs.templ
                 # BuildFlow pre-commit hook formatters/linters
                 pkgs.shfmt # shell scripts (scripts/*.sh)
+                pkgs.shellcheck # same set CI lints; check-shellcheck.sh + BuildFlow shellcheck step
                 pkgs.nixfmt # flake.nix
                 # dprint removed 2026-10-18: markdown formatting belongs to
                 # treefmt/prettier (programs above, plan M03); dprint.json and
