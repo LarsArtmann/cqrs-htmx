@@ -1,9 +1,13 @@
 # Status: Shellcheck red fixed + CI green; M06 route postures built, one lint finding from committed
 
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_00-04_m06-landed-train-armed-blocked-on-concurrent-root-edit_status.md`](../2026-11-04_00-04_m06-landed-train-armed-blocked-on-concurrent-root-edit_status.md), which both section-g questions answered by the owner GO; M06 finished, committed 119e0f31, and the thread moved to train assembly. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
+
 > Session 2026-11-03 ~18:56–20:15 (resumed from the 18-31 WAIT state; the
 > owner's "keep going until done" answered the predecessor's §g questions).
 > Thread: authorization level-up. Predecessor:
-> [`2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md`](archived/2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md).
+> [`2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md`](2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md).
 
 ## a) Fully done (committed and pushed unless noted)
 

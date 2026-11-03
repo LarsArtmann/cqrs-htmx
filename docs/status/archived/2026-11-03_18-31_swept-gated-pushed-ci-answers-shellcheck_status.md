@@ -1,6 +1,6 @@
 # Status: the six-commit backlog swept, gated, and pushed — CI answers with ONE new red (Shellcheck), unpushed-thread assumptions corrected, M06 designed but unwritten
 
-> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_20-15_shellcheck-green-m06-route-postures-one-finding-out_status.md`](../2026-11-03_20-15_shellcheck-green-m06-route-postures-one-finding-out_status.md), which both section-g questions answered by the owner GO; superseded by this report. Strike depth:
+> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_20-15_shellcheck-green-m06-route-postures-one-finding-out_status.md`](2026-11-03_20-15_shellcheck-green-m06-route-postures-one-finding-out_status.md), which both section-g questions answered by the owner GO; superseded by this report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-03 (round-46 (2026-11-03)).**
 
