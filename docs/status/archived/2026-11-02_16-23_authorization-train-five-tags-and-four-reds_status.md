@@ -1,6 +1,6 @@
 # Status: the authorization train — five tags published, four CI reds named, the sixth tag one command away
 
-> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_15-41_four-reds-fixed-sixth-tag-cut-kit-dogfooded_status.md`](../2026-11-03_15-41_four-reds-fixed-sixth-tag-cut-kit-dogfooded_status.md), which the four named reds are now fixed and verified locally, the sixth tag is cut, and the kit dogfood landed; the successor carries the remaining train/gate/push state. Strike depth:
+> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_15-41_four-reds-fixed-sixth-tag-cut-kit-dogfooded_status.md`](2026-11-03_15-41_four-reds-fixed-sixth-tag-cut-kit-dogfooded_status.md), which the four named reds are now fixed and verified locally, the sixth tag is cut, and the kit dogfood landed; the successor carries the remaining train/gate/push state. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-03 (round-46 (2026-11-03)).**
 

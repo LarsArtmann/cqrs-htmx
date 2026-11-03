@@ -1,5 +1,9 @@
 # Status: all four CI reds fixed and verified locally, the sixth tag cut, the authz kit dogfooded — everything unpushed, waiting for instructions
 
+> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md`](../2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md), which the successor reports the sweep, gates, push and the CI Shellcheck verdict on the same four-reds thread; the 15-41 report only predates the sweep landing. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-03 (round-46 (2026-11-03)).**
+
 **Date:** 2026-11-03 15:41 CET
 **Branch:** `master`, 5 commits ahead of `origin/master` (`6165b762`…`3a0f9251`), tree clean
 **Verdict:** every named red from run `41469896590` has a verified local fix, `setup/v4.16.0` is tagged and pushed (the train is 6/6), and the authztest kit now proves itself against this library's own real service. None of the fix commits are pushed, so CI on origin still shows the four reds until the push. The setup consumer sweep is the one train gap left.
