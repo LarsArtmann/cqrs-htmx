@@ -1,6 +1,6 @@
 # Status: all four CI reds fixed and verified locally, the sixth tag cut, the authz kit dogfooded — everything unpushed, waiting for instructions
 
-> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md`](../2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md), which the successor reports the sweep, gates, push and the CI Shellcheck verdict on the same four-reds thread; the 15-41 report only predates the sweep landing. Strike depth:
+> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md`](2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md), which the successor reports the sweep, gates, push and the CI Shellcheck verdict on the same four-reds thread; the 15-41 report only predates the sweep landing. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-03 (round-46 (2026-11-03)).**
 
