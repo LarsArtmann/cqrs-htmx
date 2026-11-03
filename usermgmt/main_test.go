@@ -32,6 +32,7 @@ func newTestServiceWithUser(
 
 func addTestGroupPolicy(t *testing.T, a *Authz, gp GroupPolicy) {
 	t.Helper()
+	//nolint:staticcheck // SA1019: helper drives the deprecated wrapper for legacy-path tests
 	if err := a.AddGroupPolicy(gp); err != nil {
 		t.Fatalf("AddGroupPolicy: %v", err)
 	}

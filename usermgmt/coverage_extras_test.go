@@ -144,9 +144,8 @@ func TestAuthz_NilEnforcer(t *testing.T) {
 		{"AddPolicy", func() error { return a.AddPolicy(Policy{}) }},
 		{"RemovePolicy", func() error { return a.RemovePolicy(Policy{}) }},
 		{"AddGroupPolicy", func() error {
-			return a.AddGroupPolicy(
-				GroupPolicy{},
-			) //nolint:staticcheck // SA1019: deprecated wrapper stays covered until v5
+			//nolint:staticcheck // SA1019: deprecated wrapper stays covered until v5
+			return a.AddGroupPolicy(GroupPolicy{})
 		}},
 		{"RemoveGroupPolicy", func() error { return a.RemoveGroupPolicy(GroupPolicy{}) }},
 		{"RemoveAllRolesForUser", func() error { return a.RemoveAllRolesForUser("user1") }},

@@ -151,9 +151,8 @@ func TestAuthzPolicies_ErrorWrapping(t *testing.T) {
 	}
 
 	// AddGroupPolicy should error
-	err = a.AddGroupPolicy(
-		GroupPolicy{},
-	) //nolint:staticcheck // SA1019: pins the deprecated wrapper's error path until v5
+	//nolint:staticcheck // SA1019: pins the deprecated wrapper's error path until v5
+	err = a.AddGroupPolicy(GroupPolicy{})
 	if err == nil {
 		t.Error("expected error from AddGroupPolicy with nil enforcer")
 	}

@@ -218,6 +218,7 @@ func TestService_DeleteTenant_PartialCleanupIsVisibleAndStillCascades(t *testing
 		svc.membershipReadModel.byActor[phantom.String()], aggID,
 	)
 	svc.membershipReadModel.mu.Unlock()
+	//nolint:staticcheck // SA1019: cascade test seeds the enforcer directly by design
 	if err := svc.authz.AddGroupPolicy(GroupPolicy{
 		Subject: phantom.String(),
 		Role:    RoleUser,

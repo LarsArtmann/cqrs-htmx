@@ -45,6 +45,7 @@ func TestService_Authorize(t *testing.T) {
 	})
 	ctx := context.Background()
 	registerTestUser(t, svc, "user-1", "a@b.com")
+	//nolint:staticcheck // SA1019: pins the ephemeral-grant path Authorize relied on before durable grants
 	_ = svc.Authz().
 		AddGroupPolicy(GroupPolicy{Subject: "user-1", Role: RoleOwner, Domain: "game-1"})
 
