@@ -45,6 +45,7 @@ fi
 
 # Extract "<service> TAB <level>" rows from the inventory table. The service cell
 # is the first cell and may be backtick-quoted; the level cell is the second.
+# shellcheck disable=SC2016 # the backticks are literal markdown table syntax, not substitutions
 current="$(sed -n 's/^| *`\{0,1\}\([^`|]*[^`| ]\)`\{0,1\} *| *\(L[0-4]\|[?]\) *|.*/\1\t\2/p' "$doc")"
 
 if [ -z "$current" ]; then

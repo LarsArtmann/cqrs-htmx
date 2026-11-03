@@ -2,8 +2,8 @@
 # test-check-readme-badges.sh — offline fixture self-test for
 # check-readme-badges.sh (BADGE_FETCHER stub; no network). Covers: happy
 # resolution, the lying-verdict classes (no tags / inaccessible), fetch-error
-# exit 4 locally vs CI warning downgrade, the no-badges no-op, and .json
-# query normalization.
+# exit 4 locally vs CI warning downgrade (+ --gate removing the downgrade),
+# the no-badges no-op, and .json query normalization.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -82,6 +82,10 @@ check "fetch error exits 4 locally" 4 $? 'exit 4' "$out"
 
 out=$(CI=true BADGE_FETCHER="$TMP/fetch-dead" bash "$CHECK" "$README" 2>&1)
 check "fetch error downgrades to CI warning" 0 $? 'WARN (ci)' "$out"
+
+# --gate removes the CI downgrade: fetch failures are hard even under CI=true.
+out=$(CI=true BADGE_FETCHER="$TMP/fetch-dead" bash "$CHECK" --gate "$README" 2>&1)
+check "--gate keeps fetch failures hard under CI" 4 $? 'fetch error' "$out"
 
 # No badges: clean no-op.
 printf '# just a readme\n' >"$README"

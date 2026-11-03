@@ -8,7 +8,9 @@
 # Network policy (check-upstream-treadmill precedent): fetch failure is a
 # WARNING under CI=true (exit 0 with a warning line) and an ERROR locally
 # (exit 4) — a hermetic CI runner must not redden on egress, but a local
-# "green" that never reached the network is not a verdict.
+# "green" that never reached the network is not a verdict. --gate removes
+# the CI downgrade (fetch failures are hard, exit 4, even under CI=true) —
+# the blocking shape for jobs that DO have egress.
 #
 # BADGE_FETCHER overrides the fetch command for the offline fixture self-test
 # (args: <url>; stdout: body; exit code: HTTP status semantics, 0 = 200).
@@ -65,7 +67,7 @@ while IFS= read -r url; do
   esac
 
   if ! body="$(fetch "$json_url")"; then
-    if [ "${CI:-}" = "true" ]; then
+    if [ "${CI:-}" = "true" ] && [ "$GATE" -ne 1 ]; then
       echo "  WARN (ci): $json_url unreachable (network-egress runner) — advisory"
       warned=$((warned + 1))
       continue

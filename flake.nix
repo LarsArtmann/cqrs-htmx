@@ -1122,6 +1122,7 @@
                   runtimeInputs = [
                     goPkg
                     pkgs.python3
+                    pkgs.shellcheck
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
@@ -1171,6 +1172,8 @@
                       bash bash scripts/selftests/test-check-permission-maturity.sh
                       bash bash scripts/checks/check-branching-flow.sh
                       bash bash scripts/selftests/test-check-branching-flow.sh
+                      bash bash scripts/checks/check-shellcheck.sh
+                      bash bash scripts/selftests/test-check-shellcheck.sh
                       echo ""
                       echo "All module architecture checks passed"
                       exit 0
@@ -1258,6 +1261,8 @@
                       "pr-secrets-self-test:bash scripts/selftests/test-check-pr-secrets.sh"
                       "dependabot-alerts:bash scripts/checks/check-dependabot-alerts.sh"
                       "coverage-threshold-self-test:bash scripts/selftests/test-check-coverage-threshold.sh"
+                      "shellcheck-scripts:bash scripts/checks/check-shellcheck.sh"
+                      "shellcheck-scripts-self-test:bash scripts/selftests/test-check-shellcheck.sh"
                     )
                     red=0
                     for stage in "''${stages[@]}"; do

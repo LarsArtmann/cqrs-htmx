@@ -108,6 +108,7 @@ new_tree "$t7"
 doc_with "$t7" svc-new L1
 printf 'svc-a\tL2\n' >"$t7/docs/PERMISSIONS_BASELINE"
 # Keep svc-a present so the vanished-service rule does not fire.
+# shellcheck disable=SC2016 # fixture markdown intentionally carries literal backticks
 printf '| Service | Level |\n| --- | --- |\n| `svc-a` | L2 |\n| `svc-new` | L1 |\n' >"$t7/docs/PERMISSIONS.md"
 
 out="$("$t7/scripts/checks/check-permission-maturity.sh" --ratchet 2>&1)"
