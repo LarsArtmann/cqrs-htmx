@@ -1,5 +1,9 @@
 # Status: the authorization train — five tags published, four CI reds named, the sixth tag one command away
 
+> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_15-41_four-reds-fixed-sixth-tag-cut-kit-dogfooded_status.md`](../2026-11-03_15-41_four-reds-fixed-sixth-tag-cut-kit-dogfooded_status.md), which the four named reds are now fixed and verified locally, the sixth tag is cut, and the kit dogfood landed; the successor carries the remaining train/gate/push state. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-03 (round-46 (2026-11-03)).**
+
 **Date:** 2026-11-02 16:23 CET
 **Branch:** `master` == `origin/master` (`e3e446e8`), tree clean
 **Verdict:** the root-tag gap that broke master's CI is CLOSED for five of six modules. What remains red is four specific, named findings — two of them caused by this workstream's own code, one by a daemon commit, one unexplained. The session stopped mid-train by owner instruction; `setup/v4.16.0` is verified and uncut.

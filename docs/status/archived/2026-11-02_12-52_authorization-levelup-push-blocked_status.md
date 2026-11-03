@@ -1,6 +1,6 @@
 # Status: authorization level-up executed — three commits ready, push blocked on a diverged master
 
-> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-11-02_16-23_authorization-train-five-tags-and-four-reds_status.md`](../2026-11-02_16-23_authorization-train-five-tags-and-four-reds_status.md), which the successor records the push unblocked, the rebase landed by a concurrent session, and the five-tag train that closed the root-tag gap, plus the four CI reds that replaced the blocker. Strike depth:
+> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-11-02_16-23_authorization-train-five-tags-and-four-reds_status.md`](2026-11-02_16-23_authorization-train-five-tags-and-four-reds_status.md), which the successor records the push unblocked, the rebase landed by a concurrent session, and the five-tag train that closed the root-tag gap, plus the four CI reds that replaced the blocker. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-02 (round-46 train (2026-11-02)).**
 
