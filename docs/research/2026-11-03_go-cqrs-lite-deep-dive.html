@@ -1109,6 +1109,14 @@ cat, err := systemcatalog.FromDomainConfig(ctx,
               Write the decision down first (one ADR paragraph), then adopt
               CBOR for the four binary payloads only — self-describing events
               make this a per-event choice, not a migration.
+              <br /><br />
+              <strong>Adopted 2026-11-03 — ADR 0059.</strong> Five payloads, not
+              four: this audit's line-scan of <code>identity-model/events.go</code>
+              missed <code>CredentialAdded</code>, whose <code>[]byte</code> fields
+              (ID, PublicKey, AAGUID — the heaviest credential material in the
+              domain) arrive via the embedded <code>CredentialCore</code> from
+              <code>credential.go</code>. Correction caught at plan-execution
+              time; see ADR 0059's context.
             </div>
             <pre><code><span class="tok-comment">// Binary payloads opt into CBOR; every other payload stays JSON.</span>
 opts := []event.Option{

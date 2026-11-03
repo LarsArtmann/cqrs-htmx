@@ -1,5 +1,9 @@
 # Round 45 self-critique + comprehensive status update (2026-10-31 09:26 CET)
 
+> **ANNOTATED 2026-11-04** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
+> The next session in the same arc is [`2026-11-03_19-39_go-cqrs-lite-deep-dive-session_status.md`](2026-11-03_19-39_go-cqrs-lite-deep-dive-session_status.md), which round-45 backlog fully harvested into TODO_LIST; point-in-time snapshot superseded.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Trigger:** the standing "what did you forget / do better / improve" instruction after the
 round-45 execution session (plan: `docs/planning/2026-10-31_00-36_SUPERB-round45-do-health-closure-and-backlog-burndown-pareto-plan.md`;
 the SHIPPED-side index is the 07-45 report, archived below). This file is the CRITIQUE

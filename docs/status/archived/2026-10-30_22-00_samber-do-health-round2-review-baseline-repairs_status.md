@@ -1,6 +1,6 @@
 # Status: samber/do × Health Round-2 Review, Baseline Repairs, Gate Sweeps
 
-> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-10-31_09-26_round-45-self-critique-comprehensive-status-update_status.md`](../2026-10-31_09-26_round-45-self-critique-comprehensive-status-update_status.md), which round-45 is the comprehensive successor: it re-audits the repo state and carries the round-2 verdicts forward. Strike depth:
+> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-10-31_09-26_round-45-self-critique-comprehensive-status-update_status.md`](2026-10-31_09-26_round-45-self-critique-comprehensive-status-update_status.md), which round-45 is the comprehensive successor: it re-audits the repo state and carries the round-2 verdicts forward. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-02 (authorization level-up (2026-11-02)).**
 
