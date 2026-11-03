@@ -164,6 +164,8 @@ cqrs-htmx intentionally does **not** import `go.opentelemetry.io` (library princ
 4. [2.4 Free domain spans — one `Setup` call traces the whole identity domain](#24-free-domain-spans--one-setup-call-traces-the-whole-identity-domain)
 5. [2.5 HTTP root spans (otelhttp)](#25-http-root-spans-otelhttp)
 6. [2.6 Correlation — two mechanisms, one table](#26-correlation--two-mechanisms-one-table)
+7. [2.7 OTLP export — send those spans to a collector](#27-otlp-export--send-those-spans-to-a-collector)
+8. [2.8 Flight recorder — zero-collector incident capture](#28-flight-recorder--zero-collector-incident-capture)
 
 ### 2.1 Hook-level tracing (dep-free)
 
@@ -291,6 +293,51 @@ ctx = cqrsotel.WithCorrelationID(ctx, traceID.String()) // baggage member "cqrs.
 ```
 
 > Both mechanisms are independent — an event can carry the domain ULID (`correlation_id`) and the distributed ID (`otel.correlation_id`) at the same time, and they need not be equal. Use the ULID for intra-domain audit queries and the baggage ID to join traces across service boundaries.
+
+### 2.7 OTLP export — send those spans to a collector
+
+§2.4's stdout exporter is for development. For production, go-cqrs-lite ships an `otel/otlp` module that exports the same free domain spans (no extra wiring) to an OTLP/HTTP collector. It is not a dependency of this repo — add it to your application's go.mod when you want it. HTTP only, no gRPC client (signatures verified at `otel/otlp v4.0.2`):
+
+```go
+import cqrsotlp "github.com/larsartmann/go-cqrs-lite/otel/otlp/v4"
+
+provider, err := cqrsotlp.SetupOTLP(ctx, cqrsotlp.OTLPConfig{
+    Endpoint:     "localhost:4318", // OTLP/HTTP port; Insecure for local sidecars
+    Insecure:     true,
+    ServiceName:  "my-app",
+})
+```
+
+`SetupOTLP` builds the trace + metric exporters and hands them to `cqrsotel.Setup` — same global provider, same free decider/store spans, destination is your collector (Tempo, Jaeger, Honeycomb, …). Extra `cqrsotel.SetupOption` variadic opts run after the OTLP wiring, so any Setup option can still override it. The module carries the OTLP SDK dependency so cqrs-htmx and the core otel module stay dep-free.
+
+### 2.8 Flight recorder — zero-collector incident capture
+
+When commands fail intermittently in production, `middleware.CommandFlightRecorder` captures a snapshot AT the trigger — no collector, no disk, and the only transitive addition (`go-flightrecorder`) is already in the module graph via `middleware/v4`:
+
+```go
+import (
+    "time"
+
+    flightrecorder "github.com/larsartmann/go-flightrecorder"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v4"
+)
+
+rec, err := flightrecorder.New(
+    flightrecorder.WithMaxSnapshots(32),   // ring of retained incident snapshots
+    flightrecorder.WithFile("flight.log"), // where Snapshot writes; omit for memory-only
+)
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    CommandMiddleware: []command.Middleware{
+        middleware.CommandFlightRecorder(rec,
+            func(tc flightrecorder.TriggerContext) bool {
+                return tc.Kind == "command" && tc.Duration > 250*time.Millisecond
+            }),
+    },
+})
+// on incident: rec.Snapshot(ctx) writes the captured state to the configured sink
+```
+
+The capture is asynchronous (`SnapshotIfAsync` — never blocks the dispatch path); a nil recorder or nil trigger makes the middleware a pass-through, so it is safe to ship always-on with a conservative trigger. `middleware.EventFlightRecorder` is the event-side twin (wire it as bus/event middleware where your event pipeline lives).
 
 ---
 
