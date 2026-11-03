@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.12.0
 	github.com/larsartmann/httputil v1.7.0
 )
 
@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect

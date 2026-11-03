@@ -17,11 +17,11 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.6
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2
