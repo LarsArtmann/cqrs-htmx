@@ -146,6 +146,29 @@ else
   check "root-row canary fires without artifact" 1 $? 'profile missing' "$out"
 fi
 
+# Relative-profile leg (2026-11-02 CI red): an explicit profile passed
+# RELATIVE to the invocation cwd while the row's measure_dir is a different
+# directory — the exact ci.yml dashboardui/core step shape. Before the
+# absolute-path normalization this failed with "cover: open ... no such file
+# or directory" on a profile that exists.
+CORE_PROFILE="$TMP/core-rel-coverage.out"
+(cd "$REPO_ROOT/dashboardui" && GOWORK=off GOEXPERIMENT=jsonv2 go test ./core/... -count=1 -coverprofile="$CORE_PROFILE" >/dev/null 2>&1)
+if [ -f "$CORE_PROFILE" ]; then
+  cp "$CORE_PROFILE" "$TMP/core-coverage.out"
+  out=$(cd "$TMP" && bash "$CHECK" dashboardui/core core-coverage.out 2>&1)
+  rc=$?
+  if printf '%s\n' "$out" | grep -q 'could not parse\|no such file'; then
+    echo "FAIL relative-profile leg: existing profile unreadable from foreign measure_dir"
+    printf '%s\n' "$out" | head -5
+    failures=$((failures + 1))
+  else
+    echo "ok   relative profile resolves from foreign measure_dir (rc=$rc)"
+  fi
+else
+  echo "FAIL setup: dashboardui/core profile not generated"
+  failures=$((failures + 1))
+fi
+
 if [ "$failures" -gt 0 ]; then
   echo "coverage-threshold self-test: $failures FAILURE(S)"
   exit 1

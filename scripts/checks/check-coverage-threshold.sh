@@ -46,6 +46,18 @@ fi
 # app's mktemp profile was clobbered and the root row always read "profile
 # missing").
 
+# Normalize to an ABSOLUTE path before the measure-dir cd below: a relative
+# profile argument is relative to the CALLER's cwd, but the measure step runs
+# from measure_dir, so an unnormalized path breaks whenever the two differ
+# (CI's dashboardui/core step: invoked at the repo root with
+# dashboardui/core-coverage.out, measured from dashboardui/core — "cover: open
+# ... no such file or directory" on a profile that exists; reproduced and
+# fixed 2026-11-02).
+case "$profile" in
+/*) : ;;
+*) profile="$PWD/$profile" ;;
+esac
+
 if [ ! -f "$profile" ]; then
   echo "✗ coverage-threshold: profile missing: $profile (run the tests with -coverprofile first)" >&2
   exit 1

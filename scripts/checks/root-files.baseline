@@ -6,7 +6,6 @@
 .gitattributes
 .gitignore
 .go-structure-linter.yaml
-.go.work.check-workspace-build.sum
 .golangci.yml
 .prettierrc
 AGENTS.md
