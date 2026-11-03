@@ -168,6 +168,15 @@ type ServiceConfig struct {
 	// Optional — when nil, terminal failures are silent (logs only).
 	OnProjectionFailed func(projectionName, lastError string)
 
+	// ProjectionHostOptions are appended after the curated defaults when the
+	// shared projection-host factory builds its option chain — options apply
+	// last-wins, so consumer options (e.g. projectionhost.WithCheckpointEvery,
+	// WithBatchSize) override them. This is the throughput/durability knob for
+	// replay-heavy consumers: checkpoint batching trades a bounded crash
+	// window (up to n events replayed after a restart — folds are idempotent)
+	// for fewer checkpoint writes. Nil keeps today's chain unchanged.
+	ProjectionHostOptions []projectionhost.HostOption
+
 	// SnapshotConfig optionally enables aggregate snapshotting for
 	// high-event-volume aggregates (>10K events/aggregate). When the Store
 	// field is nil (the default), repositories replay the full journal on

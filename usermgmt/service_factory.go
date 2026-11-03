@@ -84,18 +84,19 @@ func journalFromStore(store event.Store) event.Journal {
 
 func NewService(config ServiceConfig) (*Service, error) {
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
-		EventStore:         config.EventStore,
-		EventBus:           config.EventBus,
-		ReadModelDB:        config.ReadModelDB,
-		ReadModelDialect:   config.ReadModelDialect,
-		AuditLog:           config.AuditLog,
-		Authz:              config.Authz,
-		CheckpointStore:    config.CheckpointStore,
-		OnProjectionFailed: config.OnProjectionFailed,
-		SecurityHooks:      config.SecurityHooks,
-		SnapshotConfig:     config.SnapshotConfig,
-		DrainTimeout:       config.DrainTimeout,
-		AsyncStartup:       config.AsyncStartup,
+		EventStore:            config.EventStore,
+		EventBus:              config.EventBus,
+		ReadModelDB:           config.ReadModelDB,
+		ReadModelDialect:      config.ReadModelDialect,
+		AuditLog:              config.AuditLog,
+		Authz:                 config.Authz,
+		CheckpointStore:       config.CheckpointStore,
+		OnProjectionFailed:    config.OnProjectionFailed,
+		ProjectionHostOptions: config.ProjectionHostOptions,
+		SecurityHooks:         config.SecurityHooks,
+		SnapshotConfig:        config.SnapshotConfig,
+		DrainTimeout:          config.DrainTimeout,
+		AsyncStartup:          config.AsyncStartup,
 	})
 	if err != nil {
 		return nil, err

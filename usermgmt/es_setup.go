@@ -96,6 +96,12 @@ type EventSourcedConfig struct {
 	// Optional — when nil, terminal failures are silent (logs only).
 	OnProjectionFailed func(projectionName, lastError string)
 
+	// ProjectionHostOptions are appended after the curated defaults
+	// (OnProjectionFailed wiring) when the shared projection-host factory
+	// builds its option chain — options apply last-wins, so consumer options
+	// override the defaults. Nil keeps today's chain unchanged.
+	ProjectionHostOptions []projectionhost.HostOption
+
 	// SecurityHooks configures opt-in event signing and encryption.
 	SecurityHooks
 
@@ -311,6 +317,7 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 	if config.OnProjectionFailed != nil {
 		hostOpts = append(hostOpts, projectionhost.WithOnFailed(config.OnProjectionFailed))
 	}
+	hostOpts = append(hostOpts, config.ProjectionHostOptions...)
 
 	host, err := startProjectionHost(
 		context.Background(),

@@ -174,6 +174,31 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 With both set, restart replays only events since the last checkpoint (seconds,
 not minutes), **and** the server binds immediately.
 
+### Checkpoint batching — the throughput/durability knob
+
+`ProjectionHostOptions` (on `usermgmt.ServiceConfig` and `setup.Config`) appends
+consumer `projectionhost.HostOption`s after the curated defaults — options
+apply last-wins. The knob that matters for replay-heavy consumers:
+
+```go
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    AsyncStartup:    true,
+    ReadModelDB:     optimizedSQLDB,
+    CheckpointStore: sqlCheckpointStore,
+    ProjectionHostOptions: []projectionhost.HostOption{
+        projectionhost.WithCheckpointEvery(500), // batch checkpoint writes
+    },
+})
+```
+
+The tradeoff is explicit: with `WithCheckpointEvery(n)`, a crash can replay up
+to n events after restart (every projection fold in this library is idempotent,
+so this converges — it costs replay time, never correctness) in exchange for
+n× fewer checkpoint writes during initial drain. The default (no option)
+checkpoints per event — maximum durability, maximum write amplification.
+`projectionhost.WithBatchSize(n)` tunes the replay read batch through the same
+seam.
+
 ### How checkpointed restarts stay correct (hydrate + hydration-aware checkpoints)
 
 Since 2026-08-16 this combination is fully supported — before that, setting a

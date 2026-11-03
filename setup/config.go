@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
 )
@@ -422,6 +423,14 @@ type Config struct {
 	// OnProjectionFailed fires when a projection worker exhausts its restart budget.
 	// Use for alerting (Slack, PagerDuty, etc.). Nil = no callback.
 	OnProjectionFailed func(projectionName, lastError string)
+
+	// ProjectionHostOptions are appended after the bundle's curated projection
+	// host defaults — options apply last-wins, so consumer options override
+	// them. The throughput/durability knob for replay-heavy consumers: e.g.
+	// projectionhost.WithCheckpointEvery(n) trades a bounded crash window (up
+	// to n events replayed after a restart — folds are idempotent) for fewer
+	// checkpoint writes. Nil keeps the defaults.
+	ProjectionHostOptions []projectionhost.HostOption
 
 	// NonceFunc resolves the per-request CSP nonce used by the panels' inline
 	// scripts (admin, dashboard, login). Nil (the default) uses

@@ -223,18 +223,19 @@ func resolveServiceConfig(cfg Config) usermgmt.ServiceConfig {
 	}
 
 	out := usermgmt.ServiceConfig{
-		EventStore:         cfg.EventStore,
-		EventBus:           cfg.EventBus,
-		ReadModelDB:        cfg.ReadModelDB,
-		AuditLog:           usermgmt.NewAuditLog(),
-		TOTP:               cfg.TOTP,
-		WebAuthn:           cfg.WebAuthn,
-		OAuth2:             cfg.OAuth2,
-		SessionTTL:         cfg.SessionTTL,
-		Logger:             cfg.Logger,
-		OnProjectionFailed: cfg.OnProjectionFailed,
-		AsyncStartup:       cfg.AsyncStartup,
-		CommandMiddleware:  cfg.CommandMiddleware,
+		EventStore:            cfg.EventStore,
+		EventBus:              cfg.EventBus,
+		ReadModelDB:           cfg.ReadModelDB,
+		AuditLog:              usermgmt.NewAuditLog(),
+		TOTP:                  cfg.TOTP,
+		WebAuthn:              cfg.WebAuthn,
+		OAuth2:                cfg.OAuth2,
+		SessionTTL:            cfg.SessionTTL,
+		Logger:                cfg.Logger,
+		OnProjectionFailed:    cfg.OnProjectionFailed,
+		ProjectionHostOptions: cfg.ProjectionHostOptions,
+		AsyncStartup:          cfg.AsyncStartup,
+		CommandMiddleware:     cfg.CommandMiddleware,
 	}
 	applyObservability(&out.SecurityHooks, cfg.Observability)
 
