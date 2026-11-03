@@ -4,6 +4,9 @@
 
 PROPOSED — 2026-07-19 (deferred to a coordinated v5 major bump)
 
+AMENDED — 2026-11-02: method-count ceiling raised once, 80 → 85, for the
+ADR-0057 durable-grant surface. See "Ceiling history" below.
+
 This ADR records the decision to decompose the `usermgmt.Service` god-object
 and the rationale for deferring execution. It is a decision trail, not yet
 shipped code.
@@ -60,3 +63,19 @@ This ADR locks the decision so execution can proceed deliberately.
   `svc.CreateTenant(...)`, etc. keep working.
 - **Negative:** More types in the public API surface (the six sub-services).
 - **Negative:** One-time migration cost for the facade wiring.
+
+## Ceiling history
+
+The `check-service-methods.sh` guard keeps this ADR honest while execution is
+deferred: it fails CI when `*Service` reaches the ceiling so the decomposition
+decision is re-made consciously instead of by drift.
+
+| Date       | Ceiling | Count at decision | Reason                                                              |
+| ---------- | ------- | ----------------- | ------------------------------------------------------------------- |
+| 2026-07-19 | 80      | ~52                | ADR accepted; tripwire set with headroom above the then-current count |
+| 2026-11-02 | 85      | 81 → 80            | ADR-0057 durable-grant surface added 3 methods (`GrantRoles`, `RevokeRoles`, `HasAdminGrant`); one receiverless costume method (`classifyDispatchError`) reclaimed as a package function the same day |
+
+The 2026-11-02 raise is a one-time accommodation for a shipped, documented
+contract — not a precedent. The next crossing starts the v5 decomposition;
+raising the ceiling again without executing this ADR requires a new ADR that
+supersedes this one.

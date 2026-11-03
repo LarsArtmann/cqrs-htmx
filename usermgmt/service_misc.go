@@ -63,7 +63,7 @@ func (s *Service) dispatchUserCommand(
 		return errorfamily.WrapInfrastructure(err, "usermgmt.service.userid_conversion_failed", "convert userID")
 	}
 	if err := s.dispatcher.Dispatch(ctx, build(aggID)); err != nil {
-		return s.classifyDispatchError(err, userID, kv...)
+		return classifyDispatchError(err, userID, kv...)
 	}
 	return nil
 }

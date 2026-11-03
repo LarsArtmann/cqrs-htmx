@@ -221,7 +221,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 			config.OAuth2, stateStore, svc.oauth2StateTTL,
 			config.MaxUsers, &svc.registrationMu,
 			svc.readModel, svc.dispatcher, svc.sessions, svc.sessionTTL, svc.logger,
-			svc.classifyDispatchError,
+			classifyDispatchError,
 			svc.store, svc.bus,
 		)
 	}

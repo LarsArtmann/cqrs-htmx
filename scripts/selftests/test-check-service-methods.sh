@@ -2,7 +2,7 @@
 # test-check-service-methods.sh — Test cases for check-service-methods.sh
 #
 # Verifies the *Service method counter:
-#   - The default threshold (80) passes with the current codebase
+#   - The default threshold (85) passes with the current codebase
 #   - A low threshold triggers failure
 #   - The reported count is a valid number
 #   - Threshold at exact count passes
@@ -33,7 +33,7 @@ echo ""
 echo "=== Test Suite: check-service-methods.sh ==="
 echo ""
 
-# --- Test 1: Default threshold (80) passes ---
+# --- Test 1: Default threshold (85) passes ---
 run_checker
 if [ "$EXIT_CODE" -eq 0 ]; then
   echo "  PASS: Default threshold passes"

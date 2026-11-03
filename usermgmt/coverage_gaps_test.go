@@ -24,9 +24,8 @@ func TestAggIDFromUser_EmptyID(t *testing.T) {
 }
 
 func TestClassifyDispatchError_Transient(t *testing.T) {
-	svc := newTestService(t)
 	transient := errorfamily.NewTransient("test", "some transient error")
-	result := svc.classifyDispatchError(transient, NewUserID("u1"))
+	result := classifyDispatchError(transient, NewUserID("u1"))
 	if result == nil {
 		t.Fatal("expected non-nil error")
 	}

@@ -102,7 +102,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		aggID, req.Email, req.DisplayName, []Role{RoleViewer, RoleUser},
 	))
 	if err != nil {
-		return nil, s.classifyDispatchError(err, req.ID)
+		return nil, classifyDispatchError(err, req.ID)
 	}
 
 	user, ok := s.readModel.FindByID(aggID)
@@ -126,7 +126,10 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	return &RegisterResponse{User: user, Session: session}, nil
 }
 
-func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) error {
+// classifyDispatchError is a package function on purpose: it reads no Service
+// state, so keeping it a method would inflate the ADR-0038 *Service count
+// without adding cohesion.
+func classifyDispatchError(err error, userID UserID, kv ...string) error {
 	var classified *event.Error
 	switch errorfamily.Classify(err) {
 	case event.Conflict:
