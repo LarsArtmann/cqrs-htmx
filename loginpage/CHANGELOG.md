@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`Handler.Routes()` — the page's route-posture manifest (authorization L4, 2026-11-03).** One public row (`GET /`, relative to the mount pattern): the login page is the anonymous entry point by definition — gating it would lock every visitor out before they can authenticate. Only GET/HEAD are answered; other methods 405. Part of the family-wide route-posture system (`docs/guides/route-posture.md` in the root module).
+
 - **`Config.NoWebAuthn` (W14/S36 follow-through, 2026-10-26).** Page-level counterpart of `Config.NoOAuth2`: force-hides the passkey form and the registration section on THIS page while the shared `*usermgmt.Service` keeps its WebAuthn provider for other surfaces (the service and its mounted endpoints are untouched). Unlocks the OAuth-only recipe on a shared service — `NoWebAuthn` + `AutoRedirect` + a sole provider turns the page into a pure OAuth2 entry point (302 straight to the begin URL). Mutually exclusive with `Config.NoOAuth2` (rejected at `New`: a page with no sign-in method at all is a misconfiguration). README §One-click sign-in documents the recipe and the session semantics (the page is session-agnostic by design; wrap the route with a session gate such as `setup.RequireSessionRedirect` to let signed-in visitors skip it).
 
 ### Changed

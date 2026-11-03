@@ -22,6 +22,7 @@ type Handler struct {
 	nav      []navItem
 	adminCSS http.Handler
 	adminJS  http.Handler
+	table    []routeSpec
 }
 
 // New builds an admin panel from config, applying defaults to empty fields and
@@ -46,7 +47,18 @@ func New(config Config) (*Handler, error) {
 		return nil, err
 	}
 
-	return &Handler{config: config, nav: buildNav(config.Mode), adminCSS: adminCSS, adminJS: adminJS}, nil
+	h := &Handler{ //nolint:exhaustruct // table is built and validated immediately below
+		config:   config,
+		nav:      buildNav(config.Mode),
+		adminCSS: adminCSS,
+		adminJS:  adminJS,
+	}
+	h.table = h.buildRouteTable()
+	if err := validateRouteTable(h.table); err != nil {
+		return nil, err
+	}
+
+	return h, nil
 }
 
 // buildNav returns the sidebar entries for the given mode.
@@ -127,78 +139,14 @@ func (h *Handler) guard(fn func(http.ResponseWriter, *http.Request, *identitymod
 	}
 }
 
-// routes builds the internal route table (paths relative to BasePath) and
-// returns a handler serving them.
+// routes builds the panel's route table (paths relative to BasePath) and
+// returns a handler serving it. The table — not this function — is the
+// single source of truth; [Handler.Routes] manifests the same rows, so a
+// route outside the table cannot exist.
 func (h *Handler) routes() http.Handler {
 	mux := http.NewServeMux()
-
-	// --- Static assets ---
-	mux.Handle("GET /-/admin-tw.css", h.adminCSS)
-	mux.Handle("GET /-/admin.js", h.adminJS)
-	mux.Handle("GET /-/htmx.js", htmxScriptHandler())
-	mux.Handle("GET /-/sync-worker.js", syncWorkerHandler())
-	mux.Handle("GET /-/sync-client.js", syncClientHandler())
-
-	// --- Dashboard ---
-	mux.HandleFunc("GET /{$}", h.guard(h.dashboard))
-	mux.HandleFunc("GET /partials/stats", h.guard(h.statsPartial))
-
-	// --- Users (super admin only) ---
-	if h.config.Mode == ModeSuperAdmin {
-		mux.HandleFunc("GET /users", h.guard(h.usersIndex))
-		mux.HandleFunc("GET /users/{id}", h.guard(h.userDetail))
-		mux.HandleFunc("POST /users/{id}/delete", h.guard(h.userDelete))
-		mux.HandleFunc("POST /users/{id}/external/{provider}/unlink", h.guard(h.userUnlinkExternal))
-	}
-
-	// --- Tenants (super admin) ---
-	if h.config.Mode == ModeSuperAdmin {
-		mux.HandleFunc("GET /tenants", h.guard(h.tenantsIndex))
-		mux.HandleFunc("GET /tenants/new", h.guard(h.tenantNew))
-		mux.HandleFunc("POST /tenants", h.guard(h.tenantCreate))
-		mux.HandleFunc("GET /tenants/{id}", h.guard(h.tenantDetail))
-		mux.HandleFunc("POST /tenants/{id}/suspend", h.guard(h.tenantSuspend))
-		mux.HandleFunc("POST /tenants/{id}/reactivate", h.guard(h.tenantReactivate))
-		mux.HandleFunc("POST /tenants/{id}/delete", h.guard(h.tenantDelete))
-		mux.HandleFunc("POST /tenants/{id}/members", h.guard(h.tenantAddMember))
-		mux.HandleFunc("POST /tenants/{id}/members/{actor}/delete", h.guard(h.tenantRemoveMember))
-		mux.HandleFunc("POST /tenants/{id}/members/{actor}", h.guard(h.tenantUpdateMemberRole))
-	}
-
-	// --- Members (tenant admin) ---
-	if h.config.Mode == ModeTenantAdmin {
-		mux.HandleFunc("GET /members", h.guard(h.membersIndex))
-		mux.HandleFunc("POST /members", h.guard(h.membersAdd))
-		mux.HandleFunc("POST /members/{actor}/delete", h.guard(h.membersRemove))
-		mux.HandleFunc("POST /members/{actor}", h.guard(h.membersUpdateRole))
-	}
-
-	// --- Audit ---
-	mux.HandleFunc("GET /audit", h.guard(h.auditIndex))
-
-	// --- Error pages (templ-components errorpage) ---
-	// "GET /" is the catch-all below every specific route above; the method
-	// less pattern catches non-GET requests to unknown paths.
-	mux.HandleFunc("GET /", h.guardPanel(h.notFoundHandler))
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		h.writeErrorPage(
-			w,
-			r,
-			http.StatusMethodNotAllowed,
-			"Method not allowed",
-			"This endpoint does not support that HTTP method.",
-		)
-	})
-
+	h.registerRoutes(mux)
 	return mux
-}
-
-// guardPanel wraps notFoundHandler with the session gate while dropping the
-// authenticated-user argument it does not need.
-func (h *Handler) guardPanel(fn http.HandlerFunc) http.HandlerFunc {
-	return h.guard(func(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
-		fn(w, r)
-	})
 }
 
 // Handler returns an http.Handler serving the whole panel at root-relative

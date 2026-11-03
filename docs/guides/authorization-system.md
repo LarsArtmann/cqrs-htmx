@@ -81,13 +81,13 @@ this step is missing.
 Write down what each route requires. The maturity system (level L4) asks for this
 list in the repository, and the level does not count as reached without it.
 
-| Route | Posture |
-| --- | --- |
-| `GET /health` | public |
-| `GET /login` | public |
-| `POST /auth/login` | public |
-| `GET /admin/*` | role: `super_admin` or `admin` in `*` |
-| `POST /api/orders/{id}` | role: `user` in the order's tenant |
+| Route                   | Posture                               |
+| ----------------------- | ------------------------------------- |
+| `GET /health`           | public                                |
+| `GET /login`            | public                                |
+| `POST /auth/login`      | public                                |
+| `GET /admin/*`          | role: `super_admin` or `admin` in `*` |
+| `POST /api/orders/{id}` | role: `user` in the order's tenant    |
 
 A posture is a decision, not a description: "public" on a route that mutates data
 is a finding, not a default.
@@ -164,12 +164,12 @@ several values across modules, and `errors.Is` only ever matches one.
 
 Four tests, every gated route:
 
-| Case | Expect |
-| --- | --- |
-| no credentials | 401 |
-| authenticated, without the role | 403 |
-| authenticated, with the role | 200 (or whatever the route returns) |
-| with the role, in a tenant the actor is not a member of | 403 |
+| Case                                                    | Expect                              |
+| ------------------------------------------------------- | ----------------------------------- |
+| no credentials                                          | 401                                 |
+| authenticated, without the role                         | 403                                 |
+| authenticated, with the role                            | 200 (or whatever the route returns) |
+| with the role, in a tenant the actor is not a member of | 403                                 |
 
 The fourth is the one that gets skipped and the one that finds real bugs: a
 wildcard check passes it, a domain check does not.

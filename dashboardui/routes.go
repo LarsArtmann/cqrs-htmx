@@ -40,6 +40,16 @@ type Route struct {
 	// Write marks a mutating route. Write routes are absent from the manifest
 	// — and from the mux — whenever Config.ReadOnly is set.
 	Write bool
+
+	// Posture is what this route requires of its caller, per this instance's
+	// configuration: public for the unguarded probes and scripts, role-gated
+	// when an Authorizer is configured, and "ungated" when it is not — the
+	// dashboard then enforces nothing itself and the consumer's middleware
+	// owns the gate (setup's RequireSession, for example).
+	Posture cqrshtmx.Posture
+
+	// Why is the reason the posture is correct.
+	Why string
 }
 
 // routeGuard selects how a route relates to the dashboard's authorizer.
@@ -381,15 +391,48 @@ func (d *Dashboard) Routes() []Route {
 			continue
 		}
 
+		posture, why := d.posture(spec)
 		routes = append(routes, Route{
 			Method:  spec.method,
 			Pattern: spec.pattern,
 			Panel:   spec.panel,
 			Write:   spec.write,
+			Posture: posture,
+			Why:     why,
 		})
 	}
 
 	return routes
+}
+
+// posture derives one route's manifest posture from its guard mode and this
+// instance's configuration — the per-instance truth the manifest reports:
+//
+//   - guardNever rows (probes, vendored scripts) are public.
+//   - guardVersionz is public unless Config.VersionzRequireAuth opts it into
+//     the guard.
+//   - guarded rows are role-gated when an Authorizer form is configured, and
+//     "ungated" when none is: the dashboard itself then enforces nothing, and
+//     the gate lives in the consumer's middleware (setup applies
+//     RequireSession).
+func (d *Dashboard) posture(spec routeSpec) (cqrshtmx.Posture, string) {
+	if spec.guardMode == guardNever {
+		return cqrshtmx.PosturePublic,
+			"unguarded by design: observability probes and vendored scripts carry no data"
+	}
+
+	if spec.guardMode == guardVersionz && !d.config.VersionzRequireAuth {
+		return cqrshtmx.PosturePublic,
+			"unguarded by default; Config.VersionzRequireAuth opts versionz into the guard"
+	}
+
+	// guardAlways — or versionz with RequireAuth set: the gated derivation.
+	if d.actorAuthorizer() == nil {
+		return cqrshtmx.PostureUngated,
+			"no Authorizer configured: the dashboard enforces nothing itself — the consumer's middleware owns the gate"
+	}
+
+	return cqrshtmx.PostureRoleGated, "behind the configured Authorizer (403 for callers it refuses)"
 }
 
 func (s routeSpec) enabled(caps Capabilities, readOnly bool) bool {

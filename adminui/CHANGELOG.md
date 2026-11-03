@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Route table as the single registration source + `Handler.Routes()` posture manifest (authorization L4, 2026-11-03).** The imperative `routes()` mux wiring is now a declarative table: mux registration and the new manifest generate from the same rows, so a route outside the manifest cannot be served and a manifest row cannot describe a route that does not exist. Mode-scoped rows (users/tenants vs members) are absent in the other mode, and a row that forgets its mode is served by NO mode — absence fails loudly at runtime, silent over-exposure fails only in an audit. `Route{Method, Pattern, Panel, Write, Posture, Why}` reports each row's posture per instance: assets public, guarded rows role-gated by default. `Config.AuthorizerPosture` declares what a custom authorizer enforces (validated at `New`: only empty/authenticated/role — the guard always 401s anonymous callers, so public and ungated would be lies); set it to `cqrshtmx.PostureAuthenticated` when the authorizer is `RequireAuthenticated()`-shaped. Pinned by `TestRoutes_ManifestGolden` (super-admin), `TestRoutes_TenantModeManifest`, `TestRoutes_AuthorizerPosture`, and `TestRoutes_FallbackSemantics` (the guarded 404 catch-all, the methodless 405, the exact-match dashboard root, and the public assets — the conversions the table refactor risked).
+
 ### Fixed
 
 - **The third forbidden code is gone: `adminui.forbidden` is now identity-model's sentinel (authorization level-up, 2026-11-02).** The panel re-coded a denial under its own error code, so a consumer could not recognise an authorization failure the panel produced without importing adminui. It now returns the shared `ErrForbidden`, which makes `cqrshtmx.IsForbidden(err)` true for a panel denial — the code-based, chain-walking check that works across every module. Behaviour is otherwise unchanged (still 403); only the error identity moved.

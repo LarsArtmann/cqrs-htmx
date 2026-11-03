@@ -169,7 +169,7 @@ while IFS= read -r line; do
   fi
   fail=1
   report "$clean" "$lnum" \
-    "split-sentinel — denial codes must be exactly \"forbidden\" / \"unauthorized\" (use CodeForbidden/CodeUnauthorized) so IsForbidden sees them"
+    'split-sentinel — denial codes must be exactly "forbidden" / "unauthorized" (use CodeForbidden/CodeUnauthorized) so IsForbidden sees them'
 done <<<"$(grep -rnE 'NewRejection\("[^"]*(forbidden|unauthorized)' --include='*.go' "${excludes[@]}" . 2>/dev/null || true)"
 
 if [ "$fail" -ne 0 ]; then

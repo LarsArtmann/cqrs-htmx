@@ -31,36 +31,35 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// Posture is what a route requires of its caller.
-type Posture string
+// Posture is the shared route-posture vocabulary, owned by the root package so
+// production manifests and test declarations cannot drift apart. The aliases
+// below keep this package's original spellings working.
+type Posture = cqrshtmx.Posture
 
 const (
 	// Public routes must answer an anonymous caller. A 401/403 here means the
 	// route is gated but declared open — usually a declaration that went stale,
 	// occasionally a gate that arrived without a declaration.
-	Public Posture = "public"
+	Public = cqrshtmx.PosturePublic
 
 	// Authenticated routes must refuse an anonymous caller and admit an
 	// authenticated one.
-	Authenticated Posture = "authenticated"
+	Authenticated = cqrshtmx.PostureAuthenticated
 
 	// RoleGated routes must refuse an anonymous caller, refuse an authenticated
 	// caller who lacks the role, and admit one who holds it.
-	RoleGated Posture = "role"
+	RoleGated = cqrshtmx.PostureRoleGated
+
+	// Ungated is the root package's "this layer adds no gate" manifest value.
+	// It is deliberately NOT probeable: the matrix refuses it because proving
+	// it would mean proving nothing. Probe the real routes through your actual
+	// wiring and declare the posture that wiring enforces.
+	Ungated = cqrshtmx.PostureUngated
 )
-
-// Valid reports whether p is a declared posture.
-func (p Posture) Valid() bool {
-	switch p {
-	case Public, Authenticated, RoleGated:
-		return true
-	}
-
-	return false
-}
 
 // Route is one declared route.
 type Route struct {
@@ -161,6 +160,16 @@ func (s Suite) verifyRoute(route Route) error {
 		)
 	}
 
+	if route.Posture == Ungated {
+		return errorfamily.NewRejection(
+			"authztest.posture_unprobeable",
+			fmt.Sprintf(
+				"%s declares ungated, which the matrix cannot prove — declare the posture your actual wiring enforces (wrap the handler with your middleware and probe that)",
+				route,
+			),
+		)
+	}
+
 	if route.Method == "" || route.Path == "" {
 		return errorfamily.NewRejection(
 			"authztest.route_incomplete",
@@ -224,6 +233,11 @@ func (s Suite) probe(report testingTB, route Route) {
 		s.probeAuthenticated(report, route, anonStatus)
 	case RoleGated:
 		s.probeRoleGated(report, route, anonStatus)
+	case Ungated:
+		report.Errorf(
+			"%s declared ungated — Verify should have refused this suite before any probe ran",
+			route,
+		)
 	}
 }
 

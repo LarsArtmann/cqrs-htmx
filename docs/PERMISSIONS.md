@@ -76,11 +76,11 @@ build artifact, not tribal knowledge.
 
 ## The three write paths, in order of preference
 
-| Path | Durable | Use it |
-| --- | --- | --- |
-| `Service.GrantRoles(ctx, actor, tenant, roles)` | Yes — dispatches membership commands | Always, for grants |
-| `Service.AddMember` / `UpdateMemberRoles` | Yes — same commands, one level lower | When you already know the membership is new |
-| `Authz.AddGroupPolicy` | **No** — in-memory enforcer only | Never in application code (deprecated in v4, removed in v5) |
+| Path                                            | Durable                              | Use it                                                      |
+| ----------------------------------------------- | ------------------------------------ | ----------------------------------------------------------- |
+| `Service.GrantRoles(ctx, actor, tenant, roles)` | Yes — dispatches membership commands | Always, for grants                                          |
+| `Service.AddMember` / `UpdateMemberRoles`       | Yes — same commands, one level lower | When you already know the membership is new                 |
+| `Authz.AddGroupPolicy`                          | **No** — in-memory enforcer only     | Never in application code (deprecated in v4, removed in v5) |
 
 `Authz.ApplyGroupPolicy` is the projection's write path: it carries no warning
 because its caller derives the grant from the journal.
@@ -110,26 +110,26 @@ domain model never imports HTTP.
 Levels are from the 2026-11-02 audit. `?` means "not inspected beyond dependency
 presence" — an unverified row, not a clean bill.
 
-| Service | Level | Posture at audit | Evidence | Next step |
-| --- | --- | --- | --- | --- |
-| `cqrs-htmx` | L3 | this library: contract + durable grants + scanner gate | `authz_contract.go`, `service_grants.go`, `check-permission-surface.sh` | commit a route-posture manifest; promote the maturity gate to blocking |
-| `browser-history` | L1 | admin panel gated by `adminui.RequireAnyRole`, role re-granted on every drain | `api/admin_panel.go` reconcile loop; `NonceFunc` bridge | L2: switch to `GrantRoles`, delete the reconcile loop |
-| `games/SwettySwipperWeb` | L1 | `adminui.RequireAnyRole` on API routes | one-shot `AddGroupPolicy` behind a "users exist" guard | L2: grant on every boot, idempotently |
-| `crm` | L0 | `setup.New` with the default admin panel | zero role grants anywhere; `MaxUsers: 1` | L1: either seed an admin or `DisableAdmin` |
-| `sperrmuell-direct` | L1 | basic auth; all panels disabled | `internal/identity/mount.go` disables admin/dashboard/login | L2 if roles are wanted; otherwise record the posture |
-| `webphone` | L1 | 44 `RequireSession` gates, own session service | no role model | L2 if roles are wanted; otherwise record the posture |
-| `github-local-sync` | L1 | admin panel via default authorizer | no role grant | L2: grant a global admin at boot |
-| `InboxClean` | L1 | session-gated CQRS dashboard | `sseDeadlineFree` wrapper around the SSE route | delete the wrapper (the library now clears the deadline) |
-| `bank-sync` | L1 | session-gated dashboard | no role model | record the posture |
-| `crush-daily` | L1 | session-gated dashboard + SSE | no role model | record the posture |
-| `file-and-image-renamer` | L1 | dashboard with a custom authorizer | `pkg/injector/dashboardui_providers.go` | record the posture |
-| `journal` | L1 | loopback-only store panel | `internal/server/server.go` | record the posture |
-| `dnsblockd` | L1 | adapter only, no panel | — | record the posture |
-| `quotaboard` | ? | not inspected | — | inspect |
-| `darknet-monitor` | ? | not inspected | — | inspect |
-| `KeyHolderAI` | ? | not inspected | — | inspect |
-| `Code-To-CV-Agent` | ? | not inspected | — | inspect |
-| `go-appkit/integration` | ? | not inspected | — | inspect |
+| Service                  | Level | Posture at audit                                                                           | Evidence                                                                                                                                                                                             | Next step                                                |
+| ------------------------ | ----- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `cqrs-htmx`              | L4    | this library: contract + durable grants + scanner gate + committed route-posture manifests | `authz_contract.go`, `service_grants.go`, `check-permission-surface.sh`, `check-route-postures.sh` (in check-modules + CI), `Handler.Routes` / `Dashboard.Routes` / `Bundle.RoutePostures` manifests | keep every new route inside the tables                   |
+| `browser-history`        | L1    | admin panel gated by `adminui.RequireAnyRole`, role re-granted on every drain              | `api/admin_panel.go` reconcile loop; `NonceFunc` bridge                                                                                                                                              | L2: switch to `GrantRoles`, delete the reconcile loop    |
+| `games/SwettySwipperWeb` | L1    | `adminui.RequireAnyRole` on API routes                                                     | one-shot `AddGroupPolicy` behind a "users exist" guard                                                                                                                                               | L2: grant on every boot, idempotently                    |
+| `crm`                    | L0    | `setup.New` with the default admin panel                                                   | zero role grants anywhere; `MaxUsers: 1`                                                                                                                                                             | L1: either seed an admin or `DisableAdmin`               |
+| `sperrmuell-direct`      | L1    | basic auth; all panels disabled                                                            | `internal/identity/mount.go` disables admin/dashboard/login                                                                                                                                          | L2 if roles are wanted; otherwise record the posture     |
+| `webphone`               | L1    | 44 `RequireSession` gates, own session service                                             | no role model                                                                                                                                                                                        | L2 if roles are wanted; otherwise record the posture     |
+| `github-local-sync`      | L1    | admin panel via default authorizer                                                         | no role grant                                                                                                                                                                                        | L2: grant a global admin at boot                         |
+| `InboxClean`             | L1    | session-gated CQRS dashboard                                                               | `sseDeadlineFree` wrapper around the SSE route                                                                                                                                                       | delete the wrapper (the library now clears the deadline) |
+| `bank-sync`              | L1    | session-gated dashboard                                                                    | no role model                                                                                                                                                                                        | record the posture                                       |
+| `crush-daily`            | L1    | session-gated dashboard + SSE                                                              | no role model                                                                                                                                                                                        | record the posture                                       |
+| `file-and-image-renamer` | L1    | dashboard with a custom authorizer                                                         | `pkg/injector/dashboardui_providers.go`                                                                                                                                                              | record the posture                                       |
+| `journal`                | L1    | loopback-only store panel                                                                  | `internal/server/server.go`                                                                                                                                                                          | record the posture                                       |
+| `dnsblockd`              | L1    | adapter only, no panel                                                                     | —                                                                                                                                                                                                    | record the posture                                       |
+| `quotaboard`             | ?     | not inspected                                                                              | —                                                                                                                                                                                                    | inspect                                                  |
+| `darknet-monitor`        | ?     | not inspected                                                                              | —                                                                                                                                                                                                    | inspect                                                  |
+| `KeyHolderAI`            | ?     | not inspected                                                                              | —                                                                                                                                                                                                    | inspect                                                  |
+| `Code-To-CV-Agent`       | ?     | not inspected                                                                              | —                                                                                                                                                                                                    | inspect                                                  |
+| `go-appkit/integration`  | ?     | not inspected                                                                              | —                                                                                                                                                                                                    | inspect                                                  |
 
 ## Proving it: `authztest`
 
@@ -184,7 +184,7 @@ suite.ProveRevocation(t)      // grant → allowed → revoke → denied
 suite.ProveDurability(t)      // grant → fresh process → still allowed
 ```
 
-`ProveRevocation` asserts the grant authorized *before* revoking, so a deny
+`ProveRevocation` asserts the grant authorized _before_ revoking, so a deny
 afterwards cannot be an accident of a grant that never worked. `ProveDurability`
 builds the second checker **after** the grant, from durable state alone — that is
 the 2026-11-02 defect mechanized (a grant written into an in-memory enforcer
@@ -231,4 +231,4 @@ they stay visible in review.
   reserves the shape a ReBAC engine needs; the trigger for building one is
   recorded in ADR-0058.
 - **Not a role-vocabulary redesign.** `super_admin > admin > owner > user >
-  viewer` is what the shipped model and every consumer already use.
+viewer` is what the shipped model and every consumer already use.

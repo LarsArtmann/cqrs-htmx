@@ -1175,6 +1175,8 @@
                       bash bash scripts/selftests/test-check-branching-flow.sh
                       bash bash scripts/checks/check-shellcheck.sh
                       bash bash scripts/selftests/test-check-shellcheck.sh
+                      bash bash scripts/checks/check-route-postures.sh
+                      bash bash scripts/selftests/test-check-route-postures.sh
                       echo ""
                       echo "All module architecture checks passed"
                       exit 0
@@ -1264,6 +1266,8 @@
                       "coverage-threshold-self-test:bash scripts/selftests/test-check-coverage-threshold.sh"
                       "shellcheck-scripts:bash scripts/checks/check-shellcheck.sh"
                       "shellcheck-scripts-self-test:bash scripts/selftests/test-check-shellcheck.sh"
+                      "route-postures:bash scripts/checks/check-route-postures.sh"
+                      "route-postures-self-test:bash scripts/selftests/test-check-route-postures.sh"
                     )
                     red=0
                     for stage in "''${stages[@]}"; do

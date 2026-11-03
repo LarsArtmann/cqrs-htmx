@@ -5,6 +5,7 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // Mode controls the scope of the admin panel.
@@ -66,6 +67,16 @@ type Config struct {
 	// match your own role model.
 	Authorizer func(user *identitymodel.User) error
 
+	// AuthorizerPosture declares what Config.Authorizer enforces, so the
+	// route manifest ([Handler.Routes]) can report the truth. Empty (the
+	// default) means role-gated — correct for the default authorizer and for
+	// role-based custom authorizers. Set it to
+	// [cqrshtmx.PostureAuthenticated] when your custom authorizer admits
+	// every authenticated user (e.g. built from [RequireAuthenticated]).
+	// Anything else is rejected at [New]: the guard always refuses anonymous
+	// callers (401), so public and ungated would be lies.
+	AuthorizerPosture cqrshtmx.Posture
+
 	// LogoutURL is the destination of the "Sign out" link. Empty hides the link.
 	LogoutURL string
 
@@ -106,6 +117,17 @@ func (config Config) withDefaults() (Config, error) {
 	}
 	if config.Mode == ModeTenantAdmin && config.TenantID.Get() == "" {
 		return config, errConfig("Config.TenantID is required for ModeTenantAdmin")
+	}
+	switch config.AuthorizerPosture {
+	case "", cqrshtmx.PostureAuthenticated, cqrshtmx.PostureRoleGated:
+	case cqrshtmx.PosturePublic, cqrshtmx.PostureUngated:
+		return config, errConfig(
+			"Config.AuthorizerPosture may not be public or ungated — the guard always refuses anonymous callers, so both would be lies",
+		)
+	default:
+		return config, errConfig(
+			"Config.AuthorizerPosture must be empty (role-gated default), cqrshtmx.PostureAuthenticated, or cqrshtmx.PostureRoleGated",
+		)
 	}
 	return config, nil
 }

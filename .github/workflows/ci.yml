@@ -755,6 +755,12 @@ jobs:
       - name: "*Service method count guard (ADR-0038)"
         run: bash scripts/checks/check-service-methods.sh
 
+      # L4 route-posture gate (docs/PERMISSIONS.md): every UI module's route
+      # manifest is pinned by golden tests; runs in workspace mode because
+      # submodule go.mods lag the family train.
+      - name: Route posture manifest gate
+        run: bash scripts/checks/check-route-postures.sh
+
       - name: Domain model count drift check
         run: bash scripts/checks/check-domain-counts.sh
 

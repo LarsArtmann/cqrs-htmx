@@ -183,6 +183,19 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 	mux.Handle(pattern, h)
 }
 
+// Routes returns the page's route manifest: one public row, relative to the
+// mount pattern. The login page is the anonymous entry point by definition —
+// gating it would lock every visitor out before they can authenticate. Only
+// GET and HEAD are answered (ServeHTTP); other methods answer 405.
+func (h *Handler) Routes() []cqrshtmx.RoutePosture {
+	return []cqrshtmx.RoutePosture{{
+		Method:  http.MethodGet,
+		Pattern: "/",
+		Posture: cqrshtmx.PosturePublic,
+		Why:     "the login page is the anonymous entry point — gating it locks everybody out",
+	}}
+}
+
 // NewPageData builds a [PageData] from the given Config and request, suitable
 // for rendering [Page] directly in a consumer's own layout (Option B).
 //

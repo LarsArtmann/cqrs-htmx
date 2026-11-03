@@ -5,9 +5,9 @@ posture matrix cannot see.
 
 Two suites, two questions:
 
-| Suite | Question it answers |
-| --- | --- |
-| `Suite` | Does every declared route refuse the callers it says it refuses? |
+| Suite        | Question it answers                                                                      |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| `Suite`      | Does every declared route refuse the callers it says it refuses?                         |
 | `GrantSuite` | Does a grant stay in its tenant, survive a revoke, and outlive the process that made it? |
 
 Both are fail-closed: a declaration set that cannot be tested is an error, never

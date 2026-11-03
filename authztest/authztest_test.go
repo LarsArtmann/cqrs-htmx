@@ -194,6 +194,11 @@ func TestVerify_RejectsUntestableSuites(t *testing.T) {
 			"authztest.posture_unknown",
 		},
 		{
+			"ungated posture (manifest truth, not probeable)",
+			func(s *Suite) { s.Routes[0].Posture = Ungated },
+			"authztest.posture_unprobeable",
+		},
+		{
 			"route without a reason",
 			func(s *Suite) { s.Routes[0].Why = "" },
 			"authztest.route_unjustified",

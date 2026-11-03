@@ -3,7 +3,7 @@
 # Regenerate: bash scripts/checks/check-permission-maturity.sh --update-baseline
 bank-sync	L1
 browser-history	L1
-cqrs-htmx	L3
+cqrs-htmx	L4
 crm	L0
 crush-daily	L1
 dnsblockd	L1
