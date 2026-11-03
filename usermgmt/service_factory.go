@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -122,6 +123,15 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	dispatcher := command.NewDispatcher()
 	dispatcher.Use(commandAuditMiddleware()...)
+	if config.CommandLifecycle != nil {
+		// Adjacent pair per the upstream contract: outer classifies the
+		// terminal outcome (consuming the attempt tracker's state), attempt
+		// records per-attempt failed/rejected. Consumer middleware — including
+		// any retry middleware via CommandMiddleware — runs inside both, so
+		// retries surface as command.retried + per-attempt command.failed.
+		outer, attempt := commandlifecycle.New(config.CommandLifecycle)
+		dispatcher.Use(outer, attempt)
+	}
 	dispatcher.Use(config.CommandMiddleware...)
 	if err := RegisterCommands(dispatcher, setup.Repository); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.command.register", "register commands").WithCause(err)

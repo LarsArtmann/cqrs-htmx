@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
@@ -182,6 +183,18 @@ type ServiceConfig struct {
 	// for a recommended production chain. Nil (the default) keeps the
 	// dispatcher bare apart from the audit chain — backward compatible.
 	CommandMiddleware []command.Middleware
+
+	// CommandLifecycle, when non-nil, wires go-cqrs-lite's commandlifecycle
+	// pair (outer + attempt) around the command pipeline: every dispatched
+	// command emits command.received and command.completed — or
+	// command.rejected for Rejection-family errors, command.failed +
+	// command.dead-lettered for the rest — on its own command-lifecycle
+	// stream, giving durable retry and dead-letter observability with zero
+	// consumer middleware code. Build it with
+	// commandlifecycle.NewRecorder(EventStore) so lifecycle events share the
+	// service's journal. Nil (the default) keeps the dispatcher
+	// lifecycle-silent — backward compatible.
+	CommandLifecycle *commandlifecycle.Recorder
 
 	// TokenPepper is the server-side secret used for HMAC-SHA256 bot token hashing.
 	// Required for bot registration and API token authentication. Set this to a

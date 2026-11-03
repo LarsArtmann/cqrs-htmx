@@ -136,6 +136,22 @@ call 2: status=204 body="" took=0s       ← flaky service already recovered
 
 > **Why this matters vs `BeforeDispatchHook`/`AfterDispatchHook`:** cqrs-htmx's HTTP-level hooks only see `(ctx, *http.Request)` — they cannot name a span by command type or read the decoded command. The dispatcher middleware runs **per-dispatch with the actual command**, so tracing/metrics/retry are far richer. Use hooks for HTTP-shaped concerns (request IDs, server-timing); use dispatcher middleware for CQRS-shaped concerns (per-type tracing, retry, circuit breaking).
 
+### Command lifecycle events — durable retry & dead-letter observability (opt-in)
+
+`ServiceConfig.CommandLifecycle` wires go-cqrs-lite's `commandlifecycle` pair (outer + attempt) around the pipeline: every dispatched command emits `command.received` and `command.completed` — or `command.rejected` for Rejection-family errors, `command.failed` + `command.dead-lettered` for the rest — on its own command-lifecycle stream in the event store. That is a durable, replayable audit of every failed command, with zero consumer middleware code:
+
+```go
+store, err := usermgmt.NewSQLEventStore(ctx, db, "sqlite")
+svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+    EventStore:       store,
+    CommandLifecycle: commandlifecycle.NewRecorder(store), // same journal
+})
+```
+
+The pair is wired adjacent (outer classifies the terminal outcome; attempt records per-attempt outcomes and feeds the attempt counter into `dead-lettered` events). Consumer retry middleware via `CommandMiddleware` runs inside both, so retries surface as `command.retried` plus per-attempt `command.failed` — the exact events the upstream retry flow documents. Rejections never retry and never dead-letter (attempt records `command.rejected`; outer skips).
+
+Behavior is pinned by `usermgmt/command_lifecycle_test.go`: non-rejection failure → received/failed/dead-lettered in order; rejection → received/rejected only; success → received/completed with the domain event still flowing.
+
 ---
 
 ## 2. OpenTelemetry & Prometheus
