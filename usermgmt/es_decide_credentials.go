@@ -41,7 +41,8 @@ func decideAddCredential(
 				BackupState:     cred.BackupState,
 				Name:            cred.Name,
 			},
-			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
+			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
+			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -83,7 +84,8 @@ func decideRemoveCredential(
 				SchemaVersion: currentSchemaVersion,
 				ID:            credentialID,
 			},
-			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
+			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
+			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -144,7 +146,8 @@ func decideRecordCredentialUse(
 				UserVerified:  use.UserVerified,
 				BackupState:   use.BackupState,
 			},
-			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
+			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
+			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

@@ -28,7 +28,8 @@ func decideEnableTOTP(
 				SchemaVersion: currentSchemaVersion,
 				Secret:        secret,
 			},
-			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(1),
+			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
+			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

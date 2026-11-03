@@ -26,6 +26,20 @@ Nothing here rewrites working code for taste; each task names its verification c
    types), `projectionhost/v4.7.1` (`SQLiteDeadLetterStore`, `WithCheckpointEvery`),
    `decider/v4.8.0` (`WithSnapshotStateVersion`), `middleware/v4.7.2`
    (`CommandFlightRecorder`/`EventFlightRecorder`, `CommandIdempotency`), `otel/otlp/v4.0.2`.
+4. **R1 executed as FIVE payloads, not four** (2026-11-03, execution-time correction): the
+   audit's line-scan of `identity-model/events.go` missed `CredentialAddedPayload`, whose
+   `[]byte` fields (ID, PublicKey, AAGUID) arrive via the embedded `CredentialCore` from
+   `credential.go` — the heaviest binary payload in the domain. Shipped as
+   [ADR 0059](../adr/0059-cbor-binary-event-payloads.md) with the same per-event shape;
+   the audit report carries the matching adoption note.
+4. **R1 scope corrected at execution time (2026-11-03): five payloads, not four.** The
+   audit's "four []byte payloads" was a line-scan of `identity-model/events.go` —
+   `CredentialAdded`'s `[]byte` fields (ID, PublicKey, AAGUID — the heaviest binary
+   payload in the domain) arrive via the embedded `CredentialCore` from `credential.go`
+   and were missed. ADR 0059 covers all five. (Execution-time research also confirmed:
+   the upstream SQL event store already persists `payload_encoding`; the sync pull wire,
+   OpenAPI description, and frontend-sync guide already document codec-name stamps; the
+   SSE envelope is metadata-only — the flip touched exactly the five emission sites.)
 
 ## Backlog overlap check (skill Step 0)
 

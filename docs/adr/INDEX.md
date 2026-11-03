@@ -61,3 +61,4 @@
 | [0056](0056-frontend-sync-protocol.md)                    | Frontend Sync Protocol — Permission-Aware Event Pull + Batched Command Push                            | Accepted                                                             |
 | [0057](0057-authorization-contract.md)                     | Authorization Contract — One Question Type, Durable Grants, Recognisable Denials                     | Accepted                                                             |
 | [0058](0058-defer-relationship-based-authorization.md)     | Defer Relationship-Based Authorization (ReBAC) — Numeric Reopen Trigger                             | Accepted                                                             |
+| [0059](0059-cbor-binary-event-payloads.md)                 | CBOR for Binary Event Payloads — Five Byte-Heavy Events, Per-Event Stamps, Mixed Journals           | Accepted                                                             |
