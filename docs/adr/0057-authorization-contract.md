@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-11-02
-**Related:** [ADR 0044](0044-casbin-first-class-dependency.md) (Casbin in identity-model), [ADR 0043](0043-identity-model-extraction.md) (domain source of truth), [ADR 0047](0047-re-export-layer-retirement-plan.md) (alias retirement), [ADR 0058](0058-defer-relationship-based-authorization.md) (ReBAC deferral), [2026-11-02 consumer audit](../status/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md)
+**Related:** [ADR 0044](0044-casbin-first-class-dependency.md) (Casbin in identity-model), [ADR 0043](0043-identity-model-extraction.md) (domain source of truth), [ADR 0047](0047-re-export-layer-retirement-plan.md) (alias retirement), [ADR 0058](0058-defer-relationship-based-authorization.md) (ReBAC deferral), [2026-11-02 consumer audit](../status/archived/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md)
 
 ## Context
 

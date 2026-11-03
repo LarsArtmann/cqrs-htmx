@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-11-02
-**Related:** [ADR 0057](0057-authorization-contract.md) (authorization contract), [ADR 0044](0044-casbin-first-class-dependency.md) (Casbin in identity-model), [2026-11-02 consumer audit](../status/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md)
+**Related:** [ADR 0057](0057-authorization-contract.md) (authorization contract), [ADR 0044](0044-casbin-first-class-dependency.md) (Casbin in identity-model), [2026-11-02 consumer audit](../status/archived/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md)
 
 ## Context
 

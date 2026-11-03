@@ -6,7 +6,7 @@ everywhere! BUT WITH A SYSTEM!" + the standing planning protocol (1 %/4 %/20 % P
 ALL TODOs, 30–100 min milestones, ≤12 min micro-tasks, table views, execution graph,
 `.md` with mermaid, commit + push).
 
-**Plan of record for:** [`../status/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md`](../status/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md)
+**Plan of record for:** [`../status/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md`](../status/archived/2026-11-02_10-13_consumer-usage-audit-and-authz-model_status.md)
 (the 2026-11-02 consumer audit) and the authorization findings from the same session
 (permission-model comparison, ReBAC design, nine split brains).
 

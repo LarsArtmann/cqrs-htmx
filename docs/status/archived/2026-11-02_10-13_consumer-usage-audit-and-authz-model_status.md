@@ -1,5 +1,9 @@
 # Status: consumer-usage audit + authorization-model reality check
 
+> **ANNOTATED 2026-11-03** — ~~this report~~ **SUPERSEDED** by [`2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md`](../2026-11-03_18-31_swept-gated-pushed-ci-answers-shellcheck_status.md), which Read-only audit; its authz-model conclusions were decided and landed as ADR-0057 (authorization contract, durable grants) later the same day, and the successor report swept that wave to green (branching-flow re-pin, train closed). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-03 (round-23 (2026-11-03)).**
+
 **Date:** 2026-11-02 10:13 CET
 **Branch:** master
 **HEAD:** `fc1a0208` (docs: round-45 self-critique + comprehensive status update (a-g))
