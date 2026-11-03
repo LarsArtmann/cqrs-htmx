@@ -225,11 +225,11 @@ func grantSuperAdmin(t *testing.T, svc *Service, userID UserID) {
 	if err != nil {
 		t.Fatalf("aggIDFromUser: %v", err)
 	}
-	if err := svc.authz.AddGroupPolicy(GroupPolicy{
+	if err := svc.authz.ApplyGroupPolicy(GroupPolicy{
 		Subject: aggID.Get(),
 		Role:    RoleSuperAdmin,
 		Domain:  aggID.Get(),
 	}); err != nil {
-		t.Fatalf("AddGroupPolicy: %v", err)
+		t.Fatalf("ApplyGroupPolicy: %v", err)
 	}
 }

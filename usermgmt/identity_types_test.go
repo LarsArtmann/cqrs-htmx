@@ -135,10 +135,10 @@ func TestRoleHierarchy_SuperAdminInheritsAdmin(t *testing.T) {
 		t.Fatalf("NewAuthz failed: %v", err)
 	}
 
-	if err := az.AddGroupPolicy(
+	if err := az.ApplyGroupPolicy(
 		GroupPolicy{Subject: "user-001", Role: RoleSuperAdmin, Domain: "tenant-X"},
 	); err != nil {
-		t.Fatalf("AddGroupPolicy failed: %v", err)
+		t.Fatalf("ApplyGroupPolicy failed: %v", err)
 	}
 
 	// super_admin inherits admin via g2, and admin has wildcard allow
@@ -165,8 +165,8 @@ func TestRoleHierarchy_AdminInheritsViewer(t *testing.T) {
 	}
 
 	// Assign user admin role
-	if err := az.AddGroupPolicy(GroupPolicy{Subject: "user-002", Role: RoleAdmin, Domain: "tenant-Y"}); err != nil {
-		t.Fatalf("AddGroupPolicy failed: %v", err)
+	if err := az.ApplyGroupPolicy(GroupPolicy{Subject: "user-002", Role: RoleAdmin, Domain: "tenant-Y"}); err != nil {
+		t.Fatalf("ApplyGroupPolicy failed: %v", err)
 	}
 
 	// admin inherits user > viewer, so should be able to read documents

@@ -36,14 +36,14 @@ func TestFullstackUI_AdminRendersSeededUser(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp.Session)
 
-	require.NoError(t, svc.Authz().AddGroupPolicy(identitymodel.GroupPolicy{
+	require.NoError(t, svc.Authz().ApplyGroupPolicy(identitymodel.GroupPolicy{
 		Subject: resp.User.ID.Get().String(),
 		Role:    identitymodel.RoleSuperAdmin,
 		Domain:  "*",
 	}))
 
-	// The session is valid immediately; the role policy may still be applying
-	// in the Casbin projection, so poll until the panel admits the user.
+	// The session is valid immediately and the grant applies straight into
+	// the enforcer; the poll rides out panel mid-render jitter only.
 	var body string
 
 	deadline := time.Now().Add(authDeadline)

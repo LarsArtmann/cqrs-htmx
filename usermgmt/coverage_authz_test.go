@@ -17,7 +17,7 @@ func TestAuthz_EnforceEx_Denied(t *testing.T) {
 
 func TestAuthz_Authorize_Allowed(t *testing.T) {
 	a := newTestAuthz(t)
-	_ = a.AddGroupPolicy(GroupPolicy{Subject: "admin1", Role: RoleAdmin, Domain: "d1"})
+	_ = a.ApplyGroupPolicy(GroupPolicy{Subject: "admin1", Role: RoleAdmin, Domain: "d1"})
 
 	if err := a.Authorize("admin1", "d1", "anything", ActionAll); err != nil {
 		t.Errorf("expected allowed, got: %v", err)
