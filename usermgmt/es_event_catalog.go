@@ -1,15 +1,25 @@
 package usermgmt
 
 import (
+	"reflect"
+	"strings"
+
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// DefaultEventCatalog builds a cqrshtmx.EventCatalog populated with all 24
+// DefaultEventCatalog builds a cqrshtmx.EventCatalog populated with all 25
 // event types across the five aggregates (User, Membership, Tenant, Bot,
-// Auth). Consumers can serve this catalog at an HTTP endpoint (e.g.
-// GET /events/catalog) so that projection builders can discover the event
-// schema without reading the source code.
+// Auth). Payload field lists are reflection-derived from the payload structs
+// (payloadFieldsFrom), so the served catalog is the wire truth — a renamed
+// json tag or added field updates the catalog automatically, and
+// TestEventCatalog_InventoryMatchesEventConstants fails when an event
+// constant and the catalog drift apart. Descriptions stay curated here: they
+// are prose, not derivable. Consumers can serve this catalog at an HTTP
+// endpoint (e.g. GET /events/catalog) so that projection builders can
+// discover the event schema without reading the source code.
 func DefaultEventCatalog() *cqrshtmx.EventCatalog {
 	catalog := cqrshtmx.NewEventCatalog()
 	registerUserEvents(catalog)
@@ -20,334 +30,207 @@ func DefaultEventCatalog() *cqrshtmx.EventCatalog {
 	return catalog
 }
 
-//nolint:exhaustruct // descriptions are intentional; field lists are illustrative
+// registerDerived registers one event whose PayloadFields are reflected from
+// the payload struct T. Aggregate comes from the identity-model stream-type
+// constants; description is the curated prose.
+func registerDerived[T any](
+	catalog *cqrshtmx.EventCatalog,
+	eventType event.Type,
+	aggregate id.StreamType,
+	description string,
+) {
+	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(eventType),
+		Aggregate:     string(aggregate),
+		SchemaVersion: identitymodel.CurrentSchemaVersion,
+		Description:   description,
+		PayloadFields: payloadFieldsFrom[T](),
+	})
+}
+
+// payloadFieldsFrom reflects T's JSON contract: field names come from the
+// json tags, optionality from omitempty, and the type vocabulary mirrors the
+// Go source ("int", "string", "[]byte", "[]Role", "AuthMethod") so the served
+// catalog keeps its historical shape. Embedded structs (CredentialCore,
+// ExternalAccountCore) are walked, so promoted fields appear exactly like
+// declared ones — the drift class the hand-maintained lists missed.
+func payloadFieldsFrom[T any]() []cqrshtmx.PayloadField {
+	t := reflect.TypeOf(*new(T))
+	fields := make([]cqrshtmx.PayloadField, 0, t.NumField())
+	for i := range t.NumField() {
+		fields = append(fields, fieldsFromStructField(t.Field(i))...)
+	}
+	return fields
+}
+
+func fieldsFromStructField(f reflect.StructField) []cqrshtmx.PayloadField {
+	if f.Anonymous {
+		t := f.Type
+		if t.Kind() == reflect.Pointer {
+			t = t.Elem()
+		}
+		if t.Kind() != reflect.Struct {
+			return nil
+		}
+		embedded := make([]cqrshtmx.PayloadField, 0, t.NumField())
+		for i := range t.NumField() {
+			embedded = append(embedded, fieldsFromStructField(t.Field(i))...)
+		}
+		return embedded
+	}
+
+	tag := f.Tag.Get("json")
+	name, options, _ := strings.Cut(tag, ",")
+	if name == "-" {
+		return nil
+	}
+	if name == "" {
+		name = f.Name
+	}
+
+	return []cqrshtmx.PayloadField{{
+		Name:     name,
+		Type:     goTypeName(f.Type),
+		Required: !strings.Contains(options, "omitempty"),
+	}}
+}
+
+// goTypeName renders a reflection type in the catalog's Go-source vocabulary:
+// named domain types by their Go name (Role, AuthMethod, UserID), builtins by
+// kind, slices as "[]elem". Package qualifiers are dropped — the names are
+// domain vocabulary, unambiguous within the identity model.
+func goTypeName(t reflect.Type) string {
+	switch t.Kind() {
+	case reflect.Slice, reflect.Array:
+		return "[]" + goTypeName(t.Elem())
+	case reflect.Pointer:
+		return "*" + goTypeName(t.Elem())
+	}
+	if n := t.Name(); n != "" {
+		if n == "uint8" && t.PkgPath() == "" {
+			return "byte" // predeclared byte, not a named uint8 domain type
+		}
+		return n
+	}
+	return t.Kind().String()
+}
+
 func registerUserEvents(catalog *cqrshtmx.EventCatalog) {
-	sv := identitymodel.CurrentSchemaVersion
+	agg := identitymodel.AggregateTypeUser
 
-	//cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
-	catalog.Register(
-		cqrshtmx.EventMetadata{
-			Type:          string(identitymodel.EventUserRegistered),
-			Aggregate:     string(identitymodel.AggregateTypeUser),
-			SchemaVersion: sv,
-			Description:   "A user registered with an email address and display name",
-			PayloadFields: []cqrshtmx.PayloadField{
-				{Name: "schema_version", Type: "int", Required: true},
-				{Name: "email", Type: "string", Required: true},
-				{Name: "display_name", Type: "string"},
-				{Name: "roles", Type: "[]Role"},
-			},
-		},
-	)
+	registerDerived[identitymodel.UserRegisteredPayload](catalog,
+		identitymodel.EventUserRegistered, agg,
+		"A user registered with an email address and display name")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventRolesUpdated),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "Legacy event: user roles updated. No longer emitted; decoded for backward compat",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "roles", Type: "[]Role"},
-			{Name: "domain", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.RolesUpdatedPayload](catalog,
+		identitymodel.EventRolesUpdated, agg,
+		"Legacy event: user roles updated. No longer emitted; decoded for backward compat")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventEmailChanged),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "User changed their email address",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "email", Type: "string", Required: true},
-		},
-	})
+	registerDerived[identitymodel.EmailChangedPayload](catalog,
+		identitymodel.EventEmailChanged, agg,
+		"User changed their email address")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventDisplayNameChanged),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "User changed their display name",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "display_name", Type: "string", Required: true},
-		},
-	})
+	registerDerived[identitymodel.DisplayNameChangedPayload](catalog,
+		identitymodel.EventDisplayNameChanged, agg,
+		"User changed their display name")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventUserDeleted),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "User was deleted with an optional reason",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "reason", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.UserDeletedPayload](catalog,
+		identitymodel.EventUserDeleted, agg,
+		"User was deleted with an optional reason")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventCredentialAdded),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "A WebAuthn credential was added to the user",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "id", Type: "[]byte", Required: true},
-			{Name: "public_key", Type: "[]byte", Required: true},
-		},
-	})
+	registerDerived[identitymodel.CredentialAddedPayload](catalog,
+		identitymodel.EventCredentialAdded, agg,
+		"A WebAuthn credential was added to the user")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventCredentialRemoved),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "A WebAuthn credential was removed from the user",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "id", Type: "[]byte", Required: true},
-		},
-	})
+	registerDerived[identitymodel.CredentialRemovedPayload](catalog,
+		identitymodel.EventCredentialRemoved, agg,
+		"A WebAuthn credential was removed from the user")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventCredentialUsed),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "A WebAuthn credential was used: the assertion's signature counter and flags were recorded",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "credential_id", Type: "[]byte", Required: true},
-			{Name: "sign_count", Type: "uint32", Required: true},
-			{Name: "user_present", Type: "bool"},
-			{Name: "user_verified", Type: "bool"},
-			{Name: "backup_state", Type: "bool"},
-		},
-	})
+	registerDerived[identitymodel.CredentialUsedPayload](catalog,
+		identitymodel.EventCredentialUsed, agg,
+		"A WebAuthn credential was used: the assertion's signature counter and flags were recorded")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventEmailVerified),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "User verified their email address",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "email", Type: "string", Required: true},
-		},
-	})
+	registerDerived[identitymodel.EmailVerifiedPayload](catalog,
+		identitymodel.EventEmailVerified, agg,
+		"User verified their email address")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventTOTPEnabled),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "TOTP two-factor authentication was enabled",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "secret", Type: "[]byte", Required: true},
-		},
-	})
+	registerDerived[identitymodel.TOTPEnabledPayload](catalog,
+		identitymodel.EventTOTPEnabled, agg,
+		"TOTP two-factor authentication was enabled")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventTOTPDisabled),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "TOTP two-factor authentication was disabled",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-		},
-	})
+	registerDerived[identitymodel.TOTPDisabledPayload](catalog,
+		identitymodel.EventTOTPDisabled, agg,
+		"TOTP two-factor authentication was disabled")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventExternalAccountLinked),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "An external account (OAuth2/OIDC) was linked to the user",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "provider", Type: "string", Required: true},
-			{Name: "subject", Type: "string", Required: true},
-			{Name: "email", Type: "string"},
-			{Name: "display_name", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.ExternalAccountLinkedPayload](catalog,
+		identitymodel.EventExternalAccountLinked, agg,
+		"An external account (OAuth2/OIDC) was linked to the user")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventExternalAccountUnlinked),
-		Aggregate:     string(identitymodel.AggregateTypeUser),
-		SchemaVersion: sv,
-		Description:   "An external account was unlinked from the user",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "provider", Type: "string", Required: true},
-			{Name: "subject", Type: "string", Required: true},
-		},
-	})
+	registerDerived[identitymodel.ExternalAccountUnlinkedPayload](catalog,
+		identitymodel.EventExternalAccountUnlinked, agg,
+		"An external account was unlinked from the user")
 }
 
 func registerMembershipEvents(catalog *cqrshtmx.EventCatalog) {
-	sv := identitymodel.CurrentSchemaVersion
+	agg := identitymodel.AggregateTypeMembership
 
-	//cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
-	catalog.Register(
-		cqrshtmx.EventMetadata{
-			Type:          string(identitymodel.EventMemberAdded),
-			Aggregate:     string(identitymodel.AggregateTypeMembership),
-			SchemaVersion: sv,
-			Description:   "A member was added to a tenant with roles",
-			PayloadFields: []cqrshtmx.PayloadField{
-				{Name: "schema_version", Type: "int", Required: true},
-				{Name: "actor_kind", Type: "string", Required: true},
-				{Name: "actor_id", Type: "string", Required: true},
-				{Name: "tenant_id", Type: "string", Required: true},
-				{Name: "roles", Type: "[]Role", Required: true},
-			},
-		},
-	)
+	registerDerived[identitymodel.MemberAddedPayload](catalog,
+		identitymodel.EventMemberAdded, agg,
+		"A member was added to a tenant with roles")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventMemberRolesChanged),
-		Aggregate:     string(identitymodel.AggregateTypeMembership),
-		SchemaVersion: sv,
-		Description:   "A member roles were changed within a tenant",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "actor_kind", Type: "string", Required: true},
-			{Name: "actor_id", Type: "string", Required: true},
-			{Name: "tenant_id", Type: "string", Required: true},
-			{Name: "roles", Type: "[]Role", Required: true},
-		},
-	})
+	registerDerived[identitymodel.MemberRolesChangedPayload](catalog,
+		identitymodel.EventMemberRolesChanged, agg,
+		"A member roles were changed within a tenant")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventMemberRemoved),
-		Aggregate:     string(identitymodel.AggregateTypeMembership),
-		SchemaVersion: sv,
-		Description:   "A member was removed from a tenant",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "actor_id", Type: "string", Required: true},
-			{Name: "tenant_id", Type: "string", Required: true},
-		},
-	})
+	registerDerived[identitymodel.MemberRemovedPayload](catalog,
+		identitymodel.EventMemberRemoved, agg,
+		"A member was removed from a tenant")
 }
 
-//nolint:exhaustruct // descriptions are intentional; field lists are illustrative
 func registerTenantEvents(catalog *cqrshtmx.EventCatalog) {
-	sv := identitymodel.CurrentSchemaVersion
+	agg := identitymodel.AggregateTypeTenant
 
-	//cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
-	catalog.Register(
-		cqrshtmx.EventMetadata{
-			Type:          string(identitymodel.EventTenantCreated),
-			Aggregate:     string(identitymodel.AggregateTypeTenant),
-			SchemaVersion: sv,
-			Description:   "A tenant was created",
-			PayloadFields: []cqrshtmx.PayloadField{
-				{Name: "schema_version", Type: "int", Required: true},
-				{Name: "name", Type: "string", Required: true},
-				{Name: "display_name", Type: "string", Required: true},
-			},
-		},
-	)
+	registerDerived[identitymodel.TenantCreatedPayload](catalog,
+		identitymodel.EventTenantCreated, agg,
+		"A tenant was created")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventTenantSuspended),
-		Aggregate:     string(identitymodel.AggregateTypeTenant),
-		SchemaVersion: sv,
-		Description:   "A tenant was suspended with an optional reason",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "reason", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.TenantSuspendedPayload](catalog,
+		identitymodel.EventTenantSuspended, agg,
+		"A tenant was suspended with an optional reason")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventTenantReactivated),
-		Aggregate:     string(identitymodel.AggregateTypeTenant),
-		SchemaVersion: sv,
-		Description:   "A suspended tenant was reactivated",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-		},
-	})
+	registerDerived[identitymodel.TenantReactivatedPayload](catalog,
+		identitymodel.EventTenantReactivated, agg,
+		"A suspended tenant was reactivated")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventTenantDeleted),
-		Aggregate:     string(identitymodel.AggregateTypeTenant),
-		SchemaVersion: sv,
-		Description:   "A tenant was deleted with an optional reason",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "reason", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.TenantDeletedPayload](catalog,
+		identitymodel.EventTenantDeleted, agg,
+		"A tenant was deleted with an optional reason")
 }
 
-//nolint:exhaustruct // descriptions are intentional; field lists are illustrative
 func registerBotEvents(catalog *cqrshtmx.EventCatalog) {
-	sv := identitymodel.CurrentSchemaVersion
+	agg := identitymodel.AggregateTypeBot
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventBotRegistered),
-		Aggregate:     string(identitymodel.AggregateTypeBot),
-		SchemaVersion: sv,
-		Description:   "A bot was registered with a token hash and scopes",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "name", Type: "string", Required: true},
-			{Name: "owner_id", Type: "string", Required: true},
-			{Name: "token_hash", Type: "[]byte", Required: true},
-			{Name: "scopes", Type: "[]string"},
-		},
-	})
+	registerDerived[identitymodel.BotRegisteredPayload](catalog,
+		identitymodel.EventBotRegistered, agg,
+		"A bot was registered with a token hash and scopes")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventBotDeleted),
-		Aggregate:     string(identitymodel.AggregateTypeBot),
-		SchemaVersion: sv,
-		Description:   "A bot was deleted with an optional reason",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "reason", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.BotDeletedPayload](catalog,
+		identitymodel.EventBotDeleted, agg,
+		"A bot was deleted with an optional reason")
 }
 
-//nolint:exhaustruct // descriptions are intentional; field lists are illustrative
 func registerAuthEvents(catalog *cqrshtmx.EventCatalog) {
-	sv := identitymodel.CurrentSchemaVersion
+	agg := identitymodel.AggregateTypeAuth
 
-	//cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventLoginSucceeded),
-		Aggregate:     string(identitymodel.AggregateTypeAuth),
-		SchemaVersion: sv,
-		Description:   "A login succeeded (auth audit journal; one dedicated Auth stream per event)",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "method", Type: "AuthMethod", Required: true},
-			{Name: "provider", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.LoginSucceededPayload](catalog,
+		identitymodel.EventLoginSucceeded, agg,
+		"A login succeeded (auth audit journal; one dedicated Auth stream per event)")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventLoginFailed),
-		Aggregate:     string(identitymodel.AggregateTypeAuth),
-		SchemaVersion: sv,
-		Description:   "A known-user login failed with a bounded reason class (never raw error text or secrets)",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-			{Name: "method", Type: "AuthMethod", Required: true},
-			{Name: "reason", Type: "AuthFailureReason", Required: true},
-			{Name: "provider", Type: "string"},
-		},
-	})
+	registerDerived[identitymodel.LoginFailedPayload](catalog,
+		identitymodel.EventLoginFailed, agg,
+		"A known-user login failed with a bounded reason class (never raw error text or secrets)")
 
-	catalog.Register(cqrshtmx.EventMetadata{
-		Type:          string(identitymodel.EventRegistrationClosed),
-		Aggregate:     string(identitymodel.AggregateTypeAuth),
-		SchemaVersion: sv,
-		Description:   "A registration attempt was rejected because registration is closed",
-		PayloadFields: []cqrshtmx.PayloadField{
-			{Name: "schema_version", Type: "int", Required: true},
-		},
-	})
+	registerDerived[identitymodel.RegistrationClosedPayload](catalog,
+		identitymodel.EventRegistrationClosed, agg,
+		"A registration attempt was rejected because registration is closed")
 }

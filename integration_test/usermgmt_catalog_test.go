@@ -91,6 +91,22 @@ func TestUsermgmtCatalog_RecipeCompiles(t *testing.T) {
 		t.Errorf("expected %d events, got %d", wantEvents, len(svc.Events))
 	}
 
+	// The upstream drift gate: the recipe's event inventory is pinned exactly —
+	// adding or removing a simple.Event registration fails here with a report
+	// of what drifted (go-cqrs-lite catalog.AssertEventInventory).
+	catalog.AssertEventInventory(t, cat,
+		"user.registered",
+		"user.roles-updated",
+		"user.email-changed",
+		"user.display-name-changed",
+		"user.deleted",
+		"user.credential-added",
+		"user.credential-removed",
+		"user.email-verified",
+		"user.totp-enabled",
+		"user.totp-disabled",
+	)
+
 	// Every documented event must appear in the generated docs.
 	assertRecipeOpenAPI(t, cat)
 	assertRecipeAsyncAPI(t, cat)

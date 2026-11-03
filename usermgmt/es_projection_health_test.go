@@ -12,8 +12,8 @@ func TestDefaultEventCatalog_HasAllEvents(t *testing.T) {
 	catalog := usermgmt.DefaultEventCatalog()
 	events := catalog.Events()
 
-	if len(events) < 21 {
-		t.Errorf("catalog has %d events, want at least 21", len(events))
+	if len(events) != 25 {
+		t.Errorf("catalog has %d events, want exactly 25", len(events))
 	}
 
 	seen := make(map[string]bool)
@@ -23,9 +23,10 @@ func TestDefaultEventCatalog_HasAllEvents(t *testing.T) {
 
 	for _, want := range []string{
 		"UserRegistered", "RolesUpdated", "EmailChanged", "DisplayNameChanged",
-		"UserDeleted", "CredentialAdded", "CredentialRemoved", "EmailVerified",
+		"UserDeleted", "CredentialAdded", "CredentialRemoved", "CredentialUsed", "EmailVerified",
 		"TOTPEnabled", "TOTPDisabled", "ExternalAccountLinked", "ExternalAccountUnlinked",
 		"MemberAdded", "MemberRolesChanged", "MemberRemoved",
+		"LoginSucceeded", "LoginFailed", "RegistrationClosed",
 		"TenantCreated", "TenantSuspended", "TenantReactivated", "TenantDeleted",
 		"BotRegistered", "BotDeleted",
 	} {
