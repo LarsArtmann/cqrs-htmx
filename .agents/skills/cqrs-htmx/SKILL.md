@@ -138,17 +138,35 @@ qryDisp.Register("ListItems", func(ctx context.Context, q query.Query) (any, err
 app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: cmdDisp, Queries: qryDisp})
 ```
 
-**What is a `command.Command`?** It is an interface from go-cqrs-lite with three methods: `Type() command.Type`, `AggregateID() id.AggregateID`, `ID() id.CommandID`. Your command struct must implement all three:
+**What is a `command.Command`?** It is an interface from go-cqrs-lite with three methods: `Type() command.Type`, `StreamID() id.StreamID`, `ID() id.CommandID`. Two shapes satisfy it:
 
 ```go
+// Mapper path (DecodeJSON/DecodeForm): you construct the command — embed
+// the provided core instead of hand-rolling the three methods.
 type createItemCmd struct {
-    aggID id.AggregateID
-    cmdID id.CommandID
-    Name  string
+    *command.BasicCommand // provides Type(), StreamID(), ID()
+    Name                  string
 }
-func (c *createItemCmd) Type() command.Type          { return "CreateItem" }
-func (c *createItemCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *createItemCmd) ID() id.CommandID            { return c.cmdID }
+
+func newCreateItemCmd(name string) (*createItemCmd, error) {
+    core, err := command.New("CreateItem", id.NewStreamID())
+    if err != nil {
+        return nil, err // only when the kind is empty
+    }
+    return &createItemCmd{BasicCommand: core, Name: name}, nil
+}
+
+// Typed path (DecodeJSONTyped): the decoder builds a zero value, so an
+// embedded pointer would be nil — implement the methods by hand.
+type typedItemCmd struct {
+    aggID id.StreamID
+    cmdID id.CommandID
+    name  string
+}
+
+func (c *typedItemCmd) Type() command.Type    { return "CreateItem" }
+func (c *typedItemCmd) StreamID() id.StreamID { return c.aggID }
+func (c *typedItemCmd) ID() id.CommandID      { return c.cmdID }
 ```
 
 `query.Query` is the same pattern: just `Type() query.Type`.
@@ -158,7 +176,7 @@ func (c *createItemCmd) ID() id.CommandID            { return c.cmdID }
 ```go
 mux.Handle("POST /items", app.Command("CreateItem",
     cqrshtmx.DecodeJSON(func(req createItemRequest) (command.Command, error) {
-        return &createItemCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID(), Name: req.Name}, nil
+        return newCreateItemCmd(req.Name), nil
     }),
     cqrshtmx.WithSuccessStatus(201),
     cqrshtmx.PushURL("/items"), // HTMX: update the address bar
@@ -192,7 +210,7 @@ mux.Handle("GET /items", app.Query("ListItems",
 ```go
 mux.Handle("POST /items", app.Command("CreateItem",
     cqrshtmx.DecodeForm(func(req createItemForm) (command.Command, error) {
-        return &createItemCmd{aggID: id.NewAggregateID(), cmdID: id.NewCommandID(), Name: req.Name}, nil
+        return newCreateItemCmd(req.Name), nil
     }),
     cqrshtmx.PushURL("/items"),
     cqrshtmx.NotifySuccess("Item created"), // HX-Trigger toast
@@ -209,13 +227,13 @@ For HTML rendering: `cqrshtmx.RenderTempl(component)` (templ), `cqrshtmx.RenderT
 //doc:api-tour
 // 1. Define a type that implements command.Command directly.
 type greetCmd struct {
-    aggID id.AggregateID
+    aggID id.StreamID
     cmdID id.CommandID
     Name  string `json:"name"`
 }
-func (c *greetCmd) Type() command.Type          { return "Greet" }
-func (c *greetCmd) AggregateID() id.AggregateID { return c.aggID }
-func (c *greetCmd) ID() id.CommandID            { return c.cmdID }
+func (c *greetCmd) Type() command.Type    { return "Greet" }
+func (c *greetCmd) StreamID() id.StreamID { return c.aggID }
+func (c *greetCmd) ID() id.CommandID      { return c.cmdID }
 
 // 2. Register with command.RegisterTyped (typed handler, no type assertion).
 _ = command.RegisterTyped(cmdDisp, "Greet",
