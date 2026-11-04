@@ -150,6 +150,26 @@ host uses an internal in-memory checkpoint store
 stores) and there is no declarative equivalent of the `Hydrator` restart
 contract. The SQL read models therefore stay on the v4 trains unchanged.
 
+**Re-verified 2026-11-04** (post R1–R9 of the leverage plan,
+`cqrs-upgrade -dry-run --workspace` at go-cqrs-lite master `6e117971a`):
+the 41/41/78 triple is STABLE — all 41 V007 findings still sit in usermgmt
+(no new v5-removed API shipped this wave; the R9 view cache deliberately
+sits on the `kv.ViewStore` interface, which survives the v5 cut). Two
+caveats for the next re-run:
+
+- 5 modules (root, adminui, dashboardui, loginpage, setup) currently FAIL
+  the hermetic package load — they consume HEAD-only cqrs-htmx symbols not
+  yet tagged (the root-tag-gap class, gotcha 30). Their historical V007
+  count is zero, so the 41 is not understated, but a post-train re-run must
+  come back green-loaded before this reconciliation can be called fresh.
+- **`record.Cause` migration is v5-gated, not shippable v4 code**: the
+  replacement home for causation exists as a TYPE upstream
+  (`record/cause.go` on master), but `metadata.Metadata` still carries only
+  `CausationID` — no `Cause` field or accessor exists in any v4 release.
+  The three dashboardui `meta.CausationID` reads (detail_items.go) migrate
+  at the v5 cut together with the metadata change; pre-porting them is a
+  plan erratum (leverage plan R10/B33–B35), not executable work.
+
 ### 6. Already removed (for completeness — do NOT re-plan)
 
 - **WebSocket transport** — ADR-0046 (executed): `WSBroadcaster`,

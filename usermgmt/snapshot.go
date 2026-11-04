@@ -79,6 +79,19 @@ func snapshotOptions[State any](config SnapshotConfig) []decider.RepositoryOptio
 	return opts
 }
 
+// snapshotStateShapeVersion is the declared shape version of the aggregate
+// State structs these repositories fold (UserState, MembershipState,
+// TenantState, BotState — owned by identity-model). Every snapshot written
+// is stamped with it, and a load whose stored stamp differs discards the
+// snapshot and rebuilds state from the journal: a stale-shaped snapshot is
+// never decoded into the current State (the journal is the truth).
+// Unstamped legacy snapshots always load — absent means accept upstream.
+//
+// Bump this when a State shape changes incompatibly (field renames, type
+// changes — not additive-only changes), in the same change as the shape
+// edit, so old snapshots silently self-heal on first load.
+const snapshotStateShapeVersion = "v1"
+
 // repositoryOptions builds the full decider.RepositoryOption list: snapshot
 // options (if configured), a best-effort state cache, and the audit-trail
 // enricher. The state cache eliminates full event replay on every Execute
@@ -96,6 +109,7 @@ func snapshotOptions[State any](config SnapshotConfig) []decider.RepositoryOptio
 func repositoryOptions[State any](config SnapshotConfig) []decider.RepositoryOption[State] {
 	opts := snapshotOptions[State](config)
 	return append(opts,
+		decider.WithSnapshotStateVersion[State](snapshotStateShapeVersion),
 		decider.WithStateCache[State](decider.NewStateCache[State](0)),
 		decider.WithEnricher[State](event.CompositeEnricher(
 			event.ActorEnricher,

@@ -375,3 +375,100 @@ func TestSnapshot_WritePathConsultsSnapshot_OnCacheMiss(t *testing.T) {
 	t.Logf("cache-miss ChangeEmail: snapshot.Load=%d, fullLoad=%d, LoadFromVersion=%d",
 		snapLoads, fullLoads, loadsFromVersion)
 }
+
+// TestSnapshot_StaleShapeStampDiscardedAndRebuilt (R10 B39): a snapshot whose
+// StateShape stamp predates the declared snapshotStateShapeVersion must be
+// discarded on load — the repository rebuilds state from the full journal —
+// and the command still succeeds on the rebuilt truth. The follow-up
+// snapshot rewrite carries the CURRENT stamp, so the stale shape self-heals
+// after one load.
+func TestSnapshot_StaleShapeStampDiscardedAndRebuilt(t *testing.T) {
+	t.Parallel()
+
+	innerSnap := NewMemorySnapshotStore()
+	snapStore := &countingSnapshotStore{SnapshotStore: innerSnap}
+	strategy, err := snapshot.EveryNEvents(1)
+	if err != nil {
+		t.Fatalf("EveryNEvents: %v", err)
+	}
+	eventStore := &countingEventStore{Store: memory.NewMemoryStore()}
+
+	svc, err := NewService(ServiceConfig{
+		EventStore: eventStore,
+		Store:      snapStore,
+		Codec:      codec.JSONCodec{},
+		Strategy:   strategy,
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	ctx := context.Background()
+	resp, err := svc.Register(ctx, RegisterRequest{
+		ID:    NewUserID("shape-guard"),
+		Email: "shape-guard@example.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	// The fresh snapshot carries the current stamp.
+	ref := id.StreamRef{Type: aggregateTypeUser, ID: id.StreamIDFrom(resp.User.ID)}
+
+	innerSnap.mu.RLock()
+	fresh, ok := innerSnap.snapshots[ref]
+	innerSnap.mu.RUnlock()
+
+	if !ok || fresh.StateShape != snapshotStateShapeVersion {
+		t.Fatalf("fresh snapshot must carry the declared shape stamp %q, got %+v",
+			snapshotStateShapeVersion, fresh)
+	}
+
+	if err := svc.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	// Age the stored snapshot: a stamp from a previous State-shape era.
+	innerSnap.mu.Lock()
+	stale := innerSnap.snapshots[ref]
+	stale.StateShape = "v0-prehistoric"
+	innerSnap.snapshots[ref] = stale
+	innerSnap.mu.Unlock()
+
+	eventStore.mu.Lock()
+	eventStore.fullLoads = 0
+	eventStore.loadsFromVersion = 0
+	eventStore.mu.Unlock()
+
+	svc2, err := NewService(ServiceConfig{
+		EventStore: eventStore,
+		Store:      snapStore,
+		Codec:      codec.JSONCodec{},
+		Strategy:   strategy,
+	})
+	if err != nil {
+		t.Fatalf("NewService (2nd): %v", err)
+	}
+	defer svc2.Close() //nolint:errcheck // test cleanup
+
+	// The command must succeed on the journal-rebuilt state (not the stale
+	// snapshot bytes), and the rebuild is observable as a full replay.
+	if err := svc2.ChangeEmail(ctx, resp.User.ID, "after-shape-bump@example.com"); err != nil {
+		t.Fatalf("ChangeEmail over stale-shaped snapshot: %v", err)
+	}
+
+	fullLoads, _ := eventStore.snapshot()
+	if fullLoads == 0 {
+		t.Fatal("stale-shaped snapshot was NOT discarded — no full-journal rebuild happened")
+	}
+
+	// Self-healing: the rewrite after the rebuilt command carries the current stamp.
+	innerSnap.mu.RLock()
+	healed := innerSnap.snapshots[ref]
+	innerSnap.mu.RUnlock()
+
+	if healed.StateShape != snapshotStateShapeVersion {
+		t.Fatalf("post-discard rewrite must carry the current stamp %q, got %q",
+			snapshotStateShapeVersion, healed.StateShape)
+	}
+}

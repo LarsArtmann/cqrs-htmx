@@ -1,0 +1,365 @@
+== /home/lars/projects/cqrs-htmx ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/dedup/v4  v4.3.0  v4.3.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+
+deprecation report: scan failed — package load failed: /home/lars/projects/cqrs-htmx/adminui: -: # github.com/larsartmann/cqrs-htmx/adminui/v4
+./config.go:78:29: undefined: cqrshtmx.Posture
+./config.go:122:20: undefined: cqrshtmx.PostureAuthenticated
+./config.go:122:51: undefined: cqrshtmx.PostureRoleGated
+./config.go:123:16: undefined: cqrshtmx.PosturePublic
+./config.go:123:40: undefined: cqrshtmx.PostureUngated
+./routes.go:48:19: undefined: cqrshtmx.Posture
+./routes.go:417:23: undefined: cqrshtmx.PosturePublic
+./routes.go:436:48: undefined: cqrshtmx.Posture
+./routes.go:441:18: undefined: cqrshtmx.PostureRoleGated (v5-readiness unknown)
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/adminui ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/adminui/go.mod
+deprecation report: scan failed — package load failed: /home/lars/projects/cqrs-htmx/adminui: -: # github.com/larsartmann/cqrs-htmx/adminui/v4
+./config.go:78:29: undefined: cqrshtmx.Posture
+./config.go:122:20: undefined: cqrshtmx.PostureAuthenticated
+./config.go:122:51: undefined: cqrshtmx.PostureRoleGated
+./config.go:123:16: undefined: cqrshtmx.PosturePublic
+./config.go:123:40: undefined: cqrshtmx.PostureUngated
+./routes.go:48:19: undefined: cqrshtmx.Posture
+./routes.go:417:23: undefined: cqrshtmx.PosturePublic
+./routes.go:436:48: undefined: cqrshtmx.Posture
+./routes.go:441:18: undefined: cqrshtmx.PostureRoleGated (v5-readiness unknown)
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/auditlog ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/auditlog/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/dashboardui ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4/eventtest  v0.4.0  v0.4.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/listing/v4  v4.4.4  v4.4.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4  v4.7.1  v4.7.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/snapshot/v4  v4.7.0  v4.7.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/system/v4  v4.16.0  v4.16.0  up-to-date
+
+deprecation report: scan failed — package load failed: /home/lars/projects/cqrs-htmx/dashboardui: -: # github.com/larsartmann/cqrs-htmx/dashboardui/v4
+./routes.go:49:19: undefined: cqrshtmx.Posture
+./routes.go:418:55: undefined: cqrshtmx.Posture
+./routes.go:420:19: undefined: cqrshtmx.PosturePublic
+./routes.go:425:19: undefined: cqrshtmx.PosturePublic
+./routes.go:431:19: undefined: cqrshtmx.PostureUngated
+./routes.go:435:18: undefined: cqrshtmx.PostureRoleGated (v5-readiness unknown)
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/datastar ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/e2e/server ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4  v4.7.1  v4.7.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/snapshot/v4  v4.7.0  v4.7.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/admin-demo ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/examples/admin-demo/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/async-startup-demo ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/examples/async-startup-demo/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/basic ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/catalog-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/catalog/v4  v4.12.0  v4.12.0  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/dashboard-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4/eventtest  v0.4.0  v0.4.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/listing/v4  v4.4.4  v4.4.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4  v4.7.1  v4.7.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/snapshot/v4  v4.7.0  v4.7.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/datastar-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/middleware-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/middleware/v4  v4.7.2  v4.7.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/otel/v4  v4.5.3  v4.5.3  up-to-date
+github.com/larsartmann/go-cqrs-lite/prometheus/v4  v4.3.4  v4.3.4  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/middleware-showcase ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/examples/middleware-showcase/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/observability-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/middleware/v4  v4.7.2  v4.7.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/otel/v4  v4.5.3  v4.5.3  up-to-date
+github.com/larsartmann/go-cqrs-lite/prometheus/v4  v4.3.4  v4.3.4  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/samber-do-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/setup-demo ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/examples/setup-demo/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/sync-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/examples/system-demo ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/system/v4  v4.16.0  v4.16.0  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/health ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/health/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/identity-model ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/integration_test ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/catalog/v4  v4.12.0  v4.12.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/encryption/v4  v4.4.6  v4.4.6  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/record/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/signing/v4  v4.4.2  v4.4.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/snapshot/v4  v4.7.0  v4.7.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/v4  v4.11.1  v4.11.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/system/v4  v4.16.0  v4.16.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/watermill/v4  v4.7.0  v4.7.0  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: 2 hint(s) — advisory migration hints, never auto-applied:
+  /home/lars/projects/cqrs-htmx/integration_test/async_startup_test.go:100:2 hand-rolled eventually loop (deadline condition + time.Sleep polling) — systemscenario.ThenQuery / ThenQueryEventuallyFails provide the poll, timeout, and last-mismatch diagnostics as tested assertions [suggest:then-query]
+  /home/lars/projects/cqrs-htmx/integration_test/health_probe_test.go:113:2 hand-rolled eventually loop (deadline condition + time.Sleep polling) — systemscenario.ThenQuery / ThenQueryEventuallyFails provide the poll, timeout, and last-mismatch diagnostics as tested assertions [suggest:then-query]
+
+== /home/lars/projects/cqrs-htmx/loginpage ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/loginpage/go.mod
+deprecation report: scan failed — package load failed: /home/lars/projects/cqrs-htmx/loginpage: -: # github.com/larsartmann/cqrs-htmx/loginpage/v4
+./handler.go:190:39: undefined: cqrshtmx.RoutePosture
+./handler.go:191:20: undefined: cqrshtmx.RoutePosture
+./handler.go:194:21: undefined: cqrshtmx.PosturePublic (v5-readiness unknown)
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/setup ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4/eventtest  v0.4.0  v0.4.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/middleware/v4  v4.7.2  v4.7.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/otel/v4  v4.5.3  v4.5.3  up-to-date
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4  v4.7.1  v4.7.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/v4  v4.11.1  v4.11.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/watermill/v4  v4.7.0  v4.7.0  up-to-date
+
+deprecation report: scan failed — package load failed: /home/lars/projects/cqrs-htmx/setup: -: # github.com/larsartmann/cqrs-htmx/setup/v4
+./config.go:144:26: undefined: usermgmt.ViewCacheConfig
+./route_postures.go:19:45: undefined: cqrshtmx.RoutePosture
+./route_postures.go:21:26: undefined: cqrshtmx.RoutePosture
+./route_postures.go:27:32: undefined: cqrshtmx.RoutePosture
+./route_postures.go:30:22: undefined: cqrshtmx.PostureUngated
+./route_postures.go:37:32: undefined: cqrshtmx.RoutePosture
+./route_postures.go:40:22: undefined: cqrshtmx.PosturePublic
+./route_postures.go:84:45: undefined: cqrshtmx.RoutePosture
+./route_postures.go:111:44: undefined: cqrshtmx.RoutePosture
+./route_postures.go:158:55: undefined: cqrshtmx.RoutePosture
+./route_postures.go:40:22: too many errors (v5-readiness unknown)
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/systemadapter ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4  v4.6.0  v4.6.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/metaengine/v4  v4.20.0  v4.20.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/projection/v4  v4.4.2  v4.4.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4  v4.7.1  v4.7.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/record/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/schema/v4  v4.7.1  v4.7.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/system/v4  v4.16.0  v4.16.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4  v4.2.1  v4.2.1  up-to-date
+
+deprecation report: no v5-removed API usage detected
+suggestions: 2 hint(s) — advisory migration hints, never auto-applied:
+  /home/lars/projects/cqrs-htmx/systemadapter/declarative_test.go:110:2 hand-rolled eventually loop (deadline condition + time.Sleep polling) — systemscenario.ThenQuery / ThenQueryEventuallyFails provide the poll, timeout, and last-mismatch diagnostics as tested assertions [suggest:then-query]
+  /home/lars/projects/cqrs-htmx/systemadapter/declarative_test.go:85:2 hand-rolled eventually loop (deadline condition + time.Sleep polling) — systemscenario.ThenQuery / ThenQueryEventuallyFails provide the poll, timeout, and last-mismatch diagnostics as tested assertions [suggest:then-query]
+
+== /home/lars/projects/cqrs-htmx/usermgmt ==
+module  current  latest  status
+github.com/larsartmann/go-cqrs-lite/command/v4  v4.14.1  v4.14.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4  v4.3.1  v4.3.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/decider/v4  v4.8.0  v4.8.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/dedup/v4  v4.3.0  v4.3.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/event/v4  v4.15.2  v4.15.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/id/v4  v4.7.4  v4.7.4  up-to-date
+github.com/larsartmann/go-cqrs-lite/kv/v4  v4.3.5  v4.3.5  up-to-date
+github.com/larsartmann/go-cqrs-lite/middleware/v4  v4.7.2  v4.7.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/projection/v4  v4.4.2  v4.4.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4  v4.7.1  v4.7.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/query/v4  v4.10.1  v4.10.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/scenario/v4  v4.4.3  v4.4.3  up-to-date
+github.com/larsartmann/go-cqrs-lite/snapshot/v4  v4.7.0  v4.7.0  up-to-date
+github.com/larsartmann/go-cqrs-lite/stack/v4  v4.5.1  v4.5.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/memory/v4  v4.6.2  v4.6.2  up-to-date
+github.com/larsartmann/go-cqrs-lite/storage/v4  v4.11.1  v4.11.1  up-to-date
+github.com/larsartmann/go-cqrs-lite/watermill/v4  v4.7.0  v4.7.0  up-to-date
+
+deprecation report: 41 finding(s) — APIs removed at go-cqrs-lite v5:
+  /home/lars/projects/cqrs-htmx/usermgmt/es_materialize_adapter.go:54:14 stack.Materialize is removed at v5 (ADR-0123) — replace with metaengine auto-projection [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/es_materialize_adapter.go:73:7 stack.Materialize is removed at v5 (ADR-0123) — replace with metaengine auto-projection [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/es_materialize_adapter.go:89:54 stack.Materialize is removed at v5 (ADR-0123) — replace with metaengine auto-projection [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/es_setup_core.go:45:10 stack.Bundle is removed at v5 (ADR-0123) — replace with system.New composition [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:109:9 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:19:11 storage.ViewMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:19:37 storage.ViewStoreOption is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:20:5 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:29:9 storage.ViewMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:31:5 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:52:11 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:60:23 storage.ViewMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:61:7 storage.AutoMapperWithTombstone is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:62:16 storage.IndexSpec is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:74:3 storage.NewSQLiteViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel.go:83:3 storage.NewSQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:128:11 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:132:25 storage.ViewMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:133:7 storage.AutoMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:135:16 storage.IndexSpec is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:144:3 storage.NewSQLiteViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:152:3 storage.NewSQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:218:11 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:222:22 storage.ViewMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:223:7 storage.AutoMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:225:16 storage.IndexSpec is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:234:3 storage.NewSQLiteViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:242:3 storage.NewSQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:30:11 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:323:9 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:344:9 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:34:29 storage.ViewMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:35:7 storage.AutoMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:37:16 storage.IndexSpec is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:46:3 storage.NewSQLiteViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_extra.go:54:3 storage.NewSQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_mysql.go:15:21 storage.ViewMapper is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_mysql.go:15:52 storage.ViewStoreOption is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_mysql.go:16:5 storage.SQLViewStore is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/sql_readmodel_mysql.go:17:9 storage.NewViewStoreWithDialect is removed at v5 (ADR-0126) — replace with metaengine engines with layout planning [V007]
+  /home/lars/projects/cqrs-htmx/usermgmt/stack_repositories.go:26:37 stack.Bundle is removed at v5 (ADR-0123) — replace with system.New composition [V007]
+suggestions: 2 hint(s) — advisory migration hints, never auto-applied:
+  /home/lars/projects/cqrs-htmx/usermgmt/es_projection_setup_test.go:207:2 hand-rolled eventually loop (deadline condition + time.Sleep polling) — systemscenario.ThenQuery / ThenQueryEventuallyFails provide the poll, timeout, and last-mismatch diagnostics as tested assertions [suggest:then-query]
+  /home/lars/projects/cqrs-htmx/usermgmt/projection_failed_test.go:84:2 hand-rolled eventually loop (deadline condition + time.Sleep polling) — systemscenario.ThenQuery / ThenQueryEventuallyFails provide the poll, timeout, and last-mismatch diagnostics as tested assertions [suggest:then-query]
+
+== /home/lars/projects/cqrs-htmx/usermgmt/oauth2 ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/usermgmt/oauth2/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/usermgmt/totp ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/usermgmt/totp/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+
+== /home/lars/projects/cqrs-htmx/usermgmt/webauthn ==
+no direct go-cqrs-lite pins found in /home/lars/projects/cqrs-htmx/usermgmt/webauthn/go.mod
+deprecation report: no v5-removed API usage detected
+suggestions: none (advisory; never auto-applied)
+dry run: no changes written
+cqrs-upgrade: --strict: deprecation scan failed in 5 module(s) — v5-readiness unproven, see report
+exit status 1
