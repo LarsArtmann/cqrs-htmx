@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-etag/server v0.6.1
-	github.com/larsartmann/go-idempotency v0.3.1
+	github.com/larsartmann/go-idempotency v0.3.2
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/larsartmann/go-sse/ssetest v0.5.0
 	github.com/larsartmann/httputil v1.7.0

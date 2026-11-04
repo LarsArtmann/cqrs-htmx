@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
-	github.com/larsartmann/go-idempotency v0.3.1 // indirect
+	github.com/larsartmann/go-idempotency v0.3.2 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

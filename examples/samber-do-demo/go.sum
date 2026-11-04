@@ -242,8 +242,8 @@ github.com/larsartmann/go-health v0.8.1 h1:xQRjfmlh5dcbgm8RUphDpCIVKrNh7CV5zJOYR
 github.com/larsartmann/go-health v0.8.1/go.mod h1:m+W6ASIdwRAwaVN7nG5yP7XAdBYf6cMePzxbp5ZRZ2E=
 github.com/larsartmann/go-health-dashboard v0.12.2 h1:EiZZ72T2zJDOKuj3pP7hIY+2yg1LTPq3vl0PAovGtR0=
 github.com/larsartmann/go-health-dashboard v0.12.2/go.mod h1:chHNSHrokRAUBXqrFQo+FYpizzvCzEzlw+e7W6CUXiw=
-github.com/larsartmann/go-idempotency v0.3.1 h1:LzCg+4DI/RrqPJvR6bmmxMUE/jfUK2quREj0/2exSXI=
-github.com/larsartmann/go-idempotency v0.3.1/go.mod h1:cgc4TyjWbLh8qG+7iNgl3qrjfDhvjjzKkfVblVm9cTQ=
+github.com/larsartmann/go-idempotency v0.3.2 h1:K72np15S/nYJC4twpeyeQKvWqLi9a5iFxBYXPKahxxg=
+github.com/larsartmann/go-idempotency v0.3.2/go.mod h1:NdfAPx6bvxolNgNeb+yjqBoqbazupNIl3eCLbUqJOh0=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
 github.com/larsartmann/go-ndjson v0.0.1/go.mod h1:ueEJJ39Jei+zfPCEx455kpunYWZf/pkwn7HqETHrQkU=
 github.com/larsartmann/go-output v0.38.7 h1:U6+bAttbScCmy8izcBQ4tLEQ5yYVHXjioAWJ5yocAA4=
