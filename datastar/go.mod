@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
-	github.com/larsartmann/go-datastar v0.6.2
+	github.com/larsartmann/go-datastar v0.6.3
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/stretchr/testify v1.12.1

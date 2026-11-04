@@ -50,8 +50,8 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 h1:0pvOQNTZ4ft6UsRA8X01+l
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0/go.mod h1:xPlRbFNmRk6ym58R2IGy4d8yLysx2G1t8udljtH310w=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX2xkBd8FPen7hDraHFfVsMFhFdZs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
-github.com/larsartmann/go-datastar v0.6.2 h1:jmfiddveCW0zi1j2064zQDhFAZaRfjRQZmhWmVT6w3U=
-github.com/larsartmann/go-datastar v0.6.2/go.mod h1:/Tg5AAvuJoKVk2KiWc6sT/6szRmrXYsYXsUQYkXovnQ=
+github.com/larsartmann/go-datastar v0.6.3 h1:aipmkxJDXZrqW8bYLZD5oyfmD6NAdil6a7T5pukNNBs=
+github.com/larsartmann/go-datastar v0.6.3/go.mod h1:Ef+/7YlTf3be7m7LxTQBt7Dzd3pGi40kpQr87z7nk3k=
 github.com/larsartmann/go-datastar/broadcast v0.6.2 h1:+oIvxoK3qVVBm1mV/BwFMYNDqKs9VM/sSmAPkuj6nOU=
 github.com/larsartmann/go-datastar/broadcast v0.6.2/go.mod h1:IzBChmu607vwXnr1rmm5pvTxhJiwxii8tSlYGxylkuk=
 github.com/larsartmann/go-datastar/static v0.6.1 h1:f9uKQG0tabjkdYVHM0qVmZlGDGsUVRxPU+UuelGhpxk=

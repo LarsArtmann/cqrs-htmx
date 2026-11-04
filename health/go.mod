@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/go-health v0.8.1
+	github.com/larsartmann/go-health v0.9.0
 	github.com/larsartmann/go-health-dashboard v0.12.2
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-datastar v0.6.2 // indirect
+	github.com/larsartmann/go-datastar v0.6.3 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
@@ -35,11 +35,11 @@ require (
 	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil v1.8.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
-	github.com/larsartmann/templ-components v1.26.0 // indirect
-	github.com/larsartmann/templ-components/datastar v1.26.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.26.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.26.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.26.0 // indirect
+	github.com/larsartmann/templ-components v1.27.0 // indirect
+	github.com/larsartmann/templ-components/datastar v1.27.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.27.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.27.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.27.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
