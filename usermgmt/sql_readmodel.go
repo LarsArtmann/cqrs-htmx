@@ -52,6 +52,9 @@ type SQLUserReadModel struct {
 	store   *storage.SQLViewStore[UserView, UserID] //nolint:staticcheck // ADR-0123 v5
 	querier kv.ViewQuerier[UserView]
 	counter kv.ViewCounter[UserView]
+	// cache fronts the store on the FindByID path (write-through on the
+	// projection sync path). Disabled by default; see [WithViewCacheCapacity].
+	cache *viewCache[UserView, UserID]
 }
 
 func userViewMapper() storage.ViewMapper[UserView] { //nolint:staticcheck // ADR-0123 v5
@@ -65,19 +68,21 @@ func userViewMapper() storage.ViewMapper[UserView] { //nolint:staticcheck // ADR
 	return m
 }
 
-func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
+func NewSQLiteUserReadModel(db *sql.DB, opts ...ViewCacheOption) (*SQLUserReadModel, error) {
 	return buildSQLUserReadModel(
 		db,
 		storage.NewSQLiteViewStore[UserView, UserID], //nolint:staticcheck // ADR-0123 v5
 		"create sqlite user view store",
+		opts...,
 	)
 }
 
-func NewSQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
+func NewSQLUserReadModel(db *sql.DB, opts ...ViewCacheOption) (*SQLUserReadModel, error) {
 	return buildSQLUserReadModel(
 		db,
 		storage.NewSQLViewStore[UserView, UserID], //nolint:staticcheck // ADR-0123 v5
 		"create sql user view store",
+		opts...,
 	)
 }
 
@@ -88,6 +93,7 @@ func buildSQLUserReadModel(
 	db *sql.DB,
 	create viewStoreCreator[UserView, UserID],
 	errMsg string,
+	opts ...ViewCacheOption,
 ) (*SQLUserReadModel, error) {
 	store, err := newViewStoreOrFail(
 		create, db, userViewMapper(),
@@ -96,13 +102,40 @@ func buildSQLUserReadModel(
 	if err != nil {
 		return nil, err
 	}
-	return newSQLUserReadModel(store), nil
+	return newSQLUserReadModel(store, opts...)
 }
 
 func newSQLUserReadModel(
 	store *storage.SQLViewStore[UserView, UserID], //nolint:staticcheck // ADR-0123 v5
-) *SQLUserReadModel {
-	return &SQLUserReadModel{UserReadModel: NewUserReadModel(), store: store, querier: store, counter: store}
+	opts ...ViewCacheOption,
+) (*SQLUserReadModel, error) {
+	cache, err := newViewCache[UserView, UserID](store, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &SQLUserReadModel{
+		UserReadModel: NewUserReadModel(), store: store, querier: store, counter: store, cache: cache,
+	}, nil
+}
+
+// newSQLUserReadModelFromViewStore assembles the model over view-store
+// interfaces so tests (and future non-SQL backends) can substitute fakes;
+// the cache wraps the same interface, keeping the seam v5-neutral. The
+// concrete store field stays nil here — Hydrate's Scan is a SQL-path-only
+// concern and interface-built models never hydrate.
+func newSQLUserReadModelFromViewStore(
+	store kv.ViewStore[UserView, UserID],
+	querier kv.ViewQuerier[UserView],
+	counter kv.ViewCounter[UserView],
+	opts ...ViewCacheOption,
+) (*SQLUserReadModel, error) {
+	cache, err := newViewCache[UserView, UserID](store, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &SQLUserReadModel{
+		UserReadModel: NewUserReadModel(), querier: querier, counter: counter, cache: cache,
+	}, nil
 }
 
 func (m *SQLUserReadModel) Handle(ctx context.Context, evt event.Event) error {
@@ -116,7 +149,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	aggID := evt.StreamID()
 	if evt.Type() == eventUserDeleted {
 		userID := NewUserID(aggID.Get())
-		if err := m.store.Delete(ctx, userID); err != nil {
+		if err := m.cache.Delete(ctx, userID); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.delete", "delete user view").
 				WithContextAny("user_id", userID)
 		}
@@ -139,7 +172,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 		Data:      data,
 	}
 	userID := NewUserID(aggID.Get())
-	if err := m.store.Set(ctx, userID, &view); err != nil {
+	if err := m.cache.Set(ctx, userID, &view); err != nil {
 		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.upsert", "upsert user view").
 			WithContextAny("user_id", userID)
 	}
@@ -147,7 +180,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 }
 
 func (m *SQLUserReadModel) FindByIDSQL(ctx context.Context, userID UserID) (*UserView, error) {
-	view, err := m.store.Get(ctx, userID)
+	view, err := m.cache.Get(ctx, userID)
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.get", "get user view by id").
 			WithContextAny("user_id", userID)

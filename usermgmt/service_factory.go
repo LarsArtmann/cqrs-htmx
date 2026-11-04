@@ -88,6 +88,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		EventBus:              config.EventBus,
 		ReadModelDB:           config.ReadModelDB,
 		ReadModelDialect:      config.ReadModelDialect,
+		UserViewCache:         config.UserViewCache,
 		AuditLog:              config.AuditLog,
 		Authz:                 config.Authz,
 		CheckpointStore:       config.CheckpointStore,

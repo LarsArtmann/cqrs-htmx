@@ -29,6 +29,7 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-idempotency v0.3.1
 	github.com/larsartmann/httputil v1.7.0
+	github.com/maypok86/otter/v2 v2.3.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0
 	modernc.org/sqlite v1.60.1
 	pgregory.net/rapid v1.3.0
@@ -86,7 +87,6 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.12 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.3.3 // indirect
 	github.com/moby/moby/api v1.56.1 // indirect

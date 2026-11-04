@@ -20,7 +20,7 @@ type sqlReadModels struct {
 // readModelConstructors selects the four constructor functions matching a
 // SQL dialect. Keeping them as one unit makes the dialect switch table-driven.
 type readModelConstructors struct {
-	user       func(*sql.DB) (*SQLUserReadModel, error)
+	user       func(*sql.DB, ...ViewCacheOption) (*SQLUserReadModel, error)
 	membership func(*sql.DB) (*SQLMembershipReadModel, error)
 	tenant     func(*sql.DB) (*SQLTenantReadModel, error)
 	bot        func(*sql.DB) (*SQLBotReadModel, error)
@@ -64,7 +64,9 @@ func readModelConstructorsForDialect(dialect string) (readModelConstructors, boo
 //
 // The empty string defaults to SQLite, preserving the historical ReadModelDB
 // behavior. The schemas are auto-migrated by the view stores.
-func newSQLReadModelsForDialect(db *sql.DB, dialect string) (*sqlReadModels, error) {
+func newSQLReadModelsForDialect(
+	db *sql.DB, dialect string, userCacheOpts ...ViewCacheOption,
+) (*sqlReadModels, error) {
 	ctors, ok := readModelConstructorsForDialect(dialect)
 	if !ok {
 		return nil, errorfamily.Newf(event.Rejection, "usermgmt.read_model.unsupported_dialect",
@@ -72,7 +74,7 @@ func newSQLReadModelsForDialect(db *sql.DB, dialect string) (*sqlReadModels, err
 			WithContext("dialect", dialect)
 	}
 
-	userRM, err := ctors.user(db)
+	userRM, err := ctors.user(db, userCacheOpts...)
 	if err != nil {
 		return nil, wrapReadModelError(err, "user")
 	}

@@ -151,6 +151,15 @@ type ServiceConfig struct {
 	// "pgx", or "mysql". Ignored when ReadModelDB is nil.
 	ReadModelDialect string
 
+	// UserViewCache, when set, fronts the SQL user read model's FindByIDSQL
+	// path with a process-local write-through cache (TinyLFU-bounded, otter —
+	// the same library upstream kv.Cache builds on). The projection sync path
+	// keeps it exact; secondary-index lookups (FindByEmailSQL) are never
+	// cached. Only meaningful with ReadModelDB. Nil (default) keeps every read
+	// on SQL — zero behavior change. Multi-process deployments sharing one
+	// database should set a TTL: writers in other processes bypass this cache.
+	UserViewCache *ViewCacheConfig
+
 	// SecurityHooks configures opt-in event signing and encryption.
 	// See SecurityHooks for field documentation.
 	SecurityHooks

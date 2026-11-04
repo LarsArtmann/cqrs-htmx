@@ -22,8 +22,8 @@ func mysqlViewStoreCreator[V any, K fmt.Stringer](
 }
 
 // NewMySQLUserReadModel creates a SQL-backed user read model using MySQL syntax.
-func NewMySQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	return buildSQLUserReadModel(db, mysqlViewStoreCreator[UserView, UserID], "create mysql user view store")
+func NewMySQLUserReadModel(db *sql.DB, opts ...ViewCacheOption) (*SQLUserReadModel, error) {
+	return buildSQLUserReadModel(db, mysqlViewStoreCreator[UserView, UserID], "create mysql user view store", opts...)
 }
 
 // NewMySQLMembershipReadModel creates a SQL-backed membership read model using MySQL syntax.

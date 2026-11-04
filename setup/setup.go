@@ -226,6 +226,7 @@ func resolveServiceConfig(cfg Config) usermgmt.ServiceConfig {
 		EventStore:            cfg.EventStore,
 		EventBus:              cfg.EventBus,
 		ReadModelDB:           cfg.ReadModelDB,
+		UserViewCache:         cfg.UserViewCache,
 		AuditLog:              usermgmt.NewAuditLog(),
 		TOTP:                  cfg.TOTP,
 		WebAuthn:              cfg.WebAuthn,

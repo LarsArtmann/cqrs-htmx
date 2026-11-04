@@ -135,6 +135,14 @@ type Config struct {
 	// together ("postgres"/"pgx"/"mysql").
 	ReadModelDB *sql.DB
 
+	// UserViewCache, when set with ReadModelDB, fronts the SQL user read
+	// model's by-ID reads with a process-local write-through cache
+	// (TinyLFU-bounded; exact under the single-writer projection sync path).
+	// Nil (default) keeps every read on SQL. Multi-process deployments
+	// sharing one database should set a TTL — writers in other processes
+	// bypass this cache.
+	UserViewCache *usermgmt.ViewCacheConfig
+
 	// SSEPath mounts a shared Server-Sent Events endpoint that streams every
 	// event committed to the event bus as SSE (default: "" = not mounted).
 	// The endpoint is session-gated (401 without an authenticated session) —

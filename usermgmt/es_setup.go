@@ -79,6 +79,13 @@ type EventSourcedConfig struct {
 	// dialect you use for the event store and session store.
 	ReadModelDialect string
 
+	// UserViewCache, when set, fronts the SQL user read model's FindByIDSQL
+	// path with a process-local write-through cache — the ServiceConfig knob
+	// for [WithViewCacheCapacity]/[WithViewCacheTTL]. Nil keeps every read on
+	// SQL (zero behavior change); multi-process deployments sharing one
+	// database should set a TTL, since writers in other processes bypass it.
+	UserViewCache *ViewCacheConfig
+
 	// AuditLog, if provided, is registered as a projection to record
 	// all user-related events for compliance and security monitoring.
 	AuditLog *AuditLog
@@ -267,7 +274,9 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 	botProj := projection.Projection(botReadModel)
 
 	if config.ReadModelDB != nil {
-		sqlRMs, err := newSQLReadModelsForDialect(config.ReadModelDB, config.ReadModelDialect)
+		sqlRMs, err := newSQLReadModelsForDialect(
+			config.ReadModelDB, config.ReadModelDialect, viewCacheOptions(config.UserViewCache)...,
+		)
 		if err != nil {
 			closeBus(bus)
 			return nil, err

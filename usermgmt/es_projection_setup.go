@@ -83,9 +83,11 @@ func durableDeadLetterStore(
 ) (projectionhost.DeadLetterStore, error) {
 	sqlStore, ok := journal.(*SQLEventStore)
 	if !ok {
+		//cqrs-lint:ignore(C017) in-memory journals pair with an in-memory DLQ by design; non-SQLite SQL stores (postgres/mysql) have no upstream dead-letter store — documented R4 tradeoff, consumers override via hostOpts
 		return projectionhost.NewMemoryDeadLetterStore(), nil
 	}
 	if _, isSQLite := sqlStore.Dialect.(sqlpkg.SQLiteDialect); !isSQLite {
+		//cqrs-lint:ignore(C017) upstream ships no Postgres/MySQL dead-letter store; these stores keep the in-memory DLQ (poison backlog lost on restart — the documented R4 tradeoff), consumers override via hostOpts
 		return projectionhost.NewMemoryDeadLetterStore(), nil
 	}
 
@@ -149,7 +151,6 @@ func startProjectionHost(
 
 	allOpts := append([]projectionhost.HostOption{
 		projectionhost.WithSubscriber(bus),
-		//cqrs-lint:ignore(C017) durable-when-SQLite default (durableDeadLetterStore); consumers override via hostOpts (last wins)
 		projectionhost.WithDeadLetterStore(dlq, 0),
 	}, hostOpts...)
 
