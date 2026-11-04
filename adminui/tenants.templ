@@ -82,32 +82,32 @@ templ tenantNewContent(basePath string) {
 		}}),
 		Title: "New tenant",
 	})
-		<div class="max-w-[520px]">
-			@display.Card(display.CardProps{}) {
-				<form hx-post={ basePath + "/tenants" } hx-target="this">
-					<div class="mb-4">
-						@forms.Input(forms.InputProps{
-							BaseProps:   utils.BaseProps{ID: "name"},
-							Name:        "name",
-							Placeholder: "acme-corp",
-							Required:    true,
-							HelpText:    "A unique, URL-safe identifier.",
-						})
-					</div>
-					<div class="mb-4">
-						@forms.Input(forms.InputProps{
-							BaseProps:   utils.BaseProps{ID: "display_name"},
-							Name:        "display_name",
-							Placeholder: "Acme Corporation",
-						})
-					</div>
-					<div class="flex gap-2.5">
-						@display.Button(display.ButtonProps{Text: "Create tenant", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
-						@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/tenants", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
-					</div>
-				</form>
-			}
-		</div>
+	<div class="max-w-[520px]">
+		@display.Card(display.CardProps{}) {
+			<form hx-post={ basePath + "/tenants" } hx-target="this">
+				<div class="mb-4">
+					@forms.Input(forms.InputProps{
+						BaseProps:   utils.BaseProps{ID: "name"},
+						Name:        "name",
+						Placeholder: "acme-corp",
+						Required:    true,
+						HelpText:    "A unique, URL-safe identifier.",
+					})
+				</div>
+				<div class="mb-4">
+					@forms.Input(forms.InputProps{
+						BaseProps:   utils.BaseProps{ID: "display_name"},
+						Name:        "display_name",
+						Placeholder: "Acme Corporation",
+					})
+				</div>
+				<div class="flex gap-2.5">
+					@display.Button(display.ButtonProps{Text: "Create tenant", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
+					@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/tenants", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
+				</div>
+			</form>
+		}
+	</div>
 }
 
 // tenantStatusAction is the PageHeader action slot on the tenant detail
@@ -136,50 +136,50 @@ templ tenantDetailContent(d tenantDetailData) {
 		Subtitle: d.Tenant.Name,
 		Action:   tenantStatusAction(d),
 	})
-		<div class="mb-4">
-			@membersCard(d)
-		</div>
-		@display.Card(display.CardProps{
-			Header: dangerZoneHeader(),
-		}) {
-			<div class="flex flex-wrap gap-2.5">
-				if d.Tenant.Suspended {
-					@display.Button(display.ButtonProps{
-						Text:    "Reactivate",
-						Variant: display.ButtonPrimary,
-						Size:    display.ButtonSizeSM,
-						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-							"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
-							"data-confirm":      "Reactivate this tenant? Members regain access immediately.",
-							"data-confirm-title": "Reactivate tenant",
-							"hx-disabled-elt":   "this",
-						}},
-					})
-				} else {
-					@display.Button(display.ButtonProps{
-						Text:    "Suspend",
-						Variant: display.ButtonSecondary,
-						Size:    display.ButtonSizeSM,
-						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-							"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
-							"data-confirm":      "Suspend this tenant? Members lose access until it is reactivated.",
-							"data-confirm-title": "Suspend tenant",
-							"hx-disabled-elt":   "this",
-						}},
-					})
-				}
+	<div class="mb-4">
+		@membersCard(d)
+	</div>
+	@display.Card(display.CardProps{
+		Header: dangerZoneHeader(),
+	}) {
+		<div class="flex flex-wrap gap-2.5">
+			if d.Tenant.Suspended {
 				@display.Button(display.ButtonProps{
-					Text:    "Delete",
-					Variant: display.ButtonDanger,
+					Text:    "Reactivate",
+					Variant: display.ButtonPrimary,
 					Size:    display.ButtonSizeSM,
-					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
-						"data-confirm":      "Delete this tenant and remove all memberships? This cannot be undone.",
-						"data-confirm-title": "Delete tenant",
-						"hx-disabled-elt":   "this",
+						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
+						"data-confirm":       "Reactivate this tenant? Members regain access immediately.",
+						"data-confirm-title": "Reactivate tenant",
+						"hx-disabled-elt":    "this",
 					}},
 				})
-			</div>
-		}
+			} else {
+				@display.Button(display.ButtonProps{
+					Text:    "Suspend",
+					Variant: display.ButtonSecondary,
+					Size:    display.ButtonSizeSM,
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
+						"data-confirm":       "Suspend this tenant? Members lose access until it is reactivated.",
+						"data-confirm-title": "Suspend tenant",
+						"hx-disabled-elt":    "this",
+					}},
+				})
+			}
+			@display.Button(display.ButtonProps{
+				Text:    "Delete",
+				Variant: display.ButtonDanger,
+				Size:    display.ButtonSizeSM,
+				Icon:    icon("trash"),
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
+					"data-confirm":       "Delete this tenant and remove all memberships? This cannot be undone.",
+					"data-confirm-title": "Delete tenant",
+					"hx-disabled-elt":    "this",
+				}},
+			})
+		</div>
+	}
 }

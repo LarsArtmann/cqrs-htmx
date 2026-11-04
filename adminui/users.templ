@@ -37,13 +37,13 @@ templ usersContent(d usersListData) {
 				AriaLabel: "Search users",
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
-					"autocomplete":  "off",
-					"hx-get":        d.BasePath + "/users",
-					"hx-trigger":    "submit",
-					"hx-target":     "#users-table",
-					"hx-swap":       "innerHTML",
-					"hx-push-url":   "true",
-					"hx-indicator":  "#users-search-spinner",
+					"autocomplete": "off",
+					"hx-get":       d.BasePath + "/users",
+					"hx-trigger":   "submit",
+					"hx-target":    "#users-table",
+					"hx-swap":      "innerHTML",
+					"hx-push-url":  "true",
+					"hx-indicator": "#users-search-spinner",
 				},
 			},
 		})
@@ -130,65 +130,65 @@ templ userDetailContent(d userDetailData) {
 		Subtitle: d.User.DisplayName,
 		Action:   userDetailAvatar(d),
 	})
-		@display.Grid(display.GridProps{
-			BaseProps:   utils.BaseProps{Class: "mb-5"},
-			Cols:        display.GridColsAutoFit,
-			MinColWidth: "190px",
-			Gap:         display.GridGapMD,
-		}) {
-			@display.StatCard(display.StatCardProps{Label: "Credentials", Value: strconv.Itoa(len(d.User.Credentials))})
-			@display.StatCard(display.StatCardProps{Label: "External accounts", Value: strconv.Itoa(len(d.User.ExternalAccounts))})
-			@display.StatCard(display.StatCardProps{Label: "Member since", Value: d.User.CreatedAt.Format("Jan 2, 2006")})
-		}
+	@display.Grid(display.GridProps{
+		BaseProps:   utils.BaseProps{Class: "mb-5"},
+		Cols:        display.GridColsAutoFit,
+		MinColWidth: "190px",
+		Gap:         display.GridGapMD,
+	}) {
+		@display.StatCard(display.StatCardProps{Label: "Credentials", Value: strconv.Itoa(len(d.User.Credentials))})
+		@display.StatCard(display.StatCardProps{Label: "External accounts", Value: strconv.Itoa(len(d.User.ExternalAccounts))})
+		@display.StatCard(display.StatCardProps{Label: "Member since", Value: d.User.CreatedAt.Format("Jan 2, 2006")})
+	}
+	@display.Card(display.CardProps{
+		Title:     "Details",
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		@display.DefinitionList(display.DefinitionListProps{
+			Items: []display.DefinitionItem{
+				{Term: "User ID", DetailComponent: userIDDetail(d.User.ID.Get().String())},
+				{Term: "Email", Detail: d.User.Email},
+				{Term: "Verified", DetailComponent: verifiedBadge(d.User.EmailVerified)},
+				{Term: "TOTP MFA", DetailComponent: totpBadge(d.User.TOTPEnabled)},
+			},
+		})
+	}
+	@externalAccountsCard(d)
+	if len(d.TenantRoles) > 0 {
 		@display.Card(display.CardProps{
-			Title:     "Details",
+			Title:     "Roles & memberships",
+			Padding:   display.CardPaddingNone,
 			BaseProps: utils.BaseProps{Class: "mb-4"},
 		}) {
-			@display.DefinitionList(display.DefinitionListProps{
-				Items: []display.DefinitionItem{
-					{Term: "User ID", DetailComponent: userIDDetail(d.User.ID.Get().String())},
-					{Term: "Email", Detail: d.User.Email},
-					{Term: "Verified", DetailComponent: verifiedBadge(d.User.EmailVerified)},
-					{Term: "TOTP MFA", DetailComponent: totpBadge(d.User.TOTPEnabled)},
-				},
+			@display.Table(display.TableProps{
+				Headers:     []string{"Tenant", "Roles"},
+				Hover:       true,
+				Body:        tenantRolesRows(d.TenantRoles),
+				Flush:       true,
+				CellPadding: display.TableCellPaddingCompact,
 			})
 		}
-		@externalAccountsCard(d)
-		if len(d.TenantRoles) > 0 {
-			@display.Card(display.CardProps{
-				Title:     "Roles & memberships",
-				Padding:   display.CardPaddingNone,
-				BaseProps: utils.BaseProps{Class: "mb-4"},
-			}) {
-				@display.Table(display.TableProps{
-					Headers:     []string{"Tenant", "Roles"},
-					Hover:       true,
-					Body:        tenantRolesRows(d.TenantRoles),
-					Flush:       true,
-					CellPadding: display.TableCellPaddingCompact,
-				})
-			}
-		}
-		@display.Card(display.CardProps{
-			Header:    dangerZoneHeader(),
-			BaseProps: utils.BaseProps{Attrs: templ.Attributes{"data-sync-target": ""}},
-		}) {
-			<div class="flex flex-wrap items-center justify-between gap-3.5">
-				<div class="text-sm text-gray-500">Deleting a user tombstones the account and revokes all sessions. This cannot be undone.</div>
-				@display.Button(display.ButtonProps{
-					Text:    "Delete user",
-					Variant: display.ButtonDanger,
-					Size:    display.ButtonSizeSM,
-					Icon:    icon("trash"),
-					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"hx-post":         d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
-					"data-confirm":   "Delete user " + d.User.Email + "? This cannot be undone.",
+	}
+	@display.Card(display.CardProps{
+		Header:    dangerZoneHeader(),
+		BaseProps: utils.BaseProps{Attrs: templ.Attributes{"data-sync-target": ""}},
+	}) {
+		<div class="flex flex-wrap items-center justify-between gap-3.5">
+			<div class="text-sm text-gray-500">Deleting a user tombstones the account and revokes all sessions. This cannot be undone.</div>
+			@display.Button(display.ButtonProps{
+				Text:    "Delete user",
+				Variant: display.ButtonDanger,
+				Size:    display.ButtonSizeSM,
+				Icon:    icon("trash"),
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
+					"data-confirm":       "Delete user " + d.User.Email + "? This cannot be undone.",
 					"data-confirm-title": "Delete user",
-					"hx-disabled-elt": "this",
+					"hx-disabled-elt":    "this",
 				}},
-				})
-			</div>
-		}
+			})
+		</div>
+	}
 }
 
 // userDetailAvatar keeps the identity anchor on the user detail page: the
@@ -261,9 +261,9 @@ templ externalAccountRows(d userDetailData) {
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
-						"data-confirm":      "Unlink " + ea.Provider + " from " + d.User.Email + "? The account can be linked again later.",
+						"data-confirm":       "Unlink " + ea.Provider + " from " + d.User.Email + "? The account can be linked again later.",
 						"data-confirm-title": "Unlink account",
-						"hx-disabled-elt":   "this",
+						"hx-disabled-elt":    "this",
 					}},
 				})
 			</td>
