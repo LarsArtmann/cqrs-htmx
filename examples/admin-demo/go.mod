@@ -9,6 +9,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
 	github.com/larsartmann/go-error-family v0.12.0
+	github.com/larsartmann/go-idempotency v0.3.2
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/larsartmann/httputil v1.8.0
 	github.com/larsartmann/httputil/server_timing v1.0.3
@@ -59,7 +60,6 @@ require (
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
-	github.com/larsartmann/go-idempotency v0.3.2 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
 	github.com/larsartmann/templ-components v1.26.0 // indirect
