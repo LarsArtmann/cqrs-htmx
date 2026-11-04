@@ -11,7 +11,7 @@ require (
 
 require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/a-h/templ v0.3.1070 // indirect
+	github.com/a-h/templ v0.3.1100 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f // indirect
@@ -40,7 +40,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.38.7 // indirect
 	github.com/larsartmann/go-output/table v0.38.7 // indirect
 	github.com/larsartmann/go-output/tree v0.38.7 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

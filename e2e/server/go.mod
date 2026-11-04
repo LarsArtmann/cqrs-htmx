@@ -16,14 +16,14 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/go-sse v0.6.2
+	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.8.0
 )
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
-	github.com/a-h/templ v0.3.1070 // indirect
+	github.com/a-h/templ v0.3.1100 // indirect
 	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect

@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
-	github.com/a-h/templ v0.3.1070 // indirect
+	github.com/a-h/templ v0.3.1100 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/go-playground/form/v4 v4.5.0 // indirect
@@ -32,7 +32,7 @@ require (
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.2 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil v1.8.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/larsartmann/templ-components v1.26.0 // indirect

@@ -24,7 +24,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
-	github.com/a-h/templ v0.3.1070 // indirect
+	github.com/a-h/templ v0.3.1100 // indirect
 	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
@@ -95,7 +95,7 @@ require (
 	github.com/larsartmann/go-output/tree v0.38.7 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/larsartmann/templ-components v1.26.0 // indirect
 	github.com/larsartmann/templ-components/datastar v1.26.0 // indirect

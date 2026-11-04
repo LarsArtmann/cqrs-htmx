@@ -4,7 +4,7 @@ module github.com/larsartmann/cqrs-htmx/dashboardui/v4
 go 1.27.2
 
 require (
-	github.com/a-h/templ v0.3.1070
+	github.com/a-h/templ v0.3.1100
 	github.com/dustin/go-humanize v1.1.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
 	github.com/larsartmann/go-codec v0.3.3
@@ -19,13 +19,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.16.0
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/go-sse v0.6.2
+	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.8.0
-	github.com/larsartmann/templ-components v1.26.0
-	github.com/larsartmann/templ-components/errorpage v1.26.0
-	github.com/larsartmann/templ-components/htmx v1.26.0
-	github.com/larsartmann/templ-components/icons v1.26.0
-	github.com/larsartmann/templ-components/utils v1.26.0
+	github.com/larsartmann/templ-components v1.27.0
+	github.com/larsartmann/templ-components/errorpage v1.27.0
+	github.com/larsartmann/templ-components/htmx v1.27.0
+	github.com/larsartmann/templ-components/icons v1.27.0
+	github.com/larsartmann/templ-components/utils v1.27.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
 )

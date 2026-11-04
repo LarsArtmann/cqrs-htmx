@@ -6,7 +6,7 @@
 
 **Written:** 2026-11-04 04:35 CET · **Session:** ~04:15 → 04:35 CET, continuation of the
 [leverage-maximization arc](../../planning/2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md)
-· **Predecessors:** [second-wave report](../2026-11-04_04-01_pareto-execution-second-wave_status.md)
+· **Predecessors:** [second-wave report](2026-11-04_04-01_pareto-execution-second-wave_status.md)
 (its ritual this session closed), [sweep-committed report](2026-11-04_00-28_sweep-committed-breach-owned-awaiting-train-authorization_status.md)
 (archived by THIS report's pass — its still-open §g.3 consumer-CI question is preserved in §f below, not entombed).
 

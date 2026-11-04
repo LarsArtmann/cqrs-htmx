@@ -1,7 +1,7 @@
 # Status: Pareto execution, first wave — six tasks shipped, push still gated
 
 > **ANNOTATED 2026-11-04** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
-> The next session in the same arc is [`2026-11-04_04-01_pareto-execution-second-wave_status.md`](../2026-11-04_04-01_pareto-execution-second-wave_status.md), which superseded: second wave landed R3/R9/R10 + issue 113; questions refined to push-train-daemon-lintposture.
+> The next session in the same arc is [`2026-11-04_04-01_pareto-execution-second-wave_status.md`](2026-11-04_04-01_pareto-execution-second-wave_status.md), which superseded: second wave landed R3/R9/R10 + issue 113; questions refined to push-train-daemon-lintposture.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Date:** 2026-11-04 00:12 CET · **Session:** continuation of the go-cqrs-lite

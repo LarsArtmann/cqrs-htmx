@@ -1,7 +1,7 @@
 charm.land/lipgloss/v2 v2.0.6 h1:EaGKeuA8FvF+v2BT5VmZd2LoYLaMZJXA5n34th8nCIQ=
 charm.land/lipgloss/v2 v2.0.6/go.mod h1:ipDDJNSGa1hlwDtSfW1s2/xR8Vdhbut4PXh2zEKZd0Q=
-github.com/a-h/templ v0.3.1070 h1:3iCOXHXqFXa99OQzgkUOLJbNzv/QjFGLwKZkBAg+ADA=
-github.com/a-h/templ v0.3.1070/go.mod h1:iIqB3g2RHBe/WlnPwa+Bvhh1TKXHWLRnBD9NWHOLm78=
+github.com/a-h/templ v0.3.1100 h1:lQhjVs1IL+M6QWUvojaFBd21+kzwATppSyWkWB9oHoM=
+github.com/a-h/templ v0.3.1100/go.mod h1:j1WAOR7749mlo1AxFLQ7qbDFW5VwyoqszRTlKqEHN9M=
 github.com/aymanbagabas/go-udiff v0.4.1 h1:OEIrQ8maEeDBXQDoGCbbTTXYJMYRCRO1fnodZ12Gv5o=
 github.com/aymanbagabas/go-udiff v0.4.1/go.mod h1:0L9PGwj20lrtmEMeyw4WKJ/TMyDtvAoK9bf2u/mNo3w=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
@@ -70,8 +70,8 @@ github.com/larsartmann/go-output/testhelpers/graphtest v0.38.5 h1:ynYEtkHWtqh+F3
 github.com/larsartmann/go-output/testhelpers/graphtest v0.38.5/go.mod h1:kNkMg2CzD6EHn7APJLZEHh7KFgRtWGmtWeYkM+4GZ1c=
 github.com/larsartmann/go-output/tree v0.38.7 h1:NdmX+Ydxlz1JIt3DfIl2jngZp56x703y70zJ8eRaXJQ=
 github.com/larsartmann/go-output/tree v0.38.7/go.mod h1:ls6UUCL3oXG6YawQVZZIqwesA3W5fc/Bz08rDCNMD/Q=
-github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
-github.com/larsartmann/go-sse v0.6.2/go.mod h1:PVVDLkzjkTR2MvqcqL3/XmWY8cdSUpEe8YWaouHVVz4=
+github.com/larsartmann/go-sse v0.7.0 h1:dLT0eBk5hrxfajew84MmFoWHnEZ1eZfokqzbaA9qxH0=
+github.com/larsartmann/go-sse v0.7.0/go.mod h1:ZsW88AQMBRy+ZEhCWl8FGyEoXcb/YwvwosKYQEDLgBs=
 github.com/larsartmann/go-sse/sseparse v0.2.1 h1:GHn8SFFZkMJRhLkmusJwtchgSPJV0/b5Keq6z3xop9k=
 github.com/larsartmann/go-sse/sseparse v0.2.1/go.mod h1:1Nql3y1hf9v/IVd4/26AfRilz0/OiDyF7YA2mvwwtHw=
 github.com/larsartmann/go-sse/ssetest v0.5.0 h1:6QQ9rURjqScKfkV8BmpNdoMSW5pxsNVs+ioLOqERS4k=

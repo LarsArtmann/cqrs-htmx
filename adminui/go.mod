@@ -3,17 +3,17 @@ module github.com/larsartmann/cqrs-htmx/adminui/v4
 go 1.27.2
 
 require (
-	github.com/a-h/templ v0.3.1070
+	github.com/a-h/templ v0.3.1100
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/httputil v1.8.0
-	github.com/larsartmann/templ-components v1.26.0
-	github.com/larsartmann/templ-components/errorpage v1.26.0
-	github.com/larsartmann/templ-components/htmx v1.26.0
-	github.com/larsartmann/templ-components/icons v1.26.0
-	github.com/larsartmann/templ-components/utils v1.26.0
+	github.com/larsartmann/templ-components v1.27.0
+	github.com/larsartmann/templ-components/errorpage v1.27.0
+	github.com/larsartmann/templ-components/htmx v1.27.0
+	github.com/larsartmann/templ-components/icons v1.27.0
+	github.com/larsartmann/templ-components/utils v1.27.0
 )
 
 require (
@@ -62,7 +62,7 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.2 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

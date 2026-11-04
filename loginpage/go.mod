@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/loginpage/v4
 go 1.27.2
 
 require (
-	github.com/a-h/templ v0.3.1070
+	github.com/a-h/templ v0.3.1100
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
 	github.com/larsartmann/go-error-family v0.12.0
@@ -59,7 +59,7 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.2 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/larsartmann/templ-components/htmx v1.26.0 // indirect
 	github.com/larsartmann/templ-components/icons v1.26.0 // indirect
