@@ -67,6 +67,7 @@ func (a authAuditor) append(ctx context.Context, evtType event.Type, payload any
 	}
 
 	ref := id.StreamRef{ID: streamID, Type: aggregateTypeAuth}
+	//cqrs-lint:ignore(C042) expectedVersion=0 is the create-new-stream convention: streamID is freshly minted per append (id.NewStreamID above), so the stream cannot pre-exist and there is no prior version to load — verified 2026-11-04 (leverage plan L1/B56)
 	if err := a.store.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
 		a.logger.Warn("usermgmt: auth audit event not persisted (save)",
 			"event_type", string(evtType), "error", err)

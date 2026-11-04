@@ -106,9 +106,9 @@ func (*AuditLog) Name() string { return "audit-log" }
 func (*AuditLog) EventTypes() []event.Type { return allAuditedEventTypes }
 
 func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
+	// Everything below builds the entry WITHOUT the lock: payload decoding
+	// and metadata reads are pure functions of the event (C021 — decode work
+	// never belongs inside the ring mutex); only appendEntry mutates state.
 	//nolint:exhaustruct // Email not available at projection level
 	entry := AuditEntry{
 		EventType:   evt.Type(),
@@ -132,6 +132,9 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 			entry.Detail = string(p.Reason)
 		}
 	}
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
 
 	a.appendEntry(entry)
 
