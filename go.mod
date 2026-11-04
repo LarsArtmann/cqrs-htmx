@@ -9,8 +9,9 @@ require (
 	github.com/larsartmann/go-codec v0.3.3
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (record/v4 trails event/command; detector compares one module's max — cqrs-lint 4.8.1 anchors the finding on the block's first family require)
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0

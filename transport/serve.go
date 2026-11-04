@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-sse"
 )
 
@@ -181,12 +182,15 @@ func WithSSEMaxReplay(n int) ServeDomainEventsOption {
 //
 // When replayed is non-nil, the IDs of the events actually returned
 // (post-truncation — exactly what the stream writes) are recorded in it, so
-// the live pump can drop the same IDs at the replay/live seam.
+// the live pump can drop the same IDs at the replay/live seam. The recorder
+// is a fixed-capacity dedup.Ring: overlap events are always the newest of the
+// replay sequence, so a ring an order of magnitude larger than the live
+// channel buffer keeps the seam exact while bounding per-connection memory.
 type replayAdjustedStore struct {
 	inner    sse.EventStore
 	maxN     int
 	retryHit uint
-	replayed map[string]struct{}
+	replayed *dedup.Ring[string]
 }
 
 func (s *replayAdjustedStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
@@ -229,7 +233,7 @@ type filteredReplayStore struct {
 	match    func(sse.Event) bool
 	maxN     int
 	retryHit uint
-	replayed map[string]struct{}
+	replayed *dedup.Ring[string]
 }
 
 func (f *filteredReplayStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
@@ -269,16 +273,12 @@ func (f *filteredReplayStore) EventsAfterFiltered(
 }
 
 // recordReplayedIDs collects the IDs of events the replay pass actually
-// writes (nil map = not recording). Unidentified events (empty ID) are
+// writes (nil ring = not recording). Unidentified events (empty ID) are
 // skipped — they cannot participate in seam dedup.
-func recordReplayedIDs(replayed map[string]struct{}, events []sse.Event) {
-	if replayed == nil {
-		return
-	}
-
+func recordReplayedIDs(replayed *dedup.Ring[string], events []sse.Event) {
 	for _, evt := range events {
 		if id := evt.ID.Get(); id != "" {
-			replayed[id] = struct{}{}
+			replayed.Add(id)
 		}
 	}
 }
@@ -347,7 +347,7 @@ func replayEvents(
 	filter func(sse.Event) bool,
 	maxReplay int,
 	logPrefix string,
-	replayed map[string]struct{},
+	replayed *dedup.Ring[string],
 ) {
 	if store == nil {
 		return
@@ -470,7 +470,9 @@ func ServeDomainEvents(
 
 		// replayed holds the IDs the backfill writes; the live pump skips them
 		// (subscribe ran BEFORE replay, so the overlap window double-delivers).
-		replayed := make(map[string]struct{})
+		// Fixed capacity: the overlap is always the tail of the replay sequence,
+		// bounded by the live channel buffer — see replayAdjustedStore.
+		replayed := dedup.NewRing[string](dedup.DefaultCapacity)
 		replayEvents(stream, store, filter, cfg.maxReplay, cfg.logPrefix, replayed)
 
 		joinHeartbeat := startHeartbeat(stream, r.Context(), heartbeat)
@@ -509,7 +511,7 @@ func startHeartbeat(stream *sse.Stream, parent context.Context, heartbeat time.D
 // pumpLiveEvents forwards live events to the stream until it closes, skipping
 // IDs the replay pass already wrote — subscribe ran BEFORE replay, so events
 // published during the replay window sit in both delivery paths.
-func pumpLiveEvents(stream *sse.Stream, ch <-chan sse.Event, replayed map[string]struct{}) {
+func pumpLiveEvents(stream *sse.Stream, ch <-chan sse.Event, replayed *dedup.Ring[string]) {
 	for {
 		select {
 		case <-stream.Context().Done():
@@ -532,15 +534,14 @@ func pumpLiveEvents(stream *sse.Stream, ch <-chan sse.Event, replayed map[string
 }
 
 // isReplayDuplicate reports whether the event's ID was already written by
-// the replay pass. Events without an ID never deduplicate.
-func isReplayDuplicate(evt sse.Event, replayed map[string]struct{}) bool {
+// the replay pass. Events without an ID never deduplicate. A nil ring means
+// no replay occurred — nothing is a duplicate.
+func isReplayDuplicate(evt sse.Event, replayed *dedup.Ring[string]) bool {
 	id := evt.ID.Get()
 
 	if id == "" {
 		return false
 	}
 
-	_, dup := replayed[id]
-
-	return dup
+	return replayed.Has(id)
 }
