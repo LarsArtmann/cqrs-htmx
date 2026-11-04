@@ -34,7 +34,7 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-health v0.8.1
 	github.com/larsartmann/go-sse v0.6.2
-	github.com/larsartmann/httputil v1.7.0
+	github.com/larsartmann/httputil v1.8.0
 	github.com/larsartmann/samber-do-auditlog v0.12.1
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/do/v2 v2.1.0
