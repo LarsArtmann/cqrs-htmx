@@ -1,6 +1,6 @@
 # go-cqrs-lite Deep Dive — Session Status & Self-Review
 
-> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_00-12_pareto-execution-first-wave_status.md`](../2026-11-04_00-12_pareto-execution-first-wave_status.md), which execution superseded: R1 R2 R4 R5 R7 R8 shipped in the first execution wave; the plan of record holds the remainder. Strike depth:
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_00-12_pareto-execution-first-wave_status.md`](2026-11-04_00-12_pareto-execution-first-wave_status.md), which execution superseded: R1 R2 R4 R5 R7 R8 shipped in the first execution wave; the plan of record holds the remainder. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
 
