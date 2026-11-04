@@ -30,12 +30,10 @@ func cborTestUserStream(t *testing.T) (id.StreamID, []event.Event, []byte, []byt
 	}{
 		{"register", decideRegisterUser(aggID, "cbor@example.com", "Cbor", []Role{RoleUser})},
 		{"add credential", decideAddCredential(aggID, WebAuthnCredential{
-			CredentialCore: CredentialCore{
-				ID:              credID,
-				PublicKey:       publicKey,
-				AttestationType: "none",
-			},
-			CreatedAt: time.Now(),
+			ID:              credID,
+			PublicKey:       publicKey,
+			AttestationType: "none",
+			CreatedAt:       time.Now(),
 		})},
 		{"enable totp", decideEnableTOTP(aggID, secret)},
 		{"record use", decideRecordCredentialUse(aggID, CredentialUse{

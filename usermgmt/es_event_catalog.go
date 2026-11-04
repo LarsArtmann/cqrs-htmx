@@ -57,8 +57,8 @@ func registerDerived[T any](
 func payloadFieldsFrom[T any]() []cqrshtmx.PayloadField {
 	t := reflect.TypeOf(*new(T))
 	fields := make([]cqrshtmx.PayloadField, 0, t.NumField())
-	for i := range t.NumField() {
-		fields = append(fields, fieldsFromStructField(t.Field(i))...)
+	for field := range t.Fields() {
+		fields = append(fields, fieldsFromStructField(field)...)
 	}
 	return fields
 }
@@ -73,8 +73,8 @@ func fieldsFromStructField(f reflect.StructField) []cqrshtmx.PayloadField {
 			return nil
 		}
 		embedded := make([]cqrshtmx.PayloadField, 0, t.NumField())
-		for i := range t.NumField() {
-			embedded = append(embedded, fieldsFromStructField(t.Field(i))...)
+		for field := range t.Fields() {
+			embedded = append(embedded, fieldsFromStructField(field)...)
 		}
 		return embedded
 	}
