@@ -32,7 +32,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/go-health v0.8.1
+	github.com/larsartmann/go-health v0.9.0
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.8.0
 	github.com/larsartmann/samber-do-auditlog v0.12.1
@@ -113,12 +113,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-datastar v0.6.2 // indirect
+	github.com/larsartmann/go-datastar v0.6.3 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
-	github.com/larsartmann/go-health-dashboard v0.12.2 // indirect
+	github.com/larsartmann/go-health-dashboard v0.13.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.2 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output v0.38.7 // indirect
