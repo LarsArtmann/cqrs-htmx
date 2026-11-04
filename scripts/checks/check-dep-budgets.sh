@@ -28,7 +28,7 @@ cd "$REPO_ROOT" || exit 1
 declare -A DEP_BUDGET=(
   ["."]=19                # Root: 17 current (casbin, form, nosurf, branded-id, cqrs-lite x6, httputil, ulid, ginkgo, gomega, x/time + go-codec [direct since the 2026-09-20 DecodePayload re-exports in payload.go])
   ["identity-model"]=10   # identity-model: 8 current (casbin, branded-id, cqrs-lite event/id/codec/metadata, ulid, rapid)
-  ["usermgmt"]=28         # usermgmt: 25 current (casbin, cqrs-htmx, branded-id, cqrs-lite x8, sqlite, ulid, rapid, watermill, kv)
+  ["usermgmt"]=32         # usermgmt: 29 current (cqrs-htmx + identity-model, cqrs-lite x17 [command, commandlifecycle, decider, dedup, event, id, kv, middleware, projectionhost, projection, query, scenario, snapshot, stack, storage, storage/memory, watermill], go-error-family, go-idempotency, httputil, go-codec, mysql driver + testcontainers-mysql, sqlite, rapid, watermill, maypok86/otter/v2 [R9 opt-in FindByID view cache, 2026-11-04]; bumped 28→32 same day — the R9 wave landed otter without the budget edit)
   ["usermgmt/totp"]=3     # totp: 1 current (pquerna/otp)
   ["usermgmt/webauthn"]=3 # webauthn: 1 current (go-webauthn/webauthn)
   ["usermgmt/oauth2"]=5   # oauth2: 3 current (oauth2, oidc, go-jose)
