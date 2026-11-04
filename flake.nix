@@ -1171,6 +1171,8 @@
                       bash bash scripts/selftests/test-check-permission-surface.sh
                       bash bash scripts/checks/check-permission-maturity.sh --ratchet
                       bash bash scripts/selftests/test-check-permission-maturity.sh
+                      bash bash scripts/checks/check-module-layers.sh
+                      bash bash scripts/selftests/test-check-module-layers.sh
                       bash bash scripts/checks/check-branching-flow.sh
                       bash bash scripts/selftests/test-check-branching-flow.sh
                       bash bash scripts/checks/check-shellcheck.sh
@@ -1238,6 +1240,8 @@
                         "permission-surface-self-test:bash scripts/selftests/test-check-permission-surface.sh"
                         "permission-maturity:bash scripts/checks/check-permission-maturity.sh --ratchet"
                         "permission-maturity-self-test:bash scripts/selftests/test-check-permission-maturity.sh"
+                        "module-layers:bash scripts/checks/check-module-layers.sh"
+                        "module-layers-self-test:bash scripts/selftests/test-check-module-layers.sh"
                         "streamid-identity:bash scripts/checks/check-streamid-identity.sh"
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
                         "root-files:bash scripts/checks/check-root-files.sh --strict"
@@ -1729,6 +1733,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-todo-hygiene.sh
+                  '';
+                }
+              );
+            };
+
+            check-module-layers = {
+              type = "app";
+              meta.description = "Enforce the root module's package layering: internal/hx imports nothing in-module; htmx/eventcatalog import only internal/hx; httperr imports htmx+internal/hx; no subpackage imports the root";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-module-layers";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-module-layers.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-module-layers = {
+              type = "app";
+              meta.description = "Fixture self-test for check-module-layers.sh (9 cases: clean/root-back-edge/floor-violation/off-row-edge/test-import-edge/missing-layer/no-gomod/allowed-count/cycle)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-module-layers";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-module-layers.sh
                   '';
                 }
               );

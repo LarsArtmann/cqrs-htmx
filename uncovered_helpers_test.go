@@ -1,14 +1,10 @@
 package cqrshtmx
 
 import (
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // The deprecated re-export helpers (S33/S35 honesty pass) must keep delegating
@@ -60,43 +56,5 @@ func TestGenerateUserID_FreshDistinct(t *testing.T) {
 
 	if first.String() == "" || first == second {
 		t.Fatalf("GenerateUserID must produce distinct non-empty ids: %q vs %q", first, second)
-	}
-}
-
-func TestErrorWrapperMethods_PreserveCauseMessage(t *testing.T) {
-	t.Parallel()
-
-	cause := errorfamily.NewRejection("test.detail", "the client-facing message")
-
-	statusErr := WithHTTPStatus(cause, http.StatusTeapot)
-
-	statusWrapped, ok := errors.AsType[*httpStatusError](statusErr)
-	if !ok {
-		t.Fatal("WithHTTPStatus must wrap in httpStatusError")
-	}
-
-	if !strings.Contains(statusWrapped.Error(), "the client-facing message") {
-		t.Fatalf("httpStatusError.Error() = %q, want it to preserve the cause message", statusWrapped.Error())
-	}
-
-	retryErr := WithRetryAfter(cause, 30*time.Second)
-
-	retryWrapped, ok := errors.AsType[*retryAfterError](retryErr)
-	if !ok {
-		t.Fatal("WithRetryAfter must wrap in retryAfterError")
-	}
-
-	if !strings.Contains(retryWrapped.Error(), "the client-facing message") {
-		t.Fatalf("retryAfterError.Error() = %q, want it to preserve the cause message", retryWrapped.Error())
-	}
-}
-
-func TestStructuredError_ErrorReturnsDetail(t *testing.T) {
-	t.Parallel()
-
-	structured := StructuredError{Detail: "plain detail"}
-
-	if structured.Error() != "plain detail" {
-		t.Fatalf("Error() = %q, want the Detail field", structured.Error())
 	}
 }

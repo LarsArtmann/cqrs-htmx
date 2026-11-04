@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -104,7 +105,6 @@ func (k contextKey[T]) FromContext(ctx context.Context) (T, bool) {
 var (
 	userIDKeyInstance         = contextKey[UserID]{name: "user_id"}
 	correlationIDKeyInstance  = contextKey[CorrelationID]{name: "correlation_id"}
-	requestIDKeyInstance      = contextKey[RequestID]{name: "request_id"}
 	actorIDKeyInstance        = contextKey[ActorID]{name: "actor_id"}
 	impersonatorIDKeyInstance = contextKey[ImpersonatorID]{name: "impersonator_id"}
 )
@@ -142,16 +142,18 @@ func MustParseRequestID(s string) RequestID {
 }
 
 // WithRequestID stores a strongly-typed request ID in the context.
+//
+// The context key lives in internal/hx so the extracted httperr package reads
+// exactly what this package writes — two keys would silently drop the request ID
+// from error responses.
 func WithRequestID(ctx context.Context, requestID RequestID) context.Context {
-	return requestIDKeyInstance.WithValue(ctx, requestID)
+	return hx.WithRequestID(ctx, requestID)
 }
 
 // RequestIDFromContext retrieves the request ID stored by WithRequestID.
 // Returns the zero value of RequestID if no request ID is present.
 func RequestIDFromContext(ctx context.Context) RequestID {
-	v, _ := requestIDKeyInstance.FromContext(ctx)
-
-	return v
+	return hx.RequestIDFromContext(ctx)
 }
 
 // WithCorrelationID stores a strongly-typed correlation ID in the context.
@@ -194,8 +196,6 @@ func ActorIDFromUser(userID UserID) ActorID {
 
 // ParseActorID reconstructs an ActorID from its prefixed string form
 // (e.g. "user:01JX...", "system:scheduler").
-//
-//nolint:wrapcheck // thin re-export of id.ParseActorID
 func ParseActorID(s string) (ActorID, error) { return id.ParseActorID(s) }
 
 // ImpersonatorID is the same type as ActorID — an impersonator IS an actor.

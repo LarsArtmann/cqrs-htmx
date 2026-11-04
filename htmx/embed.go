@@ -1,4 +1,4 @@
-package cqrshtmx
+package htmx
 
 import _ "embed"
 
@@ -8,5 +8,5 @@ const htmxVersion = "2.0.10"
 //go:embed htmx.min.js
 var htmxJS []byte
 
-// HTMXVersion returns the embedded HTMX library version string.
-func HTMXVersion() string { return htmxVersion }
+// Version returns the embedded HTMX library version string.
+func Version() string { return htmxVersion }

@@ -1,4 +1,4 @@
-package cqrshtmx
+package eventcatalog
 
 import (
 	"bytes"
@@ -26,26 +26,26 @@ type EventMetadata struct {
 	PayloadFields []PayloadField `json:"payloadFields,omitempty"`
 }
 
-// EventCatalog is a mutable registry of event types and their metadata.
+// Catalog is a mutable registry of event types and their metadata.
 // Register events during application startup (before serving HTTP), then
-// pass the catalog to [EventCatalogHandler] for immutable serving.
+// pass the catalog to [Handler] for immutable serving.
 //
 // The catalog is designed for the Published Language pattern (DDD): events
 // are part of the public API surface for any consumer building projections.
 // This catalog makes that contract explicit and discoverable.
-type EventCatalog struct {
+type Catalog struct {
 	events []EventMetadata
 }
 
-// NewEventCatalog returns an empty EventCatalog ready for registration.
-func NewEventCatalog() *EventCatalog {
-	return &EventCatalog{}
+// New returns an empty Catalog ready for registration.
+func New() *Catalog {
+	return &Catalog{events: nil}
 }
 
 // Register adds an event type to the catalog. Call during startup, before
-// creating an [EventCatalogHandler]. Duplicate type+aggregate pairs are
+// creating an [Handler]. Duplicate type+aggregate pairs are
 // ignored (last registration wins).
-func (c *EventCatalog) Register(meta EventMetadata) {
+func (c *Catalog) Register(meta EventMetadata) {
 	for i, existing := range c.events {
 		if existing.Type == meta.Type && existing.Aggregate == meta.Aggregate {
 			c.events[i] = meta
@@ -59,7 +59,7 @@ func (c *EventCatalog) Register(meta EventMetadata) {
 
 // Events returns a copy of all registered event metadata, ordered by
 // registration. Safe to call after registration is complete.
-func (c *EventCatalog) Events() []EventMetadata {
+func (c *Catalog) Events() []EventMetadata {
 	result := make([]EventMetadata, len(c.events))
 	copy(result, c.events)
 
@@ -68,7 +68,7 @@ func (c *EventCatalog) Events() []EventMetadata {
 
 // JSON serializes the catalog to indented JSON suitable for serving at a
 // catalog endpoint (e.g. GET /events/catalog).
-func (c *EventCatalog) JSON() ([]byte, error) {
+func (c *Catalog) JSON() ([]byte, error) {
 	var buf bytes.Buffer
 	if err := json.MarshalWrite(&buf, c.events, jsontext.WithIndent("  ")); err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,

@@ -1,4 +1,4 @@
-package cqrshtmx
+package htmx
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 )
 
 // Embedded HTMX extension JavaScript files (minified).
@@ -17,18 +19,18 @@ var extSSEJS []byte
 //go:embed extensions/idiomorph-ext.min.js
 var extIdiomorphJS []byte
 
-// HTMX extension name constants for use with HTMXExtensionHandler and
-// HTMXExtensionsHandler. These are the extensions that have direct server-side
+// HTMX extension name constants for use with ExtensionHandler and
+// ExtensionsHandler. These are the extensions that have direct server-side
 // counterparts in cqrs-htmx (SSE building blocks) or are commonly paired
 // with them (idiomorph for morph-based partial swaps).
 const (
-	// HTMXExtSSE is the htmx Server-Sent Events extension (htmx-ext-sse).
+	// ExtSSE is the htmx Server-Sent Events extension (htmx-ext-sse).
 	// Pairs with cqrs-htmx SSEStream, Broadcaster, JournalSSEStore.
-	HTMXExtSSE = "sse"
+	ExtSSE = "sse"
 
-	// HTMXExtIdiomorph provides the morph swap strategy via idiomorph.
+	// ExtIdiomorph provides the morph swap strategy via idiomorph.
 	// Commonly used alongside SSE for efficient partial DOM updates.
-	HTMXExtIdiomorph = "idiomorph"
+	ExtIdiomorph = "idiomorph"
 )
 
 // htmxExtension holds an embedded HTMX extension's JS payload and version.
@@ -41,25 +43,25 @@ type htmxExtension struct {
 //
 //nolint:gochecknoglobals // embedded assets + their metadata; immutable after init.
 var htmxExtensions = map[string]htmxExtension{
-	HTMXExtSSE:       {js: extSSEJS, version: "2.2.4"},
-	HTMXExtIdiomorph: {js: extIdiomorphJS, version: "0.7.4"},
+	ExtSSE:       {js: extSSEJS, version: "2.2.4"},
+	ExtIdiomorph: {js: extIdiomorphJS, version: "0.7.4"},
 }
 
-// HTMXExtensionHandler returns an http.Handler that serves the embedded
+// ExtensionHandler returns an http.Handler that serves the embedded
 // HTMX extension JavaScript for the given extension name.
 //
 // The handler sets Content-Type, ETag, and Cache-Control headers, supports
 // conditional GET (304 Not Modified), and accepts GET/HEAD only (405 otherwise).
 //
-// Known extension names: HTMXExtSSE ("sse"), HTMXExtIdiomorph ("idiomorph").
-// Call HTMXExtensionNames() to list all.
+// Known extension names: ExtSSE ("sse"), ExtIdiomorph ("idiomorph").
+// Call ExtensionNames() to list all.
 //
 // Panics if name is not a known embedded extension — this is a programming
 // error caught at startup, not a runtime condition.
 //
-//	mux.Handle("GET /ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
-//	mux.Handle("GET /ext/idiomorph.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtIdiomorph))
-func HTMXExtensionHandler(name string) http.Handler {
+//	mux.Handle("GET /ext/sse.js", cqrshtmx.ExtensionHandler(cqrshtmx.ExtSSE))
+//	mux.Handle("GET /ext/idiomorph.js", cqrshtmx.ExtensionHandler(cqrshtmx.ExtIdiomorph))
+func ExtensionHandler(name string) http.Handler {
 	ext, ok := htmxExtensions[name]
 	if !ok {
 		msg := fmt.Sprintf(
@@ -71,10 +73,10 @@ func HTMXExtensionHandler(name string) http.Handler {
 		panic(msg)
 	}
 
-	return serveJS(ext.js, fmt.Sprintf(`"htmx-ext-%s-%s"`, name, ext.version))
+	return hx.ServeJS(ext.js, fmt.Sprintf(`"htmx-ext-%s-%s"`, name, ext.version))
 }
 
-// HTMXExtensionsHandler returns an http.Handler that serves a concatenated
+// ExtensionsHandler returns an http.Handler that serves a concatenated
 // bundle of the named HTMX extensions in a single HTTP response — one request
 // instead of N. Extensions are concatenated in the given order, each prefixed
 // with a version comment for debuggability.
@@ -85,12 +87,12 @@ func HTMXExtensionHandler(name string) http.Handler {
 // Panics if any name is not a known embedded extension, or if no names are given.
 //
 //	mux.Handle("GET /ext/bundle.js",
-//	    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph))
-func HTMXExtensionsHandler(names ...string) http.Handler {
+//	    cqrshtmx.ExtensionsHandler(cqrshtmx.ExtSSE, cqrshtmx.ExtIdiomorph))
+func ExtensionsHandler(names ...string) http.Handler {
 	if len(names) == 0 {
 		//cqrs-lint:ignore(C009) startup-time programmer error: empty variadic call
 		panic(
-			"cqrshtmx: HTMXExtensionsHandler requires at least one extension name",
+			"cqrshtmx: ExtensionsHandler requires at least one extension name",
 		)
 	}
 
@@ -116,14 +118,14 @@ func HTMXExtensionsHandler(names ...string) http.Handler {
 		etagParts = append(etagParts, name+"-"+ext.version)
 	}
 
-	return serveJS(buf.Bytes(), fmt.Sprintf(`"htmx-ext-bundle-%s"`, strings.Join(etagParts, ",")))
+	return hx.ServeJS(buf.Bytes(), fmt.Sprintf(`"htmx-ext-bundle-%s"`, strings.Join(etagParts, ",")))
 }
 
-// HTMXExtensionVersion returns the version string of the embedded extension
+// ExtensionVersion returns the version string of the embedded extension
 // with the given name, or empty string if the name is unknown.
 //
-//	cqrshtmx.HTMXExtensionVersion(cqrshtmx.HTMXExtSSE) // "2.2.4"
-func HTMXExtensionVersion(name string) string {
+//	cqrshtmx.ExtensionVersion(cqrshtmx.ExtSSE) // "2.2.4"
+func ExtensionVersion(name string) string {
 	ext, ok := htmxExtensions[name]
 	if !ok {
 		return ""
@@ -133,8 +135,8 @@ func HTMXExtensionVersion(name string) string {
 }
 
 // htmxExtensionNames returns the names of all embedded HTMX extensions,
-// sorted alphabetically. Shared by the exported HTMXExtensionNames and
-// panic messages in HTMXExtensionHandler/HTMXExtensionsHandler.
+// sorted alphabetically. Shared by the exported ExtensionNames and
+// panic messages in ExtensionHandler/ExtensionsHandler.
 func htmxExtensionNames() []string {
 	names := make([]string, 0, len(htmxExtensions))
 	for name := range htmxExtensions {
@@ -146,9 +148,9 @@ func htmxExtensionNames() []string {
 	return names
 }
 
-// HTMXExtensionNames returns the names of all available embedded HTMX
+// ExtensionNames returns the names of all available embedded HTMX
 // extensions, sorted alphabetically.
-func HTMXExtensionNames() []string {
+func ExtensionNames() []string {
 	return htmxExtensionNames()
 }
 
@@ -156,18 +158,18 @@ func HTMXExtensionNames() []string {
 //
 //nolint:gochecknoglobals // immutable lookup table.
 var htmxExtensionCDNURLs = map[string]string{
-	HTMXExtSSE:       "https://unpkg.com/htmx-ext-sse@%s/dist/sse.min.js",
-	HTMXExtIdiomorph: "https://unpkg.com/idiomorph@%s/dist/idiomorph-ext.min.js",
+	ExtSSE:       "https://unpkg.com/htmx-ext-sse@%s/dist/sse.min.js",
+	ExtIdiomorph: "https://unpkg.com/idiomorph@%s/dist/idiomorph-ext.min.js",
 }
 
-// HTMXExtensionCDNScriptTag returns an HTML <script> tag that loads the given
+// ExtensionCDNScriptTag returns an HTML <script> tag that loads the given
 // HTMX extension from the unpkg CDN, using the embedded version. For consumers
 // who prefer CDN over self-hosting.
 //
-//	cqrshtmx.HTMXExtensionCDNScriptTag(cqrshtmx.HTMXExtSSE)
+//	cqrshtmx.ExtensionCDNScriptTag(cqrshtmx.ExtSSE)
 //	// => <script src="https://unpkg.com/htmx-ext-sse@2.2.4/dist/sse.min.js"></script>
-func HTMXExtensionCDNScriptTag(name string) string {
-	version := HTMXExtensionVersion(name)
+func ExtensionCDNScriptTag(name string) string {
+	version := ExtensionVersion(name)
 	if version == "" {
 		return ""
 	}

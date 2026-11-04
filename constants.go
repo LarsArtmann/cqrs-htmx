@@ -1,16 +1,21 @@
 package cqrshtmx
 
-// Shared constants used across errors.go, response.go, and csrf_config.go.
+import "github.com/larsartmann/cqrs-htmx/v4/internal/hx"
+
+// Shared constants used across the error, response, and CSRF surfaces.
 // Extracted to break the import cycle that was caused by these constants
-// living in response.go while being needed by errors.go and csrf_config.go.
+// living in response.go while being needed by the error paths.
 // See docs/modularization/2026-07-01_SOLLBRUCHSTELLEN.html for analysis.
+//
+// The values live in internal/hx so the extracted subpackages (htmx, httperr,
+// eventcatalog) can use the identical bytes without importing this package.
 
 // Content type constants for consistent HTTP response headers.
 const (
-	ContentTypePlain   = "text/plain; charset=utf-8"
-	ContentTypeHTML    = "text/html; charset=utf-8"
-	ContentTypeJSON    = "application/json; charset=utf-8"
-	ContentTypeProblem = "application/problem+json; charset=utf-8"
+	ContentTypePlain   = hx.ContentTypePlain
+	ContentTypeHTML    = hx.ContentTypeHTML
+	ContentTypeJSON    = hx.ContentTypeJSON
+	ContentTypeProblem = hx.ContentTypeProblem
 )
 
 // JSON map key constants for consistent error/status response shapes.
@@ -18,8 +23,8 @@ const (
 // Note: usermgmt is a separate Go module and cannot import these — it
 // declares its own local statusKey/errorKey. The wire formats match.
 const (
-	JSONKeyError     = "error"
-	JSONKeyStatus    = "status"
-	JSONKeyCode      = "code"
-	JSONKeyRequestID = "request_id"
+	JSONKeyError     = hx.JSONKeyError
+	JSONKeyStatus    = hx.JSONKeyStatus
+	JSONKeyCode      = hx.JSONKeyCode
+	JSONKeyRequestID = hx.JSONKeyRequestID
 )

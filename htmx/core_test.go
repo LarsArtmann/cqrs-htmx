@@ -1,10 +1,10 @@
-package cqrshtmx_test
+package htmx_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -15,20 +15,20 @@ var _ = Describe("HTMX Core", func() {
 		func(header string, setHeader bool, accessor func(*http.Request) bool, expected bool) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			if setHeader {
-				r.Header.Set(header, cqrshtmx.HeaderTrue)
+				r.Header.Set(header, htmx.HeaderTrue)
 			}
 
 			Expect(accessor(r)).To(Equal(expected))
 		},
-		Entry("IsHTMXRequest true", "HX-Request", true, cqrshtmx.IsHTMXRequest, true),
-		Entry("IsHTMXRequest absent", "HX-Request", false, cqrshtmx.IsHTMXRequest, false),
-		Entry("IsBoosted true", "HX-Boosted", true, cqrshtmx.IsBoosted, true),
-		Entry("IsBoosted absent", "HX-Boosted", false, cqrshtmx.IsBoosted, false),
+		Entry("IsRequest true", "HX-Request", true, htmx.IsRequest, true),
+		Entry("IsRequest absent", "HX-Request", false, htmx.IsRequest, false),
+		Entry("IsBoosted true", "HX-Boosted", true, htmx.IsBoosted, true),
+		Entry("IsBoosted absent", "HX-Boosted", false, htmx.IsBoosted, false),
 		Entry(
 			"IsHistoryRestore true",
 			"HX-History-Restore-Request",
 			true,
-			cqrshtmx.IsHistoryRestore,
+			htmx.IsHistoryRestore,
 			true,
 		),
 	)
@@ -43,15 +43,15 @@ var _ = Describe("HTMX Core", func() {
 
 			Expect(accessor(r)).To(Equal(expected))
 		},
-		Entry("HTMXTarget set", "HX-Target", "user-list", cqrshtmx.HTMXTarget, "user-list"),
-		Entry("HTMXTarget empty", "HX-Target", "", cqrshtmx.HTMXTarget, ""),
-		Entry("HTMXTrigger set", "HX-Trigger", "submit-btn", cqrshtmx.HTMXTrigger, "submit-btn"),
-		Entry("HTMXPrompt set", "HX-Prompt", "yes", cqrshtmx.HTMXPrompt, "yes"),
+		Entry("Target set", "HX-Target", "user-list", htmx.Target, "user-list"),
+		Entry("Target empty", "HX-Target", "", htmx.Target, ""),
+		Entry("Trigger set", "HX-Trigger", "submit-btn", htmx.Trigger, "submit-btn"),
+		Entry("Prompt set", "HX-Prompt", "yes", htmx.Prompt, "yes"),
 		Entry(
-			"HTMXCurrentURL set",
+			"CurrentURL set",
 			"HX-Current-URL",
 			"https://example.com/users",
-			cqrshtmx.HTMXCurrentURL,
+			htmx.CurrentURL,
 			"https://example.com/users",
 		),
 	)
@@ -59,12 +59,12 @@ var _ = Describe("HTMX Core", func() {
 	It("returns false when HX-Request header is not 'true'", func() {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		r.Header.Set("Hx-Request", "false")
-		Expect(cqrshtmx.IsHTMXRequest(r)).To(BeFalse())
+		Expect(htmx.IsRequest(r)).To(BeFalse())
 	})
 
 	It("classifies a nil request as non-HTMX instead of panicking", func() {
-		Expect(cqrshtmx.IsHTMXRequest(nil)).To(BeFalse())
-		Expect(cqrshtmx.IsBoosted(nil)).To(BeFalse())
-		Expect(cqrshtmx.HTMXTarget(nil)).To(BeEmpty())
+		Expect(htmx.IsRequest(nil)).To(BeFalse())
+		Expect(htmx.IsBoosted(nil)).To(BeFalse())
+		Expect(htmx.Target(nil)).To(BeEmpty())
 	})
 })

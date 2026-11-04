@@ -1,4 +1,4 @@
-package cqrshtmx_test
+package eventcatalog_test
 
 import (
 	"net/http"
@@ -7,22 +7,22 @@ import (
 	"sync"
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 )
 
-func sampleCatalog() *cqrshtmx.EventCatalog {
-	catalog := cqrshtmx.NewEventCatalog()
-	catalog.Register(cqrshtmx.EventMetadata{
+func sampleCatalog() *eventcatalog.Catalog {
+	catalog := eventcatalog.New()
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "UserRegistered",
 		Aggregate:     "User",
 		SchemaVersion: 2,
 		Description:   "A user registered with email",
-		PayloadFields: []cqrshtmx.PayloadField{
+		PayloadFields: []eventcatalog.PayloadField{
 			{Name: "email", Type: "string", Required: true},
 			{Name: "display_name", Type: "string"},
 		},
 	})
-	catalog.Register(cqrshtmx.EventMetadata{
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "TenantCreated",
 		Aggregate:     "Tenant",
 		SchemaVersion: 2,
@@ -31,12 +31,12 @@ func sampleCatalog() *cqrshtmx.EventCatalog {
 	return catalog
 }
 
-func mustCatalogHandler(t *testing.T, catalog *cqrshtmx.EventCatalog) http.HandlerFunc {
+func mustCatalogHandler(t *testing.T, catalog *eventcatalog.Catalog) http.HandlerFunc {
 	t.Helper()
 
-	handler, err := cqrshtmx.EventCatalogHandler(catalog)
+	handler, err := eventcatalog.Handler(catalog)
 	if err != nil {
-		t.Fatalf("EventCatalogHandler returned error: %v", err)
+		t.Fatalf("Handler returned error: %v", err)
 	}
 
 	return handler
@@ -116,14 +116,10 @@ func TestEventCatalogHandler_200OnMismatchETag(t *testing.T) {
 }
 
 func TestEventCatalogHandler_NilCatalogReturnsError(t *testing.T) {
-	_, err := cqrshtmx.EventCatalogHandler(nil)
+	_, err := eventcatalog.Handler(nil)
 	if err == nil {
-		t.Fatal("EventCatalogHandler(nil) should return an error")
+		t.Fatal("Handler(nil) should return an error")
 	}
-}
-
-func TestEventCatalogHandler_IfNoneMatchSpec(t *testing.T) {
-	runConditionalGetSpec(t, mustCatalogHandler(t, sampleCatalog()), "/events/catalog")
 }
 
 func TestEventCatalogHandler_ConcurrentRequestsAreSafe(t *testing.T) {

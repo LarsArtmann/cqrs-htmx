@@ -27,5 +27,4 @@ go.mod
 go.sum
 go.work
 hash.nix
-htmx.min.js
 vendorHash.nix

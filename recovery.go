@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -26,14 +27,6 @@ func shouldRePanic(rec any) bool {
 // MapError's explicit override returns 500 — a panic is a server bug, not a
 // "service unavailable" condition (503 would imply the service is down when
 // it is actually serving other requests fine).
-const panicCode = "panic"
-
-func isPanicError(err error) bool {
-	e, ok := errors.AsType[*event.Error](err)
-
-	return ok && e.Code() == panicCode
-}
-
 func writePanicResponse(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -87,7 +80,7 @@ func writePanicResponse(
 		attrs...,
 	)
 
-	handler(w, r, errorfamily.Newf(event.Infrastructure, panicCode, "panic: %v", rec))
+	handler(w, r, errorfamily.Newf(event.Infrastructure, hx.PanicCode, "panic: %v", rec))
 }
 
 // RecoveryMiddleware returns HTTP middleware that recovers from panics in

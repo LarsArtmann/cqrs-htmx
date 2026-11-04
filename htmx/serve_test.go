@@ -1,17 +1,16 @@
-package cqrshtmx_test
+package htmx_test
 
 import (
 	"net/http"
 	"net/http/httptest"
-	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 // htmxScriptTestCase describes one HTTP exchange to be exercised against
-// either the embedded HTMXScriptHandler or a custom HTMXScriptHandlerWith.
+// either the embedded ScriptHandler or a custom ScriptHandlerWith.
 type htmxScriptTestCase struct {
 	name             string
 	method           string
@@ -25,7 +24,7 @@ type htmxScriptTestCase struct {
 
 // htmxCaseBuilder provides a fluent, table-friendly way to build
 // htmxScriptTestCase entries. The default values match the embedded
-// HTMXScriptHandler; callers override the knobs that vary between
+// ScriptHandler; callers override the knobs that vary between
 // cases (method, version, ifNoneMatch, wantStatus, name).
 type htmxCaseBuilder = htmxScriptTestCase
 
@@ -148,9 +147,9 @@ func htmxScriptTestCases() []htmxScriptTestCase {
 func runHTMXScriptCase(tc htmxScriptTestCase) {
 	var handler http.Handler
 	if tc.js == nil {
-		handler = cqrshtmx.HTMXScriptHandler()
+		handler = htmx.ScriptHandler()
 	} else {
-		handler = cqrshtmx.HTMXScriptHandlerWith(tc.js, tc.version)
+		handler = htmx.ScriptHandlerWith(tc.js, tc.version)
 	}
 
 	w := httptest.NewRecorder()
@@ -179,7 +178,7 @@ func runHTMXScriptCase(tc htmxScriptTestCase) {
 	}
 }
 
-var _ = Describe("HTMXScriptHandler", func() {
+var _ = Describe("ScriptHandler", func() {
 	for _, tc := range htmxScriptTestCases() {
 		It(tc.name, func() {
 			runHTMXScriptCase(tc)
@@ -187,56 +186,42 @@ var _ = Describe("HTMXScriptHandler", func() {
 	}
 })
 
-var _ = Describe("HTMXVersion", func() {
+var _ = Describe("Version", func() {
 	It("returns the version string", func() {
-		Expect(cqrshtmx.HTMXVersion()).To(Equal("2.0.10"))
+		Expect(htmx.Version()).To(Equal("2.0.10"))
 	})
 })
 
-var _ = Describe("HTMXScriptTag", func() {
+var _ = Describe("ScriptTag", func() {
 	It("returns a script tag with the given path", func() {
-		Expect(cqrshtmx.HTMXScriptTag("/static/htmx.js")).To(
+		Expect(htmx.ScriptTag("/static/htmx.js")).To(
 			Equal(`<script src="/static/htmx.js"></script>`),
 		)
 	})
 
 	It("returns a script tag with a different path", func() {
-		Expect(cqrshtmx.HTMXScriptTag("/assets/js/htmx.js")).To(
+		Expect(htmx.ScriptTag("/assets/js/htmx.js")).To(
 			Equal(`<script src="/assets/js/htmx.js"></script>`),
 		)
 	})
 })
 
-var _ = Describe("HTMXCDNScriptTag", func() {
+var _ = Describe("CDNScriptTag", func() {
 	It("returns a CDN script tag with a specific version", func() {
-		Expect(cqrshtmx.HTMXCDNScriptTag("4.0.0")).To(Equal(
+		Expect(htmx.CDNScriptTag("4.0.0")).To(Equal(
 			`<script src="https://unpkg.com/htmx.org@4.0.0"></script>`,
 		))
 	})
 
 	It("uses the embedded version when version is empty", func() {
-		Expect(cqrshtmx.HTMXCDNScriptTag("")).To(Equal(
+		Expect(htmx.CDNScriptTag("")).To(Equal(
 			`<script src="https://unpkg.com/htmx.org@2.0.10"></script>`,
 		))
 	})
 
 	It("supports pre-release versions", func() {
-		Expect(cqrshtmx.HTMXCDNScriptTag("4.0.0-beta4")).To(Equal(
+		Expect(htmx.CDNScriptTag("4.0.0-beta4")).To(Equal(
 			`<script src="https://unpkg.com/htmx.org@4.0.0-beta4"></script>`,
 		))
 	})
 })
-
-func TestHTMXScriptHandler_IfNoneMatchSpec(t *testing.T) {
-	runConditionalGetSpec(t, cqrshtmx.HTMXScriptHandler(), "/htmx.js")
-}
-
-func TestSyncHandlers_IfNoneMatchSpec(t *testing.T) {
-	t.Run("sync-worker", func(t *testing.T) {
-		runConditionalGetSpec(t, cqrshtmx.SyncWorkerHandler(), "/sync-worker.js")
-	})
-
-	t.Run("sync-client", func(t *testing.T) {
-		runConditionalGetSpec(t, cqrshtmx.SyncClientHandler(), "/sync-client.js")
-	})
-}

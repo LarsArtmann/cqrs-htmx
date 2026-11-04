@@ -274,6 +274,8 @@ linters:
             ignore-package-globs:
                 - github.com/larsartmann/go-error-family*
                 - github.com/larsartmann/go-cqrs-lite/event/*
+                - github.com/larsartmann/go-cqrs-lite/id/*
+                - github.com/larsartmann/cqrs-htmx/v4/internal/*
             ignore-sigs:
                 - .Errorf(
                 - errors.New(

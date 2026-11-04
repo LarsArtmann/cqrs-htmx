@@ -592,6 +592,16 @@ jobs:
       - name: Permission maturity self-test
         run: bash scripts/selftests/test-check-permission-maturity.sh
 
+      # The root package was decomposed into htmx, eventcatalog, httperr and the
+      # shared internal/hx plumbing (2026-11-02). The edges must stay one-way: a
+      # subpackage importing the root package re-creates the cycle internal/hx
+      # exists to break. Fixture self-test plants one violation per rule.
+      - name: Package layering check
+        run: bash scripts/checks/check-module-layers.sh
+
+      - name: Package layering self-test
+        run: bash scripts/selftests/test-check-module-layers.sh
+
       # Gotcha-25/D12 invariant: StreamID().String() is display-form
       # (StreamMarker-branded under the in-flight id train), never identity.
       # Pinned display allowlist; identity positions use .Get().

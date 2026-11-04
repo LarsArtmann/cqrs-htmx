@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	"github.com/larsartmann/httputil"
 )
 
@@ -36,14 +38,14 @@ func (resp *Response) IsHTMX() bool {
 
 // PushURL pushes a new URL into the browser history.
 func (resp *Response) PushURL(url string) *Response {
-	resp.w.Header().Set(headerPushURL, url)
+	resp.w.Header().Set(htmx.HeaderPushURL, url)
 
 	return resp
 }
 
 // ReplaceURL replaces the current URL in the browser address bar.
 func (resp *Response) ReplaceURL(url string) *Response {
-	resp.w.Header().Set(headerReplaceURL, url)
+	resp.w.Header().Set(htmx.HeaderReplaceURL, url)
 
 	return resp
 }
@@ -56,7 +58,7 @@ func (resp *Response) Redirect(url string) *Response {
 	if resp.IsHTMX() {
 		sanitized, safe := sanitizeRedirectURL(url)
 		if safe {
-			resp.w.Header().Set(headerRedirect, sanitized)
+			resp.w.Header().Set(htmx.HeaderRedirect, sanitized)
 		}
 
 		return resp
@@ -69,35 +71,35 @@ func (resp *Response) Redirect(url string) *Response {
 
 // Refresh triggers a full page refresh on the client.
 func (resp *Response) Refresh() *Response {
-	resp.w.Header().Set(headerRefresh, HeaderTrue)
+	resp.w.Header().Set(htmx.HeaderRefresh, HeaderTrue)
 
 	return resp
 }
 
 // Location performs a client-side redirect without full page reload.
 func (resp *Response) Location(url string) *Response {
-	resp.w.Header().Set(headerLocation, url)
+	resp.w.Header().Set(htmx.HeaderLocation, url)
 
 	return resp
 }
 
 // Reswap changes how the response content is swapped.
 func (resp *Response) Reswap(strategy SwapStrategy) *Response {
-	resp.w.Header().Set(headerReswap, string(strategy))
+	resp.w.Header().Set(htmx.HeaderReswap, string(strategy))
 
 	return resp
 }
 
 // Retarget changes the target element for the response.
 func (resp *Response) Retarget(selector string) *Response {
-	resp.w.Header().Set(headerRetarget, selector)
+	resp.w.Header().Set(htmx.HeaderRetarget, selector)
 
 	return resp
 }
 
 // Reselect changes the selector for the response content.
 func (resp *Response) Reselect(selector string) *Response {
-	resp.w.Header().Set(headerReselect, selector)
+	resp.w.Header().Set(htmx.HeaderReselect, selector)
 
 	return resp
 }
@@ -105,21 +107,21 @@ func (resp *Response) Reselect(selector string) *Response {
 // Trigger fires a client-side event as soon as the response is received.
 // Accepts either a simple event name or a JSON object with details.
 func (resp *Response) Trigger(event string) *Response {
-	setTriggerHeader(resp.w, headerTrigger, event)
+	setTriggerHeader(resp.w, htmx.HeaderTrigger, event)
 
 	return resp
 }
 
 // TriggerAfterSwap fires a client-side event after the swap step.
 func (resp *Response) TriggerAfterSwap(event string) *Response {
-	setTriggerHeader(resp.w, headerTriggerAfterSwap, event)
+	setTriggerHeader(resp.w, htmx.HeaderTriggerAfterSwap, event)
 
 	return resp
 }
 
 // TriggerAfterSettle fires a client-side event after the settle step.
 func (resp *Response) TriggerAfterSettle(event string) *Response {
-	setTriggerHeader(resp.w, headerTriggerAfterSettle, event)
+	setTriggerHeader(resp.w, htmx.HeaderTriggerAfterSettle, event)
 
 	return resp
 }
@@ -130,7 +132,7 @@ func (resp *Response) TriggerAfterSettle(event string) *Response {
 // is unsupported — TriggerWithDetail uses JSON serialization which
 // overwrites the simple event name set by Trigger. Use one or the other.
 func (resp *Response) TriggerWithDetail(name string, detail any) *Response {
-	setTriggerWithDetail(resp.w, headerTrigger, name, detail)
+	setTriggerWithDetail(resp.w, htmx.HeaderTrigger, name, detail)
 
 	return resp
 }
@@ -202,7 +204,7 @@ func (resp *Response) Body(data []byte) *Response {
 		return resp
 	}
 
-	writeAll(resp.w, data)
+	hx.WriteAll(resp.w, data)
 
 	return resp
 }
@@ -215,7 +217,7 @@ func (resp *Response) WriteString(s string) *Response {
 		return resp
 	}
 
-	writeAllString(resp.w, s)
+	hx.WriteAllString(resp.w, s)
 
 	return resp
 }
@@ -237,7 +239,7 @@ func (resp *Response) JSON(v any) *Response {
 		return resp
 	}
 
-	writeAll(resp.w, encoded)
+	hx.WriteAll(resp.w, encoded)
 
 	return resp
 }

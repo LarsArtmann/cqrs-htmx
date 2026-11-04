@@ -340,6 +340,23 @@ Independent Go modules under one repo — import only what you use.
 
 Dependency direction is strict: identity-model is the pure domain source of truth; usermgmt re-exports it; the root module never imports usermgmt; UI modules sit on top; nothing depends on the UI/setup/bridge modules.
 
+### Subpackages in the root module
+
+The root module is not one flat package. Four packages sit beside `cqrshtmx`, each
+independently importable when you want one concern without the whole handler builder:
+
+| Package           | Import path                                          | What it owns                                                                                   |
+| ----------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `htmx`            | `github.com/larsartmann/cqrs-htmx/v4/htmx`           | The HTMX protocol vocabulary: `Request`/`ParseRequest`, swap strategies, every `Header*` constant, `ScriptHandler`, `ExtensionHandler`, the embedded htmx.js |
+| `httperr`         | `github.com/larsartmann/cqrs-htmx/v4/httperr`        | Error family → HTTP status, `SafeDetail`, the RFC 9457 `StructuredError`, every ready-made handler |
+| `eventcatalog`    | `github.com/larsartmann/cqrs-htmx/v4/eventcatalog`   | The published event language: `New`, `Register`, `Handler`                                      |
+| `internal/hx`     | not importable                                       | Shared plumbing that breaks the import cycle (JSON keys, immutable serving, request-ID context)  |
+
+`cqrshtmx` remains the supported surface: three `*_reexport.go` facades alias the
+subpackage symbols, so `cqrshtmx.HTMXScriptHandler` and `htmx.ScriptHandler` are the
+same function value. The layering is one-way and machine-checked — `nix run
+.#check-module-layers` fails if a subpackage imports the root package.
+
 ## Realtime: SSE and offline sync
 
 Realtime is building blocks, not a server — you own the HTTP handler, the library gives you the stream and the fan-out:

@@ -3,6 +3,8 @@ package cqrshtmx
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 )
 
 // SyncWorkerHandler returns an http.Handler that serves the embedded offline
@@ -28,7 +30,7 @@ func SyncWorkerHandler() http.Handler {
 //	mux.Handle("/sync-worker.js",
 //	    cqrshtmx.SyncWorkerHandlerWith(customJS, "2.0.0"))
 func SyncWorkerHandlerWith(js []byte, version string) http.Handler {
-	return serveJS(js, fmt.Sprintf(`"sync-worker-%s"`, version))
+	return hx.ServeJS(js, fmt.Sprintf(`"sync-worker-%s"`, version))
 }
 
 // SyncClientHandler returns an http.Handler that serves the embedded offline
@@ -54,7 +56,7 @@ func SyncClientHandler() http.Handler {
 //	mux.Handle("/sync-client.js",
 //	    cqrshtmx.SyncClientHandlerWith(customJS, "2.0.0"))
 func SyncClientHandlerWith(js []byte, version string) http.Handler {
-	return serveJS(js, fmt.Sprintf(`"sync-client-%s"`, version))
+	return hx.ServeJS(js, fmt.Sprintf(`"sync-client-%s"`, version))
 }
 
 // SyncClientScriptTag returns an HTML <script> tag that loads the sync client

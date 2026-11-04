@@ -1,14 +1,18 @@
-package cqrshtmx
+package httperr
 
 import (
 	"errors"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 )
 
-const defaultLoginRedirect = "/login"
+// DefaultLoginRedirect is the login path HTMX auth failures redirect to when the
+// caller supplies no override.
+const DefaultLoginRedirect = "/login"
 
 // Cross-module auth error codes. Both root and the usermgmt submodule define
 // their own sentinel errors but share these codes so MapError can recognise
@@ -38,10 +42,15 @@ var (
 	ErrRequestTooLarge  error = errorfamily.NewRejection("request_too_large", "request body exceeds maximum size")
 	ErrMethodNotAllowed error = errorfamily.NewRejection("method_not_allowed", "HTTP method not allowed")
 
-	errCommandsNil        error = errorfamily.NewInfrastructure("commands_nil", "command dispatcher is required")
-	errQueriesNil         error = errorfamily.NewInfrastructure("queries_nil", "query dispatcher is required")
-	errDecoderMissing     error = errorfamily.NewInfrastructure("decoder_missing", "request decoder is required")
-	errDecoderReturnedNil error = errorfamily.NewCorruption(
+	// ErrCommandsNil reports a missing command dispatcher — a wiring bug.
+	ErrCommandsNil error = errorfamily.NewInfrastructure("commands_nil", "command dispatcher is required")
+	// ErrQueriesNil reports a missing query dispatcher — a wiring bug.
+	ErrQueriesNil error = errorfamily.NewInfrastructure("queries_nil", "query dispatcher is required")
+	// ErrDecoderMissing reports a missing request decoder — a wiring bug.
+	ErrDecoderMissing error = errorfamily.NewInfrastructure("decoder_missing", "request decoder is required")
+	// ErrDecoderReturnedNil reports a decoder that returned neither a value nor
+	// an error — a server-side wiring bug.
+	ErrDecoderReturnedNil error = errorfamily.NewCorruption(
 		"decoder_returned_nil",
 		"request decoder returned a nil result without an error — this is a server-side wiring bug",
 	)
@@ -84,7 +93,7 @@ func MapError(err error) int {
 
 func explicitErrorStatus(err error) int {
 	switch {
-	case isPanicError(err):
+	case hx.IsPanicError(err):
 		return http.StatusInternalServerError
 	case errors.Is(err, ErrUnauthorized):
 		return http.StatusUnauthorized
@@ -118,7 +127,7 @@ func explicitErrorStatus(err error) int {
 // those config flags should use [JSONErrorHandler] (which reads Config) or
 // [ProblemDetailsErrorHandler] instead. See ADR-0017.
 func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	DefaultErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
+	DefaultErrorHandlerWithRedirect(w, r, err, DefaultLoginRedirect)
 }
 
 // isAuthError returns true if the error is an authentication/authorization error
@@ -189,21 +198,21 @@ func writeHTMXAuthRedirect(
 	err error,
 	loginRedirect string,
 ) bool {
-	if !IsHTMXRequest(r) || !isAuthError(err) {
+	if !htmx.IsRequest(r) || !isAuthError(err) {
 		return false
 	}
 
-	w.Header().Set(headerRedirect, loginRedirect)
+	w.Header().Set(htmx.HeaderRedirect, loginRedirect)
 	w.WriteHeader(http.StatusSeeOther)
 
 	return true
 }
 
-// handleErrorCore handles the common logic for error responses:
+// HandleErrorCore handles the common logic for error responses:
 // default login redirect, HTMX auth redirect, status code mapping, and the
 // Retry-After header on 503 responses.
 // The writeBody callback handles the response body format.
-func handleErrorCore(
+func HandleErrorCore(
 	w http.ResponseWriter,
 	r *http.Request,
 	err error,
@@ -211,7 +220,7 @@ func handleErrorCore(
 	writeBody func(http.ResponseWriter, error, int),
 ) {
 	if loginRedirect == "" {
-		loginRedirect = defaultLoginRedirect
+		loginRedirect = DefaultLoginRedirect
 	}
 
 	if writeHTMXAuthRedirect(w, r, err, loginRedirect) {
@@ -231,37 +240,37 @@ func DefaultErrorHandlerWithRedirect(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(
+	HandleErrorCore(
 		w,
 		r,
 		err,
 		loginRedirect,
-		plainBodyWriter(r, plainBodyOptions{}),
+		PlainBodyWriter(r, PlainBodyOptions{IncludeInternal: false, IncludeRequestID: false}),
 	)
 }
 
-// plainBodyOptions names the two plain-body writer flags so call sites
+// PlainBodyOptions names the two plain-body writer flags so call sites
 // read unambiguously instead of counting positional booleans.
-type plainBodyOptions struct {
-	// includeInternal exposes 5xx detail (Config.IncludeInternalDetails opt-in).
-	includeInternal bool
-	// includeRequestID prefixes the request ID from context onto the body.
-	includeRequestID bool
+type PlainBodyOptions struct {
+	// IncludeInternal exposes 5xx detail (Config.IncludeInternalDetails opt-in).
+	IncludeInternal bool
+	// IncludeRequestID prefixes the request ID from context onto the body.
+	IncludeRequestID bool
 }
 
-// plainBodyWriter builds a text/plain response body writer that redacts 5xx
-// detail unless opts.includeInternal is set, optionally prefixing the request ID.
-func plainBodyWriter(r *http.Request, opts plainBodyOptions) func(http.ResponseWriter, error, int) {
+// PlainBodyWriter builds a text/plain response body writer that redacts 5xx
+// detail unless opts.IncludeInternal is set, optionally prefixing the request ID.
+func PlainBodyWriter(r *http.Request, opts PlainBodyOptions) func(http.ResponseWriter, error, int) {
 	return func(w http.ResponseWriter, err error, status int) {
-		w.Header().Set("Content-Type", ContentTypePlain)
+		w.Header().Set("Content-Type", hx.ContentTypePlain)
 		w.WriteHeader(status)
 
-		detail := SafeDetail(err, status, opts.includeInternal)
-		if opts.includeRequestID {
+		detail := SafeDetail(err, status, opts.IncludeInternal)
+		if opts.IncludeRequestID {
 			detail = prefixRequestID(r, detail)
 		}
 
-		writeAllString(w, detail)
+		hx.WriteAllString(w, detail)
 	}
 }
 
@@ -275,7 +284,7 @@ func plainBodyWriter(r *http.Request, opts plainBodyOptions) func(http.ResponseW
 //
 // Server faults (status >= 500 — Corruption, Infrastructure, Transient) may
 // leak internal wiring, infrastructure addresses, or data-integrity detail.
-// Unless includeInternal is true (a development or trusted-network opt-in, wired
+// Unless IncludeInternal is true (a development or trusted-network opt-in, wired
 // via [Config.IncludeInternalDetails]), they are replaced by the error family's
 // generic, public-safe default message so attackers cannot probe internals
 // through error text. The full detail is still logged server-side by the
@@ -294,7 +303,7 @@ func SafeDetail(err error, status int, includeInternal bool) string {
 
 // prefixRequestID prefixes detail with the request ID when one is in context.
 func prefixRequestID(r *http.Request, detail string) string {
-	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+	if rid := hx.RequestIDFromContext(r.Context()); !rid.IsZero() {
 		return "[request_id: " + rid.String() + "] " + detail
 	}
 
@@ -304,7 +313,7 @@ func prefixRequestID(r *http.Request, detail string) string {
 // DefaultErrorHandlerWithRequestID is like DefaultErrorHandler but prefixes the
 // error message with the request ID when one is present in context.
 func DefaultErrorHandlerWithRequestID(w http.ResponseWriter, r *http.Request, err error) {
-	DefaultErrorHandlerWithRedirectAndRequestID(w, r, err, defaultLoginRedirect)
+	DefaultErrorHandlerWithRedirectAndRequestID(w, r, err, DefaultLoginRedirect)
 }
 
 // DefaultErrorHandlerWithRedirectAndRequestID is like DefaultErrorHandlerWithRedirect
@@ -315,15 +324,15 @@ func DefaultErrorHandlerWithRedirectAndRequestID(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r,
-		plainBodyOptions{includeRequestID: true}))
+	HandleErrorCore(w, r, err, loginRedirect, PlainBodyWriter(r,
+		PlainBodyOptions{IncludeInternal: false, IncludeRequestID: true}))
 }
 
 // JSONErrorHandler writes errors as JSON responses.
 // For HTMX requests with auth errors, redirects via HX-Redirect instead of returning JSON.
 // Uses the default login redirect path ("/login").
 func JSONErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	JSONErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
+	JSONErrorHandlerWithRedirect(w, r, err, DefaultLoginRedirect)
 }
 
 // JSONErrorHandlerWithRedirect writes errors as JSON responses with a custom login redirect.
@@ -335,29 +344,29 @@ func JSONErrorHandlerWithRedirect(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, jsonBodyWriter(r, false))
+	HandleErrorCore(w, r, err, loginRedirect, jsonBodyWriter(r, false))
 }
 
 // jsonBodyWriter builds an application/json response body writer that redacts
-// 5xx detail unless includeInternal is set.
+// 5xx detail unless IncludeInternal is set.
 func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWriter, error, int) {
 	return func(w http.ResponseWriter, err error, status int) {
-		w.Header().Set("Content-Type", ContentTypeJSON)
+		w.Header().Set("Content-Type", hx.ContentTypeJSON)
 		w.WriteHeader(status)
 
 		response := map[string]any{
-			JSONKeyError:  SafeDetail(err, status, includeInternal),
-			JSONKeyStatus: status,
+			hx.JSONKeyError:  SafeDetail(err, status, includeInternal),
+			hx.JSONKeyStatus: status,
 		}
 		if code := ErrorCode(err); code != "" {
-			response[JSONKeyCode] = code
+			response[hx.JSONKeyCode] = code
 		}
 
-		if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
-			response[JSONKeyRequestID] = rid.String()
+		if rid := hx.RequestIDFromContext(r.Context()); !rid.IsZero() {
+			response[hx.JSONKeyRequestID] = rid.String()
 		}
 
-		marshalJSONForResponse(w, response)
+		hx.MarshalJSONForResponse(w, response)
 	}
 }
 
@@ -377,7 +386,7 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 //	    ...
 //	})
 func ProblemDetailsErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	ProblemDetailsErrorHandlerWithRedirect(w, r, err, defaultLoginRedirect)
+	ProblemDetailsErrorHandlerWithRedirect(w, r, err, DefaultLoginRedirect)
 }
 
 // ProblemDetailsErrorHandlerWithRedirect is like ProblemDetailsErrorHandler
@@ -388,13 +397,13 @@ func ProblemDetailsErrorHandlerWithRedirect(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, _ int) {
-		w.Header().Set("Content-Type", ContentTypeProblem)
+	HandleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, _ int) {
+		w.Header().Set("Content-Type", hx.ContentTypeProblem)
 
 		status := MapError(err)
 		w.WriteHeader(status)
 
 		payload := NewStructuredError(err, r)
-		marshalJSONForResponse(w, payload)
+		hx.MarshalJSONForResponse(w, payload)
 	})
 }

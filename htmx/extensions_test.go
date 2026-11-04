@@ -1,19 +1,19 @@
-package cqrshtmx_test
+package htmx_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("HTMXExtensionHandler", func() {
+var _ = Describe("ExtensionHandler", func() {
 	DescribeTable("serves each embedded extension",
 		func(name, wantVersion string) {
-			handler := cqrshtmx.HTMXExtensionHandler(name)
+			handler := htmx.ExtensionHandler(name)
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest(http.MethodGet, "/ext/"+name+".js", nil)
 			handler.ServeHTTP(w, req)
@@ -24,12 +24,12 @@ var _ = Describe("HTMXExtensionHandler", func() {
 			Expect(w.Header().Get("ETag")).To(Equal(`"htmx-ext-` + name + `-` + wantVersion + `"`))
 			Expect(w.Body.Len()).To(BeNumerically(">", 0))
 		},
-		Entry("sse", cqrshtmx.HTMXExtSSE, "2.2.4"),
-		Entry("idiomorph", cqrshtmx.HTMXExtIdiomorph, "0.7.4"),
+		Entry("sse", htmx.ExtSSE, "2.2.4"),
+		Entry("idiomorph", htmx.ExtIdiomorph, "0.7.4"),
 	)
 
 	It("returns 304 for matching If-None-Match", func() {
-		handler := cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE)
+		handler := htmx.ExtensionHandler(htmx.ExtSSE)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/ext/sse.js", nil)
 		req.Header.Set("If-None-Match", `"htmx-ext-sse-2.2.4"`)
@@ -40,7 +40,7 @@ var _ = Describe("HTMXExtensionHandler", func() {
 	})
 
 	It("returns 200 for non-matching If-None-Match", func() {
-		handler := cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE)
+		handler := htmx.ExtensionHandler(htmx.ExtSSE)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/ext/sse.js", nil)
 		req.Header.Set("If-None-Match", `"htmx-ext-sse-2.2.3"`)
@@ -50,7 +50,7 @@ var _ = Describe("HTMXExtensionHandler", func() {
 	})
 
 	It("returns 405 for POST", func() {
-		handler := cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtIdiomorph)
+		handler := htmx.ExtensionHandler(htmx.ExtIdiomorph)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPost, "/ext/idiomorph.js", nil)
 		handler.ServeHTTP(w, req)
@@ -59,13 +59,13 @@ var _ = Describe("HTMXExtensionHandler", func() {
 	})
 
 	It("panics for unknown extension name", func() {
-		Expect(func() { cqrshtmx.HTMXExtensionHandler("unknown") }).To(Panic())
+		Expect(func() { htmx.ExtensionHandler("unknown") }).To(Panic())
 	})
 })
 
-var _ = Describe("HTMXExtensionsHandler", func() {
+var _ = Describe("ExtensionsHandler", func() {
 	It("serves a concatenated bundle of multiple extensions", func() {
-		handler := cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph)
+		handler := htmx.ExtensionsHandler(htmx.ExtSSE, htmx.ExtIdiomorph)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/ext/bundle.js", nil)
 		handler.ServeHTTP(w, req)
@@ -82,7 +82,7 @@ var _ = Describe("HTMXExtensionsHandler", func() {
 	})
 
 	It("returns 304 for matching If-None-Match", func() {
-		handler := cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph)
+		handler := htmx.ExtensionsHandler(htmx.ExtSSE, htmx.ExtIdiomorph)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/ext/bundle.js", nil)
 		req.Header.Set("If-None-Match", `"htmx-ext-bundle-sse-2.2.4,idiomorph-0.7.4"`)
@@ -92,7 +92,7 @@ var _ = Describe("HTMXExtensionsHandler", func() {
 	})
 
 	It("returns 405 for POST", func() {
-		handler := cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE)
+		handler := htmx.ExtensionsHandler(htmx.ExtSSE)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPost, "/ext/bundle.js", nil)
 		handler.ServeHTTP(w, req)
@@ -102,53 +102,53 @@ var _ = Describe("HTMXExtensionsHandler", func() {
 
 	It("panics for unknown extension name in bundle", func() {
 		Expect(func() {
-			cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, "bogus")
+			htmx.ExtensionsHandler(htmx.ExtSSE, "bogus")
 		}).To(Panic())
 	})
 
 	It("panics when no names are given", func() {
-		Expect(func() { cqrshtmx.HTMXExtensionsHandler() }).To(Panic())
+		Expect(func() { htmx.ExtensionsHandler() }).To(Panic())
 	})
 })
 
-var _ = Describe("HTMXExtensionVersion", func() {
+var _ = Describe("ExtensionVersion", func() {
 	DescribeTable("returns the version for known extensions",
 		func(name, want string) {
-			Expect(cqrshtmx.HTMXExtensionVersion(name)).To(Equal(want))
+			Expect(htmx.ExtensionVersion(name)).To(Equal(want))
 		},
-		Entry("sse", cqrshtmx.HTMXExtSSE, "2.2.4"),
-		Entry("idiomorph", cqrshtmx.HTMXExtIdiomorph, "0.7.4"),
+		Entry("sse", htmx.ExtSSE, "2.2.4"),
+		Entry("idiomorph", htmx.ExtIdiomorph, "0.7.4"),
 	)
 
 	It("returns empty string for unknown extension", func() {
-		Expect(cqrshtmx.HTMXExtensionVersion("bogus")).To(Equal(""))
+		Expect(htmx.ExtensionVersion("bogus")).To(Equal(""))
 	})
 })
 
-var _ = Describe("HTMXExtensionNames", func() {
+var _ = Describe("ExtensionNames", func() {
 	It("returns all extension names sorted alphabetically", func() {
-		names := cqrshtmx.HTMXExtensionNames()
+		names := htmx.ExtensionNames()
 		Expect(names).To(Equal([]string{"idiomorph", "sse"}))
 	})
 
 	It("returns names that join cleanly for error messages", func() {
-		names := cqrshtmx.HTMXExtensionNames()
+		names := htmx.ExtensionNames()
 		Expect(strings.Join(names, ", ")).To(Equal("idiomorph, sse"))
 	})
 })
 
-var _ = Describe("HTMXExtensionCDNScriptTag", func() {
+var _ = Describe("ExtensionCDNScriptTag", func() {
 	DescribeTable("returns a CDN script tag with the embedded version",
 		func(name, wantURL string) {
-			Expect(cqrshtmx.HTMXExtensionCDNScriptTag(name)).To(Equal(
+			Expect(htmx.ExtensionCDNScriptTag(name)).To(Equal(
 				`<script src="` + wantURL + `"></script>`,
 			))
 		},
-		Entry("sse", cqrshtmx.HTMXExtSSE, "https://unpkg.com/htmx-ext-sse@2.2.4/dist/sse.min.js"),
-		Entry("idiomorph", cqrshtmx.HTMXExtIdiomorph, "https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"),
+		Entry("sse", htmx.ExtSSE, "https://unpkg.com/htmx-ext-sse@2.2.4/dist/sse.min.js"),
+		Entry("idiomorph", htmx.ExtIdiomorph, "https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"),
 	)
 
 	It("returns empty string for unknown extension", func() {
-		Expect(cqrshtmx.HTMXExtensionCDNScriptTag("bogus")).To(Equal(""))
+		Expect(htmx.ExtensionCDNScriptTag("bogus")).To(Equal(""))
 	})
 })
