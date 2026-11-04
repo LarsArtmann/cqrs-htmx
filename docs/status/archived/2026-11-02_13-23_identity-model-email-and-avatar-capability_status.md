@@ -1,5 +1,9 @@
 # Status — identity-model email hardening + avatar capability audit
 
+> **ANNOTATED 2026-11-04** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
+> The next session in the same arc is [`2026-11-04_06-57_self-review-forgotten-better-improve_status.md`](../2026-11-04_06-57_self-review-forgotten-better-improve_status.md), which read-only audit finished 2026-11-02; findings harvested into TODO_LIST.md (45235828) and the arc moved on — stale tail debt cleared to make room for the demand-#3 self-review.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Date:** 2026-11-02 13:23 CET (Monday)
 **Session type:** read-only audit. **Zero code changes, zero test runs, zero commits.**
 **Report scope:** this session only, per explicit instruction ("DO NOT RESEARCH OTHER STUFF UNRELATED TO WHAT YOU DID").
