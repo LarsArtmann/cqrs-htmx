@@ -99,7 +99,7 @@ type viewCache[V any, K fmt.Stringer] struct {
 func newViewCache[V any, K fmt.Stringer](
 	store kv.ViewStore[V, K], opts ...ViewCacheOption,
 ) (*viewCache[V, K], error) {
-	cfg := viewCacheConfig{}
+	cfg := viewCacheConfig{} //nolint:exhaustruct // zero value is the no-cache default; options mutate
 	for _, opt := range opts {
 		opt(&cfg)
 	}
@@ -116,7 +116,7 @@ func newViewCache[V any, K fmt.Stringer](
 		)
 	}
 
-	otterOpts := &otter.Options[string, *V]{ //nolint:exhaustruct_v5 // MaximumSize is the only required knob
+	otterOpts := &otter.Options[string, *V]{ //nolint:exhaustruct // MaximumSize is the only required knob; match the linter name enabled in .golangci.yml (pre-exhaustruct_v5 migration)
 		MaximumSize: cfg.capacity,
 	}
 

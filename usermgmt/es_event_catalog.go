@@ -100,7 +100,7 @@ func fieldsFromStructField(f reflect.StructField) []cqrshtmx.PayloadField {
 // kind, slices as "[]elem". Package qualifiers are dropped — the names are
 // domain vocabulary, unambiguous within the identity model.
 func goTypeName(t reflect.Type) string {
-	switch t.Kind() {
+	switch t.Kind() { //nolint:exhaustive // partial-kind switch: unhandled kinds fall through to Name()/Kind().String() below
 	case reflect.Slice, reflect.Array:
 		return "[]" + goTypeName(t.Elem())
 	case reflect.Pointer:

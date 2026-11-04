@@ -63,7 +63,7 @@ func (s *countingViewStore) Delete(_ context.Context, id UserID) error {
 }
 
 func (s *countingViewStore) Scan(_ context.Context, _ []byte) ([]*UserView, error) {
-	return nil, nil //nolint:nilnil // not exercised by the cache tests
+	return nil, nil
 }
 
 func (s *countingViewStore) Query(_ context.Context, q kv.ViewQuery) ([]*UserView, error) {

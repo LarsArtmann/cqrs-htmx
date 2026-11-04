@@ -100,6 +100,24 @@ func durableDeadLetterStore(
 	return dlq, nil
 }
 
+// checkpointStoreFor resolves the checkpoint store a projection host should
+// use: the library-default in-memory store when none is configured, or the
+// hydration-aware wrapper otherwise.
+func checkpointStoreFor(
+	cpStore event.CheckpointStore, projections []projection.Projection,
+) event.CheckpointStore {
+	if cpStore == nil {
+		//cqrs-lint:ignore(C017) library default: consumers pass a persistent checkpoint store via config for production
+		return memory.NewMemoryCheckpointStore()
+	}
+	// Only projections that can rehydrate from persistent state may keep
+	// checkpoints across restarts; in-memory projections (casbin, default
+	// audit log) must always replay the full journal or they would stay
+	// empty forever. Applies to every host created through this factory,
+	// including rebuilds.
+	return newHydrationAwareCheckpointStore(cpStore, projections)
+}
+
 // startProjectionHost is the shared projection-host factory used by both
 // StartProjections (initial startup) and RebuildProjection (rebuild after
 // reset). It validates the journal, creates a projectionhost.Host with a
@@ -131,18 +149,7 @@ func startProjectionHost(
 		)
 	}
 
-	store := cpStore
-	if store == nil {
-		//cqrs-lint:ignore(C017) library default: consumers pass a persistent checkpoint store via config for production
-		store = memory.NewMemoryCheckpointStore()
-	} else {
-		// Only projections that can rehydrate from persistent state may keep
-		// checkpoints across restarts; in-memory projections (casbin, default
-		// audit log) must always replay the full journal or they would stay
-		// empty forever. Applies to every host created through this factory,
-		// including rebuilds.
-		store = newHydrationAwareCheckpointStore(store, projections)
-	}
+	store := checkpointStoreFor(cpStore, projections)
 
 	dlq, err := durableDeadLetterStore(ctx, journal)
 	if err != nil {
