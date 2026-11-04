@@ -37,7 +37,7 @@ require (
 	github.com/google/pprof v0.0.0-20261006160405-d99a6174ef52 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-branded-id v0.7.0 // indirect
+	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (dispatcher/v4 trails; cqrs-lint >=4.11 anchors the finding here, 4.8.x anchored at the block head — both suppressions kept)
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
