@@ -220,8 +220,8 @@ github.com/larsartmann/cqrs-htmx/v4 v4.15.0 h1:gUWdLbW+9KULoN9Iu3/u6rdTbVBf5PbLp
 github.com/larsartmann/cqrs-htmx/v4 v4.15.0/go.mod h1:uYh+kvBHYcYXntayGBVrTh8ugKZd8qQoNG2HQJXeo4M=
 github.com/larsartmann/go-appkit v0.9.0 h1:rOKVw+AWDJ5xR9H+ulveJ0cqln3HsZBdTD80tbZV1gY=
 github.com/larsartmann/go-appkit v0.9.0/go.mod h1:Q+eQwk/zyQO0iXqlsaf55Q3hV+j/ieyvOPZNyPYwYns=
-github.com/larsartmann/go-atomic-write v0.6.0 h1:+f7NE8pEe4Fqb6u+2sCtB9dOWWfgwjdTn24o3hMjY5o=
-github.com/larsartmann/go-atomic-write v0.6.0/go.mod h1:2Mj3sw25Lx5dN3WjOC6O/p9nGxcU/jjn977CanerqcU=
+github.com/larsartmann/go-atomic-write v0.6.1 h1:lL4arpBDRh70H1ktdS37bu4VswO5PekGgjfynwqcbrM=
+github.com/larsartmann/go-atomic-write v0.6.1/go.mod h1:rIkglf/MmsaEMMWykVE6wFwvDHtfcYm5t2qb4m9C+VU=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=
 github.com/larsartmann/go-branded-id v0.7.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-codec v0.3.3 h1:aKwY9YaUnawfcUxNNgfEb/6xQa8HJsrS7QHSOmnQUpU=
