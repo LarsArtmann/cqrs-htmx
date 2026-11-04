@@ -8,7 +8,7 @@
 · **Mission:** the pre-push release-train gate refused your push (27 lag); execute the gate's own
 fix recipe and complete the push.
 · **Predecessors:** [04-35 ritual close-out](2026-11-04_04-35_report-ritual-closeout-self-review_status.md)
-(archived by this pass), [06-57 sibling self-review](../2026-11-04_06-57_self-review-forgotten-better-improve_status.md).
+(archived by this pass), [06-57 sibling self-review](2026-11-04_06-57_self-review-forgotten-better-improve_status.md).
 
 **Scope line.** VERIFIED this session by fresh command: every sweep's per-module hermetic
 build/vet/lint table (bump-dep logs + reruns); the templ symbol timeline

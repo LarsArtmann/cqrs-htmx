@@ -1,5 +1,9 @@
 # Status: self-review — what I forgot, what to do better, what to improve
 
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_18-52_docs-health-round46-2026-0-corpus-six-docs-truth_status.md`](../2026-11-04_18-52_docs-health-round46-2026-0-corpus-six-docs-truth_status.md), which resolved. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
+
 **Written:** 2026-11-04 06:57 CET · **Scope:** my demand-#2 segment (00:12→00:31: verify shell
 024, re-derive, report #2 `9f452f43`, WAIT) plus the drift noticed at 06:57. Per instruction:
 no research beyond what I did and saw. Answers the owner's three questions directly, then a–g.
