@@ -1,6 +1,6 @@
 # Status: push-unblock war story — three sweeps + an upstream v0.12.1 release; sweep 4 and the tail push remain
 
-> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_16-44_lag-treadmill-sweep4-via-daemon-gate-red-again_status.md`](../2026-11-04_16-44_lag-treadmill-sweep4-via-daemon-gate-red-again_status.md), which superseded: its section g1 GO executed — sweep 4 content landed (via daemon), admin-demo migrated; gate red again on branded-id; questions carried forward. Strike depth:
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_16-44_lag-treadmill-sweep4-via-daemon-gate-red-again_status.md`](2026-11-04_16-44_lag-treadmill-sweep4-via-daemon-gate-red-again_status.md), which superseded: its section g1 GO executed — sweep 4 content landed (via daemon), admin-demo migrated; gate red again on branded-id; questions carried forward. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
 

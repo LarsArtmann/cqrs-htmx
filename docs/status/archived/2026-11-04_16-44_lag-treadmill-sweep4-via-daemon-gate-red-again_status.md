@@ -1,8 +1,12 @@
 # Status: the lag treadmill — four sweeps landed (one via daemon), gate red again on branded-id, push still held
 
+> **ANNOTATED 2026-11-04** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
+> The next session in the same arc is [`2026-11-04_17-28_push-unblock-complete-sweep5-gate-green-stack-on-origin_status.md`](../2026-11-04_17-28_push-unblock-complete-sweep5-gate-green-stack-on-origin_status.md), which §g1 GO executed: sweep 5 landed, gate green, stack on origin, CI triaged — superseded by the completion report.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Written:** 2026-11-04 16:44 CET · **Session window:** 08:04 → 08:39 work, then 8 h idle, report at 16:44
 · **Mission (still open):** unblock and complete the push the release-train gate refused.
-· **Predecessor:** [08-04 push-unblock war story](archived/2026-11-04_08-04_push-unblock-four-sweeps-upstream-v0.12.1_status.md) — its §g1 GO arrived; this reports the execution.
+· **Predecessor:** [08-04 push-unblock war story](2026-11-04_08-04_push-unblock-four-sweeps-upstream-v0.12.1_status.md) — its §g1 GO arrived; this reports the execution.
 
 **Scope line.** VERIFIED by fresh command: sweep 4's bump-dep run (full log `/tmp/sweep4.log`:
 35 PASS lines; the 5 gap modules failed only the documented Posture/ViewCacheConfig class;
