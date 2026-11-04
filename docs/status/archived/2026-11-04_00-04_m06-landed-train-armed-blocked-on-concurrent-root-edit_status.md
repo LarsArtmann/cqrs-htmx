@@ -1,6 +1,6 @@
 # Status: M06 landed green, train assembled and armed — blocked on the concurrent session's in-flight root edit
 
-> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_00-28_sweep-committed-breach-owned-awaiting-train-authorization_status.md`](../2026-11-04_00-28_sweep-committed-breach-owned-awaiting-train-authorization_status.md), which overtaken minutes later by the corrected final-state report (sweep commit landed, breaches owned). Strike depth:
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_00-28_sweep-committed-breach-owned-awaiting-train-authorization_status.md`](2026-11-04_00-28_sweep-committed-breach-owned-awaiting-train-authorization_status.md), which overtaken minutes later by the corrected final-state report (sweep commit landed, breaches owned). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
 
