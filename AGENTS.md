@@ -140,7 +140,7 @@ number and has a `#gotcha-N` anchor). This index is the scan surface; open the f
 | 43  | BuildFlow's stale-`vendorHash` warning is a documented NON-FIX — the hash belongs to the `benchstat` derivation, not this repo's go.sum (full text: gotcha 43)                         |     |                                                                              |
 | 44  | `erraudit lint --max` bypasses every nolint; its `generic_return` check is a posture mismatch — canonical audit is `--max --disable generic_return`, per module (full text: gotcha 44) |     |                                                                              |
 | 45  | A role grant written into the Casbin enforcer is NOT durable — use `Service.GrantRoles`; and `GroupPolicies()` mixes grants with hierarchy rows (full text: gotcha 45) | 46  | A server-wide `WriteTimeout` severs SSE streams — the stream handler clears its own deadline; never zero the server timeout (full text: gotcha 46) |
-| 47  | Two agents in one working tree stash each other's work — Git Town took 59 uncommitted files and left a conflicted merge; rescue ref + patch FIRST (full text: gotcha 47) | 48  | A package extraction spawns split-brain bugs — the facade must delegate to the moved code's single source of truth, and the tests move WITH the package (full text: gotcha 48) |
+| 47  | Two agents in one working tree stash each other's work — Git Town took 59 uncommitted files; the daemon also snapshot-restores stale files over rebase results, so diff-check every rebase commit (full text: gotcha 47) | 48  | A package extraction spawns split-brain bugs — the facade must delegate to the moved code's single source of truth, and the tests move WITH the package (full text: gotcha 48) |
 
 ---
 
