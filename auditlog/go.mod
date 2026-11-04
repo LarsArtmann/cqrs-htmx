@@ -4,14 +4,14 @@ go 1.27
 
 require (
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/samber-do-auditlog v0.12.0
+	github.com/larsartmann/samber-do-auditlog v0.12.1
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
 )
 
 require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/a-h/templ v0.3.1100 // indirect
+	github.com/a-h/templ v0.3.1070 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f // indirect
