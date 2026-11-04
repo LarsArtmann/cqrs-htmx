@@ -1,5 +1,9 @@
 # STATUS REPORT — Root-split episode 5, close-out: recovery → 0 lint → 83/84 battery
 
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_18-52_docs-health-round46-2026-0-corpus-six-docs-truth_status.md`](../2026-11-04_18-52_docs-health-round46-2026-0-corpus-six-docs-truth_status.md), which resolved. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
+
 **Date:** 2026-11-02 21:03 CET · **Branch:** `modularize/root-package-split` (worktree
 `/home/lars/projects/cqrs-htmx-root-split`, HEAD `7daabb8a`) · **master tip:** `6165b762`
 · **Skill:** `go-modularize` · **Supersedes:** `2026-11-02_16-23_root-split-recovery-reexport-refactor-and-gate-battery_status.md`

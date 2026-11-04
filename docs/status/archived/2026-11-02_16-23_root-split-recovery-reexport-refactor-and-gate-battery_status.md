@@ -1,6 +1,6 @@
 # STATUS REPORT — Root-split session: recovery, `_reexport` refactor, gates, battery triage
 
-> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-11-02_21-03_root-split-close-out-recovery-zero-lint-83-of-84-battery_status.md`](../2026-11-02_21-03_root-split-close-out-recovery-zero-lint-83-of-84-battery_status.md), which the 21-03 close-out supersedes it: same episode carried to the end state — the five-tag aligns integrated, coverage-gate 15/15 green, the branching-flow +29 triaged and re-pinned 184 to 198 with the amendment row, and the battery at 83/84 with the single red being the designed uncommitted-baseline guard. Strike depth:
+> **ANNOTATED 2026-11-02** — ~~this report~~ **SUPERSEDED** by [`2026-11-02_21-03_root-split-close-out-recovery-zero-lint-83-of-84-battery_status.md`](2026-11-02_21-03_root-split-close-out-recovery-zero-lint-83-of-84-battery_status.md), which the 21-03 close-out supersedes it: same episode carried to the end state — the five-tag aligns integrated, coverage-gate 15/15 green, the branching-flow +29 triaged and re-pinned 184 to 198 with the amendment row, and the battery at 83/84 with the single red being the designed uncommitted-baseline guard. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-02 (root-split close-out (2026-11-02)).**
 
