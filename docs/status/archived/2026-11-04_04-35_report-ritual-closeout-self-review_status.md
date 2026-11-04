@@ -1,6 +1,6 @@
 # Status: report-ritual close-out + brutal self-review — clean tree, three owner calls outstanding
 
-> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_08-04_push-unblock-four-sweeps-upstream-v0.12.1_status.md`](../2026-11-04_08-04_push-unblock-four-sweeps-upstream-v0.12.1_status.md), which superseded: same arc continued — three sweeps plus upstream v0.12.1 landed; consumer-CI policy question preserved in successor section f14. Strike depth:
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_08-04_push-unblock-four-sweeps-upstream-v0.12.1_status.md`](2026-11-04_08-04_push-unblock-four-sweeps-upstream-v0.12.1_status.md), which superseded: same arc continued — three sweeps plus upstream v0.12.1 landed; consumer-CI policy question preserved in successor section f14. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
 
