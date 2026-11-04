@@ -1,6 +1,6 @@
 # Status: sweep committed, breach owned, awaiting train authorization
 
-> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_04-35_report-ritual-closeout-self-review_status.md`](../2026-11-04_04-35_report-ritual-closeout-self-review_status.md), which superseded: R3/R9/R10 + L1-half landed on the sweep tree; push/daemon/lintposture questions carried forward, consumer-CI policy preserved in successor section f. Strike depth:
+> **ANNOTATED 2026-11-04** — ~~this report~~ **SUPERSEDED** by [`2026-11-04_04-35_report-ritual-closeout-self-review_status.md`](2026-11-04_04-35_report-ritual-closeout-self-review_status.md), which superseded: R3/R9/R10 + L1-half landed on the sweep tree; push/daemon/lintposture questions carried forward, consumer-CI policy preserved in successor section f. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
 
