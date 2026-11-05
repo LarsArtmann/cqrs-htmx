@@ -214,7 +214,7 @@ type Config struct {
 	// Route paths (all optional — sensible defaults).
 	AdminPath     string // default: "/admin/"
 	DashboardPath string // default: "/dashboard/"
-	LoginRedirect string // default: "/admin/" — where to redirect after login
+	LoginRedirect string // default: AdminPath — where to redirect after login
 
 	// HealthPath is the readiness endpoint mount (default: "/health"; 503
 	// while projections drain, then 200). Set to "-" to NOT mount it at all —
@@ -593,10 +593,6 @@ func (c Config) withDefaults() Config {
 		cfg.DashboardPath = "/dashboard/"
 	}
 
-	if cfg.LoginRedirect == "" {
-		cfg.LoginRedirect = "/admin/"
-	}
-
 	if cfg.CookieName == "" {
 		cfg.CookieName = "session"
 	}
@@ -606,6 +602,12 @@ func (c Config) withDefaults() Config {
 	}
 
 	cfg = normalizeRoutePaths(cfg)
+
+	if cfg.LoginRedirect == "" {
+		// Follow a customized AdminPath (the default post-login destination);
+		// set after normalization so both paths carry the same trailing-slash form.
+		cfg.LoginRedirect = cfg.AdminPath
+	}
 
 	if cfg.SSEHeartbeatInterval == 0 {
 		cfg.SSEHeartbeatInterval = 15 * time.Second

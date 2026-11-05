@@ -48,6 +48,42 @@ func TestResolveServiceConfig_Flattened(t *testing.T) {
 	}
 }
 
+// TestWithDefaults_LoginRedirectFollowsAdminPath pins the S40 companion fix:
+// an unset LoginRedirect must follow a customized AdminPath (both in the
+// normalized trailing-slash form), never the hardcoded "/admin/" — a redirect
+// to a path nothing mounts on is a silent dead end after login. An explicit
+// LoginRedirect always wins.
+func TestWithDefaults_LoginRedirectFollowsAdminPath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		adminPath        string
+		loginRedirect    string
+		wantLogin        string
+		wantAdmin        string
+	}{
+		{name: "defaults", wantLogin: "/admin/", wantAdmin: "/admin/"},
+		{name: "custom admin path", adminPath: "/manage", wantLogin: "/manage/", wantAdmin: "/manage/"},
+		{name: "explicit redirect wins", adminPath: "/manage/", loginRedirect: "/panel", wantLogin: "/panel", wantAdmin: "/manage/"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := Config{AdminPath: tt.adminPath, LoginRedirect: tt.loginRedirect}.withDefaults()
+
+			if cfg.LoginRedirect != tt.wantLogin {
+				t.Errorf("LoginRedirect = %q, want %q", cfg.LoginRedirect, tt.wantLogin)
+			}
+			if cfg.AdminPath != tt.wantAdmin {
+				t.Errorf("AdminPath = %q, want %q", cfg.AdminPath, tt.wantAdmin)
+			}
+		})
+	}
+}
+
 // TestResolveServiceConfig_Override verifies the escape hatch: a caller-supplied
 // ServiceConfig is copied verbatim (copy, not alias — later mutations of the
 // caller's struct must not leak into the bundle), with only the AuditLog
