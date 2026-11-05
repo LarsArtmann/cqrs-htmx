@@ -129,7 +129,7 @@ func commandRows(basePath, nonce string, cmds []*command.PersistedCommand) templ
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(string(cmd.StreamType()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 41, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 41, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -142,7 +142,7 @@ func commandRows(basePath, nonce string, cmds []*command.PersistedCommand) templ
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(cmd.StreamID().String(), listIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 42, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 42, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -163,7 +163,7 @@ func commandRows(basePath, nonce string, cmds []*command.PersistedCommand) templ
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(cmd.ID().String(), eventIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 43, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 43, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -304,7 +304,7 @@ func queryRows(basePath, nonce string, queries []*query.PersistedQuery) templ.Co
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(q.ID().String(), eventIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 76, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 76, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -362,7 +362,7 @@ func auditedTimeTypeCells(receivedAt time.Time, typ string) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(receivedAt.Format("2006-01-02 15:04:05"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 86, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 86, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -375,7 +375,7 @@ func auditedTimeTypeCells(receivedAt time.Time, typ string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(typ)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 87, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 87, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -439,7 +439,7 @@ func commandDetailContent(p pageData, cmd *command.PersistedCommand) templ.Compo
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(string(cmd.Type()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 98, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 98, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -452,7 +452,7 @@ func commandDetailContent(p pageData, cmd *command.PersistedCommand) templ.Compo
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(cmd.ID().String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 99, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 99, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -486,7 +486,7 @@ func commandDetailContent(p pageData, cmd *command.PersistedCommand) templ.Compo
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(prettyJSON(cmd.Payload()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 109, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 109, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -560,7 +560,7 @@ func queryDetailContent(p pageData, q *query.PersistedQuery) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(string(q.Type()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 125, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 125, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -573,7 +573,7 @@ func queryDetailContent(p pageData, q *query.PersistedQuery) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(q.ID().String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 126, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 126, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -607,7 +607,7 @@ func queryDetailContent(p pageData, q *query.PersistedQuery) templ.Component {
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(prettyJSON(q.Payload()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `dashboardui/audit.templ`, Line: 136, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 136, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
