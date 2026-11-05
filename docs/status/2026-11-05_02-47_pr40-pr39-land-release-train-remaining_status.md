@@ -92,7 +92,7 @@
 29. Skill doc truth: `.agents/skills/cqrs-htmx/SKILL.md` gained +24 lines in #40 — verify its package map matches the landed tree (the skill-claims gates cover this; run them once).
 30. Go workspace hygiene: `go.work` `use` paths vs module names warning (BuildFlow `go-work-paths` warn, 13 modules "missing /v4 suffix") — decide: fix or formally waive; it's noise in every hook run.
 31. BuildFlow state DBs: 0.74 GB state + 0.15 GB cache DB flagged (VACUUM/deletable) — housekeeping.
-32. `interrogate` tool missing from PATH in devshell — install via flake or drop from config.
+32. `interrogate` tool missing from PATH in devshell — install via flake or drop from config. <!-- fresh:skip -->
 33. lychee excludes: add the archived-doc dirs (`docs/modularization/archived`, `docs/research/archived`) per the hook's own warning.
 34. file-size-check: 80+ test files exceed the 350-line budget (hook findings) — triage: raise budget for `_test.go`, or split the worst offenders (usermgmt/oauth2/provider_test.go at 1,252 lines).
 35. module-inventory: 26 dependabot-coverage info findings (go.work modules without gomod entries) — decide intended coverage per module.
