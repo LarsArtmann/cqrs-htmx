@@ -1,6 +1,7 @@
 .buildflow.yml
 .codespellrc
 .cqrs-lint.json
+.docs-gates.json
 .editorconfig
 .eventcatalog-hub.json
 .gitattributes
