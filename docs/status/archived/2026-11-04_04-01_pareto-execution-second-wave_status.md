@@ -7,7 +7,7 @@
 > about is closed); §f1-24/33-40 open remainders live in TODO_LIST rows (leverage + cqrs-lint +
 > upstream-asks); §g1 answered by execution (push done, 17-28 report), §g2/§g3 routed (ROADMAP
 > OQ20; TODO triage row). §d process ledger: acknowledged, no open action. Successor for the
-> docs-health thread: [`2026-11-04_18-52_docs-health-round46-…`](../2026-11-04_18-52_docs-health-round46-2026-0-corpus-six-docs-truth_status.md);
+> docs-health thread: [`2026-11-04_18-52_docs-health-round46-…`](2026-11-04_18-52_docs-health-round46-2026-0-corpus-six-docs-truth_status.md);
 > the leverage plan itself stays ACTIVE. **ARCHIVED 2026-11-04 (round-46 docs-health pass).**
 
 **Date:** 2026-11-04 04:01 CET · **Session:** ~01:00 → 04:01 · **Thread:** [leverage plan](../../planning/2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md) (supersedes [the first-wave report](2026-11-04_00-12_pareto-execution-first-wave_status.md))
