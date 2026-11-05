@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
@@ -55,6 +55,7 @@ require (
 	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect

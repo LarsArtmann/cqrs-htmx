@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/a-h/templ v0.3.1100
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/httputil v1.8.0
@@ -33,6 +33,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect

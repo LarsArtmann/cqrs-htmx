@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.16.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
 	github.com/larsartmann/go-appkit v0.9.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
@@ -65,6 +65,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
