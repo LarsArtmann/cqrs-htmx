@@ -1,5 +1,7 @@
 # Library Integration Report: cqrs-htmx
 
+> **SUPERSEDED (2026-11-05):** this snapshot is stale — it predates the go-error-family direct adoption, the httputil extraction, and the templ-components adoption in adminui/dashboardui/loginpage. The current fleet-wide utilization audit lives at [`docs/review/libs/index.html`](review/libs/index.html) (19 per-library reports). Kept for history only; where the two disagree, the new audit and the tree win.
+
 > How well does cqrs-htmx leverage the LarsArtmann ecosystem — and where are the gaps?
 
 **Date:** 2026-05-13 | **Project:** cqrs-htmx (library/SDK) | **Coverage:** 95.7% (150+ tests)

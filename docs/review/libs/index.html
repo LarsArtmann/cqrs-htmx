@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>cqrs-htmx &times; LarsArtmann ecosystem — Library Utilization Audit (2026-11-05)</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -828,9 +828,9 @@
   <body>
     <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>FLEET LIBRARY UTILIZATION AUDIT</span>
+      <span>2026-11-05</span>
+      <span>cqrs-htmx &middot; Crush / library-deep-dive</span>
     </div>
 
     <div class="layout">
@@ -839,10 +839,10 @@
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#findings">Findings</a>
-          <a href="#issues">Issue Cards</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#plan">Plan</a>
+          <a href="#libraries">The 19 Libraries</a>
+          <a href="#findings">Fleet Findings</a>
+          <a href="#posture">Dependency Posture</a>
+          <a href="#plan">Action Plan</a>
         </nav>
       </aside>
 
@@ -855,91 +855,104 @@
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Report Type</div>
-          <h1>Report Title</h1>
+          <div class="hero-badge">Fleet Library Utilization Audit</div>
+          <h1>cqrs-htmx &times; the LarsArtmann ecosystem</h1>
           <p class="hero-subtitle">
-            One-sentence description of what this report covers.
+            19 sibling libraries audited: used-to-the-max verdicts, capability
+            inventories, adoption recommendations. Every version claim verified
+            against <code>git ls-remote --tags</code> on 2026-11-05; every usage
+            claim re-derived by grep from the 29-module workspace.
           </p>
         </div>
 
-        <!-- Inline TOC (alternative to sidebar; pick one) -->
-        <nav class="toc">
-          <h3>Contents</h3>
-          <ul>
-            <li><a href="#summary">Summary</a></li>
-            <li><a href="#findings">Findings</a></li>
-            <li><a href="#issues">Issue Cards</a></li>
-            <li><a href="#proposal">Proposal</a></li>
-            <li><a href="#plan">Plan</a></li>
-          </ul>
-        </nav>
-
-        <!-- Stats Dashboard -->
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">42</div>
-            <div class="stat-label">Total Items</div>
-          </div>
-          <div class="stat-card stat-bad">
-            <div class="stat-value">7</div>
-            <div class="stat-label">Critical</div>
-          </div>
-          <div class="stat-card stat-warn">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Warnings</div>
+            <div class="stat-value">19</div>
+            <div class="stat-label">Libraries audited</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">35</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value">13</div>
+            <div class="stat-label">Used (incl. self-audit)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Correctly NOT adopted</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Version lag (go-etag, chore-only)</div>
           </div>
         </div>
 
-        <!-- Findings as Cards -->
-        <h2 id="findings"><span class="num">01</span>Findings</h2>
-
-        <div class="card card-problem">
-          <h4>Critical Issue</h4>
-          <p>Description of the problem and its impact.</p>
-        </div>
+        <h2 id="findings"><span class="num">01</span>Fleet Findings</h2>
 
         <div class="card card-solution">
-          <h4>Recommended Fix</h4>
-          <p>Description of the solution with rationale.</p>
+          <h4>Zero misuse across the fleet</h4>
+          <p>
+            No anti-patterns, no hand-rolled replacements for library
+            functionality, no stale majors. Every "partial" adoption is a
+            documented library-principle choice (opt-in, never
+            default-enforced). 11 of 12 pinned entities sit at their latest
+            tag.
+          </p>
         </div>
 
-        <!-- Issue Cards -->
-        <h2 id="issues"><span class="num">02</span>Issue Cards</h2>
-
-        <div class="issue issue-critical">
-          <span class="severity severity-critical">Blocking</span>
-          <h3>Critical finding title</h3>
-          <div class="where">path/to/file.go:42-58</div>
+        <div class="card card-problem">
+          <h4>One lag: go-etag v0.6.1 &rarr; v0.7.0</h4>
           <p>
-            Describe the problem and cite the code or behavior that proves it.
+            The only version drift in the fleet (tagged 2026-11-03, after the
+            treadmill's last live pass). Verified gap: 11 commits, all
+            chore/CI/docs &mdash; bump in the next sweep, zero functional risk.
+          </p>
+        </div>
+
+        <h2 id="issues"><span class="num">02</span>Fleet Issues</h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>Silent SSE drops are unobserved</h3>
+          <div class="where">go-sse: WithOnDrop / BroadcasterHealth &mdash; 0 prod uses</div>
+          <p>
+            Slow SSE consumers are dropped silently by design; the library
+            ships exactly the hooks (drop callback, subscriber health) that
+            would make drops visible. The adminui sync indicator and
+            dashboardui are the natural consumers.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            State the concrete recommended action.
+            Wire <code>WithOnDrop</code> (log + optional metric) at the root
+            Broadcaster seam; surface <code>BroadcasterHealth</code> beside the
+            sync indicators.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
-          <h3>Important finding title</h3>
-          <div class="where">path/to/another.go:12-19</div>
+          <h3>Health dashboard not CSP-nonce-safe through the bridge</h3>
+          <div class="where">health/dashboard.go &mdash; WithNonce unthreaded</div>
           <p>
-            Explain the risk and why a careful reviewer would hesitate before
-            shipping.
+            The repo's own recommended middleware stack is nonce-CSP-first,
+            but <code>health.NewDashboard</code> forwards only
+            <code>WithTitle</code>; the dashboard's inline scripts need the
+            nonce option under that same stack.
           </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Accept and forward a nonce (or <code>WithNonceExtractor</code>) in
+            the bridge's <code>NewDashboard</code>.
+          </div>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Nice to have</span>
-          <h3>Polish suggestion</h3>
-          <div class="where">docs/ or config</div>
+          <h3>Dogfooding polish: partial-render helpers &amp; stack validation</h3>
+          <div class="where">RenderPartialOrFull / OOBHTML / httputil.NewMiddlewareStack</div>
           <p>
-            Minor documentation gaps or future-proofing suggestions go here.
+            <code>RenderPartialOrFull</code> and <code>OOBHTML</code> have zero
+            internal-module uses (tests + docs only), and the recommended
+            security chains are built by hand instead of through httputil's
+            validated <code>MiddlewareStack</code>.
           </p>
         </div>
 
@@ -949,84 +962,270 @@
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Specific strength</strong>
-              <span>Explain why it matters and what it enables.</span>
+              <strong>Version discipline is mechanized</strong>
+              <span>Treadmill gate + release-train strict-lag 0: all 15
+              go-cqrs-lite trains and 11 of 12 other pins at latest, verified
+              live.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Deprecation glide path held</strong>
+              <span>Zero internal uses of deprecated root re-exports; internal
+              modules import httputil/go-idempotency directly; v5 removal is
+              on rails.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Library principle consistently honored</strong>
+              <span>Every un-adopted default (CORS, compression, timeouts,
+              metrics) is opt-in by documented design, never imposed on
+              consumers.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Audit series incorporated, not duplicated</strong>
+              <span>go-cqrs-lite 73/100 (2026-11-03, updated to ~80 derived),
+              templ-components 97/94/95 (2026-10-04), health bridge 9/10
+              (2026-10-30) &mdash; this audit defers to and updates them.</span>
             </div>
           </div>
         </div>
 
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
+        <!-- The 19 Libraries -->
+        <h2 id="libraries">The 19 Libraries</h2>
+        <p>
+          Sorted by verdict tier, then headline score, then name. "Score" is
+          the count-rubric headline from each report (see per-report
+          derivations; impact-weighted readings noted where they differ).
+        </p>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
+              <th>Library</th>
+              <th>Pin &rarr; Latest</th>
+              <th>Usage</th>
+              <th>Score / verdict</th>
+              <th>Report</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>1</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
+              <td>templ-components</td>
+              <td>v1.27.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>89 (series 97/94/95)</td>
+              <td><a href="templ-components.md">md</a></td>
             </tr>
             <tr>
               <td>2</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
+              <td>go-idempotency</td>
+              <td>v0.3.2 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>88</td>
+              <td><a href="go-idempotency.md">md</a></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>go-etag</td>
+              <td>v0.6.1 &rarr; v0.7.0</td>
+              <td><span class="badge badge-high">Lag</span></td>
+              <td>83 &middot; bump pending</td>
+              <td><a href="go-etag.md">md</a></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>go-error-family</td>
+              <td>v0.12.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>65 count / ~82 impact</td>
+              <td><a href="go-error-family.md">md</a></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>httputil</td>
+              <td>v1.8.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>73 count / ~85 effective</td>
+              <td><a href="httputil.md">md</a></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>go-sse</td>
+              <td>v0.7.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>72 count / ~85 impact</td>
+              <td><a href="go-sse.md">md</a></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>go-health</td>
+              <td>v0.10.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>66 count / bridge 9/10</td>
+              <td><a href="go-health.md">md</a></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>go-health-dashboard</td>
+              <td>v0.13.2 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>67 &middot; nonce gap</td>
+              <td><a href="go-health-dashboard.md">md</a></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>go-appkit</td>
+              <td>v0.9.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>75</td>
+              <td><a href="go-appkit.md">md</a></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>go-cqrs-lite (15 trains)</td>
+              <td>all = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>73 audited / ~80 derived</td>
+              <td><a href="go-cqrs-lite.md">md</a></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>go-codec</td>
+              <td>v0.3.3 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>44 count / core at max</td>
+              <td><a href="go-codec.md">md</a></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>httputil/server_timing</td>
+              <td>v1.0.3 = latest</td>
+              <td><span class="badge badge-low">Wind-down</span></td>
+              <td>v5 glide path</td>
+              <td><a href="httputil-server-timing.md">md</a></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>cqrs-htmx (self)</td>
+              <td>trains strict-lag 0</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>83 count / ~92 effective</td>
+              <td><a href="cqrs-htmx.md">md</a></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>go-retry</td>
+              <td>&mdash; (transitive v0.9.0)</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: middleware is the seam</td>
+              <td><a href="go-retry.md">md</a></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>go-atomic-write</td>
+              <td>&mdash; (transitive v0.6.2)</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: no file writes</td>
+              <td><a href="go-atomic-write.md">md</a></td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>go-credentials-store</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: sibling app, not a dep</td>
+              <td><a href="go-credentials-store.md">md</a></td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>go-daemon</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: deployment layer (+1 docs note)</td>
+              <td><a href="go-daemon.md">md</a></td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>go-filewatcher</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: no watching concern</td>
+              <td><a href="go-filewatcher.md">md</a></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>go-output</td>
+              <td>&mdash; (transitive v0.38.7)</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: CLI rendering, not web</td>
+              <td><a href="go-output.md">md</a></td>
             </tr>
           </tbody>
         </table>
 
-        <!-- Before/After Comparison -->
-        <h2 id="proposal">Before / After</h2>
-        <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
-        </div>
-        <div class="compare-row">
-          <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
-          </div>
-          <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
-          </div>
-        </div>
-
         <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├──
-          <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
-        </div>
+        <h2 id="posture">Dependency Posture</h2>
+        <div class="dep-tree"><span class="root">go-cqrs-lite</span> ── foundation (159 prod files, 15 trains, 0 anti-patterns)
+├── <span class="ok">cqrs-htmx root</span> ── HTTP/HTMX face (self 83/~92)
+│   ├── <span class="ok">httputil + server_timing</span> ── middleware substrate
+│   ├── <span class="ok">go-sse</span> ── realtime &middot; <span class="ok">go-etag</span> ── conditional requests (bump v0.7.0)
+│   ├── <span class="ok">go-error-family</span> ── errors &middot; <span class="ok">go-codec</span> ── payloads &middot; <span class="ok">go-idempotency</span> ── dedup
+│   ├── <span class="ok">templ-components</span> ── UI kit (adminui / dashboardui / loginpage)
+│   └── <span class="ok">go-health + dashboard</span> ── probes &middot; <span class="ok">go-appkit</span> ── setup runtime seam
+└── correctly outside: go-retry &middot; go-atomic-write &middot; go-filewatcher
+    &middot; go-daemon &middot; go-output &middot; go-credentials-store</div>
 
         <!-- Numbered Steps -->
-        <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
+        <h2 id="plan"><span class="num">03</span>Action Plan</h2>
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
-            <h4>Add generic type parameter</h4>
-            <p>Update the function signature to accept a type parameter.</p>
+            <h4>Bump go-etag v0.6.1 &rarr; v0.7.0</h4>
+            <p>Chore-only gap (verified 11 commits, zero functional delta). Next bump-dep sweep.</p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
-            <h4>Update all call sites</h4>
-            <p>Pass explicit types at each call site for type safety.</p>
+            <h4>Observe SSE drops</h4>
+            <p>Wire <code>WithOnDrop</code> + surface <code>BroadcasterHealth</code> at the root Broadcaster seam.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Make the health dashboard CSP-safe</h4>
+            <p>Thread a nonce option through <code>health.NewDashboard</code>.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Dogfood polish</h4>
+            <p>A <code>RenderPartialOrFull</code> + <code>OOBHTML</code> showcase page in examples/basic; build recommended chains through <code>httputil.NewMiddlewareStack</code>.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <h4>Stretch items (wave planning)</h4>
+            <p>errorfamily <code>Audience</code>-filtered SafeDetail; codec <code>AutoDetect</code> honest sync stamps (ADR-0056-gated); dashboardui charts panel; go-cqrs-lite open tail (systemcatalog, commandlifecycle, DLQ, checkpoint batching).</p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code
-          where noted
+          Generated 2026-11-05 &middot; library-deep-dive methodology &middot; every
+          version claim verified via git ls-remote &middot; per-library reports
+          live in this directory &middot; supersedes docs/LIBRARY_INTEGRATIONS.md
+          (2026-05-13)
         </footer>
       </main>
     </div>
