@@ -28,4 +28,6 @@ go.mod
 go.sum
 go.work
 hash.nix
+templ-hash.nix
+templ-vendorHash.nix
 vendorHash.nix
