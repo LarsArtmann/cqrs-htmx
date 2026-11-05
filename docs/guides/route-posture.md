@@ -34,6 +34,14 @@ your actual wiring and declare the posture that wiring enforces.
 | `loginpage`   | `Handler.Routes() []cqrshtmx.RoutePosture`       | one public row                                                 |
 | `setup`       | `Bundle.RoutePostures() []cqrshtmx.RoutePosture` | one row per mounted layer, honoring Disable*/paths             |
 
+Package ownership is deliberate: the shared vocabulary (`Posture`, `RoutePosture`)
+is owned by the root `cqrshtmx` package so every manifest row — and
+`authztest`'s matrix, which aliases the same constants — speaks one language;
+`adminui.Route` and `dashboardui.Route` are the UI modules' own richer row types
+(carrying Mode/guard detail), each exposing derived `Posture` + `Why` fields
+rather than embedding the root type. Importing root for the vocabulary is the
+intended dependency direction; UI modules importing each other is not.
+
 In adminui and dashboardui the route **table is the registration source**: the
 mux and the manifest are generated from the same rows, so a route outside the
 manifest cannot be served. A row that forgets its mode (adminui) or guard
