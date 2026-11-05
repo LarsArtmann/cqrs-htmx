@@ -255,10 +255,10 @@ type SessionEndedPayload struct {
 	// ActorID is the ended session's actor in "kind:raw" form; empty when the
 	// event covers a user-scoped revocation without a single session (the
 	// payload then names the user via the event's actor metadata).
-	ActorID      string           `json:"actor_id,omitempty"`
-	Impersonator string           `json:"impersonator,omitempty"`
-	TokenHash    string           `json:"token_hash,omitempty"`
-	Cause        SessionEndCause  `json:"cause"`
+	ActorID      string          `json:"actor_id,omitempty"`
+	Impersonator string          `json:"impersonator,omitempty"`
+	TokenHash    string          `json:"token_hash,omitempty"`
+	Cause        SessionEndCause `json:"cause"`
 }
 
 // marshalJSONOrWrap serializes v with encoding/json and wraps any error as

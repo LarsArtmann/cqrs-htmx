@@ -36,7 +36,7 @@ Waves landed **after** the audit (2026-11-04, plan of record [docs/planning/2026
 
 ## Open findings (still not "to the max")
 
-1. **systemcatalog-derived event catalog** (top opportunity, impact×ease 16): `usermgmt.DefaultEventCatalog()` is hand-maintained (25 events); derive via `systemcatalog.FromDomainConfig` + a drift gate. Blocked upstream: systemcatalog has no published v4 tag yet.
+1. **systemcatalog-derived event catalog** (top opportunity, impact×ease 16): `usermgmt.DefaultEventCatalog()` is hand-maintained (25 events); derive via `systemcatalog.FromDomainConfig` + a drift gate. ~~Blocked upstream: no published v4 tag~~ **UNBLOCKED 2026-11-05**: `systemcatalog/v4.0.0` published (verified via `git ls-remote`, tag `03500b5a` peels to `d372c42`) — R2 in the 2026-11-03 plan of record is now executable.
 2. **commandlifecycle streams**: dashboards audit event records, not command fates (Received/Rejected/Failed/Retried/DeadLettered/Completed; FailureLog/RetryCount projections).
 3. **SQLite DLQ default for SQL setups** — projection DLQ defaults to memory; poison events are lost on restart (risk finding).
 4. **Checkpoint batching** (`WithCheckpointEvery`/`WithCheckpointInterval`) unused.
@@ -50,7 +50,7 @@ Waves landed **after** the audit (2026-11-04, plan of record [docs/planning/2026
 
 ## Should cqrs-htmx use it (more)?
 
-**Yes — and it does, structurally.** Verdict: high adoption, 0 anti-patterns, honest open tail tracked in the SUPERB plan. The remaining gap to "max" is the systemcatalog tag ask (upstream) plus the four wiring items above.
+**Yes — and it does, structurally.** Verdict: high adoption, 0 anti-patterns, honest open tail tracked in the SUPERB plan. The remaining gap to "max" is executing the now-unblocked systemcatalog-derived catalog (R2) plus the four wiring items above.
 
 ## How to verify
 

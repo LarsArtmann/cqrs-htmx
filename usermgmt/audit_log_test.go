@@ -424,7 +424,10 @@ func TestAuditLog_ConcurrentAppendsUnderRace(t *testing.T) {
 	seen := make(map[id.StreamID]struct{}, len(retained))
 	for _, entry := range retained {
 		if _, dup := seen[entry.AggregateID]; dup {
-			t.Fatalf("duplicate AggregateID %s among retained entries — a ring slot was lost or double-written", entry.AggregateID)
+			t.Fatalf(
+				"duplicate AggregateID %s among retained entries — a ring slot was lost or double-written",
+				entry.AggregateID,
+			)
 		}
 		seen[entry.AggregateID] = struct{}{}
 	}

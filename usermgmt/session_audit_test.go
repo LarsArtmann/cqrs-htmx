@@ -134,7 +134,11 @@ func TestSessionAudit_ImpersonationForensicsSurviveSessionDeletion(t *testing.T)
 	}
 
 	if impersonation.ActorID != ActorIDFromUser(targetID).PrefixedString() {
-		t.Errorf("impersonated actor = %q, want the target %q", impersonation.ActorID, ActorIDFromUser(targetID).PrefixedString())
+		t.Errorf(
+			"impersonated actor = %q, want the target %q",
+			impersonation.ActorID,
+			ActorIDFromUser(targetID).PrefixedString(),
+		)
 	}
 
 	if impersonation.Reason != "quarterly-access-review" {

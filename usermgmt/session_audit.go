@@ -85,7 +85,7 @@ func (s *auditingSessionStore) Delete(ctx context.Context, token string) error {
 	// noise on every failed logout attempt.
 	session, err := s.inner.Find(ctx, token)
 	if err != nil {
-		return s.inner.Delete(ctx, token) //nolint:wrapcheck // decorator: the inner store's typed error passes through untouched
+		return s.inner.Delete(ctx, token) //nolint:wrapcheck // decorator: passthrough
 	}
 
 	if err := s.inner.Delete(ctx, token); err != nil {

@@ -234,9 +234,12 @@ func registerAuthEvents(catalog *cqrshtmx.EventCatalog) {
 		identitymodel.EventRegistrationClosed, agg,
 		"A registration attempt was rejected because registration is closed")
 
-	registerDerived[identitymodel.SessionStartedPayload](catalog,
-		identitymodel.EventSessionStarted, agg,
-		"A session was established; carries the impersonation origin (by, reason) when an admin acted on the user's behalf")
+	registerDerived[identitymodel.SessionStartedPayload](
+		catalog,
+		identitymodel.EventSessionStarted,
+		agg,
+		"A session was established; carries the impersonation origin (by, reason) when an admin acted on the user's behalf",
+	)
 
 	registerDerived[identitymodel.SessionEndedPayload](catalog,
 		identitymodel.EventSessionEnded, agg,

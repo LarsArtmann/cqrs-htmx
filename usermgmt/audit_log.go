@@ -186,11 +186,11 @@ var auditActions = map[event.Type]string{ //nolint:gochecknoglobals // table-dri
 	eventEmailVerified:      AuditActionEmailVerified,
 	eventTOTPEnabled:        AuditActionTOTPEnabled,
 	eventTOTPDisabled:       AuditActionTOTPDisabled,
-	eventLoginSucceeded:      AuditActionLoginSucceeded,
-	eventLoginFailed:         AuditActionLoginFailed,
-	eventRegistrationClosed:  AuditActionRegistrationClosed,
-	eventSessionStarted:      AuditActionSessionStarted,
-	eventSessionEnded:        AuditActionSessionEnded,
+	eventLoginSucceeded:     AuditActionLoginSucceeded,
+	eventLoginFailed:        AuditActionLoginFailed,
+	eventRegistrationClosed: AuditActionRegistrationClosed,
+	eventSessionStarted:     AuditActionSessionStarted,
+	eventSessionEnded:       AuditActionSessionEnded,
 }
 
 func auditActionFor(t event.Type) string {
