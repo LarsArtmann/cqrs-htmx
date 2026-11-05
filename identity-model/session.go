@@ -1,7 +1,9 @@
 package identitymodel
 
 import (
+	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -99,4 +101,14 @@ func (Impersonation) isSessionOrigin() {}
 
 func generateToken() (string, error) {
 	return RandomBase64URLString(sessionTokenBytes, "session token")
+}
+
+// SessionTokenHash returns the base64url SHA-256 digest of a session token —
+// the correlation key linking the SessionStarted and SessionEnded audit
+// events for one session. The token itself is NEVER journaled: it is 256-bit
+// random, so the digest cannot be reversed or brute-forced, yet both events
+// for the same session share it.
+func SessionTokenHash(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return base64.RawURLEncoding.EncodeToString(sum[:])
 }

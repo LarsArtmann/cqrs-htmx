@@ -30,6 +30,9 @@ const (
 	EventLoginFailed        event.Type = "LoginFailed"
 	EventRegistrationClosed event.Type = "RegistrationClosed"
 
+	EventSessionStarted event.Type = "SessionStarted"
+	EventSessionEnded   event.Type = "SessionEnded"
+
 	EventMemberAdded        event.Type = "MemberAdded"
 	EventMemberRolesChanged event.Type = "MemberRolesChanged"
 	EventMemberRemoved      event.Type = "MemberRemoved"

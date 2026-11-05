@@ -136,3 +136,71 @@ func (a authAuditor) oauth2LoginSuccess(ctx context.Context, userID UserID, prov
 		},
 		id.NewUserActor(userID))
 }
+
+// sessionStarted records that a session was established — the durable
+// impersonation-forensics half of the session lifecycle audit journal
+// (cqrs-htmx#25). The event actor is the IMPERSONATOR for impersonation
+// sessions (they are the human who acted), the session's own actor
+// otherwise; the payload carries both.
+func (a authAuditor) sessionStarted(ctx context.Context, session *Session) {
+	if session == nil {
+		return
+	}
+
+	payload := identitymodel.SessionStartedPayload{
+		SchemaVersion: currentSchemaVersion,
+		ActorID:       session.ActorID.PrefixedString(),
+		StartedAt:     session.CreatedAt,
+		ExpiresAt:     session.ExpiresAt,
+		TokenHash:     identitymodel.SessionTokenHash(session.Token),
+	}
+
+	actor := session.ActorID
+	if imp, ok := session.Origin.(identitymodel.Impersonation); ok {
+		payload.Impersonator = imp.By.PrefixedString()
+		payload.Reason = imp.Reason
+		actor = imp.By
+	}
+
+	a.append(ctx, eventSessionStarted, payload, actor)
+}
+
+// sessionEnded records that one session ended with a bounded cause. A nil
+// session is tolerated (the caller could not snapshot it) by journaling the
+// cause and token hash alone.
+func (a authAuditor) sessionEnded(
+	ctx context.Context, session *Session, token string, cause identitymodel.SessionEndCause,
+) {
+	payload := identitymodel.SessionEndedPayload{
+		SchemaVersion: currentSchemaVersion,
+		TokenHash:     identitymodel.SessionTokenHash(token),
+		Cause:         cause,
+	}
+
+	var actor id.ActorID
+	if session != nil {
+		payload.ActorID = session.ActorID.PrefixedString()
+		if imp, ok := session.Origin.(identitymodel.Impersonation); ok {
+			payload.Impersonator = imp.By.PrefixedString()
+		}
+		actor = session.ActorID
+	}
+
+	a.append(ctx, eventSessionEnded, payload, actor)
+}
+
+// sessionsRevokedForUser records a user-scoped revocation: every session the
+// user held was ended in one sweep (user deletion or admin revoke-all). The
+// event carries no token hash — there is no single session to correlate.
+func (a authAuditor) sessionsRevokedForUser(ctx context.Context, userID UserID) {
+	actor := ActorIDFromUser(userID)
+
+	a.append(ctx, eventSessionEnded,
+		identitymodel.SessionEndedPayload{
+			SchemaVersion: currentSchemaVersion,
+			ActorID:       actor.PrefixedString(),
+			Cause:         identitymodel.SessionEndRevoked,
+		},
+		actor,
+	)
+}

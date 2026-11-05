@@ -2,6 +2,7 @@ package identitymodel
 
 import (
 	"encoding/json/v2"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -195,6 +196,69 @@ type LoginFailedPayload struct {
 
 type RegistrationClosedPayload struct {
 	SchemaVersion int `json:"schema_version"`
+}
+
+// SessionEndCause is the bounded vocabulary of why a session ended, recorded
+// in SessionEndedPayload. Coarse classes only — never raw error text — so the
+// journal stays safe to display verbatim.
+type SessionEndCause string
+
+const (
+	// SessionEndLogout: the session holder logged out explicitly.
+	SessionEndLogout SessionEndCause = "logout"
+	// SessionEndExpired: a lazy expiry check removed the session after its
+	// TTL passed.
+	SessionEndExpired SessionEndCause = "expired"
+	// SessionEndImpersonationEnded: an impersonation session was ended via
+	// EndImpersonation.
+	SessionEndImpersonationEnded SessionEndCause = "impersonation_ended"
+	// SessionEndRevoked: all sessions for a user were revoked in one sweep
+	// (user deletion or admin revoke-all).
+	SessionEndRevoked SessionEndCause = "revoked"
+	// SessionEndDeleted is the fallback for deletions that carry no specific
+	// cause.
+	SessionEndDeleted SessionEndCause = "deleted"
+)
+
+// SessionStartedPayload records that a session was established — the durable
+// half of the session lifecycle audit journal (cqrs-htmx#25). Sessions stay
+// ephemeral by design; these events make impersonation forensics answerable
+// long after the session rows are gone: "who impersonated user X, when, and
+// why" reads from the journal, not from the session store.
+type SessionStartedPayload struct {
+	SchemaVersion int `json:"schema_version"`
+	// ActorID is the session's actor in "kind:raw" form — for an
+	// impersonation session this is the TARGET being impersonated.
+	ActorID string `json:"actor_id"`
+	// Impersonator is the admin who initiated the impersonation ("kind:raw");
+	// empty for direct logins.
+	Impersonator string `json:"impersonator,omitempty"`
+	// Reason is the mandatory impersonation justification; empty for direct
+	// logins.
+	Reason string `json:"reason,omitempty"`
+	// StartedAt is when the session was established (session CreatedAt).
+	StartedAt time.Time `json:"started_at"`
+	// ExpiresAt is when the session would expire — the impersonation window.
+	ExpiresAt time.Time `json:"expires_at"`
+	// TokenHash is the base64url SHA-256 of the session token: a correlation
+	// key linking SessionStarted and SessionEnded for the same session. The
+	// token itself is 256-bit random and NEVER journaled; the digest cannot
+	// be reversed or brute-forced.
+	TokenHash string `json:"token_hash"`
+}
+
+// SessionEndedPayload records that a session (or a user's whole session set)
+// ended, with a bounded cause. ActorID and TokenHash are omitted for
+// user-scoped revocations, which end every session a user holds at once.
+type SessionEndedPayload struct {
+	SchemaVersion int `json:"schema_version"`
+	// ActorID is the ended session's actor in "kind:raw" form; empty when the
+	// event covers a user-scoped revocation without a single session (the
+	// payload then names the user via the event's actor metadata).
+	ActorID      string           `json:"actor_id,omitempty"`
+	Impersonator string           `json:"impersonator,omitempty"`
+	TokenHash    string           `json:"token_hash,omitempty"`
+	Cause        SessionEndCause  `json:"cause"`
 }
 
 // marshalJSONOrWrap serializes v with encoding/json and wraps any error as

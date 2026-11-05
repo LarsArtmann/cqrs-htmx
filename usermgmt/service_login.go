@@ -3,12 +3,13 @@ package usermgmt
 import (
 	"context"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Logout deletes the session associated with the given token.
 func (s *Service) Logout(ctx context.Context, token string) error {
-	if err := s.sessions.Delete(ctx, token); err != nil {
+	if err := s.sessions.Delete(withSessionEndCause(ctx, identitymodel.SessionEndLogout), token); err != nil {
 		return errorfamily.NewTransient("usermgmt.session.logout", "logout").WithCause(err)
 	}
 	return nil
@@ -22,7 +23,9 @@ func (s *Service) Authenticate(ctx context.Context, token string) (*User, error)
 	}
 
 	if session.IsExpired() {
-		_ = s.sessions.Delete(ctx, token)
+		_ = s.sessions.Delete(
+			withSessionEndCause(ctx, identitymodel.SessionEndExpired), token,
+		)
 		return nil, ErrSessionExpired
 	}
 

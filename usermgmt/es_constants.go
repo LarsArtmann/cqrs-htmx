@@ -31,6 +31,9 @@ var (
 	eventLoginFailed        = identitymodel.EventLoginFailed
 	eventRegistrationClosed = identitymodel.EventRegistrationClosed
 
+	eventSessionStarted = identitymodel.EventSessionStarted
+	eventSessionEnded   = identitymodel.EventSessionEnded
+
 	aggregateTypeAuth = identitymodel.AggregateTypeAuth
 
 	eventMemberAdded        = identitymodel.EventMemberAdded
@@ -106,13 +109,15 @@ var allBotEventTypes = []event.Type{
 }
 
 // allAuthEventTypes lists the auth audit event types (LoginSucceeded,
-// LoginFailed, RegistrationClosed). They live on dedicated Auth-typed
-// streams, never on user streams — the user read model intentionally does
-// not subscribe to them; the AuditLog does.
+// LoginFailed, RegistrationClosed, SessionStarted, SessionEnded). They live
+// on dedicated Auth-typed streams, never on user streams — the user read
+// model intentionally does not subscribe to them; the AuditLog does.
 var allAuthEventTypes = []event.Type{
 	eventLoginSucceeded,
 	eventLoginFailed,
 	eventRegistrationClosed,
+	eventSessionStarted,
+	eventSessionEnded,
 }
 
 // allAuditedEventTypes is every event type the AuditLog subscribes to: the

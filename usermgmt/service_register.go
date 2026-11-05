@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -168,6 +169,7 @@ func (s *Service) logAuth(event string, userID UserID, attrs ...any) {
 }
 
 func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, failureReason string) {
+	ctx = withSessionEndCause(ctx, identitymodel.SessionEndRevoked)
 	if err := s.sessions.DeleteByUserID(ctx, userID); err != nil {
 		s.logger.Warn("usermgmt: "+failureReason, "user_id", userID, "error", err)
 	}

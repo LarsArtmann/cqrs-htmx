@@ -176,6 +176,12 @@ func NewService(config ServiceConfig) (*Service, error) {
 		projections:         setup.projections,
 	}
 
+	// Wrap the session store with lifecycle audit emission AFTER the struct
+	// literal (it needs the constructed authAuditor) and BEFORE the OAuth2
+	// service is built — both share this one store, so every session
+	// create/delete through either path is journaled at one chokepoint.
+	svc.sessions = newAuditingSessionStore(svc.sessions, svc.authAudit)
+
 	if config.WebAuthn != nil {
 		svc.webauthn = config.WebAuthn
 		sessionStore := config.WebAuthnSessionStore

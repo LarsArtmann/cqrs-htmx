@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -118,7 +119,9 @@ func (s *Service) EndImpersonation(ctx context.Context, token string) error {
 		)
 	}
 
-	if err := s.sessions.Delete(ctx, token); err != nil {
+	if err := s.sessions.Delete(
+		withSessionEndCause(ctx, identitymodel.SessionEndImpersonationEnded), token,
+	); err != nil {
 		return errorfamily.WrapTransient(
 			err, "usermgmt.impersonation.delete_failed",
 			"delete impersonation session",
