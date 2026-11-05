@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/health/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-health v0.10.0
 	github.com/larsartmann/go-health-dashboard v0.13.1
@@ -21,6 +21,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 // indirect
