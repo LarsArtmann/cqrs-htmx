@@ -49,7 +49,16 @@ for module in $MODULES; do
   passed="$(printf '%s\n' "$out" | grep -c '^--- PASS:' || true)"
   if [ "$rc" -ne 0 ]; then
     echo "✗ route-postures: $module manifest pins FAILED:" >&2
-    printf '%s\n' "$out" | grep -E '^--- FAIL:|^=== RUN|^    [a-z_]+\.go:[0-9]+:' | head -15 >&2
+    detail="$(printf '%s\n' "$out" | grep -E '^--- FAIL:|^=== RUN|^    [a-z_]+\.go:[0-9]+:' | head -15)"
+    if [ -n "$detail" ]; then
+      printf '%s\n' "$detail" >&2
+    else
+      # The detail grep matched nothing: the go test command itself refused
+      # (toolchain floor, GOWORK/env, download failure, missing module) and
+      # its stderr is the ONLY diagnostic — never swallow it (A5 class).
+      echo "✗ route-postures: detail grep matched nothing; raw go test output head:" >&2
+      printf '%s\n' "$out" | head -10 >&2
+    fi
     red=1
     continue
   fi
