@@ -1,5 +1,10 @@
 # Theme Toggle Strategy Spike (adminui) — M088
 
+> **ARCHIVED 2026-11-04 (docs-health round 46):** outcome fully dispositioned (see the
+> annotation below) — this file lives in `archived/` as history-in-place; the series
+> entry point is the 2026-10-04 repo-wide report named in the research README's table.
+> Reading path for the CURRENT dark-mode architecture: AGENTS.md "Dark-mode surfaces".
+
 > **ANNOTATED 2026-10-27 (docs-health round 37):** RESOLVED — and the decision went the OTHER way.
 > The class-strategy migration (Option A's mechanism) shipped: adminui 2026-09-21 (`82a5e878`, class-driven
 > `dark:` variants + `.dark` class), dashboardui 2026-09-23 (`@custom-variant dark` + `html.dark` tokens +

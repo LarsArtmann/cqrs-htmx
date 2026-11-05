@@ -6,7 +6,12 @@ discovered by listing — there is no hand-maintained master index to go stale.
 A report becomes **load-bearing** when a module's README or AGENTS.md links it
 as design rationale; those links are the index. Series that span multiple runs
 cross-link via "superseded-by" annotations in the older report's outcome note
-(append-only — never rewrite a published report's findings).
+(append-only — never rewrite a published report's findings). A report whose
+outcome is fully dispositioned (every option decided, successor shipped) moves
+to [`archived/`](archived/) — the same ritual as `docs/status/`: an in-file
+`> ARCHIVED <date> (<who>):` blockquote naming the successor, links re-based
+at move time, and the series table above keeps the entry point (2026-11-05,
+docs-health round 46 set the precedent with the theme-toggle spike).
 
 **Eviction (2026-10-24, master plan S21):** the round-14 LEAVE verdict governed
 sweeps, not retention forever. Unreferenced closed runs were evicted by the same
