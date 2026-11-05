@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/samber-do-auditlog v0.12.1
+	github.com/larsartmann/samber-do-auditlog v0.12.2
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
 )

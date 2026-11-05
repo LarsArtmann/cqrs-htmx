@@ -76,8 +76,8 @@ github.com/larsartmann/go-sse/sseparse v0.2.1 h1:GHn8SFFZkMJRhLkmusJwtchgSPJV0/b
 github.com/larsartmann/go-sse/sseparse v0.2.1/go.mod h1:1Nql3y1hf9v/IVd4/26AfRilz0/OiDyF7YA2mvwwtHw=
 github.com/larsartmann/go-sse/ssetest v0.5.0 h1:6QQ9rURjqScKfkV8BmpNdoMSW5pxsNVs+ioLOqERS4k=
 github.com/larsartmann/go-sse/ssetest v0.5.0/go.mod h1:mTBSF8nBmmw3Eb7DOKWqgmp0B1unUOFcjt6WGdUJT0o=
-github.com/larsartmann/samber-do-auditlog v0.12.1 h1:gvZ4tduM8kq/4gX9g6QsScsvPz+LrcSJkwu8cz2RfyU=
-github.com/larsartmann/samber-do-auditlog v0.12.1/go.mod h1:NJYJfA5FGY6kyMrIVPDo1Y42hvoRYlrFpNFZsdHAaT8=
+github.com/larsartmann/samber-do-auditlog v0.12.2 h1:ip6iNLM1iMgaRfCAXnquhtn8qIwpi+j6whu9xo7OBKU=
+github.com/larsartmann/samber-do-auditlog v0.12.2/go.mod h1:GpNUfks7vi189m707NML4BXjnLDPz/2mDGjk1Uz7eoc=
 github.com/lucasb-eyer/go-colorful v1.4.1 h1:1EO+WB73+EH8EVbzlrG3KLAfEypQWVHIBqlTf+2hNss=
 github.com/lucasb-eyer/go-colorful v1.4.1/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/mattn/go-runewidth v0.0.31 h1:1oCV4ReTlosDBc6rYRw5cL8S/4y8iv5oRl4SJ5IBgwo=
