@@ -7,7 +7,7 @@
 
 | Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
 | --- | --- | --- | --- | --- | --- |
-| v0.3.3 | v0.3.3 (= latest) | 14 files | 11 files | **Used — event/sync payload encoding** | **56/100 count · high impact-weighted (core codecs at max)** |
+| v0.3.3 | v0.3.3 (= latest) | 14 files | 11 files | **Used — event/sync payload encoding** | **44/100 count · high impact-weighted (core codecs at max)** |
 
 ## What the library is
 
