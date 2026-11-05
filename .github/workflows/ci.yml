@@ -469,6 +469,14 @@ jobs:
         env:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      # CI build-job parity leg: examples + e2e hermetic (the catalog-demo
+      # root-tag-gap class is invisible to the production-only isolation
+      # step and to workspace mode, which go.work replaces mask).
+      - name: Module isolation check, examples + e2e (GOWORK=off build+vet)
+        run: bash scripts/checks/check-module-isolation.sh --examples
+        env:
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Dependency budget check
         run: bash scripts/checks/check-dep-budgets.sh
 

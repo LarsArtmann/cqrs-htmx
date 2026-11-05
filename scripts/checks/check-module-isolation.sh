@@ -2,11 +2,24 @@
 # check-module-isolation.sh — Verify each Go module builds and vets standalone (GOWORK=off)
 # Adapted from go-cqrs-lite's CI enforcement model.
 #
-# Catches: missing replace directives, version mismatches, stale go.work entries.
-# Usage: ./scripts/checks/check-module-isolation.sh
+# Catches: missing replace directives, version mismatches, stale go.work entries,
+# and the root-tag-gap class (code on HEAD consuming a sibling API whose PINNED
+# go.mod version predates it — workspace mode masks it via go.work replaces,
+# hermetic mode fails with `undefined:` exactly like a consumer would).
+# Usage: ./scripts/checks/check-module-isolation.sh [--examples]
+#   --examples  ALSO cover e2e/ and examples/ (the CI build-job parity leg;
+#               default covers production modules only, like flake.nix apps)
 # Exit: 0 = all modules pass, 1 = at least one module fails
 
 set -euo pipefail
+
+INCLUDE_EXAMPLES=0
+if [[ "${1:-}" == "--examples" ]]; then
+  INCLUDE_EXAMPLES=1
+elif [[ -n "${1:-}" ]]; then
+  echo "usage: $0 [--examples]" >&2
+  exit 2
+fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
@@ -17,20 +30,30 @@ cd "$REPO_ROOT"
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/go-cache-env.sh"
 
-# Production modules, auto-discovered from go.work (excludes e2e/ and
-# examples/ — main packages, same exclusion flake.nix apps use). New modules
+# Production modules, auto-discovered from go.work (e2e/ and examples/ are
+# main packages excluded by default — same exclusion flake.nix apps use;
+# --examples drops the filter for the CI build-job parity leg). New modules
 # added to go.work are picked up automatically; no manual list to drift.
-mapfile -t MODULES < <(
-  env GOWORK= go work edit -json |
-    jq -r '.Use[].DiskPath' |
-    sed 's|^\./||' |
-    grep -Ev '^(e2e/|examples/)' |
-    sort
-)
+if [[ $INCLUDE_EXAMPLES -eq 1 ]]; then
+  mapfile -t MODULES < <(
+    env GOWORK= go work edit -json |
+      jq -r '.Use[].DiskPath' |
+      sed 's|^\./||' |
+      sort
+  )
+else
+  mapfile -t MODULES < <(
+    env GOWORK= go work edit -json |
+      jq -r '.Use[].DiskPath' |
+      sed 's|^\./||' |
+      grep -Ev '^(e2e/|examples/)' |
+      sort
+  )
+fi
 
 failed=0
 
-echo "=== Module Isolation Check ==="
+echo "=== Module Isolation Check${INCLUDE_EXAMPLES:+ (incl. e2e/ + examples/)} ==="
 echo "Testing each module with GOWORK=off (standalone build)..."
 echo ""
 

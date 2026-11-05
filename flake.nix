@@ -1129,6 +1129,7 @@
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     if [ "''${1:-}" = "--sequential" ]; then
                       bash bash scripts/checks/check-module-isolation.sh
+                      bash bash scripts/checks/check-module-isolation.sh --examples
                       bash bash scripts/checks/check-dep-budgets.sh
                       bash bash scripts/selftests/test-check-dep-budgets.sh
                       bash bash scripts/checks/check-go-toolchain.sh
