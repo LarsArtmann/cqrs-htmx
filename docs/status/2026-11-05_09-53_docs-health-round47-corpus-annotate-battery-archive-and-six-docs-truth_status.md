@@ -55,7 +55,7 @@
 5. AGENTS S17 split (owner-gated; 73.5 KB). <!-- fresh:skip: owner-parked structural split (round-46 §f36) -->
 6. templ v0.3.1114 generator root-cause (plan M05; second ask standing).
 7. The 3 CHANGELOG residual F-lines: accept-forever or one-time append-only exception — decide once.
-8. go-sse v0.5.1 straggler pin → treadmill sweep.
+8. go-sse v0.5.1 straggler pin → treadmill sweep. **→ resolved 2026-11-05: not a straggler — the only v0.5.1/v0.6.0 pins live in `scripts/testdata/verify-tag/` poison fixtures (gotcha 34, deliberately untidy) and the treadmill excludes `testdata/*` by construction (`check-upstream-treadmill.sh:201`); nothing to sweep**
 9. erraudit-strict / cqrs-lint / coverage / css-bundle / skill-claims re-runs (M02 legs; TODO rows carry them).
 10. authztest hermetic compile vs tagged v4.16.0 + `Suite` wiring (M02 + authorization row).
 11. Split-brain audit of the merged split (M05; brutal-self-review lane).
