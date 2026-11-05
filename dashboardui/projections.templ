@@ -57,7 +57,7 @@ templ projectionRows(p pageData, projs []projectionStat) {
 			}
 			<td>
 				if proj.Errors > 0 || p.Caps.DeadLetterStore || p.Caps.ProjectionHost {
-					@buttonLink(fmt.Sprintf("DLQ (%d)", proj.Errors), p.BasePath+"/dead-letters/"+pathSeg(proj.Name), "View dead letters for "+proj.Name, display.ButtonSecondary, false)
+					@buttonLink(fmt.Sprintf("DLQ (%d)", proj.Errors), p.BasePath+"/dead-letters/"+pathSeg(proj.Name), fmt.Sprintf("DLQ (%d), dead letters for %s", proj.Errors, proj.Name), display.ButtonSecondary, false)
 				}
 				if !p.ReadOnly {
 					@projectionResetForm(p, proj.Name)
