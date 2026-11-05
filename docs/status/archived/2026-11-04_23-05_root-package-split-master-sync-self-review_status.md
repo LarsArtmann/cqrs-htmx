@@ -45,7 +45,7 @@
 ~~5. Hermetic pin-lag fix for adminui/dashboardui/loginpage/setup (bump pinned root versions to one carrying `Posture`, or re-cut root).~~ done — the v4.16.0 train + adminui/v4.16.0; the CI build leg is green (06-38 §a12)
 6. E2E battery / train-preflight on the synced branch. **→ TODO row 54 test-all leg (routed to the round-46 tail plan M02, the post-train battery (docs/planning/2026-11-05_03-11))**
 7. Bench-spike re-pin check (root layout changed; bench paths/baselines unverified post-split). **→ TODO row 54 bench-spike re-pin leg (bound to 06-41 §f12, 2026-11-05)**
-8. go-datastar v0.6.3 consumption (train-lag listed it before this session; re-check tail after the fleet settles). **→ the next check-upstream-treadmill run (routed to the round-46 tail plan M02, the post-train battery (docs/planning/2026-11-05_03-11))**
+8. go-datastar v0.6.3 consumption (train-lag listed it before this session; re-check tail after the fleet settles). done — consumed: go-datastar v0.6.3 pinned across the workspace (go.mod-verified 2026-11-05)
 
 ## d) TOTALLY FUCKED UP (own mistakes, in the open)
 
@@ -93,7 +93,7 @@
 22. `nix run .#check-readme-badges` + `check-readme-skill-claims` + `check-skill-snippets` + `check-readme-splitbrain`. **→ routed to the round-46 tail plan M02, the post-train battery (docs/planning/2026-11-05_03-11)**
 23. `nix run .#check-templates`. **→ routed to the round-46 tail plan M02, the post-train battery (docs/planning/2026-11-05_03-11)**
 ~~24. `nix run .#check-release-train --refresh-cache --strict-lag 0` — new train-lag tail after the fleet settled.~~ done — ran green at the 2026-11-05 train (0/0/0)
-25. Consume go-datastar v0.6.3 (lagged before session). **→ treadmill watch (routed to the round-46 tail plan M02, the post-train battery (docs/planning/2026-11-05_03-11))**
+25. Consume go-datastar v0.6.3 (lagged before session). done — pinned at v0.6.3 (go.mod-verified 2026-11-05)
 26. `nix run .#check-upstream-treadmill` re-run post-settle. **→ treadmill watch (routed to the round-46 tail plan M02, the post-train battery (docs/planning/2026-11-05_03-11))**
 27. `nix run .#check-dependabot-alerts` after sync. **→ TODO dependency-CVE watch row (dependabot-alerts ritual)**
 ~~28. `nix run .#train-preflight` before any tag wave cut from this branch.~~ done — preflight ran 2026-11-05 pre-train (receipts: 06-38 §a)
