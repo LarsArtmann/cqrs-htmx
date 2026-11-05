@@ -843,6 +843,7 @@
           <a href="#findings">Fleet Findings</a>
           <a href="#posture">Dependency Posture</a>
           <a href="#plan">Action Plan</a>
+          <a href="#matrix">Module Matrix</a>
         </nav>
       </aside>
 
@@ -1004,7 +1005,10 @@
           the wind-down entry, then correctly-not-adopted libraries
           (alphabetical). "Score" is the count-rubric headline from each
           report (see per-report derivations; impact-weighted readings noted
-          where they differ).
+          where they differ). Grades are <strong>repo-consumer level</strong>
+          &mdash; one consumer with 29 modules; the
+          <a href="#matrix">per-module matrix</a> shows how adoption
+          actually distributes.
         </p>
         <table>
           <thead>
@@ -1222,6 +1226,91 @@
             <p>errorfamily <code>Audience</code>-filtered SafeDetail; codec <code>AutoDetect</code> honest sync stamps (ADR-0056-gated); dashboardui charts panel; go-cqrs-lite open tail (systemcatalog, commandlifecycle, DLQ, checkpoint batching).</p>
           </div>
         </div>
+
+        <!-- Per-module adoption matrix -->
+        <h2 id="matrix">Per-Module Adoption Matrix</h2>
+        <p>
+          Prod import files (non-test) per library per module. cqrs-htmx is a
+          29-module workspace: a library can be deeply adopted by one module
+          while a sibling never touches it &mdash; the per-library scores
+          above grade the repo as one consumer, this table shows the
+          distribution. templ-components is the one library already graded
+          per-module by its series (97/94/95).
+        </p>
+        <div class="card card-problem">
+          <h4>Reading caveat &mdash; aggregation can hide asymmetry</h4>
+          <p>
+            The fleet-level grades stay valid, but three readings need the
+            per-module lens: (1) <strong>httputil</strong> adoption is
+            root/consumer-app-led &mdash; adminui and loginpage import it in
+            1 file each, deliberately: UI panels ride the consumer's
+            middleware stack rather than mounting CSRF/rate-limiting
+            themselves (library principle); (2) <strong>go-codec</strong> is
+            usermgmt-led (payloads live there) with dashboardui/identity-model
+            behind it and the UI modules at zero &mdash; correct architecture,
+            visible only here; (3) <strong>adminui's thin go-error-family
+            count (2 files)</strong> is delegation to root's
+            <code>httperr</code> mapping, not neglect.
+          </p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Library</th>
+              <th>Per-module prod import files</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>go-cqrs-lite</td>
+              <td>usermgmt 62 &middot; dashboardui 29 &middot; root 24 &middot; examples 14 &middot; identity-model 11 &middot; setup 11 &middot; systemadapter 11 &middot; e2e 3 &middot; loginpage 4 &middot; datastar 1</td>
+            </tr>
+            <tr>
+              <td>go-error-family</td>
+              <td>usermgmt 55 &middot; root 29 &middot; identity-model 15 &middot; dashboardui 9 &middot; setup 8 &middot; examples 6 &middot; adminui 2 &middot; authztest 2 &middot; auditlog/health/loginpage/e2e/systemadapter 1 each</td>
+            </tr>
+            <tr>
+              <td>httputil</td>
+              <td>root 15 &middot; examples 9 &middot; setup 3 &middot; usermgmt 3 &middot; dashboardui 2 &middot; adminui 1 &middot; loginpage 1 &middot; e2e 1 &nbsp;(server_timing: root 2 &middot; examples 1)</td>
+            </tr>
+            <tr>
+              <td>go-sse</td>
+              <td>root 9 (incl. transport/) &middot; examples 3 &middot; datastar 2 &middot; setup 2 &middot; dashboardui 1 &middot; e2e 1</td>
+            </tr>
+            <tr>
+              <td>templ-components</td>
+              <td>dashboardui 25 &middot; adminui 12 &middot; loginpage 2 &nbsp;(depth per module: 97 / 94 / 95)</td>
+            </tr>
+            <tr>
+              <td>go-codec</td>
+              <td>usermgmt 10 &middot; dashboardui 2 &middot; identity-model 1 &middot; root 1</td>
+            </tr>
+            <tr>
+              <td>go-etag</td>
+              <td>root 3 (internal/hx, sync pull, projection status) &middot; examples 1</td>
+            </tr>
+            <tr>
+              <td>go-idempotency</td>
+              <td>root 2 (deprecated alias layer) &middot; examples 1</td>
+            </tr>
+            <tr>
+              <td>go-health</td>
+              <td>health 2 &middot; examples 2</td>
+            </tr>
+            <tr>
+              <td>go-health-dashboard</td>
+              <td>health 1 &middot; examples 1</td>
+            </tr>
+            <tr>
+              <td>go-appkit</td>
+              <td>setup 2</td>
+            </tr>
+            <tr>
+              <td>go-retry / go-atomic-write / go-filewatcher / go-daemon / go-output / go-credentials-store</td>
+              <td>0 everywhere (transitive or not adopted &mdash; see their reports)</td>
+            </tr>
+          </tbody>
+        </table>
 
         <footer class="footer">
           Generated 2026-11-05 &middot; library-deep-dive methodology &middot; every
