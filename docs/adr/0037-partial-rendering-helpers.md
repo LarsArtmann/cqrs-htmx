@@ -93,7 +93,7 @@ Rejected. `HandlerOption` only works inside `App.Query`/`App.Command` handlers. 
 
 ### Put everything in `options_render.go`
 
-Partially adopted. `RenderIf`, `RenderPartialOrFullFunc`, and `RenderPartialOrFull[T]` live in `options_render.go` because they are `HandlerOption` values. `RenderTemplComponent` and `OOBHTML` live in `partial.go` because they are standalone helpers, not `HandlerOption`s.
+Partially adopted. `RenderIf`, `RenderPartialOrFullFunc`, and `RenderPartialOrFull[T]` live in `options_render.go` because they are `HandlerOption` values. `RenderTemplComponent` and `OOBHTML` live in `partial.go` because they are standalone helpers, not `HandlerOption` values.
 
 ## Consequences
 
