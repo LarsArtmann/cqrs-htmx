@@ -39,11 +39,12 @@ for module in $MODULES; do
     continue
   fi
 
-  # Workspace mode ON PURPOSE: the manifest pins check SOURCE truth, and the
-  # submodules' go.mod still points at the last published root tag until the
-  # next family train — GOWORK=off would compile against the stale tag and
-  # fail on symbols that exist only in the workspace.
-  out="$(cd "$dir" && GOEXPERIMENT=jsonv2 "$GO_BIN" test -run "$PATTERN" -count=1 -v ./... 2>&1)"
+  # Hermetic mode (GOWORK=off). This gate ran workspace-mode while submodule
+  # go.mods lagged the family train; since the v4.16.0 train (2026-11-05) the
+  # pins are current and hermetic is both correct and REQUIRED for CI: the
+  # tracked go.work carries /home/lars/projects local-dev replaces that no
+  # runner can resolve, which insta-failed every workspace-mode go test.
+  out="$(cd "$dir" && GOWORK=off GOEXPERIMENT=jsonv2 "$GO_BIN" test -run "$PATTERN" -count=1 -v ./... 2>&1)"
   rc=$?
 
   passed="$(printf '%s\n' "$out" | grep -c '^--- PASS:' || true)"
