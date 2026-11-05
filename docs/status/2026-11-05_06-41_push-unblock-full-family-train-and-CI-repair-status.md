@@ -81,7 +81,7 @@
 9. `.#check-dependabot-alerts` sweep.
 10. `.#check-readme-quickstart` + `.#check-readme-badges` post-train.
 11. `.#test-all` on the final tree (28 modules incl. e2e/examples).
-12. bench-spike re-pin on an idle machine (row 54's last leg; train changed code).
+12. bench-spike re-pin on an idle machine (row 54's last leg; train changed code). <!-- fresh:skip: routed to TODO_LIST row 54 — the bench-spike re-pin leg, wording bound 2026-11-05 -->
 13. AGENTS.md updates at discovery time: bump-dep anchor semantics (`larsartmann/`-prefixed anchors after `github.com/`), go.work-replace-vs-CI class, the measured hook/daemon race numbers.
 14. Promote the **catalog-release blocker** from row 21's prose to its own TODO row so it survives row 21's closure.
 15. usermgmt **v4.16.0 dangling-below-latest tag**: document as inert noise (cannot delete — ruleset) so nobody pins it intentionally.
@@ -98,7 +98,7 @@
 26. Fleet policy question (see g.1): tracked go.work should perhaps carry use-only, with local-dev replaces untracked — decide once, apply everywhere.
 27. route-postures gate: add a self-test case exercising the new raw-output branch (the no-detail path is currently un-self-tested).
 28. bump-dep enhancement: auto-prepend the org prefix when an anchor lacks it (kills the anchor-trap class; update the 12-case self-test).
-29. Once catalog ships and row 21's fix lands, close row 21 with evidence and archive per docs-health.
+29. Once catalog ships and row 21's fix lands, close row 21 with evidence and archive per docs-health. → routed — closure condition now written into TODO_LIST row 21 itself (2026-11-05)
 30. CURRENT_FOCUS.md: reconcile the active-thread pointer with what this session closed.
 31. `verify-release.sh v0.13.1` evidence: confirm the shippers ran it (their checklist §6) — read their status report.
 32. Sweep OTHER fleet repos' published tags for the same master-stamp poison (catalog + auditlog known; go-output/go-appkit/go-atomic-write worth one grep each).

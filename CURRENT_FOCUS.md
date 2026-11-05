@@ -4,54 +4,49 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-11-02 15:25 · **Owner:** Lars · **Module count:** 29 (`go.work`)
+**As of:** 2026-11-05 (post-train) · **Owner:** Lars · **Module count:** 29 (`go.work`)
 
 ## The active thread
 
-**Round 46 — the permission system.** Authorization is now a single contract, one
-durable write path, a proof kit, and a ratchet instead of four decision shapes and
-three "is this an admin?" predicates. The library half is written, committed, and
-pushed; what is open is **publishing it**: master's CI is red with the
-root-tag-gap class ([gotcha 30](docs/gotchas.md#gotcha-30)) because six modules
-use symbols that only exist on HEAD.
+**Round 46/47 tail — the train shipped; take the verified-green.** The v4.16.0 family
+train was cut and pushed 2026-11-05 (root v4.16.0 carries the root package split +
+`Posture*` in ONE tag; usermgmt v4.19.0 carries `ViewCacheConfig`/shape stamps;
+adminui/dashboardui/loginpage v4.16.0; setup/v4.16.0 stays the 2026-11-02 tag —
+nothing post-v4.16.0 is consumed). The `--no-verify` window is closed; the release-train
+gate reads 0 unpublished / 0 lag.
 
-- Contract: `cqrshtmx.Request` / `Decision` / `Decide` + `IsForbidden` /
-  `IsUnauthorized` ([ADR-0057](docs/adr/0057-authorization-contract.md)).
-- Durable grants: `Service.GrantRoles` / `RevokeRoles` / `HasAdminGrant` over the
-  membership journal ([gotcha 45](docs/gotchas.md#gotcha-45)).
-- Proof kit: [`authztest`](authztest/README.md) — posture matrix plus grant
-  semantics (tenant isolation, revoke, durability).
-- Gates: `check-permission-surface` (four anti-patterns) and
-  `check-permission-maturity` (`--ratchet` over the declared levels).
-- Guide: [docs/guides/authorization-system.md](docs/guides/authorization-system.md);
-  ladder + inventory: [docs/PERMISSIONS.md](docs/PERMISSIONS.md); plan:
-  [docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md](docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md).
+What stands between this tree and fully green CI is exactly ONE upstream blocker:
+**the go-cqrs-lite `catalog/v4` release** (v4.12.0's docserver ships templ-poisoned
+generated code; their master already carries the regenerated templ but is not
+releasable from here — in-flight work behind a local-path replace). Once it ships:
+bump `integration_test` + `examples/catalog-demo`, run `push-and-watch`, close the
+TODO P1 CI row with evidence, and archive per docs-health.
 
-**Landed on the same day, on its own branch (`modularize/root-package-split`):** the
-root package is decomposed — `htmx/`, `httperr/`, `eventcatalog/`, and the shared
-`internal/hx/` plumbing now sit beside it, with three `*_reexport.go` facades keeping
-the published API byte-identical (`api_surface_compat_test.go` compile-pins it) and
-`nix run .#check-module-layers` enforcing the one-way edges. Root production files
-57 → 51, root-package LOC 8,121 → 7,325, zero consumer changes. It is deliberately NOT
-part of the active thread above: it touches no tag and no published symbol, so it can
-land before or after the round-46 publish. Receipt:
-[docs/status/2026-11-02_14-13_root-package-decomposition-go-modularize-status.md](docs/status/archived/2026-11-02_14-13_root-package-decomposition-go-modularize-status.md).
+Then the post-train battery (plan M02) on the merged tree: `nix run .#check-modules`
+aggregate, `.#coverage-gate` (root LOC moved 8,121 → 7,325 in the split),
+`.#check-readme-quickstart` against TAGGED v4.16.0, `.#check-cqrs-lint` /
+erraudit-strict / branching-flow re-runs — none have run on the final post-train tree.
 
-**Done when** master's CI is green with `identity-model`, root, `usermgmt`,
-`dashboardui`, `adminui`, and `setup` tagged on the symbols they now consume, the
-grant suite is exercised against the real service in `integration_test`, and each
-of our own admin/dashboard routes has a declared posture checked by
-`authztest.Undeclared`.
+- Plan of record: [`docs/planning/2026-11-05_03-11_SUPERB-round46-tail-train-green-and-backlog-pareto-plan.md`](docs/planning/2026-11-05_03-11_SUPERB-round46-tail-train-green-and-backlog-pareto-plan.md) (M01 done; M02–M05 next, M06+ after).
+- Authorization thread receipts: [ADR-0057](docs/adr/0057-authorization-contract.md),
+  [gotcha 45](docs/gotchas.md#gotcha-45), [`authztest`](authztest/README.md),
+  [docs/guides/authorization-system.md](docs/guides/authorization-system.md),
+  [docs/guides/route-posture.md](docs/guides/route-posture.md).
+
+**Done when** master's CI is green end-to-end (catalog released + consumers bumped),
+the post-train battery is green on the merged tree, the TODO P1 CI row is closed with
+CI evidence, and the keep-green traps are mechanized (API-vs-tag drift gate, templ
+codegen hook audit).
 
 ## The next thread (pick ONE)
 
-1. **Consumer waves** — one repo at a time, each with its own tests:
+1. **Consumer waves** (plan M06–M09) — one repo at a time, each with its own tests:
    `browser-history` (`reconcileSuperAdmins` → `GrantRoles`), `InboxClean`
    (delete `sseDeadlineFree`), `SwettySwipperWeb` (drop the `Count() > 0` guard),
    `crm` (seed an admin or `DisableAdmin`). The exact call to replace is the
    "Next step" column of [docs/PERMISSIONS.md](docs/PERMISSIONS.md).
-2. **Promote the maturity gate** from "blocking but unexercised" to "blocking and
-   proven" after two green waves.
+2. **cqrs-lint 4.19.1 triage** (plan M10) — the local gate is red on 8 modules since
+   the binary drifted; step 1 is always `cqrs-lint version`.
 3. **Advisory month for erraudit strict** (passive): green month at TOTAL ≤ 303,
    then flip `--strict --gate`.
 
