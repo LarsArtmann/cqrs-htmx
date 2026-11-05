@@ -88,7 +88,7 @@ templ sidebar(p pageData) {
 		<nav class="sidebar-nav" aria-label="Dashboard navigation">
 			for _, item := range p.Nav {
 				<a
-					href={ p.BasePath + item.Href }
+					href={ navHref(p.BasePath, item) }
 					class={ templ.KV("nav-link", true), templ.KV("nav-link-active", item.Active) }
 				>
 					<span class="nav-icon" aria-hidden="true">

@@ -19,6 +19,17 @@ const (
 	errorHandlingRetryMS    = 1000
 )
 
+// navHref resolves a nav item's href for rendering: built-in entries are
+// BasePath-relative (basePath+Href); consumer ExtraNav entries ([navItem.Verbatim])
+// render their Href as-is so they can point outside the mounted subtree.
+func navHref(basePath string, item navItem) string {
+	if item.Verbatim {
+		return item.Href
+	}
+
+	return basePath + item.Href
+}
+
 // firstRune returns s's first rune as a string, "?" when s does not decode
 // as UTF-8 (never a mojibake byte).
 func firstRune(s string) string {

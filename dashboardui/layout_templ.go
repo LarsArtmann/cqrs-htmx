@@ -299,9 +299,9 @@ func sidebar(p pageData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.BasePath + item.Href).ResolveURL(ctx)
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.NewAttributeExpression(navHref(p.BasePath, item)).ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 91, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 91, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 				if templ_7745c5c3_Err != nil {
@@ -454,10 +454,10 @@ func header(p pageData) templ.Component {
 	})
 }
 
-// navIcon renders an inline SVG icon for the given icon name using the
-// templ-components Heroicons path data. Unknown names fall back to the
-// Question icon (a "?" symbol) via the library's built-in fallback.
-func navIcon(name string) templ.Component {
+// navIcon renders an inline SVG icon for the given templ-components icon
+// name. Unknown names fall back to the Question icon (a "?" symbol) via the
+// library's built-in fallback.
+func navIcon(name icons.Name) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -478,7 +478,7 @@ func navIcon(name string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for _, path := range icons.IconPathData(mapNavIconName(name)) {
+		for _, path := range icons.IconPathData(name) {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

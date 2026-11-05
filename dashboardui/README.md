@@ -199,8 +199,34 @@ type Config struct {
     PageSize         int                    // rows per page (default: 50, max: 200)
     Authorizer       func(*http.Request) error
     VersionzRequireAuth bool               // guard /-/versionz behind Authorizer (default: false)
+    LogoutURL        string                 // logout link at the sidebar bottom
+    ExtraNav         []NavEntry             // consumer nav entries appended to the sidebar
 }
 ```
+
+### Extra Nav Entries
+
+The sidebar navigation is derived from the detected capabilities. Surfaces you
+mount NEXT DOOR to the panel — outside the dashboard subtree — have no way in,
+so `Config.ExtraNav` appends consumer-owned entries after the capability items
+(in both the built-in sidebar and `meta.Nav` for custom layouts):
+
+```go
+dash := dashboardui.MustNew(dashboardui.Config{
+    Journal:  store,
+    ExtraNav: []dashboardui.NavEntry{{
+        Label: "Event Catalog",                    // display text
+        Href:  "/event-catalog",                   // rendered VERBATIM
+        Icon:  icons.Link,                         // optional; Link when omitted
+    }},
+})
+```
+
+`Href` is rendered **verbatim** — unlike built-in entries it is NOT prefixed
+with `BasePath` — so it can point at a sibling surface (`/event-catalog`), an
+absolute URL (`https://docs.example.com`), or a dashboard-internal path you
+build yourself from `Config.BasePath`. Entries with an empty `Label` or `Href`
+are rejected at `New`/`Validate`; an unset `ExtraNav` changes nothing.
 
 ### Read-Only Mode
 

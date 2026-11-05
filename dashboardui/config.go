@@ -284,10 +284,13 @@ func (config Config) withPayloadRenderingDefaults() Config {
 
 // navItem represents a sidebar navigation entry.
 type navItem struct {
-	Href   string
-	Label  string
-	Icon   icons.Name
-	Active bool
+	Href string
+	// Verbatim marks consumer ExtraNav entries: their Href is rendered as-is,
+	// without the BasePath prefix built-in entries get.
+	Verbatim bool
+	Label    string
+	Icon     icons.Name
+	Active   bool
 }
 
 // NavEntry is one consumer-owned sidebar navigation entry, appended after
@@ -320,7 +323,7 @@ func extraNavItems(entries []NavEntry) []navItem {
 			icon = icons.Link
 		}
 
-		items = append(items, navItem{Href: entry.Href, Label: entry.Label, Icon: icon})
+		items = append(items, navItem{Href: entry.Href, Verbatim: true, Label: entry.Label, Icon: icon})
 	}
 
 	return items
