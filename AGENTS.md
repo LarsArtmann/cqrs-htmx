@@ -111,7 +111,7 @@ Every serious comparison uses `b.Loop()` (Go 1.24+) + `b.ReportAllocs()` + `b.Re
 
 ## Gotchas
 
-50 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
+53 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
 number and has a `#gotcha-N` anchor). This index is the scan surface; open the file for the detail.
 
 | #   | Trap                                                                                                                                                                                                                     | #   | Trap                                                                                                                                                                                                  |
@@ -143,6 +143,8 @@ number and has a `#gotcha-N` anchor). This index is the scan surface; open the f
 | 45  | A role grant written into the Casbin enforcer is NOT durable — use `Service.GrantRoles`; and `GroupPolicies()` mixes grants with hierarchy rows (full text: gotcha 45)                                                   | 46  | A server-wide `WriteTimeout` severs SSE streams — the stream handler clears its own deadline; never zero the server timeout (full text: gotcha 46)                                                    |
 | 47  | Two agents in one working tree stash each other's work — Git Town took 59 uncommitted files; the daemon also snapshot-restores stale files over rebase results, so diff-check every rebase commit (full text: gotcha 47) | 48  | A package extraction spawns split-brain bugs — the facade must delegate to the moved code's single source of truth, and the tests move WITH the package (full text: gotcha 48)                        |
 | 49  | GitHub API merges of workflow-file PRs are refused without the `workflow` OAuth scope — land via local merge + SSH push (Dependabot actions bumps hit this every time; full text: gotcha 49)                             | 50  | A hook-red window suspends the safety gate for EVERY committer — name it in TODO, keep `--no-verify` commits docs-only or hand-verified, close the root cause the same session (full text: gotcha 50) |
+| 51  | Under load >30 BuildFlow steps die to spawn starvation (not timeouts) — `BUILDFLOW_MAX_CONCURRENCY=1` on the FIRST commit attempt; the daemon commits through starved windows, verify content in HEAD (full text: gotcha 51) | 52  | Tailwind harvests class tokens from COMMENTS — a phantom `.shadow`-class token reds `check-css-bundle-classes` with zero real drift; diff token sets first: comment word = reword, real utility = stale bundle, rebuild (full text: gotcha 52) |
+| 53  | Tree-wide `nix fmt` formats concurrent sessions' in-flight files — scope every pass to owned paths + run the opening collision probe before tree-wide operations (full text: gotcha 53)                                     |     |                                                                                                                                                                                                              |
 
 ---
 
