@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -325,6 +326,98 @@ func TestAuditLog_NonPositiveLimitFallsBackToDefault(t *testing.T) {
 
 	if got := NewAuditLog().Limit(); got != DefaultAuditLogLimit {
 		t.Errorf("NewAuditLog().Limit() = %d, want %d", got, DefaultAuditLogLimit)
+	}
+}
+
+func TestAuditLog_ConcurrentAppendsUnderRace(t *testing.T) {
+	// B55 (C021 follow-up): concurrent Handle appends against concurrent
+	// readers must be race-clean and count-exact. The window is smaller than
+	// the write volume so the ring WRAPS mid-test — appendEntry's head
+	// arithmetic and the dropped counter mutate under contention, and each
+	// event gets a fresh aggregate ID so a lost or double-written slot is
+	// detectable as a duplicate AggregateID among the retained entries.
+	const (
+		writers     = 8
+		perWriter   = 64
+		readers     = 4
+		windowLimit = 64
+	)
+
+	log := NewAuditLogWithLimit(windowLimit)
+	writersFinished := make(chan struct{})
+
+	var writersDone sync.WaitGroup
+	writersDone.Add(writers)
+	for range writers {
+		go func() {
+			defer writersDone.Done()
+
+			for range perWriter {
+				aggID := id.NewStreamID()
+				evt, err := event.New(
+					eventUserRegistered, aggID, aggregateTypeUser, 1,
+					map[string]string{"email": "race@test.com"},
+					event.WithActor(id.NewUserActor(GenerateUserID())),
+				)
+				if err != nil {
+					t.Errorf("event.New: %v", err)
+					return
+				}
+				if err := log.Handle(context.Background(), evt); err != nil {
+					t.Errorf("Handle: %v", err)
+					return
+				}
+			}
+		}()
+	}
+
+	var readersDone sync.WaitGroup
+	readersDone.Add(readers)
+	for range readers {
+		go func() {
+			defer readersDone.Done()
+
+			for {
+				select {
+				case <-writersFinished:
+					return
+				default:
+				}
+
+				entries := log.Entries()
+				if len(entries) > windowLimit {
+					t.Errorf("Entries() len = %d, want <= %d", len(entries), windowLimit)
+					return
+				}
+				log.Recent(16)
+				log.Count()
+				log.EntriesFor(id.NewStreamID())
+			}
+		}()
+	}
+
+	writersDone.Wait()
+	close(writersFinished)
+	readersDone.Wait()
+
+	total := writers * perWriter
+	if got := log.Count(); got != windowLimit {
+		t.Fatalf("Count() = %d, want %d (window full after %d appends)", got, windowLimit, total)
+	}
+	if got := log.Dropped(); got != total-windowLimit {
+		t.Fatalf("Dropped() = %d, want %d", got, total-windowLimit)
+	}
+
+	retained := log.Entries()
+	seen := make(map[id.StreamID]struct{}, len(retained))
+	for _, entry := range retained {
+		if _, dup := seen[entry.AggregateID]; dup {
+			t.Fatalf("duplicate AggregateID %s among retained entries — a ring slot was lost or double-written", entry.AggregateID)
+		}
+		seen[entry.AggregateID] = struct{}{}
+	}
+	if len(seen) != windowLimit {
+		t.Fatalf("distinct retained aggregates = %d, want %d", len(seen), windowLimit)
 	}
 }
 
