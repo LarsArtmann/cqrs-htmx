@@ -1,0 +1,12 @@
+{
+  "preset": "library",
+  "rules": {
+    // F032 (no-catalog-import) is a consumer-adoption rule: it wants a
+    // project that USES go-cqrs-lite to wire catalog-driven documentation.
+    // identity-model is the pure domain-types module — no HTTP surface, no
+    // doc serving; the published event language lives in usermgmt's
+    // DefaultEventCatalog. Importing go-cqrs-lite/catalog here would be a
+    // dead dependency. Triage 2026-11-05 (cqrs-lint v4.20.0).
+    "disable": ["F032"]
+  }
+}

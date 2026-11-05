@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **cqrs-lint triaged at the published v4.20.0 tag — gate green again 14/14 (2026-11-05, round-46 M10).** The system binary had drifted to a 4.19.1 pseudo build whose new rules reddened the local gate; it is now rebuilt from the published `cmd/cqrs-lint/v4.20.0` tag (host recipe: `git archive` of the tag + `go build -ldflags "-X main.commitHash=<tagsha>"` — `go install @version` is permission-blocked here; version line: `dev (commit: 18eeb6f, …)`). Rules added since the 4.16 era and their adjudication: **F032 `no-catalog-import` (ERROR)** — a consumer-adoption rule — is disabled-with-reason per module in `identity-model`, `usermgmt`, `dashboardui`, `datastar`, and `systemadapter` `.cqrs-lint.json`; the usermgmt/systemadapter entries carry an explicit remove-when trigger (leverage-plan R2, the systemcatalog-derived event catalog, now unblocked by the published `systemcatalog/v4.0.0`). **C044 branded-ID `.String()` (warning)** — every fired site reviewed: display contexts or self-consistent single-rendering keys/cursors (including the golden-pinned SSE envelope), zero real bugs; kept as a non-blocking diagnostic. **E023 satellite-owned-SQL / T009 hand-booted-system (info)** — advisories mapping to the known pre-metaengine usermgmt stores (ADR-0051/v5 class). One stale `//cqrs-lint:ignore(S001)` directive removed from `identity-model/events.go` (the 4.20.0 rule set no longer fires there; the gate's `--fail-on-stale-suppressions` had turned it into an ERROR). `nix run .#check-cqrs-lint`: all 14 gate modules green under `--strict --fail-on-stale-suppressions`.
+
 ## [v4.16.0] - 2026-11-05
 
 ### Added

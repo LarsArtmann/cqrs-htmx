@@ -1,6 +1,10 @@
 {
   "preset": "library",
   "rules": {
+    // F032 (no-catalog-import) is a consumer-adoption rule: datastar is a
+    // signal/SSE adapter over go-cqrs-lite event types with no documentation
+    // surface of its own — catalog-driven docs belong to the consumer app.
+    // Triage 2026-11-05 (cqrs-lint v4.20.0).
     "disable": [
       "F002",
       "F006",
@@ -13,7 +17,8 @@
       "A008",
       "A009",
       "A018",
-      "C015"
+      "C015",
+      "F032"
     ]
   }
 }

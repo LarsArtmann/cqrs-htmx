@@ -1,0 +1,11 @@
+{
+  "preset": "library",
+  "rules": {
+    // F032 (no-catalog-import) is a consumer-adoption rule: dashboardui is
+    // an observability UI that RENDERS consumer-provided event catalogs and
+    // reads the journal — wiring catalog-driven documentation is the
+    // consumer application's job, not the dashboard library's. Triage
+    // 2026-11-05 (cqrs-lint v4.20.0).
+    "disable": ["F032"]
+  }
+}

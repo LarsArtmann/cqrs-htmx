@@ -8,6 +8,11 @@
     // including drain/sync. Inline suppression cannot express this: the
     // package-level anchor drifts between walk modes (declarations.go in a
     // module walk, capabilities.go in the recursive root walk).
-    "disable": ["E014"]
+    // F032 (no-catalog-import): systemadapter owns DomainConfig() — the
+    // natural home for a systemcatalog-derived catalog (leverage-plan R2;
+    // systemcatalog/v4.0.0 published 2026-11-05). Until R2 decides the
+    // surface, an import-for-import's-sake would change nothing. Triage
+    // 2026-11-05 (cqrs-lint v4.20.0) — remove this disable when R2 ships.
+    "disable": ["E014", "F032"]
   }
 }
