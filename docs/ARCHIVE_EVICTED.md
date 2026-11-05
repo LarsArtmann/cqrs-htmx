@@ -81,15 +81,15 @@ the standing 2026-10-24 cite-or-evict rule, but the owner has not answered evict
 `docs/reviews/` has an explicit written "restraint is success" convention these directories
 lack — so the hold stands until the owner ticks one:
 
-| File                                                        | Class        | Hold reason                                    |
-| ----------------------------------------------------------- | ------------ | ---------------------------------------------- |
+| File                                                                   | Class     | Hold reason                              |
+| ---------------------------------------------------------------------- | --------- | ---------------------------------------- |
 | `brainstorming/2026-07-03_verifiable-credentials-vs-crypto-stack.html` | generated | no dir convention; owner verdict pending |
-| `brainstorming/2026-07-23_cqrs-dashboard-design.html`       | generated    | no dir convention; owner verdict pending       |
-| `brainstorming/2026-07-23_cqrs-dashboard-v2-self-critique.html` | generated | no dir convention; owner verdict pending  |
-| `modularization/2026-06-21_EXECUTION_PLAN.html`             | generated    | no dir convention; owner verdict pending       |
-| `modularization/2026-06-21_PROPOSAL.html`                   | generated    | no dir convention; owner verdict pending       |
-| `modularization/2026-08-05_PROPOSAL.html`                   | generated    | no dir convention; owner verdict pending       |
-| `proposals/2026-07-19_10-02_nix-flake-migration-status.html` | generated   | no dir convention; owner verdict pending       |
+| `brainstorming/2026-07-23_cqrs-dashboard-design.html`                  | generated | no dir convention; owner verdict pending |
+| `brainstorming/2026-07-23_cqrs-dashboard-v2-self-critique.html`        | generated | no dir convention; owner verdict pending |
+| `modularization/2026-06-21_EXECUTION_PLAN.html`                        | generated | no dir convention; owner verdict pending |
+| `modularization/2026-06-21_PROPOSAL.html`                              | generated | no dir convention; owner verdict pending |
+| `modularization/2026-08-05_PROPOSAL.html`                              | generated | no dir convention; owner verdict pending |
+| `proposals/2026-07-19_10-02_nix-flake-migration-status.html`           | generated | no dir convention; owner verdict pending |
 
 Default if the owner stays silent: prepare the measured eviction dry-run and hold before apply
 (the round-37 posture). The 24 uncited `docs/reviews/*.html` files are NOT pending — they are
@@ -98,10 +98,10 @@ kept by the reviews dir's own written convention (`docs/reviews/README.md`).
 **Round-46 `2026-0*` corpus manifest (2026-11-04, single-archive pass — commit message is the
 manifest per the single-file rule, this table is the durable classification):**
 
-| File                                              | Decision | Reason                                                                                      |
-| ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `research/2026-09-20_theme-toggle-strategy-spike.md` | ARCHIVE | every option dispositioned inline (A shipped, B/defer not taken); moved to `research/archived/` after check-rows + bare-rows gates green |
-| `research/2026-08-02_iroh-p2p-networking-fit-analysis.md` | SKIP | complete verdict (not adopted, decision triggers recorded), cited by ROADMAP + 2 research files |
-| `proposals/2026-07-25_data-mesh-interchange.md`   | SKIP     | open proposal, verdict + gaps routed in ROADMAP § Data Mesh Interchange                      |
-| 24 uncited `reviews/*.html`                       | KEEP     | reviews dir "restraint is success" convention                                                |
-| 15 cited `2026-0*` files (research/planning/brainstorming/modularization/architecture-understanding) | KEEP | living-doc citations = load-bearing rationale (citation map re-derived 2026-11-04) |
+| File                                                                                                 | Decision | Reason                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `research/2026-09-20_theme-toggle-strategy-spike.md`                                                 | ARCHIVE  | every option dispositioned inline (A shipped, B/defer not taken); moved to `research/archived/` after check-rows + bare-rows gates green |
+| `research/2026-08-02_iroh-p2p-networking-fit-analysis.md`                                            | SKIP     | complete verdict (not adopted, decision triggers recorded), cited by ROADMAP + 2 research files                                          |
+| `proposals/2026-07-25_data-mesh-interchange.md`                                                      | SKIP     | open proposal, verdict + gaps routed in ROADMAP § Data Mesh Interchange                                                                  |
+| 24 uncited `reviews/*.html`                                                                          | KEEP     | reviews dir "restraint is success" convention                                                                                            |
+| 15 cited `2026-0*` files (research/planning/brainstorming/modularization/architecture-understanding) | KEEP     | living-doc citations = load-bearing rationale (citation map re-derived 2026-11-04)                                                       |
