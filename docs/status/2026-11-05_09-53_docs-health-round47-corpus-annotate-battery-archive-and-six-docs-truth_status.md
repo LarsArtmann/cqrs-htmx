@@ -50,9 +50,9 @@
 
 1. ★ M02 post-train battery — the 07-24 sibling lane is IN FLIGHT; coordinate before touching its legs (check-modules aggregate, coverage, quickstart-vs-tag, cqrs-upgrade).
 2. ★ Catalog release watch (row 21): when go-cqrs-lite ships → bump `integration_test` + `examples/catalog-demo` → `push-and-watch` → close row 21 with evidence + the PR-#40 receipt comment (F020) + archive.
-3. Drain or scope `audit_max: 325` (§g1).
+3. Drain or scope `audit_max: 325` (§g1). <!-- fresh:skip: owner posture question §g1 — the pin is live in .docs-gates.json -->
 4. Fleet docs-health skill dialect table (§g3; crush-config repo).
-5. AGENTS S17 split (owner-gated; 73.5 KB).
+5. AGENTS S17 split (owner-gated; 73.5 KB). <!-- fresh:skip: owner-parked structural split (round-46 §f36) -->
 6. templ v0.3.1114 generator root-cause (plan M05; second ask standing).
 7. The 3 CHANGELOG residual F-lines: accept-forever or one-time append-only exception — decide once.
 8. go-sse v0.5.1 straggler pin → treadmill sweep.
@@ -62,9 +62,9 @@
 12. Gotcha candidates backlog: spawn-starvation, phantom-token, and (new, from §d2/§e2) fmt-scoping-on-shared-trees — assign numbers at write time.
 13. Consumer waves M06–M09 (authorization row 4: browser-history, InboxClean, Swetty, crm).
 14. The 7 parked 2026-0* artifacts — owner verdict (ARCHIVE_EVICTED § Pending).
-15. Daemon policy OQ20 (the standing fifth-plus ask).
+15. Daemon policy OQ20 (the standing fifth-plus ask). <!-- fresh:skip: routed to ROADMAP OQ20 (owner-gated, standing) -->
 16. Post-split package-map guide sweep (M05) + release-playbook uniform-wave note (pending §g2 of the 06-38 report).
-17. bench-spike re-pin on an idle machine (row 54's last leg).
+17. bench-spike re-pin on an idle machine (row 54's last leg). <!-- fresh:skip: routed to TODO row 54 (bench-spike re-pin leg, bound 2026-11-05) -->
 18. Quarterly README↔FEATURES claim sweep (~2027-01-17; rowed).
 19. Watch the sibling's next `nix fmt` run: my 3-file restore vs their formatter re-emission (§d2 residue — zero-conflict expected, verify once).
 20. `2026-11-05_06-41` report ages into the next archive pass (its §f is fully routed; the 07-24 sibling decides its successor).
@@ -73,7 +73,7 @@
 
 1. **`audit_max: 325`:** accept the pin as the honest ceiling over the legacy-era corpus (regression-proof, drains later), scope the battery to the gated epoch (2026-09-09+) instead, or fund a batch-drain pass over the pre-convention reports? The pin is live in `.docs-gates.json` either way — gate-posture call is yours.
 2. **Uniform family versions:** was the 2026-11-05 wave (every module tagged v4.16.0 regardless of its own train, plus one below-latest inert usermgmt/v4.16.0) a one-off or the new convention? The release playbook, wave-tag, and treadmill gates should teach whichever you decide (first asked by the 06-38 report §g3).
-3. **May the docs-health fleet skill (crush-config repo) grow the battery lessons** (v:/r: shorthand vs the marker vocabulary, rule-F forms incl. the `X`s-plural trap, the `audit_max` measured-debt pin pattern), or does that ride your own skill-maintenance pass? I kept this repo's AGENTS as the knowledge home meanwhile.
+3. **May the docs-health fleet skill (crush-config repo) grow the battery lessons** (v:/r: shorthand vs the marker vocabulary, rule-F forms incl. the plural-suffix glue trap (`X` + `s`), the `audit_max` measured-debt pin pattern), or does that ride your own skill-maintenance pass? I kept this repo's AGENTS as the knowledge home meanwhile.
 
 ---
 *Report basis: this session only (~07:50 → 09:53 CET). Docs + gates + `.docs-gates.json` + root-files baseline + CHANGELOG sections changed; no published module changed; nothing pushed by me (the daemon banked the work in heuristic chunks). NOW WAITING FOR INSTRUCTIONS.*
