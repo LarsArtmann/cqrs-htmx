@@ -45,10 +45,11 @@ codegen hook audit).
    (delete `sseDeadlineFree`), `SwettySwipperWeb` (drop the `Count() > 0` guard),
    `crm` (seed an admin or `DisableAdmin`). The exact call to replace is the
    "Next step" column of [docs/PERMISSIONS.md](docs/PERMISSIONS.md).
-2. **cqrs-lint 4.19.1 triage** (plan M10) — the local gate is red on 8 modules since
-   the binary drifted; step 1 is always `cqrs-lint version`.
-3. **Advisory month for erraudit strict** (passive): green month at TOTAL ≤ 303,
+2. **Advisory month for erraudit strict** (passive): green month at TOTAL ≤ 303,
    then flip `--strict --gate`.
+
+(The former item 2 — cqrs-lint 4.19.1 triage, plan M10 — is DONE 2026-11-05:
+binary rebuilt at the published v4.20.0 tag, gate green 14/14, `3c544dc9`.)
 
 ## Ground rules that keep this honest
 
