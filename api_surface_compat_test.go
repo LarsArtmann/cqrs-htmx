@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larsartmann/cqrs-htmx/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // This file is a compile-time contract test for the root package's public
@@ -51,37 +51,37 @@ var (
 
 // Event catalog (Published Language).
 var (
-	_ func() *cqrshtmx.EventCatalog                                  = cqrshtmx.NewEventCatalog
-	_ func(*cqrshtmx.EventCatalog) (http.HandlerFunc, error)         = cqrshtmx.EventCatalogHandler
-	_ = (*cqrshtmx.EventCatalog)(nil)
-	_ = (*cqrshtmx.EventMetadata)(nil)
-	_ = (*cqrshtmx.PayloadField)(nil)
+	_ func() *cqrshtmx.EventCatalog                          = cqrshtmx.NewEventCatalog
+	_ func(*cqrshtmx.EventCatalog) (http.HandlerFunc, error) = cqrshtmx.EventCatalogHandler
+	_                                                        = (*cqrshtmx.EventCatalog)(nil)
+	_                                                        = (*cqrshtmx.EventMetadata)(nil)
+	_                                                        = (*cqrshtmx.PayloadField)(nil)
 )
 
 // Error mapping and the RFC 9457 payload.
 var (
-	_ func(error) int                                            = cqrshtmx.MapError
-	_ func(error, int, bool) string                              = cqrshtmx.SafeDetail
-	_ func(error) string                                         = cqrshtmx.ErrorCode
-	_ func(error, int) error                                     = cqrshtmx.WithHTTPStatus
-	_ func(error, time.Duration) error                           = cqrshtmx.WithRetryAfter
-	_ func(error, *http.Request) cqrshtmx.StructuredError        = cqrshtmx.NewStructuredError
-	_ func(error, context.Context) cqrshtmx.StructuredError      = cqrshtmx.NewStructuredErrorWithContext
-	_ = (*cqrshtmx.StructuredError)(nil)
-	_ func(cqrshtmx.HTTPStatusCarrier)                           = func(cqrshtmx.HTTPStatusCarrier) {}
-	_ func(cqrshtmx.RetryAfterCarrier)                           = func(cqrshtmx.RetryAfterCarrier) {}
+	_ func(error) int                                       = cqrshtmx.MapError
+	_ func(error, int, bool) string                         = cqrshtmx.SafeDetail
+	_ func(error) string                                    = cqrshtmx.ErrorCode
+	_ func(error, int) error                                = cqrshtmx.WithHTTPStatus
+	_ func(error, time.Duration) error                      = cqrshtmx.WithRetryAfter
+	_ func(error, *http.Request) cqrshtmx.StructuredError   = cqrshtmx.NewStructuredError
+	_ func(error, context.Context) cqrshtmx.StructuredError = cqrshtmx.NewStructuredErrorWithContext
+	_                                                       = (*cqrshtmx.StructuredError)(nil)
+	_ func(cqrshtmx.HTTPStatusCarrier)                      = func(cqrshtmx.HTTPStatusCarrier) {}
+	_ func(cqrshtmx.RetryAfterCarrier)                      = func(cqrshtmx.RetryAfterCarrier) {}
 )
 
 // Ready-made error handlers.
 var (
-	_ func(http.ResponseWriter, *http.Request, error)                = cqrshtmx.DefaultErrorHandler
-	_ func(http.ResponseWriter, *http.Request, error, string)        = cqrshtmx.DefaultErrorHandlerWithRedirect
-	_ func(http.ResponseWriter, *http.Request, error)                = cqrshtmx.DefaultErrorHandlerWithRequestID
-	_ func(http.ResponseWriter, *http.Request, error, string)        = cqrshtmx.DefaultErrorHandlerWithRedirectAndRequestID
-	_ func(http.ResponseWriter, *http.Request, error)                = cqrshtmx.JSONErrorHandler
-	_ func(http.ResponseWriter, *http.Request, error, string)        = cqrshtmx.JSONErrorHandlerWithRedirect
-	_ func(http.ResponseWriter, *http.Request, error)                = cqrshtmx.ProblemDetailsErrorHandler
-	_ func(http.ResponseWriter, *http.Request, error, string)        = cqrshtmx.ProblemDetailsErrorHandlerWithRedirect
+	_ func(http.ResponseWriter, *http.Request, error)         = cqrshtmx.DefaultErrorHandler
+	_ func(http.ResponseWriter, *http.Request, error, string) = cqrshtmx.DefaultErrorHandlerWithRedirect
+	_ func(http.ResponseWriter, *http.Request, error)         = cqrshtmx.DefaultErrorHandlerWithRequestID
+	_ func(http.ResponseWriter, *http.Request, error, string) = cqrshtmx.DefaultErrorHandlerWithRedirectAndRequestID
+	_ func(http.ResponseWriter, *http.Request, error)         = cqrshtmx.JSONErrorHandler
+	_ func(http.ResponseWriter, *http.Request, error, string) = cqrshtmx.JSONErrorHandlerWithRedirect
+	_ func(http.ResponseWriter, *http.Request, error)         = cqrshtmx.ProblemDetailsErrorHandler
+	_ func(http.ResponseWriter, *http.Request, error, string) = cqrshtmx.ProblemDetailsErrorHandlerWithRedirect
 )
 
 // Constants and sentinel errors.
