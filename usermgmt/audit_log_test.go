@@ -444,7 +444,11 @@ func TestAuditLog_CapAppliesToTheServiceProjectionPath(t *testing.T) {
 	if got := auditLog.Count(); got != 2 {
 		t.Errorf("Count() = %d, want the 2-entry window", got)
 	}
-	if got := auditLog.Dropped(); got != 1 {
-		t.Errorf("Dropped() = %d, want 1", got)
+
+	// Each registration is audited twice: UserRegistered plus the
+	// SessionStarted session-lifecycle fact — 6 events into a 2-entry
+	// window drops 4.
+	if got := auditLog.Dropped(); got != 4 {
+		t.Errorf("Dropped() = %d, want 4", got)
 	}
 }

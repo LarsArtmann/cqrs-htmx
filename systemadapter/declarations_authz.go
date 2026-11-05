@@ -154,6 +154,9 @@ func auditLogScan() metaengine.QueryDecl[system.ScanInput, AuditEntryView] {
 		loginFailedAuditFold(),
 		auditFold(string(identitymodel.EventRegistrationClosed),
 			identitymodel.RegistrationClosedPayload{}, usermgmt.AuditActionRegistrationClosed),
+		auditFold(string(identitymodel.EventSessionStarted),
+			identitymodel.SessionStartedPayload{}, usermgmt.AuditActionSessionStarted),
+		sessionEndedAuditFold(),
 		metaengine.FilterOnField[AuditEntryView]("AggregateID", metaengine.FilterEq),
 		metaengine.SortOnField[AuditEntryView]("OccurredAt", true),
 		metaengine.Volume(1_000_000),
@@ -169,6 +172,25 @@ func auditFold[P any](eventType string, payload P, action string) metaengine.Fol
 		func(rec record.Record, e projectionadapter.EventWithID[P]) (string, AuditEntryView) {
 			return auditKey(e.ID, eventType, e.OccurredAt),
 				newAuditEntryView(rec, eventType, e.ID, e.OccurredAt, action)
+		})
+}
+
+// sessionEndedAuditFold is the SessionEnded specialization: beyond the shared
+// entry fields it carries the bounded end cause as Detail (logout, expired,
+// impersonation_ended, revoked, deleted), mirroring the legacy AuditLog
+// contract.
+func sessionEndedAuditFold() metaengine.Fold {
+	eventType := string(identitymodel.EventSessionEnded)
+
+	return metaengine.OnRecordTyped(eventType,
+		projectionadapter.EventWithID[identitymodel.SessionEndedPayload]{},
+		func(
+			rec record.Record, e projectionadapter.EventWithID[identitymodel.SessionEndedPayload],
+		) (string, AuditEntryView) {
+			view := newAuditEntryView(rec, eventType, e.ID, e.OccurredAt, usermgmt.AuditActionSessionEnded)
+			view.Detail = string(e.Payload.Cause)
+
+			return auditKey(e.ID, eventType, e.OccurredAt), view
 		})
 }
 

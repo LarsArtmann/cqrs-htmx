@@ -62,5 +62,9 @@ func EventSchemas() []cqrsschema.EventSchema {
 		cqrsschema.Event(identitymodel.EventLoginSucceeded, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventLoginFailed, envelopeSchemaVersion),
 		cqrsschema.Event(identitymodel.EventRegistrationClosed, envelopeSchemaVersion),
+
+		// Session lifecycle audit events (cqrs-htmx#25) — dedicated Auth streams.
+		cqrsschema.Event(identitymodel.EventSessionStarted, envelopeSchemaVersion),
+		cqrsschema.Event(identitymodel.EventSessionEnded, envelopeSchemaVersion),
 	}
 }
