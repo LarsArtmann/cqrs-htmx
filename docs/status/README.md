@@ -216,7 +216,7 @@ All 3 files: classification **ARCHIVE** (dated `> ANNOTATED 2026-11-05` blockquo
 | `2026-11-04_23-05_root-package-split-master-sync-self-review_status.md` | Split landed as PR #40 (`c6b6547d`); pre-struck by the 2026-11-05 planning pass (21 items), remainder resolved/routed this pass (plan M02 battery, ROADMAP tooling/docs-polish, OQ20); its own §f49 asked for this archive |
 | `2026-11-05_02-47_pr40-pr39-land-release-train-remaining_status.md` | The release train it gated was executed 2026-11-05; zero-CI window dissolved (no gap existed, 06-38 §a11); gotchas 49/50 landed; CHANGELOG [v4.16.0]/[v4.15.0] sections cut the same day; tails → TODO rows / plan M02–M05 |
 
-**Corpus ledger (baseline bump 43687 → 43992, +305):** the 06-38 report (+149) and the 06-41 report (+128) landed after the previous baseline; this pass added +28 (three ANNOTATED blockquotes ~16 lines + this manifest/ledger table 12 lines; the 169 item verdicts append inline, zero new lines).
+**Corpus ledger (baseline 43687 → 43992 this pass → 44069 after the 07-24 sibling session's own re-true; live truth = `docs/CORPUS_BASELINE`):** Round-47 report pass: 44069 → 44153 (the round-47 status report ~+95 + the 06-38 ARCHIVED blockquote ~+5; its 94 item verdicts append inline, zero new lines). the 06-38 report (+149) and the 06-41 report (+128) landed after the previous baseline; this pass added +28 (three ANNOTATED blockquotes ~16 lines + this manifest/ledger table 12 lines; the 169 item verdicts append inline, zero new lines).
 
 ## Why not "update them all" ad hoc?
 
