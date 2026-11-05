@@ -222,22 +222,14 @@ func (config Config) withDefaults() (Config, error) {
 		config.AccentColor = defaultAccentColor
 	}
 
-	if !isValidAccentColor(config.AccentColor) {
-		return config, errConfig(
-			"Config.AccentColor must be a CSS color literal (#hex, rgb()/rgba()/hsl()/hsla() with numeric components, or a named color); got " + config.AccentColor,
-		)
+	if err := validateAccentColor(config.AccentColor); err != nil {
+		return config, err
 	}
 
 	// A negative PageSize would pass through and panic the first paginated
 	// request (events[:pageSize] with a negative bound), so clamp it with the
 	// zero-value default.
-	if config.PageSize <= 0 {
-		config.PageSize = core.DefaultPageSize()
-	}
-
-	if config.PageSize > core.MaxPageSize() {
-		config.PageSize = core.MaxPageSize()
-	}
+	config.PageSize = clampPageSize(config.PageSize)
 
 	if config.SSEHeartbeatInterval == 0 {
 		config.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
@@ -247,23 +239,54 @@ func (config Config) withDefaults() (Config, error) {
 		return config, err
 	}
 
-	for i, entry := range config.ExtraNav {
-		if entry.Label == "" {
-			return config, errConfig(
-				"Config.ExtraNav[" + strconv.Itoa(i) + "].Label must not be empty",
-			)
-		}
-
-		if entry.Href == "" {
-			return config, errConfig(
-				"Config.ExtraNav[" + strconv.Itoa(i) + "].Href must not be empty",
-			)
-		}
+	if err := validateExtraNav(config.ExtraNav); err != nil {
+		return config, err
 	}
 
 	config = config.withPayloadRenderingDefaults()
 
 	return config, nil
+}
+
+// clampPageSize bounds PageSize to [core.DefaultPageSize, core.MaxPageSize]:
+// a non-positive value would panic the first paginated request
+// (events[:pageSize] with a negative bound), and an oversized one would
+// ignore the consumer-facing page ceiling.
+func clampPageSize(size int) int {
+	if size <= 0 {
+		return core.DefaultPageSize()
+	}
+
+	return min(size, core.MaxPageSize())
+}
+
+// validateAccentColor rejects AccentColor values outside the closed CSS
+// grammar — the value is interpolated into an inline <style> block where HTML
+// escaping cannot sanitize it.
+func validateAccentColor(color string) error {
+	if isValidAccentColor(color) {
+		return nil
+	}
+
+	return errConfig(
+		"Config.AccentColor must be a CSS color literal (#hex, rgb()/rgba()/hsl()/hsla() with numeric components, or a named color); got " + color,
+	)
+}
+
+// validateExtraNav rejects entries that could not render usefully: an empty
+// Label shows as a blank link, an empty Href points at the current page.
+func validateExtraNav(entries []NavEntry) error {
+	for i, entry := range entries {
+		if entry.Label == "" {
+			return errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Label must not be empty")
+		}
+
+		if entry.Href == "" {
+			return errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Href must not be empty")
+		}
+	}
+
+	return nil
 }
 
 // withPayloadRenderingDefaults fills the payload display seam: the untyped

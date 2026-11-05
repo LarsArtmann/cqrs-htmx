@@ -18,7 +18,6 @@ func TestValidate_RejectsExtraNavWithEmptyLabel(t *testing.T) {
 		EventSource: store,
 		ExtraNav:    []NavEntry{{Href: "/event-catalog"}},
 	}.Validate()
-
 	if err == nil {
 		t.Fatal("Validate() with an empty ExtraNav label should fail")
 	}
@@ -35,7 +34,6 @@ func TestValidate_RejectsExtraNavWithEmptyHref(t *testing.T) {
 		EventSource: store,
 		ExtraNav:    []NavEntry{{Label: "Event Catalog"}},
 	}.Validate()
-
 	if err == nil {
 		t.Fatal("Validate() with an empty ExtraNav href should fail")
 	}
