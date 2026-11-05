@@ -143,11 +143,11 @@
             pname = "templ";
             version = "0.3.1100";
 
-            src = pkgs.fetchurl {
-              url = "https://proxy.golang.org/github.com/a-h/templ/@v/v0.3.1100.zip";
+            src = pkgs.fetchgit {
+              url = "https://github.com/a-h/templ";
+              rev = "v0.3.1100";
               hash = import ./templ-hash.nix;
             };
-            sourceRoot = "github.com/a-h/templ@v0.3.1100";
 
             subPackages = [ "cmd/templ" ];
             vendorHash = import ./templ-vendorHash.nix;
@@ -280,7 +280,7 @@
                 benchstat # benchmark comparison (golang.org/x/perf; used by nix run .#bench-spike)
                 pkgs.ginkgo
                 pkgs.tailwindcss_4
-                pkgs.templ
+                templGen # the CI-canonical generator (v0.3.1100); pkgs.templ is 1020-era
                 # BuildFlow pre-commit hook formatters/linters
                 pkgs.shfmt # shell scripts (scripts/*.sh)
                 pkgs.shellcheck # same set CI lints; check-shellcheck.sh + BuildFlow shellcheck step
@@ -326,7 +326,7 @@
               packages = [
                 goPkg
                 pkgs.golangci-lint
-                pkgs.templ
+                templGen # the CI-canonical generator (v0.3.1100); pkgs.templ is 1020-era
               ];
 
               GOWORK = "off";
@@ -1051,13 +1051,13 @@
 
             gen = {
               type = "app";
-              meta.description = "Regenerate adminui + loginpage + dashboardui templ components (module-dir generation is canonical) and normalize formatting";
+              meta.description = "Regenerate adminui + loginpage + dashboardui templ components (module-dir generation is canonical, pinned to CI's templ v0.3.1100 via templGen) and normalize formatting";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "templ-generate";
                   runtimeInputs = [
                     goPkg
-                    pkgs.templ
+                    templGen
                   ];
                   text = ''
                     (cd adminui && templ generate && gofmt -w ./*_templ.go)
@@ -2510,13 +2510,13 @@
 
             check-codegen = {
               type = "app";
-              meta.description = "Verify adminui + loginpage + dashboardui _templ.go files match .templ sources (no codegen drift; module-dir generation is canonical)";
+              meta.description = "Verify adminui + loginpage + dashboardui _templ.go files match .templ sources (no codegen drift; module-dir generation is canonical, pinned to CI's templ v0.3.1100 via templGen)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-codegen";
                   runtimeInputs = [
                     goPkg
-                    pkgs.templ
+                    templGen
                   ];
                   text = ''
                     for mod in adminui loginpage dashboardui; do
