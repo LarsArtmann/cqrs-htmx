@@ -299,16 +299,29 @@ dialog.tc-modal[open] {
   }
 }
 
-/* Vendored library CSS: popover anchor positioning.
+/* Vendored library CSS: popover anchor positioning (CORRECTED — diverges
+   from the library's custom.css, 2026-11-05).
    Since templ-components v1.27.0, the tcPopoverPosition JS singleton exits
    early on engines with CSS anchor positioning (Chromium >= 125) and defers
-   to this declarative layer from the library's custom.css. Panels shown via
-   popovertarget resolve their invoker as the implicit anchor, so
-   position-area alone anchors the panel — per-instance anchor names would
-   need inline style attributes, which strict CSP blocks. Without this block
-   the open popover keeps the UA default inset: 0 and parks at the viewport
-   corner (the e2e dropdown-positioning red, 2026-11-05). The JS fallback
-   (older engines) keeps using gap = 8, mirrored by the margin here. */
+   to a declarative layer. The library's custom.css layer is broken on
+   Chromium 156 in two ways, both verified empirically against
+   e2e/tests/admin-behavior.spec.ts (the dropdown parked at the viewport
+   corner):
+   1. Its compound values (bottom span-inline-start / span-inline-end and
+      the two-keyword logical forms "bottom start|end") are REJECTED by
+      Chromium — the declaration drops, the popover falls back to its
+      static position, and the panel renders at the viewport corner.
+   2. Flushing the menu's edge with the trigger's edge needs anchor()
+      functions, and anchor() cannot see the implicit popovertarget
+      invoker — only explicit anchor-names resolve.
+   Corrected layer: single-keyword position-area bands (valid syntax) give
+   every anchored popover a safe band placement, self-aligned
+   anchor-centered by default; the one known instance (the user menu,
+   DropdownPositionRight = align end) is refined to the documented
+   flush-end via an explicit anchor-name. anchor-name lives in this
+   stylesheet, not an inline style attribute, so strict CSP holds.
+   The JS fallback (engines without anchor positioning) is unchanged and
+   keeps using gap = 8, mirrored by the margin here. */
 @supports (anchor-name: --x) {
   [popover][data-tc-anchor] {
     position-area: var(--tc-popover-area, bottom);
@@ -341,20 +354,18 @@ dialog.tc-modal[open] {
     --tc-popover-area: inline-end;
   }
 
-  [data-tc-position="top"][data-tc-align="start"] {
-    --tc-popover-area: top span-inline-end;
+  /* User menu (align=end): flush the menu's inline-end edge with the
+     trigger's, 8px out on both axes — the JS fallback's left = r.right - w
+     placement. Physical right: adminui's shell is LTR. */
+  #admin-user-menu-button {
+    anchor-name: --tc-admin-user-menu;
   }
 
-  [data-tc-position="top"][data-tc-align="end"] {
-    --tc-popover-area: top span-inline-start;
-  }
-
-  [data-tc-position="bottom"][data-tc-align="start"] {
-    --tc-popover-area: bottom span-inline-end;
-  }
-
-  [data-tc-position="bottom"][data-tc-align="end"] {
-    --tc-popover-area: bottom span-inline-start;
+  #admin-user-menu-menu {
+    position-area: none;
+    position-anchor: --tc-admin-user-menu;
+    top: anchor(bottom);
+    right: anchor(right);
   }
 }
 
