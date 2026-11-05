@@ -1,6 +1,6 @@
 # Status: root-package-split branch synced to master — rebase, daemon-interference repair, verification battery
 
-> **ANNOTATED 2026-11-05** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-05 (round-23 (2026-11-05)).**
+> **ANNOTATED 2026-11-05** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-05 (docs-health round 47 (2026-11-05)).**
 > The next session in the same arc is [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](../2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which Root-split sync landed as PR #40 (c6b6547d); every open tail routed to the round-46 tail plan M02/ROADMAP; its own f49 asked for this archive.
 > Nothing here is a live work item: it is kept as the session's evidence.
 

@@ -206,6 +206,18 @@ Both files: classification **ARCHIVE** (dated `> ANNOTATED 2026-10-09` blockquot
 | `2026-10-08_22-02_train-ci-repair-family-walk-fix-fixture-helper-status.md` | Patch train + httputil v1.4.2 + family-walk fix all shipped and CI-verified; 55 strikes; survivors routed to TODO rows + decision table D14/D15 + the train-trust-plan row |
 | `2026-10-09_00-06_fixture-consolidation-upstream-wave-branching-flow-hardening_status.md` | Fixtures landed, upstream wave aligned, branching-flow ratchet re-pinned to 229; battery + owner lanes routed; the sync session landed after this report                 |
 
+### docs-health round 47 archive manifest (2026-11-05)
+
+All 3 files: classification **ARCHIVE** (dated `> ANNOTATED 2026-11-05` blockquote + evidence strikes + routed verdicts via `annotate.go repair`), gates BEFORE the move (`check-rows --strict` + `bare-rows` green per file), `git mv` → `docs/status/archived/`. Tail 5 → 2, `TAIL_BASELINE` 3 → 2 in the same commit. Verification anchor: the v4.16.0 family train (root/setup/adminui/dashboardui/loginpage v4.16.0 + usermgmt v4.19.0, cut+pushed 2026-11-05; release-train 897 requires / 0 unpublished / 0 lag; residual CI red = the upstream go-cqrs-lite catalog class only — the 06-38/06-41 reports).
+
+| File | Deciding evidence |
+| ---- | ----------------- |
+| `2026-11-04_17-28_push-unblock-complete-sweep5-gate-green-stack-on-origin_status.md` | Its §g1 GO answered by execution: the six-tag family train shipped 2026-11-05; auditlog retract moot via upstream v0.12.2; daemon policy → OQ20; standing backlog → TODO rows |
+| `2026-11-04_23-05_root-package-split-master-sync-self-review_status.md` | Split landed as PR #40 (`c6b6547d`); pre-struck by the 2026-11-05 planning pass (21 items), remainder resolved/routed this pass (plan M02 battery, ROADMAP tooling/docs-polish, OQ20); its own §f49 asked for this archive |
+| `2026-11-05_02-47_pr40-pr39-land-release-train-remaining_status.md` | The release train it gated was executed 2026-11-05; zero-CI window dissolved (no gap existed, 06-38 §a11); gotchas 49/50 landed; CHANGELOG [v4.16.0]/[v4.15.0] sections cut the same day; tails → TODO rows / plan M02–M05 |
+
+**Corpus ledger (baseline bump 43687 → 43992, +305):** the 06-38 report (+149) and the 06-41 report (+128) landed after the previous baseline; this pass added +28 (three ANNOTATED blockquotes ~16 lines + this manifest/ledger table 12 lines; the 169 item verdicts append inline, zero new lines).
+
 ## Why not "update them all" ad hoc?
 
 Bulk-editing historical files without verification would be a [Verschlimmbesserung](https://en.wikipedia.org/wiki/Verschlimmbessern) — a well-intentioned change that makes things worse. The 2026-09-09 sweep did the verified version of this work once (every report read and checked against CHANGELOG/git/code before annotation). New reports: write them, and route anything still-open into the living docs so the next sweep stays small.

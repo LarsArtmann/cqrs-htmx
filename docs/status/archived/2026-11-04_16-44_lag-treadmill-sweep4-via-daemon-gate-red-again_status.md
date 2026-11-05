@@ -1,7 +1,7 @@
 # Status: the lag treadmill — four sweeps landed (one via daemon), gate red again on branded-id, push still held
 
 > **ANNOTATED 2026-11-04** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-04 (round-23 (2026-11-04)).**
-> The next session in the same arc is [`2026-11-04_17-28_push-unblock-complete-sweep5-gate-green-stack-on-origin_status.md`](../2026-11-04_17-28_push-unblock-complete-sweep5-gate-green-stack-on-origin_status.md), which §g1 GO executed: sweep 5 landed, gate green, stack on origin, CI triaged — superseded by the completion report.
+> The next session in the same arc is [`2026-11-04_17-28_push-unblock-complete-sweep5-gate-green-stack-on-origin_status.md`](2026-11-04_17-28_push-unblock-complete-sweep5-gate-green-stack-on-origin_status.md), which §g1 GO executed: sweep 5 landed, gate green, stack on origin, CI triaged — superseded by the completion report.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Written:** 2026-11-04 16:44 CET · **Session window:** 08:04 → 08:39 work, then 8 h idle, report at 16:44

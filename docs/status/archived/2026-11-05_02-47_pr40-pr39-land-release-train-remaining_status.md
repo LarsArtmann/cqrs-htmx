@@ -2,7 +2,7 @@
 
 > **ANNOTATED 2026-11-05** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](../2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which PR-landing report: the release train it gated was executed 2026-11-05; CHANGELOG sections cut; every tail routed to TODO rows / plan M02-M05. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
-> unique open item. **ARCHIVED 2026-11-05 (round-23 (2026-11-05)).**
+> unique open item. **ARCHIVED 2026-11-05 (docs-health round 47 (2026-11-05)).**
 
 **Timestamp:** 2026-11-05 02:47 CET
 **Session scope:** review of all open PRs → conflict resolution → merge of #40 and #39 → one post-merge lint fix → TODO/record updates. This report covers ONLY this session's run and what it directly observed. No unrelated research was done.
