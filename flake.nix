@@ -128,6 +128,34 @@
               "-w"
             ];
           };
+          # templ generator pinned to the CI-canonical version. CI runs
+          # `go install github.com/a-h/templ/cmd/templ@v0.3.1100`; nixpkgs'
+          # pkgs.templ is older (v0.3.1020) and regenerating with it
+          # downgrades every _templ.go stamp+form (hit live 2026-11-05:
+          # `nix run .#gen` emitted 1020-form files that CI's codegen-drift
+          # step reds on — gotcha 10's ambient-templ trap, then embodied in
+          # these flake apps). To bump: update `version` + the zip URL, then
+          # fix templ-hash.nix + templ-vendorHash.nix from the
+          # `nix build .#templGen` error messages. treefmt's templ-fmt
+          # wrapper intentionally keeps pkgs.templ (fmt-only, offline-tuned
+          # — gotcha 22; codegen is the CI-parity surface).
+          templGen = pkgs.buildGoModule {
+            pname = "templ";
+            version = "0.3.1100";
+
+            src = pkgs.fetchurl {
+              url = "https://proxy.golang.org/github.com/a-h/templ/@v/v0.3.1100.zip";
+              hash = import ./templ-hash.nix;
+            };
+            sourceRoot = "github.com/a-h/templ@v0.3.1100";
+
+            subPackages = [ "cmd/templ" ];
+            vendorHash = import ./templ-vendorHash.nix;
+            ldflags = [
+              "-s"
+              "-w"
+            ];
+          };
         in
         {
           treefmt = {
@@ -240,6 +268,7 @@
           };
 
           packages.benchstat = benchstat;
+          packages.templGen = templGen;
 
           devShells = {
             default = pkgs.mkShellNoCC {
