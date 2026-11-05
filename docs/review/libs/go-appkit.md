@@ -7,7 +7,7 @@
 
 | Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
 | --- | --- | --- | --- | --- | --- |
-| v0.9.0 (setup direct) | v0.9.0 (= latest) | 2 files (`setup/run_appkit.go`, +1) | 2 files (incl. `setup/run_appkit_test.go` bench) | **Used — the `RunWithAppkit` runtime seam** | **75/100** |
+| v0.9.0 (setup direct) | v0.9.0 (= latest) | 2 files (`setup/run_appkit.go`, +1) | 2 files (incl. `setup/run_appkit_test.go` bench) | **Used — the `RunWithAppkit` runtime seam** | **80/100** |
 
 ## What the library is
 
@@ -33,7 +33,7 @@ Production-ready HTTP service lifecycle: composes httputil (server, middleware),
 
 ## Score derivation
 
-9 rows − 5 N/A = **4 applicable**; 3 full ×1 + 1 missed ×0 = **3 → 75/100** (band: high) — the single miss is the hook unification, recorded as low priority.
+9 rows − 4 N/A = **5 applicable**; 4 full ×1 + 1 missed ×0 = **4 → 80/100** (band: high) — the single miss is the hook unification, recorded as low priority.
 
 ## Version currency
 
