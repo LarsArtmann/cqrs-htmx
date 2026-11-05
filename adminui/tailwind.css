@@ -299,6 +299,65 @@ dialog.tc-modal[open] {
   }
 }
 
+/* Vendored library CSS: popover anchor positioning.
+   Since templ-components v1.27.0, the tcPopoverPosition JS singleton exits
+   early on engines with CSS anchor positioning (Chromium >= 125) and defers
+   to this declarative layer from the library's custom.css. Panels shown via
+   popovertarget resolve their invoker as the implicit anchor, so
+   position-area alone anchors the panel — per-instance anchor names would
+   need inline style attributes, which strict CSP blocks. Without this block
+   the open popover keeps the UA default inset: 0 and parks at the viewport
+   corner (the e2e dropdown-positioning red, 2026-11-05). The JS fallback
+   (older engines) keeps using gap = 8, mirrored by the margin here. */
+@supports (anchor-name: --x) {
+  [popover][data-tc-anchor] {
+    position-area: var(--tc-popover-area, bottom);
+    inset: auto;
+    margin: 8px;
+    position-try-fallbacks: flip-block, flip-inline;
+  }
+
+  [data-tc-position="top"] {
+    --tc-popover-area: top;
+  }
+
+  [data-tc-position="bottom"] {
+    --tc-popover-area: bottom;
+  }
+
+  [data-tc-position="left"] {
+    --tc-popover-area: left;
+  }
+
+  [data-tc-position="right"] {
+    --tc-popover-area: right;
+  }
+
+  [data-tc-position="start"] {
+    --tc-popover-area: inline-start;
+  }
+
+  [data-tc-position="end"] {
+    --tc-popover-area: inline-end;
+  }
+
+  [data-tc-position="top"][data-tc-align="start"] {
+    --tc-popover-area: top span-inline-end;
+  }
+
+  [data-tc-position="top"][data-tc-align="end"] {
+    --tc-popover-area: top span-inline-start;
+  }
+
+  [data-tc-position="bottom"][data-tc-align="start"] {
+    --tc-popover-area: bottom span-inline-end;
+  }
+
+  [data-tc-position="bottom"][data-tc-align="end"] {
+    --tc-popover-area: bottom span-inline-start;
+  }
+}
+
 /* ---------- Honest UI: sync-state lifecycle ---------- */
 /* Driven by data-sync-state="pending|confirmed|rejected" DOM attributes.
    CSS reacts to the attribute — no JS class toggling needed for appearance.
