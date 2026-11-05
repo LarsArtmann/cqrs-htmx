@@ -57,15 +57,21 @@ func TestWithDefaults_LoginRedirectFollowsAdminPath(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name             string
-		adminPath        string
-		loginRedirect    string
-		wantLogin        string
-		wantAdmin        string
+		name          string
+		adminPath     string
+		loginRedirect string
+		wantLogin     string
+		wantAdmin     string
 	}{
 		{name: "defaults", wantLogin: "/admin/", wantAdmin: "/admin/"},
 		{name: "custom admin path", adminPath: "/manage", wantLogin: "/manage/", wantAdmin: "/manage/"},
-		{name: "explicit redirect wins", adminPath: "/manage/", loginRedirect: "/panel", wantLogin: "/panel", wantAdmin: "/manage/"},
+		{
+			name:          "explicit redirect wins",
+			adminPath:     "/manage/",
+			loginRedirect: "/panel",
+			wantLogin:     "/panel",
+			wantAdmin:     "/manage/",
+		},
 	}
 
 	for _, tt := range tests {
