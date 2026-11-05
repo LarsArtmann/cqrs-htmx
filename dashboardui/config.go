@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
@@ -13,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 const (
@@ -181,6 +183,13 @@ type Config struct {
 	// Typically "/logout" or similar. If empty, no logout link is shown.
 	// Ignored when Layout is set (the consumer shell owns navigation chrome).
 	LogoutURL string
+
+	// ExtraNav appends consumer-owned entries after the capability-derived
+	// sidebar items, so surfaces the consumer mounts next door to the panel
+	// stay discoverable from the dashboard navigation. Href is rendered
+	// VERBATIM (no BasePath prefix) — see [NavEntry]. Empty (the default)
+	// changes nothing.
+	ExtraNav []NavEntry
 }
 
 // Validate checks the configuration and returns the normalized copy with
@@ -238,6 +247,20 @@ func (config Config) withDefaults() (Config, error) {
 		return config, err
 	}
 
+	for i, entry := range config.ExtraNav {
+		if entry.Label == "" {
+			return config, errConfig(
+				"Config.ExtraNav[" + strconv.Itoa(i) + "].Label must not be empty",
+			)
+		}
+
+		if entry.Href == "" {
+			return config, errConfig(
+				"Config.ExtraNav[" + strconv.Itoa(i) + "].Href must not be empty",
+			)
+		}
+	}
+
 	config = config.withPayloadRenderingDefaults()
 
 	return config, nil
@@ -263,53 +286,89 @@ func (config Config) withPayloadRenderingDefaults() Config {
 type navItem struct {
 	Href   string
 	Label  string
-	Icon   string
+	Icon   icons.Name
 	Active bool
+}
+
+// NavEntry is one consumer-owned sidebar navigation entry, appended after
+// the capability-derived items via [Config.ExtraNav].
+type NavEntry struct {
+	// Label is the display text ("Event Catalog").
+	Label string
+
+	// Href is the link target, rendered VERBATIM: unlike built-in nav
+	// entries it is NOT prefixed with BasePath. Point it at a sibling
+	// surface outside the mounted subtree ("/event-catalog"), an absolute
+	// URL ("https://docs.example.com"), or build a dashboard-internal path
+	// yourself with Config.BasePath.
+	Href string
+
+	// Icon is the optional templ-components icon name for the entry
+	// (e.g. icons.Link). The zero value renders the link icon.
+	Icon icons.Name
+}
+
+// extraNavItems converts validated consumer entries to the internal nav
+// shape, defaulting the icon. Entries are appended AFTER the capability
+// items — buildNav stays the source of truth for those.
+func extraNavItems(entries []NavEntry) []navItem {
+	items := make([]navItem, 0, len(entries))
+
+	for _, entry := range entries {
+		icon := entry.Icon
+		if icon == "" {
+			icon = icons.Link
+		}
+
+		items = append(items, navItem{Href: entry.Href, Label: entry.Label, Icon: icon})
+	}
+
+	return items
 }
 
 func buildNav(caps Capabilities) []navItem {
 	var items []navItem
 
-	add := func(href, label, icon string) {
+	add := func(href, label string, icon icons.Name) {
 		items = append(items, navItem{Href: href, Label: label, Icon: icon})
 	}
 
-	add("/", "Overview", "chart")
+	add("/", "Overview", icons.Chart)
 
 	if caps.HasEventRead() {
-		add("/events", "Events", "queue")
+		add("/events", "Events", icons.QueueList)
 	}
 
 	if caps.StreamReader || caps.EventSource {
-		add("/aggregates", "Aggregates", "cube")
+		add("/aggregates", "Aggregates", icons.Cube)
 	}
 
 	if caps.ProjectionHost {
-		add("/projections", "Projections", "arrow-path")
+		add("/projections", "Projections", icons.ArrowPath)
 	}
 
 	if caps.DeadLetterStore || caps.ProjectionHost {
-		add("/dead-letters", "Dead Letters", "bug")
+		add("/dead-letters", "Dead Letters", icons.BugAnt)
 	}
 
 	if caps.CommandJournal {
-		add("/commands", "Commands", "clipboard")
+		add("/commands", "Commands", icons.Clipboard)
 	}
 
 	if caps.QueryJournal {
-		add("/queries", "Queries", "magnifying-glass")
+		add("/queries", "Queries", icons.Search)
 	}
 
 	if caps.EventSource {
-		add("/time-travel", "Time Travel", "clock")
+		add("/time-travel", "Time Travel", icons.Clock)
 	}
 
 	if caps.SnapshotStore {
-		add("/snapshots", "Snapshots", "archive")
+		add("/snapshots", "Snapshots", icons.ArchiveBox)
 	}
 
 	if caps.Telemetry {
-		add("/telemetry", "Telemetry", "signal")
+		add("/telemetry", "Telemetry", icons.Signal)
 	}
 
 	return items

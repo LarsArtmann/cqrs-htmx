@@ -56,10 +56,13 @@ func New(config Config) (*Dashboard, error) {
 		)
 	}
 
+	nav := buildNav(caps)
+	nav = append(nav, extraNavItems(config.ExtraNav)...)
+
 	d := &Dashboard{
 		config:      config,
 		caps:        caps,
-		nav:         buildNav(caps),
+		nav:         nav,
 		twCSS:       twCSS,
 		emptyStates: config.resolveEmptyStates(),
 		done:        make(chan struct{}),

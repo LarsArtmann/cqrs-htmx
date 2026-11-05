@@ -135,12 +135,12 @@ templ header(p pageData) {
 	</header>
 }
 
-// navIcon renders an inline SVG icon for the given icon name using the
-// templ-components Heroicons path data. Unknown names fall back to the
-// Question icon (a "?" symbol) via the library's built-in fallback.
-templ navIcon(name string) {
+// navIcon renders an inline SVG icon for the given templ-components icon
+// name. Unknown names fall back to the Question icon (a "?" symbol) via the
+// library's built-in fallback.
+templ navIcon(name icons.Name) {
 	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">
-		for _, path := range icons.IconPathData(mapNavIconName(name)) {
+		for _, path := range icons.IconPathData(name) {
 			<path stroke-linecap="round" stroke-linejoin="round" d={ path }></path>
 		}
 	</svg>

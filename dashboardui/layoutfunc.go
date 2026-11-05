@@ -122,7 +122,7 @@ func (p pageData) meta() PageMeta {
 		nav[i] = NavLink{
 			Href:   n.Href,
 			Label:  n.Label,
-			Icon:   mapNavIconName(n.Icon),
+			Icon:   n.Icon,
 			Active: n.Active,
 		}
 	}

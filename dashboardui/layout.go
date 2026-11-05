@@ -6,7 +6,6 @@ import (
 	"unicode/utf8"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/templ-components/icons"
 )
 
 // brandInitialsLen is the number of characters used for the sidebar brand initials.
@@ -19,35 +18,6 @@ const (
 	errorHandlingMaxRetries = 2
 	errorHandlingRetryMS    = 1000
 )
-
-// mapNavIconName translates dashboardui internal icon names to the
-// templ-components icons.Name constants.
-func mapNavIconName(name string) icons.Name {
-	switch name {
-	case "chart":
-		return icons.Chart
-	case "queue":
-		return icons.QueueList
-	case "cube":
-		return icons.Cube
-	case "arrow-path":
-		return icons.ArrowPath
-	case "bug":
-		return icons.BugAnt
-	case "clipboard":
-		return icons.Clipboard
-	case "magnifying-glass":
-		return icons.Search
-	case "clock":
-		return icons.Clock
-	case "archive":
-		return icons.ArchiveBox
-	case "signal":
-		return icons.Signal
-	default:
-		return icons.Question
-	}
-}
 
 // firstRune returns s's first rune as a string, "?" when s does not decode
 // as UTF-8 (never a mojibake byte).
