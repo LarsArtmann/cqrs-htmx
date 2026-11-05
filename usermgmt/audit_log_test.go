@@ -20,12 +20,24 @@ func TestAuditLog_RecordsRegistration(t *testing.T) {
 		t.Fatal("expected at least one audit entry after registration")
 	}
 
-	last := entries[len(entries)-1]
-	if last.Action != AuditActionRegister {
-		t.Errorf("action = %q, want %s", last.Action, AuditActionRegister)
+	// Registration also opens the first session, journaled as a
+	// SessionStarted audit fact after the UserRegistered entry — find the
+	// register entry instead of assuming it is the last one.
+	var register *AuditEntry
+
+	for i := range entries {
+		if entries[i].Action == AuditActionRegister {
+			register = &entries[i]
+			break
+		}
 	}
-	if last.EventType != "UserRegistered" {
-		t.Errorf("eventType = %q, want UserRegistered", last.EventType)
+
+	if register == nil {
+		t.Fatalf("no register entry among %d audit entries", len(entries))
+	}
+
+	if register.EventType != "UserRegistered" {
+		t.Errorf("eventType = %q, want UserRegistered", register.EventType)
 	}
 }
 

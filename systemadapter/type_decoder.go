@@ -5,7 +5,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 )
 
-// EventTypeDecoder returns a projectionadapter.TypeDecoder that maps all 24
+// EventTypeDecoder returns a projectionadapter.TypeDecoder that maps all 27
 // identity-model event types to their payload structs. This enables the
 // system.New() projection host to decode events for metaengine fold handlers
 // without manual switch/case boilerplate.
@@ -101,6 +101,14 @@ func EventTypeDecoder() *projectionadapter.TypeDecoder {
 		),
 		projectionadapter.Register[identitymodel.RegistrationClosedPayload](
 			identitymodel.EventRegistrationClosed, identitymodel.RegistrationClosedPayload{},
+		),
+
+		// Session lifecycle audit events (cqrs-htmx#25) — dedicated Auth streams.
+		projectionadapter.Register[identitymodel.SessionStartedPayload](
+			identitymodel.EventSessionStarted, identitymodel.SessionStartedPayload{},
+		),
+		projectionadapter.Register[identitymodel.SessionEndedPayload](
+			identitymodel.EventSessionEnded, identitymodel.SessionEndedPayload{},
 		),
 	)
 }

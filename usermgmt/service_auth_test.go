@@ -20,10 +20,7 @@ func TestService_Authenticate(t *testing.T) {
 func TestService_Authenticate_ExpiredSession(t *testing.T) {
 	svc, ctx, reg := newTestServiceWithUser(t, "u1", "exp@test.com")
 
-	sessions, ok := svc.sessions.(*InMemorySessionStore)
-	if !ok {
-		t.Fatal("expected *InMemorySessionStore")
-	}
+	sessions := rawInMemorySessions(t, svc)
 	sessions.mu.Lock()
 	for _, s := range sessions.sessions {
 		s.ExpiresAt = time.Now().Add(-time.Hour)

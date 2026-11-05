@@ -47,6 +47,8 @@ const (
 	AuditActionLoginSucceeded     = "login_succeeded"
 	AuditActionLoginFailed        = "login_failed"
 	AuditActionRegistrationClosed = "registration_closed"
+	AuditActionSessionStarted     = "session_started"
+	AuditActionSessionEnded       = "session_ended"
 )
 
 // DefaultAuditLogLimit is the number of most recent entries the in-memory audit
@@ -133,6 +135,14 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 		}
 	}
 
+	// session_ended entries carry the bounded end cause the same way
+	// (logout, expired, impersonation_ended, revoked, deleted).
+	if evt.Type() == eventSessionEnded {
+		if p, err := event.DecodePayloadAuto[identitymodel.SessionEndedPayload](evt); err == nil {
+			entry.Detail = string(p.Cause)
+		}
+	}
+
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -176,9 +186,11 @@ var auditActions = map[event.Type]string{ //nolint:gochecknoglobals // table-dri
 	eventEmailVerified:      AuditActionEmailVerified,
 	eventTOTPEnabled:        AuditActionTOTPEnabled,
 	eventTOTPDisabled:       AuditActionTOTPDisabled,
-	eventLoginSucceeded:     AuditActionLoginSucceeded,
-	eventLoginFailed:        AuditActionLoginFailed,
-	eventRegistrationClosed: AuditActionRegistrationClosed,
+	eventLoginSucceeded:      AuditActionLoginSucceeded,
+	eventLoginFailed:         AuditActionLoginFailed,
+	eventRegistrationClosed:  AuditActionRegistrationClosed,
+	eventSessionStarted:      AuditActionSessionStarted,
+	eventSessionEnded:        AuditActionSessionEnded,
 }
 
 func auditActionFor(t event.Type) string {

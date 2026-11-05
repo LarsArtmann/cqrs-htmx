@@ -20,10 +20,7 @@ func TestService_Authenticate_SessionExpired(t *testing.T) {
 	reg := registerTestUser(t, svc, "se1", "se@test.com")
 
 	reg.Session.ExpiresAt = time.Now().Add(-time.Hour)
-	store, ok := svc.sessions.(*InMemorySessionStore)
-	if !ok {
-		t.Fatal("expected InMemorySessionStore")
-	}
+	store := rawInMemorySessions(t, svc)
 	store.mu.Lock()
 	store.sessions[reg.Session.Token] = reg.Session
 	store.mu.Unlock()
