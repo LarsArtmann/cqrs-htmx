@@ -67,7 +67,7 @@ or your own middleware). Requests without a user get `401`; users that fail
 [`Config.Authorizer`](config.go) get `403`.
 
 > **Security:** like authentication, **CSRF protection is the consumer's
-> responsibility**. The panel issues state-changing `POST`s (delete user,
+> responsibility**. The panel issues state-changing `POST` requests (delete user,
 > create/suspend/delete tenant). Wrap it with [`httputil.CSRFMiddleware`](https://pkg.go.dev/github.com/larsartmann/httputil#CSRFMiddleware)
 > (or your own) in production. The showcase demo omits it for simplicity.
 

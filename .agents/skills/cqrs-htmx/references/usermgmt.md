@@ -85,7 +85,7 @@ Routes registered (Go 1.22+ method patterns). The auth posture is library-enforc
 
 Headless/administrative enrollment uses the service-level API (`Service.BeginRegistration`/`FinishRegistration`) — there is no HTTP opt-out. For your own session-gated surfaces, setup exports `setup.RequireSession` (401/JSON) and `setup.RequireSessionRedirect(loginURL)` (303/browser), both mounted AFTER the enrich-only `bundle.SessionMiddleware()`.
 
-`HandlerConfig` knobs (all optional): per-endpoint `RateLimitConfig`s, `CookieName`, `Secure *bool` (nil→true; set with a `*bool`), `SessionMaxAge`, `Timeout`, `OAuth2SuccessURL`/`OAuth2ErrorURL`, `ImportExportAuthorizer` (default `RequireAdminRole`).
+`HandlerConfig` knobs (all optional): per-endpoint `RateLimitConfig` entries, `CookieName`, `Secure *bool` (nil→true; set with a `*bool`), `SessionMaxAge`, `Timeout`, `OAuth2SuccessURL`/`OAuth2ErrorURL`, `ImportExportAuthorizer` (default `RequireAdminRole`).
 
 ## Session middleware (auth for your own routes)
 

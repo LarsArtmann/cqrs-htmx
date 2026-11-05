@@ -261,7 +261,7 @@ That one function makes the README's claim literally true.
 
 ## 7. Findings (ranked)
 
-### F1 — P1 · Demo: probe never `Start`ed → `/health-ui` is an eternal empty-green page
+### F1 — P1 · Demo: probe never started → `/health-ui` is an eternal empty-green page
 
 `examples/samber-do-demo/main.go` + `container.go:86-88` construct and eagerly
 invoke the `*gohealth.Probe` but never call `probe.Start(ctx)`. Verified
@@ -276,7 +276,7 @@ without `Start` does not deliver it. **Fix:** `probe.Start(ctx)` (+ defer
 `probe.Shutdown()` or `AsShutdowner()` registration in the container) and
 assert non-empty checks in `container_test.go`.
 
-### F2 — P1 · Demo: dashboard never `Start`ed → no live SSE updates
+### F2 — P1 · Demo: dashboard never started → no live SSE updates
 
 `go-health-dashboard` requires `dash.Start(ctx)` to run the SSE push loop
 (upstream `di.go` example wires it explicitly). The demo never calls it — the

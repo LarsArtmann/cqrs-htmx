@@ -37,7 +37,7 @@
 ## d) TOTALLY FUCKED UP / went sideways (recovered or flagged)
 
 1. **The PIPESTATUS trap bit me AGAIN despite the documented lesson** — the first battery-test invocation piped to `tail` and rendered `TEST_RC=` (empty). Caught it immediately (an empty rc is not a verdict), re-ran with redirect + inline `$?`. The pattern that works is now enforced by my own error history twice; d1 of the 15-16 report said it, e1 below rewrites it into the muscle.
-2. **Daemon race #3:** the s.1–s.4 edits were banked as three `chore: auto-commit`s during the 20s jstest + Go-test verification window before my atomic commit. Clean separation this time (no sibling files mixed), recovered by `git reset --soft HEAD~3` + re-commit as `5e0fb368`. Protocol holds; the window to close is "verification runtime before commit".
+2. **Daemon race #3:** the s.1–s.4 edits were banked as three `chore: auto-commit`s during the 20s jstest + Go-test verification window before my atomic commit. Clean separation this time (no sibling files mixed), recovered by `git reset --soft HEAD~3` + re-commit as `5e0fb368`. Protocol holds; the window to close is "verification runtime before commit". <!-- format:allow -->
 3. **Q3's framing was wrong (load-timing), the blocker is content:** the battery ran fine under load 17–26; what it found is a real lint red. Honest escalation changed shape — not "when to run" but "whose fix gates the push".
 
 ## e) WHAT WE SHOULD IMPROVE (process)

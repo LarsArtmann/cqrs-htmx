@@ -20,7 +20,7 @@ go get github.com/larsartmann/cqrs-htmx/v4
 </p>
 <p align="center"><sub>The optional <a href="dashboardui/README.md">dashboardui</a> module — live event-store observability. More shots in <a href="docs/screenshots/">docs/screenshots</a> (light + dark).</sub></p>
 
-Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` and stop writing glue: request decoding, Casbin authorization, validation, HTMX response headers, partial-vs-full rendering, error-to-status mapping, and SSE fan-out are all `HandlerOption`s. Event-sourced user management (passkeys, OAuth2, TOTP), a ready-made admin panel, an event-store observability dashboard, and a one-call full-stack setup exist as optional modules — entirely out of your way until you want them.
+Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` and stop writing glue: request decoding, Casbin authorization, validation, HTMX response headers, partial-vs-full rendering, error-to-status mapping, and SSE fan-out are all `HandlerOption` values. Event-sourced user management (passkeys, OAuth2, TOTP), a ready-made admin panel, an event-store observability dashboard, and a one-call full-stack setup exist as optional modules — entirely out of your way until you want them.
 
 Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), …), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you, and never enforces a default you might disagree with.
 
@@ -48,7 +48,7 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 - [What you get](#what-you-get) — feature map at a glance
 - [Install](#install) — one import, or pick individual modules
 - [Quick start](#quick-start) — first endpoint in minutes
-- [The composition model](#the-composition-model) — how `HandlerOption`s compose
+- [The composition model](#the-composition-model) — how `HandlerOption` values compose
 - [Choose your integration path](#choose-your-integration-path) — setup SDK vs hand-wiring
 - [The modules](#the-modules) — usermgmt, adminui, dashboardui, setup, datastar
 - [Realtime: SSE and offline sync](#realtime-sse-and-offline-sync)
@@ -258,7 +258,7 @@ The full-featured version of this example — SSE live updates, typed endpoints,
 
 ## The composition model
 
-The whole API is one `App`, configured once, that turns dispatchers into handlers. Each endpoint is a command/query type plus a list of `HandlerOption`s that run as a pipeline:
+The whole API is one `App`, configured once, that turns dispatchers into handlers. Each endpoint is a command/query type plus a list of `HandlerOption` values that run as a pipeline:
 
 ```go
 mux.Handle("POST /widgets", app.Command("CreateWidget",
@@ -323,7 +323,7 @@ Independent Go modules under one repo — import only what you use.
 
 | Module                                     | Import path                           | What it gives you                                                                                                                                                            |
 | ------------------------------------------ | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **root**                                   | `github.com/larsartmann/cqrs-htmx/v4` | The `App` builder, `HandlerOption`s, middleware, context IDs, error→HTTP mapping, SSE + `transport/` surface, frontend sync, OpenAPI builder, EventCatalog, embedded htmx.js |
+| **root**                                   | `github.com/larsartmann/cqrs-htmx/v4` | The `App` builder, `HandlerOption` values, middleware, context IDs, error→HTTP mapping, SSE + `transport/` surface, frontend sync, OpenAPI builder, EventCatalog, embedded htmx.js |
 | [identity-model](identity-model/README.md) | `…/cqrs-htmx/identity-model/v4`       | Pure domain types: branded IDs, 25 event payloads, 21 commands, fold functions, Casbin-backed Authz engine — zero IO                                                         |
 | [usermgmt](usermgmt/README.md)             | `…/cqrs-htmx/usermgmt/v4`             | Event-sourced identity `Service` (register/login/logout/me, roles, tenants, bots), `/auth/*` HTTP handlers, SQL + in-memory stores, session middleware                       |
 | [usermgmt/webauthn](usermgmt/README.md)    | `…/cqrs-htmx/usermgmt/webauthn/v4`    | WebAuthn passkeys — inject as `ServiceConfig.WebAuthn`                                                                                                                       |

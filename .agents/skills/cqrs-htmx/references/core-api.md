@@ -2,7 +2,7 @@
 
 Import: `cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"`
 
-This is the deep reference for the root module's `App`, `HandlerOption`s, middleware, context IDs, errors, and the HTMX `Response` builder. Load this when you need exact signatures or the full option catalogue.
+This is the deep reference for the root module's `App`, `HandlerOption` values, middleware, context IDs, errors, and the HTMX `Response` builder. Load this when you need exact signatures or the full option catalogue.
 
 ## `App` and `Config`
 

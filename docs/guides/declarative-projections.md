@@ -110,7 +110,7 @@ sys, err := system.New(ctx, systemadapter.DomainConfig(
 - `WithDeadLetterStore` replaces systemadapter's default in-memory DLQ
   (threshold 10) on the declarative path; the legacy
   `NewProjectionLayer(..., WithDeadLetterStore(...))` call is unchanged.
-- `WithHostOptions` appends `projectionhost.HostOption`s (batch size,
+- `WithHostOptions` appends `projectionhost.HostOption` values (batch size,
   restarts, backoff, logger, metrics) after systemadapter's curated defaults —
   the same tuning the legacy layer ships.
 

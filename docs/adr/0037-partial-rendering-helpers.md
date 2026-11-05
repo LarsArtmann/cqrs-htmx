@@ -40,7 +40,7 @@ Add five functions across two files that eliminate this boilerplate at three lev
 func RenderIf(check func(*http.Request) bool, match, noMatch RenderFunc) HandlerOption
 ```
 
-The most general selector. Takes any predicate and two `RenderFunc`s. All other helpers compose on top of this. Use when the branching decision isn't partial-vs-full (e.g. target-based selection).
+The most general selector. Takes any predicate and two `RenderFunc` values. All other helpers compose on top of this. Use when the branching decision isn't partial-vs-full (e.g. target-based selection).
 
 ### Layer 2: Partial-vs-full selectors
 
@@ -93,7 +93,7 @@ Rejected. `HandlerOption` only works inside `App.Query`/`App.Command` handlers. 
 
 ### Put everything in `options_render.go`
 
-Partially adopted. `RenderIf`, `RenderPartialOrFullFunc`, and `RenderPartialOrFull[T]` live in `options_render.go` because they are `HandlerOption`s. `RenderTemplComponent` and `OOBHTML` live in `partial.go` because they are standalone helpers, not `HandlerOption`s.
+Partially adopted. `RenderIf`, `RenderPartialOrFullFunc`, and `RenderPartialOrFull[T]` live in `options_render.go` because they are `HandlerOption` values. `RenderTemplComponent` and `OOBHTML` live in `partial.go` because they are standalone helpers, not `HandlerOption`s.
 
 ## Consequences
 

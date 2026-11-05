@@ -12,7 +12,7 @@ verified against source: the WebAuthn enrollment ceremonies took their
 target user from the request itself — `POST /auth/webauthn/register/begin`
 read `user_id` from the JSON body, `register/finish` from the `user_id`
 query param — with no session check anywhere in the handler or the service
-layer (the service checks existence only). `UserID`s are time-ordered
+layer (the service checks existence only). `UserID` values are time-ordered
 ULIDs, so an unauthenticated caller could enumerate accounts and enroll a
 passkey onto any of them: full account takeover, shipped by every consumer
 that mounts the auth routes.

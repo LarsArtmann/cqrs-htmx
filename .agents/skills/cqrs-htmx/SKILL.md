@@ -43,7 +43,7 @@ An app typically composes some subset of these. They are **independent Go module
 
 | Module                | Import path                                              | Provides                                                                                                                                                                                                                                                                                                                                                           |
 | --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (HTMX/recovery/security; CSRF/rate-limit are deprecated httputil re-exports), context IDs, error->HTTP mapping, SSE + the `transport/` domain-event surface + ADR-0056 frontend sync (`SyncPullHandler`/`App.SyncPushHandler`), OpenAPI 3.1 builder, EventCatalog, embedded HTMX JS (WebSocket removed — ADR 0046) |
+| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption` values, middleware (HTMX/recovery/security; CSRF/rate-limit are deprecated httputil re-exports), context IDs, error->HTTP mapping, SSE + the `transport/` domain-event surface + ADR-0056 frontend sync (`SyncPullHandler`/`App.SyncPushHandler`), OpenAPI 3.1 builder, EventCatalog, embedded HTMX JS (WebSocket removed — ADR 0046) |
 | **usermgmt**          | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`           | Event-sourced `Service` (register/login/logout/me), roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores. Auth strategies (WebAuthn/OAuth2/TOTP) are optional sub-modules.                                                                                                                                                             |
 | **usermgmt/totp**     | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`      | TOTP MFA (pquerna/otp). Inject `totp.New(...)` as `ServiceConfig.TOTP`.                                                                                                                                                                                                                                                                                            |
 | **usermgmt/webauthn** | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4`  | WebAuthn passkeys (go-webauthn). Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`.                                                                                                                                                                                                                                                                           |
@@ -150,7 +150,7 @@ Available without `App`: `Chain`, `RecoveryMiddleware`, `RequestLoggingSlog`, `H
 
 ## Path A -- CQRS + HTMX endpoints (root only)
 
-The whole API is one `App`, configured once, that produces `http.HandlerFunc`s.
+The whole API is one `App`, configured once, that produces `http.HandlerFunc` values.
 
 ```go
 cmdDisp := command.NewDispatcher()
@@ -461,7 +461,7 @@ panel.Mount(mux, "/admin/")
 
 ## The composition model (the heart of the library)
 
-`App.Command` / `App.Query` + a list of `HandlerOption`s. The options run as a pipeline. **Order matters:**
+`App.Command` / `App.Query` + a list of `HandlerOption` values. The options run as a pipeline. **Order matters:**
 
 ```go
 mux.Handle("POST /widgets", app.Command("CreateWidget",

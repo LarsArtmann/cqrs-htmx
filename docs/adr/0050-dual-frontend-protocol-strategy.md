@@ -37,7 +37,7 @@ Demand evidence (surveyed 2026-09-07, feeding this decision):
   crush-daily carries a dedicated 100+ LOC `datastar_events.go` re-implementing
   stream lifecycle and heartbeat intervals the library's transport layer
   already provides; InboxClean builds `datastar.NewResponse` over raw
-  `sse.Stream`s by hand. This is exactly the duplicated effort the shared-hub
+  `sse.Stream` values by hand. This is exactly the duplicated effort the shared-hub
   architecture was built to eliminate.
 
 A second decision is forced by the route-split model: who mounts

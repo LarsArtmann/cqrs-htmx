@@ -30,7 +30,7 @@ go: github.com/larsartmann/cqrs-htmx/v4@v4.13.0 requires go >= 1.27.1
   e2e/server, examples/* (12), health, integration_test, loginpage, setup,
   systemadapter, usermgmt — plus the root `go.work`.
 - Load-bearing check (worktree at `492e473e`): `dashboardui` with its
-  directive forced to `go 1.27`, root `replace`d to local master, built and
+  directive forced to `go 1.27`, root `replace` set to local master, built and
   tested green on `GOTOOLCHAIN=go1.27.0`:
 
 ```

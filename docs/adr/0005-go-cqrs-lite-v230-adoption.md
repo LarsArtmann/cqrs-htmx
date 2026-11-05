@@ -66,7 +66,7 @@ Adopt all four v2.3.0 APIs across the root module, the `usermgmt` submodule, the
 ## Consequences
 
 - All `MustNew` / `MustParse[T]` calls were replaced with `New` / `Parse[T]`. The removed APIs are not in our public surface (we wrap them in `MustParseUserID` etc.).
-- `EventOptionsFromContext` now produces up to four options. Callers iterating over the result must be aware that `FromContext` is added last; ordering of `event.Option`s is not significant in v2.3.0.
+- `EventOptionsFromContext` now produces up to four options. Callers iterating over the result must be aware that `FromContext` is added last; ordering of `event.Option` values is not significant in v2.3.0.
 - `datastar-demo` is the canonical example of typed command/query dispatch. The root `example_test.go` is being augmented with a typed-query example to expose the pattern to library consumers who do not import `datastar-demo`.
 - `usermgmt` does not directly use `RegisterTyped` — it provides a higher-level `Service` that already abstracts command dispatch. The pattern is showcased at the library surface, not the service surface.
 

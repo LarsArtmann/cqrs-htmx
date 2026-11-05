@@ -177,7 +177,7 @@ not minutes), **and** the server binds immediately.
 ### Checkpoint batching — the throughput/durability knob
 
 `ProjectionHostOptions` (on `usermgmt.ServiceConfig` and `setup.Config`) appends
-consumer `projectionhost.HostOption`s after the curated defaults — options
+consumer `projectionhost.HostOption` values after the curated defaults — options
 apply last-wins. The knob that matters for replay-heavy consumers:
 
 ```go

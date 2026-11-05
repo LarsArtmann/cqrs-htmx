@@ -122,7 +122,7 @@ validate explicitly.
 ## Alternatives considered
 
 - **Split a zero-usermgmt `shell` submodule** — best binary footprint,
-  but forks the composition root (two `New`s, two validation sets,
+  but forks the composition root (two `New` constructors, two validation sets,
   double maintenance). MEASURED 2026-09-30 by webphone, the first
   identity-external consumer: importing the setup PACKAGE links its
   whole import graph (+72 modules — usermgmt, adminui, dashboardui,

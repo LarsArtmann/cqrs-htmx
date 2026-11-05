@@ -43,7 +43,7 @@ mux.Handle("/health", cqrshtmx.ReadinessHandler(cqrshtmx.ProjectionReadinessChec
 
 - **Blocking startup with a longer `DrainTimeout`** — keeps the outage; only makes failure louder. Rejected.
 - **Serving stale reads with a `Stale-While-Revalidate` header during drain** — hides the consistency window instead of gating it; wrong default for an identity/admin system. Rejected as a default, viable as a consumer-level choice on top of async startup.
-- **Per-projection readiness (partial 200)** — allows serving once _some_ projections are live. Rejected: correctness is only as good as the projection backing the request, and consumers cannot express per-route projection affinity through a single health endpoint. A future refinement could expose per-projection checks as separate `NamedCheck`s.
+- **Per-projection readiness (partial 200)** — allows serving once _some_ projections are live. Rejected: correctness is only as good as the projection backing the request, and consumers cannot express per-route projection affinity through a single health endpoint. A future refinement could expose per-projection checks as separate `NamedCheck` values.
 
 ## Consequences
 

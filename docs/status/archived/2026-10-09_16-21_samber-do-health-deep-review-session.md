@@ -37,8 +37,8 @@
    / N-A per capability, all read from pinned sources in the module cache
    (not from memory or changelogs).
 6. **Findings F1–F9 produced with file:line evidence**, including 3 P1s in
-   `examples/samber-do-demo` (probe never `Start`ed → `/health-ui` renders a
-   zero-value pass forever; dashboard never `Start`ed → no SSE; static
+   `examples/samber-do-demo` (probe never `Start`ed → `/health-ui` renders a <!-- format:allow -->
+   zero-value pass forever; dashboard never `Start`ed → no SSE; static <!-- format:allow -->
    `{"status":"ok"}` `/health` + no K8s probe routes). The F1 mechanism chain
    is source-verified end-to-end (go-health `probe.go:706+` zero-value
    `CachedResponse` → dashboard `dashboard.go:166-172` renders that cache).
