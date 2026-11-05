@@ -7,7 +7,7 @@
 
 | Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
 | --- | --- | --- | --- | --- | --- |
-| v1.27.0 (all submodules) | v1.27.0 (= latest) | 39 files (adminui, dashboardui, loginpage) | 10 files | **Used — the UI component substrate** | **89/100 count · series-graded 97/94/95 per module** |
+| v1.27.0 (all submodules) | v1.27.0 (= latest) | 39 files (adminui, dashboardui, loginpage) | 10 files | **Used — the UI component substrate** | **88/100 count · series-graded 97/94/95 per module** |
 
 ## What the library is
 
@@ -35,7 +35,7 @@ Distinct adopted symbols per package: **display 70** (Button family ×100+, Badg
 
 ## Score derivation
 
-11 rows − 3 N/A = **8 applicable**; 7 full ×1 = **7 → 88-89/100**. The independently graded series ([2026-10-04 report](../../research/2026-10-04_templ-components-deep-dive.html), episode 5) scores **adminui 97 / dashboardui 94 / loginpage 95** — this report defers to those finer-grained audits and adds only the `charts` row.
+11 rows − 3 N/A = **8 applicable**; 7 full ×1 = **7 → 87.5 → 88/100**. The independently graded series ([2026-10-04 report](../../research/2026-10-04_templ-components-deep-dive.html), episode 5) scores **adminui 97 / dashboardui 94 / loginpage 95** — this report defers to those finer-grained audits and adds only the `charts` row.
 
 ## Version currency
 

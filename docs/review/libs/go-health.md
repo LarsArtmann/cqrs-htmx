@@ -7,7 +7,7 @@
 
 | Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
 | --- | --- | --- | --- | --- | --- |
-| v0.10.0 (health bridge direct) | v0.10.0 (= latest) | 4 files (`health/`, examples, integration_test) | 4 files | **Used — via the `health` bridge module** | **66/100 count · 9/10 bridge quality (round-2 review)** |
+| v0.10.0 (health bridge direct) | v0.10.0 (= latest) | 4 files (`health/`, examples, integration_test) | 4 files | **Used — via the `health` bridge module** | **65/100 count · 9/10 bridge quality (round-2 review)** |
 
 ## What the library is
 
@@ -36,7 +36,7 @@ The `cqrs-htmx/health` bridge consumes (symbol census): `Probe` ×10, `WithHealt
 
 ## Score derivation
 
-12 rows − 2 N/A = **10 applicable**; 6 full ×1 + 1 partial ×0.5 = **6.5 → 66/100** (band: moderate by count). The bridge itself was independently reviewed at **9/10** (round-2 deep review, 2026-10-30, DO-1→DO-6 clean) — the unexplored remainder is option depth, not correctness.
+12 rows − 2 N/A = **10 applicable**; 6 full ×1 + 1 partial ×0.5 = **6.5 → 65/100** (band: moderate by count). The bridge itself was independently reviewed at **9/10** (round-2 deep review, 2026-10-30, DO-1→DO-6 clean) — the unexplored remainder is option depth, not correctness.
 
 ## Version currency
 

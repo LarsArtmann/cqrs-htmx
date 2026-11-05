@@ -1000,9 +1000,11 @@
         <!-- The 19 Libraries -->
         <h2 id="libraries">The 19 Libraries</h2>
         <p>
-          Sorted by verdict tier, then headline score, then name. "Score" is
-          the count-rubric headline from each report (see per-report
-          derivations; impact-weighted readings noted where they differ).
+          Ordered by count-rubric score (descending, ties alphabetical), then
+          the wind-down entry, then correctly-not-adopted libraries
+          (alphabetical). "Score" is the count-rubric headline from each
+          report (see per-report derivations; impact-weighted readings noted
+          where they differ).
         </p>
         <table>
           <thead>
@@ -1018,14 +1020,6 @@
           <tbody>
             <tr>
               <td>1</td>
-              <td>templ-components</td>
-              <td>v1.27.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>89 (series 97/94/95)</td>
-              <td><a href="templ-components.md">md</a></td>
-            </tr>
-            <tr>
-              <td>2</td>
               <td>go-idempotency</td>
               <td>v0.3.2 = latest</td>
               <td><span class="badge badge-fixed">Used</span></td>
@@ -1033,87 +1027,15 @@
               <td><a href="go-idempotency.md">md</a></td>
             </tr>
             <tr>
+              <td>2</td>
+              <td>templ-components</td>
+              <td>v1.27.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>88 (series 97/94/95)</td>
+              <td><a href="templ-components.md">md</a></td>
+            </tr>
+            <tr>
               <td>3</td>
-              <td>go-etag</td>
-              <td>v0.6.1 &rarr; v0.7.0</td>
-              <td><span class="badge badge-high">Lag</span></td>
-              <td>83 &middot; bump pending</td>
-              <td><a href="go-etag.md">md</a></td>
-            </tr>
-            <tr>
-              <td>4</td>
-              <td>go-error-family</td>
-              <td>v0.12.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>65 count / ~82 impact</td>
-              <td><a href="go-error-family.md">md</a></td>
-            </tr>
-            <tr>
-              <td>5</td>
-              <td>httputil</td>
-              <td>v1.8.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>73 count / ~85 effective</td>
-              <td><a href="httputil.md">md</a></td>
-            </tr>
-            <tr>
-              <td>6</td>
-              <td>go-sse</td>
-              <td>v0.7.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>72 count / ~85 impact</td>
-              <td><a href="go-sse.md">md</a></td>
-            </tr>
-            <tr>
-              <td>7</td>
-              <td>go-health</td>
-              <td>v0.10.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>66 count / bridge 9/10</td>
-              <td><a href="go-health.md">md</a></td>
-            </tr>
-            <tr>
-              <td>8</td>
-              <td>go-health-dashboard</td>
-              <td>v0.13.2 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>67 &middot; nonce gap</td>
-              <td><a href="go-health-dashboard.md">md</a></td>
-            </tr>
-            <tr>
-              <td>9</td>
-              <td>go-appkit</td>
-              <td>v0.9.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>75</td>
-              <td><a href="go-appkit.md">md</a></td>
-            </tr>
-            <tr>
-              <td>10</td>
-              <td>go-cqrs-lite (15 trains)</td>
-              <td>all = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>73 audited / ~80 derived</td>
-              <td><a href="go-cqrs-lite.md">md</a></td>
-            </tr>
-            <tr>
-              <td>11</td>
-              <td>go-codec</td>
-              <td>v0.3.3 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>44 count / core at max</td>
-              <td><a href="go-codec.md">md</a></td>
-            </tr>
-            <tr>
-              <td>12</td>
-              <td>httputil/server_timing</td>
-              <td>v1.0.3 = latest</td>
-              <td><span class="badge badge-low">Wind-down</span></td>
-              <td>v5 glide path</td>
-              <td><a href="httputil-server-timing.md">md</a></td>
-            </tr>
-            <tr>
-              <td>13</td>
               <td>cqrs-htmx (self)</td>
               <td>trains strict-lag 0</td>
               <td><span class="badge badge-fixed">Used</span></td>
@@ -1121,15 +1043,87 @@
               <td><a href="cqrs-htmx.md">md</a></td>
             </tr>
             <tr>
-              <td>14</td>
-              <td>go-retry</td>
-              <td>&mdash; (transitive v0.9.0)</td>
-              <td><span class="badge badge-low">Not adopted</span></td>
-              <td>correct: middleware is the seam</td>
-              <td><a href="go-retry.md">md</a></td>
+              <td>4</td>
+              <td>go-etag</td>
+              <td>v0.6.1 &rarr; v0.7.0</td>
+              <td><span class="badge badge-high">Lag</span></td>
+              <td>83 &middot; bump pending</td>
+              <td><a href="go-etag.md">md</a></td>
             </tr>
             <tr>
-              <td>15</td>
+              <td>5</td>
+              <td>go-appkit</td>
+              <td>v0.9.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>75</td>
+              <td><a href="go-appkit.md">md</a></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>go-cqrs-lite (15 trains)</td>
+              <td>all = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>73 audited / ~80 derived</td>
+              <td><a href="go-cqrs-lite.md">md</a></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>httputil</td>
+              <td>v1.8.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>73 count / ~85 effective</td>
+              <td><a href="httputil.md">md</a></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>go-sse</td>
+              <td>v0.7.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>72 count / ~85 impact</td>
+              <td><a href="go-sse.md">md</a></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>go-health-dashboard</td>
+              <td>v0.13.2 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>67 &middot; nonce gap</td>
+              <td><a href="go-health-dashboard.md">md</a></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>go-error-family</td>
+              <td>v0.12.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>65 count / ~82 impact</td>
+              <td><a href="go-error-family.md">md</a></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>go-health</td>
+              <td>v0.10.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>65 count / bridge 9/10</td>
+              <td><a href="go-health.md">md</a></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>go-codec</td>
+              <td>v0.3.3 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>44 count / core at max</td>
+              <td><a href="go-codec.md">md</a></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>httputil/server_timing</td>
+              <td>v1.0.3 = latest</td>
+              <td><span class="badge badge-low">Wind-down</span></td>
+              <td>v5 glide path</td>
+              <td><a href="httputil-server-timing.md">md</a></td>
+            </tr>
+            <tr>
+              <td>14</td>
               <td>go-atomic-write</td>
               <td>&mdash; (transitive v0.6.2)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
@@ -1137,7 +1131,7 @@
               <td><a href="go-atomic-write.md">md</a></td>
             </tr>
             <tr>
-              <td>16</td>
+              <td>15</td>
               <td>go-credentials-store</td>
               <td>&mdash;</td>
               <td><span class="badge badge-low">Not adopted</span></td>
@@ -1145,7 +1139,7 @@
               <td><a href="go-credentials-store.md">md</a></td>
             </tr>
             <tr>
-              <td>17</td>
+              <td>16</td>
               <td>go-daemon</td>
               <td>&mdash;</td>
               <td><span class="badge badge-low">Not adopted</span></td>
@@ -1153,7 +1147,7 @@
               <td><a href="go-daemon.md">md</a></td>
             </tr>
             <tr>
-              <td>18</td>
+              <td>17</td>
               <td>go-filewatcher</td>
               <td>&mdash;</td>
               <td><span class="badge badge-low">Not adopted</span></td>
@@ -1161,12 +1155,20 @@
               <td><a href="go-filewatcher.md">md</a></td>
             </tr>
             <tr>
-              <td>19</td>
+              <td>18</td>
               <td>go-output</td>
               <td>&mdash; (transitive v0.38.7)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
               <td>correct: CLI rendering, not web</td>
               <td><a href="go-output.md">md</a></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>go-retry</td>
+              <td>&mdash; (transitive v0.9.0)</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: middleware is the seam</td>
+              <td><a href="go-retry.md">md</a></td>
             </tr>
           </tbody>
         </table>

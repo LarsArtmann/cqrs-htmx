@@ -32,7 +32,7 @@ Waves landed **after** the audit (2026-11-04, plan of record [docs/planning/2026
 | `kv.Cache` FindByID write-through (partial) | Opt-in view cache over `maypok86/otter` v2 on the `kv.ViewStore` interface (R9; upstream ask go-cqrs-lite#113) |
 | `WithSnapshotStateVersion` (partial) | Snapshot shape guard wired in `repositoryOptions` (R10) |
 
-**Derived standing: (26 full + 7 partial + 0.5×?) → 26×1 + 7×0.5 = 29.5 / 37 ≈ 80/100** — derived from the audited table plus the four resolutions above, not a full re-audit.
+**Derived standing: 26 full ×1 + 7 partial ×0.5 = 29.5 / 37 ≈ 80/100** — derived from the audited table plus the four resolutions above, not a full re-audit.
 
 ## Open findings (still not "to the max")
 
