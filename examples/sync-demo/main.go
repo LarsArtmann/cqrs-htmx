@@ -42,7 +42,7 @@ type noteForm struct {
 
 // createNoteCmd is a typed command (accessor methods, not field access).
 type createNoteCmd struct {
-	command.BasicCommand
+	*command.BasicCommand
 	name         string
 	confidential bool
 }
@@ -153,7 +153,7 @@ func newHandler() http.Handler {
 				return nil, err
 			}
 
-			return &createNoteCmd{BasicCommand: *core, name: f.Name, confidential: f.Confidential}, nil
+			return &createNoteCmd{BasicCommand: core, name: f.Name, confidential: f.Confidential}, nil
 		}),
 		cqrshtmx.WithSuccessStatus(http.StatusCreated),
 	))

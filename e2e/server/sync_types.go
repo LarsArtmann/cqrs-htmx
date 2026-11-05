@@ -17,7 +17,7 @@ type syncItemForm struct {
 }
 
 type syncAddItemCmd struct {
-	command.BasicCommand
+	*command.BasicCommand
 
 	name string
 }

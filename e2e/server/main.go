@@ -146,7 +146,7 @@ func main() {
 				return nil, err //nolint:wrapcheck // e2e: raw construction error is the intended decode failure
 			}
 
-			return &syncAddItemCmd{BasicCommand: *core, name: form.Name}, nil
+			return &syncAddItemCmd{BasicCommand: core, name: form.Name}, nil
 		}),
 		cqrshtmx.WithSuccessStatus(http.StatusCreated),
 	))
