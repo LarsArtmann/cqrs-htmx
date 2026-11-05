@@ -133,7 +133,7 @@ pathspecs so their staging is not swept in.
 7. Consumer wave 2 — InboxClean: delete `sseDeadlineFree` (library clears
    the deadline now), tests green, commit.
 8. Consumer wave 3 — SwettySwipperWeb: grant on every boot idempotently,
-   drop the `Count()>0` guard.
+   drop the `Count()>0` guard. <!-- fresh:skip: routed — the authorization row's consumer-waves item owns this wave; this item's only distinctive anchor was the frequency-fragile token "grant" (substring of GrantRoles), which any new CHANGELOG line mentioning GrantRoles unbinds. Same routing is proven by the sibling items carrying the durable "bootstrapAdmin" anchor -->
 9. Consumer wave 4 — crm: seed an admin via `GrantRoles` or `DisableAdmin`;
    update its PERMISSIONS row.
 10. Update `docs/PERMISSIONS.md` inventory rows as each consumer lands.
