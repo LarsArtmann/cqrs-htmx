@@ -1186,6 +1186,7 @@
                     fi
                     stages=(
                         "module-isolation:bash scripts/checks/check-module-isolation.sh"
+                        "module-isolation-examples:bash scripts/checks/check-module-isolation.sh --examples"
                         "dep-budgets:bash scripts/checks/check-dep-budgets.sh"
                         "dep-budgets-self-test:bash scripts/selftests/test-check-dep-budgets.sh"
                         "go-toolchain:bash scripts/checks/check-go-toolchain.sh"
