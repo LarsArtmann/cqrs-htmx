@@ -1,0 +1,1277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>adminui SUPERB — Pareto Plan 2026-11-06</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>PARETO PLAN</span>
+      <span>2026-11-06</span>
+      <span>adminui superbification</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">00 Summary</a>
+          <a href="#state">01 Current state</a>
+          <a href="#brainstorm">02 The 118 ideas</a>
+          <a href="#tiers">03 Pareto tiers</a>
+          <a href="#plan">04 Execution plan</a>
+          <a href="#graph">05 Execution graph</a>
+          <a href="#micro">06 Micro-steps</a>
+          <a href="#verify">07 Verification battery</a>
+          <a href="#errata">08 Errata</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">SUPERB brainstorm + Pareto plan</div>
+          <h1>Make adminui superb</h1>
+          <p class="hero-subtitle">
+            118 ideas across 14 angles, Pareto-tiered into 7 in-session waves and a documented
+            tail &mdash; the thesis: <strong>an admin panel that can list but not create or edit
+            is a viewer, not a panel.</strong>
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">00 Summary</a></li>
+            <li><a href="#state">01 Current state</a></li>
+            <li><a href="#brainstorm">02 The 118 ideas</a></li>
+            <li><a href="#tiers">03 Pareto tiers</a></li>
+            <li><a href="#plan">04 Execution plan</a></li>
+            <li><a href="#graph">05 Execution graph</a></li>
+            <li><a href="#micro">06 Micro-steps</a></li>
+            <li><a href="#verify">07 Verification battery</a></li>
+            <li><a href="#errata">08 Errata</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value">118</div><div class="stat-label">ideas brainstormed</div></div>
+          <div class="stat-card"><div class="stat-value">14</div><div class="stat-label">angles explored</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">7</div><div class="stat-label">waves executing this session</div></div>
+          <div class="stat-card stat-warn"><div class="stat-value">25</div><div class="stat-label">Service capabilities not yet surfaced</div></div>
+          <div class="stat-card"><div class="stat-value">27</div><div class="stat-label">tasks in the comprehensive plan</div></div>
+          <div class="stat-card"><div class="stat-value">66%</div><div class="stat-label">coverage floor to hold</div></div>
+        </div>
+        <div class="callout callout-solution">
+          <p><strong>The 1% that delivers 51%:</strong> waves 1&ndash;3 close the entire
+          user-lifecycle gap (create, edit email, edit display name, grant/revoke platform roles,
+          remove passkey, resend verification). Every one of those operations has a shipped,
+          durable, event-sourced Service method &mdash; the panel simply never wired them. No new
+          domain code is needed; the wall is pure UI surface.</p>
+        </div>
+
+        <h2 id="state"><span class="num">01</span>Current state (what is already superb)</h2>
+        <div class="strengths">
+          <div class="strength"><div class="check">+</div><div class="text">Route table is the single registration source; <code>Handler.Routes()</code> posture manifest is authz-L4, golden-pinned (routes_manifest_test.go).</div></div>
+          <div class="strength"><div class="check">+</div><div class="text">Honest UI: no decorative trend numbers, sync indicator tracks real SSE state, stats poll a real partial, list pages show "N of M".</div></div>
+          <div class="strength"><div class="check">+</div><div class="text">Security posture: guarded 404s, 405 fallbacks, CSP nonce, CSRF meta+form tokens, shared forbidden code with <code>cqrshtmx.IsForbidden</code>, accent-color CSS grammar validated at <code>New</code>.</div></div>
+          <div class="strength"><div class="check">+</div><div class="text">templ-components adopted at depth (AppShell/SidebarNav/Modal/Dropdown/RelativeTime/Pagination); generated code committed; CSS bundle gated by content checks.</div></div>
+          <div class="strength"><div class="check">+</div><div class="text">Tenant lifecycle, member CRUD, unlink external, live search, pagination, confirm modal, toasts, dark mode &mdash; all present and tested.</div></div>
+        </div>
+        <div class="card card-problem">
+          <h3>The one-sentence diagnosis</h3>
+          <p>The panel reached security/maturity excellence (L4, gates, golden tests) but stopped
+          growing features in 2026-09: <strong>25 exported <code>*Service</code> capabilities have
+          no panel surface</strong> &mdash; user creation, profile edits, platform role grants,
+          passkey removal, verification resend, per-aggregate audit, import/export, bots,
+          impersonation.</p>
+        </div>
+
+        <h2 id="brainstorm"><span class="num">02</span>The 118 ideas (all angles)</h2>
+        <p>Impact: H/M/L &middot; Effort: S (&lt;30m) / M (30&ndash;100m) / L (100m+).
+        Ideas already recorded elsewhere are marked <span class="badge badge-fixed">known</span>
+        (folded in from TODO_LIST, status reports, fleet-libs plan).</p>
+
+        <h3>A &middot; Missing CRUD &mdash; the panel can't create or edit what it lists</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Create user (email + display name) via <code>Service.Register</code></td><td><span class="badge badge-critical">H</span></td><td>M</td><td>#1 missing admin op; discard the minted session, note honestly</td></tr>
+            <tr><td>2</td><td>Edit display name via <code>ChangeDisplayName</code></td><td><span class="badge badge-critical">H</span></td><td>S</td><td>inline form on user detail</td></tr>
+            <tr><td>3</td><td>Edit email via <code>ChangeEmail</code></td><td><span class="badge badge-critical">H</span></td><td>S</td><td>with "affects sign-in" confirm</td></tr>
+            <tr><td>4</td><td>Remove passkey via <code>RemoveCredential</code> (base64url credential id in path)</td><td><span class="badge badge-critical">H</span></td><td>M</td><td>last-credential story surfaced in confirm text</td></tr>
+            <tr><td>5</td><td>Resend verification email via <code>SendVerificationEmail</code></td><td><span class="badge badge-critical">H</span></td><td>S</td><td>graceful error when verification not configured</td></tr>
+            <tr><td>6</td><td>Grant platform roles via <code>GrantRoles</code> in <code>*</code> &mdash; the "first admin" bootstrap, in-UI</td><td><span class="badge badge-critical">H</span></td><td>M</td><td>durable path (ADR-0057); NOT AddGroupPolicy</td></tr>
+            <tr><td>7</td><td>Revoke platform roles via <code>RevokeRoles</code></td><td><span class="badge badge-critical">H</span></td><td>S</td><td>confirm warns: locks the user out of the panel</td></tr>
+            <tr><td>8</td><td>Tenant-role grant from user detail (symmetry with tenant detail)</td><td>M</td><td>M</td><td>phase 2: tenant picker</td></tr>
+            <tr><td>9</td><td>Bulk import users (CSV/JSON upload + <code>ImportResult</code> report)</td><td>M</td><td>M</td><td>multipart form; failures listed inline</td></tr>
+            <tr><td>10</td><td>Export users (CSV/JSON download endpoints)</td><td>M</td><td>S</td><td>GET links; content-disposition</td></tr>
+            <tr><td>11</td><td>Bots page: list / register / delete, token shown once</td><td>M</td><td>L</td><td>needs bot read-model listing (FindByOwner gap)</td></tr>
+            <tr><td>12</td><td>Bot ownership card on user detail</td><td>L</td><td>M</td><td>blocked by FindByOwner gap</td></tr>
+          </tbody>
+        </table>
+
+        <h3>B &middot; Audit superpowers</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>13</td><td>Filter audit by action type</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>query param + chip row</td></tr>
+            <tr><td>14</td><td>Filter audit by actor (email substring)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>resolve via read model like the Who column</td></tr>
+            <tr><td>15</td><td>Filter audit by aggregate id</td><td>M</td><td>S</td><td>deep-link target from detail pages</td></tr>
+            <tr><td>16</td><td>Human-readable action labels (session lifecycle &amp; friends)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td class="where">known (status 23-57 #30) &mdash; one map, reused everywhere</td></tr>
+            <tr><td>17</td><td>Per-user audit timeline on user detail (<code>EntriesFor</code>)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>the fold already exists on AuditLog</td></tr>
+            <tr><td>18</td><td>Per-tenant audit timeline on tenant detail (members' aggregates)</td><td>M</td><td>M</td><td>phase 2</td></tr>
+            <tr><td>19</td><td>Audit severity tint (identity mutations vs sessions vs logins)</td><td>M</td><td>S</td><td>badge tone by action class</td></tr>
+            <tr><td>20</td><td>Audit CSV export of the filtered view</td><td>L</td><td>M</td><td>tail</td></tr>
+            <tr><td>21</td><td>Pagination windowing (1 &hellip; 5 6 7 &hellip; 20) on all list pages</td><td>M</td><td>S</td><td>library Pagination may need window prop</td></tr>
+            <tr><td>22</td><td>Absolute timestamp on hover (title attr)</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>23</td><td>Failure-detail column for <code>login_failed</code> entries (<code>Detail</code> field exists)</td><td>M</td><td>S</td><td>fold into #16 label work</td></tr>
+          </tbody>
+        </table>
+
+        <h3>C &middot; Dashboard enrichment</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>24</td><td>MFA adoption + verified % stat cards (honest: computed, not decorative)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>read-model derived</td></tr>
+            <tr><td>25</td><td>Suspended-tenants count card</td><td>M</td><td>S</td><td></td></tr>
+            <tr><td>26</td><td>"Needs attention" panel (suspended tenants, unverified admins)</td><td>M</td><td>M</td><td>phase 2</td></tr>
+            <tr><td>27</td><td><code>HasAdminGrant("*")</code> banner when nobody can reach the panel</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>setup logs this at boot; the panel should too</td></tr>
+            <tr><td>28</td><td>Recent-activity rows link to entity detail pages</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>aggregate id &rarr; user link</td></tr>
+            <tr><td>29</td><td>Quick actions row (create user / create tenant)</td><td>M</td><td>S</td><td>phase 2</td></tr>
+            <tr><td>30</td><td>Projection-health cross-link (dashboardui owns ES introspection)</td><td>M</td><td>S</td><td>via #50 DashboardURL</td></tr>
+            <tr><td>31</td><td>SSE nudge: htmx trigger to refresh polled regions on identity events</td><td>M</td><td>M</td><td>control-plane only, no payload contract</td></tr>
+          </tbody>
+        </table>
+
+        <h3>D &middot; Users list polish</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>32</td><td>Filter chips: verified / unverified / MFA / external</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>query params, composable with search</td></tr>
+            <tr><td>33</td><td>Linked-provider badges in the status column</td><td>M</td><td>S</td><td>data already on User.ExternalAccounts</td></tr>
+            <tr><td>34</td><td>Sort by created (default) / email / display name</td><td>M</td><td>M</td><td>phase 2</td></tr>
+            <tr><td>35</td><td>Row-count selector (25/50/100/200)</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>36</td><td>Copy email button on rows</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>37</td><td>Deterministic avatar hue (hash of email)</td><td>L</td><td>S</td><td>tail; check dark-mode contrast</td></tr>
+            <tr><td>38</td><td>Roles-summary column (global badges)</td><td>M</td><td>M</td><td>phase 2</td></tr>
+          </tbody>
+        </table>
+
+        <h3>E &middot; Tenants polish</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>39</td><td>Tenant search/filter (name + display name)</td><td>M</td><td>S</td><td>same FilterInput pattern as users</td></tr>
+            <tr><td>40</td><td>Suspended filter chip on tenant list</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>41</td><td>Tenant detail stat row (members, created, status)</td><td>M</td><td>S</td><td>phase 2</td></tr>
+            <tr><td>42</td><td>Copy tenant-id button</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>43</td><td>Add-member email suggestions (datalist from read model)</td><td>M</td><td>M</td><td>phase 2</td></tr>
+          </tbody>
+        </table>
+
+        <h3>F &middot; Config &amp; composability</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>44</td><td>ExtraNav seam (consumer nav items appended to sidebar)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td class="where">known (status 23-57 #21, dashboardui #38 symmetry)</td></tr>
+            <tr><td>45</td><td>DashboardURL cross-link nav entry ("Event store")</td><td>M</td><td>S</td><td>cross-sell both panels</td></tr>
+            <tr><td>46</td><td>Page visibility toggles (audit off, users off&hellip;)</td><td>M</td><td>M</td><td>phase 2; must keep manifest honest</td></tr>
+            <tr><td>47</td><td>Consumer-owned Layout override (dashboardui Config.Layout pattern)</td><td>M</td><td>L</td><td>v5-shaped; ADR first</td></tr>
+            <tr><td>48</td><td>Config.Footer / version string</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>49</td><td>Brand logo URL (image instead of initials)</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>50</td><td>List page-size override</td><td>L</td><td>S</td><td>tail; MaxListRows stays the cap</td></tr>
+            <tr><td>51</td><td>Impersonation opt-in config + reason modal + banner</td><td>M</td><td>L</td><td>security-sensitive; ADR + audit trail</td></tr>
+          </tbody>
+        </table>
+
+        <h3>G &middot; Honest UI &amp; realtime</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>52</td><td>BroadcasterHealth in the sync indicator</td><td>M</td><td>M</td><td class="where">known (fleet-libs plan A2/B15, wave 2)</td></tr>
+            <tr><td>53</td><td>Sync indicator reconnect/backoff states</td><td>M</td><td>S</td><td>extend data-sync-status vocabulary</td></tr>
+            <tr><td>54</td><td>Offline queue depth badge in header</td><td>M</td><td>S</td><td>sync assets already queue</td></tr>
+            <tr><td>55</td><td>Import failures listed inline (honest ImportResult)</td><td>M</td><td>S</td><td>rides #9</td></tr>
+            <tr><td>56</td><td>Register-session honesty: create-user hint explains how the user signs in</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>passwordless story must be told</td></tr>
+          </tbody>
+        </table>
+
+        <h3>H &middot; Accessibility</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>57</td><td>Skip-to-content link</td><td>M</td><td>S</td><td></td></tr>
+            <tr><td>58</td><td>aria-current="page" on active nav item</td><td>M</td><td>S</td><td>check library SidebarNav</td></tr>
+            <tr><td>59</td><td>Visually-hidden table captions</td><td>M</td><td>S</td><td></td></tr>
+            <tr><td>60</td><td>Focus-visible audit across interactive elements</td><td>M</td><td>S</td><td></td></tr>
+            <tr><td>61</td><td>prefers-reduced-motion respect (modal/toast/spinner)</td><td>M</td><td>S</td><td></td></tr>
+            <tr><td>62</td><td>Landmark roles (header/nav/main)</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>63</td><td>Field-level errors + error summary on create/edit forms</td><td><span class="badge badge-critical">H</span></td><td>M</td><td>rides waves 1</td></tr>
+            <tr><td>64</td><td>Dialog Esc/cancel/focus-trap verification test</td><td>M</td><td>S</td><td>native dialog; assert wiring</td></tr>
+          </tbody>
+        </table>
+
+        <h3>I &middot; Performance</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>65</td><td>Render benchmark: 200-user page (regression guard)</td><td>M</td><td>S</td><td>bench-spike pattern</td></tr>
+            <tr><td>66</td><td>ETag on partial responses</td><td>L</td><td>M</td><td>tail</td></tr>
+            <tr><td>67</td><td>Hover preload for detail links</td><td>L</td><td>S</td><td>vendor htmx preload ext? tail</td></tr>
+            <tr><td>68</td><td>Count reuse: stats cache for list totals</td><td>L</td><td>M</td><td>tail</td></tr>
+          </tbody>
+        </table>
+
+        <h3>J &middot; Code quality &amp; tests</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>69</td><td>Update route-manifest golden with every new route (same commit)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>gate-enforced</td></tr>
+            <tr><td>70</td><td>Handler tests for every new action (success + rejection paths)</td><td><span class="badge badge-critical">H</span></td><td>M</td><td>coverage floor 66%</td></tr>
+            <tr><td>71</td><td>CSRF full-stack test extended to a new POST route</td><td>M</td><td>S</td><td>pattern exists</td></tr>
+            <tr><td>72</td><td>Golden render tests for new pages/partials</td><td>M</td><td>M</td><td>assert key markers, not byte goldens</td></tr>
+            <tr><td>73</td><td>Pagination edge tests (0 / 1 / boundary page)</td><td>M</td><td>S</td><td>exists for users; extend to audit filters</td></tr>
+            <tr><td>74</td><td>A8 dogfood: internal RenderPartialOrFull use where it fits</td><td>L</td><td>S</td><td class="where">known (fleet-libs A8)</td></tr>
+            <tr><td>75</td><td>Action-label map: single source (audit + dashboard + timeline)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>rides #16</td></tr>
+            <tr><td>76</td><td>Fuzz accent-color validator (extend existing test)</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>77</td><td>writeActionError mapping table-driven</td><td>L</td><td>S</td><td>tail</td></tr>
+          </tbody>
+        </table>
+
+        <h3>K &middot; Docs &amp; demo</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>78</td><td>README "What you get" + config table updated per wave</td><td><span class="badge badge-critical">H</span></td><td>S</td><td></td></tr>
+            <tr><td>79</td><td>CHANGELOG entries per wave</td><td><span class="badge badge-critical">H</span></td><td>S</td><td></td></tr>
+            <tr><td>80</td><td>admin-demo showcases: create user, roles, audit filters</td><td>M</td><td>S</td><td>seed already exists</td></tr>
+            <tr><td>81</td><td>README security note: admin-created users &amp; passwordless sign-in</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>rides #56</td></tr>
+            <tr><td>82</td><td>Feature matrix table in README</td><td>M</td><td>S</td><td></td></tr>
+            <tr><td>83</td><td>Guide: "adminui + dashboardui together" (mount both)</td><td>M</td><td>S</td><td>setup already wires both</td></tr>
+          </tbody>
+        </table>
+
+        <h3>L &middot; Security</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>84</td><td>Self-lockout guard: confirm text warns when revoking your own admin</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>rides #7</td></tr>
+            <tr><td>85</td><td>Reason required on destructive ops (delete already optional-default; keep)</td><td>M</td><td>S</td><td>delete has default reason; fine</td></tr>
+            <tr><td>86</td><td>Form value length limits (email, display name)</td><td>M</td><td>S</td><td>Service validates; UI hints</td></tr>
+            <tr><td>87</td><td>All new JS nonce'd (CSP)</td><td><span class="badge badge-critical">H</span></td><td>S</td><td>no inline handlers anyway</td></tr>
+            <tr><td>88</td><td>README rate-limit guidance for admin mounts</td><td>L</td><td>S</td><td>tail</td></tr>
+          </tbody>
+        </table>
+
+        <h3>M &middot; Creative / delightful</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>89</td><td>Keyboard shortcuts: g u / g t / g a, "/" focuses search</td><td>M</td><td>M</td><td>nonce'd JS, progressive</td></tr>
+            <tr><td>90</td><td>Command palette (Ctrl+K): users + tenants + actions</td><td>M</td><td>L</td><td>tail; needs search endpoint</td></tr>
+            <tr><td>91</td><td>View Transitions on boosted navigation</td><td>L</td><td>S</td><td>tail; modern browsers only</td></tr>
+            <tr><td>92</td><td>Density toggle (compact tables)</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>93</td><td>Print stylesheet for audit log</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>94</td><td>Tab-title unread marker on SSE events</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>95</td><td>Locale-aware number formatting on stats</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>96</td><td>"Copy as Markdown" for audit rows</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>97</td><td>Onboarding empty-state: "create your first admin" flow from the HasAdminGrant banner</td><td>M</td><td>M</td><td>phase 2; rides #27</td></tr>
+          </tbody>
+        </table>
+
+        <h3>N &middot; Ops &amp; integrations (dashboardui owns ES introspection &mdash; link, don't duplicate)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Idea</th><th>Impact</th><th>Effort</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>98</td><td>Rebuild-projection cross-link (dashboardui owns the action)</td><td>M</td><td>S</td><td>via #45</td></tr>
+            <tr><td>99</td><td>Event-catalog link (root EventCatalogHandler)</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>100</td><td>/health link in footer</td><td>L</td><td>S</td><td>tail</td></tr>
+            <tr><td>101</td><td>Bot actor names resolved in audit Who column</td><td>M</td><td>M</td><td>rides #11</td></tr>
+            <tr><td>102</td><td>setup.Config passthrough for new config fields</td><td>M</td><td>S</td><td>per field</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="tiers"><span class="num">03</span>Pareto tiers</h2>
+
+        <h3>The 1% that delivers 51% &mdash; waves 1&ndash;3 (user lifecycle completion)</h3>
+        <div class="card card-solution">
+          <p>Create user, edit display name, edit email, grant/revoke platform roles, remove
+          passkey, resend verification (+ self-lockout guard, + HasAdminGrant banner, + honest
+          passwordless hint). Ideas #1&ndash;#7, #27, #56, #63, #81, #84. After these, every
+          identity write the Service exposes for single-user operations has a panel surface.</p>
+        </div>
+
+        <h3>The 4% that delivers 64% &mdash; waves 4&ndash;6 (audit + dashboard + list polish)</h3>
+        <div class="card card-solution">
+          <p>Audit filters (#13&ndash;#15), action labels (#16, #23, #75), per-user timeline
+          (#17), dashboard adoption stats + entity links (#24, #25, #28), users filter chips +
+          provider badges (#32, #33). These compound wave 1: every created user becomes
+          traceable end-to-end.</p>
+        </div>
+
+        <h3>The 20% that delivers 80% &mdash; waves 7+ (composability &amp; breadth)</h3>
+        <div class="card card-warning">
+          <p>Wave 7: ExtraNav seam (#44) + DashboardURL cross-link (#45). Then (documented, not
+          this session): import/export (#9, #10), bots (#11), impersonation (#51), tenant search
+          (#39), form-error UX (#63 depth), keyboard shortcuts (#89), SSE nudge (#31).</p>
+        </div>
+
+        <h3>The 80% tail (parked with owners/trigger conditions)</h3>
+        <div class="card">
+          <p>Everything marked L impact plus phase-2 items. Each stays in this plan's tables
+          with a note; harvest-worthy ones go to TODO_LIST.md after execution. TOTP admin views
+          stay NOT-PLANNED per ROADMAP (passwordless-first).</p>
+        </div>
+
+        <h2 id="plan"><span class="num">04</span>Execution plan (27 tasks, 30&ndash;100 min each)</h2>
+        <table>
+          <thead><tr><th>Wave</th><th>Task</th><th>Idea #</th><th>Verifies via</th></tr></thead>
+          <tbody>
+            <tr><td>W1</td><td>Route table + handlers: GET /users/new, POST /users (create)</td><td>1, 56</td><td>handler test + manifest golden</td></tr>
+            <tr><td>W1</td><td>userNew.templ page + form (validation, cancel)</td><td>1</td><td>render test</td></tr>
+            <tr><td>W1</td><td>POST /users/{id}/display-name + inline form on detail</td><td>2</td><td>handler test</td></tr>
+            <tr><td>W1</td><td>POST /users/{id}/email + confirm-wired form</td><td>3</td><td>handler test</td></tr>
+            <tr><td>W1</td><td>manifest golden + CSRF test extension + CHANGELOG</td><td>69, 71, 79</td><td>route-postures gate</td></tr>
+            <tr><td>W2</td><td>Platform-roles card on user detail (grant form + revoke)</td><td>6, 7</td><td>render + handler tests</td></tr>
+            <tr><td>W2</td><td>Self-lockout confirm copy when target == session user</td><td>84</td><td>render test</td></tr>
+            <tr><td>W2</td><td>Dashboard HasAdminGrant banner</td><td>27</td><td>dashboard test</td></tr>
+            <tr><td>W3</td><td>Passkeys card on user detail + POST remove route (base64url id)</td><td>4</td><td>handler test</td></tr>
+            <tr><td>W3</td><td>POST /users/{id}/resend-verification + not-configured error path</td><td>5</td><td>handler test</td></tr>
+            <tr><td>W4</td><td>Action-label map + severity classes (single source)</td><td>16, 23, 75</td><td>unit test</td></tr>
+            <tr><td>W4</td><td>Audit filters (action / actor / aggregate) + partial render</td><td>13, 14, 15</td><td>handler tests</td></tr>
+            <tr><td>W4</td><td>Per-user timeline card on user detail (EntriesFor)</td><td>17</td><td>render test</td></tr>
+            <tr><td>W5</td><td>Dashboard stats: MFA %, verified %, suspended tenants</td><td>24, 25</td><td>stats partial test</td></tr>
+            <tr><td>W5</td><td>Recent-activity rows link to entities</td><td>28</td><td>render test</td></tr>
+            <tr><td>W6</td><td>Users filter chips (verified/unverified/MFA/external)</td><td>32</td><td>handler test</td></tr>
+            <tr><td>W6</td><td>Provider badges in users status column</td><td>33</td><td>render test</td></tr>
+            <tr><td>W7</td><td>Config.ExtraNav + sidebar render</td><td>44</td><td>config + render tests</td></tr>
+            <tr><td>W7</td><td>Config.DashboardURL nav cross-link</td><td>45</td><td>config test</td></tr>
+            <tr><td>W7</td><td>setup.Config passthrough for both new fields</td><td>102</td><td>setup build</td></tr>
+            <tr><td>&mdash;</td><td>README + CHANGELOG final pass</td><td>78, 79, 81, 82</td><td>check-docs gates</td></tr>
+            <tr><td>&mdash;</td><td>admin-demo: exercise new flows</td><td>80</td><td>demo build</td></tr>
+            <tr><td>&mdash;</td><td>CSS bundle rebuild + class-set gate</td><td>&mdash;</td><td>check-css-bundles/classes</td></tr>
+            <tr><td>&mdash;</td><td>templ regen + codegen-staged gate</td><td>&mdash;</td><td>check-templ-codegen-staged</td></tr>
+            <tr><td>&mdash;</td><td>TODO_LIST harvest of parked ideas</td><td>tail</td><td>todo-hygiene gate</td></tr>
+            <tr><td>&mdash;</td><td>Full gate battery green</td><td>&mdash;</td><td>check-modules</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="graph"><span class="num">05</span>Execution graph</h2>
+        <div style="border:1px solid var(--border); padding:12px; overflow-x:auto;">
+          <?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1999 1019"><svg class="d2-3813908797 d2-svg" width="1999" height="1019" viewBox="-101 -101 1999 1019"><rect x="-101" y="-101" width="1999" height="1019" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-3813908797 .text-bold {
+	font-family: "d2-3813908797-font-bold";
+}
+@font-face {
+	font-family: d2-3813908797-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-3813908797 .text-italic {
+	font-family: "d2-3813908797-font-italic";
+}
+@font-face {
+	font-family: d2-3813908797-font-italic;
+	src: url("data:application/font-woff;base64,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");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-3813908797 .fill-N1{fill:#0A0F25;}
+		.d2-3813908797 .fill-N2{fill:#676C7E;}
+		.d2-3813908797 .fill-N7{fill:#FFFFFF;}
+		.d2-3813908797 .fill-B1{fill:#0D32B2;}
+		.d2-3813908797 .fill-B6{fill:#F7F8FE;}
+		.d2-3813908797 .stroke-B1{stroke:#0D32B2;}
+		.d2-3813908797 .stroke-B2{stroke:#0D32B2;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><g class="V2F2ZXMgMS03"><g class="shape" ><rect x="75" y="0" width="177" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="163.5" y="38.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">dependency graph</text></g><g class="dzE="><g class="shape" ><rect x="0" y="522" width="327" height="82" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="163.5" y="560.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="163.5" dy="0">Wave 1 - User lifecycle</tspan><tspan x="163.5" dy="18.5">(create + edit display name + edit email)</tspan></text></g><g class="dzI="><g class="shape" ><rect x="783" y="735" width="336" height="82" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="951" y="773.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="951" dy="0">Wave 2 - Platform roles</tspan><tspan x="951" dy="18.5">(grant / revoke + HasAdminGrant banner)</tspan></text></g><g class="dzM="><g class="shape" ><rect x="791" y="309" width="319" height="82" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="950.5" y="347.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="950.5" dy="0">Wave 3 - Credential ops</tspan><tspan x="950.5" dy="18.5">(remove passkey + resend verification)</tspan></text></g><g class="dzQ="><g class="shape" ><rect x="18" y="126" width="292" height="82" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="164" y="164.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="164" dy="0">Wave 4 - Audit superpowers</tspan><tspan x="164" dy="18.5">(filters + labels + per-user timeline)</tspan></text></g><g class="dzU="><g class="shape" ><rect x="792" y="167" width="318" height="82" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="951" y="205.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="951" dy="0">Wave 5 - Dashboard enrichment</tspan><tspan x="951" dy="18.5">(adoption stats + entity links + banner)</tspan></text></g><g class="dzY="><g class="shape" ><rect x="820" y="451" width="262" height="82" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="951" y="489.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="951" dy="0">Wave 6 - Users list polish</tspan><tspan x="951" dy="18.5">(filter chips + provider badges)</tspan></text></g><g class="dzc="><g class="shape" ><rect x="773" y="593" width="355" height="82" stroke="#0D32B2" fill="#ff6b6b" class=" stroke-B1" style="stroke-width:2;" /></g><text x="950.5" y="631.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="950.5" dy="0">Wave 7 - Composability</tspan><tspan x="950.5" dy="18.5">(ExtraNav seam + DashboardURL cross-link)</tspan></text></g><g class="Z2F0ZQ=="><g class="shape" ><path d="M 1584 499 C 1582 499 1581 499 1580 498 L 1373 423 C 1371 422 1371 421 1373 420 L 1580 344 C 1582 343 1586 343 1588 344 L 1795 420 C 1797 421 1797 422 1795 423 L 1588 498 C 1587 499 1586 499 1584 499 Z" stroke="#0D32B2" fill="#f4f4f0" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1584" y="410.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1584" dy="0">FULL GATE BATTERY</tspan><tspan x="1584" dy="17.666667">test + lint + cqrs-lint</tspan><tspan x="1584" dy="17.666667">+ route-postures + coverage</tspan></text></g><g class="KHcxIC0mZ3Q7IHcyKVswXQ=="><marker id="mk-d2-3813908797-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 240.648683 605.463374 C 487.778992 741.299988 596.5 775.5 778.5 775.5" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /><text x="495.5" y="749" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">user detail grows</text></g><g class="KHcxIC0mZ3Q7IHczKVswXQ=="><path d="M 239.647615 520.534685 C 487.57901 383.899994 598.200012 349.5 787 349.5" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /><text x="499" y="386" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">same card</text></g><g class="KHc0IC0mZ3Q7IHc1KVswXQ=="><path d="M 312.489019 182.507297 C 502.100006 202.459 598.299988 207.5 787.5 207.5" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /><text x="550.5" y="210" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">labels reused by recent activity</text></g><g class="KHcyIC0mZ3Q7IGdhdGUpWzBd"><path d="M 1121.5 775.5 C 1223.5 775.5 1305.400024 716.200012 1526.256246 481.910638" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /></g><g class="KHczIC0mZ3Q7IGdhdGUpWzBd"><path d="M 1111.5 349.5 C 1221.5 349.5 1289.400024 358 1445.087789 391.166571" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /></g><g class="KHc1IC0mZ3Q7IGdhdGUpWzBd"><path d="M 1112.5 207.5 C 1221.699951 207.5 1300.800049 240.199997 1502.62698 368.849946" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /></g><g class="KHc2IC0mZ3Q7IGdhdGUpWzBd"><path d="M 1084.5 491.5 C 1216.099976 491.5 1288.800049 483.200012 1442.08633 450.826552" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /></g><g class="KHc3IC0mZ3Q7IGdhdGUpWzBd"><path d="M 1129.5 633.5 C 1225.099976 633.5 1300.199951 600.799988 1499.638521 472.168054" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /></g><g class="KHc0IC0mZ3Q7IGdhdGUpWzBd"><path d="M 312.489019 151.491711 C 502.100006 131.539993 630.099976 126.5 750.25 126.5 C 870.400024 126.5 1303.800049 174.399994 1518.000327 363.353879" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3813908797-3488378134)" mask="url(#d2-3813908797)" /></g><mask id="d2-3813908797" maskUnits="userSpaceOnUse" x="-101" y="-101" width="1999" height="1019">
+<rect x="-101" y="-101" width="1999" height="1019" fill="white"></rect>
+<rect x="437" y="733" width="117" height="21" fill="black"></rect>
+<rect x="462" y="370" width="74" height="21" fill="black"></rect>
+<rect x="447" y="194" width="207" height="21" fill="black"></rect>
+</mask></svg></svg>
+
+        </div>
+
+        <h2 id="micro"><span class="num">06</span>Micro-steps (fine breakdown of the in-session waves)</h2>
+        <table>
+          <thead><tr><th>Wave</th><th>Micro-step (&le;15 min each)</th></tr></thead>
+          <tbody>
+            <tr><td>W1</td><td>routes rows (2) &rarr; golden update &rarr; handler create/new &rarr; userNew.templ &rarr; regen templ &rarr; handler test &rarr; render test &rarr; CSRF test row &rarr; CHANGELOG row</td></tr>
+            <tr><td>W1</td><td>display-name: route row &rarr; handler &rarr; detail form templ &rarr; regen &rarr; test</td></tr>
+            <tr><td>W1</td><td>email: route row &rarr; handler &rarr; form templ &rarr; regen &rarr; test</td></tr>
+            <tr><td>W2</td><td>roles card templ &rarr; grant/revoke routes &rarr; handlers &rarr; regen &rarr; tests &rarr; lockout copy test</td></tr>
+            <tr><td>W2</td><td>HasAdminGrant banner data+templ &rarr; dashboard test &rarr; golden touch</td></tr>
+            <tr><td>W3</td><td>passkeys card &rarr; remove route (b64url) &rarr; handler &rarr; regen &rarr; test</td></tr>
+            <tr><td>W3</td><td>resend route &rarr; handler &rarr; detail button &rarr; regen &rarr; test</td></tr>
+            <tr><td>W4</td><td>labels.go map + unit test &rarr; audit+dashboard adoption &rarr; filters in handler &rarr; filter UI &rarr; tests</td></tr>
+            <tr><td>W4</td><td>timeline card data (EntriesFor) &rarr; templ &rarr; regen &rarr; test</td></tr>
+            <tr><td>W5</td><td>stats computations &rarr; partial adoption &rarr; tests &rarr; entity links &rarr; test</td></tr>
+            <tr><td>W6</td><td>filter parsing + chips templ &rarr; regen &rarr; tests &rarr; provider badges &rarr; test</td></tr>
+            <tr><td>W7</td><td>Config fields + validation &rarr; sidebar render &rarr; setup passthrough &rarr; tests</td></tr>
+            <tr><td>all</td><td>per-wave: go test &rarr; vet &rarr; lint &rarr; final: gates</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="verify"><span class="num">07</span>Verification battery</h2>
+        <table>
+          <thead><tr><th>Gate</th><th>Command</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Module tests</td><td><code>GOEXPERIMENT=jsonv2 go test ./... -count=1</code> (GOWORK=off in adminui)</td><td>every wave lands green</td></tr>
+            <tr><td>Lint</td><td><code>nix run .#lint</code> / golangci per module</td><td>no stdlib errors, wrapcheck posture</td></tr>
+            <tr><td>cqrs-lint</td><td><code>nix run .#check-cqrs-lint</code></td><td>strict, 14 modules incl. adminui</td></tr>
+            <tr><td>Route postures</td><td><code>nix run .#check-route-postures</code></td><td>manifest golden updated in-commit</td></tr>
+            <tr><td>CSS bundles</td><td><code>nix run .#check-css-bundles</code> + <code>.#check-css-bundle-classes</code></td><td>new classes compiled in</td></tr>
+            <tr><td>Coverage</td><td><code>bash scripts/checks/check-coverage-threshold.sh adminui</code></td><td>&ge;66% held</td></tr>
+            <tr><td>templ codegen</td><td>staged pre-commit <code>check-templ-codegen-staged</code></td><td>_templ.go in sync</td></tr>
+            <tr><td>Session wrappers</td><td><code>nix run .#check-session-route-wrappers</code></td><td>auth posture intact</td></tr>
+            <tr><td>Aggregate</td><td><code>nix run .#check-modules</code></td><td>whole battery</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="errata"><span class="num">08</span>Errata &amp; prior-art folds</h2>
+        <ul>
+          <li>Deferred ideas from status reports/TODO folded in: ExtraNav (#44, status 23-57 #21), session-lifecycle audit labels (#16, #30), BroadcasterHealth (#52, fleet-libs A2/B15), A8 dogfood (#74).</li>
+          <li>TOTP admin management views remain NOT-PLANNED (ROADMAP, passwordless-first) &mdash; not in this plan.</li>
+          <li>WebAuthn/OAuth begin/finish ceremonies stay user-side by design (ADR-0055 owner-match); the panel surfaces only admin-adjacent operations.</li>
+          <li>Session enumeration does not exist on the Service; no panel surface is planned for it.</li>
+          <li>Register mints a session the panel discards &mdash; documented honestly in the create-user hint (#56) rather than hidden.</li>
+        </ul>
+      </main>
+    </div>
+  </body>
+</html>

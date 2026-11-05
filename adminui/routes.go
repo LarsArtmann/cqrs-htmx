@@ -200,6 +200,22 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, why: "the user list spans every tenant",
 		},
 		{
+			method: http.MethodGet, pattern: "/users/new", panel: panelUsers, guarded: h.userNew,
+			mode: routeModeSuperAdmin, why: "the creation form itself reveals the directory shape",
+		},
+		{
+			method: http.MethodPost, pattern: "/users", panel: panelUsers, guarded: h.userCreate,
+			mode: routeModeSuperAdmin, write: true, why: "creating accounts is platform-admin territory",
+		},
+		{
+			method: http.MethodPost, pattern: "/users/{id}/display-name", panel: panelUsers, guarded: h.userUpdateDisplayName,
+			mode: routeModeSuperAdmin, write: true, why: "editing a profile field is platform-admin territory",
+		},
+		{
+			method: http.MethodPost, pattern: "/users/{id}/email", panel: panelUsers, guarded: h.userUpdateEmail,
+			mode: routeModeSuperAdmin, write: true, why: "changing a sign-in email changes how the user authenticates",
+		},
+		{
 			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,
 			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
 		},
@@ -215,6 +231,42 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode:    routeModeSuperAdmin,
 			write:   true,
 			why:     "unlinking a user's external account changes how they authenticate",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/users/{id}/roles",
+			panel:   panelUsers,
+			guarded: h.userGrantPlatformRoles,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "platform roles decide who can reach this panel",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/users/{id}/roles/revoke",
+			panel:   panelUsers,
+			guarded: h.userRevokePlatformRoles,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "revoking platform roles can lock a user (or the admin) out",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/users/{id}/credentials/{credential}/delete",
+			panel:   panelUsers,
+			guarded: h.userRemoveCredential,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "removing a passkey changes how the user authenticates",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/users/{id}/resend-verification",
+			panel:   panelUsers,
+			guarded: h.userResendVerification,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "sending mail as a user-visible action must be admin-gated",
 		},
 	}
 }
