@@ -78,7 +78,7 @@
    suppression in `auth_audit.go`; audit tests green under `-race`). **B55**
    (dedicated concurrent -race test) and **B58/B59/B60** (A013 value-embed ×2
    + e2e/sync-demo suites) are not started.
-~~2. **R12 — triage only.** cqrs-lint drift investigated for usermgmt alone;~~ r:R12 remainder — TODO_LIST cqrs-lint 4.19.1 triage row (round-46)
+~~2. **R12 — triage only.** cqrs-lint drift investigated for usermgmt alone;~~ → routed — R12 remainder rides the TODO_LIST cqrs-lint 4.19.1 triage row (round-46)
    the full `check-modules` aggregate has still never run this session
    (the honest gap, second session running).
 

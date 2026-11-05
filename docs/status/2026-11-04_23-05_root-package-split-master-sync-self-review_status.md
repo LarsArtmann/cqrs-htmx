@@ -58,7 +58,7 @@
 1. **Mechanize the rebase-integrity check** this session did by hand: post-rebase, `git diff <parent> <rebase-commit> --name-only` must contain only intended paths — a tiny gate/self-test (pair with gotcha 47's defense text).
 2. **Single-writer windows:** the auto-commit daemon must be suspendable (`BUILD-flow`-style lockfile) during rebases/resolves in a shared checkout; two writers in one tree is gotcha 47 recurring with a new mechanic.
 3. **Sweep scripts need fail-loud scaffolding:** every `while read` loop should assert it consumed N≥1 items and print per-item PASS/FAIL; "ALL OK" on zero iterations must be an error.
-~~4. **Hermetic vs workspace parity** is a known-fleet gap (adminui pin lag + upstream old-codegen): one `check-modules` leg that runs both modes per member would catch pin lag at gate time instead of at consumer time.~~ r:became M04 of docs/planning/2026-11-05_03-11 round-46 tail pareto plan (API-vs-tag drift gate)
+~~4. **Hermetic vs workspace parity** is a known-fleet gap (adminui pin lag + upstream old-codegen): one `check-modules` leg that runs both modes per member would catch pin lag at gate time instead of at consumer time.~~ → routed — became M04 of the round-46 tail pareto plan (API-vs-tag drift gate, `docs/planning/2026-11-05_03-11`)
 5. **Corpus/tail rituals after big merges:** the archive-then-baseline sequence worked, but the duplicated-report case (live copy of already-archived file) deserves a lint in `archive-status` (detect live file whose archived twin exists).
 6. **Go workspace semantics bite silently:** `go test ./...`/`go build ./...` from the root only covers the root module; the repo's own gates encode this (workspace-build per member) — personal muscle memory should too.
 7. **`--no-verify` discipline:** acceptable only with a recorded, reproducible control experiment (this report is that record); the make-up aggregate runs belong in the same change as the bypassed commits.
@@ -81,7 +81,7 @@
 14. `nix run .#check-erraudit-strict` — TOTAL=303 baseline drift check post-+59.
 15. cqrs-lint via flake app; confirm 4.19.1-pseudo triage state holds with new subpackages.
 16. Confirm wrapcheck `ignore-package-globs` covers the new subpackages in every enabled `.golangci.yml`.
-~~17. Verify `api_surface_compat_test.go` pins master's post-fork surface additions (`Posture*` are root-level — confirm the compat test's coverage claim still holds).~~ v:Posture* are root-level symbols (not subpackage re-exports) — outside the compat test's remit; re-export surface compile-pinned green
+~~17. Verify `api_surface_compat_test.go` pins master's post-fork surface additions (`Posture*` are root-level — confirm the compat test's coverage claim still holds).~~ done (verified — Posture* are root-level symbols, not subpackage re-exports, outside the compat test's remit; the re-export surface is compile-pinned green)
 18. Update CURRENT_FOCUS.md: sync done; active thread = templ-train upstream blocker.
 ~~19. Add TODO_LIST row: upstream re-releases block five consumer-module compiles.~~ v:the P1 CI row carries it
 20. Run the two CSS bundle gates (`check-css-bundles`, `check-css-bundle-classes`) after the templ-components v1.27.0 family bump.
@@ -111,7 +111,7 @@
 44. Confirm go.work's catalog replace target still exists/valid (replace-directives gate).
 45. `check-dep-budgets` + self-test on merged state.
 46. `check-require-tags` on merged state (per-module trains).
-~~47. Verify VERSIONING/CHANGELOG receipts: the split touched root's public surface zero — confirm CHANGELOG root section says so when the merge lands.~~ v:CHANGELOG [Unreleased] root-split entry landed
+~~47. Verify VERSIONING/CHANGELOG receipts: the split touched root's public surface zero — confirm CHANGELOG root section says so when the merge lands.~~ done (CHANGELOG [Unreleased] root-split entry landed)
 ~~48. Plan the eventual root tag train (the split is v5-destined per ADR notes; no tag was cut here — deliberately).~~ v:executed 2026-11-05 — root v4.16.0 (split + Posture* in one tag)
 49. Archive this report + the three master live reports at the next report cycle (tail ritual).
 50. Re-run this session's verification battery after master's next daemon wave (the treadmill never stops — gotcha 39).

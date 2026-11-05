@@ -32,8 +32,8 @@
 ## The 3 open questions — resolved by documented autonomous default
 
 1. **flightrecorder v0.2.1 bump train + push:** NOT run — push is the owner's call; the lag-train blocker stands as documented in the 22-34 report.
-   ~~2. **M06 issuance scope:** plan-faithful (F20 comparator + F21 tests only). The full `NextCursor` protocol (engines fill it, `ScanPage` prefers it, `ParseCursor` normalizes the round-tripped JSON form) is queued in **GCL's TODO_LIST** ("Compound-cursor issuance (M06 tail)") with the design notes. Rationale: unsolicited wire-protocol change in a library vs. a bounded plan contract.~~ confirmed — GCL TODO_LIST carries the issuance entry ("Compound-cursor issuance (M06 tail)")
-   ~~3. **Resume order:** tree state inspected first — the mid-edit M06 content HAD survived (daemon committed it as `7584b7a84` while the report was being written).~~ confirmed — content had survived as `7584b7a84`
+   ~~2. **M06 issuance scope:** plan-faithful (F20 comparator + F21 tests only). The full `NextCursor` protocol (engines fill it, `ScanPage` prefers it, `ParseCursor` normalizes the round-tripped JSON form) is queued in **GCL's TODO_LIST** ("Compound-cursor issuance (M06 tail)") with the design notes. Rationale: unsolicited wire-protocol change in a library vs. a bounded plan contract.~~ done (confirmed — GCL TODO_LIST carries the issuance entry ("Compound-cursor issuance (M06 tail)"))
+   ~~3. **Resume order:** tree state inspected first — the mid-edit M06 content HAD survived (daemon committed it as `7584b7a84` while the report was being written).~~ done (confirmed — content had survived as `7584b7a84`)
 
 ## Final battery (all green)
 

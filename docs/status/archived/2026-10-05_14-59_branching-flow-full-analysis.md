@@ -175,8 +175,8 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 
 ## g) Questions I cannot answer myself (Top 3)
 
-1. ~~**Gate intent:** Do you want `branching-flow` wired into this repo's gates (flake app + `check-modules` + CI, like `cqrs-lint`), and if so, which analyzer subset?~~ **Answered 2026-10-05:** YES — shipped with all 14 analyzers + fail-on-NEW ratchet (`94a92e6f`); subset tuning is TODO_LIST R15.
+1. ~~**Gate intent:** Do you want `branching-flow` wired into this repo's gates (flake app + `check-modules` + CI, like `cqrs-lint`), and if so, which analyzer subset?~~ done (answered 2026-10-05: YES — shipped with all 14 analyzers + fail-on-NEW ratchet (`94a92e6f`); subset tuning is TODO_LIST R15).
 2. **Credential duplication:** Is the 4× WebAuthn credential shape an intentional anti-corruption/Published-Language boundary set (keep), or unwanted sprawl to consolidate? — **Still OPEN: routed to ROADMAP OQ28; input memo tracked in TODO_LIST (R11).**
-3. ~~**Scope of action:** Which of the act-on shortlist (items 1-4) should I execute now, and are items 29-40 to be treated as ROADMAP fuel rather than worker tasks?~~ **Answered 2026-10-05:** operator green-lit the full list — items 2-4 executed, item 1 routed (R11/OQ28), 29-40 confirmed ROADMAP fuel (2026-10-05 harvest).
+3. ~~**Scope of action:** Which of the act-on shortlist (items 1-4) should I execute now, and are items 29-40 to be treated as ROADMAP fuel rather than worker tasks?~~ done (answered 2026-10-05: operator green-lit the full list — items 2-4 executed, item 1 routed (R11/OQ28), 29-40 confirmed ROADMAP fuel (2026-10-05 harvest)).
 
 **Status:** ~~WAITING FOR INSTRUCTIONS.~~ Superseded 2026-10-05 — operator ordered full-plan execution; outcomes recorded in this annotation.

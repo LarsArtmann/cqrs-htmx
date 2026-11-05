@@ -243,10 +243,10 @@ Overlap check done: only consumer `go.mod`/`go.sum` files I already carry from `
 
 **Finish the battery (done this session)**
 1. ~~Take `master` consumer aligns~~ — done (five-tag train integrated; `81d691a4`+`e3e446e8`).
-2. ~~`module-isolation`~~ — GREEN.
-3. ~~`release-train --strict-lag 0`~~ — GREEN (882 requires, 0 lag).
-4. ~~`train-consumers-hermetic`~~ — GREEN (20/20).
-5. ~~`nix run .#coverage-gate`~~ — GREEN (15/15).
+2. ~~`module-isolation`~~ — done (GREEN).
+3. ~~`release-train --strict-lag 0`~~ — done (GREEN; 882 requires, 0 lag).
+4. ~~`train-consumers-hermetic`~~ — done (GREEN; 20/20).
+5. ~~`nix run .#coverage-gate`~~ — done (GREEN; 15/15).
 6. ~~Triage `branching-flow` +29~~ — done (§b.1b; baseline re-pinned 184 → 198, amendment
    row written; red only until the commit lands).
 7. ~~Final corpus baseline bump~~ — done as the last docs edit.

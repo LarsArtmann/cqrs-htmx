@@ -546,7 +546,7 @@ deshalb existiert.
 | 2 | `nix run .#check-modules` | 78 Checks; prüft Isolation, Dep-Budgets, Doku-Frische, Tail-Budget | 15 min |
 | 3 | `nix run .#coverage-gate` | 91,5 % ist Handrechnung, nicht Gate | 5 min |
 | 4 | `go test ./...` in `usermgmt`, `setup`, `dashboardui`, `adminui` | Build grün ≠ Verhalten grün; `htmx`-Tests sind jetzt woanders | 10 min |
-| ~~5~~ | ~~Tail-Budget~~ **erledigt in dieser Session** (Archiv-Pass, Tail 4/4) | ~~war rot, ist grün~~ | ~~–~~ |
+| ~~5~~ | ~~Tail-Budget~~ done (**erledigt in dieser Session** — Archiv-Pass, Tail 4/4) | ~~war rot, ist grün~~ | ~~–~~ |
 | 6 | Commit(s) in klaren Stufen | uncommitted = verlorene Arbeit | 5 min |
 
 ### 6.2 Strukturell
@@ -609,7 +609,7 @@ deshalb existiert.
 2. **Gates fahren** in dieser Reihenfolge: `nix fmt` → `.#lint` →
    `go test ./...` pro Modul (mindestens Root + 9 Konsumenten) → `.#check-modules`
    → `.#coverage-gate`.
-3. ~~Tail-Budget reparieren~~ **erledigt** (Archiv-Pass gelaufen, 4/4).
+3. ~~Tail-Budget reparieren~~ done (**erledigt** — Archiv-Pass gelaufen, 4/4).
 4. **Doku**: `AGENTS.md`-Architektur (4 neue Pakete + Richtungsregel),
    `CURRENT_FOCUS.md`, `docs/modularization/2026-11-02_EPISODE5.md` (oder HTML),
    Projekt-Skill-Tabelle.
@@ -729,7 +729,7 @@ deshalb existiert.
 | P3 | `git commit` in 4 Stufen | Arbeit ist gesichert, jede Stufe revertierbar | 5 min |
 | P4 | Import-Richtungs-Gate + Fixture-Test | hält die neue Struktur für immer | 45 min |
 | P5 | `AGENTS.md`-Architektur + Facade-Policy | jeder zukünftige Agent weiß, wo neuer Code hingehört | 20 min |
-| ~~P6~~ | ~~Tail-Budget-Archivpass~~ | ~~**erledigt** in dieser Session (4/4, Gate grün)~~ | ~~3 min~~ |
+| ~~P6~~ | ~~Tail-Budget-Archivpass~~ | ~~done (**erledigt** in dieser Session — 4/4, Gate grün)~~ | ~~3 min~~ |
 
 Summe ≈ 110 Minuten für: gesicherte Arbeit, grüne Gates, dauerhafte Richtung,
 Doku-Konsistenz — also für alles, was einen Umbau von „passiert“ zu „gilt“
