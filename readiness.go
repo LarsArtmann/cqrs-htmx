@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	event "github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -53,7 +54,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 
 		if len(checks) == 0 {
 			w.WriteHeader(http.StatusOK)
-			writeAll(w, []byte(`{"status":"ok"}`))
+			hx.WriteAll(w, []byte(`{"status":"ok"}`))
 
 			return
 		}
@@ -104,7 +105,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 		}
 
-		marshalJSONForResponse(w, result)
+		hx.MarshalJSONForResponse(w, result)
 	}
 }
 
@@ -203,6 +204,6 @@ func DebugHandler(info map[string]any) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-cache")
 
-		writeAll(w, body)
+		hx.WriteAll(w, body)
 	}
 }

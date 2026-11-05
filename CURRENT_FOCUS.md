@@ -27,6 +27,16 @@ use symbols that only exist on HEAD.
   ladder + inventory: [docs/PERMISSIONS.md](docs/PERMISSIONS.md); plan:
   [docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md](docs/planning/2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md).
 
+**Landed on the same day, on its own branch (`modularize/root-package-split`):** the
+root package is decomposed — `htmx/`, `httperr/`, `eventcatalog/`, and the shared
+`internal/hx/` plumbing now sit beside it, with three `*_reexport.go` facades keeping
+the published API byte-identical (`api_surface_compat_test.go` compile-pins it) and
+`nix run .#check-module-layers` enforcing the one-way edges. Root production files
+57 → 51, root-package LOC 8,121 → 7,325, zero consumer changes. It is deliberately NOT
+part of the active thread above: it touches no tag and no published symbol, so it can
+land before or after the round-46 publish. Receipt:
+[docs/status/2026-11-02_14-13_root-package-decomposition-go-modularize-status.md](docs/status/archived/2026-11-02_14-13_root-package-decomposition-go-modularize-status.md).
+
 **Done when** master's CI is green with `identity-model`, root, `usermgmt`,
 `dashboardui`, `adminui`, and `setup` tagged on the symbols they now consume, the
 grant suite is exercised against the real service in `integration_test`, and each
@@ -53,3 +63,6 @@ of our own admin/dashboard routes has a declared posture checked by
 4. **Closed history is not documentation.** `*/archived/` is out of the reading path by design;
    open it only for provenance questions.
 5. **Master stays green.** Never push a stack whose battery is red on content (the 15-57 hold rule).
+6. **One session per working tree.** A second agent in the same checkout will stash your
+   uncommitted work (a Git Town run took 59 files and left a conflicted merge on
+   2026-11-02). Use `git worktree add ../<repo>-<thread> -b <branch>` — [gotcha 47](docs/gotchas.md#gotcha-47).

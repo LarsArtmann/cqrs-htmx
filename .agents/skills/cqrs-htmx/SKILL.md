@@ -56,6 +56,30 @@ An app typically composes some subset of these. They are **independent Go module
 
 Optional bridges also exist: **health** (go-health projection probes), **auditlog** (samber-do-auditlog), **systemadapter** (go-cqrs-lite `system.New` + metaengine). See `docs/guides/fullstack-wiring.md`.
 
+### Subpackages inside the root module (2026-11-02)
+
+The root module is no longer one flat package. Four packages sit beside `cqrshtmx`, and
+each is independently importable — useful when you want one concern without the whole
+handler builder:
+
+| Package (root module)   | Import path                                     | Use it when you want                                                          |
+| ----------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| `htmx`                  | `github.com/larsartmann/cqrs-htmx/v4/htmx`      | Only the HTMX vocabulary: `Request`, `ParseRequest`, `Target`, `ScriptHandler`, `ExtensionHandler`, the `Header*` constants |
+| `httperr`               | `github.com/larsartmann/cqrs-htmx/v4/httperr`   | Only error→HTTP mapping: `MapError`, `SafeDetail`, `StructuredError`, the ready-made handlers |
+| `eventcatalog`          | `github.com/larsartmann/cqrs-htmx/v4/eventcatalog` | Only the published event language: `New`, `Register`, `Handler`            |
+| `internal/hx`           | not importable (internal)                       | —                                                                             |
+
+Two rules that matter:
+
+1. **`cqrshtmx` is still the supported surface.** The three `*_reexport.go` files alias
+   the subpackage symbols, so `cqrshtmx.HTMXScriptHandler` and `htmx.ScriptHandler` are
+   the *identical function value* — a public symbol, a type, and a const were not renamed,
+   only duplicated under the package-qualified spelling.
+2. **The layering is one-way and gated.** `internal/hx` imports nothing in-module;
+   `htmx`/`eventcatalog` import only `internal/hx`; `httperr` imports `htmx`+`internal/hx`;
+   root imports all. `nix run .#check-module-layers` fails on any back-edge — so a
+   subpackage may never import the root package.
+
 The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 
 ```go

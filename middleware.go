@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 const (
@@ -101,8 +103,8 @@ func enrichUserAndActor(ctx context.Context, r *http.Request, extractor UserIDEx
 // repeated header parsing.
 func HTMXMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h := parseHTMXRequest(r)
-		r = r.WithContext(WithHTMX(r.Context(), h))
+		h := htmx.ParseRequest(r)
+		r = r.WithContext(htmx.WithRequest(r.Context(), h))
 		next.ServeHTTP(w, r)
 	})
 }

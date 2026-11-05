@@ -1,4 +1,4 @@
-package cqrshtmx
+package hx
 
 import (
 	"errors"
@@ -22,12 +22,12 @@ func (f *fakeSerializer) JSON() ([]byte, error) {
 func TestSerializeToImmutableHandler_Success(t *testing.T) {
 	want := []byte(`{"hello":"world"}`)
 
-	handler, err := serializeToImmutableHandler(
+	handler, err := SerializeToImmutableHandler(
 		&fakeSerializer{data: want},
 		"code", "msg",
 	)
 	if err != nil {
-		t.Fatalf("serializeToImmutableHandler: %v", err)
+		t.Fatalf("SerializeToImmutableHandler: %v", err)
 	}
 
 	w := httptest.NewRecorder()
@@ -50,7 +50,7 @@ func TestSerializeToImmutableHandler_Success(t *testing.T) {
 func TestSerializeToImmutableHandler_Error(t *testing.T) {
 	wantErr := errors.New("serialize failed")
 
-	_, err := serializeToImmutableHandler(
+	_, err := SerializeToImmutableHandler(
 		&fakeSerializer{err: wantErr},
 		"code", "msg",
 	)

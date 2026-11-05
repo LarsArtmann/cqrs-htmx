@@ -1,28 +1,28 @@
-package cqrshtmx_test
+package eventcatalog_test
 
 import (
 	"encoding/json/v2"
 	"strings"
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 )
 
 func TestEventCatalog_RegisterAndEvents(t *testing.T) {
-	catalog := cqrshtmx.NewEventCatalog()
+	catalog := eventcatalog.New()
 
-	catalog.Register(cqrshtmx.EventMetadata{
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "UserRegistered",
 		Aggregate:     "User",
 		SchemaVersion: 2,
 		Description:   "A user registered",
-		PayloadFields: []cqrshtmx.PayloadField{
+		PayloadFields: []eventcatalog.PayloadField{
 			{Name: "email", Type: "string", Required: true},
 			{Name: "display_name", Type: "string"},
 		},
 	})
 
-	catalog.Register(cqrshtmx.EventMetadata{
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "MemberAdded",
 		Aggregate:     "Membership",
 		SchemaVersion: 2,
@@ -43,16 +43,16 @@ func TestEventCatalog_RegisterAndEvents(t *testing.T) {
 }
 
 func TestEventCatalog_RegisterDuplicateReplaces(t *testing.T) {
-	catalog := cqrshtmx.NewEventCatalog()
+	catalog := eventcatalog.New()
 
-	catalog.Register(cqrshtmx.EventMetadata{
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "UserRegistered",
 		Aggregate:     "User",
 		SchemaVersion: 1,
 		Description:   "original",
 	})
 
-	catalog.Register(cqrshtmx.EventMetadata{
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "UserRegistered",
 		Aggregate:     "User",
 		SchemaVersion: 2,
@@ -74,8 +74,8 @@ func TestEventCatalog_RegisterDuplicateReplaces(t *testing.T) {
 }
 
 func TestEventCatalog_EventsReturnsCopy(t *testing.T) {
-	catalog := cqrshtmx.NewEventCatalog()
-	catalog.Register(cqrshtmx.EventMetadata{Type: "TestEvent", Aggregate: "Test"})
+	catalog := eventcatalog.New()
+	catalog.Register(eventcatalog.EventMetadata{Type: "TestEvent", Aggregate: "Test"})
 
 	first := catalog.Events()
 	first[0].Type = "MUTATED"
@@ -87,19 +87,19 @@ func TestEventCatalog_EventsReturnsCopy(t *testing.T) {
 }
 
 func TestEventCatalog_JSON(t *testing.T) {
-	catalog := cqrshtmx.NewEventCatalog()
+	catalog := eventcatalog.New()
 
-	catalog.Register(cqrshtmx.EventMetadata{
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "UserRegistered",
 		Aggregate:     "User",
 		SchemaVersion: 2,
 		Description:   "A user registered",
-		PayloadFields: []cqrshtmx.PayloadField{
+		PayloadFields: []eventcatalog.PayloadField{
 			{Name: "email", Type: "string", Required: true},
 		},
 	})
 
-	catalog.Register(cqrshtmx.EventMetadata{
+	catalog.Register(eventcatalog.EventMetadata{
 		Type:          "TenantCreated",
 		Aggregate:     "Tenant",
 		SchemaVersion: 2,
@@ -125,7 +125,7 @@ func TestEventCatalog_JSON(t *testing.T) {
 		}
 	}
 
-	var events []cqrshtmx.EventMetadata
+	var events []eventcatalog.EventMetadata
 	if err := json.Unmarshal(data, &events); err != nil {
 		t.Fatalf("failed to unmarshal JSON: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestEventCatalog_JSON(t *testing.T) {
 }
 
 func TestEventCatalog_JSONEmpty(t *testing.T) {
-	catalog := cqrshtmx.NewEventCatalog()
+	catalog := eventcatalog.New()
 
 	data, err := catalog.JSON()
 	if err != nil {

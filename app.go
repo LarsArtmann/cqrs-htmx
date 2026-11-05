@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -160,12 +162,12 @@ func New(config Config) (*App, error) {
 
 	errorHandler := config.ErrorHandler
 	if errorHandler == nil {
-		bodyOpts := plainBodyOptions{
-			includeInternal:  config.IncludeInternalDetails,
-			includeRequestID: config.IncludeRequestIDInErrors,
+		bodyOpts := httperr.PlainBodyOptions{
+			IncludeInternal:  config.IncludeInternalDetails,
+			IncludeRequestID: config.IncludeRequestIDInErrors,
 		}
 		errorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-			handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, bodyOpts))
+			httperr.HandleErrorCore(w, r, err, loginRedirect, httperr.PlainBodyWriter(r, bodyOpts))
 		}
 	}
 
@@ -478,14 +480,14 @@ func (a *App) HealthHandler() http.HandlerFunc {
 		if !hasDispatchers {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusServiceUnavailable)
-			writeAll(w, unhealthyBody)
+			hx.WriteAll(w, unhealthyBody)
 
 			return
 		}
 
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.WriteHeader(http.StatusOK)
-		writeAll(w, healthyBody)
+		hx.WriteAll(w, healthyBody)
 	}
 }
 

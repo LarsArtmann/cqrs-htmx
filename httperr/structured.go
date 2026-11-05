@@ -1,9 +1,10 @@
-package cqrshtmx
+package httperr
 
 import (
 	"context"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -89,7 +90,7 @@ type StructuredError struct {
 // If err is nil, returns a zero-value StructuredError (callers should check err first).
 func NewStructuredError(err error, r *http.Request) StructuredError {
 	if err == nil {
-		return StructuredError{} //nolint:exhaustruct // zero-value return
+		return StructuredError{} //nolint:exhaustruct_v5 // zero-value return
 	}
 
 	return newStructuredErrorFromContext(err, requestContextOrBackground(r))
@@ -99,7 +100,7 @@ func NewStructuredError(err error, r *http.Request) StructuredError {
 // instead of a request. Useful when you only have the dispatch context.
 func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredError {
 	if err == nil {
-		return StructuredError{} //nolint:exhaustruct // zero-value return
+		return StructuredError{} //nolint:exhaustruct_v5 // zero-value return
 	}
 
 	return newStructuredErrorFromContext(err, ctx)
@@ -115,7 +116,7 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 	instance := ""
 
 	if ctx != nil {
-		if rid := RequestIDFromContext(ctx); !rid.IsZero() {
+		if rid := hx.RequestIDFromContext(ctx); !rid.IsZero() {
 			instance = rid.String()
 		}
 	}
@@ -163,7 +164,7 @@ func requestContextOrBackground(r *http.Request) context.Context {
 // Returns a minimum-valid RFC 7807 document if marshalling fails (should not
 // happen for this type).
 func (e StructuredError) JSON() string {
-	return marshalJSONOrFallback(
+	return hx.MarshalJSONOrFallback(
 		e,
 		`{"type":"about:blank","title":"Internal Server Error","status":500,"detail":"failed to marshal error"}`,
 	)

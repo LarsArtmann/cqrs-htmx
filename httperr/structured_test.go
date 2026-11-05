@@ -1,4 +1,4 @@
-package cqrshtmx_test
+package httperr_test
 
 import (
 	"context"
@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -16,8 +17,8 @@ import (
 var _ = Describe("StructuredError", func() {
 	Describe("NewStructuredError", func() {
 		It("maps a Rejection error to 400 with correct fields", func() {
-			err := cqrshtmx.ErrValidationFailed
-			se := cqrshtmx.NewStructuredError(err, nil)
+			err := httperr.ErrValidationFailed
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(Equal(http.StatusBadRequest))
 			Expect(se.Type).To(Equal("rejection"))
@@ -27,7 +28,7 @@ var _ = Describe("StructuredError", func() {
 
 		It("maps a generic error to Transient (503)", func() {
 			err := errors.New("something broke")
-			se := cqrshtmx.NewStructuredError(err, nil)
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(Equal(http.StatusServiceUnavailable))
 			// 5xx detail is redacted to the family's public-safe default message.
@@ -41,24 +42,24 @@ var _ = Describe("StructuredError", func() {
 		})
 
 		It("extracts request ID from the request context", func() {
-			rid := cqrshtmx.NewRequestID()
+			rid := hx.NewRequestID()
 
-			ctx := cqrshtmx.WithRequestID(context.Background(), rid)
+			ctx := hx.WithRequestID(context.Background(), rid)
 			r := httptest.NewRequest(http.MethodPost, "/api/cmd", nil).WithContext(ctx)
 
-			se := cqrshtmx.NewStructuredError(errors.New("fail"), r)
+			se := httperr.NewStructuredError(errors.New("fail"), r)
 			Expect(se.Instance).To(Equal(rid.String()))
 		})
 
 		It("returns zero value when err is nil", func() {
-			se := cqrshtmx.NewStructuredError(nil, nil)
+			se := httperr.NewStructuredError(nil, nil)
 			Expect(se.Status).To(Equal(0))
 			Expect(se.Detail).To(BeEmpty())
 		})
 
 		It("maps Conflict family to 409", func() {
 			err := errorfamily.NewConflict("email_taken", "email already registered")
-			se := cqrshtmx.NewStructuredError(err, nil)
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(Equal(http.StatusConflict))
 			Expect(se.Type).To(Equal("conflict"))
@@ -66,15 +67,15 @@ var _ = Describe("StructuredError", func() {
 		})
 
 		It("populates Code from the error's Code() method", func() {
-			err := cqrshtmx.ErrValidationFailed
-			se := cqrshtmx.NewStructuredError(err, nil)
+			err := httperr.ErrValidationFailed
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Code).To(Equal("validation_failed"))
 		})
 
 		It("includes code in JSON output", func() {
-			err := cqrshtmx.ErrValidationFailed
-			se := cqrshtmx.NewStructuredError(err, nil)
+			err := httperr.ErrValidationFailed
+			se := httperr.NewStructuredError(err, nil)
 
 			var decoded map[string]any
 			Expect(json.Unmarshal([]byte(se.JSON()), &decoded)).To(Succeed())
@@ -82,8 +83,8 @@ var _ = Describe("StructuredError", func() {
 		})
 
 		It("maps Transient family to 503", func() {
-			err := cqrshtmx.ErrDispatchFailed
-			se := cqrshtmx.NewStructuredError(err, nil)
+			err := httperr.ErrDispatchFailed
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(Equal(http.StatusServiceUnavailable))
 			Expect(se.Type).To(Equal("transient"))
@@ -92,23 +93,23 @@ var _ = Describe("StructuredError", func() {
 
 	Describe("NewStructuredErrorWithContext", func() {
 		It("extracts request ID from context", func() {
-			rid := cqrshtmx.NewRequestID()
+			rid := hx.NewRequestID()
 
-			ctx := cqrshtmx.WithRequestID(context.Background(), rid)
-			se := cqrshtmx.NewStructuredErrorWithContext(errors.New("fail"), ctx)
+			ctx := hx.WithRequestID(context.Background(), rid)
+			se := httperr.NewStructuredErrorWithContext(errors.New("fail"), ctx)
 
 			Expect(se.Instance).To(Equal(rid.String()))
 		})
 
 		It("returns zero value when err is nil", func() {
-			se := cqrshtmx.NewStructuredErrorWithContext(nil, context.Background())
+			se := httperr.NewStructuredErrorWithContext(nil, context.Background())
 			Expect(se.Status).To(Equal(0))
 		})
 	})
 
 	Describe("JSON", func() {
 		It("serializes to valid JSON with all fields", func() {
-			se := cqrshtmx.StructuredError{
+			se := httperr.StructuredError{
 				Type:     "rejection",
 				Title:    "Bad Request",
 				Status:   400,
@@ -129,7 +130,7 @@ var _ = Describe("StructuredError", func() {
 		})
 
 		It("omits empty instance field", func() {
-			se := cqrshtmx.StructuredError{
+			se := httperr.StructuredError{
 				Type:     "rejection",
 				Title:    "Bad Request",
 				Status:   400,
@@ -146,7 +147,7 @@ var _ = Describe("StructuredError", func() {
 
 	Describe("JSON round-trip", func() {
 		It("marshals and unmarshals correctly", func() {
-			original := cqrshtmx.StructuredError{
+			original := httperr.StructuredError{
 				Type:     "conflict",
 				Title:    "Conflict",
 				Status:   409,
@@ -157,7 +158,7 @@ var _ = Describe("StructuredError", func() {
 			data, err := json.Marshal(original)
 			Expect(err).NotTo(HaveOccurred())
 
-			var decoded cqrshtmx.StructuredError
+			var decoded httperr.StructuredError
 			Expect(json.Unmarshal(data, &decoded)).To(Succeed())
 
 			Expect(decoded).To(Equal(original))
@@ -166,34 +167,34 @@ var _ = Describe("StructuredError", func() {
 
 	Describe("Context (RFC 7807 extension, round-45 M13)", func() {
 		It("carries machine context to API clients for client-fault statuses", func() {
-			base := errorfamily.Wrapf(cqrshtmx.ErrRequestTooLarge, errorfamily.Rejection,
-				"cqrshtmx.decode.body.too_large", "body of 200 bytes exceeds limit")
+			base := errorfamily.Wrapf(httperr.ErrRequestTooLarge, errorfamily.Rejection,
+				"httperr.decode.body.too_large", "body of 200 bytes exceeds limit")
 			err := base.WithContextAny("max_body_size", 100)
-			se := cqrshtmx.NewStructuredError(err, nil)
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(Equal(http.StatusRequestEntityTooLarge))
 			Expect(se.Context).To(HaveKeyWithValue("max_body_size", "100"))
 		})
 
 		It("carries form_key context for ambiguous form keys", func() {
-			err := errorfamily.NewRejection("cqrshtmx.decode.form.key_collision",
+			err := errorfamily.NewRejection("httperr.decode.form.key_collision",
 				"ambiguous form key").WithContext("form_key", "Name")
-			se := cqrshtmx.NewStructuredError(err, nil)
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Context).To(HaveKeyWithValue("form_key", "Name"))
 		})
 
 		It("redacts context on server faults (5xx), mirroring the Detail rule", func() {
-			err := errorfamily.NewInfrastructure("cqrshtmx.test.internal",
+			err := errorfamily.NewInfrastructure("httperr.test.internal",
 				"internal failure").WithContext("user_id", "u-123")
-			se := cqrshtmx.NewStructuredError(err, nil)
+			se := httperr.NewStructuredError(err, nil)
 
 			Expect(se.Status).To(BeNumerically(">=", 500))
 			Expect(se.Context).To(BeEmpty(), "5xx context entries are internal diagnostics and must not reach the wire")
 		})
 
 		It("omits the context field entirely when the error carries none", func() {
-			data, err := json.Marshal(cqrshtmx.NewStructuredError(cqrshtmx.ErrValidationFailed, nil))
+			data, err := json.Marshal(httperr.NewStructuredError(httperr.ErrValidationFailed, nil))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(
 				string(data),

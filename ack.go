@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
 )
@@ -65,7 +66,7 @@ func (a CommandAck) MarshalJSON() ([]byte, error) {
 
 // ackJSON serializes to a string for SSEEvent.Data, with a safe fallback.
 func (a CommandAck) ackJSON() string {
-	return marshalJSONOrFallback(a, `{"commandId":"","status":"rejected","error":"ack marshal failed"}`)
+	return hx.MarshalJSONOrFallback(a, `{"commandId":"","status":"rejected","error":"ack marshal failed"}`)
 }
 
 // CommandIDFromRequest extracts the client-generated command ID from the

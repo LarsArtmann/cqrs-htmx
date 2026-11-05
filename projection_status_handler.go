@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	etag "github.com/larsartmann/go-etag/server"
 )
 
@@ -59,7 +60,7 @@ func serveProjectionStatus(provider ProjectionStatusProvider) http.HandlerFunc {
 		if provider == nil {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusServiceUnavailable)
-			writeAll(w, []byte(`{"error":"no projection status provider configured"}`))
+			hx.WriteAll(w, []byte(`{"error":"no projection status provider configured"}`))
 
 			return
 		}
@@ -70,17 +71,17 @@ func serveProjectionStatus(provider ProjectionStatusProvider) http.HandlerFunc {
 		if err != nil {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusInternalServerError)
-			writeAll(w, []byte(`{"error":"failed to serialize projection status"}`))
+			hx.WriteAll(w, []byte(`{"error":"failed to serialize projection status"}`))
 
 			return
 		}
 
-		tag := `"` + hashTag(data) + `"`
+		tag := `"` + hx.HashTag(data) + `"`
 
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("ETag", tag)
 
-		writeAll(w, data)
+		hx.WriteAll(w, data)
 	}
 }

@@ -3,6 +3,7 @@ package cqrshtmx
 import (
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	"github.com/larsartmann/httputil"
 )
 
@@ -46,7 +47,7 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, handlerCfg *h
 	}
 
 	w.WriteHeader(rec.Code)
-	writeAll(w, rec.Body.Bytes())
+	hx.WriteAll(w, rec.Body.Bytes())
 
 	return httputil.ErrCSRFInvalid
 }

@@ -1,4 +1,4 @@
-package cqrshtmx
+package httperr
 
 import (
 	"errors"

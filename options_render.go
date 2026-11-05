@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -44,7 +45,7 @@ func RenderHTML(html string) HandlerOption {
 	return func(config *handlerConfig) {
 		config.render = func(w http.ResponseWriter, _ *http.Request, _ any) error {
 			w.Header().Set("Content-Type", ContentTypeHTML)
-			writeAll(w, []byte(html))
+			hx.WriteAll(w, []byte(html))
 
 			return nil
 		}

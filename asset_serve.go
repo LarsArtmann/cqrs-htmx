@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -19,7 +20,7 @@ import (
 // silently diverged). Exposed for handlers and tests that need to reference
 // the served tag out-of-band.
 func AssetETag(name string, data []byte) string {
-	return `"` + name + "-" + hashTag(data) + `"`
+	return `"` + name + "-" + hx.HashTag(data) + `"`
 }
 
 // ServeAsset returns an http.Handler serving pre-loaded asset bytes with the
