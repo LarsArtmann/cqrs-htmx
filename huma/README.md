@@ -89,10 +89,10 @@ pipeline produces, because both go through `httperr.MapError`.
 
 ### Registration
 
-| Function | Purpose |
-| --- | --- |
-| `RegisterCommand[I](api, pipe, op, build, opts...)` | Dispatch a command built from the typed input; success answers `op.DefaultStatus` with no body |
-| `RegisterQuery[I, O](api, pipe, op, build, respond, opts...)` | Dispatch a query and turn its result into the typed output |
+| Function                                                      | Purpose                                                                                        |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `RegisterCommand[I](api, pipe, op, build, opts...)`           | Dispatch a command built from the typed input; success answers `op.DefaultStatus` with no body |
+| `RegisterQuery[I, O](api, pipe, op, build, respond, opts...)` | Dispatch a query and turn its result into the typed output                                     |
 
 Both run the same stage order: **authorize → build → validate → guard →
 dispatch**. Registering with a nil API, adapter or function panics at startup,
@@ -100,27 +100,27 @@ the way `App.Command("")` does.
 
 ### Options
 
-| Option | Meaning |
-| --- | --- |
-| `Authorize(resource, action)` | Require `action` on `resource` in the wildcard domain (`*`) |
-| `AuthorizeIn(domain, resource, action)` | Tenant-scoped permission question |
+| Option                                                 | Meaning                                                                                  |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `Authorize(resource, action)`                          | Require `action` on `resource` in the wildcard domain (`*`)                              |
+| `AuthorizeIn(domain, resource, action)`                | Tenant-scoped permission question                                                        |
 | `AuthorizeOn(func(ctx, *I) (cqrshtmx.Request, error))` | Derive the whole question from the typed input (path params, tenant header, resource ID) |
-| `RequireAuth()` | Require an authenticated caller without asking the policy engine |
-| `ValidateCommand(fn)` / `ValidateQuery(fn)` | Reject invalid commands/queries with 400 and the shared `cqrshtmx.validate.failed` code |
-| `Guard(func(ctx, any) error)` | Ownership checks, API keys, feature flags — runs after build+validate, before dispatch |
-| `WithTimeout(d)` | Per-operation dispatch timeout, overriding `Config.Timeout` |
+| `RequireAuth()`                                        | Require an authenticated caller without asking the policy engine                         |
+| `ValidateCommand(fn)` / `ValidateQuery(fn)`            | Reject invalid commands/queries with 400 and the shared `cqrshtmx.validate.failed` code  |
+| `Guard(func(ctx, any) error)`                          | Ownership checks, API keys, feature flags — runs after build+validate, before dispatch   |
+| `WithTimeout(d)`                                       | Per-operation dispatch timeout, overriding `Config.Timeout`                              |
 
 ### Stages as callables
 
 A handler shape the helpers do not cover (custom output types, response
 headers, a second dispatch) can call the stages directly:
 
-| Method | Purpose |
-| --- | --- |
-| `pipe.Authorize(ctx, req)` | Ask one authorization question; a denial is classified 401/403, an engine failure is an error (503), never a silent denial |
-| `pipe.DispatchCommand(ctx, cmd)` | Enrich from ctx, apply the timeout, dispatch |
-| `pipe.DispatchQuery(ctx, qry)` | Query-side mirror |
-| `MapError(ctx, err)` | Convert any error into the `application/problem+json` body Huma writes |
+| Method                           | Purpose                                                                                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `pipe.Authorize(ctx, req)`       | Ask one authorization question; a denial is classified 401/403, an engine failure is an error (503), never a silent denial |
+| `pipe.DispatchCommand(ctx, cmd)` | Enrich from ctx, apply the timeout, dispatch                                                                               |
+| `pipe.DispatchQuery(ctx, qry)`   | Query-side mirror                                                                                                          |
+| `MapError(ctx, err)`             | Convert any error into the `application/problem+json` body Huma writes                                                     |
 
 ### The error document
 
@@ -129,15 +129,15 @@ the same document the route-based error handler writes:
 
 ```json
 {
-  "type": "conflict",
-  "title": "Conflict",
-  "status": 409,
-  "detail": "visit already recorded",
-  "code": "visit.exists",
-  "instance": "01JBREQID...",
-  "message": "…",
-  "why": "…",
-  "fix": "…"
+	"type": "conflict",
+	"title": "Conflict",
+	"status": 409,
+	"detail": "visit already recorded",
+	"code": "visit.exists",
+	"instance": "01JBREQID...",
+	"message": "…",
+	"why": "…",
+	"fix": "…"
 }
 ```
 
@@ -161,12 +161,14 @@ does not relabel it.
 
 ## Wiring with setup/v4
 
-`setup.New` builds the dispatchers inside `*usermgmt.Service` and does not
-expose them, so a `setup`-based app registers Huma operations for the service's
-own API surface (`Service.Dispatch` style) rather than for a dispatcher this
-module owns. The adapter is the right tool for apps that build their own
-dispatchers — the pattern `docs/guides/fullstack-wiring.md` describes for
-"root App only" consumers.
+The adapter needs the dispatchers themselves. `setup.New` builds them inside
+`*usermgmt.Service` and deliberately does not expose them (`Service.Dispatcher()`
+is unexported by design), so a pure `setup` bundle has nothing to hand the
+adapter. It fits the other shape: an app that owns its domain dispatchers next
+to a `setup` bundle (identity), or a consumer on the "root App only" wiring in
+`docs/guides/fullstack-wiring.md`. Identity work then goes through
+`Service` methods and your domain commands go through the adapter — one
+authorization engine (`svc.Authz()`), one error vocabulary.
 
 ## License
 

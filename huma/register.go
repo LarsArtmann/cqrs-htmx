@@ -170,9 +170,9 @@ func (a *Adapter) authorize(ctx context.Context, cfg *operationConfig, in any) e
 		}
 
 		return a.authorizeRequest(ctx, req)
-	default:
-		return nil
 	}
+
+	return nil
 }
 
 // runGuard runs the operation's guard, when it has one.
