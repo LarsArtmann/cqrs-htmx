@@ -4,11 +4,15 @@ import (
 	"context"
 	"encoding/json/v2"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // rawInMemorySessions unwraps the auditing decorator to the underlying
@@ -115,18 +119,33 @@ func TestSessionAudit_ImpersonationForensicsSurviveSessionDeletion(t *testing.T)
 	// The forensic question from cqrs-htmx#25: after the session rows are
 	// gone (they are — EndImpersonation deleted the only copy), the journal
 	// alone must answer "who impersonated user X, when, and why".
-	starts := sessionStartsInJournal(t, svc)
-	var impersonation *identitymodel.SessionStartedPayload
+	var (
+		impersonation    *identitymodel.SessionStartedPayload
+		impersonationEvt event.Event
+	)
 
-	for i := range starts {
-		if starts[i].Impersonator != "" {
-			impersonation = &starts[i]
+	for _, evt := range journalEventsByType(t, svc, eventSessionStarted) {
+		var payload identitymodel.SessionStartedPayload
+		if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
+			t.Fatalf("unmarshal SessionStarted payload: %v", err)
+		}
+
+		if payload.Impersonator != "" {
+			impersonation = &payload
+			impersonationEvt = evt
+
 			break
 		}
 	}
 
 	if impersonation == nil {
 		t.Fatal("no impersonation SessionStarted event in the journal")
+	}
+
+	// The event actor is the impersonator, not the target: "everything admin
+	// Y did" must return their impersonation window without a payload scan.
+	if got, want := impersonationEvt.Metadata().ActorID, ActorIDFromUser(adminID); got != want {
+		t.Errorf("SessionStarted event actor = %v, want the impersonator %v", got, want)
 	}
 
 	if impersonation.Impersonator != ActorIDFromUser(adminID).PrefixedString() {
@@ -169,6 +188,10 @@ func TestSessionAudit_ImpersonationForensicsSurviveSessionDeletion(t *testing.T)
 
 			if payload.Impersonator != impersonation.Impersonator {
 				t.Errorf("end impersonator = %q, want %q", payload.Impersonator, impersonation.Impersonator)
+			}
+
+			if got, want := evt.Metadata().ActorID, ActorIDFromUser(adminID); got != want {
+				t.Errorf("SessionEnded event actor = %v, want the impersonator %v", got, want)
 			}
 		}
 	}
@@ -347,5 +370,87 @@ func TestSessionAudit_DecoratorPreservesStoreContract(t *testing.T) {
 
 	if ends := journalEventsByType(t, svc, eventSessionEnded); len(ends) != 0 {
 		t.Errorf("Find journaled %d end events, want 0", len(ends))
+	}
+}
+
+// TestSessionAudit_OAuth2LoginEmitsSessionStarted pins the second login path
+// through the auditing chokepoint: OAuth2 mints sessions on an OAuth2Service
+// that shares the decorated store, so its first-login must journal exactly one
+// SessionStarted — no OAuth2-specific emission code exists to forget.
+func TestSessionAudit_OAuth2LoginEmitsSessionStarted(t *testing.T) {
+	t.Parallel()
+
+	svc := newTestServiceWithConfig(t, ServiceConfig{
+		Authz:  newTestAuthz(t),
+		OAuth2: testOAuth2Provider{},
+	})
+	t.Cleanup(svc.Stop)
+
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
+	mux := http.NewServeMux()
+	h.RegisterOAuth2Routes(mux)
+
+	beginReq := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/begin", nil)
+	beginW := httptest.NewRecorder()
+	mux.ServeHTTP(beginW, beginReq)
+	assertStatusCode(t, beginW, http.StatusFound)
+
+	parsedURL, err := url.Parse(beginW.Header().Get("Location"))
+	if err != nil {
+		t.Fatalf("parse redirect URL: %v", err)
+	}
+
+	state := parsedURL.Query().Get("state")
+	if state == "" {
+		t.Fatal("redirect URL missing state")
+	}
+
+	cbReq := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/callback?code=test-code&state="+state, nil)
+	cbW := httptest.NewRecorder()
+	mux.ServeHTTP(cbW, cbReq)
+	assertStatusCode(t, cbW, http.StatusOK)
+
+	payloads := sessionStartsInJournal(t, svc)
+	if len(payloads) != 1 {
+		t.Fatalf("expected exactly 1 SessionStarted event, got %d", len(payloads))
+	}
+
+	if payloads[0].Impersonator != "" || payloads[0].Reason != "" {
+		t.Errorf("OAuth2 login session must not carry impersonation fields, got %+v", payloads[0])
+	}
+
+	if payloads[0].TokenHash == "" {
+		t.Error("OAuth2 login SessionStarted carries no token hash")
+	}
+}
+
+// TestSessionAudit_WebAuthnLoginEmitsSessionStarted pins the third login path:
+// the passkey ceremony mints its session through the same decorated store, so
+// a successful assertion journals a second SessionStarted (the first one came
+// from registration) with its own token hash.
+func TestSessionAudit_WebAuthnLoginEmitsSessionStarted(t *testing.T) {
+	t.Parallel()
+
+	svc := newWebAuthnTestServiceWithConfig(t)
+	reg := registerTestUser(t, svc, "sa-webauthn", "webauthn@test.com")
+	addTestCredential(t, svc, reg.User.ID, testUseCredential())
+
+	if err := beginAndFinishLogin(t, svc, reg.User.ID, reg.User.Email); err != nil {
+		t.Fatalf("FinishLogin: %v", err)
+	}
+
+	payloads := sessionStartsInJournal(t, svc)
+	if len(payloads) != 2 {
+		t.Fatalf("expected 2 SessionStarted events (register + login), got %d", len(payloads))
+	}
+
+	login := payloads[1]
+	if login.Impersonator != "" || login.Reason != "" {
+		t.Errorf("WebAuthn login session must not carry impersonation fields, got %+v", login)
+	}
+
+	if login.TokenHash == "" || login.TokenHash == payloads[0].TokenHash {
+		t.Errorf("login token hash %q must differ from the registration session's %q",
+			login.TokenHash, payloads[0].TokenHash)
 	}
 }
