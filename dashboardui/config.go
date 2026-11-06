@@ -364,6 +364,7 @@ func buildNav(caps Capabilities) []NavLink {
 		{caps.DeadLetterStore || caps.ProjectionHost, "/dead-letters", "Dead Letters", icons.BugAnt},
 		{caps.CommandJournal, "/commands", "Commands", icons.Clipboard},
 		{caps.HasEventRead(), "/command-fates", "Command Fates", icons.ExclamationTriangle},
+		{caps.HasEventRead(), "/throughput", "Throughput", icons.Chart},
 		{caps.QueryJournal, "/queries", "Queries", icons.Search},
 		{caps.EventSource, "/time-travel", "Time Travel", icons.Clock},
 		{caps.SnapshotStore, "/snapshots", "Snapshots", icons.ArchiveBox},

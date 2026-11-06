@@ -19,6 +19,7 @@ const (
 	panelDeadLetters   = "Dead letters"
 	panelCommands      = "Commands"
 	panelCommandFates  = "Command fates"
+panelThroughput    = "Throughput"
 	panelQueries       = "Queries"
 	panelTimeTravel    = "Time travel"
 	panelSnapshots     = "Snapshots"
@@ -307,6 +308,15 @@ func (d *Dashboard) capabilityRoutes() []routeSpec {
 			pattern: "/command-fates",
 			panel:   panelCommandFates,
 			handler: d.commandFatesIndexHandler,
+			when:    whenCaps(Capabilities.HasEventRead),
+		},
+
+		// Event Throughput.
+		{
+			method:  http.MethodGet,
+			pattern: "/throughput",
+			panel:   panelThroughput,
+			handler: d.throughputIndexHandler,
 			when:    whenCaps(Capabilities.HasEventRead),
 		},
 

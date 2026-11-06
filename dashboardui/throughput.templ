@@ -1,0 +1,57 @@
+package dashboardui
+
+import (
+	"strconv"
+	"time"
+
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
+)
+
+// ===== Event Throughput =====
+
+templ throughputPage(p pageData, data eventThroughput) {
+	@layout(p, throughputContent(p, data))
+}
+
+templ throughputContent(p pageData, data eventThroughput) {
+	if data.InWindow == 0 {
+		@emptyStatePanel(
+			icons.Chart,
+			p.empty[EmptyStateThroughput].Title,
+			p.empty[EmptyStateThroughput].Message,
+		)
+	} else {
+		<div class="page-header">
+			<h2>Event Throughput</h2>
+			<div class="page-subtitle">{ throughputSubtitle(data) }</div>
+		</div>
+		<div class="card p-4">
+			@display.LineChart(display.LineChartProps{
+				BaseProps:    utils.BaseProps{Nonce: p.Nonce},
+				Series:       []display.LineChartSeries{{Name: "events", Values: data.Counts}},
+				XAxisLabels:  data.Labels,
+				ShowLegend:   false,
+				EmptyMessage: "No events in window",
+			})
+		</div>
+	}
+}
+
+// throughputSubtitle is the honest window description: what the chart covers,
+// how many events it counted, and what fell off the left edge.
+func throughputSubtitle(data eventThroughput) string {
+	subtitle := "Events per " + data.Window.String() +
+		" over the last " + (data.Window * time.Duration(len(data.Counts))).String() +
+		" — " + strconv.Itoa(data.InWindow) + " in window"
+	if data.Older > 0 {
+		subtitle += ", " + strconv.Itoa(data.Older) + " older (off-chart)"
+	}
+
+	if data.Scanned > data.InWindow+data.Older {
+		subtitle += ", " + strconv.Itoa(data.Scanned) + " scanned"
+	}
+
+	return subtitle
+}

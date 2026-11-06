@@ -84,7 +84,9 @@ func LoadEventThroughput(
 	}
 
 	for i := range out.Counts {
-		bucketStart := newest.Add(-window * time.Duration(buckets-1-i))
+		// Bucket i covers ages [(buckets-1-i)*window, (buckets-i)*window), so
+		// its left edge sits (buckets-i) windows before the newest event.
+		bucketStart := newest.Add(-window * time.Duration(buckets-i))
 		out.Labels[i] = bucketStart.Format(labelFormat)
 	}
 
