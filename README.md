@@ -50,7 +50,7 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 - [Quick start](#quick-start) — first endpoint in minutes
 - [The composition model](#the-composition-model) — how `HandlerOption` values compose
 - [Choose your integration path](#choose-your-integration-path) — setup SDK vs hand-wiring
-- [The modules](#the-modules) — usermgmt, adminui, dashboardui, setup, datastar
+- [The modules](#the-modules) — usermgmt, adminui, dashboardui, setup, datastar, huma
 - [Realtime: SSE and offline sync](#realtime-sse-and-offline-sync)
 - [Error handling](#error-handling) — domain errors → HTTP status mapping
 - [Ready-made UIs & the one-call setup](#ready-made-uis--the-one-call-setup)
@@ -99,6 +99,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 - **SSE, hub-first** — thread-safe `Broadcaster` fan-out, durable replay via `JournalSSEStore`, the canonical `transport.ServeDomainEvents` domain-event surface with filtering and replay caps, heartbeats for proxy keepalive, and an opt-in ACK protocol for command confirmation ([guide](docs/guides/sse-and-datastar.md))
 - **Offline sync protocol** — cursor-based, permission-filtered event pull (`SyncPullHandler`) + batched command push (`App.SyncPushHandler`) with per-command outcomes, plus an embedded JS client (IndexedDB queue + event cache, `window.cqrsSync`). The server keeps all authority: clients sync commands up, cache events down ([guide](docs/guides/frontend-sync.md))
 - **DataStar adapter** — optional [`datastar`](datastar/README.md) module: script serving, signal decoding, SSE response builder ([guide](docs/guides/datastar-integration.md))
+- **Huma v2 adapter** — optional [`huma`](huma/README.md) module: the same authorize → validate → guard → dispatch pipeline inside typed OpenAPI operations, with the same RFC 9457 error document; Huma still owns decode, status codes and the generated schema ([guide](docs/guides/fullstack-wiring.md#openapi-first-apis-huma-v2-on-the-same-pipeline-the-humav4-module))
 
 **Production posture**
 
@@ -133,6 +134,7 @@ go get github.com/larsartmann/cqrs-htmx/dashboardui/v4         # ES observabilit
 go get github.com/larsartmann/cqrs-htmx/loginpage/v4           # login page
 go get github.com/larsartmann/cqrs-htmx/setup/v4               # one-call full stack
 go get github.com/larsartmann/cqrs-htmx/datastar/v4            # DataStar adapter
+go get github.com/larsartmann/cqrs-htmx/huma/v4                # Huma v2 (OpenAPI-first JSON APIs)
 ```
 
 ## Quick start
@@ -336,6 +338,7 @@ Independent Go modules under one repo — import only what you use.
 | [loginpage](loginpage/README.md)           | `…/cqrs-htmx/loginpage/v4`            | Ready-made passwordless login page (templ + Tailwind, CSP-nonce hooks)                                                                                                             |
 | [setup](setup/README.md)                   | `…/cqrs-htmx/setup/v4`                | One-call composition root: stores + service + all three UIs + `/health` + middleware ordering + graceful `Run`                                                                     |
 | [datastar](datastar/README.md)             | `…/cqrs-htmx/datastar/v4`             | DataStar adapter: script serving, signal decoding, SSE builder — depends only on go-datastar + go-sse                                                                              |
+| [huma](huma/README.md)                     | `…/cqrs-htmx/huma/v4`                 | Huma v2 adapter: run the authorize/validate/guard/dispatch pipeline in typed OpenAPI operations — Huma keeps decode, status codes and the schema                                 |
 | [health](health/README.md)                 | `…/cqrs-htmx/health/v4`               | go-health bridge: liveness/readiness probes and a dashboard over projection health                                                                                                 |
 | [auditlog](auditlog/README.md)             | `…/cqrs-htmx/auditlog/v4`             | samber-do-auditlog bridge with a live SSE viewer — zero cqrs-htmx deps                                                                                                             |
 | [systemadapter](systemadapter/README.md)   | `…/cqrs-htmx/systemadapter/v4`        | Bridge into go-cqrs-lite `system.New()` + metaengine auto-projections ([guide](docs/guides/leveraging-system-metaengine.md))                                                       |
@@ -508,6 +511,7 @@ Each runs with `go run .` from its directory and opens on a documented port.
 - [SSE and Datastar Broadcaster Guide](docs/guides/sse-and-datastar.md) — hub sharing, ACK protocol, transport comparison
 - [Datastar Integration](docs/guides/datastar-integration.md) — signals, SSE builder, EventBridge
 - [Frontend Sync Protocol](docs/guides/frontend-sync.md) — offline reads, batched command push, conflict outcomes
+- [Huma v2 Adapter](huma/README.md) — typed OpenAPI operations on the CQRS pipeline
 
 **Event store & projections**
 

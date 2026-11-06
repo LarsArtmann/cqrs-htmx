@@ -297,6 +297,67 @@ feeds): see `sse-and-datastar.md` and `datastar-integration.md`. The
 contract test `integration_test/datastar_route_split_test.go` proves this
 exact wiring compiles and delivers cross-transport.
 
+### OpenAPI-first APIs: Huma v2 on the same pipeline (the `huma/v4` module)
+
+HTMX and DataStar serve browsers; a typed JSON API is the third frontend shape,
+and Huma v2 is the usual pick for it: it registers typed operations, validates
+the request against the Go types, owns the status codes, and generates the
+OpenAPI 3.1 document. Huma cannot mount an `http.HandlerFunc` — so
+`App.Command`/`App.Query` (and the authorize → decode → validate → dispatch →
+map-error pipeline inside them) were unreachable from an OpenAPI-first app.
+
+`huma/v4` is the adapter. It runs the same stages inside a Huma handler and
+answers failures with the same RFC 9457 problem document, while Huma keeps
+decode, input validation, status codes and OpenAPI generation. It is a separate
+module with its own `go.mod`, so the Huma dependency never enters the graph of a
+consumer that does not import it.
+
+```go
+//   go get github.com/larsartmann/cqrs-htmx/huma/v4
+
+import (
+    huma "github.com/danielgtaylor/huma/v2"
+    "github.com/danielgtaylor/huma/v2/adapters/humago"
+    cqrsadapter "github.com/larsartmann/cqrs-htmx/huma/v4"
+)
+
+pipe, err := cqrsadapter.New(cqrsadapter.Config{
+    Commands: cmdDisp,      // the dispatchers your endpoints already use
+    Queries:  qryDisp,
+    Checker:  svc.Authz(), // the SAME engine Authorize/AuthorizeIn ask — grants mean one thing
+    Timeout:  5 * time.Second,
+})
+if err != nil { log.Fatal(err) }
+
+api := humago.New(mux, huma.DefaultConfig("Visits API", "1.0.0"))
+
+cqrsadapter.RegisterCommand(api, pipe,
+    huma.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: 201},
+    func(ctx context.Context, in *CreateVisitInput) (command.Command, error) {
+        return newVisitCmd(in.Body.URL), nil
+    },
+    cqrsadapter.Authorize("visits", "create"),   // 401 anonymous, 403 denied, 503 engine down
+    cqrsadapter.ValidateCommand(validateVisit),  // 400 + code cqrshtmx.validate.failed
+)
+```
+
+Stage order is the route builder's: **authorize → build → validate → guard →
+dispatch**. The options mirror `HandlerOption` (`Authorize`, `AuthorizeIn`,
+`AuthorizeOn` = typed `AuthorizeRequest`, `RequireAuth`, `ValidateCommand`,
+`Guard`, `WithTimeout`), and `pipe.Authorize`/`DispatchCommand`/`DispatchQuery`/
+`MapError` are exported for handler shapes the helpers do not cover.
+
+Identity reaches the pipeline the same way it does on the routes: mount
+`app.Middleware()` (or your own enrichment) around the Huma handler so the
+request context carries the user/actor/correlation IDs.
+
+What it deliberately does not do: decode (Huma does), render (Huma writes the
+typed output), HTMX headers (a JSON API has none), and the `BeforeDispatch`/
+`AfterDispatch` hooks, which take an `*http.Request` a Huma handler never sees —
+use Huma middleware for tracing and metrics there.
+
+Details, the full option table and the error-document shape: `huma/README.md`.
+
 ## External Integrations (Optional)
 
 ### go-health + go-health-dashboard (the `health/v4` module)
@@ -365,4 +426,5 @@ mux.Handle("/auditlog/", setup.Viewer) // live dashboard + JSON/SSE API
 - [Production readiness checklist](production-readiness.md)
 - [Middleware ordering rules](dispatch-middleware-ordering.md)
 - [samber/do integration guide](leveraging-samber-do.md)
+- [Huma v2 adapter README](../../huma/README.md)
 - Examples: [admin-demo](../../examples/admin-demo/), [dashboard-demo](../../examples/dashboard-demo/)
