@@ -53,6 +53,7 @@ revision`. bump-dep now pre-flights every module it is about to bump via
 | buildflow doctor: "vendorHash … may be stale — go.sum was modified" | Gotcha 31: the checker misattributes repo-wide go.sum churn to the benchstat-only FOD (`vendorHash.nix` is unrelated to our go.sums) | Ignore the warning; receipt via `nix build .#benchstat` (green); NEVER edit `hash.nix`/`vendorHash.nix` off the checker's finding alone    |
 | bump-dep refuses on a "dirty tree" nobody touched                   | Another session is mid-sweep on the same gate-printed FIX RECIPE                                                                     | Heed the new `bump-dep: NOTE — a sweep log …` forensics line; let the other sweep finish and verify its PASS table instead of interleaving |
 | go.mod `go` directive creeps up                                     | A 1.27.1-toolchain process ran `go mod tidy` (sibling session / gopls)                                                               | restore the floor; `go-cache-env.sh` now aligns `GOTOOLCHAIN` for gate runs                                                                |
+| `FAIL (rc=4)` `undefined: cqrshtmx.X` / `unknown field Y` in a cqrs-htmx family module | OUR OWN train is behind, the bump is innocent: the module builds against the local workspace API while its go.mod still pins the last published tag (gotcha 30) | `cd <module> && go build ./...` in workspace mode passes → cut our train with `release-next-train-prep.md`; the fix is a tag, not code |
 
 ## scripts/tools/bump-dep.sh
 
