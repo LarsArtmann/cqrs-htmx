@@ -282,9 +282,9 @@ func auditRows(d auditData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(e.AggregateID.String())
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(e.AggregateID.Get())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 91, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 91, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {

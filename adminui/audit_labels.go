@@ -67,9 +67,9 @@ func filterAuditEntries(entries []usermgmt.AuditEntry, needle string) []usermgmt
 	out := make([]usermgmt.AuditEntry, 0, len(entries))
 	for _, e := range entries {
 		if strings.Contains(strings.ToLower(e.Action), want) ||
-			strings.Contains(strings.ToLower(e.Email), want) ||
-			strings.Contains(strings.ToLower(e.AggregateID.String()), want) ||
-			strings.Contains(strings.ToLower(auditLabel(e.Action)), want) {
+		strings.Contains(strings.ToLower(e.Email), want) ||
+		strings.Contains(strings.ToLower(e.AggregateID.Get()), want) ||
+		strings.Contains(strings.ToLower(auditLabel(e.Action)), want) {
 			out = append(out, e)
 		}
 	}

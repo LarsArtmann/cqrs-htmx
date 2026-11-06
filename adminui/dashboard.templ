@@ -74,12 +74,12 @@ templ recentActivityRows(d dashboardData) {
 				@badge(auditLabel(e.Action), auditActionBadge(e.Action))
 			</td>
 			<td class="px-4 py-2">
-				if e.Email != "" && e.AggregateID.String() != "" {
-					<a class="font-medium no-underline hover:underline" href={ d.BasePath + "/users/" + e.AggregateID.String() }>{ e.Email }</a>
+				if e.Email != "" && e.AggregateID.Get() != "" {
+					<a class="font-medium no-underline hover:underline" href={ d.BasePath + "/users/" + e.AggregateID.Get() }>{ e.Email }</a>
 				} else if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {
-					<span class="font-mono text-xs">{ e.AggregateID.String() }</span>
+					<span class="font-mono text-xs">{ e.AggregateID.Get() }</span>
 				}
 			</td>
 			<td class="px-4 py-2 text-gray-500">

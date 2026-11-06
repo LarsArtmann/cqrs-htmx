@@ -1,13 +1,11 @@
 {
   "preset": "library",
   "rules": {
-    // F032 (no-catalog-import): the real fix-forward is deriving
-    // DefaultEventCatalog from go-cqrs-lite/systemcatalog (leverage-plan R2,
-    // docs/planning/2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md;
-    // systemcatalog/v4.0.0 published 2026-11-05, unblocking R2). Until that
-    // lands, the hand-maintained 25-event catalog IS the wiring; an
-    // import-for-import's-sake would change nothing. Triage 2026-11-05
-    // (cqrs-lint v4.20.0) — remove this disable when R2 ships.
-    "disable": ["F032"]
+    // F032 (no-catalog-import) retired 2026-11-06: DefaultEventCatalog and
+    // ArchitectureCatalog now derive from one registration table whose
+    // schema half is the shared go-cqrs-lite catalog reflection (leverage-plan
+    // R2, docs/planning/
+    // 2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md).
+    "disable": []
   }
 }

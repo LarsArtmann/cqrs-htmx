@@ -65,14 +65,20 @@ The catalog is a JSON array of event metadata:
 
 ---
 
-## Registered Events (21 total)
+## Registered Events (27 total)
 
 | Aggregate      | Event Types                                                                                                                                                                                                        |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| User (12)      | UserRegistered, RolesUpdated (legacy), EmailChanged, DisplayNameChanged, UserDeleted, CredentialAdded, CredentialRemoved, EmailVerified, TOTPEnabled, TOTPDisabled, ExternalAccountLinked, ExternalAccountUnlinked |
+| User (13)      | UserRegistered, RolesUpdated (legacy), EmailChanged, DisplayNameChanged, UserDeleted, CredentialAdded, CredentialRemoved, CredentialUsed, EmailVerified, TOTPEnabled, TOTPDisabled, ExternalAccountLinked, ExternalAccountUnlinked |
 | Membership (3) | MemberAdded, MemberRolesChanged, MemberRemoved                                                                                                                                                                     |
 | Tenant (4)     | TenantCreated, TenantSuspended, TenantReactivated, TenantDeleted                                                                                                                                                   |
 | Bot (2)        | BotRegistered, BotDeleted                                                                                                                                                                                          |
+| Auth (5)       | LoginSucceeded, LoginFailed, RegistrationClosed, SessionStarted, SessionEnded                                                                                                                                      |
+
+The inventory is drift-gated: `TestEventCatalog_InventoryMatchesEventConstants`
+(usermgmt) fails when an identity-model event constant and the catalog table
+drift apart, and `catalog.AssertEventInventory` pins the same inventory in the
+architecture format (see below).
 
 ---
 
@@ -149,11 +155,17 @@ for _, e := range events {
 
 - **Two catalogs — do not conflate:**
   1. **`cqrshtmx.EventCatalog`** (this guide) — dependency-free, immutable-JSON
-     schema surface for the 21 identity events (Published Language).
+     schema surface for the 27 identity events (Published Language).
   2. **[`go-cqrs-lite/catalog/v4`](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)**
      — the heavier doc-generation suite (OpenAPI/AsyncAPI 3.0, D2 diagrams,
      EventCatalog MDX from Go types), pulling templ/yaml into the graph. Not
      embedded by `setup`; wiring it is a consumer-side composition.
+
+     The bridge: **`usermgmt.ArchitectureCatalog()`** derives the same 27-event
+     published language as a `catalog.Catalog` (one table feeds both wire
+     formats — they cannot drift), and **`systemadapter.ArchitectureCatalog(ctx)`**
+     derives the full 21-command + 27-event inventory from `DomainConfig()`
+     through `systemcatalog` (ephemeral in-memory boot, nothing starts).
 - [catalog/v4 integration map](../research/2026-10-12_catalog-v4-integration-map.md) —
   who depends on which catalog, and why `setup` ships only the light one
 - [`examples/catalog-demo`](../../examples/catalog-demo/) — executable guide:

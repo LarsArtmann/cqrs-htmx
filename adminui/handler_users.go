@@ -350,7 +350,7 @@ func (h *Handler) userTimeline(shown *identitymodel.User) userTimeline {
 	all := al.Recent(al.Count())
 	entries := make([]usermgmt.AuditEntry, 0, 16)
 	for _, e := range all {
-		if e.AggregateID.String() == want {
+		if e.AggregateID.Get() == want {
 			entries = append(entries, e)
 			if len(entries) >= 8 {
 				break
@@ -360,7 +360,7 @@ func (h *Handler) userTimeline(shown *identitymodel.User) userTimeline {
 	resolveAuditEmails(h.config.Service, entries)
 	total := 0
 	for _, e := range all {
-		if e.AggregateID.String() == want {
+		if e.AggregateID.Get() == want {
 			total++
 		}
 	}

@@ -72,8 +72,8 @@ func TestFilterAuditEntries_Omnibox(t *testing.T) {
 	}
 
 	al := svc.AuditLog()
-	resolveAuditEmails(svc, al.Entries())
 	all := al.Entries()
+	resolveAuditEmails(svc, all)
 	if len(all) < 3 {
 		t.Fatalf("seed produced %d entries, want >= 3", len(all))
 	}

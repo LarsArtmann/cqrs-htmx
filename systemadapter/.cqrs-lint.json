@@ -8,11 +8,10 @@
     // including drain/sync. Inline suppression cannot express this: the
     // package-level anchor drifts between walk modes (declarations.go in a
     // module walk, capabilities.go in the recursive root walk).
-    // F032 (no-catalog-import): systemadapter owns DomainConfig() — the
-    // natural home for a systemcatalog-derived catalog (leverage-plan R2;
-    // systemcatalog/v4.0.0 published 2026-11-05). Until R2 decides the
-    // surface, an import-for-import's-sake would change nothing. Triage
-    // 2026-11-05 (cqrs-lint v4.20.0) — remove this disable when R2 ships.
-    "disable": ["E014", "F032"]
+    // F032 (no-catalog-import) retired 2026-11-06: ArchitectureCatalog
+    // derives the full 21-command + 27-event inventory from DomainConfig()
+    // through systemcatalog/v4 (leverage-plan R2, docs/planning/
+    // 2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md).
+    "disable": ["E014"]
   }
 }

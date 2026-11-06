@@ -88,7 +88,7 @@ templ auditRows(d auditData) {
 					<span class="text-gray-400">—</span>
 				}
 			</td>
-			<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.String() }</td>
+			<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.Get() }</td>
 			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
 				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
 			</td>
