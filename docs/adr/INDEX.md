@@ -63,3 +63,4 @@
 | [0058](0058-defer-relationship-based-authorization.md)     | Defer Relationship-Based Authorization (ReBAC) — Numeric Reopen Trigger                             | Accepted                                                             |
 | [0059](0059-cbor-binary-event-payloads.md)                 | CBOR for Binary Event Payloads — Five Byte-Heavy Events, Per-Event Stamps, Mixed Journals           | Accepted                                                             |
 | [0060](0060-session-lifecycle-audit-events.md)             | Session Lifecycle Audit Events (XS Scope) — Impersonation Forensics, Sessions Stay Ephemeral        | Accepted                                                             |
+| [0061](0061-audience-aware-error-detail.md)                | Audience-Aware Error Detail — Reader-Policy Redaction for 5xx Bodies (SafeDetailFor)               | Accepted                                                             |

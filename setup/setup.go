@@ -279,16 +279,18 @@ func (b *Bundle) attachAdmin() error {
 	}
 
 	admin, err := adminui.New(adminui.Config{
-		Service:     b.Service,
-		Title:       b.config.Title,
-		BasePath:    b.config.AdminPath,
-		Mode:        b.config.AdminMode,
-		TenantID:    b.config.TenantID,
-		Authorizer:  b.config.AdminAuthorizer,
-		AccentColor: b.config.AccentColor,
-		LogoutURL:   b.config.LogoutURL,
-		SSEURL:      b.config.SSEURL,
-		NonceFunc:   b.config.NonceFunc,
+		Service:      b.Service,
+		Title:        b.config.Title,
+		BasePath:     b.config.AdminPath,
+		Mode:         b.config.AdminMode,
+		TenantID:     b.config.TenantID,
+		Authorizer:   b.config.AdminAuthorizer,
+		AccentColor:  b.config.AccentColor,
+		LogoutURL:    b.config.LogoutURL,
+		SSEURL:       b.config.SSEURL,
+		NonceFunc:    b.config.NonceFunc,
+		ExtraNav:     b.config.AdminExtraNav,
+		DashboardURL: b.config.AdminDashboardURL,
 	})
 	if err != nil {
 		return errorfamily.WrapRejection(

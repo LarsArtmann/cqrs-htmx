@@ -62,6 +62,10 @@ type (
 	// StructuredError is the RFC 9457 problem-details payload emitted for HTTP
 	// error responses and SSE error broadcasts.
 	StructuredError = httperr.StructuredError
+
+	// Audience classifies who reads an error's detail (public redaction vs
+	// operator diagnostics); the zero value is the fail-safe public form.
+	Audience = httperr.Audience
 )
 
 // Error mapping, the RFC 9457 payload builders, and the ready-made handlers.
@@ -74,6 +78,15 @@ var (
 	// SafeDetail returns the error text that is safe to expose for an HTTP
 	// response of the given status.
 	SafeDetail = httperr.SafeDetail
+
+	// AudiencePublic redacts 5xx detail to the family default message.
+	AudiencePublic = httperr.AudiencePublic
+
+	// AudienceOperator carries full 5xx detail and machine context.
+	AudienceOperator = httperr.AudienceOperator
+
+	// SafeDetailFor is the audience-aware SafeDetail.
+	SafeDetailFor = httperr.SafeDetailFor
 
 	// ErrorCode extracts the machine-readable error code from the innermost
 	// errorfamily error in the cause chain.
@@ -90,6 +103,14 @@ var (
 
 	// NewStructuredErrorWithContext builds the RFC 9457 payload from a context.
 	NewStructuredErrorWithContext = httperr.NewStructuredErrorWithContext
+
+	// NewStructuredErrorForAudience builds the RFC 9457 payload for a
+	// request with an explicit audience.
+	NewStructuredErrorForAudience = httperr.NewStructuredErrorForAudience
+
+	// NewStructuredErrorForAudienceWithContext builds the RFC 9457 payload
+	// from a context with an explicit audience.
+	NewStructuredErrorForAudienceWithContext = httperr.NewStructuredErrorForAudienceWithContext
 
 	// DefaultErrorHandler maps CQRS errors to HTTP status codes and writes a
 	// plain text error response, redirecting HTMX auth failures to the login
@@ -119,6 +140,10 @@ var (
 	// ProblemDetailsErrorHandler writes errors as RFC 9457 problem details,
 	// using StructuredError — the same shape emitted for SSE error broadcasts.
 	ProblemDetailsErrorHandler = httperr.ProblemDetailsErrorHandler
+
+	// ProblemDetailsAudienceErrorHandler is ProblemDetailsErrorHandler with
+	// per-request audience discrimination (nil resolver fails public).
+	ProblemDetailsAudienceErrorHandler = httperr.ProblemDetailsAudienceErrorHandler
 
 	// ProblemDetailsErrorHandlerWithRedirect is ProblemDetailsErrorHandler with a
 	// custom login redirect path.

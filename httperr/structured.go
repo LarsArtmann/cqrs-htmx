@@ -87,13 +87,17 @@ type StructuredError struct {
 // It maps the error to an HTTP status via MapError, derives a title from the
 // error family, and extracts the request ID for tracing.
 //
+// The detail is redacted for a PUBLIC audience (see [AudiencePublic]); use
+// [NewStructuredErrorForAudience] when the reader is an authenticated
+// operator.
+//
 // If err is nil, returns a zero-value StructuredError (callers should check err first).
 func NewStructuredError(err error, r *http.Request) StructuredError {
 	if err == nil {
 		return StructuredError{} //nolint:exhaustruct_v5 // zero-value return
 	}
 
-	return newStructuredErrorFromContext(err, requestContextOrBackground(r))
+	return newStructuredErrorFromContext(err, requestContextOrBackground(r), AudiencePublic)
 }
 
 // NewStructuredErrorWithContext is like NewStructuredError but accepts a context
@@ -103,14 +107,39 @@ func NewStructuredErrorWithContext(err error, ctx context.Context) StructuredErr
 		return StructuredError{} //nolint:exhaustruct_v5 // zero-value return
 	}
 
-	return newStructuredErrorFromContext(err, ctx)
+	return newStructuredErrorFromContext(err, ctx, AudiencePublic)
 }
 
-// newStructuredErrorFromContext is the shared builder used by
-// NewStructuredError and NewStructuredErrorWithContext. Both functions
+// NewStructuredErrorForAudience is [NewStructuredError] with an explicit
+// audience: an operator reading the body gets the raw server-fault detail
+// and its machine context (so the problem is actionable from the response
+// alone); a public reader gets the redacted form. Client-fault detail is
+// identical for both audiences.
+func NewStructuredErrorForAudience(err error, r *http.Request, audience Audience) StructuredError {
+	if err == nil {
+		return StructuredError{} //nolint:exhaustruct_v5 // zero-value return
+	}
+
+	return newStructuredErrorFromContext(err, requestContextOrBackground(r), audience)
+}
+
+// NewStructuredErrorForAudienceWithContext is
+// [NewStructuredErrorForAudience] with a context instead of a request.
+func NewStructuredErrorForAudienceWithContext(
+	err error, ctx context.Context, audience Audience,
+) StructuredError {
+	if err == nil {
+		return StructuredError{} //nolint:exhaustruct_v5 // zero-value return
+	}
+
+	return newStructuredErrorFromContext(err, ctx, audience)
+}
+
+// newStructuredErrorFromContext is the shared builder used by the
+// NewStructuredError* constructors. Both functions
 // delegate here after adapting their input (request vs context) to a
 // context.Context.
-func newStructuredErrorFromContext(err error, ctx context.Context) StructuredError {
+func newStructuredErrorFromContext(err error, ctx context.Context, audience Audience) StructuredError {
 	status := MapError(err)
 	family := errorfamily.Classify(err)
 	instance := ""
@@ -124,11 +153,13 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 	contextual, _ := err.(interface{ ErrorContext() map[string]string })
 
 	var errContext map[string]string
-	if status < 500 && contextual != nil {
+	if contextual != nil && (status < 500 || audience == AudienceOperator) {
 		// Client-fault statuses carry the context — it describes the caller's
-		// input (the same reason Detail stays raw below 500). 5xx redacts BOTH
-		// detail and context: context entries (user_id, paths, sizes) are
-		// internal diagnostic material, not public-safe payloads.
+		// input (the same reason Detail stays raw below 500). For PUBLIC
+		// readers 5xx redacts BOTH detail and context: context entries
+		// (user_id, paths, sizes) are internal diagnostic material, not
+		// public-safe payloads. Operators get both — that is the point of
+		// [AudienceOperator].
 		errContext = contextual.ErrorContext()
 	}
 
@@ -136,7 +167,7 @@ func newStructuredErrorFromContext(err error, ctx context.Context) StructuredErr
 		Type:     familyType(family),
 		Title:    statusTitle(status),
 		Status:   status,
-		Detail:   SafeDetail(err, status, false),
+		Detail:   SafeDetailFor(err, status, audience),
 		Message:  family.DefaultMessage(),
 		Why:      family.DefaultWhy(),
 		Fix:      family.DefaultFix(),

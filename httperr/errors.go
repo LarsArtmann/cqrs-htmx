@@ -289,16 +289,16 @@ func PlainBodyWriter(r *http.Request, opts PlainBodyOptions) func(http.ResponseW
 // generic, public-safe default message so attackers cannot probe internals
 // through error text. The full detail is still logged server-side by the
 // dispatch path (see [App.handleErr]).
+//
+// For per-request audience discrimination (operators see real diagnostics in
+// the same response anonymous users get redacted), prefer [SafeDetailFor] and
+// [ProblemDetailsAudienceErrorHandler].
 func SafeDetail(err error, status int, includeInternal bool) string {
-	if err == nil {
-		return ""
+	if includeInternal {
+		return SafeDetailFor(err, status, AudienceOperator)
 	}
 
-	if status < 500 || includeInternal {
-		return err.Error()
-	}
-
-	return errorfamily.Classify(err).DefaultMessage()
+	return SafeDetailFor(err, status, AudiencePublic)
 }
 
 // prefixRequestID prefixes detail with the request ID when one is in context.
@@ -406,4 +406,50 @@ func ProblemDetailsErrorHandlerWithRedirect(
 		payload := NewStructuredError(err, r)
 		hx.MarshalJSONForResponse(w, payload)
 	})
+}
+
+// ProblemDetailsAudienceErrorHandler is [ProblemDetailsErrorHandler] with
+// per-request audience discrimination: the resolver decides WHO is reading
+// the response, and the RFC 9457 body redacts server-fault detail for
+// [AudiencePublic] readers while carrying the full diagnostic text (and
+// machine context) for [AudienceOperator] readers. The returned function
+// has the Config.ErrorHandler shape:
+//
+//	app := cqrshtmx.MustNew(cqrshtmx.Config{
+//	    ErrorHandler: httperr.ProblemDetailsAudienceErrorHandler(
+//	        func(r *http.Request) httperr.Audience {
+//	            if user, _ := usermgmt.UserFromRequest(r); user != nil && user.IsAdmin() {
+//	                return httperr.AudienceOperator
+//	            }
+//	            return httperr.AudiencePublic
+//	        }, ""),
+//	    // ...
+//	})
+//
+// A nil resolver fails safe: every reader is public. Empty loginRedirect
+// falls back to [DefaultLoginRedirect].
+func ProblemDetailsAudienceErrorHandler(
+	resolver func(*http.Request) Audience,
+	loginRedirect string,
+) func(w http.ResponseWriter, r *http.Request, err error) {
+	if loginRedirect == "" {
+		loginRedirect = DefaultLoginRedirect
+	}
+
+	return func(w http.ResponseWriter, r *http.Request, err error) {
+		audience := AudiencePublic
+		if resolver != nil {
+			audience = resolver(r)
+		}
+
+		HandleErrorCore(w, r, err, loginRedirect, func(w http.ResponseWriter, err error, _ int) {
+			w.Header().Set("Content-Type", hx.ContentTypeProblem)
+
+			status := MapError(err)
+			w.WriteHeader(status)
+
+			payload := NewStructuredErrorForAudience(err, r, audience)
+			hx.MarshalJSONForResponse(w, payload)
+		})
+	}
 }

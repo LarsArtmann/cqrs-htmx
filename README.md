@@ -420,6 +420,7 @@ Plug in the response format you want via `Config.ErrorHandler`:
 
 - `JSONErrorHandler` / `JSONErrorHandlerWithRedirect` — `{"error": "...", "status": 409, "code": "battle.exists"}`
 - `ProblemDetailsErrorHandler` — RFC 7807 `application/problem+json`
+- `ProblemDetailsAudienceErrorHandler` — RFC 9457 with **audience-aware 5xx detail**: pass a per-request resolver (e.g. session user is admin → `AudienceOperator`) and operators see the real diagnostic text + machine context while everyone else sees the family's generic message — redaction becomes reader-policy, not deployment policy (zero value / nil resolver fails public; [ADR 0061](docs/adr/0061-audience-aware-error-detail.md))
 - `DefaultErrorHandler*` — plain text, with HTMX-aware `HX-Redirect` to `Config.LoginRedirect` on auth errors
 
 `MapError(err)` returns the status for any error; `NewStructuredError(err, r)` builds the RFC 7807 payload for SSE error events.

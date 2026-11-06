@@ -410,6 +410,21 @@ type Config struct {
 	TenantID        identitymodel.TenantID
 	AdminAuthorizer func(user *identitymodel.User) error
 
+	// AdminExtraNav appends consumer-owned entries to the admin panel's
+	// sidebar (adminui.Config.ExtraNav). Hrefs render verbatim — no admin
+	// BasePath prefix — so sibling surfaces outside the admin subtree
+	// (a support panel, external docs) stay one click away. Nil (the
+	// default) changes nothing.
+	AdminExtraNav []adminui.NavEntry
+
+	// AdminDashboardURL cross-links the CQRS dashboard (event-store
+	// introspection: journal, projections, time-travel) as an "Event store"
+	// entry in the admin sidebar. The two panels are complementary — most
+	// apps mount both — and this makes the pair one click apart. Pass the
+	// dashboard's mount path (usually "/dashboard/"). Empty (the default)
+	// hides the entry.
+	AdminDashboardURL string
+
 	// DashboardAuthorizer decides whether an authenticated request may use the
 	// CQRS dashboard (runs after the session gate). Return a non-nil error to
 	// deny access. When nil, any authenticated user can view the dashboard.

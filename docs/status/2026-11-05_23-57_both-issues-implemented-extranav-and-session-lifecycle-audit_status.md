@@ -4,6 +4,8 @@
 **Session task:** "Review and fix BOTH open GitHub issues" — #38 (dashboardui `ExtraNav`) and #25 (impersonation forensics via session lifecycle audit events).
 **Verdict:** Both issues are code-complete and green in their own modules. The full-repo gate battery, docs/ADR pass, baseline bumps, and issue comments/closure are NOT done yet.
 
+> **DONE 2026-11-06 ~03:00 (follow-through session):** the pending battery is closed. fmt/lint green in all four touched modules (one nolintlint fix); full test battery green in every module I own (adminui + integration_test reds are the CONCURRENT superbification session's in-flight work — their `audit_superpowers_test.go` "email filter got 0" is their own bug: `AuditLog.Entries()` returns a copy and the test mutates one copy then filters a second); coverage green (usermgmt 82.9/74, identity-model 74.5/70, dashboardui 73.3/60 + core 89.2/80, systemadapter 90.8/70); ADR 0060 written + indexed; event counts trued 25→27 across AGENTS/root-README/usermgmt-README/actor-guide; branching-flow re-pinned 204→208 with triage row (my adds: NavEntry shape-twins + Session-payload family mixin — standing verdict classes); round-23 archive (06-41+07-24) took the tail 8→6, corpus ledgered through 46136; systemadapter's go-cqrs-lite/catalog lag v4.10.0→v4.12.0 aligned (release-train strict + version-drift now green). **Structurally red until the wave decision (question 2):** cqrs-lint + module-isolation legs compile usermgmt/systemadapter against the PUBLISHED identity-model v4.15.0 which lacks the two session events — only `wave-tag identity-model vX.Y.Z` + the bump-dep sweep closes that window. The 3 questions below remain open for Lars.
+
 ---
 
 ## a) FULLY DONE

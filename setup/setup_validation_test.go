@@ -265,3 +265,41 @@ func TestNew_ConfigValidation_ObservabilityWithServiceConfigOverride(t *testing.
 		t.Fatalf("error should name Observability as the conflict, got: %v", err)
 	}
 }
+
+// --- AdminExtraNav / AdminDashboardURL passthrough to adminui ---
+
+// TestNew_AdminExtraNav_RejectsEmptyLabel proves the passthrough reaches
+// adminui.New's validation: an invalid entry must fail bundle creation with
+// the failing field named.
+func TestNew_AdminExtraNav_RejectsEmptyLabel(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:         "Empty ExtraNav Label",
+		AdminExtraNav: []adminui.NavEntry{{Href: "/support"}},
+	})
+	if err == nil {
+		t.Fatal("expected error for AdminExtraNav entry with empty Label")
+	}
+
+	if !strings.Contains(err.Error(), "ExtraNav") {
+		t.Fatalf("error should name ExtraNav as the failing field, got: %v", err)
+	}
+}
+
+// TestNew_AdminExtraNavAndDashboardURL_Accepted proves valid values flow
+// through without changing bundle construction.
+func TestNew_AdminExtraNavAndDashboardURL_Accepted(t *testing.T) {
+	t.Parallel()
+
+	bundle, err := setup.New(setup.Config{
+		Title:             "Extra Nav OK",
+		AdminExtraNav:     []adminui.NavEntry{{Label: "Support", Href: "/support"}},
+		AdminDashboardURL: "/dashboard/",
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = bundle.Close() }()
+}
