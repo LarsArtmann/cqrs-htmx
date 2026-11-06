@@ -16,8 +16,8 @@ github.com/ThreeDotsLabs/watermill-nats/v2 v2.2.0 h1:sKol3kuTnpWdrKeCNVKTxh/tciy
 github.com/ThreeDotsLabs/watermill-nats/v2 v2.2.0/go.mod h1:+RcILy/DVrLq3DFVzzRtCmKBViBBn0R/3SgA+3ZP88U=
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.5 h1:SCETqsAYo/CRBb7H3+zWCcSqhMpDrQA4I6dCqC7UPR4=
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.5/go.mod h1:Da3wqG1OcvHPODjuJcxSCY1O7D4loIZQpVbZ5u94xRo=
-github.com/a-h/templ v0.3.1100 h1:lQhjVs1IL+M6QWUvojaFBd21+kzwATppSyWkWB9oHoM=
-github.com/a-h/templ v0.3.1100/go.mod h1:j1WAOR7749mlo1AxFLQ7qbDFW5VwyoqszRTlKqEHN9M=
+github.com/a-h/templ v0.3.1070 h1:3iCOXHXqFXa99OQzgkUOLJbNzv/QjFGLwKZkBAg+ADA=
+github.com/a-h/templ v0.3.1070/go.mod h1:iIqB3g2RHBe/WlnPwa+Bvhh1TKXHWLRnBD9NWHOLm78=
 github.com/bits-and-blooms/bitset v1.29.0 h1:xq4g46l2NlweICLMDJ8LiyrZJQJTeC2Q0b3CCnLCAbg=
 github.com/bits-and-blooms/bitset v1.29.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/bmatcuk/doublestar/v4 v4.10.2 h1:eF7W7HWKg3z9NrWV9pTLnNeoXaqq3Tq9DNKXVMfoCnw=

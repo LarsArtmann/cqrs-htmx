@@ -138,3 +138,9 @@ replace github.com/larsartmann/templ-components/htmx => github.com/larsartmann/t
 replace github.com/larsartmann/templ-components/icons => github.com/larsartmann/templ-components/icons v1.26.0
 
 replace github.com/larsartmann/templ-components/utils => github.com/larsartmann/templ-components/utils v1.26.0
+
+// templ replace-pinned (2026-11-06, family-downgrade split): tidy keeps
+// re-selecting v0.3.1100 whose runtime removed templ.ResolveAttributeValue,
+// which the regenerated v0.3.1070-era templates and catalog v4.13.0's
+// docserver call. Remove with the family replace pins at the re-tag train.
+replace github.com/a-h/templ => github.com/a-h/templ v0.3.1070
