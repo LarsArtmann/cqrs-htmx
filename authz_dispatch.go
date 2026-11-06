@@ -455,34 +455,30 @@ func (g *dispatchGate) authorize(
 	req := deriveDispatchRequest(ctx, kind, name, DispatchSubject(ctx), payload)
 
 	if !declared {
-		outcome := DispatchOutcome{
-			Kind: kind, Name: name, Posture: PostureRoleGated, Request: req,
-			Decision: Decision{Allowed: false, Reason: ReasonNoMatchingPolicy, MatchedRules: nil},
-		}
-
-		return g.settle(ctx, outcome, errorfamily.NewRejection("forbidden", fmt.Sprintf(
-			"no dispatch posture declared for %s; register it through DispatchGate.RegisterCommand",
-			req.Resource.String())).WithCause(ErrForbidden))
+		return g.settle(ctx, kind, name, PostureRoleGated, req,
+			Decision{Allowed: false, Reason: ReasonNoMatchingPolicy, MatchedRules: nil},
+			errorfamily.NewRejection("forbidden", fmt.Sprintf(
+				"no dispatch posture declared for %s; register it through DispatchGate.RegisterCommand",
+				req.Resource.String())).WithCause(ErrForbidden))
 	}
 
 	// A public posture asks nothing of the caller and never reaches the engine:
 	// declaring it public is the whole permission decision.
 	if posture == PosturePublic {
-		return g.settle(ctx, allowOutcome(kind, name, posture, req), nil)
+		return g.settle(ctx, kind, name, posture, req,
+			Decision{Allowed: true, Reason: ReasonAllowed, MatchedRules: nil}, nil)
 	}
 
 	if req.Subject == "" {
-		outcome := DispatchOutcome{
-			Kind: kind, Name: name, Posture: posture, Request: req,
-			Decision: Decision{Allowed: false, Reason: ReasonNotAuthenticated, MatchedRules: nil},
-		}
-
-		return g.settle(ctx, outcome, denyDispatch(req, outcome.Decision))
+		return g.settle(ctx, kind, name, posture, req,
+			Decision{Allowed: false, Reason: ReasonNotAuthenticated, MatchedRules: nil},
+			denyDispatch(req, Decision{Allowed: false, Reason: ReasonNotAuthenticated, MatchedRules: nil}))
 	}
 
 	// An authenticated posture wants an identity and nothing more.
 	if posture == PostureAuthenticated {
-		return g.settle(ctx, allowOutcome(kind, name, posture, req), nil)
+		return g.settle(ctx, kind, name, posture, req,
+			Decision{Allowed: true, Reason: ReasonAllowed, MatchedRules: nil}, nil)
 	}
 
 	if g.checker == nil {
@@ -497,52 +493,67 @@ func (g *dispatchGate) authorize(
 		return err
 	}
 
-	outcome := DispatchOutcome{Kind: kind, Name: name, Posture: posture, Request: req, Decision: decision}
-
-	if decision.Allowed {
-		return g.settle(ctx, outcome, nil)
+	var denial error
+	if !decision.Allowed {
+		denial = denyDispatch(req, decision)
 	}
 
-	return g.settle(ctx, outcome, denyDispatch(req, decision))
-}
-
-// allowOutcome builds the verdict for a dispatch the gate admits without asking
-// the engine.
-func allowOutcome(kind DispatchKind, name string, posture Posture, req Request) DispatchOutcome {
-	return DispatchOutcome{
-		Kind: kind, Name: name, Posture: posture, Request: req,
-		Decision: Decision{Allowed: true, Reason: ReasonAllowed, MatchedRules: nil},
-	}
+	return g.settle(ctx, kind, name, posture, req, decision, denial)
 }
 
 // settle reports the verdict, applies audit mode, and returns the denial the
 // dispatch should see (nil when it may proceed).
-func (g *dispatchGate) settle(ctx context.Context, outcome DispatchOutcome, denial error) error {
+//
+// The outcome value is built only when somebody is watching. Without an observer
+// and without a denial there is nothing to report, and building a seven-field
+// record per dispatch is exactly the kind of cost a hot path should not pay for
+// a nil callback.
+func (g *dispatchGate) settle(
+	ctx context.Context,
+	kind DispatchKind,
+	name string,
+	posture Posture,
+	req Request,
+	decision Decision,
+	denial error,
+) error {
 	if denial == nil {
-		g.report(outcome)
+		if g.observe != nil {
+			g.report(DispatchOutcome{
+				Kind: kind, Name: name, Posture: posture, Request: req,
+				Decision: decision, Audit: false,
+			})
+		}
 
 		return nil
 	}
 
 	if !g.auditOnly {
-		g.report(outcome)
+		if g.observe != nil {
+			g.report(DispatchOutcome{
+				Kind: kind, Name: name, Posture: posture, Request: req,
+				Decision: decision, Audit: false,
+			})
+		}
 
 		return denial
 	}
 
-	outcome.Audit = true
-	g.report(outcome)
+	g.report(DispatchOutcome{
+		Kind: kind, Name: name, Posture: posture, Request: req,
+		Decision: decision, Audit: true,
+	})
 
 	if g.logger != nil {
 		g.logger.WarnContext(ctx, "dispatch authorization denied (audit only)",
-			slog.String("kind", string(outcome.Kind)),
-			slog.String("type", outcome.Name),
-			slog.String("posture", string(outcome.Posture)),
-			slog.String("subject", outcome.Request.Subject),
-			slog.String("domain", outcome.Request.Domain),
-			slog.String("resource", outcome.Request.Resource.String()),
-			slog.String("action", outcome.Request.Action),
-			slog.String("reason", string(outcome.Decision.Reason)),
+			slog.String("kind", string(kind)),
+			slog.String("type", name),
+			slog.String("posture", string(posture)),
+			slog.String("subject", req.Subject),
+			slog.String("domain", req.Domain),
+			slog.String("resource", req.Resource.String()),
+			slog.String("action", req.Action),
+			slog.String("reason", string(decision.Reason)),
 		)
 	}
 
