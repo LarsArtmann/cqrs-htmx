@@ -92,7 +92,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.8 // indirect
-	github.com/larsartmann/go-appkit v0.9.0 // indirect
+	github.com/larsartmann/go-appkit v0.10.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
@@ -164,7 +164,7 @@ require (
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/tinylib/msgp v1.6.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	github.com/xo/terminfo v1.3.0 // indirect
+	github.com/xo/terminfo v1.3.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.47.0 // indirect
@@ -176,7 +176,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
+	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
