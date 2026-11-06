@@ -54,7 +54,9 @@ An app typically composes some subset of these. They are **independent Go module
 | **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering.                                                                                                                                                                                                                          |
 | **datastar**          | `github.com/larsartmann/cqrs-htmx/datastar/v4`           | Optional DataStar adapter: script serving, signal decoding, SSE response builder, EventBridge. Depends only on go-datastar + go-sse (no root dep).                                                                                                                                                                                                                       |
 
-Optional bridges also exist: **health** (go-health projection probes), **auditlog** (samber-do-auditlog), **systemadapter** (go-cqrs-lite `system.New` + metaengine). See `docs/guides/fullstack-wiring.md`.
+| **huma**              | `github.com/larsartmann/cqrs-htmx/huma/v4`                | Optional [Huma v2](https://huma.rocks/) adapter: `RegisterCommand`/`RegisterQuery` run the same authorize → validate → guard → dispatch stages inside typed OpenAPI operations and emit the same RFC 9457 error document. Huma keeps decode, status codes and the generated schema. Pins root v4.16.0, zero root change.                                                                                                                                                                                    |
+
+Optional bridges also exist: **health** (go-health projection probes), **auditlog** (samber-do-auditlog), **systemadapter** (go-cqrs-lite `system.New` + metaengine), **huma** (typed OpenAPI operations). See `docs/guides/fullstack-wiring.md`.
 
 ### Subpackages inside the root module (2026-11-02)
 
@@ -112,6 +114,8 @@ Do you need CQRS dispatch (command/query endpoints)?
                     +- NO  ->  PATH B: root App + usermgmt Service + AuthHandler
                     +- YES ->  PATH C: usermgmt Service + adminui panel (+ root App for custom endpoints)
 
+OpenAPI-first JSON API (Huma v2)? -> huma/v4 adapter over YOUR dispatchers (Path A shape):
+                                    same pipeline stages inside typed operations, Huma owns the schema.
 Realtime (SSE)? -> Use Broadcaster/SSEStream on ANY path. (WebSocket was removed in v5 — see ADR 0046.)
 Persistence? -> Pass *sql.DB or use NewSQLiteEventSourcedSetup on Path B/C.
 ```
@@ -447,6 +451,52 @@ http.ListenAndServe(":8080", cqrshtmx.Chain(
 
 > **templ-components note:** `templ-components`'s `layout.Base` may generate CDN `<script>` tags for htmx. If you self-host via `HTMXScriptHandler`, override `PageProps.HTMXCDN` or remove the CDN tag -- don't load htmx twice.
 
+## OpenAPI-first JSON APIs (Huma v2)
+
+Huma registers typed operations and owns decode, validation, status codes and
+the OpenAPI document. An `http.HandlerFunc` from `app.Command`/`app.Query`
+cannot join that contract, so the optional **huma/v4** module runs the same
+stages inside a Huma handler: authorize → build → validate → guard → dispatch.
+
+```go
+pipe, err := cqrsadapter.New(cqrsadapter.Config{
+    Commands: cmdDisp,     // the dispatchers your endpoints already use
+    Queries:  qryDisp,
+    Checker:  svc.Authz(), // the same engine Authorize/AuthorizeIn ask
+})
+if err != nil {
+    panic(err)
+}
+```
+
+```go
+//doc:api-tour
+// RegisterCommand(api, pipe, op, build, opts...)
+//   build: func(ctx, *I) (command.Command, error)
+//   opts:  Authorize(resource, action) | AuthorizeIn(domain, r, a)
+//          AuthorizeOn[I](func(ctx, *I) (cqrshtmx.Request, error))
+//          RequireAuth() | ValidateCommand(fn) | Guard(fn) | WithTimeout(d)
+// RegisterQuery(api, pipe, op, build, respond, opts...)
+//   respond: func(ctx, *I, result any) (*O, error)
+// MapError(ctx, err) -> *ProblemError (application/problem+json)
+```
+
+- Stage order lives in the adapter, not your handlers: an anonymous caller
+  answers 401, a policy denial 403, a validator failure 400 with code
+  `cqrshtmx.validate.failed`, a conflict 409, and a broken policy engine 503
+  (never a silent denial).
+- Mount `app.Middleware()` (or your own enrichment) around the Huma handler so
+  the pipeline sees the caller: user/actor/correlation/request IDs ride the
+  request context exactly as they do on the routes.
+- The error body is the SAME document the route-based handler writes
+  (`httperr.StructuredError` with `code`, family, detail, request-ID instance),
+  so clients branch on one vocabulary on both transports.
+- Deliberate gaps, both documented: no decode/render/HTMX options (Huma owns
+  those) and no `BeforeDispatch`/`AfterDispatch` hooks (they take an
+  `*http.Request` a Huma handler never sees; use Huma middleware there).
+- Modules: `huma/README.md`; guide: `docs/guides/fullstack-wiring.md`
+  § OpenAPI-first APIs.
+
 ## Path B -- add user accounts (root + usermgmt)
 
 usermgmt gives you a fully event-sourced `Service` and an `AuthHandler` that mounts all auth routes. Authentication is **passwordless** (WebAuthn passkeys by default; OAuth2/OIDC and TOTP optional).
@@ -662,6 +712,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`docs/guides/sse-and-datastar.md`** -- the Broadcaster duality guide: `Hub()` accessor, `NewBroadcasterFromHub` cross-transport hub sharing (both adapters embed the hub; `Raw()`/`NewBroadcasterFromRaw` are deprecated v5-removal aliases), and HTMX vs Datastar transport comparison.
 - **`docs/guides/frontend-sync.md`** -- ADR-0056 frontend sync: cursor-based `SyncPullHandler` event pull (ETag + permission filter), `App.SyncPushHandler` batched push, sync assets.
 - **`docs/guides/datastar-integration.md`** -- the DataStar adapter: signals, SSE response builder, EventBridge wiring.
+- **`huma/README.md`** -- the Huma v2 adapter: operation registration, the pipeline options, the problem document, and what the adapter deliberately leaves to Huma.
 - **`docs/guides/authorization-system.md`** -- the authorization system end to end: durable grants, route posture, `Decide`/`AuthorizeIn`/`AuthorizeRequest`, the 401/403/200 proof matrix, SSP/CSP-adjacent notes. `docs/PERMISSIONS.md` is the L0-L4 maturity system + per-service inventory; `docs/adr/0057-authorization-contract.md` and `0058-defer-relationship-based-authorization.md` are the decisions.
 - **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof), `examples/middleware-showcase/` (all 8 httputil HTTP middleware in a single validated `MiddlewareStack`: recovery, security headers, metrics, CORS, client IP, rate limiting, compression, ETag), `examples/setup-demo/` (one-call full-stack), `examples/sync-demo/` (executable ADR-0056 guide), `examples/datastar-demo/` (DataStar adapter).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.

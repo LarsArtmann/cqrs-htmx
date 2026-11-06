@@ -44,6 +44,7 @@ declare -A MODULE_DIRS=(
   [dashboardui]=dashboardui
   [loginpage]=loginpage
   [datastar]=datastar
+  [cqrsadapter]=huma
   [systemadapter]=systemadapter
   [health]=health
   [auditlog]=auditlog
@@ -133,7 +134,7 @@ for doc in "${DOCS[@]}"; do
         fail=1
       fi
     fi
-  done < <(grep -ohE '\b(cqrshtmx|cqrs|transport|usermgmt|identitymodel|setup|adminui|dashboardui|loginpage|datastar|systemadapter|health|auditlog|totp|webauthn|oauth2)\.[A-Z][A-Za-z0-9]*\b' "$doc" | sort -u)
+  done < <(grep -ohE '\b(cqrshtmx|cqrs|transport|usermgmt|identitymodel|setup|adminui|dashboardui|loginpage|datastar|cqrsadapter|systemadapter|health|auditlog|totp|webauthn|oauth2)\.[A-Z][A-Za-z0-9]*\b' "$doc" | sort -u)
 done
 
 if [ "$seen" -eq 0 ]; then
