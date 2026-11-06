@@ -1,6 +1,6 @@
 # Status: push-unblock → full v4.16.0 family train + upstream dashboard release + two CI gate repairs
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md`](../2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md), which family train pushed and CI repair verified green in later runs; the round-47 report carries the follow-on gate/corpus/battery state that closed that work line. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md`](2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md), which family train pushed and CI repair verified green in later runs; the round-47 report carries the follow-on gate/corpus/battery state that closed that work line. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 

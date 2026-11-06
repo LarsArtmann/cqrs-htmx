@@ -1,6 +1,6 @@
 # Status: keep-green after the v4.16.0 train — battery fixes (css bundles, branching-flow re-pin), the isolation-parity leg, and a reconciliation-first session
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md`](../2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md), which isolation-parity leg and keep-green fixes held in every later green aggregate run; the round-47 report records the aggregate gate state that superseded them. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md`](2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md), which isolation-parity leg and keep-green fixes held in every later green aggregate run; the round-47 report records the aggregate gate state that superseded them. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 
