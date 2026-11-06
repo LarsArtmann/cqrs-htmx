@@ -865,6 +865,15 @@ jobs:
       - name: TODO hygiene gate self-test
         run: bash scripts/selftests/test-check-todo-hygiene.sh
 
+      # Committed-conflict-marker gate: the auto-commit daemon twice committed
+      # a stash-pop conflict into docs/CORPUS_BASELINE (`158e86f6`, `24b653d6`)
+      # and the corpus ratchet then refused the file for every committer.
+      - name: Conflict marker gate
+        run: bash scripts/checks/check-conflict-markers.sh
+
+      - name: Conflict marker gate self-test
+        run: bash scripts/selftests/test-check-conflict-markers.sh
+
       # The owner-gated archive eviction's tool: proves the keep-list protects
       # cited files and that the removal is exact and idempotent (no deletion).
       - name: Archive eviction tool self-test

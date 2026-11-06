@@ -1188,6 +1188,8 @@
                       bash bash scripts/selftests/test-normalize-status-rows.sh
                       bash bash scripts/checks/check-todo-hygiene.sh
                       bash bash scripts/selftests/test-check-todo-hygiene.sh
+                      bash bash scripts/checks/check-conflict-markers.sh
+                      bash bash scripts/selftests/test-check-conflict-markers.sh
                       bash bash scripts/selftests/test-evict-archive.sh
                       bash bash scripts/selftests/test-archive-status.sh
                       bash bash scripts/checks/check-docs-tail-budget.sh --ratchet
@@ -1256,6 +1258,8 @@
                         "status-rows-normalize-self-test:bash scripts/selftests/test-normalize-status-rows.sh"
                         "todo-hygiene:bash scripts/checks/check-todo-hygiene.sh"
                         "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
+                        "conflict-markers:bash scripts/checks/check-conflict-markers.sh"
+                        "conflict-markers-self-test:bash scripts/selftests/test-check-conflict-markers.sh"
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
                         "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
                         "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
@@ -1807,6 +1811,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-todo-hygiene.sh
+                  '';
+                }
+              );
+            };
+
+            check-conflict-markers = {
+              type = "app";
+              meta.description = "Refuse a committed merge-conflict marker (the auto-commit daemon twice committed a stash-pop conflict into docs/CORPUS_BASELINE, reddening the corpus ratchet for every committer)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-conflict-markers";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-conflict-markers.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-conflict-markers = {
+              type = "app";
+              meta.description = "Fixture self-test for check-conflict-markers.sh (9 cases: clean/marker-per-marker/mid-line quote/code-span quote/untracked file/non-repo/multi-marker file)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-conflict-markers";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-conflict-markers.sh
                   '';
                 }
               );
