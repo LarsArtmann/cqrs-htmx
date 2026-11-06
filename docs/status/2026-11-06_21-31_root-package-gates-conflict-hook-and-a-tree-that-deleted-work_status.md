@@ -35,7 +35,7 @@ ask is also not mine to do.
   therefore produced `StreamMarker:CommandID:<ulid>`: the same command printed two different ways **in one row
   set**, depending on whether the payload carried an ID.
 - **Fix:** `.String()` → `.Get()`, plus a comment stating the derivation instead of restating the symptom.
-- **Test hardened rather than adjusted:** the fixture now builds real `id.CommandID`s and derives streams with
+- **Test hardened rather than adjusted:** the fixture now builds values of type `id.CommandID` and derives streams with
   `id.StreamIDFrom` (the same call `LifecycleStreamRef` makes), so payload-sourced and fallback rows are asserted
   to be *the same string*. Before, the fixture fed `StreamID.String()` into the payload — unrealistic data that
   hid the inconsistency the fix removes.
