@@ -156,7 +156,12 @@ func noopCancel() {}
 // to the authenticated user and an empty domain to the wildcard domain.
 func (a *Adapter) authorizeRequest(ctx context.Context, req cqrshtmx.Request) error {
 	if req.Subject == "" {
-		req.Subject = cqrshtmx.UserIDFromContext(ctx).String()
+		// A zero UserID's String() is the zero ULID, not "": passing that to the
+		// engine asks about a subject that cannot exist and turns "nobody is
+		// logged in" into a policy denial (403) instead of 401.
+		if userID := cqrshtmx.UserIDFromContext(ctx); !userID.IsZero() {
+			req.Subject = userID.String()
+		}
 	}
 
 	decision, err := cqrshtmx.Decide(a.checker, req)

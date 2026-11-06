@@ -2,6 +2,7 @@ package huma
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/v4"
@@ -189,7 +190,7 @@ func validateCommandValue(cmd command.Command, validate func(command.Command) er
 	}
 
 	if err := validate(cmd); err != nil {
-		return errorfamily.WrapRejection(err, validationCode, "request validation failed")
+		return wrapValidationRejection(err)
 	}
 
 	return nil
@@ -202,10 +203,30 @@ func validateQueryValue(qry query.Query, validate func(query.Query) error) error
 	}
 
 	if err := validate(qry); err != nil {
-		return errorfamily.WrapRejection(err, validationCode, "request validation failed")
+		return wrapValidationRejection(err)
 	}
 
 	return nil
+}
+
+// wrapValidationRejection normalizes a validator failure the way the endpoint
+// pipeline does: a rejection with the shared validation code, carrying the
+// inner error's machine context.
+//
+// Carrying the context matters more than it looks: httperr.StructuredError
+// reads ErrorContext() from the OUTERMOST error only, so a bare wrap would
+// shadow form_key/field names and a UI could no longer highlight the offending
+// input — the same trap the root package's wrapErrorPreservingContext fixes.
+func wrapValidationRejection(err error) error {
+	wrapped := errorfamily.WrapRejection(err, validationCode, "request validation failed")
+
+	if contextual, ok := errors.AsType[errorfamily.Contextual](err); ok {
+		if inner := contextual.ErrorContext(); len(inner) > 0 {
+			wrapped = wrapped.WithContextMap(inner)
+		}
+	}
+
+	return wrapped
 }
 
 // validationCode is the error code the endpoint pipeline's validation stage

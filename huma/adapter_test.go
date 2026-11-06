@@ -475,8 +475,8 @@ func TestAuthorizeOn_DerivesTheQuestionFromTypedInput(t *testing.T) {
 		t.Errorf("domain = %q, want acme", checker.domain)
 	}
 
-	if checker.resource != "tokens/tok-42" {
-		t.Errorf("resource = %q, want tokens/tok-42", checker.resource)
+	if checker.resource != "tokens:tok-42" {
+		t.Errorf("resource = %q, want tokens:tok-42", checker.resource)
 	}
 
 	if checker.actionName != "revoke" {

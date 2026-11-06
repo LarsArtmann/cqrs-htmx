@@ -26,9 +26,10 @@ import (
 //     unless the shell already serves its own htmx (never load htmx twice).
 //   - meta.Nonce carries the per-request CSP nonce for any script tags the
 //     shell emits.
-//   - meta.Nav is the capability-filtered navigation; render it in the
-//     consumer's sidebar, drop it, or replace it with consumer nav entries —
-//     all valid. Nav Hrefs are relative to meta.BasePath.
+//   - meta.Nav is the capability-filtered navigation plus the consumer's
+//     [Config.ExtraNav] entries; render it in the consumer's sidebar, drop it,
+//     or replace it with consumer nav entries — all valid. Prefix NavLink.Href
+//     with meta.BasePath only when NavLink.Verbatim is false.
 //   - Write actions surface toasts via the "dashboardui:toast" HX-Trigger
 //     event; include a feedback.ToastContainer in the shell to display them.
 //   - HTMX partial swaps (boost fragments, polled regions) bypass the shell
