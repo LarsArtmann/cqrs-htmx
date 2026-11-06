@@ -122,7 +122,6 @@ func AuthorizeOn[I any](resolve func(ctx context.Context, in *I) (cqrshtmx.Reque
 		cfg.resolve = func(ctx context.Context, in any) (cqrshtmx.Request, error) {
 			typed, ok := in.(*I)
 			if !ok {
-				//nolint:exhaustruct_v5 // zero-value return on a wiring bug
 				return cqrshtmx.Request{},
 					errorfamily.NewCorruption("huma_adapter_input_type",
 						"[cqrs-htmx/huma] AuthorizeOn option was applied to an operation with a different input type")
