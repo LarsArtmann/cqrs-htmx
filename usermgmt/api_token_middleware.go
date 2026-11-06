@@ -90,7 +90,7 @@ func RequireBot(next http.Handler) http.Handler {
 			status := httperr.MapError(identitymodel.ErrUnauthorized)
 			w.Header().Set("Content-Type", contentTypeProblem)
 			w.WriteHeader(status)
-			_ = json.MarshalWrite(w, httperr.NewStructuredError(identitymodel.ErrUnauthorized, r))
+			_ = json.MarshalWrite(w, httperr.NewStructuredErrorWithContext(identitymodel.ErrUnauthorized, r.Context()))
 			return
 		}
 		next.ServeHTTP(w, r)
