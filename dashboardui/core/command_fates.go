@@ -177,7 +177,7 @@ func decodeCommandFate(evt event.Event) (CommandFate, bool) {
 	switch evt.Type() {
 	case commandlifecycle.TypeFailed:
 		var p commandlifecycle.FailedPayload
-		row.Fate, row.Attempt, row.Error, row.Time = FateFailed, p.Attempt, p.Error, p.FailedAt
+		row.Fate = FateFailed
 		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
 			row.CommandType = p.CommandType
 			row.Attempt = p.Attempt
