@@ -108,7 +108,7 @@ type listPage struct {
 // usersListData drives the users index.
 type usersListData struct {
 	Users    []*identitymodel.User
-	Total    int        // total matching the search + filter (may exceed len(Users) when paginated)
+	Total    int // total matching the search + filter (may exceed len(Users) when paginated)
 	Search   string
 	Filter   userFilter // active status chip ("" = none)
 	BasePath string

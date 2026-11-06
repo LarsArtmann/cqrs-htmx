@@ -6,6 +6,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // This file is a compile-time contract test for the root package's public
@@ -33,6 +34,14 @@ var (
 	_ func(*http.Request) string                                   = cqrshtmx.HTMXTriggerName
 	_ func(*http.Request) string                                   = cqrshtmx.HTMXPrompt
 	_ func(*http.Request) string                                   = cqrshtmx.HTMXCurrentURL
+)
+
+// Recommended middleware chains.
+var (
+	_ func() func(http.Handler) http.Handler                                   = cqrshtmx.RecommendedSecurityMiddleware
+	_ func() (*httputil.MiddlewareStack, error)                                = cqrshtmx.RecommendedSecurityStack
+	_ func(http.Handler) http.Handler                                          = cqrshtmx.RecoveryMiddleware
+	_ func(...func(http.Handler) http.Handler) func(http.Handler) http.Handler = cqrshtmx.Chain
 )
 
 // HTMX script and extension serving.

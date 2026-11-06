@@ -93,7 +93,7 @@ func TestHandleErr_ClassifiedErrorLogging(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-					var buf bytes.Buffer
+			var buf bytes.Buffer
 			prev := slog.Default()
 			slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
 			t.Cleanup(func() { slog.SetDefault(prev) })
@@ -153,7 +153,10 @@ func TestHandleErr_ClassifiedAttrsCarryContext(t *testing.T) {
 		t.Errorf("message %q does not surface the inner domain code test.flap", record.Msg)
 	}
 	if record.ContextPoolSize != "7" {
-		t.Errorf("context.pool_size attr = %q, want 7 — the dispatch wrap must mirror inner context", record.ContextPoolSize)
+		t.Errorf(
+			"context.pool_size attr = %q, want 7 — the dispatch wrap must mirror inner context",
+			record.ContextPoolSize,
+		)
 	}
 	if record.ExitCode == 0 {
 		t.Error("exit_code attr missing (0) — want errorfamily's mapping")

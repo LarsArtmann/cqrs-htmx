@@ -208,8 +208,13 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, write: true, why: "creating accounts is platform-admin territory",
 		},
 		{
-			method: http.MethodPost, pattern: "/users/{id}/display-name", panel: panelUsers, guarded: h.userUpdateDisplayName,
-			mode: routeModeSuperAdmin, write: true, why: "editing a profile field is platform-admin territory",
+			method:  http.MethodPost,
+			pattern: "/users/{id}/display-name",
+			panel:   panelUsers,
+			guarded: h.userUpdateDisplayName,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "editing a profile field is platform-admin territory",
 		},
 		{
 			method: http.MethodPost, pattern: "/users/{id}/email", panel: panelUsers, guarded: h.userUpdateEmail,

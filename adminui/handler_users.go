@@ -128,10 +128,10 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 	p := h.page(shown.Email, "/users", user, r)
 	renderPage(w, r, userDetailPage(p, userDetailData{
 		User: shown, BasePath: h.config.BasePath, TenantRoles: roles,
-		PlatformRoles:        roles[identitymodel.WildcardDomain],
-		GrantableAdminRoles:  identitymodel.AdminRoles(),
-		IsSelf:               user != nil && user.ID == shown.ID,
-		Timeline:             h.userTimeline(shown),
+		PlatformRoles:       roles[identitymodel.WildcardDomain],
+		GrantableAdminRoles: identitymodel.AdminRoles(),
+		IsSelf:              user != nil && user.ID == shown.ID,
+		Timeline:            h.userTimeline(shown),
 		ConfiguredProviders: h.config.Service.ConfiguredOAuth2Providers(),
 		UnlinkExternalBase:  h.config.BasePath + "/users/" + shown.ID.Get().String() + "/external",
 	}))
@@ -233,7 +233,11 @@ func (h *Handler) userUpdateDisplayName(w http.ResponseWriter, r *http.Request, 
 	if err != nil {
 		return
 	}
-	if err := h.config.Service.ChangeDisplayName(r.Context(), target, strings.TrimSpace(r.FormValue("display_name"))); err != nil {
+	if err := h.config.Service.ChangeDisplayName(
+		r.Context(),
+		target,
+		strings.TrimSpace(r.FormValue("display_name")),
+	); err != nil {
 		h.writeActionError(w, r, "Change display name", err)
 		return
 	}
@@ -277,13 +281,13 @@ func (h *Handler) userGrantPlatformRoles(w http.ResponseWriter, r *http.Request,
 		h.writeActionError(w, r, "Grant roles", errConfig("select at least one platform role"))
 		return
 	}
-	roles := make([]usermgmt.Role, 0, len(checked))
+	roles := make([]identitymodel.Role, 0, len(checked))
 	for _, raw := range checked {
-		roles = append(roles, usermgmt.Role(raw))
+		roles = append(roles, identitymodel.Role(raw))
 	}
 	if err := h.config.Service.GrantRoles(
 		r.Context(),
-		usermgmt.ActorIDFromUser(target),
+		identitymodel.ActorIDFromUser(target),
 		identitymodel.NewTenantID(identitymodel.WildcardDomain),
 		roles,
 	); err != nil {
@@ -304,7 +308,7 @@ func (h *Handler) userRevokePlatformRoles(w http.ResponseWriter, r *http.Request
 	}
 	if err := h.config.Service.RevokeRoles(
 		r.Context(),
-		usermgmt.ActorIDFromUser(target),
+		identitymodel.ActorIDFromUser(target),
 		identitymodel.NewTenantID(identitymodel.WildcardDomain),
 	); err != nil {
 		h.writeActionError(w, r, "Revoke roles", err)
@@ -372,7 +376,11 @@ func (h *Handler) parseUserID(w http.ResponseWriter, r *http.Request) (identitym
 			"Invalid user id",
 			"The id in the URL path is not a valid user id.",
 		)
-		return identitymodel.UserID{}, err
+		return identitymodel.UserID{}, errorfamily.WrapRejection(
+			err,
+			"adminui.invalid_user_id",
+			"the id in the URL path is not a valid user id",
+		)
 	}
 	return target, nil
 }

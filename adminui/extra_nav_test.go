@@ -95,7 +95,11 @@ func TestNew_DashboardURLAppendsEventStoreEntry(t *testing.T) {
 		t.Error("cross-link.Verbatim = false, want true (dashboard mounts outside the admin subtree)")
 	}
 	if link.Icon != string(icons.CircleStack) {
-		t.Errorf("cross-link.Icon = %q, want the distinct %q icon (Dashboard already uses Chart)", link.Icon, icons.CircleStack)
+		t.Errorf(
+			"cross-link.Icon = %q, want the distinct %q icon (Dashboard already uses Chart)",
+			link.Icon,
+			icons.CircleStack,
+		)
 	}
 	if link.Icon == iconDashboard {
 		t.Error("cross-link reuses the Dashboard icon")
