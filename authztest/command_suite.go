@@ -31,27 +31,23 @@ func NoIdentity() Identity {
 	return func(ctx context.Context) context.Context { return ctx }
 }
 
-// DispatchCase is one declared dispatch: what the type requires, and how to run
-// it with an arbitrary identity.
+// DispatchCase is one declared dispatch: the gate's declaration plus the way to
+// run it with an arbitrary identity.
+//
+// The declaration is embedded rather than restated, so a suite case and a
+// production posture cannot drift into two vocabularies — and a posture copied
+// from `gate.Manifest()` is a valid case body.
 type DispatchCase struct {
-	// Kind is the dispatcher surface: Command or Query.
-	Kind cqrshtmx.DispatchKind
-
-	// Name is the command or query type name, without the object prefix.
-	Name string
-
-	// Posture is what the declaration claims the type requires.
-	Posture Posture
-
-	// Why is the reason this posture is correct. Required.
-	Why string
+	cqrshtmx.DispatchPosture
 
 	// Dispatch runs one dispatch of the type with ctx.
 	Dispatch Dispatch
 }
 
-// String renders the case as its policy object: "command/CreateItem".
-func (c DispatchCase) String() string { return cqrshtmx.DispatchObject(c.Kind, c.Name) }
+// Case builds a dispatch case from a declaration and the way to run it.
+func Case(declaration cqrshtmx.DispatchPosture, dispatch Dispatch) DispatchCase {
+	return DispatchCase{DispatchPosture: declaration, Dispatch: dispatch}
+}
 
 // CommandSuite proves that a command/query dispatcher enforces the postures it
 // declares — the dispatch-boundary counterpart of [Suite].
