@@ -355,6 +355,31 @@ type Config struct {
 	// Metrics is also set).
 	Version string
 
+	// AppkitStartHooks forward to the appkit service's StartHooks on the
+	// [Bundle.RunWithAppkit] path: they run once, in order, after the
+	// listener has bound but BEFORE serving begins — the seam for
+	// sd_notify READY=1, dynamic port registration, or warming state that
+	// must exist before the first request. RunWithAppkit-only; nil is no
+	// hooks (byte-identical behavior).
+	AppkitStartHooks []appkit.Hook
+
+	// AppkitDrainHooks forward to the appkit service's DrainHooks: they run
+	// at the start of the shutdown drain, after the ready probe flips to
+	// false but BEFORE the drain wait and the listener close — the seam to
+	// flip external readiness signals (sd_notify STOPPING=1, LB
+	// deregistration) in lockstep with the service's own probe.
+	// RunWithAppkit-only; nil is no hooks.
+	AppkitDrainHooks []appkit.Hook
+
+	// AppkitShutdownHooks forward to the appkit service's ShutdownHooks:
+	// they run after the server has shut down and released its connections
+	// but BEFORE the bundle's own Close (which RunWithAppkit runs last) —
+	// the seam to flush telemetry (spans then cover the final in-flight
+	// requests) and close consumer-owned downstream resources ahead of the
+	// bundle's stores, projections, and SSE hub. RunWithAppkit-only; nil is
+	// no hooks.
+	AppkitShutdownHooks []appkit.Hook
+
 	// ExtraMiddleware composes consumer-owned middleware into the chain
 	// [Bundle.Middleware] assembles, INSIDE the built-in security stack and
 	// innermost before the routes: request-logging (see [Config.RequestLogging])

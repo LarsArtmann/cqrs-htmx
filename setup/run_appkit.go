@@ -81,6 +81,9 @@ func (b *Bundle) runWithAppkit(
 		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready (see doc above)
 		Metrics:           b.config.Metrics,
 		Version:           b.config.Version,
+		StartHooks:        b.config.AppkitStartHooks,
+		DrainHooks:        b.config.AppkitDrainHooks,
+		ShutdownHooks:     b.config.AppkitShutdownHooks,
 	})
 	if err != nil {
 		//cqrs-lint:ignore(C023) error path: the config rejection is primary; Close is secondary
