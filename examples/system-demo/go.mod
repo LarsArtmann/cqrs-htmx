@@ -6,6 +6,8 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.4
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
+	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.16.0
 )
 
@@ -36,6 +38,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.16.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
@@ -84,6 +87,7 @@ require (
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	go.etcd.io/bbolt v1.5.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.47.0 // indirect

@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -18,7 +19,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	_ "github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4" // register bbolt driver for -engine bbolt
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"  // register bbolt driver for -engine bbolt
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // register sqlite driver for -engine sqlite
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )

@@ -122,6 +122,29 @@ systemadapter.RecommendedSplitSQLiteDeployment("file:events.db", "file:projectio
 Each returns a plain `system.DeploymentConfig` — inspect it, tweak it, or
 pass it straight to `system.New`.
 
+### Engine breadth presets
+
+The metaengine driver registry has first-class engines beyond SQLite, and
+systemadapter presets each of them (one engine holding every role — the
+correct topology for embedded engines and single-server deployments):
+
+```go
+systemadapter.RecommendedPebbleDeployment("./data/pebble")  // LSM tree, read-heavy point lookups
+systemadapter.RecommendedBBoltDeployment("app.db")          // dependency-light embedded B+tree file
+systemadapter.RecommendedPostgresDeployment(dsn)            // server deployments
+systemadapter.RecommendedDuckDBDeployment("analytics.db")   // aggregate-heavy analytics scans
+systemadapter.RecommendedTursoDeployment("libsql://db.turso.io") // "" = embedded memory; libsql:// = remote
+```
+
+Drivers self-register database/sql-style, so each engine enters YOUR go.mod
+with a blank import (systemadapter deliberately carries only sqlite + bbolt
+so pebble/postgres/duckdb/turso dependency trees never ride a consumer that
+does not ask for them):
+
+```go
+import _ "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
+```
+
 ## System Introspection
 
 ```go

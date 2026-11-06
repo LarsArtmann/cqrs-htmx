@@ -76,3 +76,14 @@ Refined contract (`SyncEvent.PayloadEncoding` names the DELIVERED bytes' framing
 
 Exactly one of `payload`/`payloadB64` is ever set. Pinned by `TestSyncPullHandler_LyingJsonStampDegradesToOpaque`.
 
+## Amendment 2 — `codec.AutoDetect` NOT adopted for the lying-stamp path (2026-11-06; fleet-plan A18 decision review)
+
+Reviewed whether the `"opaque"` degradation should instead report the bytes' sniffed codec (e.g. `"cbor"`) via `go-codec`'s `AutoDetect`. **Decision: not adopted — N/A on the wire path.** Three reasons, in order of weight:
+
+1. **The heuristic's own contract excludes this use.** `AutoDetect` documents itself as "a best-effort heuristic for diagnostics and tooling — NOT a security boundary. Never use it to skip encoding validation." The sync pull is a wire contract: reporting `"cbor"` from a first-byte sniff (with trial-decode fallbacks and an `EncodingRaw` unknown class) would make the SERVER promise a framing it never verified — the same class of lie Amendment 1 removed.
+2. **`opaque` is the honest shape by design.** The refined contract defines it as "no decodable-framing promise"; the client gets the verbatim bytes via `payloadB64` and may sniff them client-side — which is exactly the diagnostic use `AutoDetect` is for.
+3. **Client obligations stay minimal and stable.** The v1.6.0 sync assets treat `opaque` as "bytes as-is"; a sniffed-codec report would obligate every client to carry a CBOR decoder for a case the server itself could not confirm.
+
+The stamp-and-bytes-agree case remains the ONLY inline path and is decided by full `jsontext.Value.IsValid()` validation, not a heuristic. Revisit trigger: an upstream `codec` API that offers VERIFIED (not heuristic) framing detection.
+
+
