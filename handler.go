@@ -44,12 +44,16 @@ func (a *App) handleErr(
 	err error,
 ) {
 	captureDispatchError(w, err)
-	slog.WarnContext(
-		ctx, "cqrs-htmx: dispatch error",
+	// Classified dispatch-error logging (errorfamily.LogErrorContext): one
+	// record carries family, code, retryable, exit_code, and every
+	// error-context key (context.*), and the LEVEL follows the family —
+	// Transient logs WARN (expected to self-heal), every other family logs
+	// ERROR (a Corruption or Infrastructure dispatch failure is a server
+	// fault and must not hide at WARN). method/path ride as pre-bound attrs.
+	errorfamily.LogErrorContext(ctx, err, slog.Default().With(
 		slog.String("method", r.Method),
 		slog.String("path", r.URL.Path),
-		slog.String("error", err.Error()),
-	)
+	))
 	a.errorHandler(w, r, err)
 
 	if config.onError != nil {

@@ -11,6 +11,7 @@
 2. **TODO_LIST row 27 lists R1 (CBOR) as still open — stale.** ADR-0059 is Accepted and the 11-03 plan's own errata records R1 executed as five payloads. Annotation task A14 closes this.
 3. **TODO_LIST rows 86 (README badges), 88 (PR secrets), 96 (CVE watch) are already done** per AGENTS gate receipts (Round-45 M15/M16/M18). Not re-dispatched; A14 annotates them for the docs-health lane.
 4. **CI residual red is exactly one upstream blocker** (go-cqrs-lite catalog release carrying regenerated templ; their active session) — TODO row 21. Watch task A25, nothing actionable in-tree.
+5. **A4's go-etag "lag" is an artifact — closed as not-actionable (2026-11-06, resuming session).** The audit read the go-etag repo's root `v0.7.0` tag as lagging the consumed pins. Verified: that tag releases only the repo-root module, which the upstream README declares "Deprecated alias shim for the server package; removed in v1.0.0" — NOT the consumed submodules. No `server/v0.7.0` or `entitytag/v0.7.0` submodule tags exist; `go-etag/server@v0.6.1` + `go-etag/entitytag@v0.6.1` are the latest. `check-upstream-treadmill` (the mechanical lag gate, 20 repos · 78 prefixes) reports worst lag **0** — A4's own verification bar is already met with no change. The bump sweep's R18 pre-flight correctly refused (`entitytag@v0.7.0` 404 on the proxy) before touching anything.
 
 ## Overlap check (skill Step 0)
 
