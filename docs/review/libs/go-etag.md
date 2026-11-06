@@ -7,7 +7,7 @@
 
 | Pin | Latest (verified 2026-11-05) | Prod import sites | Adoption | Score |
 | --- | --- | --- | --- | --- |
-| `go-etag/server` v0.6.1 (entitytag v0.6.1 indirect) | **v0.7.0 (tagged 2026-11-03)** — the fleet's only version lag | 4 files | **Used — conditional requests for immutable JSON** | **83/100 · bump pending** |
+| `go-etag/server` v0.6.1 (entitytag v0.6.1 indirect) | **v0.6.1 = latest for the consumed submodules** (see § Version currency — the v0.7.0 root tag is a deprecated shim, corrected 2026-11-06) | 4 files | **Used — conditional requests for immutable JSON** | **83/100 · at latest** |
 
 ## What the library is
 
@@ -33,9 +33,9 @@ Entity-tag plumbing: `entitytag` (ETag values/computation) and `server` (conditi
 
 4 rows − 1 N/A = **3 applicable**; 2 full ×1 + 1 partial ×0.5 = **2.5 → 83/100** (band: very high for its narrow role).
 
-## Version currency — the one action item
+## Version currency — CORRECTED 2026-11-06: no action item
 
-Pinned v0.6.1 vs **v0.7.0 (2026-11-03)**. Verified via `git log v0.6.1..v0.7.0`: 11 commits, **all chore/CI/docs** (lint-config convergence, doc-snippet gate, auto-commits) — zero functional delta. The treadmill gate's last live verification predates the tag, so this is a routine catch, not a miss: **bump in the next sweep** (`bump-dep 'go-etag' v0.7.0 --commit` class wave).
+The audit's original claim ("pinned v0.6.1 vs v0.7.0 — the fleet's only lag") was an **artifact**: the `v0.7.0` tag releases only the repo-ROOT module, which the upstream README declares a deprecated alias shim for the server package (removed in v1.0.0) — NOT the consumed submodules. Verified: no `server/v0.7.0` or `entitytag/v0.7.0` submodule tags exist (`go-etag/server@v0.6.1` + `go-etag/entitytag@v0.6.1` are the latest), and the mechanical treadmill gate (20 repos · 78 prefixes) reports worst lag **0**. A bump sweep pre-flight correctly refused the nonexistent `entitytag@v0.7.0` (proxy 404). Nothing to do — ride the submodule tags.
 
 ## Should cqrs-htmx use it (more)?
 

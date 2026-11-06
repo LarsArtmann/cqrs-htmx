@@ -880,9 +880,9 @@
             <div class="stat-value">6</div>
             <div class="stat-label">Correctly NOT adopted</div>
           </div>
-          <div class="stat-card stat-warn">
-            <div class="stat-value">1</div>
-            <div class="stat-label">Version lag (go-etag, chore-only)</div>
+          <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Version lag (go-etag &ldquo;lag&rdquo; corrected &mdash; artifact)</div>
           </div>
         </div>
 
@@ -899,12 +899,18 @@
           </p>
         </div>
 
-        <div class="card card-problem">
-          <h4>One lag: go-etag v0.6.1 &rarr; v0.7.0</h4>
+        <div class="card card-solution">
+          <h4>Zero real version lag &mdash; the go-etag &ldquo;lag&rdquo; was an artifact (corrected 2026-11-06)</h4>
           <p>
-            The only version drift in the fleet (tagged 2026-11-03, after the
-            treadmill's last live pass). Verified gap: 11 commits, all
-            chore/CI/docs &mdash; bump in the next sweep, zero functional risk.
+            The audit read the go-etag repo's root <code>v0.7.0</code> tag as a
+            consumed-pin lag. Verified: that tag releases only the repo-root
+            module, which the upstream README declares a deprecated alias shim
+            removed in v1.0.0 &mdash; NOT the consumed submodules. No
+            <code>server/v0.7.0</code> or <code>entitytag/v0.7.0</code> tags
+            exist; <code>go-etag/server@v0.6.1</code> +
+            <code>go-etag/entitytag@v0.6.1</code> are the latest, and the
+            mechanical treadmill gate (20 repos &middot; 78 prefixes) reports
+            worst lag 0.
           </p>
         </div>
 
@@ -1049,9 +1055,9 @@
             <tr>
               <td>4</td>
               <td>go-etag</td>
-              <td>v0.6.1 &rarr; v0.7.0</td>
-              <td><span class="badge badge-high">Lag</span></td>
-              <td>83 &middot; bump pending</td>
+              <td>v0.6.1 = latest (submodules)</td>
+              <td><span class="badge badge-fixed">None</span></td>
+              <td>83 &middot; corrected 2026-11-06: the v0.7.0 tag releases only the deprecated repo-root shim; server/entitytag submodules have no v0.7.0 &mdash; treadmill worst-lag 0</td>
               <td><a href="go-etag.md">md</a></td>
             </tr>
             <tr>
@@ -1182,7 +1188,7 @@
         <div class="dep-tree"><span class="root">go-cqrs-lite</span> ── foundation (159 prod files, 15 trains, 0 anti-patterns)
 ├── <span class="ok">cqrs-htmx root</span> ── HTTP/HTMX face (self 83/~92)
 │   ├── <span class="ok">httputil + server_timing</span> ── middleware substrate
-│   ├── <span class="ok">go-sse</span> ── realtime &middot; <span class="ok">go-etag</span> ── conditional requests (bump v0.7.0)
+│   ├── <span class="ok">go-sse</span> ── realtime &middot; <span class="ok">go-etag</span> ── conditional requests (submodules at latest)
 │   ├── <span class="ok">go-error-family</span> ── errors &middot; <span class="ok">go-codec</span> ── payloads &middot; <span class="ok">go-idempotency</span> ── dedup
 │   ├── <span class="ok">templ-components</span> ── UI kit (adminui / dashboardui / loginpage)
 │   └── <span class="ok">go-health + dashboard</span> ── probes &middot; <span class="ok">go-appkit</span> ── setup runtime seam

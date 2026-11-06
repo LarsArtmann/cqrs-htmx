@@ -94,6 +94,7 @@ Override with your own `Config.Authorizer`, or use the helpers
 | `Authorizer`  | Access-control function.                                                        | role-based |
 | `LogoutURL`   | "Sign out" link target. Empty hides the link.                                   | —          |
 | `SSEURL`      | SSE endpoint for the live sync indicator.                                        | disabled   |
+| `SSEHubStats` | Source for two dashboard cards: live SSE subscribers + lifetime slow-consumer drops (amber when nonzero). Nil adds nothing; `setup` wires it automatically when its shared SSE/DataStar hub is enabled. | — |
 | `ExtraNav`    | Consumer-owned sidebar entries appended after the built-ins. Hrefs render       | —          |
 |               | VERBATIM (no `BasePath` prefix) — point at sibling surfaces (`/dashboard`,      |            |
 |               | `https://docs.example.com`). Empty `Label` or `Href` is rejected at `New`.      |            |
