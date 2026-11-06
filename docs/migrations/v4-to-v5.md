@@ -247,18 +247,29 @@ heartbeat, event filtering).
 Most of this migration is mechanical, and the mechanical part is automated.
 The codemod rewrites consumer code off the deprecated APIs:
 
-| Rule | Rewrites                                                                         | Notes                                                                                              |
-| ---- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| R1   | root httputil re-exports (CSRF, rate limiting, Server-Timing, security headers)  | → the `github.com/larsartmann/httputil` package                                                    |
-| R2   | root go-sse re-export shims (SSE event/store types)                              | → `github.com/larsartmann/go-sse`                                                                  |
-| R3   | raw-broadcaster constructors (`NewBroadcasterFromRaw` → `NewBroadcasterFromHub`) | remaining `.Raw()` call sites are REPORTED for manual migration (type-ambiguous to rewrite safely) |
-| R9   | usermgmt deprecated type aliases                                                 | → `identity-model`                                                                                 |
-| R10  | usermgmt deprecated var/const re-exports                                         | → `identity-model`                                                                                 |
+| Rule | Rewrites                                                                           | Notes                                                                                              |
+| ---- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| R1   | root httputil re-exports (CSRF, rate limiting, Server-Timing, security headers)    | → the `github.com/larsartmann/httputil` package                                                    |
+| R2   | root go-sse re-export shims (SSE event/store types)                                | → `github.com/larsartmann/go-sse`                                                                  |
+| R3   | raw-broadcaster constructors (`NewBroadcasterFromRaw` → `NewBroadcasterFromHub`)   | remaining `.Raw()` call sites are REPORTED for manual migration (type-ambiguous to rewrite safely) |
+| R9   | usermgmt deprecated type aliases                                                   | → `identity-model`                                                                                 |
+| R10  | usermgmt deprecated var/const re-exports                                           | → `identity-model`                                                                                 |
+| R11  | root `htmx` façade aliases (`HTMXScriptHandler`, `HTMXTarget`, `SwapInnerHTML`, …) | → `github.com/larsartmann/cqrs-htmx/v4/htmx`                                                       |
+| R12  | root `httperr` façade aliases (`MapError`, `ErrForbidden`, `StructuredError`, …)   | → `github.com/larsartmann/cqrs-htmx/v4/httperr`                                                    |
+| R13  | root `eventcatalog` façade aliases (`EventCatalog`, `NewEventCatalog`, …)          | → `github.com/larsartmann/cqrs-htmx/v4/eventcatalog`                                               |
 
-The R1/R2/R9/R10 symbol tables are **not hardcoded**: they are derived at run
+The R1–R13 symbol tables are **not hardcoded**: they are derived at run
 time from the alias declarations of the cqrs-htmx version present in _your_
 module graph (`go list -m`), so the codemod can never drift from whatever
 version you have installed.
+
+**Run your formatter afterwards.** The codemod adds an import spec when it
+needs one, but it does not order the import block — `gci` (and therefore
+`golangci-lint`) will flag every file it touched. One `gofumpt`/`goimports`/`gci`
+pass over the rewritten files clears it. This is not hypothetical: applying
+R11–R13 to the library's own 25 test files produced exactly 21 `gci` findings
+and nothing else, which is the cheapest possible proof that the rewrites are
+otherwise order-preserving.
 
 ```bash
 # Dry run (default): a report of every planned edit, nothing written.

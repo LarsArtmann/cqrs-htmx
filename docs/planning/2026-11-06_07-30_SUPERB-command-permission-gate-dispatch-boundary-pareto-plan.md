@@ -479,10 +479,15 @@ history; `git log 4cf82c0b..HEAD` is the authoritative list (70 files, +6369/−
 | M09 gate rule 5 | `undeclared-dispatch` in `check-permission-surface.sh`; self-test 5 → 8 cases | planted violation fails, helper passes, suppression counted (8/8) |
 | M10 docs | `docs/PERMISSIONS.md` L5 + six-level heading + inventory row L4→L5 + gate section; `PERMISSIONS_BASELINE` L5; guide §5 with the three-layer table; maturity gate parser extended to `L[0-5]` (rank + self-test 8 → 10 cases) | `--ratchet`: 13 services at or above baseline |
 | M11 skill + README | SKILL §"Gating the dispatch boundary (L5)", two new gotchas, `references/core-api.md` dispatch-gate catalogue, README bullet | skill-snippets 42/42, skill-claims 248 symbols, readme-splitbrain green |
-| M12 library-owned dispatcher | `usermgmt/command_postures.go` (all 21 commands classified) + four integration tests: bootstrap grant works, unprivileged revoke denied naming `command/RemoveMember`, anonymous refused, public registration reachable | `usermgmt` suite green; no `setup` code needed — `setup.Config.CommandMiddleware` already carries the gate, documented instead |
+| M12 library-owned dispatcher | `usermgmt/command_postures.go` (all 21 commands classified) + four integration tests: bootstrap grant works, unprivileged revoke denied naming `command/RemoveMember`, anonymous refused, public registration reachable. **The `setup` half needed no code** — `setup.Config.CommandMiddleware` already carries the gate, so it is documented, not built | `usermgmt` suite green (workspace mode). Hermetic mode red: `command_postures.go` consumes two unpublished root symbols — see "still open" |
 | M13 bench | `benchmark_authz_gate_test.go`, `b.Loop()` + `ReportAllocs` | bare 68 ns / 1 alloc · public 207 / 7 · authenticated 214 / 7 · gated-allow ~254 / 7 · gated-deny ~1 100 ns / 17 allocs. **Not under 5 %** — recorded honestly: the denominator here is an in-memory no-op handler, which is the cheapest dispatch that exists; the gate's absolute cost is what a real event-store dispatch pays in noise |
-| M14 policy-row linter | `check-policy-rows.sh` + 8-case fixture self-test, flake apps, `check-modules` + CI parity legs | 8/8; `keyMatch`-shaped matching, prefix suggestions, suppression counting |
+| M14 policy-row linter | `check-policy-rows.sh` + 8-case fixture self-test, flake apps, `check-modules` + CI parity legs. **Advisory promotion is self-test-only**: this repo authors no policy CSVs, so a run would check zero rows | 8/8; `keyMatch`-shaped matching, prefix suggestions, suppression counting |
 | M15 release posture | CHANGELOG entry, `TODO_LIST` stale-row true-up (the maturity ratchet was already blocking), `dashboardui/go.mod` + `usermgmt/go.mod` indirect→direct via `go mod tidy` | `check-modules`, corpus ratchet (48779), freshness, todo-hygiene, shellcheck 131 scripts, links 1378 all green |
+
+The accounting behind every "landed" above — including the four milestones that are
+landed but not *complete* — is in
+[`docs/status/2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md`](../status/2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md)
+§a/§b/§d.
 
 ### Deviations from the plan, and why
 

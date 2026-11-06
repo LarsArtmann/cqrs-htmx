@@ -501,6 +501,14 @@ using `cqrshtmx.HTMXScriptHandler()` and therefore needed the `htmx` import adde
 | `go test ./... -count=1` (root module) | 9 packages ok |
 | `golangci-lint run --new-from-rev=origin/master ./` | 0 issues |
 
+**What dogfooding the codemod actually caught.** Applying R11–R13 to root's own
+tests left exactly 21 `gci` findings and nothing else — because the codemod adds an
+import spec when it needs one but does not ORDER the import block. A consumer running
+`golangci-lint` would have hit that on the first commit after migrating, so the
+migration guide now says so explicitly and the rule table finally lists R11/R12/R13
+(it had stopped at R10). That is the whole argument for running a migration tool on
+its own repository: the defect was in the consumer experience, not in the rewrite.
+
 **Pre-existing, NOT caused by W0** (recorded so the next session does not chase it): a full
 `golangci-lint run ./` on the root module reports 33 issues (27 `wsl_v5`, 3 `nlreturn`, 2
 `tagliatelle`, 1 `exhaustruct_v5`) in test files untouched by this work. `--new-from-rev`
