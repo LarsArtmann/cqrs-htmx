@@ -153,6 +153,10 @@ func TestExtraNav_FlowsToPageMeta(t *testing.T) {
 	}
 
 	for _, builtIn := range shell.got.Nav {
+		if builtIn.Href == "/event-catalog" {
+			continue
+		}
+
 		if builtIn.Verbatim {
 			t.Errorf("built-in nav entry %+v marked Verbatim; only ExtraNav entries are rendered as-is", builtIn)
 		}

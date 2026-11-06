@@ -228,6 +228,17 @@ absolute URL (`https://docs.example.com`), or a dashboard-internal path you
 build yourself from `Config.BasePath`. Entries with an empty `Label` or `Href`
 are rejected at `New`/`Validate`; an unset `ExtraNav` changes nothing.
 
+A custom layout receives the merged list in `PageMeta.Nav`, where
+`NavLink.Verbatim` repeats that contract: it is `true` for your extra entries
+and `false` for every capability-derived one, so the shell prefixes `BasePath`
+only when it should. An extra entry that links to a dashboard page (built from
+`Config.BasePath`) is marked `Active` like the built-in entry; a sibling
+surface or absolute URL never is.
+
+Mounting through `setup` (`setup.Config.DashboardExtraNav`) forwards to this
+field, so a bundle-based consumer gets the same knob. `setup.Config.AdminExtraNav`
+is the admin-panel equivalent.
+
 ### Read-Only Mode
 
 `ReadOnly` defaults to `true` (safe). When enabled, these operations are disabled:

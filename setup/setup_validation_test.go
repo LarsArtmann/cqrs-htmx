@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
@@ -302,4 +303,46 @@ func TestNew_AdminExtraNavAndDashboardURL_Accepted(t *testing.T) {
 	}
 
 	defer func() { _ = bundle.Close() }()
+}
+
+// --- DashboardExtraNav passthrough to dashboardui ---
+
+// TestNew_DashboardExtraNav_ReachesDashboard proves the knob is wired: an
+// entry set on setup.Config must land in the dashboard's own config, or a
+// bundle-based consumer cannot put a sibling surface in the panel sidebar.
+func TestNew_DashboardExtraNav_ReachesDashboard(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{
+		Title:             "Dashboard Extra Nav",
+		DashboardExtraNav: []dashboardui.NavEntry{{Label: "Event Catalog", Href: "/event-catalog"}},
+	})
+	defer func() { _ = bundle.Close() }()
+
+	got := bundle.Dashboard.Config().ExtraNav
+	if len(got) != 1 {
+		t.Fatalf("dashboard ExtraNav = %+v, want the single entry from setup.Config", got)
+	}
+
+	if got[0].Label != "Event Catalog" || got[0].Href != "/event-catalog" {
+		t.Errorf("dashboard ExtraNav[0] = %+v, want Event Catalog at /event-catalog", got[0])
+	}
+}
+
+// TestNew_DashboardExtraNav_RejectsEmptyHref proves the passthrough reaches
+// dashboardui's validation rather than being silently dropped.
+func TestNew_DashboardExtraNav_RejectsEmptyHref(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:             "Empty Dashboard ExtraNav Href",
+		DashboardExtraNav: []dashboardui.NavEntry{{Label: "Broken"}},
+	})
+	if err == nil {
+		t.Fatal("expected error for DashboardExtraNav entry with an empty Href")
+	}
+
+	if !strings.Contains(err.Error(), "ExtraNav") {
+		t.Fatalf("error should name ExtraNav as the failing field, got: %v", err)
+	}
 }

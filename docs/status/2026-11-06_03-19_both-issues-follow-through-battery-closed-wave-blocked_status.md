@@ -8,7 +8,7 @@
 
 1. **Resume-state verification (gotcha 51 discipline):** all prior-session work verified intact in HEAD after daemon sweeps — `session_audit.go` content, extra_nav tests, ADR-adjacent files all confirmed by `git show`.
 2. **Scoped `nix fmt`:** 6 touched Go files formatted (the `audit_log_test.go:415` golines fix landed); one over-long nolint comment in `session_audit.go` shortened so the canonical single-line return form survives.
-3. **Gotcha-53 catch:** the fmt pass was directory-scoped and reformatted 19 of the sibling's in-flight `docs/review/libs/*` files + `docs/gotchas.md`; caught by last-commit-timestamp forensics and `git restore`d to the sibling's committed state within minutes. Only my 6 files kept.
+3. **Gotcha-53 catch:** the fmt pass was directory-scoped and reformatted 19 of the sibling's in-flight `docs/review/libs/*` files + `docs/gotchas.md`; caught by last-commit-timestamp forensics and restored via `git restore` to the sibling's committed state within minutes. Only my 6 files kept.
 4. **Lint:** usermgmt 0 issues (one nolintlint fix in `session_audit_test.go`), identity-model 0, systemadapter 0; dashboardui was already 0 from the prior session.
 5. **Full test battery:** root ok; adminui red (3 tests — see d)3); the battery ABORTS at the first failing module (adminui is alphabetically first), so the remaining 12 modules were run explicitly: **all ok**, including all four touched modules.
 6. **Coverage gate:** identity-model 74.5/70, usermgmt 82.9/74, dashboardui 73.3/60 (+ core 89.2/80), systemadapter 90.8/70. Two apparent gate FAILs were load flakes (gotcha-41 class) — both green on quiet re-run. Diagnosed the stale-August `coverage.out` trap in the bare per-module check script.

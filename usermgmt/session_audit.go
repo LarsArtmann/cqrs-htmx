@@ -92,7 +92,7 @@ func (s *auditingSessionStore) Delete(ctx context.Context, token string) error {
 		return err //nolint:wrapcheck // decorator: the inner store's typed error passes through untouched
 	}
 
-	s.auditor.sessionEnded(ctx, session, token, sessionEndCauseFromContext(ctx))
+	s.auditor.sessionEnded(ctx, session, sessionEndCauseFromContext(ctx))
 
 	return nil
 }

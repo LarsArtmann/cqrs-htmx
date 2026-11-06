@@ -165,25 +165,28 @@ func (a authAuditor) sessionStarted(ctx context.Context, session *Session) {
 	a.append(ctx, eventSessionStarted, payload, actor)
 }
 
-// sessionEnded records that one session ended with a bounded cause. A nil
-// session is tolerated (the caller could not snapshot it) by journaling the
-// cause and token hash alone.
+// sessionEnded records that one session ended with a bounded cause. The
+// session snapshot is required: the payload needs the actor and impersonation
+// origin the token alone does not carry, and the decorator only journals ends
+// it could attribute (an unattributable end has no forensic value).
+//
+// The event actor mirrors sessionStarted: the impersonator for an
+// impersonation session, the session's own actor otherwise — so one query for
+// "everything admin Y did" returns both ends of their impersonation window.
 func (a authAuditor) sessionEnded(
-	ctx context.Context, session *Session, token string, cause identitymodel.SessionEndCause,
+	ctx context.Context, session *Session, cause identitymodel.SessionEndCause,
 ) {
 	payload := identitymodel.SessionEndedPayload{
 		SchemaVersion: currentSchemaVersion,
-		TokenHash:     identitymodel.SessionTokenHash(token),
+		ActorID:       session.ActorID.PrefixedString(),
+		TokenHash:     identitymodel.SessionTokenHash(session.Token),
 		Cause:         cause,
 	}
 
-	var actor id.ActorID
-	if session != nil {
-		payload.ActorID = session.ActorID.PrefixedString()
-		if imp, ok := session.Origin.(identitymodel.Impersonation); ok {
-			payload.Impersonator = imp.By.PrefixedString()
-		}
-		actor = session.ActorID
+	actor := session.ActorID
+	if imp, ok := session.Origin.(identitymodel.Impersonation); ok {
+		payload.Impersonator = imp.By.PrefixedString()
+		actor = imp.By
 	}
 
 	a.append(ctx, eventSessionEnded, payload, actor)
