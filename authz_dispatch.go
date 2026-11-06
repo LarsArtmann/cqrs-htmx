@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"maps"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -148,14 +150,29 @@ func OnDecision(observe func(DispatchOutcome)) DispatchGateOption {
 type DispatchGate struct {
 	*dispatchGate
 
-	mu   sync.Mutex
-	rows map[dispatchKey]DispatchPosture
+	// mu guards the write path only. Dispatches never take it.
+	mu sync.Mutex
+
+	// rows is an immutable declaration table published by Declare. Readers load
+	// the pointer atomically and read a table that is never mutated in place, so
+	// a dispatch pays no lock. A gate is declared at boot and read on every
+	// dispatch; a mutex on that read path would serialise every command in the
+	// process on one shared lock for the privilege of re-reading constants.
+	rows atomic.Pointer[map[dispatchKey]dispatchRow]
 }
 
 // dispatchKey identifies one declared type in one dispatcher surface.
 type dispatchKey struct {
 	kind DispatchKind
 	name string
+}
+
+// dispatchRow is one resolved declaration. The policy object is rendered once, at
+// declaration time, because it is a fixed function of the type: rendering it per
+// dispatch allocates a string on every call for a value that cannot change.
+type dispatchRow struct {
+	decl   DispatchPosture
+	object string
 }
 
 // DispatchPosture is one declaration: what a command or query type requires of
@@ -201,7 +218,6 @@ func NewDispatchGate(checker PermissionChecker, opts ...DispatchGateOption) (*Di
 
 	return &DispatchGate{
 		dispatchGate: newDispatchGate(checker, opts...),
-		rows:         make(map[dispatchKey]DispatchPosture),
 	}, nil
 }
 
@@ -285,20 +301,32 @@ func (g *DispatchGate) Declare(row DispatchPosture) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	if g.rows == nil {
-		g.rows = make(map[dispatchKey]DispatchPosture)
-	}
+	current := g.table()
 
-	key := dispatchKey{kind: row.Kind, name: row.Name}
-	if existing, ok := g.rows[key]; ok && existing != row {
+	if existing, ok := current[dispatchKey{kind: row.Kind, name: row.Name}]; ok && existing.decl != row {
 		return errorfamily.NewRejection(
 			"invalid_argument",
 			fmt.Sprintf("%s is declared twice with different postures (%q vs %q)",
-				row, existing.Posture, row.Posture),
+				row, existing.decl.Posture, row.Posture),
 		)
 	}
 
-	g.rows[key] = row
+	next := make(map[dispatchKey]dispatchRow, len(current)+1)
+	maps.Copy(next, current)
+	next[dispatchKey{kind: row.Kind, name: row.Name}] = dispatchRow{decl: row, object: row.String()}
+
+	g.rows.Store(&next)
+
+	return nil
+}
+
+// table returns the published declaration table. The returned map is immutable:
+// Declare copies before it writes, so a reader never observes a half-built map
+// and never needs a lock.
+func (g *DispatchGate) table() map[dispatchKey]dispatchRow {
+	if published := g.rows.Load(); published != nil {
+		return *published
+	}
 
 	return nil
 }
@@ -307,12 +335,11 @@ func (g *DispatchGate) Declare(row DispatchPosture) error {
 // artifact the L5 maturity level is measured by and the input to the
 // policy-row linter.
 func (g *DispatchGate) Manifest() []DispatchPosture {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+	table := g.table()
 
-	out := make([]DispatchPosture, 0, len(g.rows))
-	for _, row := range g.rows {
-		out = append(out, row)
+	out := make([]DispatchPosture, 0, len(table))
+	for _, resolved := range table {
+		out = append(out, resolved.decl)
 	}
 
 	sortDispatchPostures(out)
@@ -377,16 +404,10 @@ func (g *DispatchGate) QueryMiddleware() query.Middleware {
 // enforcedPosture returns the posture a declared gate applies to a type. A type
 // the gate was never told about is gated: fail-closed is the only default that
 // cannot silently ship an open door.
-func (g *DispatchGate) enforcedPosture(kind DispatchKind, name string) (Posture, bool) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+func (g *DispatchGate) enforcedPosture(kind DispatchKind, name string) (dispatchRow, bool) {
+	row, ok := g.table()[dispatchKey{kind: kind, name: name}]
 
-	row, ok := g.rows[dispatchKey{kind: kind, name: name}]
-	if !ok {
-		return PostureRoleGated, false
-	}
-
-	return row.Posture, true
+	return row, ok
 }
 
 // AuthorizeCommand returns a command middleware that asks "may this actor run
@@ -413,10 +434,12 @@ func AuthorizeQuery(checker PermissionChecker, opts ...DispatchGateOption) query
 
 // allGated is the posture lookup of the declaration-free form: every type is
 // role-gated, and nothing is claimed about a declaration set.
-func allGated(DispatchKind, string) (Posture, bool) { return PostureRoleGated, true }
+func allGated(DispatchKind, string) (dispatchRow, bool) {
+	return dispatchRow{decl: DispatchPosture{Posture: PostureRoleGated}}, true
+}
 
-// postureLookup resolves the posture for one dispatch.
-type postureLookup func(kind DispatchKind, name string) (Posture, bool)
+// postureLookup resolves the declaration for one dispatch.
+type postureLookup func(kind DispatchKind, name string) (dispatchRow, bool)
 
 func commandMiddlewareFor(g *dispatchGate, lookup postureLookup) command.Middleware {
 	return func(next command.Handler) command.Handler {
@@ -450,9 +473,19 @@ func (g *dispatchGate) authorize(
 	payload any,
 	lookup postureLookup,
 ) error {
-	posture, declared := lookup(kind, name)
+	row, declared := lookup(kind, name)
 
-	req := deriveDispatchRequest(ctx, kind, name, DispatchSubject(ctx), payload)
+	posture := row.decl.Posture
+	if !declared {
+		posture = PostureRoleGated
+	}
+
+	object := row.object
+	if object == "" {
+		object = DispatchObject(kind, name)
+	}
+
+	req := deriveDispatchRequest(ctx, object, dispatchAction(kind), DispatchSubject(ctx), payload)
 
 	if !declared {
 		return g.settle(ctx, kind, name, PostureRoleGated, req,
@@ -600,15 +633,14 @@ func DispatchSubject(ctx context.Context) string {
 // [PolicyContext] implementation overlay the parts it knows better.
 func deriveDispatchRequest(
 	ctx context.Context,
-	kind DispatchKind,
-	name, subject string,
+	object, action, subject string,
 	payload any,
 ) Request {
 	req := Request{
 		Subject:  subject,
 		Domain:   WildcardDomain,
-		Resource: Resource{Type: DispatchObject(kind, name), ID: ""},
-		Action:   dispatchAction(kind),
+		Resource: Resource{Type: object, ID: ""},
+		Action:   action,
 	}
 
 	describer, ok := payload.(PolicyContext)
