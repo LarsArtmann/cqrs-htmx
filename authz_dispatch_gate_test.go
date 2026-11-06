@@ -499,9 +499,12 @@ func TestDispatchGateRejectsContradictoryDeclarations(t *testing.T) {
 	}
 }
 
-// TestDispatchGateRejectsTypeDrift proves a declaration that disagrees with the
-// handler's own type name is refused, because the dispatch would never match it.
-func TestDispatchGateRejectsTypeDrift(t *testing.T) {
+// TestRegisterCommandTypeDriftIsCaughtAtDispatch documents where a mismatched
+// declaration actually surfaces: the gate cannot tell what a handler's Type()
+// answers without a live value (a zero value may be a nil pointer), so the
+// dispatcher itself reports the missing handler instead. This test exists so the
+// guarantee's boundary is stated rather than assumed.
+func TestRegisterCommandTypeDriftIsCaughtAtDispatch(t *testing.T) {
 	t.Parallel()
 
 	gate, err := NewDispatchGate(&gateCheck{allow: true})
@@ -509,14 +512,22 @@ func TestDispatchGateRejectsTypeDrift(t *testing.T) {
 		t.Fatalf("new gate: %v", err)
 	}
 
-	err = RegisterCommand(gate, command.NewDispatcher(), "WrongName", PostureRoleGated, "typo",
-		func(context.Context, *gatedCmd) error { return nil })
-	if err == nil {
-		t.Fatal("gate accepted a declaration that does not match the handler's type")
+	disp := command.NewDispatcher()
+	disp.Use(gate.CommandMiddleware())
+
+	if err := RegisterCommand(gate, disp, "WrongName", PostureRoleGated, "typo",
+		func(context.Context, *gatedCmd) error { return nil }); err != nil {
+		t.Fatalf("register: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "WrongName") {
-		t.Errorf("error should name the bad declaration, got: %v", err)
+	// The handler answers to CreateItem; nothing is registered under that name.
+	err = disp.Dispatch(authedCtx(), &gatedCmd{})
+	if err == nil {
+		t.Fatal("a drifted registration dispatched cleanly")
+	}
+
+	if IsForbidden(err) || IsUnauthorized(err) {
+		t.Fatalf("a missing handler must not read as a permission decision: %v", err)
 	}
 }
 

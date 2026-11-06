@@ -241,12 +241,6 @@ func RegisterCommand[T command.Command](
 			"registering command type %s", cmdType)
 	}
 
-	if got := commandTypeName[T](); got != string(cmdType) {
-		return errorfamily.NewRejection("invalid_argument", fmt.Sprintf(
-			"registered %q but the handler type reports %q; the declaration would not match the dispatch",
-			cmdType, got))
-	}
-
 	return gate.Declare(DispatchPosture{
 		Kind:    DispatchCommandKind,
 		Name:    string(cmdType),
@@ -620,16 +614,6 @@ func denyDispatch(req Request, decision Decision) error {
 		fmt.Sprintf("subject=%s domain=%s resource=%s action=%s reason=%s",
 			req.Subject, req.Domain, req.Resource.String(), req.Action, decision.Reason)).
 		WithCause(ErrForbidden)
-}
-
-// commandTypeName reports the type name a zero T answers to. It is only safe to
-// call for a pointer type whose Type method does not dereference the receiver —
-// which is the documented shape of a typed command — so it is used to catch a
-// declaration that disagrees with the handler, never to build one.
-func commandTypeName[T command.Command]() string {
-	var zero T
-
-	return string(zero.Type())
 }
 
 // sortDispatchPostures orders declarations by kind then name, so manifests and
