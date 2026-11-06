@@ -4,6 +4,7 @@
 //   - Creating an App with command and query dispatchers
 //   - HTMX handlers with JSON decoding via mapper functions
 //   - Typed command/query handlers (no manual type assertions)
+//   - Partial-render helpers: RenderPartialOrFull, OOBHTML, RenderIf (/demo/items)
 //   - SSE live updates via Broadcaster
 //   - Embedded HTMX script serving
 //
@@ -22,10 +23,10 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-sse"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 )
 
@@ -414,7 +415,8 @@ func renderDemoPage(w http.ResponseWriter, r *http.Request, result any) error {
 func asItems(result any) ([]item, error) {
 	items, ok := result.([]item)
 	if !ok {
-		return nil, event.Newf("unexpected result type %T", result)
+		return nil, errorfamily.NewRejection("unexpected_result_type",
+			fmt.Sprintf("unexpected result type %T", result))
 	}
 	return items, nil
 }

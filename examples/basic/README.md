@@ -8,6 +8,7 @@ A minimal onboarding example showing the core cqrs-htmx library usage.
 - **Command handler** — POST with JSON decode via mapper function
 - **Query handler** — GET with JSON result rendering
 - **Actor metadata** — POST `/api/audit` propagates the acting user from the request context into command metadata (`cqrshtmx.CommandOptionsFromContext`) and reads it back — the audit-trail pattern
+- **Partial-render showcase** — GET `/demo/items` serves the full page for direct visits and just the fragment for HTMX (`cqrshtmx.RenderPartialOrFull`, templ), refreshes the `#item-count` badge out-of-band (`cqrshtmx.OOBHTML`), and GET `/demo/items/count` answers the bare count when `HX-Target` is `#item-count` (`cqrshtmx.RenderIf` custom predicate)
 - **SSE live updates** — Broadcaster fan-out on command success
 - **Embedded HTMX** — Self-hosted HTMX v2.0.10 JS
 

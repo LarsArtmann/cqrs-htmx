@@ -119,3 +119,109 @@ func TestSmoke_ActorMetadataPropagation(t *testing.T) {
 		t.Error("user metadata is empty — UserID did not propagate from the request context")
 	}
 }
+
+// TestSmoke_PartialRenderShowcase proves the three partial-render helpers
+// serve distinct shapes from the same endpoints: RenderPartialOrFull (full
+// page vs list fragment), OOBHTML (out-of-band #item-count block riding the
+// partial response), and RenderIf (bare count when HX-Target is #item-count).
+func TestSmoke_PartialRenderShowcase(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(newHandler())
+	defer srv.Close()
+
+	// Seed one item so the list/count assertions are deterministic — db is
+	// package-level shared state and parallel tests race on its contents.
+	seed, err := http.Post(srv.URL+"/api/items", "application/json", strings.NewReader(`{"name":"partial-demo-item"}`))
+	if err != nil {
+		t.Fatalf("seed item: %v", err)
+	}
+	defer func() { _ = seed.Body.Close() }()
+	if seed.StatusCode != http.StatusCreated {
+		t.Fatalf("seed item: got %d, want 201", seed.StatusCode)
+	}
+
+	get := func(path string, header map[string]string) (int, string) {
+		t.Helper()
+		req, err := http.NewRequest(http.MethodGet, srv.URL+path, nil)
+		if err != nil {
+			t.Fatalf("build request %s: %v", path, err)
+		}
+		for k, v := range header {
+			req.Header.Set(k, v)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("GET %s: %v", path, err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+		body := &bytes.Buffer{}
+		if _, err := body.ReadFrom(resp.Body); err != nil {
+			t.Fatalf("read %s: %v", path, err)
+		}
+		return resp.StatusCode, body.String()
+	}
+
+	t.Run("DirectVisitRendersFullPage", func(t *testing.T) {
+		status, body := get("/demo/items", nil)
+		if status != http.StatusOK {
+			t.Fatalf("got %d, want 200", status)
+		}
+		if !strings.Contains(strings.ToLower(body), "<!doctype html>") {
+			t.Errorf("direct visit did not render the full page:\n%s", body)
+		}
+		if !strings.Contains(body, `id="item-count"`) || !strings.Contains(body, "<ul") {
+			t.Errorf("full page is missing the badge or the item list:\n%s", body)
+		}
+	})
+
+	t.Run("HTMXRequestRendersPartialWithOOB", func(t *testing.T) {
+		status, body := get("/demo/items", map[string]string{"HX-Request": "true"})
+		if status != http.StatusOK {
+			t.Fatalf("got %d, want 200", status)
+		}
+		if strings.Contains(strings.ToLower(body), "<!doctype html>") {
+			t.Errorf("HTMX request rendered the full page, want only the fragment:\n%s", body)
+		}
+		if !strings.Contains(body, "<ul") {
+			t.Errorf("partial response is missing the item list:\n%s", body)
+		}
+		if !strings.Contains(body, `hx-swap-oob="true"`) || !strings.Contains(body, `id="item-count"`) {
+			t.Errorf("partial response is missing the OOBHTML #item-count block:\n%s", body)
+		}
+	})
+
+	t.Run("HistoryRestoreRendersFullPage", func(t *testing.T) {
+		_, body := get("/demo/items", map[string]string{
+			"HX-Request":                 "true",
+			"HX-History-Restore-Request": "true",
+		})
+		if !strings.Contains(strings.ToLower(body), "<!doctype html>") {
+			t.Errorf("history-restore request must render the full page:\n%s", body)
+		}
+	})
+
+	t.Run("RenderIfCountTargetAnswersBareCount", func(t *testing.T) {
+		status, body := get("/demo/items/count", map[string]string{
+			"HX-Request": "true",
+			"HX-Target":  "#item-count",
+		})
+		if status != http.StatusOK {
+			t.Fatalf("got %d, want 200", status)
+		}
+		trimmed := strings.TrimSpace(body)
+		if !strings.HasSuffix(trimmed, " items") {
+			t.Errorf("RenderIf match branch should answer the bare count, got %q", trimmed)
+		}
+		if strings.Contains(body, "<ul") || strings.Contains(strings.ToLower(body), "<!doctype html>") {
+			t.Errorf("count-only response should not contain the list or page:\n%s", body)
+		}
+	})
+
+	t.Run("RenderIfNoTargetRendersFullPage", func(t *testing.T) {
+		_, body := get("/demo/items/count", nil)
+		if !strings.Contains(strings.ToLower(body), "<!doctype html>") {
+			t.Errorf("no-target request should render the full page:\n%s", body)
+		}
+	})
+}

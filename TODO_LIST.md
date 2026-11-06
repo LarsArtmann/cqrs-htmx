@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-11-06 (`huma/v4` landed — the cqrs-htmx#41 Huma v2 adapter; ROADMAP OQ 13 closed) · 30 Go modules · open items only.
+**Updated:** 2026-11-06 (`huma/v4` landed — the cqrs-htmx#41 Huma v2 adapter, ROADMAP OQ 13 closed; M2M W0 landed — the two M2M rows below track the five remaining audit findings + the four owner decisions blocking W1) · 30 Go modules · open items only.
 
 > Current thread: [CURRENT_FOCUS.md](CURRENT_FOCUS.md). History lives in [CHANGELOG.md](CHANGELOG.md); session reports in `docs/status/`.
 
