@@ -70,6 +70,9 @@ func run() error {
 		// DataStar feed on the SAME hub as /sse: one broadcast reaches both
 		// transports (ADR-0050). The SDK script auto-mounts at /datastar.js.
 		DataStarPath: "/ds/events",
+		// Cross-link the dashboard from the admin sidebar: both panels are
+		// mounted at their default paths, one click apart via "Event store".
+		AdminDashboardURL: "/dashboard/",
 	})
 	if err != nil {
 		return fmt.Errorf("setup.New: %w", err)

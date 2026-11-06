@@ -40,6 +40,7 @@ import (
 	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
 	servertiming "github.com/larsartmann/httputil/server_timing"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 const (
@@ -98,6 +99,11 @@ func main() {
 		AccentColor: "#0ea5e9",
 		LogoutURL:   "/dev-logout",
 		SSEURL:      "/admin/-/events",
+		// Consumer-owned nav entries: hrefs render verbatim (no BasePath
+		// prefix), so sibling surfaces stay reachable from the sidebar.
+		ExtraNav: []adminui.NavEntry{
+			{Label: "cqrs-htmx docs", Href: "https://github.com/LarsArtmann/cqrs-htmx", Icon: icons.Book},
+		},
 	})
 	if err != nil {
 		log.Fatalf("adminui.New: %v", err)
