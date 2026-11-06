@@ -106,6 +106,10 @@ linters:
           name: exported
         - disabled: true
           name: package-comments
+    # Exhaustive literals stay on; these three families are ignored because the
+    # adapter BUILDS values for other packages: a cqrshtmx.Request with Subject
+    # left empty (the subject defaults from the request context) and Huma's own
+    # config/context types are never fully keyed by a consumer.
     exhaustruct_v5:
       ignore-patterns:
         - github\.com/larsartmann/cqrs-htmx/v4\..*$

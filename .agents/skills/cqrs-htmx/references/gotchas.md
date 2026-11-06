@@ -25,7 +25,7 @@ cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 
 ### `GOWORK=off` for submodules
 
-`go.work` covers 29 modules (root, identity-model, usermgmt + 3 auth sub-modules, adminui, dashboardui, loginpage, datastar, setup, health, auditlog, systemadapter, integration_test, e2e/server, and the examples). When building/testing a submodule in isolation, set `GOWORK=off` so it uses its own `go.mod`. The `flake.nix` per-module apps do this for you (`nix run .#test-usermgmt`, `nix run .#test-webauthn`, etc.).
+`go.work` covers 30 modules (root, identity-model, usermgmt + 3 auth sub-modules, adminui, dashboardui, loginpage, datastar, huma, setup, health, auditlog, systemadapter, integration_test, e2e/server, and the examples). When building/testing a submodule in isolation, set `GOWORK=off` so it uses its own `go.mod`. The `flake.nix` per-module apps do this for you (`nix run .#test-usermgmt`, `nix run .#test-webauthn`, etc.).
 
 ### `go.work` doesn't affect `go get` / `go mod tidy`
 

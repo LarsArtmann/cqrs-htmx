@@ -1,10 +1,12 @@
 # Posture (reviewed 2026-09-20, TODO_LIST hygiene micro-pack):
-# - Only root, usermgmt, and integration_test are covered ON PURPOSE. The
+# - Only root, usermgmt, integration_test, and huma are covered ON PURPOSE. The
 #   larsartmann/* family dependencies ride coordinated release trains
 #   (check-release-train gate), so dependabot's job here is the third-party
 #   surface (casbin, templ, ginkgo, ...), which these three modules watch.
 #   The other 24 modules share those deps via the train process; adding them
-#   would duplicate every bump as 24 PRs.
+#   would duplicate every bump as 24 PRs. huma is the exception: it is the only
+#   module importing a third-party HTTP framework (danielgtaylor/huma/v2) that
+#   the family train does not track, so its bumps need their own PR.
 # - EXPECTED BUILDFLOW INFO FINDING (accepted 2026-10-07, do not "fix"):
 #   dependabot-auto-configure reports "28 Go modules; generation capped at 20
 #   entries (root only)" — its generation cap would create ~20 near-duplicate
@@ -31,6 +33,17 @@ updates:
       - dependencies
   - package-ecosystem: gomod
     directory: /usermgmt
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
+  - package-ecosystem: gomod
+    directory: /huma
     schedule:
       interval: weekly
     groups:
