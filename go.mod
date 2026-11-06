@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/httputil v1.8.0
 	github.com/larsartmann/httputil/server_timing v1.0.3
 	github.com/oklog/ulid/v2 v2.1.2
-	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 )
 
@@ -30,11 +30,12 @@ require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
+	github.com/gkampitakis/go-snaps v0.5.25 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261006160405-d99a6174ef52 // indirect
+	github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
@@ -42,6 +43,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
@@ -53,5 +55,5 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 )

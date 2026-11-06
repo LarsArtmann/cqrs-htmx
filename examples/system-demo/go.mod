@@ -46,7 +46,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2 // indirect
@@ -63,6 +63,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
@@ -99,6 +100,8 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261026165753-2ffab32bce7e // indirect
+	google.golang.org/grpc v1.85.0 // indirect
 	modernc.org/libc v1.80.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
