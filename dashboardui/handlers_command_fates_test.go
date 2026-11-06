@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/templ-components/display"
 )
 
@@ -118,14 +119,35 @@ func TestCommandFatesIndexHandler_EmptyState(t *testing.T) {
 	}
 }
 
-func TestCommandFatesRoute_GatedOffWithoutEventRead(t *testing.T) {
-	mux := mustTestDashboardMuxWithConfig(t, Config{CommandJournal: &fakeCommandJournal{}})
+func TestCommandFatesRoute_GatedByEventRead(t *testing.T) {
+	// EventSource-only: a valid dashboard whose store answers stream-by-ref
+	// reads but offers no journal — the exact state the route gate exists
+	// for. (mustTestDashboardWithConfig cannot build this: it auto-wires a
+	// journal whenever EventSource and Journal are both nil.)
+	withoutJournal, err := New(Config{EventSource: memorystorage.NewMemoryStore()})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
 
-	response := httptest.NewRecorder()
-	mux.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/dashboard/command-fates", nil))
+	for _, route := range withoutJournal.Routes() {
+		if route.Pattern == "/command-fates" {
+			t.Errorf("manifest should omit /command-fates without event-read capability, got %+v", route)
+		}
+	}
 
-	if response.Code != http.StatusNotFound {
-		t.Errorf("route without journal capability: got %d, want 404", response.Code)
+	journal := &fakeSeekableJournal{}
+	withJournal := mustTestDashboardWithConfig(t, Config{Journal: journal, SeekableJournal: journal})
+
+	found := false
+
+	for _, route := range withJournal.Routes() {
+		if route.Pattern == "/command-fates" && route.Method == http.MethodGet && !route.Write {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Error("manifest should carry GET /command-fates (read-only) when a journal is configured")
 	}
 }
 
