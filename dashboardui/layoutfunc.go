@@ -1,6 +1,8 @@
 package dashboardui
 
 import (
+	"slices"
+
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/icons"
 )

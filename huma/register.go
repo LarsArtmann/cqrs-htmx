@@ -36,7 +36,10 @@ func RegisterCommand[I any](
 ) {
 	requireAPI(api)
 	requireAdapter(a)
-	requireBuild("RegisterCommand", build)
+
+	if build == nil {
+		panic("[cqrs-htmx/huma] RegisterCommand requires a build function")
+	}
 
 	cfg := newOperationConfig(opts)
 
@@ -89,7 +92,10 @@ func RegisterQuery[I, O any](
 ) {
 	requireAPI(api)
 	requireAdapter(a)
-	requireBuild("RegisterQuery", build)
+
+	if build == nil {
+		panic("[cqrs-htmx/huma] RegisterQuery requires a build function")
+	}
 
 	if respond == nil {
 		panic("[cqrs-htmx/huma] RegisterQuery requires a respond function")
@@ -205,12 +211,5 @@ func requireAPI(api humav2.API) {
 func requireAdapter(a *Adapter) {
 	if a == nil {
 		panic("[cqrs-htmx/huma] a non-nil *Adapter is required — build one with New")
-	}
-}
-
-// requireBuild rejects a nil build function at registration.
-func requireBuild[T any](helper string, build T) {
-	if any(build) == nil {
-		panic("[cqrs-htmx/huma] " + helper + " requires a build function")
 	}
 }

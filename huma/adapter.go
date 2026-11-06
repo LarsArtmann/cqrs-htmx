@@ -197,6 +197,7 @@ func requireAuthenticated(ctx context.Context, resource, action string) error {
 		return nil
 	}
 
-	return errorfamily.NewRejection(httperr.CodeUnauthorized, resource+"/"+action).
+	return errorfamily.NewRejection(httperr.CodeUnauthorized,
+		"authentication required for "+resource+"/"+action).
 		WithCause(httperr.ErrUnauthorized)
 }

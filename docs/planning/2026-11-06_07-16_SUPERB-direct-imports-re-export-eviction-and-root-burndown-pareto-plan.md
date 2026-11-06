@@ -16,7 +16,7 @@ Related: [ADR-0047](../adr/0047-re-export-layer-retirement-plan.md) (the old ret
 
 The repo is not too modular at the module level (29 modules, 2026-10-18 re-assessment: zero
 merges/splits needed) — it is **too fat at the package level** and it **enshrined re-exports as
-the design**. Root holds 53 production files / 7,594 LOC (re-measured 11:40 the same day: 54 / 8,547 — see §1.2), of which **718 LOC across 9 files is
+the design**. Root holds 53 production files / 7,594 LOC (re-measured 09:35 the same day: 54 / 8,547 — see §1.2), of which **718 LOC across 9 files is
 pure aliasing**, and the three newest alias files (`htmx_reexport.go`, `httperr_reexport.go`,
 `eventcatalog_reexport.go`) say in their own header *"they are not deprecated"* — i.e. the
 compatibility bridge shipped as the supported surface. That is the thing to kill. Because the
@@ -55,7 +55,7 @@ may ever exist again; the gate in W0 is what makes that monotone instead of aspi
 | new-style aliases      | 3     | 336   | none                                 | policy decision (this plan)              |
 | leaf leftovers         | 3     | ~150  | none                                 | too small for a boundary (FM#8)          |
 
-**Re-measured 2026-11-06 11:40:** 54 production `.go` files / 8,547 LOC
+**Re-measured 2026-11-06 09:35:** 54 production `.go` files / 8,547 LOC
 (`ls *.go | grep -v _test | grep -v _templ`, then `wc -l`). Two drifts in this section:
 the cluster column already sums to ~8,030, so §0's (and `TODO_LIST.md`'s) 7,594
 understates root even at planning time; and the +517 since then is the dispatch-gate
