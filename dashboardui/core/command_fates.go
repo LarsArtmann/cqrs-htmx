@@ -2,9 +2,10 @@ package core
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"time"
 
+	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -91,7 +92,7 @@ func LoadCommandFates(
 		total int
 	)
 
-	keep := func(batch []event.Event) error {
+	keep := func(batch []event.Event) {
 		for _, evt := range batch {
 			if evt.StreamType() != commandlifecycle.StreamTypeCommandLifecycle {
 				continue
@@ -112,8 +113,6 @@ func LoadCommandFates(
 				fates = trimmed
 			}
 		}
-
-		return nil
 	}
 
 	if cfg.SeekableJournal != nil {
@@ -127,9 +126,7 @@ func LoadCommandFates(
 					WithContextAny("limit", limit)
 			}
 
-			if err := keep(batch); err != nil {
-				return nil, 0, err
-			}
+			keep(batch)
 
 			if len(batch) < tailScanBatch {
 				break
@@ -151,9 +148,7 @@ func LoadCommandFates(
 				WithContextAny("limit", limit)
 		}
 
-		if err := keep(all); err != nil {
-			return nil, 0, err
-		}
+		keep(all)
 	}
 
 	// Newest first for display: the scan is oldest-first.
@@ -169,82 +164,148 @@ func LoadCommandFates(
 // A payload that fails to decode still yields a row — with the raw event
 // type as the Fate — so schema drift stays visible instead of hiding rows.
 func decodeCommandFate(evt event.Event) (CommandFate, bool) {
-	row := CommandFate{
-		CommandID: evt.StreamID().String(),
-		EventID:   evt.ID(),
-	}
-
 	switch evt.Type() {
-	case commandlifecycle.TypeFailed:
-		var p commandlifecycle.FailedPayload
-		row.Fate = FateFailed
-		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
-			row.CommandType = p.CommandType
-			row.Attempt = p.Attempt
-			row.Error = p.Error
-			row.Time = p.FailedAt
-
-			if p.CommandID != "" {
-				row.CommandID = string(p.CommandID)
-			}
-		}
-	case commandlifecycle.TypeRejected:
-		var p commandlifecycle.RejectedPayload
-		row.Fate = FateRejected
-		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
-			row.CommandType = p.CommandType
-			row.Attempt = p.Attempt
-			row.Error = p.Error
-			row.Family = p.Family
-			row.ErrorCode = p.ErrorCode
-			row.Time = p.RejectedAt
-
-			if p.CommandID != "" {
-				row.CommandID = string(p.CommandID)
-			}
-		}
-	case commandlifecycle.TypeRetried:
-		var p commandlifecycle.RetriedPayload
-		row.Fate = FateRetried
-		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
-			row.CommandType = p.CommandType
-			row.Attempt = p.Attempt
-			row.Time = p.RetriedAt
-		}
-	case commandlifecycle.TypeDeadLettered:
-		var p commandlifecycle.DeadLetteredPayload
-		row.Fate = FateDeadLettered
-		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
-			row.CommandType = p.CommandType
-			row.Error = p.Error
-			row.Attempt = p.Attempts
-			row.Time = p.DeadLetteredAt
-		}
-	case commandlifecycle.TypeCompleted:
-		var p commandlifecycle.CompletedPayload
-		row.Fate = FateCompleted
-		if err := json.Unmarshal(evt.Payload(), &p); err == nil {
-			row.CommandType = p.CommandType
-			row.Time = p.CompletedAt
-
-			if p.CommandID != "" {
-				row.CommandID = string(p.CommandID)
-			}
-		}
 	case commandlifecycle.TypeReceived:
-		return CommandFate{}, false
+		var zero CommandFate
+
+		return zero, false
+	case commandlifecycle.TypeFailed:
+		return failedFate(evt), true
+	case commandlifecycle.TypeRejected:
+		return rejectedFate(evt), true
+	case commandlifecycle.TypeRetried:
+		return retriedFate(evt), true
+	case commandlifecycle.TypeDeadLettered:
+		return deadLetteredFate(evt), true
+	case commandlifecycle.TypeCompleted:
+		return completedFate(evt), true
 	default:
 		// An event type newer than this build: keep it visible with the raw
 		// type as the fate, so nothing on a CommandLifecycle stream silently
 		// disappears from the view.
-		row.Fate = string(evt.Type())
+		row := newCommandFateRow(evt, string(evt.Type()))
 		row.CommandType = string(evt.Type())
-		row.Time = evt.OccurredAt()
+
+		return row, true
+	}
+}
+
+// newCommandFateRow seeds a row with the fate label and the stream-keyed
+// command identity; the per-fate decoders fill in the payload fields.
+func newCommandFateRow(evt event.Event, fate string) CommandFate {
+	return CommandFate{
+		Fate:      fate,
+		CommandID: evt.StreamID().String(),
+		EventID:   evt.ID(),
+	}
+}
+
+// payloadCommandID prefers the payload's command ID and falls back to the
+// stream-keyed identity (FailedPayload.CommandID is empty on payloads
+// recorded before the payload carried one).
+func payloadCommandID(payloadID commandlifecycle.CommandKey, fallback string) string {
+	if payloadID != "" {
+		return string(payloadID)
 	}
 
-	if row.Time.IsZero() {
-		row.Time = evt.OccurredAt()
+	return fallback
+}
+
+func failedFate(evt event.Event) CommandFate {
+	row := newCommandFateRow(evt, FateFailed)
+
+	var p commandlifecycle.FailedPayload
+	if decodeLifecyclePayload(evt.Payload(), evt.Encoding(), &p) != nil {
+		return row
 	}
 
-	return row, true
+	row.CommandType = p.CommandType
+	row.Attempt = p.Attempt
+	row.Error = p.Error
+	row.Time = p.FailedAt
+	row.CommandID = payloadCommandID(p.CommandID, row.CommandID)
+
+	return row
+}
+
+func rejectedFate(evt event.Event) CommandFate {
+	row := newCommandFateRow(evt, FateRejected)
+
+	var p commandlifecycle.RejectedPayload
+	if decodeLifecyclePayload(evt.Payload(), evt.Encoding(), &p) != nil {
+		return row
+	}
+
+	row.CommandType = p.CommandType
+	row.Attempt = p.Attempt
+	row.Error = p.Error
+	row.Family = p.Family
+	row.ErrorCode = p.ErrorCode
+	row.Time = p.RejectedAt
+	row.CommandID = payloadCommandID(p.CommandID, row.CommandID)
+
+	return row
+}
+
+func retriedFate(evt event.Event) CommandFate {
+	row := newCommandFateRow(evt, FateRetried)
+
+	var p commandlifecycle.RetriedPayload
+	if decodeLifecyclePayload(evt.Payload(), evt.Encoding(), &p) != nil {
+		return row
+	}
+
+	row.CommandType = p.CommandType
+	row.Attempt = p.Attempt
+	row.Time = p.RetriedAt
+
+	return row
+}
+
+func deadLetteredFate(evt event.Event) CommandFate {
+	row := newCommandFateRow(evt, FateDeadLettered)
+
+	var p commandlifecycle.DeadLetteredPayload
+	if decodeLifecyclePayload(evt.Payload(), evt.Encoding(), &p) != nil {
+		return row
+	}
+
+	row.CommandType = p.CommandType
+	row.Attempt = p.Attempts
+	row.Error = p.Error
+	row.Time = p.DeadLetteredAt
+
+	return row
+}
+
+func completedFate(evt event.Event) CommandFate {
+	row := newCommandFateRow(evt, FateCompleted)
+
+	var p commandlifecycle.CompletedPayload
+	if decodeLifecyclePayload(evt.Payload(), evt.Encoding(), &p) != nil {
+		return row
+	}
+
+	row.CommandType = p.CommandType
+	row.Time = p.CompletedAt
+	row.CommandID = payloadCommandID(p.CommandID, row.CommandID)
+
+	return row
+}
+
+// decodeLifecyclePayload decodes a lifecycle payload by the event's
+// encoding — the same JSON/CBOR switch the typed payload renderers use
+// (commandlifecycle streams are CBOR when the recorder runs the default
+// codec). Raw and unknown encodings decode to an error; callers keep the
+// row visible undecoded rather than dropping it.
+func decodeLifecyclePayload(payload []byte, encoding codec.Encoding, dst any) error {
+	switch encoding {
+	case codec.EncodingJSON, "":
+		return json.Unmarshal(payload, dst)
+	case codec.EncodingCBOR:
+		return codec.CBORCodec{}.Decode(payload, dst)
+	default:
+		return errorfamily.NewCorruption("dashboardui.command_fates.encoding_unsupported",
+			"no lifecycle payload decode for the event's encoding")
+	}
 }
