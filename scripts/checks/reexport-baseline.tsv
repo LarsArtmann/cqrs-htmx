@@ -5,7 +5,9 @@
 #         go run scripts/checks/reexport_scanner.go --files  (per-file summary)
 # Gate:   bash scripts/checks/check-reexport-policy.sh
 #
-# Frozen on 2026-11-06: 47 files, 418 alias declarations across the workspace.
+# Frozen on 2026-11-06: 47 files, 413 alias declarations across the workspace.
+# (The per-row counts below are authoritative; this header is a convenience sum and
+#  was corrected from 418 to 413 on 2026-11-06 — the scanner is the only source.)
 #
 # HOW TO CHANGE THIS FILE
 #   * alias counts may SHRINK freely (the gate only fails on growth);
