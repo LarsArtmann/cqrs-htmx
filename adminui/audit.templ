@@ -1,6 +1,11 @@
 package adminui
 
-import "github.com/larsartmann/templ-components/display"
+import (
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/utils"
+	"github.com/larsartmann/templ-components/utils/wire"
+)
 
 templ auditPage(p pageData, d auditData) {
 	@Layout(p, auditContent(d))
@@ -8,9 +13,48 @@ templ auditPage(p pageData, d auditData) {
 
 templ auditContent(d auditData) {
 	@display.PageHeader(display.PageHeaderProps{Title: "Audit log"})
+	<div class="mb-4 flex items-center gap-2">
+		// The omnibox filters across action, actor email, and aggregate id
+		// (see filterAuditEntries) — one input instead of three, and the
+		// form-level hx-get/hx-trigger makes Enter-submits swap like typing.
+		@forms.FilterInput(forms.FilterInputProps{
+			Name:        "q",
+			Value:       d.Search,
+			Placeholder: "Search actions, people, aggregates\u2026",
+			Action:      d.BasePath + "/audit",
+			DebounceMS:  350,
+			Wire:        &wire.Action{URL: d.BasePath + "/audit", Target: "#audit-table"},
+			BaseProps: utils.BaseProps{
+				AriaLabel: "Search audit log",
+				Class:     "w-full max-w-xs",
+				Attrs: templ.Attributes{
+					"autocomplete": "off",
+					"hx-get":       d.BasePath + "/audit",
+					"hx-trigger":   "submit",
+					"hx-target":    "#audit-table",
+					"hx-swap":      "innerHTML",
+					"hx-push-url":  "true",
+					"hx-indicator": "#audit-search-spinner",
+				},
+			},
+		})
+		<span id="audit-search-spinner" class="htmx-indicator text-gray-400">
+			@spinnerSM()
+		</span>
+	</div>
+	<div id="audit-table">
+		@auditTableContent(d)
+	</div>
+}
+
+templ auditTableContent(d auditData) {
 	if len(d.Entries) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
-			@empty("audit", "No audit events", "User and tenant changes will be recorded here.", "", "")
+			if d.Search != "" {
+				@empty("audit", "No events match your search", "No recorded action matches the search term.", "Clear search", d.BasePath+"/audit")
+			} else {
+				@empty("audit", "No audit events", "User and tenant changes will be recorded here.", "", "")
+			}
 		}
 	} else {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
@@ -24,7 +68,7 @@ templ auditContent(d auditData) {
 			})
 		}
 		@listNote(len(d.Entries), d.Total)
-		@listPager(d.BasePath+"/audit", d.Page, d.TotalPages)
+		@listPager(listPageURL(d.BasePath+"/audit", d.Search), d.Page, d.TotalPages)
 	}
 }
 
@@ -32,7 +76,10 @@ templ auditRows(d auditData) {
 	for _, e := range d.Entries {
 		<tr>
 			<td class="px-4 py-2">
-				@badge(e.Action, display.BadgePrimary)
+				@badge(auditLabel(e.Action), auditActionBadge(e.Action))
+				if e.Detail != "" {
+					<span class="ml-1 text-xs text-gray-400">{ e.Detail }</span>
+				}
 			</td>
 			<td class="px-4 py-2">
 				if e.Email != "" {
@@ -42,7 +89,7 @@ templ auditRows(d auditData) {
 				}
 			</td>
 			<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.String() }</td>
-			<td class="px-4 py-2 text-gray-500">
+			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
 				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
 			</td>
 		</tr>

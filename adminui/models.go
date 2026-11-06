@@ -85,6 +85,10 @@ type dashboardData struct {
 	Stats    []statCard
 	StatsURL string
 	Recent   []usermgmt.AuditEntry
+	// NoAdminGrant is true when nobody holds an admin-tier grant in the
+	// wildcard domain — the panel is one custom authorizer away from being
+	// unreachable, and the dashboard says so instead of staying quiet.
+	NoAdminGrant bool
 }
 
 // listPage carries the pagination footer state shared by all list pages.
@@ -195,7 +199,16 @@ func revokeRolesConfirm(d userDetailData) string {
 // auditData drives the audit log page.
 type auditData struct {
 	Entries  []usermgmt.AuditEntry
-	Total    int
+	Total    int // total matching the search (may exceed len(Entries) when paginated)
+	Search   string
 	BasePath string
 	listPage
+}
+
+// userTimeline is the per-user audit view on the user detail page: the most
+// recent events about this user's aggregate stream, latest-first, already
+// email-resolved by the handler.
+type userTimeline struct {
+	Entries []usermgmt.AuditEntry
+	Total   int
 }

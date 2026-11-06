@@ -10,6 +10,13 @@ templ dashboardPage(p pageData, d dashboardData) {
 }
 
 templ dashboardContent(d dashboardData) {
+	if d.NoAdminGrant {
+		<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+			<strong>No admin grant exists.</strong> Nobody holds super_admin or admin
+			in the global domain — you are seeing this via a custom authorizer. Grant
+			platform roles from a user's detail page before the last door closes.
+		</div>
+	}
 	@dashboardStatsRegion(d)
 	if len(d.Recent) == 0 {
 		@display.Card(display.CardProps{Title: "Recent activity", Padding: display.CardPaddingNone}) {
@@ -64,10 +71,12 @@ templ recentActivityRows(d dashboardData) {
 	for _, e := range d.Recent {
 		<tr>
 			<td class="px-4 py-2">
-				@badge(e.Action, display.BadgePrimary)
+				@badge(auditLabel(e.Action), auditActionBadge(e.Action))
 			</td>
 			<td class="px-4 py-2">
-				if e.Email != "" {
+				if e.Email != "" && e.AggregateID.String() != "" {
+					<a class="font-medium no-underline hover:underline" href={ "/users/" + e.AggregateID.String() }>{ e.Email }</a>
+				} else if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {
 					<span class="font-mono text-xs">{ e.AggregateID.String() }</span>

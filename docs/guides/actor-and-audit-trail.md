@@ -107,7 +107,7 @@ For bot traffic, derive the actor from the authenticated token
 - **samber-do-auditlog** — the `auditlog/v4` bridge (`WithAuditLog`) serves the
   same trail through a live SSE viewer; see that module's README.
 
-## Auth audit journal (LoginSucceeded / LoginFailed / RegistrationClosed)
+## Auth audit journal (LoginSucceeded / LoginFailed / RegistrationClosed / SessionStarted / SessionEnded)
 
 Since 2026-10-19 (cqrs-htmx#23), authentication outcomes themselves are
 journalled as durable events — closing the "who logged in, when, and how
@@ -116,7 +116,8 @@ often was registration probed after closing" gap that session rows
 
 Three identity-model event types: `LoginSucceeded`, `LoginFailed` (with a
 bounded `AuthFailureReason` class — never raw error text, never secrets),
-`RegistrationClosed`. Emitted by `usermgmt`: WebAuthn finish-login
+`RegistrationClosed` — plus the two session lifecycle events below. Emitted by
+`usermgmt`: WebAuthn finish-login
 success/ceremony-failure and begin-login no-credentials, TOTP `VerifyTOTP`
 outcomes, OAuth2 finish-login success (provider-qualified), and both
 `MaxUsers` registration rejections.
@@ -135,8 +136,37 @@ Design invariants (why it looks the way it does):
   rate-limit counters cover that noise.
 - **`AuditLog` folds them** (`login_succeeded` / `login_failed` /
   `registration_closed` actions; the failure's reason class lands in
-  `AuditEntry.Detail`), and `DefaultEventCatalog` publishes all three
-  schemas (24 events across five aggregates).
+  `AuditEntry.Detail`), and `DefaultEventCatalog` publishes every schema
+  (27 events across the identity domain).
+
+### Session lifecycle events (SessionStarted / SessionEnded)
+
+Since 2026-11-06 (cqrs-htmx#25, [ADR 0060](../adr/0060-session-lifecycle-audit-events.md)),
+the session lifecycle itself is journalled — sessions stay ephemeral
+([ADR 0012](../adr/0012-sql-session-store.md)), but the audit facts survive
+them. `NewService` wraps the configured `SessionStore` in an auditing
+decorator (one chokepoint — the `SessionStore` interface is unchanged), so
+every register, WebAuthn/OAuth2 login, impersonation begin/end, logout, lazy
+expiry, and user-deletion revocation is journalled best-effort:
+
+- **`SessionStarted`** carries `ActorID`, the impersonation origin
+  (`Impersonator` + `Reason`, present exactly when an admin acted on the
+  user's behalf), `StartedAt`, `ExpiresAt`, and `TokenHash`.
+- **`SessionEnded`** carries `ActorID`, `Impersonator`, `TokenHash`, and a
+  bounded `Cause`: `logout`, `expired`, `impersonation_ended`, `revoked`, or
+  `deleted` (the honest default when the call site cannot attribute one).
+- **The token itself is never journalled** — `SessionTokenHash` (SHA-256,
+  base64url) is the correlation key linking a start to its end. A 256-bit
+  random token is not recoverable from it.
+
+This closes the impersonation forensics gap: after the session rows are
+gone, the journal alone answers "which admin impersonated user X between T1
+and T2" — start events name the impersonator, reason, and window; end events
+correlate by token hash. Known limitation: the SQL sweeper's bulk
+`EvictExpired` bypasses the decorator, so a swept-unused session gets no
+`SessionEnded` (its `SessionStarted.ExpiresAt` still bounds the window).
+The `AuditLog` projection renders both as `session_started` /
+`session_ended` actions with the cause as the detail.
 
 ## Checklist
 

@@ -66,6 +66,11 @@ templ toastHost(nonce string) {
 	@feedback.ToastContainer(nonce)
 }
 
+// spinnerSM is the small in-flight indicator shared by the search rows.
+templ spinnerSM() {
+	@feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})
+}
+
 templ userIDDetail(id string) {
 	<span class="flex items-center gap-2">
 		<span class="font-mono text-xs">{ id }</span>

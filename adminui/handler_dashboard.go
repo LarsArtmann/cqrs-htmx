@@ -20,6 +20,16 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 		resolveAuditEmails(h.config.Service, d.Recent)
 	}
 
+	// The bootstrap warning mirrors setup.New's boot diagnostic: when nobody
+	// holds an admin-tier grant in the wildcard domain, the panel survives
+	// only because a custom authorizer lets the caller in — a state worth
+	// saying out loud before the last admin is gone.
+	if has, err := h.config.Service.HasAdminGrant(
+		identitymodel.NewTenantID(identitymodel.WildcardDomain),
+	); err == nil && !has {
+		d.NoAdminGrant = true
+	}
+
 	renderPage(w, r, dashboardPage(p, d))
 }
 
@@ -38,10 +48,40 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 	svc := h.config.Service
 	var stats []statCard
 	if h.config.Mode == ModeSuperAdmin {
+		users := svc.ReadModel().AllUsers()
+		verified, mfa := 0, 0
+		for _, u := range users {
+			if u.EmailVerified {
+				verified++
+			}
+			if u.TOTPEnabled {
+				mfa++
+			}
+		}
+		suspended := 0
+		for _, t := range svc.AllTenants() {
+			if t.Suspended {
+				suspended++
+			}
+		}
 		stats = []statCard{
 			{
 				Label: "Users",
-				Value: strconv.Itoa(svc.ReadModel().Count()),
+				Value: strconv.Itoa(len(users)),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				Label: "Verified",
+				Value: percent(verified, len(users)),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				Label: "MFA adoption",
+				Value: percent(mfa, len(users)),
 				Icon:  iconUsers,
 				Tone:  display.StatToneBlue,
 				Href:  p.BasePath + "/users",
@@ -49,6 +89,13 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 			{
 				Label: "Tenants",
 				Value: strconv.Itoa(len(svc.AllTenants())),
+				Icon:  iconTenants,
+				Tone:  display.StatTonePurple,
+				Href:  p.BasePath + "/tenants",
+			},
+			{
+				Label: "Suspended tenants",
+				Value: strconv.Itoa(suspended),
 				Icon:  iconTenants,
 				Tone:  display.StatTonePurple,
 				Href:  p.BasePath + "/tenants",
@@ -81,4 +128,13 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 		})
 	}
 	return stats
+}
+
+// percent renders part/total as an integer percentage; an empty set reads as
+// "—" instead of a fake 0%.
+func percent(part, total int) string {
+	if total == 0 {
+		return "—"
+	}
+	return strconv.Itoa(part*100/total) + "%"
 }
