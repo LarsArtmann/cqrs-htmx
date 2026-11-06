@@ -33,13 +33,15 @@ func TestLoadEventThroughput_BucketsNewestWindow(t *testing.T) {
 	buckets := 4
 	span := window * time.Duration(buckets)
 
-	// Events at: -3.5h (bucket 0), -2.5h (bucket 1) ×2, -0.5h (bucket 3),
-	// and one far older than the span (Older).
+	// Ages are measured from the NEWEST event (base-30m): -3h30m lands in
+	// bucket 0, -2h30m and -2h45m share bucket 1 (ages 2h and 2h15m), no
+	// event in bucket 2, the newest is bucket 3, and one far-older event
+	// falls off the left edge (Older).
 	fake := &fakeSeekableJournal{events: []event.Event{
 		throughputEvent(t, base.Add(-100*time.Hour)), // off-chart
 		throughputEvent(t, base.Add(-3*time.Hour-30*time.Minute)),
+		throughputEvent(t, base.Add(-2*time.Hour-45*time.Minute)),
 		throughputEvent(t, base.Add(-2*time.Hour-30*time.Minute)),
-		throughputEvent(t, base.Add(-2*time.Hour-29*time.Minute)),
 		throughputEvent(t, base.Add(-30*time.Minute)),
 	}}
 

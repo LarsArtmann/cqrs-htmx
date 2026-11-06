@@ -30,7 +30,7 @@ func throughputPanelEvent(t *testing.T, at time.Time) event.Event {
 func TestThroughputPanel_RendersChart(t *testing.T) {
 	t.Parallel()
 
-	d := mustTestDashboardWithConfig(t, Config{Journal: &fakeCommandJournal{
+	d := mustTestDashboardWithConfig(t, Config{Journal: &fakeSeekableJournal{
 		events: []event.Event{
 			throughputPanelEvent(t, time.Now().Add(-90*time.Minute)),
 			throughputPanelEvent(t, time.Now().Add(-30*time.Minute)),
@@ -57,7 +57,7 @@ func TestThroughputPanel_RendersChart(t *testing.T) {
 func TestThroughputPanel_EmptyJournalRendersEmptyState(t *testing.T) {
 	t.Parallel()
 
-	d := mustTestDashboardWithConfig(t, Config{Journal: &fakeCommandJournal{}})
+	d := mustTestDashboardWithConfig(t, Config{Journal: &fakeSeekableJournal{}})
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/throughput", nil)
@@ -87,7 +87,7 @@ func TestThroughputRoute_GatedByEventRead(t *testing.T) {
 	}
 
 	// Journal-bearing: present.
-	withJournal := mustTestDashboardWithConfig(t, Config{Journal: &fakeCommandJournal{}})
+	withJournal := mustTestDashboardWithConfig(t, Config{Journal: &fakeSeekableJournal{}})
 	found := false
 
 	for _, route := range withJournal.Routes() {

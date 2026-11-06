@@ -486,6 +486,22 @@ JSON payload encodings both handled):
 - Rows link into the event browser (`/events/{id}`) for the raw lifecycle
   event
 
+### Event Throughput
+
+`/throughput` charts journal events per fixed time window as a pure-SVG
+`display.LineChart` (templ-components' first charts consumer here — zero
+client JavaScript, so strict CSP holds with no script exceptions):
+
+- Default window: the last 24h in 12 two-hour buckets ending at the newest
+  event (the last bucket is partial by design — "so far this window")
+- `?buckets=N` overrides the bucket count (clamped 4–48); the window width
+  follows (span stays 24h)
+- **Honest window**: the subtitle names the bucket width, events in window,
+  and any events older than the span ("off-chart") plus the scan count — a
+  bounded newest-window view, never a silent total
+- The scan reuses the journal-tail paging (capped at 10,000 events), so huge
+  journals cost a bounded read
+
 Recording requires opting in: set `ServiceConfig.CommandLifecycle` in
 usermgmt (a `*commandlifecycle.Recorder` sharing your event store), or wire
 the `commandlifecycle` middleware pair on your own dispatcher.
@@ -691,6 +707,7 @@ Button link/submit, EmptyState, and DefinitionList render benchmarks.
 
 | Library capability                        | Status                                                                                                                                                                                                                | Where                                            |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `display.LineChart` (pure SVG)            | adopted (2026-11-06, fleet-plan A21 — the module's first charts consumer; zero-JS so CSP holds)                                                                                                                       | `throughput.templ`                               |
 | `display.StatCard` (+`ValueID` live hook) | adopted                                                                                                                                                                                                               | `components.templ` (statCard wrapper)            |
 | `display.StatusBadge`/`Badge`             | adopted                                                                                                                                                                                                               | `components.templ`                               |
 | `display.Table` (sortable headers)        | adopted                                                                                                                                                                                                               | `components.templ`, `sort.go`                    |

@@ -19,7 +19,7 @@ const (
 	panelDeadLetters   = "Dead letters"
 	panelCommands      = "Commands"
 	panelCommandFates  = "Command fates"
-panelThroughput    = "Throughput"
+	panelThroughput    = "Throughput"
 	panelQueries       = "Queries"
 	panelTimeTravel    = "Time travel"
 	panelSnapshots     = "Snapshots"
