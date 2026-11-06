@@ -19,6 +19,18 @@ type Dispatch func(ctx context.Context) error
 // identity, or nothing at all for the anonymous case.
 type Identity func(ctx context.Context) context.Context
 
+// AsUser returns an Identity that attaches userID to the dispatch context.
+func AsUser(userID cqrshtmx.UserID) Identity {
+	return func(ctx context.Context) context.Context {
+		return cqrshtmx.WithUserID(ctx, userID)
+	}
+}
+
+// NoIdentity is the anonymous Identity: the context is passed through untouched.
+func NoIdentity() Identity {
+	return func(ctx context.Context) context.Context { return ctx }
+}
+
 // DispatchCase is one declared dispatch: what the type requires, and how to run
 // it with an arbitrary identity.
 type DispatchCase struct {

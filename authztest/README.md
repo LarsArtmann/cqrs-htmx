@@ -1,14 +1,15 @@
 # authztest
 
-Proof kit for an HTTP surface's access posture, plus the grant semantics a
-posture matrix cannot see.
+Proof kit for an HTTP surface's access posture, the dispatch boundary behind it,
+plus the grant semantics a posture matrix cannot see.
 
-Two suites, two questions:
+Three suites, three questions:
 
-| Suite        | Question it answers                                                                      |
-| ------------ | ---------------------------------------------------------------------------------------- |
-| `Suite`      | Does every declared route refuse the callers it says it refuses?                         |
-| `GrantSuite` | Does a grant stay in its tenant, survive a revoke, and outlive the process that made it? |
+| Suite          | Question it answers                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| `Suite`        | Does every declared route refuse the callers it says it refuses?                         |
+| `CommandSuite` | Does every declared command/query refuse them when dispatched with no route at all?      |
+| `GrantSuite`   | Does a grant stay in its tenant, survive a revoke, and outlive the process that made it? |
 
 Both are fail-closed: a declaration set that cannot be tested is an error, never
 a skipped case. A skipped case reports green, which is the failure mode this
@@ -124,6 +125,51 @@ Both suites read whatever the engine has materialized so far. Under
 `cqrshtmx.ProjectionReadinessCheck`) before running either suite, or a green
 result means "the replay had not reached the projection yet".
 
+## 3. Proving the dispatch boundary
+
+`Suite` proves routes. A route gate lives in a handler the dispatcher never sees,
+so a command can be refused on its route and admitted when a job, a seed, or a
+service method dispatches it directly. `CommandSuite` proves the second surface.
+
+```go
+suite := authztest.CommandSuite{
+    Cases: []authztest.DispatchCase{
+        {
+            Kind:    cqrshtmx.DispatchCommandKind,
+            Name:    "CreateItem",
+            Posture: authztest.RoleGated,
+            Why:     "creates an item in the caller's tenant",
+            Dispatch: func(ctx context.Context) error {
+                return cmdDisp.Dispatch(ctx, &createItemCmd{})
+            },
+        },
+    },
+    Anonymous:    authztest.NoIdentity(),          // context untouched
+    Unprivileged: authztest.AsUser(userNoRole),
+    Privileged:   authztest.AsUser(userWithRole),
+}
+
+suite.Run(t)
+```
+
+The matrix per case:
+
+| Posture declared | anonymous | unprivileged | privileged |
+| --- | --- | --- | --- |
+| `Public` | admitted | — | admitted |
+| `Authenticated` | 401 class | — | admitted |
+| `RoleGated` | 401 class | 403 class | admitted |
+
+Assertions use `cqrshtmx.IsUnauthorized` / `IsForbidden`, not strings, so a
+re-coded denial fails the case. `Verify` refuses a set it cannot prove — no
+anonymous identity, no unprivileged identity for a `RoleGated` case, a case with
+no reason, or a posture the matrix cannot probe — so a skipped case is impossible.
+
+`UndeclaredDispatches(declared, registered)` is the coverage helper for wiring
+that can name its own types. There is no dispatcher-side equivalent of
+`Undeclared`: a dispatcher exposes no registered-type listing, which is why the
+gate refuses an undeclared type at dispatch time instead.
+
 ## What this does not cover
 
 - **Authentication mechanics** — login flows, credential storage, session
@@ -131,6 +177,9 @@ result means "the replay had not reached the projection yet".
 - **Policy authoring** — whether a policy says the right thing. The kit proves
   the plumbing carries the decision; the policy content is a review question.
 - **Load and concurrency** — the suites are single-request, deterministic.
+- **Policy content** — a `CommandSuite` case proves the gate asks `command/Name`
+  and honours the answer; whether the row exists, and for whom, is a policy
+  review. `check-policy-rows` catches rows that match no declared type.
 
 ## Related
 
@@ -138,3 +187,4 @@ result means "the replay had not reached the projection yet".
 - `docs/PERMISSIONS.md` — the maturity ladder these suites move a service up.
 - ADR-0057 — the authorization contract (why `Request`/`Decision` look like
   this).
+- ADR-0063 — the dispatch boundary (why `CommandSuite` exists).

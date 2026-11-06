@@ -138,4 +138,34 @@ if [ "$failures" -ne 0 ]; then
   exit 1
 fi
 
-echo "check-permission-maturity self-test: 8/8 cases pass"
+# --- case 9: L5 is a real level (dispatch-gated) --------------------------
+t9="$tmp/t9"
+new_tree "$t9"
+
+doc_with "$t9" svc-a L5
+printf 'svc-a\tL5\n' >"$t9/docs/PERMISSIONS_BASELINE"
+
+"$t9/scripts/checks/check-permission-maturity.sh" --ratchet >/dev/null 2>&1
+assert_rc 0 $? "L5 at baseline"
+
+# --- case 10: dropping from L5 to L4 is a regression --------------------
+t10="$tmp/t10"
+new_tree "$t10"
+
+doc_with "$t10" svc-a L4
+printf 'svc-a\tL5\n' >"$t10/docs/PERMISSIONS_BASELINE"
+
+out="$("$t10/scripts/checks/check-permission-maturity.sh" --ratchet 2>&1)"
+assert_rc 1 $? "L5 drop under --ratchet"
+
+if ! printf '%s' "$out" | grep -q 'REGRESSION: svc-a dropped from L5 to L4'; then
+  echo "FAIL: L5 drop not reported: $out"
+  failures=$((failures + 1))
+fi
+
+if [ "$failures" -ne 0 ]; then
+  echo "check-permission-maturity self-test: $failures failure(s)"
+  exit 1
+fi
+
+echo "check-permission-maturity self-test: 10/10 cases pass"

@@ -59,6 +59,34 @@ cqrshtmx.RequestGuard(func(r *http.Request, cmdOrQuery any) error)  // custom au
 `RequestGuard` supports any auth model that doesn't fit Casbin: cookie-based ownership checks,
 API key validation, JWT claims. The guard receives the decoded command/query (type-assert in your function).
 Return an error to abort dispatch (passed to the error handler); return nil to proceed.
+### Dispatch gate (authorization at the dispatcher, ADR 0063)
+
+Route options only cover requests. These cover every dispatch, including a
+service method, a seed, a job, or a CLI:
+
+```go
+gate, err := cqrshtmx.NewDispatchGate(checker, opts...)   // nil checker = error
+cqrshtmx.RegisterCommand(gate, cmdDisp, "CreateItem", posture, why, handler)  // registers + declares
+cqrshtmx.RegisterQuery(gate, qryDisp, "ListItems", posture, why, handler)
+gate.Declare(posture)          // declaration only, for raw registrations
+gate.CommandMiddleware()       // install OUTERMOST on the dispatcher
+gate.QueryMiddleware()
+gate.Validate()                // boot check; call after wiring
+gate.Manifest()                // []DispatchPosture, sorted
+
+cqrshtmx.AuthorizeCommand(checker, opts...)  // declaration-free: every command gated
+cqrshtmx.AuthorizeQuery(checker, opts...)    // same for queries
+
+// Gate options
+cqrshtmx.AuditOnly()                    // observe denials, let dispatch through (one wave)
+cqrshtmx.OnDecision(func(DispatchOutcome))  // metrics / OTel seam, allowed + denied
+```
+
+Postures are the route vocabulary: `PosturePublic`, `PostureAuthenticated`,
+`PostureRoleGated`. Objects are `DispatchObject(kind, name)` =
+`command/<Name>` / `query/<Name>`; actions are `ActionExecute` / `ActionRead`.
+An undeclared type is denied (fail-closed) and named. A command that implements
+`PolicyContext` overlays its own domain/resource/action.
 
 ### Decoders (generic — body/params → command or query)
 

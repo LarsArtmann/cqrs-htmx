@@ -382,8 +382,52 @@ case cqrshtmx.ReasonAllowed:          // proceed
 - Handler options: `Authorize(resource, action)` asks in the wildcard domain, `AuthorizeIn(domain, resource, action)` scopes to a tenant, `AuthorizeRequest(resolver)` derives the whole question from the request.
 - `cqrshtmx.IsForbidden(err)` / `IsUnauthorized(err)` recognise a denial from ANY module (code-based, walks the unwrap chain). `errors.Is` against a single sentinel only ever matches one of them.
 - `setup.New` logs a boot warning when the admin panel is mounted but nobody holds `admin`/`super_admin` in `*` -- that warning means step 1 is missing.
-- Gates: `nix run .#check-permission-surface` (four anti-patterns) and `nix run .#check-permission-maturity` (`docs/PERMISSIONS.md` level ratchet).
-- Proof kit: `authztest.Suite` proves route postures (401/403/200 + undeclared routes); `authztest.GrantSuite` proves tenant scoping, revoke, and restart durability. Both fail-closed. See `authztest/README.md`.
+- Gates: `nix run .#check-permission-surface` (five anti-patterns, including a raw registration beside an installed dispatch gate) and `nix run .#check-permission-maturity` (`docs/PERMISSIONS.md` L0–L5 level ratchet).
+- Proof kit: `authztest.Suite` proves route postures (401/403/200 + undeclared routes); `authztest.CommandSuite` proves the same for dispatches with no route; `authztest.GrantSuite` proves tenant scoping, revoke, and restart durability. All fail-closed. See `authztest/README.md`.
+
+### Gating the dispatch boundary (L5)
+
+`Authorize`/`AuthorizeIn` live in the **handler config**, which the dispatcher never
+sees. So a command refused on its route is still admitted when a service method, a
+seed, a job, or an admin CLI dispatches it. The dispatch gate closes that hole —
+install it on the dispatcher, declare a posture per type, and the same command is
+refused no matter who dispatches it.
+
+```go
+gate, err := cqrshtmx.NewDispatchGate(svc.Authz())
+if err != nil {
+    panic(err)
+}
+
+// Registering is declaring: "public"/"authenticated" skip the engine,
+// "role-gated" asks for command/<Name>.
+err = cqrshtmx.RegisterCommand(gate, cmdDisp, "CreateItem",
+    cqrshtmx.PostureRoleGated, "creates an item in the caller's tenant",
+    func(ctx context.Context, cmd *createItemCmd) error { return handleItem(ctx, cmd) })
+
+cmdDisp.Use(gate.CommandMiddleware()) // outermost: a denial must not reach retry
+err = gate.Validate()                 // boot check: no declarations / no reason / bad posture
+```
+
+- **Objects are `command/<Name>` and `query/<Name>`**; the actions are `execute`
+  and `read`. The delimiter is a slash on purpose — under Casbin's `keyMatch` only
+  `*` is special, so `command/*` is a usable prefix, while a colon would become a
+  `keyMatch2` wildcard and a dot a regexp any-character. One policy row per repo
+  is usually enough: `p, role_user, *, command/*, execute, allow`.
+- **Undeclared means denied.** The dispatcher exposes no enumeration API, so a
+  handler registered behind the gate's back is refused at dispatch time and named:
+  register through `RegisterCommand`/`RegisterQuery` (or `DispatchGate.Declare`).
+  `check-permission-surface`'s `undeclared-dispatch` rule flags the raw form.
+- **`PolicyContext`** lets a command describe its own question (tenant, invoice id,
+  `"refund"`) instead of the derived `command/<Name>`. Parameters reach policy only
+  through that closed interface — never as a map of fields.
+- **`cqrshtmx.AuditOnly()`** measures instead of enforcing (log + `OnDecision`,
+  dispatch proceeds). One wave, then enforce.
+- **Proof:** `authztest.CommandSuite` dispatches each declared type as anonymous,
+  unprivileged, and privileged, and requires the error class to match the
+  declaration. See `authztest/README.md`.
+- Full rationale and the three-layer table (route / dispatch / decider):
+  `docs/guides/authorization-system.md` §5 and ADR 0063.
 
 ### Middleware + serving htmx.js
 
@@ -581,7 +625,9 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration.
 7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux. **Exception:** on Path C (adminui) the panel serves htmx.js internally -- do NOT register it yourself.
 8. **Register your command/query handlers BEFORE building endpoints.** `cmdDisp.Register("CreateItem", handler)` must happen before `app.Command("CreateItem", ...)`.
-9. **The auth posture is library-enforced (ADR-0055).** WebAuthn _enrollment_ ceremonies answer 401 without a session and 403 when the target `user_id` is not the session user (loginpage's register-issues-cookie flow passes untouched); every `currentUser`-reading `/auth/*` route self-wraps with an enrich-only session pass, so a bare `RegisterRoutes` mount works and fails closed. Headless enrollment: service-level `BeginRegistration`/`FinishRegistration`. For your own routes: `setup.RequireSession` / `setup.RequireSessionRedirect("/login")` after `bundle.SessionMiddleware()`.
+9. **A dispatch gate is not a route gate.** `Authorize*` options live in the handler config; a command dispatched through `Service.Dispatch`, a seed, a job, or a CLI bypasses them entirely. Install `DispatchGate.CommandMiddleware()` / `QueryMiddleware()` on the dispatcher if non-HTTP paths matter (ADR 0063).
+10. **Policy objects use a slash, never a colon or dot.** `command:Create` becomes a `keyMatch2` parameter wildcard (`command[^/]+`) and `command.Create` becomes a regexp any-character — both silently grant more than written. `command/Create` stays a literal under `keyMatch`, and `command/*` is the prefix form.
+11. **The auth posture is library-enforced (ADR-0055).** WebAuthn _enrollment_ ceremonies answer 401 without a session and 403 when the target `user_id` is not the session user (loginpage's register-issues-cookie flow passes untouched); every `currentUser`-reading `/auth/*` route self-wraps with an enrich-only session pass, so a bare `RegisterRoutes` mount works and fails closed. Headless enrollment: service-level `BeginRegistration`/`FinishRegistration`. For your own routes: `setup.RequireSession` / `setup.RequireSessionRedirect("/login")` after `bundle.SessionMiddleware()`.
 
 ### Discoverability notes (APIs that are easy to miss)
 

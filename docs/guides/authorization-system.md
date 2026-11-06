@@ -203,6 +203,94 @@ this work: a grant written into an in-memory enforcer reads back as allowed
 in-process and as denied after a restart. It builds the second checker from
 durable state **after** granting, so it cannot pass on a cached engine.
 
+## 5. Gate the dispatch boundary
+
+A route gate lives in a `handlerConfig`. The dispatcher never sees it, so a
+command that is refused on its route is still admitted when a service method, a
+seed, a scheduled job, or an admin CLI dispatches it. Nothing in L1–L4 covers
+that, because all four levels measure routes.
+
+The dispatch gate closes it. Three layers, each answering a different question:
+
+| Layer | Question | Where |
+| --- | --- | --- |
+| Route option | may this caller make this request, at all? | `Authorize` / `AuthorizeIn` / `AuthorizeRequest` |
+| Dispatch gate | may this actor run this command, from anywhere? | `DispatchGate` middleware on the dispatcher |
+| Decider | may this command touch *this* aggregate? | domain invariants |
+
+Replay does not re-run deciders, which is why the middle layer cannot be skipped:
+a rebuild would otherwise be the only thing between an actor and history.
+
+```go
+gate, err := cqrshtmx.NewDispatchGate(svc.Authz())
+if err != nil {
+    return err
+}
+
+// Registering is declaring. "public" and "authenticated" skip the engine;
+// "role-gated" asks for command/<Name>.
+err = cqrshtmx.RegisterCommand(gate, cmdDisp, "CreateItem",
+    cqrshtmx.PostureRoleGated, "creates an item in the caller's tenant",
+    func(ctx context.Context, cmd *createItemCmd) error { return handleItem(ctx, cmd) })
+if err != nil {
+    return err
+}
+
+err = cqrshtmx.RegisterQuery(gate, qryDisp, "ListItems",
+    cqrshtmx.PostureAuthenticated, "any signed-in caller may list items",
+    func(ctx context.Context, q *listItemsQuery) ([]Item, error) { return listItems(ctx, q) })
+if err != nil {
+    return err
+}
+
+// Outermost: a denial must never reach retry, breaker, or metrics.
+cmdDisp.Use(gate.CommandMiddleware())
+qryDisp.Use(gate.QueryMiddleware())
+
+// Boot check: no declarations, no reason, or a posture a gate cannot enforce.
+return gate.Validate()
+```
+
+Two facts worth knowing before adopting it:
+
+- **Policy objects are `command/<Name>` and `query/<Name>`.** The delimiter is a
+  slash because `keyMatch` treats only `*` as special: `command/*` is a usable
+  prefix, a colon would become a `keyMatch2` wildcard, and a dot would become a
+  regexp any-character. One row per repo is usually enough:
+  `p, role_user, *, command/*, execute, allow`.
+- **An undeclared type is denied.** The dispatcher exposes no enumeration API, so
+  a handler registered behind the gate's back cannot be discovered at boot; it is
+  refused at dispatch time instead, and named. Declare it, or let
+  `check-permission-surface`'s `undeclared-dispatch` rule catch the registration.
+
+A command that knows its own question better than `command/<Name>` implements
+`PolicyContext`, which overlays domain, resource, and action:
+
+```go
+func (c *refundCmd) PolicyContext(context.Context) cqrshtmx.Request {
+    return cqrshtmx.Request{
+        Domain:   c.TenantID,
+        Resource: cqrshtmx.Resource{Type: "invoices", ID: c.InvoiceID},
+        Action:   "refund",
+    }
+}
+```
+
+Parameters reach policy only through that closed interface — never as a map of
+fields (ADR-0058 defers attribute- and relationship-based authorization).
+
+**Rolling it out without a flag day.** `cqrshtmx.AuditOnly()` measures instead of
+enforcing: every denial is reported through `OnDecision` and logged, and the
+dispatch proceeds. It is a migration tool with a one-wave limit, not a posture.
+
+**Proving it.** `authztest.CommandSuite` dispatches every declared type as
+anonymous, unprivileged, and privileged, and requires the error class to match the
+declaration. See [`authztest/README.md`](../../authztest/README.md).
+
+**Double gates are fine, double denials are not.** The route layer runs first, so
+a request refused there never reaches the dispatch gate and the client sees one
+denial. Keep the gate outermost for the same reason in the other direction.
+
 ## Streaming and CSP notes
 
 Two consumer workarounds were symptoms of library gaps that are now closed:
@@ -219,7 +307,7 @@ Two consumer workarounds were symptoms of library gaps that are now closed:
 
 ## Moving up a level
 
-See [`docs/PERMISSIONS.md`](../PERMISSIONS.md) for the L0–L4 exit criteria and the
+See [`docs/PERMISSIONS.md`](../PERMISSIONS.md) for the L0–L5 exit criteria and the
 per-service inventory. When a service moves up, update its row in that file —
 `check-permission-maturity` fails a dropped level, so the inventory cannot
 silently rot.
