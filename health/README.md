@@ -72,6 +72,21 @@ dash := health.NewDashboard(probe, healthdashboard.WithTitle("My App"))
 mux.Handle("GET /health/ui", dash.Handler())
 ```
 
+**Under a nonce-CSP stack** (this repo's recommended posture —
+`cqrshtmx.RecommendedSecurityMiddleware()` mints per-request nonces) the
+dashboard's inline scripts need the nonce threaded through the bridge:
+
+```go
+dash := health.NewDashboard(probe,
+    healthdashboard.WithNonceExtractor(httputil.NonceFromRequest)) // per-request nonce
+mux.Handle("GET /health/ui", dash.Handler())
+```
+
+The dashboard never sets its own `Content-Security-Policy` header — pair it
+with `healthdashboard.RecommendedCSP(nonce)` (or your existing middleware's
+policy) so the header admits the same nonce the scripts carry. The pairing
+is pinned by `TestNewDashboard_ForwardsCSPNonceOptions`.
+
 ## samber/do v2 users
 
 `Recorder` merges projection checks with your injector's own service checks:
