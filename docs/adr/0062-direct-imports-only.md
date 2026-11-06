@@ -58,9 +58,12 @@ extraction, because recreating it is the path of least resistance.
    | Class                      | Meaning                                                                                                                       |
    | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
    | `exempt:unexported`        | lowercase plumbing inside one package; not API, cannot be imported, so nothing is duplicated                                   |
-   | `exempt:internal-target`   | the target lives under `internal/` and is unimportable by consumers, so the alias **is** the only definition surface           |
+   | `exempt:internal`          | the declaring package or the alias target lives under `internal/` and is unimportable by consumers, so the alias **is** the only definition surface |
    | `exempt:domain-vocabulary` | the declaring package owns the constructors/parse surface for the type; the alias spells a domain name, not a second import path |
    | `exempt:pending`           | a candidate re-export layer whose disposition is decided in a later wave; frozen in size, may not grow                        |
+
+   The class vocabulary is single-sourced in `check-reexport-policy.sh` rule 3; this table
+   describes it, it does not define it. A class name here that the gate rejects is a doc bug.
 
 6. **Mechanisation.** `scripts/checks/check-reexport-policy.sh` enforces the policy against
    `scripts/checks/reexport-baseline.tsv`, with a fixture self-test, wired into

@@ -261,4 +261,4 @@ Your session middleware must put it there. `usermgmt.NewSessionMiddleware` alrea
 
 ### The panel serves htmx.js internally
 
-On Path C the panel registers its own htmx.js route (`adminui/assets.go`). **Do NOT** also register `cqrshtmx.HTMXScriptHandler()` yourself — that creates a duplicate route. This is the Path A/B exception: only self-host htmx.js when you're NOT using adminui.
+On Path C the panel registers its own htmx.js route (`adminui/assets.go`). **Do NOT** also register `htmx.ScriptHandler()` yourself — that creates a duplicate route. This is the Path A/B exception: only self-host htmx.js when you're NOT using adminui.

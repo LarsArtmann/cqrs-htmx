@@ -248,8 +248,8 @@ Consumer provides the mapper (the library can't render consumer domain payloads)
 Used by `BroadcastOnError` to carry a typed error payload to SSE clients.
 
 ```go
-payload := cqrshtmx.NewStructuredError(err, r)   // maps via MapError + extracts request ID
-payload := cqrshtmx.NewStructuredErrorWithContext(err, ctx)
+payload := httperr.NewStructuredError(err, r)   // maps via MapError + extracts request ID
+payload := httperr.NewStructuredErrorWithContext(err, ctx)
 payload.JSON()                                   // RFC 7807-shaped JSON string
 ```
 

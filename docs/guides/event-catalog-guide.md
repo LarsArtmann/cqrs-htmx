@@ -20,7 +20,7 @@ Mount the catalog handler at an HTTP endpoint:
 svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{})
 defer svc.Close()
 
-handler, err := cqrshtmx.EventCatalogHandler(svc.EventCatalog())
+handler, err := eventcatalog.Handler(svc.EventCatalog())
 if err != nil {
     log.Fatal(err)
 }
@@ -89,20 +89,20 @@ architecture format (see below).
 If you build custom aggregates on top of cqrs-htmx, register your events:
 
 ```go
-catalog := cqrshtmx.NewEventCatalog()
-catalog.Register(cqrshtmx.EventMetadata{
+catalog := eventcatalog.New()
+catalog.Register(eventcatalog.EventMetadata{
     Type:          "OrderPlaced",
     Aggregate:     "Order",
     SchemaVersion: 1,
     Description:   "A customer placed an order",
-    PayloadFields: []cqrshtmx.PayloadField{
+    PayloadFields: []eventcatalog.PayloadField{
         {Name: "customer_id", Type: "string", Required: true},
         {Name: "total", Type: "int", Required: true},
         {Name: "items", Type: "[]OrderItem", Required: true},
     },
 })
 
-handler, _ := cqrshtmx.EventCatalogHandler(catalog)
+handler, _ := eventcatalog.Handler(catalog)
 mux.Handle("GET /events/catalog", handler)
 ```
 
@@ -112,11 +112,11 @@ To serve both usermgmt events and your custom events in one catalog:
 
 ```go
 catalog := usermgmt.DefaultEventCatalog()
-catalog.Register(cqrshtmx.EventMetadata{
+catalog.Register(eventcatalog.EventMetadata{
     Type: "OrderPlaced",
     // ...
 })
-handler, _ := cqrshtmx.EventCatalogHandler(catalog)
+handler, _ := eventcatalog.Handler(catalog)
 ```
 
 ---
@@ -154,7 +154,7 @@ for _, e := range events {
 ## See Also
 
 - **Two catalogs — do not conflate:**
-  1. **`cqrshtmx.EventCatalog`** (this guide) — dependency-free, immutable-JSON
+  1. **`eventcatalog.Catalog`** (this guide) — dependency-free, immutable-JSON
      schema surface for the 27 identity events (Published Language).
   2. **[`go-cqrs-lite/catalog/v4`](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)**
      — the heavier doc-generation suite (OpenAPI/AsyncAPI 3.0, D2 diagrams,
@@ -173,5 +173,5 @@ for _, e := range events {
 - [`integration_test/catalog_test.go`](../../integration_test/catalog_test.go) —
   contract test proving the composition over a live App
 - [Projection Health Monitoring](./projection-health-monitoring.md)
-- `eventcatalog/catalog.go` — the `Catalog` type (root re-export: `cqrshtmx.EventCatalog` = `eventcatalog.Catalog`)
-- `eventcatalog/handler.go` — the HTTP handler (root re-export: `cqrshtmx.EventCatalogHandler`)
+- `eventcatalog/catalog.go` — the `Catalog` type (root re-export: `eventcatalog.Catalog` = `eventcatalog.Catalog`)
+- `eventcatalog/handler.go` — the HTTP handler (root re-export: `eventcatalog.Handler`)

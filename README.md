@@ -241,7 +241,7 @@ func main() {
 	))
 
 	// Embedded htmx.js — no CDN, ETag + 1-year immutable cache.
-	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+	mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 
 	log.Fatal(http.ListenAndServe(":8080",
 		cqrshtmx.RecommendedSecurityMiddleware()(mux)))
@@ -354,7 +354,7 @@ independently importable when you want one concern without the whole handler bui
 | `internal/hx`  | not importable                                     | Shared plumbing that breaks the import cycle (JSON keys, immutable serving, request-ID context)                                                              |
 
 `cqrshtmx` remains the supported surface: three `*_reexport.go` facades alias the
-subpackage symbols, so `cqrshtmx.HTMXScriptHandler` and `htmx.ScriptHandler` are the
+subpackage symbols, so `htmx.ScriptHandler` and `htmx.ScriptHandler` are the
 same function value. The layering is one-way and machine-checked — `nix run
 .#check-module-layers` fails if a subpackage imports the root package.
 

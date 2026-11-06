@@ -101,7 +101,7 @@ graph TD
 
 ### 8. Documentation
 
-- [ ] **Event catalog** — `cqrshtmx.EventCatalogHandler(catalog)` serves immutable event schemas
+- [ ] **Event catalog** — `eventcatalog.Handler(catalog)` serves immutable event schemas
 - [ ] **API docs** — `openapi.OpenAPISpecHandler(spec)` or `catalog/v4/docserver` for OpenAPI/AsyncAPI
 - [ ] **See** `docs/guides/event-catalog-guide.md`
 

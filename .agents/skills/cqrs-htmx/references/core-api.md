@@ -156,7 +156,7 @@ resp := cqrshtmx.NewResponse(w, r)
 resp.Trigger("evt").
      PushURL("/path").
      Retarget("#el").
-     Reswap(cqrshtmx.SwapInnerHTML).
+     Reswap(htmx.SwapInnerHTML).
      NotifySuccess("done").
      Redirect("/x").       // sanitizes for HTMX vs non-HTMX
      Refresh().
@@ -280,16 +280,16 @@ cqrshtmx.WriteJSON(w, status, v)
 cqrshtmx.RenderTemplComponent(w, r, partial, full) // standalone partial-vs-full (non-CQRS routes)
 cqrshtmx.OOBHTML(id, html, swapStrategy...)        // wrap HTML with hx-swap-oob (HTTP + WS)
 cqrshtmx.KeyExtractorFromClientIP()     // proxy-aware rate-limit key extractor (uses httputil.ClientIP)
-cqrshtmx.HTMXScriptHandler()            // embedded htmx 2.0.10 (GET/HEAD, ETag, 1y cache)
-cqrshtmx.HTMXScriptHandlerWith(js, ver) // serve a custom build
-cqrshtmx.HTMXScriptTag(path)            // <script src="path"></script> for templates
-cqrshtmx.HTMXCDNScriptTag(version)      // CDN script tag; "" = embedded version
-cqrshtmx.HTMXVersion()                  // "2.0.10"
-cqrshtmx.HTMXExtensionHandler(name)     // serve embedded extension (sse/ws/idiomorph)
-cqrshtmx.HTMXExtensionsHandler(names…)  // serve concatenated bundle of extensions
-cqrshtmx.HTMXExtensionCDNScriptTag(name) // CDN <script> tag for one extension
-cqrshtmx.HTMXExtensionVersion(name)     // "2.2.4" (sse), "2.0.4" (ws), "0.7.4" (idiomorph)
-cqrshtmx.HTMXExtensionNames()           // ["idiomorph", "sse", "ws"]
+htmx.ScriptHandler()            // embedded htmx 2.0.10 (GET/HEAD, ETag, 1y cache)
+htmx.ScriptHandlerWith(js, ver) // serve a custom build
+htmx.ScriptTag(path)            // <script src="path"></script> for templates
+htmx.CDNScriptTag(version)      // CDN script tag; "" = embedded version
+htmx.Version()                  // "2.0.10"
+htmx.ExtensionHandler(name)     // serve embedded extension (sse/ws/idiomorph)
+htmx.ExtensionsHandler(names…)  // serve concatenated bundle of extensions
+htmx.ExtensionCDNScriptTag(name) // CDN <script> tag for one extension
+htmx.ExtensionVersion(name)     // "2.2.4" (sse), "2.0.4" (ws), "0.7.4" (idiomorph)
+htmx.ExtensionNames()           // ["idiomorph", "sse", "ws"]
 cqrshtmx.KeyExtractorFromRemoteAddr()   // default rate-limit key extractor
 cqrshtmx.DefaultRateLimiterConfig()     // sensible defaults: 100/min per-IP, burst=limit, 10min TTL
 cqrshtmx.SecurityHeaderSkip             // sentinel "-" to suppress a default security header

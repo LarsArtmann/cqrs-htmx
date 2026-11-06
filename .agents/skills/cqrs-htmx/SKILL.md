@@ -16,7 +16,7 @@ It is framework-agnostic: it works with `net/http`, Chi, Gin, etc. and never pic
 
 ```go
 // 1. Serve embedded htmx.js (no CDN)
-mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 
 // 2. Create a command endpoint (JSON POST -> dispatch -> 201)
 mux.Handle("POST /items", app.Command("CreateItem",
@@ -30,7 +30,7 @@ broadcaster.Broadcast(evt) // -> all connected clients
 cqrshtmx.Chain(cqrshtmx.RecommendedSecurityMiddleware(), httputil.CSRFMiddleware(httputil.CSRFConfig{}), app.Middleware())(mux)
 
 // 5. Map errors -> HTTP status (one function)
-status := cqrshtmx.MapError(err) // Rejection->400, Conflict->409, Transient->503, etc.
+status := httperr.MapError(err) // Rejection->400, Conflict->409, Transient->503, etc.
 
 // 6. Wire dispatch middleware (retry, circuit breaker, tracing, recovery)
 cmdDisp.Use(middleware.CommandRecovery(), middleware.CommandRetry(middleware.DefaultRetryConfig()))
@@ -74,7 +74,7 @@ Two rules that matter:
 1. **The subpackage is the surface (ADR-0062, 2026-11-06).** The three `*_reexport.go`
    files still alias every subpackage symbol so existing v4 code compiles unchanged, but
    each alias carries `// Deprecated:` naming the direct import and is deleted in v5.
-   Write `htmx.ScriptHandler`, not `cqrshtmx.HTMXScriptHandler`. `nix run
+   Write `htmx.ScriptHandler`, not `htmx.ScriptHandler`. `nix run
    .#check-reexport-policy -- --strict` refuses a new alias file or alias growth; the
    policy, the exemption classes and the one-breaking-window rule are in
    `docs/adr/0062-direct-imports-only.md` in the repo.
@@ -122,7 +122,7 @@ Many consumers use cqrs-htmx purely for its middleware, SSE building blocks, and
 
 ```go
 mux := http.NewServeMux()
-mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 
 broadcaster := cqrshtmx.NewBroadcaster()
 defer broadcaster.Close() // graceful SSE drain on shutdown
@@ -325,10 +325,10 @@ func(w http.ResponseWriter, r *http.Request) {
 }
 
 // Custom predicate (not just partial-vs-full)
-cqrshtmx.RenderIf(func(r *http.Request) bool { return cqrshtmx.HTMXTarget(r) == "#avatar" }, avatarRender, fullRender)
+cqrshtmx.RenderIf(func(r *http.Request) bool { return htmx.Target(r) == "#avatar" }, avatarRender, fullRender)
 ```
 
-All use `cqrshtmx.RenderPartial(r)` internally (history-restore requests render full page). HTML-specific helpers set `Content-Type: text/html`; generic `RenderIf`/`RenderPartialOrFullFunc` do not (see ADR-0037).
+All use `htmx.RenderPartial(r)` internally (history-restore requests render full page). HTML-specific helpers set `Content-Type: text/html`; generic `RenderIf`/`RenderPartialOrFullFunc` do not (see ADR-0037).
 
 **OOB swap wrapping:** `cqrshtmx.OOBHTML(id, html, swapStrategy...)` wraps HTML with `hx-swap-oob` attributes.
 
@@ -344,7 +344,7 @@ mux.Handle("POST /games/{id}/delete", app.Command("DeleteGame",
     }),
     cqrshtmx.RequestGuard(func(r *http.Request, cmd any) error {
         gc := cmd.(*deleteGameCmd)
-        if !ownsGame(extractPlayerID(r), gc.GameID) { return cqrshtmx.ErrForbidden }
+        if !ownsGame(extractPlayerID(r), gc.GameID) { return httperr.ErrForbidden }
         return nil
     }),
 ))
@@ -352,7 +352,7 @@ mux.Handle("POST /games/{id}/delete", app.Command("DeleteGame",
 
 `RequestGuard` runs **after decode, before dispatch** -- has access to the decoded command/query.
 
-> **Auth error sentinels -> HTTP status:** `cqrshtmx.ErrUnauthorized` -> 401, `cqrshtmx.ErrForbidden` -> 403, `cqrshtmx.ErrValidationFailed` -> 400, `cqrshtmx.ErrRequestTooLarge` -> 413, `cqrshtmx.ErrMethodNotAllowed` -> 405.
+> **Auth error sentinels -> HTTP status:** `httperr.ErrUnauthorized` -> 401, `httperr.ErrForbidden` -> 403, `httperr.ErrValidationFailed` -> 400, `httperr.ErrRequestTooLarge` -> 413, `httperr.ErrMethodNotAllowed` -> 405.
 
 ### Authorization: the contract, and the one durable way to grant
 
@@ -435,7 +435,7 @@ err = gate.Validate()                 // boot check: no declarations / no reason
 ### Middleware + serving htmx.js
 
 ```go
-mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler()) // embedded htmx 2.0.10, ETag + 1yr cache
+mux.Handle("GET /htmx.js", htmx.ScriptHandler()) // embedded htmx 2.0.10, ETag + 1yr cache
 
 http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecommendedSecurityMiddleware(),
@@ -533,16 +533,16 @@ See `references/core-api.md` for the full `HandlerOption` catalogue.
 ### MapError: errors -> HTTP status (one function)
 
 ```go
-status := cqrshtmx.MapError(err) // Rejection->400, Conflict->409, Transient->503, Corruption->500, Infrastructure->503; sentinels: 401/403/405/413
+status := httperr.MapError(err) // Rejection->400, Conflict->409, Transient->503, Corruption->500, Infrastructure->503; sentinels: 401/403/405/413
 ```
 
-Set `Config.ErrorHandler: cqrshtmx.JSONErrorHandler` to auto-map errors to JSON responses:
+Set `Config.ErrorHandler: httperr.JSONErrorHandler` to auto-map errors to JSON responses:
 
 ```json
 { "error": "battle already exists", "status": 409, "code": "battle.exists" }
 ```
 
-The `"code"` field carries the machine-readable error code from the innermost errorfamily error. For RFC 7807 (`application/problem+json`), use `cqrshtmx.ProblemDetailsErrorHandler`. For text/plain with HTMX redirects, use `DefaultErrorHandlerWithRedirect`.
+The `"code"` field carries the machine-readable error code from the innermost errorfamily error. For RFC 7807 (`application/problem+json`), use `httperr.ProblemDetailsErrorHandler`. For text/plain with HTMX redirects, use `DefaultErrorHandlerWithRedirect`.
 
 ### Response builder: fluent HTMX headers
 
@@ -610,8 +610,8 @@ The root module embeds 2 extensions that pair with cqrs-htmx's server-side build
 
 ```go
 // Individual or bundled:
-mux.Handle("GET /ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
-mux.Handle("GET /ext/bundle.js", cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph))
+mux.Handle("GET /ext/sse.js", htmx.ExtensionHandler(htmx.ExtSSE))
+mux.Handle("GET /ext/bundle.js", htmx.ExtensionsHandler(htmx.ExtSSE, htmx.ExtIdiomorph))
 ```
 
 Same caching as `HTMXScriptHandler` (ETag, `Cache-Control: 1yr immutable`, 304). Add `<script>` tags after htmx core.
@@ -626,7 +626,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 4. **Middleware trio order is `CSRF -> HTMX -> enrichment`.** Put your session middleware _outside_ (before) CSRF.
 5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v4`.
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration.
-7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux. **Exception:** on Path C (adminui) the panel serves htmx.js internally -- do NOT register it yourself.
+7. **Serve htmx.js yourself on Path A/B.** Register `htmx.ScriptHandler()` on your mux. **Exception:** on Path C (adminui) the panel serves htmx.js internally -- do NOT register it yourself.
 8. **Register your command/query handlers BEFORE building endpoints.** `cmdDisp.Register("CreateItem", handler)` must happen before `app.Command("CreateItem", ...)`.
 9. **A dispatch gate is not a route gate.** `Authorize*` options live in the handler config; a command dispatched through `Service.Dispatch`, a seed, a job, or a CLI bypasses them entirely. Install `DispatchGate.CommandMiddleware()` / `QueryMiddleware()` on the dispatcher if non-HTTP paths matter (ADR 0063).
 10. **Policy objects use a slash, never a colon or dot.** `command:Create` becomes a `keyMatch2` parameter wildcard (`command[^/]+`) and `command.Create` becomes a regexp any-character — both silently grant more than written. `command/Create` stays a literal under `keyMatch`, and `command/*` is the prefix form.
@@ -645,7 +645,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **Server-Timing / CSRF / rate-limiting are deprecated re-exports over httputil** -- `CSRFMiddleware`, `CSRFConfig`, `RateLimiterMiddleware`, `ServerTiming`, etc. are now deprecated type/var aliases for the equivalent symbols in `github.com/larsartmann/httputil`. Import httputil directly (these aliases will be removed in v5). The implementation (and deps like `justinas/nosurf`) lives in httputil. See `docs/guides/leveraging-httputil.md` for the migration table.
 - **`cqrshtmx.RegisterErrorClassifications()`** -- registers httputil error classifications so errors from httputil middleware classify correctly through `MapError`. `New()` calls this automatically via `sync.Once`. Call it once at startup if you use httputil middleware without creating an App (e.g., a static file server with `httputil.Compression`). Safe to call multiple times.
 - **`cqrshtmx.RecommendedSecurityMiddleware()`** -- returns the baseline production middleware chain: `SecurityHeaders` (with `RecommendedPermissionsPolicy`) + per-request CSP `Nonce` + `RecoveryMiddleware`. Both `adminui.Handler.Middleware()` and `dashboardui.Dashboard.Middleware()` delegate to it, so mounting either UI gives the same security posture. Use it directly for your own UIs: `cqrshtmx.Chain(cqrshtmx.RecommendedSecurityMiddleware(), sessionMW, app.Middleware())(mux)`.
-- **`cqrshtmx.EventCatalogHandler(catalog)`** -- serves an event schema catalog as immutable JSON (1-year cache, FNV-1a ETag). Use with `usermgmt.DefaultEventCatalog()` or build your own `cqrshtmx.NewEventCatalog()`. Mirrors `OpenAPISpecHandler` pattern. See `docs/guides/event-catalog-guide.md`.
+- **`eventcatalog.Handler(catalog)`** -- serves an event schema catalog as immutable JSON (1-year cache, FNV-1a ETag). Use with `usermgmt.DefaultEventCatalog()` or build your own `eventcatalog.New()`. Mirrors `OpenAPISpecHandler` pattern. See `docs/guides/event-catalog-guide.md`.
 - **`cqrshtmx.ProjectionStatusHandler(provider)`** -- serves live projection health as JSON (`no-cache`, per-request ETag). Pass any `cqrshtmx.ProjectionStatusProvider` (e.g. `*usermgmt.Service`). Returns 503 when provider is nil. See `docs/guides/projection-health-monitoring.md`.
 - **`svc.RebuildProjection(ctx, name)`** -- stops the projection host, resets the named projection's checkpoint + read-model, creates a fresh host, and replays the entire journal. Available on both `*usermgmt.Service` and `*usermgmt.EventSourcedSetup`. See `docs/guides/rebuild-projection-runbook.md`.
 
