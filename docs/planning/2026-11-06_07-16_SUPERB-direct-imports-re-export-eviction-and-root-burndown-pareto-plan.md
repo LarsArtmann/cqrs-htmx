@@ -380,7 +380,7 @@ flowchart TD
 | `health` cycle when readiness moves                                | W2.2 decides *before* W2.3 moves a single file; a `projections/v4` module is the fallback      |
 | Docs claims drifting (skill/README)                                | `.#check-skill-claims`, `.#check-readme-splitbrain`, `.#check-docs-freshness` in W4           |
 | Tree-wide `nix fmt` clobbering another session (gotcha 53)         | scope formatting to owned paths; run the collision probe first                                 |
-| Pre-push hook red on a docs commit (gotcha 50)                     | never `--no-verify`; fix the leg that reds and re-push                                         |
+| Pre-push hook red on a docs commit (gotcha 50)                     | never `--no-verify`; fix the leg that reds and re-push. **Verified 2026-11-06:** a host git rewrite (`url./home/lars/projects/go-appkit.insteadof https://github.com/larsartmann/go-appkit`) hijacks the gate's `…/go-appkit.git` ls-remote into a nonexistent local path, so `check-version-drift --strict` reports 4 phantom missing tags and blocks EVERY push while `git ls-remote https://…/go-appkit` (no `.git`) still works and hides the cause. Confirm with `GIT_CONFIG_GLOBAL=/dev/null bash scripts/checks/check-version-drift.sh --strict` (green: 900 requires, 0 missing); push with the same env override. Fix the rewrite itself in the host config when convenient |
 
 ---
 
