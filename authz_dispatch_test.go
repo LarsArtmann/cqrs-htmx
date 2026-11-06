@@ -30,6 +30,7 @@ func (e *countingDenyEnforcer) Enforce(_ ...any) (bool, error) {
 type gatedCmd struct {
 	aggID id.StreamID
 	cmdID id.CommandID
+	Name  string `json:"name"`
 }
 
 func (c *gatedCmd) Type() command.Type    { return "CreateItem" }

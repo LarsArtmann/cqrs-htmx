@@ -22,6 +22,29 @@ Files: `csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go`
 - **Status:** zero internal callers; zero SA1019 warnings in-repo.
 - **Removal criterion for v5:** delete files; nothing else references them.
 
+### 1b. Root subpackage façades — `htmx`, `httperr`, `eventcatalog` (ADR-0062)
+
+Files: `htmx_reexport.go` (35 aliases), `httperr_reexport.go` (37),
+`eventcatalog_reexport.go` (5). The 2026-11-02 decomposition MOVED these
+symbols into subpackages and then aliased every one of them back into
+`cqrshtmx` — with a header that said, in as many words, *"they are not
+deprecated"*. [ADR-0062](../adr/0062-direct-imports-only.md) reverses that.
+
+- **What consumers do instead:** import the owning subpackage and use the
+  unprefixed name — `htmx.Target` (was `cqrshtmx.HTMXTarget`),
+  `htmx.ScriptHandler` (was `HTMXScriptHandler`), `httperr.MapError`,
+  `eventcatalog.New` (was `NewEventCatalog`), `eventcatalog.Handler`.
+- **Status (2026-11-06):** every alias carries `// Deprecated:` naming the
+  direct import; the root package's own production code no longer uses any of
+  them (7 unexported plumbing aliases were deleted outright); the codemod
+  rules R11/R12/R13 rewrite consumers mechanically.
+- **Removal criterion for v5:** delete the three files, retire the alias half
+  of `api_surface_compat_test.go`, re-baseline `scripts/checks/reexport-baseline.tsv`
+  (the row count drops to zero for these paths).
+- **Gate:** `nix run .#check-reexport-policy -- --strict` refuses a new alias
+  file, alias growth, a missing deprecation marker, or a deprecation that never
+  names the owning package.
+
 ### 2. Raw-named broadcaster API — superseded by the Hub vocabulary
 
 Files: `sse_broadcaster.go` (`Broadcaster.Raw`, `NewBroadcasterFromRaw`,
@@ -183,15 +206,17 @@ caveats for the next re-run:
 
 ## Sweep protocol for the v5 cut
 
-0. Run the migration codemod on consumer trees: `go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest ./...` (dry-run report; `-apply` writes). It mechanically executes classes 1–3 (rules R1/R2/R3/R9/R10 — including the R3 `.Raw()` manual findings) with symbol tables DERIVED from the installed version's own alias declarations, so it cannot drift from this inventory's source files. (Note: the `cqrs-upgrade` tool referenced in §5c's 2026-09-20 count is go-cqrs-lite's separate `cmd/cqrs-upgrade`; `cqrs-htmx-upgrade` is this repo's.)
+0. Run the migration codemod on consumer trees: `go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest ./...` (dry-run report; `-apply` writes). It mechanically executes classes 1, 1b, 2 and 3 (rules R1/R2/R3/R9/R10/R11/R12/R13 — including the R3 `.Raw()` manual findings) with symbol tables DERIVED from the installed version's own alias declarations, so it cannot drift from this inventory's source files. (Note: the `cqrs-upgrade` tool referenced in §5c's 2026-09-20 count is go-cqrs-lite's separate `cmd/cqrs-upgrade`; `cqrs-htmx-upgrade` is this repo's.)
 1. Delete classes 1-3 files/symbols (mechanical — the aliases are transparent;
-   no consumer-invisible behavior changes).
+   no consumer-invisible behavior changes). Class 1b removes the three root
+   subpackage façades and the alias half of `api_surface_compat_test.go`.
 2. Apply class 4 decisions per item (each has a written rationale).
 3. Run: `nix run .#build`, `.#test`, `.#lint`, `bash
 scripts/checks/check-module-isolation.sh`, `nix run .#check-release-train`,
    `nix run .#check-docs-links` — then a docs sweep for
    `cqrshtmx.CSRF|cqrshtmx.SecurityHeaders|Broadcaster.Raw|usermgmt.User.*Payload`
-   references in guides/examples.
+   references in guides/examples — and, for class 1b,
+   `cqrshtmx\.(HTMX|Swap|IsHTMX|RenderPartial|MapError|ErrForbidden|EventCatalog)`.
 4. Bump via the coordinated family train (runbook
    `docs/runbooks/release-next-train-prep.md` + verify-tag protocol).
 
@@ -199,5 +224,8 @@ scripts/checks/check-module-isolation.sh`, `nix run .#check-release-train`,
 
 - [ADR-0047](../adr/0047-re-export-layer-retirement-plan.md) — why the
   re-export layers exist and the retirement plan
+- [ADR-0062](../adr/0062-direct-imports-only.md) — Direct Imports Only: no
+  permanent cross-package alias, one breaking window per major, and the gate
+  that makes it hold
 - [ADR-0046](../adr/0046-drop-websocket-sse-only.md) — WebSocket removal
 - [sse-and-datastar.md](sse-and-datastar.md) — Hub-first broadcaster vocabulary

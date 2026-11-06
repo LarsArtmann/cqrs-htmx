@@ -21,9 +21,9 @@ Measured on 2026-11-06 by `scripts/checks/reexport_scanner.go` (the tool this AD
 
 | Metric                                       | Value |
 | -------------------------------------------- | ----- |
-| Top-level alias declarations, whole workspace | 418   |
-| …already carrying `// Deprecated:`            | 162   |
-| …carrying no deprecation marker               | 256   |
+| Top-level alias declarations, whole workspace | 413   |
+| …already carrying `// Deprecated:`            | 239   |
+| …carrying no deprecation marker               | 174   |
 | Files containing at least one alias           | 47    |
 | Root package only: alias LOC / declarations   | 718 / ~315 |
 

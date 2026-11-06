@@ -230,7 +230,9 @@ func (g *DispatchGate) RegisterCommand[T command.Command](
 	handler func(ctx context.Context, cmd T) error,
 ) error {
 	if err := command.RegisterTyped(disp, cmdType, handler); err != nil {
-		return err
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"cqrshtmx.dispatch_gate.register_failed",
+			"registering command type %s", cmdType)
 	}
 
 	if got := commandTypeName[T](); got != string(cmdType) {
@@ -258,7 +260,9 @@ func (g *DispatchGate) RegisterQuery[Q query.Query, R any](
 	handler func(ctx context.Context, q Q) (R, error),
 ) error {
 	if err := query.RegisterTyped(disp, qryType, handler); err != nil {
-		return err
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"cqrshtmx.dispatch_gate.register_failed",
+			"registering query type %s", qryType)
 	}
 
 	return g.declare(DispatchPosture{
@@ -463,6 +467,12 @@ func (g *dispatchGate) authorize(
 			req.Resource.String())).WithCause(ErrForbidden))
 	}
 
+	// A public posture asks nothing of the caller and never reaches the engine:
+	// declaring it public is the whole permission decision.
+	if posture == PosturePublic {
+		return g.settle(ctx, allowOutcome(kind, name, posture, req), nil)
+	}
+
 	if req.Subject == "" {
 		outcome := DispatchOutcome{
 			Kind: kind, Name: name, Posture: posture, Request: req,
@@ -472,12 +482,9 @@ func (g *dispatchGate) authorize(
 		return g.settle(ctx, outcome, denyDispatch(req, outcome.Decision))
 	}
 
-	// public and authenticated postures never reach the engine.
-	if posture != PostureRoleGated {
-		return g.settle(ctx, DispatchOutcome{
-			Kind: kind, Name: name, Posture: posture, Request: req,
-			Decision: Decision{Allowed: true, Reason: ReasonAllowed},
-		}, nil)
+	// An authenticated posture wants an identity and nothing more.
+	if posture == PostureAuthenticated {
+		return g.settle(ctx, allowOutcome(kind, name, posture, req), nil)
 	}
 
 	if g.checker == nil {
@@ -499,6 +506,15 @@ func (g *dispatchGate) authorize(
 	}
 
 	return g.settle(ctx, outcome, denyDispatch(req, decision))
+}
+
+// allowOutcome builds the verdict for a dispatch the gate admits without asking
+// the engine.
+func allowOutcome(kind DispatchKind, name string, posture Posture, req Request) DispatchOutcome {
+	return DispatchOutcome{
+		Kind: kind, Name: name, Posture: posture, Request: req,
+		Decision: Decision{Allowed: true, Reason: ReasonAllowed, MatchedRules: nil},
+	}
 }
 
 // settle reports the verdict, applies audit mode, and returns the denial the

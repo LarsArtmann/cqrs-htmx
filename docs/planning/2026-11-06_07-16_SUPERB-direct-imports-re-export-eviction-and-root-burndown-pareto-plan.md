@@ -404,3 +404,42 @@ flowchart TD
   alias removal is a hygiene fix, not a merge argument.
 - **No `payload.go` / `idempotency.go` packages.** 39 and 44 LOC with no independent consumer is
   FM#8 (over-modularization) territory; they stay until a real seam appears.
+
+---
+
+## 11. Execution log
+
+### W0 — landed 2026-11-06 (non-breaking, on v4)
+
+Delivered: ADR-0062 + index row; `scripts/checks/reexport_scanner.go` (go/ast
+inventory, `--files` summary mode); `scripts/checks/reexport-baseline.tsv`
+(frozen: 47 alias files, 413 declarations); `scripts/checks/check-reexport-policy.sh`
+(3 rules, advisory by default, `--strict` in `check-modules` + CI);
+`scripts/selftests/test-check-reexport-policy.sh` (13 cases, one planted
+failure per rule); `// Deprecated:` on all 77 exported façade aliases plus
+plain-language replacement headers; root production code repointed to
+`htmx.*`/`httperr.*`/`eventcatalog.*` (47 sites across 15 files) and the 7
+unexported plumbing aliases deleted, so root has ZERO self-use of its own
+façades; codemod rules R11/R12/R13 (derived, plus a unified
+`defaultQualFor` derivation that also fixed a latent empty-qualifier bug for
+any target path missing from the old hardcoded table); v5-removal-inventory
+class 1b; a per-layer v4→v5 migration section.
+
+**Wrong in this plan's evidence table** (recorded so W2 does not assume it):
+`authz_contract.go` does NOT import only stdlib + errorfamily *in effect* — it
+references five `httperr` symbols (`CodeUnauthorized`, `CodeForbidden`,
+`ErrEnforcerNil`, `ErrForbidden`, `ErrUnauthorized`) as same-package
+identifiers, which is exactly why the move looked dependency-free. Those are
+now explicit `httperr.` references in the same file, so the extraction in W2.1
+will carry a real `authz → httperr → htmx → internal/hx` edge. If
+`identity-model` is to own the contract (open decision 2), the denial
+vocabulary must move too — that is the decision W2.1 actually has to make.
+
+### Deliberate non-scope of W0
+
+The `exempt:pending` rows in the baseline (`authztest`, `dashboardui/core_bridge.go`,
+`datastar/patch.go`, `health/probe.go`, `usermgmt/sql_event_store.go`) are
+candidate re-export layers that W0 froze instead of deprecating: they are
+consumer-facing convenience surfaces whose replacement is a real design change,
+and deprecating them as a drive-by would have been a Verschlimmbesserung. The
+gate forbids them from growing; W1 decides each one.

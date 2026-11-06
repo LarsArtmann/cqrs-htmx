@@ -1,24 +1,29 @@
 # v4 → v5 Migration Guide
 
-> **Status:** Complete — WebSocket transport dropped; library is SSE-only (see [ADR-0046](../adr/0046-drop-websocket-sse-only.md))
+> **Status:** Complete — WebSocket transport dropped and the re-export layers retired; library is SSE-only and direct-import (see [ADR-0046](../adr/0046-drop-websocket-sse-only.md), [ADR-0062](../adr/0062-direct-imports-only.md))
 
-v5 removes the entire WebSocket surface. SSE covers every realtime use case
-with strictly better operational properties (plain HTTP, native auth/CSRF,
-proxy-friendly, auto-reconnect via `Last-Event-ID`). This guide has a
-per-symbol recipe for every removed export.
+v5 removes two things. The entire WebSocket surface goes (SSE covers every
+realtime use case with strictly better operational properties: plain HTTP,
+native auth/CSRF, proxy-friendly, auto-reconnect via `Last-Event-ID`), and
+every cross-package alias layer goes with it (ADR-0062: consumers import the
+package that owns the symbol). This guide has a recipe for each.
 
 ## TL;DR — What changed
 
-| Aspect             | v4                                 | v5                                             |
-| ------------------ | ---------------------------------- | ---------------------------------------------- |
-| Realtime transport | SSE **and** WebSocket              | SSE only                                       |
-| Fan-out            | `Broadcaster` + `WSBroadcaster`    | `Broadcaster` only                             |
-| Client→server      | HTTP dispatch + WS dispatch bridge | HTTP dispatch only (`app.Command`/`app.Query`) |
-| OOB HTML           | `OOBHTML` + `WSOOBHTML`            | `OOBHTML` only                                 |
-| Removed symbols    | —                                  | 14                                             |
+| Aspect                                       | v4                                 | v5                                             |
+| -------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| Realtime transport                           | SSE **and** WebSocket              | SSE only                                       |
+| Fan-out                                      | `Broadcaster` + `WSBroadcaster`    | `Broadcaster` only                             |
+| Client→server                                | HTTP dispatch + WS dispatch bridge | HTTP dispatch only (`app.Command`/`app.Query`) |
+| OOB HTML                                     | `OOBHTML` + `WSOOBHTML`            | `OOBHTML` only                                 |
+| Root subpackage aliases                      | `cqrshtmx.HTMXTarget`, `cqrshtmx.MapError`, … | `htmx.Target`, `httperr.MapError`, …  |
+| Deprecated `httputil` / `go-sse` aliases     | `cqrshtmx.CSRFMiddleware`, `cqrshtmx.SSEEvent` | import `httputil` / `go-sse`          |
+| `usermgmt` → `identity-model` aliases        | `usermgmt.UserCreatedPayload`, `usermgmt.User` | import `identity-model`              |
+| Removed WebSocket symbols                    | —                                  | 14                                             |
+| Removed alias declarations (whole workspace) | —                                  | 413 (see [v5 Removal Inventory](../guides/v5-removal-inventory.md)) |
 
-If you only used SSE in v4, there are **zero breaking changes** for you. This
-guide is only for consumers who used the `WS*` symbols.
+If you only used SSE and only direct imports in v4, there are **zero breaking
+changes** for you.
 
 ---
 
@@ -269,6 +274,85 @@ go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest -v ./...
 Paths default to `.`. Always run the dry run first and review the report;
 non-mechanical rewrites are never guessed — they are reported for manual
 migration (per-symbol recipes above).
+
+---
+
+## Re-export layers removed (ADR-0062)
+
+Three alias layers disappear. Each one exists today only so an older spelling
+keeps compiling; the package that OWNS the symbol is unchanged and is where
+your imports should point.
+
+| Layer | v4 spelling | v5 |
+| ----- | ----------- | -- |
+| Root `htmx` façade (35) | `cqrshtmx.HTMXTarget`, `cqrshtmx.HTMXScriptHandler`, `cqrshtmx.SwapInnerHTML`, `cqrshtmx.HTMXRequest` | `htmx.Target`, `htmx.ScriptHandler`, `htmx.SwapInnerHTML`, `htmx.Request` |
+| Root `httperr` façade (37) | `cqrshtmx.MapError`, `cqrshtmx.ErrForbidden`, `cqrshtmx.JSONErrorHandler` | `httperr.MapError`, `httperr.ErrForbidden`, `httperr.JSONErrorHandler` |
+| Root `eventcatalog` façade (5) | `cqrshtmx.EventCatalog`, `cqrshtmx.NewEventCatalog`, `cqrshtmx.EventCatalogHandler` | `eventcatalog.Catalog`, `eventcatalog.New`, `eventcatalog.Handler` |
+| Deprecated `httputil` / `go-sse` aliases (57) | `cqrshtmx.CSRFMiddleware`, `cqrshtmx.RateLimiterMiddleware`, `cqrshtmx.SSEEvent` | `httputil.CSRFMiddleware`, `httputil.RateLimiterMiddleware`, `sse.Event` |
+| `usermgmt` → `identity-model` aliases (176) | `usermgmt.UserCreatedPayload`, `usermgmt.User`, `usermgmt.FoldUser` | `identitymodel.UserCreatedPayload`, `identitymodel.User`, `identitymodel.FoldUser` |
+
+**The naming rule is mechanical for the two large layers:** drop the redundant
+prefix from the `htmx` vocabulary (`HTMXTarget` → `Target`,
+`HTMXScriptHandler` → `ScriptHandler`, `HTMXExtSSE` → `ExtSSE`,
+`HTMXCDNBaseURL` → `CDNBaseURL`), and read the `// Deprecated:` line on any
+other alias — it names the exact replacement and its import path. Only three
+`eventcatalog` names change beyond the import swap: `EventCatalog` → `Catalog`,
+`NewEventCatalog` → `New`, `EventCatalogHandler` → `Handler`.
+
+**Before (v4):**
+
+```go
+import cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+
+mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+
+func status(err error) int {
+	if cqrshtmx.IsForbidden(err) {
+		return http.StatusForbidden
+	}
+
+	return cqrshtmx.MapError(err)
+}
+```
+
+**After (v5):**
+
+```go
+import (
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
+)
+
+mux.Handle("GET /htmx.js", htmx.ScriptHandler())
+
+func status(err error) int {
+	if cqrshtmx.IsForbidden(err) { // not an alias: root owns this helper
+		return http.StatusForbidden
+	}
+
+	return httperr.MapError(err)
+}
+```
+
+Note what does NOT move: anything root genuinely owns. `Chain`,
+`NewBroadcaster`, `Broadcaster`, `JournalSSEStore`, `ServeSSE`,
+`NewSSEStream`, `OOBHTML`, `CSRFProtect`, `IsForbidden`, `IsUnauthorized`,
+`WriteJSON`, `NewResponse`, `RenderTempl`, the `App` builder and its
+`HandlerOption` values all stay in `cqrshtmx`. [ADR-0047](../adr/0047-re-export-layer-retirement-plan.md)
+§"Symbols that STAY" is authoritative for that list.
+
+### Codemod coverage
+
+`cqrs-htmx-upgrade` rewrites all three root façades mechanically, deriving the
+tables from the installed version's own alias declarations:
+
+- **R11** `cqrshtmx.<htmx alias>` → `htmx.<target>` (adds the `htmx` import,
+  drops the root import when nothing live remains)
+- **R12** `cqrshtmx.<httperr alias>` → `httperr.<target>`
+- **R13** `cqrshtmx.<eventcatalog alias>` → `eventcatalog.<target>`
+
+Run it as a dry run first; the report labels every edit with its rule, so a
+consumer can adopt one layer at a time.
 
 ---
 

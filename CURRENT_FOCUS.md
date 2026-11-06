@@ -40,12 +40,24 @@ codegen hook audit).
 
 ## The next thread (pick ONE)
 
-1. **Consumer waves** (plan M06–M09) — one repo at a time, each with its own tests:
+1. **Direct imports only — the v5 alias cut** (W0 landed 2026-11-06). The
+   preference is now a policy with a gate: [ADR-0062](docs/adr/0062-direct-imports-only.md),
+   `nix run .#check-reexport-policy -- --strict`, frozen
+   [`scripts/checks/reexport-baseline.tsv`](scripts/checks/reexport-baseline.tsv)
+   (47 alias files / 413 declarations), and codemod rules R11/R12/R13. The three
+   root façades are deprecated and root no longer uses them itself, so the v5 cut
+   is a file delete plus a consumer repoint. Remaining waves (all inside the ONE
+   v5 window, never a second break): W1 delete the 9 root alias files + 176
+   `usermgmt` aliases and run the codemod on `examples/`, `e2e/`,
+   `integration_test/`, `setup/`, `dashboardui/`; W2 alias-free extractions
+   `authz/` → `readiness/` → `sync/` → `realtime/`; W3 `internal/handler`.
+   Plan: [`docs/planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md`](docs/planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md).
+2. **Consumer waves** (plan M06–M09) — one repo at a time, each with its own tests:
    `browser-history` (`reconcileSuperAdmins` → `GrantRoles`), `InboxClean`
    (delete `sseDeadlineFree`), `SwettySwipperWeb` (drop the `Count() > 0` guard),
    `crm` (seed an admin or `DisableAdmin`). The exact call to replace is the
    "Next step" column of [docs/PERMISSIONS.md](docs/PERMISSIONS.md).
-2. **Advisory month for erraudit strict** (passive): green month at TOTAL ≤ 303,
+3. **Advisory month for erraudit strict** (passive): green month at TOTAL ≤ 303,
    then flip `--strict --gate`.
 
 (The former item 2 — cqrs-lint 4.19.1 triage, plan M10 — is DONE 2026-11-05:

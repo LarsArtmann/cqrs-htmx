@@ -148,7 +148,7 @@ linters:
         exhaustruct_v5:
             ignore-patterns:
                 - os/exec.Cmd
-                - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig|EventCatalog|EventMetadata|PayloadField|ProjectionStatusEntry|ErrorRecorder|readinessDetail|StructuredError|plainBodyOptions)$
+                - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig|EventCatalog|EventMetadata|PayloadField|ProjectionStatusEntry|ErrorRecorder|readinessDetail|StructuredError|plainBodyOptions|DispatchGate|dispatchGate|DispatchOutcome|DispatchPosture)$
                 - github\.com/larsartmann/cqrs-htmx/dashboardui/v4\.(paginationState|eventFilter)$
                 - github\.com/larsartmann/httputil\.(CSRFConfig|KeyedRateLimiterConfig|SecurityHeadersConfig)$
                 - github\.com/larsartmann/cqrs-htmx/v4/openapi\..*$
