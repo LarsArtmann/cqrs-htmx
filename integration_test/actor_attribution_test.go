@@ -106,6 +106,63 @@ func requireAuditEntryWithActor(t *testing.T, auditLog *usermgmt.AuditLog, aggID
 	t.Errorf("no audit entry carries actor %s", wantActor.PrefixedString())
 }
 
+// TestActorAttribution_BotDispatchIsNeverAnonymous is the zero-actor guard
+// for the machine path: a command dispatched under a token-authenticated bot
+// context — exactly what NewAPITokenMiddleware produces for a Bearer call —
+// must carry the bot's machine actor in the audit journal. Before the actor
+// bridge, this dispatch landed as a successful, silently anonymous audit
+// entry: the worst failure mode, because nothing alerts.
+func TestActorAttribution_BotDispatchIsNeverAnonymous(t *testing.T) {
+	t.Parallel()
+
+	store := memorystorage.NewMemoryStore()
+	bus := watermill.NewEventBus()
+	auditLog := usermgmt.NewAuditLog()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		EventStore:  store,
+		EventBus:    bus,
+		AuditLog:    auditLog,
+		TokenPepper: usermgmt.TokenPepper("test-pepper-32-bytes-long-xxxxxxx"),
+	})
+	require.NoError(t, err)
+	t.Cleanup(svc.Stop)
+
+	ctx := context.Background()
+	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
+		ID:    identitymodel.GenerateUserID(),
+		Email: "bot-dispatch@example.com",
+	})
+	require.NoError(t, err)
+	userID := reg.User.ID
+
+	botReg, err := svc.RegisterBot(ctx, usermgmt.RegisterBotRequest{
+		ID:      usermgmt.NewBotID("01JXBOT00000000000000000005"),
+		Name:    "attribution-bot",
+		OwnerID: userID,
+		Scopes:  []string{"read"},
+	})
+	require.NoError(t, err)
+
+	handler := usermgmt.NewAPITokenMiddleware(svc)(http.HandlerFunc(
+		func(_ http.ResponseWriter, r *http.Request) {
+			bot, ok := usermgmt.BotFromContext(r.Context())
+			require.True(t, ok, "authenticated bot must be in the request context")
+
+			actor := identitymodel.ActorIDFromBot(bot.ID)
+			require.False(t, actor.IsZero(), "the bridged bot actor must never be zero")
+
+			require.NoError(t, svc.ChangeDisplayName(r.Context(), userID, "DispatchedByBot"))
+		}))
+	req := httptest.NewRequest(http.MethodPost, "/dispatch-via-bot", nil)
+	req.Header.Set("Authorization", "Bearer "+botReg.Token)
+	handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	wantActor := identitymodel.ActorIDFromBot(botReg.Bot.ID)
+	userAggID, err := id.ParseStreamID(userID.Get().String())
+	require.NoError(t, err)
+	requireAuditEntryWithActor(t, auditLog, userAggID, wantActor)
+}
+
 // requireDashboardEventRendersActor asserts the dashboardui surface of the
 // attribution chain: the /events/{id} detail page renders the expected actor.
 func requireDashboardEventRendersActor(
