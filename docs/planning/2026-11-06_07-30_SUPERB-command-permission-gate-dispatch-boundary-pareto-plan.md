@@ -519,3 +519,15 @@ history; `git log 4cf82c0b..HEAD` is the authoritative list (70 files, +6369/−
 - Consumer adoption waves (six repos, each in its own repo per guardrail 7).
 - `check-policy-rows` is self-test-only in `check-modules` because this repo authors no
   policy CSVs; it becomes a blocking run the moment a consumer commits one.
+- **The release train (owner-gated push) — and this plan adds to it.** Hermetic
+  (`GOWORK=off`) builds resolve published tags, so `usermgmt/command_postures.go`
+  referencing `cqrshtmx.DispatchPosture` cannot build hermetically until root is tagged
+  and `usermgmt`'s require bumped. That is the documented gotcha-30 root-tag-gap class
+  (the tree was already red on the parallel session's `DropStats`/`NavEntry`/session
+  events), not a new one — but it moves **root ahead of usermgmt** in the train order,
+  recorded in the `TODO_LIST.md` release-train row. Which `check-modules` legs are red for
+  this reason, verified at execution time: `module-isolation` (dashboardui, integration_test,
+  setup, systemadapter, usermgmt), `module-isolation-examples`, `workspace-build`,
+  `release-train`, `train-consumers-hermetic`, `readme-quickstart`, `route-postures` (+ its
+  self-test). Two further reds are **not** this class and not this plan's: `streamid-identity`
+  (`dashboardui/core/command_fates.go:198` uses the display form in an identity slot).
