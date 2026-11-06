@@ -38,6 +38,7 @@ func RegisterCommand[I any](
 	requireAdapter(a)
 
 	if build == nil {
+		//cqrs-lint:ignore(C009) programmer error: a registration without a build function can never dispatch
 		panic("[cqrs-htmx/huma] RegisterCommand requires a build function")
 	}
 
@@ -95,10 +96,12 @@ func RegisterQuery[I, O any](
 	requireAdapter(a)
 
 	if build == nil {
+		//cqrs-lint:ignore(C009) programmer error: a registration without a build function can never dispatch
 		panic("[cqrs-htmx/huma] RegisterQuery requires a build function")
 	}
 
 	if respond == nil {
+		//cqrs-lint:ignore(C009) programmer error: a query without a respond function cannot answer
 		panic("[cqrs-htmx/huma] RegisterQuery requires a respond function")
 	}
 
@@ -204,6 +207,7 @@ func (a *Adapter) fail(ctx context.Context, op humav2.Operation, err error) erro
 // an empty command type on App.Command.
 func requireAPI(api humav2.API) {
 	if api == nil {
+		//cqrs-lint:ignore(C009) programmer error: a nil Huma API is a wiring bug at startup, not a request-time failure
 		panic("[cqrs-htmx/huma] a non-nil huma.API is required")
 	}
 }
@@ -211,6 +215,7 @@ func requireAPI(api humav2.API) {
 // requireAdapter rejects a nil adapter at registration.
 func requireAdapter(a *Adapter) {
 	if a == nil {
+		//cqrs-lint:ignore(C009) programmer error: a nil adapter is a wiring bug at startup, not a request-time failure
 		panic("[cqrs-htmx/huma] a non-nil *Adapter is required — build one with New")
 	}
 }

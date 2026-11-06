@@ -1,0 +1,23 @@
+{
+  "preset": "library",
+  "rules": {
+    // F032 (no-catalog-import) is a consumer-adoption rule: huma/v4 is a
+    // transport adapter that runs an APP's dispatchers inside typed OpenAPI
+    // operations. It declares no commands, events, or queries of its own, so
+    // catalog-driven documentation belongs to the consumer app, not here.
+    // Triage 2026-11-06 (cqrs-lint v4.20.1, the cqrs-htmx#41 wave).
+    "disable": [
+      "F002",
+      "F006",
+      "F009",
+      "F010",
+      "F011",
+      "S002",
+      "S003",
+      "S007",
+      "A018",
+      "C015",
+      "F032"
+    ]
+  }
+}

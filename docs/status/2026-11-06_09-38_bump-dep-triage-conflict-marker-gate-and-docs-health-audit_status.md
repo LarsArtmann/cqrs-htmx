@@ -116,6 +116,8 @@
 
 **d8. I reworded two historical status reports to satisfy a formatting rule.** `docs/status/2026-11-05_22-31_...:13` and `.../2026-11-06_03-19_...:11` each lost a possessive ("anchor-name declarations", "restored via git restore"). The skill offers `<!-- format:allow -->` for frozen history; I reworded instead and should have stated which choice I was making at the time.
 
+**d9. My detailed commit message lost a race with the auto-commit daemon.** I staged the baseline pin and this report behind a five-paragraph message; the pre-commit hook then ran the full BuildFlow battery (133 s) and by the time it finished HEAD had moved from `34be5cf6` to `ed66cd24`, so `git commit` failed with `cannot lock ref 'HEAD'` — and the daemon had already committed both files under a generic `chore: auto-commit 6 changed file(s)` message. The content is verifiably in HEAD (baseline `51235`, all eight exemption markers); only the message was lost. The lesson is the one gotcha 47 already states: in a tree with a live daemon, a message that matters has to be attached in the same breath as the staging, or the daemon wins.
+
 ---
 
 ## e) WHAT WE SHOULD IMPROVE
