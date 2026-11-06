@@ -78,9 +78,14 @@ func TestRunWithAppkit_HookForwardingAndLifecycleOrder(t *testing.T) {
 	})
 
 	addr := freeLocalAddr(t)
-	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
+	realStop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
 		return bundle.runWithAppkit(ctx, addr, h, testDrainDelay, "")
 	}, addr, nil)
+	// Once-guarded so the explicit stop() below (needed before the post-shutdown
+	// asserts) and the leak-safety defer cannot both consume serveInBackground's
+	// one-shot done channel.
+	var stopOnce sync.Once
+	stop := func() { stopOnce.Do(realStop) }
 	defer stop()
 
 	// appkit serves /health/live before any bundle route; a 200 response
