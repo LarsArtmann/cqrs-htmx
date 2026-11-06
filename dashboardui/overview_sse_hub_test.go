@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-sse"
+	"github.com/larsartmann/templ-components/display"
 )
 
 func newHubTestDashboard(t *testing.T, withBus bool) *Dashboard {
@@ -97,5 +99,43 @@ func TestOverview_NoSSEHubCardWithoutEventBus(t *testing.T) {
 
 	if strings.Contains(grid, `id="stat-sse-hub"`) {
 		t.Errorf("SSE hub card must not render without a broadcaster\ncard grid:\n%s", grid)
+	}
+}
+
+// TestOverview_SSEHubCardCountsDrops proves the drop-observability wiring
+// (A2): a subscriber whose buffer overflows surfaces in the hub card value
+// and downgrades the tone to amber — drops stop being silent.
+func TestOverview_SSEHubCardCountsDrops(t *testing.T) {
+	t.Parallel()
+
+	d := newHubTestDashboard(t, true)
+
+	if d.dropStats == nil {
+		t.Fatal("expected dropStats wired alongside the broadcaster")
+	}
+
+	ch := d.broadcaster.Subscribe()
+	defer d.broadcaster.Unsubscribe(ch)
+
+	// Default buffer is 64: fill it, then overflow once.
+	for range 65 {
+		d.broadcaster.Broadcast(sse.Event{Event: "overflow"})
+	}
+
+	stats := d.overviewStats(context.Background())
+	if stats.SSEHub.Drops != 1 {
+		t.Errorf("Drops: got %d, want 1 (65 broadcasts into a 64-buffer, unread)", stats.SSEHub.Drops)
+	}
+
+	if got := sseHubTone(stats); got != display.StatToneYellow {
+		t.Errorf("sseHubTone with drops = %v, want yellow", got)
+	}
+	if got := sseHubValue(stats); got != "1 · 1 dropped" {
+		t.Errorf("sseHubValue with drops = %q, want %q", got, "1 · 1 dropped")
+	}
+
+	grid := goldenRender(t, overviewStatGrid(stats))
+	if !strings.Contains(grid, "dropped") {
+		t.Errorf("SSE hub card should surface the drop count\ncard grid:\n%s", grid)
 	}
 }

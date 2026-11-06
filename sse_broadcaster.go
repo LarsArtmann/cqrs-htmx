@@ -47,8 +47,11 @@ type RawBroadcaster interface {
 }
 
 // NewBroadcaster creates a new event broadcaster with no subscribers.
-func NewBroadcaster() *Broadcaster {
-	return &Broadcaster{Broadcaster: sse.NewBroadcaster[sse.Event]()}
+// Options are the go-sse hub options, passed through verbatim — most notably
+// sse.WithOnDrop (drop observability; see [DropStats] for the curated
+// counter) and sse.WithBufferSize (per-subscriber buffer capacity).
+func NewBroadcaster(opts ...sse.Option[sse.Event]) *Broadcaster {
+	return &Broadcaster{Broadcaster: sse.NewBroadcaster[sse.Event](opts...)}
 }
 
 // NewBroadcasterFromHub wraps an existing [*sse.Broadcaster] in a

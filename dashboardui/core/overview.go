@@ -56,12 +56,14 @@ type RecentEvent struct {
 
 // HubHealth is a display DTO for the SSE hub (broadcaster) state on the
 // overview page. Nil on Overview means the dashboard has no SSE hub (no
-// EventBus configured), so no hub card renders.
+// EventBus configured), so no hub card renders. Drops counts per-subscriber
+// slow-consumer drops since dashboard start (0 = nobody fell behind).
 type HubHealth struct {
 	Subscribers int
 	BufferSize  int
 	Closed      bool
 	Draining    bool
+	Drops       int64
 }
 
 // Overview aggregates the top-level dashboard stats: event count, aggregate

@@ -98,7 +98,9 @@ func projectionsActiveText(stats overviewStats) string {
 }
 
 // sseHubValue picks the SSE-clients stat value: subscriber count, or the
-// lifecycle state when the hub is closing down.
+// lifecycle state when the hub is closing down. Slow-consumer drops append
+// a "· N dropped" suffix so a client that fell behind is visible at a
+// glance (drops count per-subscriber per broadcast since dashboard start).
 func sseHubValue(stats overviewStats) string {
 	switch {
 	case stats.SSEHub.Closed:
@@ -106,16 +108,24 @@ func sseHubValue(stats overviewStats) string {
 	case stats.SSEHub.Draining:
 		return "draining"
 	default:
-		return strconv.Itoa(stats.SSEHub.Subscribers)
+		value := strconv.Itoa(stats.SSEHub.Subscribers)
+		if stats.SSEHub.Drops > 0 {
+			value += fmt.Sprintf(" · %d dropped", stats.SSEHub.Drops)
+		}
+		return value
 	}
 }
 
-// sseHubTone maps the SSE hub lifecycle state to a stat tone.
+// sseHubTone maps the SSE hub lifecycle state to a stat tone. Drops that
+// already happened downgrade an otherwise-green card to amber: the hub is
+// alive, but at least one consumer's buffer overflowed since start.
 func sseHubTone(stats overviewStats) display.StatTone {
 	switch {
 	case stats.SSEHub.Closed:
 		return display.StatToneRed
 	case stats.SSEHub.Draining:
+		return display.StatToneYellow
+	case stats.SSEHub.Drops > 0:
 		return display.StatToneYellow
 	default:
 		return display.StatToneGreen

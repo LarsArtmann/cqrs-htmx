@@ -27,6 +27,7 @@ type Dashboard struct {
 	twCSS       http.Handler
 	emptyStates map[EmptyStateKey]EmptyStateCopy
 	broadcaster *cqrshtmx.Broadcaster
+	dropStats   *cqrshtmx.DropStats
 	sseStore    sse.EventStore
 	done        chan struct{}
 	closeOnce   sync.Once
@@ -69,7 +70,8 @@ func New(config Config) (*Dashboard, error) {
 	}
 
 	if caps.EventBus {
-		d.broadcaster = cqrshtmx.NewBroadcaster()
+		d.dropStats = cqrshtmx.NewDropStats()
+		d.broadcaster = cqrshtmx.NewBroadcaster(d.dropStats.Option())
 
 		if err := d.startEventBridge(); err != nil {
 			d.broadcaster.Close()

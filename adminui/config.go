@@ -2,10 +2,12 @@ package adminui
 
 import (
 	"net/http"
+	"strconv"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // Mode controls the scope of the admin panel.
@@ -92,6 +94,37 @@ type Config struct {
 	// adds httputil.Nonce middleware (included in [Handler.Middleware]).
 	// Set this only to override the default behavior with a custom nonce source.
 	NonceFunc func(*http.Request) string
+
+	// ExtraNav appends consumer-owned entries after the built-in sidebar
+	// items, so surfaces mounted next door stay discoverable from the panel
+	// navigation (the same seam dashboardui ships). Href is rendered
+	// VERBATIM — no BasePath prefix. Empty (the default) changes nothing.
+	ExtraNav []NavEntry
+
+	// DashboardURL cross-links the sibling dashboardui panel (event-store
+	// introspection: journal, projections, time-travel) as a sidebar entry.
+	// The two dashboards are complementary — most apps mount both — and this
+	// makes the pair one click apart. Empty (the default) hides the entry.
+	// For anything more than one link, prefer [Config.ExtraNav].
+	DashboardURL string
+}
+
+// NavEntry is one consumer-owned sidebar navigation entry, appended after
+// the built-in items via [Config.ExtraNav].
+type NavEntry struct {
+	// Label is the display text ("Support").
+	Label string
+
+	// Href is the link target, rendered VERBATIM: unlike built-in nav
+	// entries it is NOT prefixed with BasePath. Point it at a sibling
+	// surface outside the mounted subtree ("/dashboard"), an absolute URL
+	// ("https://docs.example.com"), or build a panel-internal path yourself
+	// with Config.BasePath.
+	Href string
+
+	// Icon is the sidebar icon (e.g. icons.Link). The zero value renders
+	// the link icon.
+	Icon icons.Name
 }
 
 // withDefaults returns a copy of config with empty fields replaced by defaults and
@@ -128,6 +161,14 @@ func (config Config) withDefaults() (Config, error) {
 		return config, errConfig(
 			"Config.AuthorizerPosture must be empty (role-gated default), cqrshtmx.PostureAuthenticated, or cqrshtmx.PostureRoleGated",
 		)
+	}
+	for i, entry := range config.ExtraNav {
+		if entry.Label == "" {
+			return config, errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Label must not be empty")
+		}
+		if entry.Href == "" {
+			return config, errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Href must not be empty")
+		}
 	}
 	return config, nil
 }

@@ -174,9 +174,13 @@ templ pageFoot(p pageData) {
 func sidebarItems(p pageData) []navigation.SidebarNavItem {
 	items := make([]navigation.SidebarNavItem, 0, len(p.Nav))
 	for _, n := range p.Nav {
+		href := p.BasePath + n.Href
+		if n.Verbatim {
+			href = n.Href
+		}
 		items = append(items, navigation.SidebarNavItem{
 			Label:  n.Label,
-			Href:   p.BasePath + n.Href,
+			Href:   href,
 			Icon:   icons.Name(n.Icon),
 			Active: n.Active,
 		})

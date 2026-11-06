@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/httputil"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // Handler is a mounted admin panel. Build it with [New] and register it on a
@@ -49,7 +50,7 @@ func New(config Config) (*Handler, error) {
 
 	h := &Handler{ //nolint:exhaustruct // table is built and validated immediately below
 		config:   config,
-		nav:      buildNav(config.Mode),
+		nav:      buildNav(config),
 		adminCSS: adminCSS,
 		adminJS:  adminJS,
 	}
@@ -61,21 +62,39 @@ func New(config Config) (*Handler, error) {
 	return h, nil
 }
 
-// buildNav returns the sidebar entries for the given mode.
-func buildNav(mode Mode) []navItem {
-	if mode == ModeTenantAdmin {
-		return []navItem{
+// buildNav returns the sidebar entries: the mode's built-in sections, then
+// the consumer's ExtraNav entries (verbatim hrefs), then the optional
+// dashboardui cross-link. ExtraNav precedes the cross-link so consumer
+// ordering is stable regardless of DashboardURL.
+func buildNav(config Config) []navItem {
+	var nav []navItem
+	if config.Mode == ModeTenantAdmin {
+		nav = []navItem{
 			{Href: "/", Label: "Dashboard", Icon: iconDashboard},
 			{Href: "/members", Label: "Members", Icon: iconMembers},
 			{Href: "/audit", Label: "Audit log", Icon: iconAudit},
 		}
+	} else {
+		nav = []navItem{
+			{Href: "/", Label: "Dashboard", Icon: iconDashboard},
+			{Href: "/users", Label: "Users", Icon: iconUsers},
+			{Href: "/tenants", Label: "Tenants", Icon: iconTenants},
+			{Href: "/audit", Label: "Audit log", Icon: iconAudit},
+		}
 	}
-	return []navItem{
-		{Href: "/", Label: "Dashboard", Icon: iconDashboard},
-		{Href: "/users", Label: "Users", Icon: iconUsers},
-		{Href: "/tenants", Label: "Tenants", Icon: iconTenants},
-		{Href: "/audit", Label: "Audit log", Icon: iconAudit},
+	for _, entry := range config.ExtraNav {
+		iconKey := string(entry.Icon)
+		if iconKey == "" {
+			iconKey = string(icons.Link)
+		}
+		nav = append(nav, navItem{Href: entry.Href, Label: entry.Label, Icon: iconKey, Verbatim: true})
 	}
+	if config.DashboardURL != "" {
+		nav = append(nav, navItem{
+			Href: config.DashboardURL, Label: "Event store", Icon: string(icons.ChartBar), Verbatim: true,
+		})
+	}
+	return nav
 }
 
 // page builds the pageData shell for a page, marking the nav item whose Href

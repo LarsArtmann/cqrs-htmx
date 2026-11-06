@@ -11,11 +11,14 @@ import (
 
 // navItem is a single sidebar entry. Icon is a key resolved by the svgIcon
 // templ component (e.g. "dashboard", "users", "tenants", "members", "audit").
+// Verbatim marks consumer ExtraNav entries: their Href is rendered as-is,
+// without the BasePath prefix built-in entries get.
 type navItem struct {
-	Href   string
-	Label  string
-	Icon   string
-	Active bool
+	Href     string
+	Label    string
+	Icon     string
+	Active   bool
+	Verbatim bool
 }
 
 // pageData carries everything the Layout needs to render a full page. The page

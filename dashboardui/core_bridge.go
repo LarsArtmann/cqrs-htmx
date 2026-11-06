@@ -174,6 +174,7 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 			BufferSize:  h.BufferSize,
 			Closed:      h.Closed,
 			Draining:    h.Draining,
+			Drops:       d.dropStats.Total(),
 		}
 	}
 
