@@ -261,3 +261,29 @@ func TestExtraNav_EscapesLabelAndHref(t *testing.T) {
 		t.Error("extra nav href is missing from the sidebar, or was not quote-escaped")
 	}
 }
+
+// TestNavItemActive pins the active-page resolution the two nav shapes need:
+// built-in entries carry the BasePath-relative path directly, while a verbatim
+// consumer entry may spell an in-panel path with or without the prefix (and a
+// sibling surface or absolute URL is never the page being rendered).
+func TestNavItemActive(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		item   NavLink
+		active string
+		want   bool
+	}{
+		{"built-in entry matches", NavLink{Href: "/events"}, "/events", true},
+		{"built-in entry elsewhere", NavLink{Href: "/events"}, "/dead-letters", false},
+		{"verbatim in-panel path with BasePath", NavLink{Href: "/obs/events", Verbatim: true}, "/events", true},
+		{"verbatim in-panel path without BasePath", NavLink{Href: "/events", Verbatim: true}, "/events", true},
+		{"verbatim sibling surface", NavLink{Href: "/event-catalog", Verbatim: true}, "/events", false},
+		{"verbatim absolute URL", NavLink{Href: "https://docs.example.com", Verbatim: true}, "/", false},
+	} {
+		if got := navItemActive("/obs", tc.item, tc.active); got != tc.want {
+			t.Errorf("%s: navItemActive(%+v, %q) = %v, want %v", tc.name, tc.item, tc.active, got, tc.want)
+		}
+	}
+}

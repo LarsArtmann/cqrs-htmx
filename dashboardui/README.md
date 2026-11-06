@@ -122,7 +122,9 @@ Contract (full details on `LayoutFunc`):
   content is styled by the dashboard stylesheets), and skip
   `meta.ScriptURLs`' htmx entry if your shell already loads htmx (never twice).
 - `meta.Nav` is the capability-filtered navigation (`NavLink{Href, Label,
-Icon, Active}`) — render it, merge it into your sidebar, or drop it.
+Icon, Active, Verbatim}`) — render it, merge it into your sidebar, or drop it.
+Prefix `Href` with `meta.BasePath` only when `Verbatim` is false; consumer
+[`Config.ExtraNav`](#extra-nav-entries) entries arrive in the same list.
 - `meta.Nonce` carries the per-request CSP nonce for script tags you emit.
 - HTMX partial swaps and polled regions bypass the shell (no work needed);
   write-action toasts surface via the `dashboardui:toast` HX-Trigger event —
