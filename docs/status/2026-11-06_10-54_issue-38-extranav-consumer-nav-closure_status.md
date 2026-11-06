@@ -106,6 +106,12 @@ Quotes escape, no attribute break-out, label renders as `&lt;img`. The test asse
 | `nix run .#check-modules` | **87 PASS / 7 FAIL of 94** — attribution table below |
 | `nix run .#check-branching-flow` | FAILED, +7 / −3 / ~168 — decomposed and booked (a7) |
 
+### a10. The docs-health five-gate battery passes for this report, and the audit debt is not mine
+
+Ran `nix run github:Artmann-Technologies/docs-gates -- run .` twice: first time **freshness FAILED** on 4 of my §f items (the gate wants each open report item reflected in a living doc by *distinctive* token), which I harvested into a single P2 TODO row (`ExtraNav follow-through` — the two owner decisions, the missing `docs/guides` embedding guide, the release-train table conversion, and the `renderNavForTest` probe helper). After the harvest, freshness re-flagged only item 34, whose tokens are all generic (`convert table shape`, DF ≥ 8); rewording it to share the TODO row's rare phrase (`module | unpublished symbol | consumer | gate it reds`) closed it.
+
+Final matrix: **freshness PASS, annotate PASS (150 files / 555 struck / 0 findings), routing PASS (15 reports, 0 unrouted rows), cadence PASS (15 live, oldest 1 day)**; `audit-all` FAIL, and the attribution is unambiguous: replaying 122 reports against 2034 living lines, **zero** unharvested items carry this report's filename. The 400-vs-322 overage is older reports (worst: 2026-10-07 17 items; 2026-10-24/25 14–16 each) plus two 2026-11-06 sibling reports, and it is already tracked by TODO row 41 with the "drain down, never raise" pin policy.
+
 Composite attribution (none of the 7 is new work of mine, one carries a line of mine):
 
 | Stage | Cause | Mine? |
