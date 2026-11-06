@@ -78,6 +78,12 @@ type Bundle struct {
 	// owned by [Bundle.Close] via the shared hub.
 	DataStarBroadcaster *broadcast.Broadcaster
 
+	// SSEDrops counts slow-consumer drops on the shared SSE hub (nil unless
+	// SSEPath or DataStarPath is set). Poll Total() from a metrics scraper or
+	// admin surface; [Bundle.Close] logs a warning when the lifetime count is
+	// non-zero. Counts per-subscriber drops, not unique messages lost.
+	SSEDrops *cqrshtmx.DropStats
+
 	// config holds the resolved configuration (defaults applied).
 	config Config
 
@@ -219,6 +225,20 @@ func (b *Bundle) Close() error {
 
 	if b.Broadcaster != nil {
 		closeSSEDone(b)
+
+		// Slow-consumer drops are silent data loss without reconnect replay:
+		// surface the lifetime count at shutdown so operators learn a hub was
+		// consistently overrunning its buffers (per-subscriber count).
+		if b.SSEDrops != nil && b.SSEDrops.Total() > 0 {
+			logger := b.config.Logger
+			if logger == nil {
+				logger = slog.Default()
+			}
+
+			logger.Warn("setup: SSE hub dropped events for slow consumers since start",
+				"drops", b.SSEDrops.Total(),
+				"hint", "per-subscriber count; enlarge the subscriber buffer or drain consumers faster")
+		}
 
 		// Drain queued events to connected subscribers before closing the
 		// hub so a server restart does not drop in-flight events.

@@ -23,7 +23,8 @@ func (b *Bundle) attachSSE() error {
 		return nil
 	}
 
-	b.Broadcaster = cqrshtmx.NewBroadcaster()
+	b.SSEDrops = cqrshtmx.NewDropStats()
+	b.Broadcaster = cqrshtmx.NewBroadcaster(b.SSEDrops.Option())
 	b.sseDone = make(chan struct{})
 
 	if journal, ok := b.Stores.EventStore.(event.Journal); ok {
