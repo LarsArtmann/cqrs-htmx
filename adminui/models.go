@@ -108,6 +108,9 @@ type userDetailData struct {
 	User                *identitymodel.User
 	BasePath            string
 	TenantRoles         map[string][]identitymodel.Role // domain -> roles
+	PlatformRoles       []identitymodel.Role            // roles in the wildcard domain ("*")
+	GrantableAdminRoles []identitymodel.Role            // the roles the platform-access card offers
+	IsSelf              bool                            // the shown user is the session user (self-lockout warnings)
 	ConfiguredProviders []string                        // OAuth2 providers configured on the Service (for the link/unlink card)
 	UnlinkExternalBase  string                          // URL prefix for unlink POSTs: append "/{provider}/unlink"
 }

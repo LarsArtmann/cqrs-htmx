@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"encoding/base64"
 	"strconv"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -17,7 +18,7 @@ templ usersPage(p pageData, d usersListData) {
 }
 
 templ usersContent(d usersListData) {
-	@display.PageHeader(display.PageHeaderProps{Title: "Users"})
+	@display.PageHeader(display.PageHeaderProps{Title: "Users", Action: newUserAction(d)})
 	<div class="mb-4 flex items-center gap-2">
 		// FilterInput carries the search affordance without an icon (library
 		// look accepted: the component reserves no start padding, so an
@@ -54,6 +55,19 @@ templ usersContent(d usersListData) {
 	<div id="users-table">
 		@usersTableContent(d)
 	</div>
+}
+
+// newUserAction is the PageHeader action slot for the users list: the
+// primary "New user" entry point rides on the title row.
+templ newUserAction(d usersListData) {
+	@display.Button(display.ButtonProps{
+		Text:      "New user",
+		Href:      d.BasePath + "/users/new",
+		Variant:   display.ButtonPrimary,
+		Size:      display.ButtonSizeSM,
+		Icon:      icon("plus"),
+		BaseProps: utils.BaseProps{Class: classNoUnderline},
+	})
 }
 
 templ usersTableContent(d usersListData) {
@@ -114,6 +128,58 @@ templ usersRows(d usersListData) {
 			</td>
 		</tr>
 	}
+}
+
+// userNewPage is the create-user form. Register is the Service's public
+// creation path: it validates email + display name, enforces the MaxUsers
+// gate, and (honestly documented below) cannot set credentials — passwordless
+// users enroll their own passkey or link an OAuth2 provider on first login.
+templ userNewPage(p pageData, basePath string) {
+	@Layout(p, userNewContent(basePath))
+}
+
+templ userNewContent(basePath string) {
+	@display.PageHeader(display.PageHeaderProps{
+		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
+			{Text: "Users", Href: basePath + "/users"},
+			{Text: "New"},
+		}}),
+		Title: "New user",
+	})
+	<div class="max-w-[520px]">
+		@display.Card(display.CardProps{}) {
+			<form hx-post={ basePath + "/users" } hx-target="this">
+				<div class="mb-4">
+					@forms.Input(forms.InputProps{
+					BaseProps:  utils.BaseProps{ID: "email"},
+					Name:       "email",
+					Type:       forms.InputEmail,
+					Placeholder: "ada@example.com",
+					Required:   true,
+					Label:      "Email",
+					HelpText:   "The address the user will sign in and be found by.",
+				})
+				</div>
+				<div class="mb-4">
+					@forms.Input(forms.InputProps{
+					BaseProps:  utils.BaseProps{ID: "display_name"},
+					Name:       "display_name",
+					Placeholder: "Ada Lovelace",
+					Label:      "Display name",
+					HelpText:   "Optional. Shown instead of the email where space allows.",
+					})
+				</div>
+				<div class="mb-4 rounded-md bg-gray-50 px-3.5 py-2.5 text-xs text-gray-500">
+					The panel cannot set credentials: passwordless users enroll their own
+				passkey or sign in via a configured OAuth2 provider that matches this email.
+				</div>
+				<div class="flex gap-2.5">
+					@display.Button(display.ButtonProps{Text: "Create user", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
+					@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
+				</div>
+			</form>
+		}
+	</div>
 }
 
 templ userDetailPage(p pageData, d userDetailData) {

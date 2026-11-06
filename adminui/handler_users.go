@@ -1,10 +1,12 @@
 package adminui
 
 import (
+	"encoding/base64"
 	"net/http"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
@@ -80,6 +82,9 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 	p := h.page(shown.Email, "/users", user, r)
 	renderPage(w, r, userDetailPage(p, userDetailData{
 		User: shown, BasePath: h.config.BasePath, TenantRoles: roles,
+		PlatformRoles:        roles[identitymodel.WildcardDomain],
+		GrantableAdminRoles:  identitymodel.AdminRoles(),
+		IsSelf:               user != nil && user.ID == shown.ID,
 		ConfiguredProviders: h.config.Service.ConfiguredOAuth2Providers(),
 		UnlinkExternalBase:  h.config.BasePath + "/users/" + shown.ID.Get().String() + "/external",
 	}))
@@ -141,4 +146,190 @@ func (h *Handler) userUnlinkExternal(w http.ResponseWriter, r *http.Request, _ *
 	}
 	triggerToast(w, "ok", provider+" account unlinked")
 	redirect(w, r, h.config.BasePath+"/users/"+target.Get().String())
+}
+
+func (h *Handler) userNew(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
+	p := h.page("New user", "/users", user, r)
+	renderPage(w, r, userNewPage(p, h.config.BasePath))
+}
+
+// userCreate registers a user through the Service's public Register path.
+// Register also mints a session for the new user; the panel discards it —
+// it is never exposed to the admin's browser — and the user still signs in
+// themselves via their own passkey or OAuth2 flow (the panel cannot set
+// credentials; the form documents this).
+func (h *Handler) userCreate(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	if err := r.ParseForm(); err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
+		return
+	}
+	req := usermgmt.RegisterRequest{
+		Email:       strings.TrimSpace(r.FormValue("email")),
+		DisplayName: strings.TrimSpace(r.FormValue("display_name")),
+	}
+	if req.Email == "" {
+		triggerToast(w, "err", "Email is required")
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Email required", "An email address is required.")
+		return
+	}
+	result, err := h.config.Service.Register(r.Context(), req)
+	if err != nil {
+		h.writeActionError(w, r, "Create user", err)
+		return
+	}
+	triggerToast(w, "ok", "User created")
+	redirect(w, r, h.config.BasePath+"/users/"+result.User.ID.Get().String())
+}
+
+func (h *Handler) userUpdateDisplayName(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, err := h.parseUserID(w, r)
+	if err != nil {
+		return
+	}
+	if err := h.config.Service.ChangeDisplayName(r.Context(), target, strings.TrimSpace(r.FormValue("display_name"))); err != nil {
+		h.writeActionError(w, r, "Change display name", err)
+		return
+	}
+	triggerToast(w, "ok", "Display name updated")
+	redirect(w, r, h.userPath(target))
+}
+
+func (h *Handler) userUpdateEmail(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, err := h.parseUserID(w, r)
+	if err != nil {
+		return
+	}
+	email := strings.TrimSpace(r.FormValue("email"))
+	if email == "" {
+		triggerToast(w, "err", "Email is required")
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Email required", "An email address is required.")
+		return
+	}
+	if err := h.config.Service.ChangeEmail(r.Context(), target, email); err != nil {
+		h.writeActionError(w, r, "Change email", err)
+		return
+	}
+	triggerToast(w, "ok", "Email updated")
+	redirect(w, r, h.userPath(target))
+}
+
+// userGrantPlatformRoles grants exactly the checked roles in the wildcard
+// domain via the durable GrantRoles path (ADR-0057): the grant becomes
+// membership events, so it survives restarts and projection rebuilds.
+func (h *Handler) userGrantPlatformRoles(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, err := h.parseUserID(w, r)
+	if err != nil {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
+		return
+	}
+	checked := r.Form["roles"]
+	if len(checked) == 0 {
+		h.writeActionError(w, r, "Grant roles", errConfig("select at least one platform role"))
+		return
+	}
+	roles := make([]usermgmt.Role, 0, len(checked))
+	for _, raw := range checked {
+		roles = append(roles, usermgmt.Role(raw))
+	}
+	if err := h.config.Service.GrantRoles(
+		r.Context(),
+		usermgmt.ActorIDFromUser(target),
+		identitymodel.NewTenantID(identitymodel.WildcardDomain),
+		roles,
+	); err != nil {
+		h.writeActionError(w, r, "Grant roles", err)
+		return
+	}
+	triggerToast(w, "ok", "Platform roles granted")
+	redirect(w, r, h.userPath(target))
+}
+
+// userRevokePlatformRoles removes the user's wildcard-domain membership, so
+// they hold no platform roles at all. Revoking your own admin grant locks you
+// out of the panel — the confirm dialog says so.
+func (h *Handler) userRevokePlatformRoles(w http.ResponseWriter, r *http.Request, session *identitymodel.User) {
+	target, err := h.parseUserID(w, r)
+	if err != nil {
+		return
+	}
+	if err := h.config.Service.RevokeRoles(
+		r.Context(),
+		usermgmt.ActorIDFromUser(target),
+		identitymodel.NewTenantID(identitymodel.WildcardDomain),
+	); err != nil {
+		h.writeActionError(w, r, "Revoke roles", err)
+		return
+	}
+	if session != nil && session.ID == target {
+		triggerToast(w, "ok", "Platform roles revoked — you may have locked yourself out")
+	} else {
+		triggerToast(w, "ok", "Platform roles revoked")
+	}
+	redirect(w, r, h.userPath(target))
+}
+
+// userRemoveCredential detaches one passkey. The credential id travels
+// base64url-encoded in the path because raw WebAuthn ids are binary.
+func (h *Handler) userRemoveCredential(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, err := h.parseUserID(w, r)
+	if err != nil {
+		return
+	}
+	credentialID, err := base64.RawURLEncoding.DecodeString(r.PathValue("credential"))
+	if err != nil {
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Invalid credential id",
+			"The credential id in the URL path is not valid base64url.",
+		)
+		return
+	}
+	if err := h.config.Service.RemoveCredential(r.Context(), target, credentialID); err != nil {
+		h.writeActionError(w, r, "Remove passkey", err)
+		return
+	}
+	triggerToast(w, "ok", "Passkey removed")
+	redirect(w, r, h.userPath(target))
+}
+
+// userResendVerification re-issues the email-verification token. When the
+// Service has no verification configured the action error explains it instead
+// of surfacing an opaque 500.
+func (h *Handler) userResendVerification(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, err := h.parseUserID(w, r)
+	if err != nil {
+		return
+	}
+	if _, err := h.config.Service.SendVerificationEmail(r.Context(), target); err != nil {
+		h.writeActionError(w, r, "Resend verification", err)
+		return
+	}
+	triggerToast(w, "ok", "Verification email sent")
+	redirect(w, r, h.userPath(target))
+}
+
+// parseUserID parses the {id} path value, writing the error page itself when
+// it is invalid. The bool return reports whether the caller may continue.
+func (h *Handler) parseUserID(w http.ResponseWriter, r *http.Request) (identitymodel.UserID, error) {
+	target, err := identitymodel.ParseUserID(r.PathValue("id"))
+	if err != nil {
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Invalid user id",
+			"The id in the URL path is not a valid user id.",
+		)
+		return identitymodel.UserID{}, err
+	}
+	return target, nil
+}
+
+func (h *Handler) userPath(id identitymodel.UserID) string {
+	return h.config.BasePath + "/users/" + id.Get().String()
 }
