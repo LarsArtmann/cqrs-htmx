@@ -136,6 +136,12 @@ type DefaultPayloadRenderer struct{}
 // Render pretty-prints an event payload for display. JSON and CBOR
 // payloads are decoded then re-encoded with 2-space indent; raw
 // payloads are returned verbatim.
+//
+// Degraded paths never surface binary bytes in the UI: when decoding fails
+// (corrupt CBOR, or a JSON stamp the bytes cannot keep — the metadata-only
+// WithEncoding trap), the payload falls back to CBOR extended diagnostic
+// notation via [codec.Diagnose] before the corruption error is returned
+// (RenderPayload then keeps the raw bytes as the last resort).
 func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([]byte, error) {
 	if len(payload) == 0 {
 		return []byte("{}"), nil
@@ -146,6 +152,10 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 	switch encoding {
 	case codec.EncodingJSON, "":
 		if err := json.Unmarshal(payload, &raw); err != nil {
+			if out, ok := diagnoseFallback(payload); ok {
+				return out, nil
+			}
+
 			return nil, errorfamily.WrapCorruption(err,
 				"dashboardui.payload.json_decode_failed", "decode JSON payload")
 		}
@@ -153,6 +163,10 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 	case codec.EncodingCBOR:
 		c := codec.CBORCodec{}
 		if err := c.Decode(payload, &raw); err != nil {
+			if out, ok := diagnoseFallback(payload); ok {
+				return out, nil
+			}
+
 			return nil, errorfamily.WrapCorruption(err,
 				"dashboardui.payload.cbor_decode_failed", "decode CBOR payload")
 		}
@@ -171,6 +185,19 @@ func (DefaultPayloadRenderer) Render(payload []byte, encoding codec.Encoding) ([
 	}
 
 	return out, nil
+}
+
+// diagnoseFallback renders CBOR extended diagnostic notation (EDN) for a
+// payload whose stamped encoding failed to decode. ok is false when the
+// bytes are not diagnosable CBOR either — the caller keeps its corruption
+// error and RenderPayload ultimately shows the raw bytes.
+func diagnoseFallback(payload []byte) ([]byte, bool) {
+	diag, err := codec.Diagnose(payload)
+	if err != nil || diag == "" {
+		return nil, false
+	}
+
+	return []byte(diag), true
 }
 
 // RenderPayload renders an event payload through the typed registry
