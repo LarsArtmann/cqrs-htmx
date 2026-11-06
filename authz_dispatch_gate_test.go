@@ -3,9 +3,12 @@ package cqrshtmx
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -746,5 +749,87 @@ func TestDispatchSubjectPrefersUserThenActor(t *testing.T) {
 	both := WithActorID(WithUserID(context.Background(), userID), systemActor)
 	if got := DispatchSubject(both); got != userID.String() {
 		t.Fatalf("mixed subject = %q, want %q", got, userID.String())
+	}
+}
+
+// TestDeclareIsSafeWhileDispatchReads pins the copy-on-write contract that lets
+// the read path skip a lock: Declare publishes a whole new table and never
+// mutates the one a dispatch is holding. Readers therefore see a consistent
+// snapshot — either the old table or the new one, never a half-built map.
+//
+// If someone ever "optimises" Declare back to writing into the published map,
+// this test turns into a data race under -race and loses rows.
+func TestDeclareIsSafeWhileDispatchReads(t *testing.T) {
+	t.Parallel()
+
+	gate, err := NewDispatchGate(&gateCheck{allow: true})
+	if err != nil {
+		t.Fatalf("new gate: %v", err)
+	}
+
+	if err := gate.Declare(DispatchPosture{
+		Kind:    DispatchCommandKind,
+		Name:    "Seed",
+		Posture: PosturePublic,
+		Why:     "fixture the readers keep asking about",
+	}); err != nil {
+		t.Fatalf("declare seed: %v", err)
+	}
+
+	const writes = 200
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		for range writes {
+			if _, ok := gate.enforcedPosture(DispatchCommandKind, "Seed"); !ok {
+				t.Error("a declared type vanished while another declaration was published")
+
+				return
+			}
+
+			manifest := gate.Manifest()
+			if len(manifest) == 0 {
+				t.Error("manifest lost every declaration")
+
+				return
+			}
+
+			if !sort.SliceIsSorted(manifest, func(i, j int) bool { return manifest[i].less(manifest[j]) }) {
+				t.Error("manifest came back unsorted while writes were in flight")
+
+				return
+			}
+		}
+	}()
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		for i := range writes {
+			if derr := gate.Declare(DispatchPosture{
+				Kind:    DispatchCommandKind,
+				Name:    fmt.Sprintf("Extra%d", i),
+				Posture: PosturePublic,
+				Why:     "concurrent fixture",
+			}); derr != nil {
+				t.Errorf("declare Extra%d: %v", i, derr)
+
+				return
+			}
+		}
+	}()
+
+	wg.Wait()
+
+	// Copy-on-write must not drop earlier rows: every write has to survive.
+	if got := len(gate.Manifest()); got != writes+1 {
+		t.Fatalf("manifest = %d rows, want %d: a write was lost", got, writes+1)
 	}
 }
