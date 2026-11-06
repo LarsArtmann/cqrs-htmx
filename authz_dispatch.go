@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -451,14 +452,7 @@ func (g *dispatchGate) authorize(
 ) error {
 	posture, declared := lookup(kind, name)
 
-	userID := UserIDFromContext(ctx)
-
-	subject := ""
-	if !userID.IsZero() {
-		subject = userID.String()
-	}
-
-	req := deriveDispatchRequest(ctx, kind, name, subject, payload)
+	req := deriveDispatchRequest(ctx, kind, name, DispatchSubject(ctx), payload)
 
 	if !declared {
 		outcome := DispatchOutcome{
@@ -559,6 +553,36 @@ func (g *dispatchGate) report(outcome DispatchOutcome) {
 	if g.observe != nil {
 		g.observe(outcome)
 	}
+}
+
+// DispatchSubject returns the identity a dispatch is authorized as: the
+// authenticated user when the context carries one, otherwise the effective
+// actor (a bot, a service, or a system identity).
+//
+// The order matters. A session-derived context carries both, and the user ID is
+// the spelling the route layer uses, so route policy rows and dispatch policy
+// rows describe the same subject. Only a caller with no user — a bootstrap, a
+// scheduled job, an admin CLI — falls through to the actor, which is what makes
+// those paths expressible at all: put an actor in the context and grant it
+// `command/*`.
+func DispatchSubject(ctx context.Context) string {
+	if userID := UserIDFromContext(ctx); !userID.IsZero() {
+		return userID.String()
+	}
+
+	if actorID := ActorIDFromContext(ctx); !actorID.IsZero() {
+		// A human actor is spelled the same way a route subject is, so one
+		// policy row answers both layers. Machine actors keep their kind
+		// prefix, because "scheduler" and a bot token hash must not collide
+		// with a user id in one subject namespace.
+		if actorID.Kind() == id.ActorUser {
+			return actorID.Raw()
+		}
+
+		return actorID.PrefixedString()
+	}
+
+	return ""
 }
 
 // deriveDispatchRequest composes the question for one dispatch, letting a

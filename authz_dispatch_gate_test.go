@@ -715,3 +715,36 @@ func TestNewDispatchGateRejectsNilChecker(t *testing.T) {
 		t.Fatal("NewDispatchGate accepted a nil checker")
 	}
 }
+
+// TestDispatchSubjectPrefersUserThenActor proves the subject resolution that
+// makes non-HTTP dispatch expressible: a session context authorizes as the user
+// (the spelling route policies use), and a caller with no user — a bootstrap, a
+// job, a CLI — authorizes as the effective actor.
+func TestDispatchSubjectPrefersUserThenActor(t *testing.T) {
+	t.Parallel()
+
+	if got := DispatchSubject(context.Background()); got != "" {
+		t.Fatalf("anonymous subject = %q, want empty", got)
+	}
+
+	userID := MustParseUserID("01HK154ANGZHV2ZW0X3SKSNEN2")
+	if got := DispatchSubject(WithUserID(context.Background(), userID)); got != userID.String() {
+		t.Fatalf("user subject = %q, want %q", got, userID.String())
+	}
+
+	systemActor, err := ParseActorID("system:bootstrap")
+	if err != nil {
+		t.Fatalf("parse actor: %v", err)
+	}
+
+	actorCtx := WithActorID(context.Background(), systemActor)
+	if got := DispatchSubject(actorCtx); got != "system:bootstrap" {
+		t.Fatalf("actor subject = %q, want system:bootstrap", got)
+	}
+
+	// A context carrying both authorizes as the user: the route spelling wins.
+	both := WithActorID(WithUserID(context.Background(), userID), systemActor)
+	if got := DispatchSubject(both); got != userID.String() {
+		t.Fatalf("mixed subject = %q, want %q", got, userID.String())
+	}
+}
