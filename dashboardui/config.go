@@ -335,7 +335,7 @@ func extraNavItems(entries []NavEntry) []NavLink {
 			icon = icons.Link
 		}
 
-		items = append(items, NavLink{Href: entry.Href, Verbatim: true, Label: entry.Label, Icon: icon})
+		items = append(items, NavLink{Href: entry.Href, Label: entry.Label, Icon: icon, Active: false, Verbatim: true})
 	}
 
 	return items
@@ -345,7 +345,7 @@ func buildNav(caps Capabilities) []NavLink {
 	var items []NavLink
 
 	add := func(href, label string, icon icons.Name) {
-		items = append(items, NavLink{Href: href, Label: label, Icon: icon})
+		items = append(items, NavLink{Href: href, Label: label, Icon: icon, Active: false, Verbatim: false})
 	}
 
 	add("/", "Overview", icons.Chart)
