@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 // botContextKeyType is the context key for the authenticated Bot.
@@ -29,7 +31,10 @@ func BotFromContext(ctx context.Context) (*Bot, bool) {
 
 // NewAPITokenMiddleware returns HTTP middleware that authenticates requests
 // via Bearer token against registered bots. When a valid API token is found,
-// the corresponding Bot is stored in the request context.
+// the corresponding Bot is stored in the request context AND the bot's machine
+// actor is bridged into the actor chain, so every dispatch from a
+// token-authenticated request is attributed to `bot:<id>` — never anonymous.
+// An actor a consumer set upstream is never overridden.
 //
 // Requests without a Bearer token pass through unmodified — this middleware
 // does not block unauthenticated requests. Chain it with session middleware
@@ -55,7 +60,11 @@ func NewAPITokenMiddleware(service *Service) func(http.Handler) http.Handler {
 				"bot_id", bot.ID.Get(),
 				"bot_name", bot.Name,
 			)
-			r = r.WithContext(WithBot(r.Context(), bot))
+			ctx := r.Context()
+			if cqrshtmx.ActorIDFromContext(ctx).IsZero() {
+				ctx = cqrshtmx.WithActorID(ctx, ActorIDFromBot(bot.ID))
+			}
+			r = r.WithContext(WithBot(ctx, bot))
 			next.ServeHTTP(w, r)
 		})
 	}

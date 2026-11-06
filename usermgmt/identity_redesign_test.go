@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
 func TestBeginImpersonation_RequiresReason(t *testing.T) {
@@ -189,6 +191,45 @@ func TestRequireBot_RejectsWithoutBot(t *testing.T) {
 
 	if rr.Code != http.StatusUnauthorized {
 		t.Errorf("status = %d, want %d", rr.Code, http.StatusUnauthorized)
+	}
+}
+
+// TestAPITokenMiddleware_BotActorInContext is the zero-actor guard: an
+// authenticated bot must carry its machine actor in the request context, so a
+// dispatched command is attributed to `bot:<id>` instead of landing as a
+// successful, silently anonymous audit entry.
+func TestAPITokenMiddleware_BotActorInContext(t *testing.T) {
+	svc := setupTestService(t)
+	ctx := context.Background()
+
+	ownerID := registerIdentityTestUser(t, svc, "bridge-owner@test.com")
+	result, err := svc.RegisterBot(ctx, RegisterBotRequest{
+		ID:      NewBotID("01JXBOT00000000000000000004"),
+		Name:    "bridge-bot",
+		OwnerID: ownerID,
+		Scopes:  []string{"read"},
+	})
+	if err != nil {
+		t.Fatalf("RegisterBot: %v", err)
+	}
+
+	var actorSet, actorMatches bool
+	mw := NewAPITokenMiddleware(svc)
+	handler := mw(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		actor := cqrshtmx.ActorIDFromContext(r.Context())
+		actorSet = !actor.IsZero()
+		actorMatches = actor == ActorIDFromBot(result.Bot.ID)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer "+result.Token)
+	handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	if !actorSet {
+		t.Fatal("authenticated bot must set an actor in the context; a zero actor makes every dispatch anonymous")
+	}
+	if !actorMatches {
+		t.Error("context actor should equal ActorIDFromBot(bot.ID)")
 	}
 }
 
