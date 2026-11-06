@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -143,11 +144,16 @@ func TestHandleErr_ClassifiedAttrsCarryContext(t *testing.T) {
 	if !record.Retryable {
 		t.Error("retryable attr = false, want true for Transient")
 	}
-	if record.Code != "test.flap" {
-		t.Errorf("code attr = %q, want test.flap", record.Code)
+	// The code attr carries the dispatch layer's wrapper code; the domain
+	// code stays visible in the message chain.
+	if record.Code != "cqrshtmx.dispatch.command_failed" {
+		t.Errorf("code attr = %q, want the dispatch wrapper code", record.Code)
+	}
+	if !strings.Contains(record.Msg, "test.flap") {
+		t.Errorf("message %q does not surface the inner domain code test.flap", record.Msg)
 	}
 	if record.ContextPoolSize != "7" {
-		t.Errorf("context.pool_size attr = %q, want 7", record.ContextPoolSize)
+		t.Errorf("context.pool_size attr = %q, want 7 — the dispatch wrap must mirror inner context", record.ContextPoolSize)
 	}
 	if record.ExitCode == 0 {
 		t.Error("exit_code attr missing (0) — want errorfamily's mapping")

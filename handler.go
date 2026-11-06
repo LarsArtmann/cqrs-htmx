@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -32,6 +33,27 @@ func (a *App) dispatchContext(
 	}
 
 	return ctx, nil
+}
+
+// wrapErrorPreservingContext wraps err like errorfamily.Wrapf and mirrors the
+// inner error's context map onto the wrapper. errorfamily lookups
+// (errors.AsType[Contextual]) resolve the OUTERMOST Contextual in the chain,
+// so a bare Wrapf shadows the inner context with the wrapper's empty map —
+// losing the keys from both the classified dispatch-error log record
+// (errorfamily.LogErrorContext) and the RFC 9457 body
+// (httperr.StructuredError.Context).
+func wrapErrorPreservingContext(
+	err error, family errorfamily.Family, code, format string, args ...any,
+) *errorfamily.Error {
+	wrapped := errorfamily.Wrapf(err, family, code, format, args...)
+
+	if contextual, ok := errors.AsType[errorfamily.Contextual](err); ok {
+		if inner := contextual.ErrorContext(); len(inner) > 0 {
+			wrapped = wrapped.WithContextMap(inner)
+		}
+	}
+
+	return wrapped
 }
 
 // handleErr calls the error handler and afterDispatch hook, then returns.
@@ -98,7 +120,7 @@ func dispatchRequest[Q, R any](
 
 	v, err := decode(r)
 	if err != nil {
-		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
+		wrappedErr := wrapErrorPreservingContext(err, event.Rejection,
 			"cqrshtmx.decode."+kind+"_failed", "decode %s %s", kind, typeName)
 		a.handleErr(w, r, ctx, config, wrappedErr)
 
@@ -131,7 +153,8 @@ func dispatchRequest[Q, R any](
 
 	result, dispatchErr := dispatch(ctx, v)
 	if dispatchErr != nil {
-		a.handleErr(w, r, ctx, config, errorfamily.Wrapf(dispatchErr, errorfamily.Classify(dispatchErr),
+		a.handleErr(w, r, ctx, config, wrapErrorPreservingContext(dispatchErr,
+			errorfamily.Classify(dispatchErr),
 			"cqrshtmx.dispatch."+kind+"_failed", "dispatch %s %s", kind, typeName))
 
 		return
