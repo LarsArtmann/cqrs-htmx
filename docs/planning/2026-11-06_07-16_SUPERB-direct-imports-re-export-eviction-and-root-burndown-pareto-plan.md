@@ -459,8 +459,9 @@ acquire a spelling the code does not have. `htmx.Version`, `htmx.CDNScriptTag`,
 `htmx.ExtensionNames` and friends came out of that derivation, not from memory.
 
 **2. A blind substitution produced self-referential nonsense, and it was caught.** Five
-sites contrasted old vs new (`write \`htmx.ScriptHandler\`, not \`cqrshtmx.HTMXScriptHandler\``);
-a mechanical rewrite collapsed both sides to the same symbol. Those five are hand-restored.
+sites contrasted old vs new (the form "write `htmx.ScriptHandler`, not
+`cqrshtmx.HTMXScriptHandler`"); a mechanical rewrite collapsed both sides to the same
+symbol. Those five are hand-restored.
 The residual claim is now checkable: **10 occurrences remain in living docs, every one
 either a labelled contrast ("write X, not the deprecated Y"), an explicitly-labelled
 "deprecated root alias" mapping note, or a frozen `CHANGELOG` history entry.** Zero
@@ -509,6 +510,10 @@ migration guide now says so explicitly and the rule table finally lists R11/R12/
 (it had stopped at R10). That is the whole argument for running a migration tool on
 its own repository: the defect was in the consumer experience, not in the rewrite.
 
+A note on the corpus baseline: it was bumped three times this session because the tree is
+shared — part of the growth measured here is a concurrent session's status report, not W0.
+The number in `docs/CORPUS_BASELINE` is the sum; the attribution is this paragraph.
+
 **Pre-existing, NOT caused by W0** (recorded so the next session does not chase it): a full
 `golangci-lint run ./` on the root module reports 33 issues (27 `wsl_v5`, 3 `nlreturn`, 2
 `tagliatelle`, 1 `exhaustruct_v5`) in test files untouched by this work. `--new-from-rev`
@@ -524,8 +529,25 @@ that the real linter does not reproduce — stale LSP parse, ignore it.
   is the workaround. Not executed: pushing is the owner's call, and the range also contains
   another session's unrelated commits (`authz_dispatch*`, `identity-model/authz_matcher_test.go`,
   `authztest/command_suite*.go`, `docs/adr/0063-*`, `check-policy-rows.sh`).
-- **The aggregate battery.** `nix run .#check-modules` (~90 stages), `-race`, `.#coverage-gate`,
-  `.#check-cqrs-lint`, `.#check-erraudit-strict`, `.#check-branching-flow` were not run as a
-  set. Each affected stage was run individually and is green; the composite is unproven.
+- **The aggregate battery: RUN, and red for reasons that predate W0.** `nix run .#check-modules`
+  = 92 stages, 9 failed (`corpus-budget-ratchet`, `module-isolation`, `module-isolation-examples`,
+  `release-train`, `route-postures`, `route-postures-self-test`, `streamid-identity`,
+  `train-consumers-hermetic`, `workspace-build`). Each was re-run in a throwaway `git worktree`
+  at `03426bd2` — the commit immediately BEFORE this session's first change — and **seven of
+  the nine fail there identically**, so they are not W0's:
+  - five are one root cause, the **tag gap** (gotcha 30): `setup/` and friends require the
+    published `cqrs-htmx/v4 v4.16.0`, but another session's landed-but-untagged `DropStats` /
+    `NewDropStats` and `adminui.NavEntry` / `ExtraNav` / `DashboardURL` are only on the
+    workspace tree, so every hermetic build of `setup` fails with `undefined: cqrshtmx.DropStats`;
+  - `workspace-build` is the upstream `go-cqrs-lite/catalog/v4@v4.12.0` templ-generator
+    breakage (`templ.JoinURLErrs` / `templ.ResolveAttributeValue` removed) — the same class as
+    the samber-do-auditlog v0.12.2 incident, new instance;
+  - `streamid-identity` is one unpinned `StreamID().String()` at
+    `dashboardui/core/command_fates.go:198` (gotcha 25 class).
+  The ninth, `corpus-budget-ratchet`, WAS mine (this section's own growth) and is closed by
+  bumping `docs/CORPUS_BASELINE` in the same commit, as the gate demands.
+  Still unrun as a set: `.#coverage-gate`, `.#check-cqrs-lint`, `.#check-erraudit-strict`
+  (each would fail on the same tag gap for the modules it covers), and `.#check-branching-flow`
+  (which DID run inside the composite: PASS).
 - **The five `exempt:pending` files** stay frozen (see above), and **W1–W4** wait for the v5
   window.
