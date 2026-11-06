@@ -1,6 +1,10 @@
 # Status: Fleet Library Utilization Audit — Delivery + Self-Review
 
-**Session:** 2026-11-05 evening → 2026-11-06 00:27 · **Author:** Crush · **Series:** [docs/review/libs](../review/libs/index.html)
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md`](../2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md), which the 22-03 report carries the fleet-plan execution state the 00-27 audit delivery kicked off; the audit artifact itself lives in docs/review/libs/ and AGENTS.md's fleet-wide utilization bullet. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
+
+**Session:** 2026-11-05 evening → 2026-11-06 00:27 · **Author:** Crush · **Series:** [docs/review/libs](../../review/libs/index.html)
 
 **Scope line — VERIFIED this session:** 19 per-library reports + `index.html` exist and are structurally valid (python HTML-parser: balanced tags, all anchors + 19 md links resolve); docs gates green at audit HEAD (`check-docs-links` 1,230 links, `check-docs-corpus-budget --ratchet` after re-true, `check-docs-tail-budget --ratchet`, `check-docs-freshness`); every pin-vs-latest claim verified live via `git ls-remote` (2026-11-05); every report's "how to verify" block replayed literally (go-etag gap = 11 commits, templ = 261 .templ files, WithOnDrop/BroadcasterHealth prod = 0, deprecated-alias dogfooding = 0, error-family unadopted symbols = 0 — all matched).
 **NOT verified:** visual/browser render of `index.html` (no chromium on host; firefox/chrome are shell-banned — structural validation substituted); the full `check-modules` aggregate at final HEAD (targeted docs gates only; docs-only change); daemon auto-commit content not diffed (gotcha 51 class); go-cqrs-lite "≈80 derived" is arithmetic over the 2026-11-03 audit + four landed waves, NOT a re-audit.

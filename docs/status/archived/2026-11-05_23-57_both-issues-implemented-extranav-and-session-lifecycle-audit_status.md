@@ -1,5 +1,9 @@
 # Status: Both GitHub Issues Implemented (#38 ExtraNav, #25 Session Lifecycle Audit) — Code Green, Gates Pending
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_10-54_issue-38-extranav-consumer-nav-closure_status.md`](../2026-11-06_10-54_issue-38-extranav-consumer-nav-closure_status.md), which the 10-54 closure records issue-38's usable-by-consumers end state and the three holes it fixed in the 23-57 first pass; issue-25's session lifecycle audit is closed by the 11-00 close-out. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
+
 **Date:** 2026-11-05 23:57 CET
 **Session task:** "Review and fix BOTH open GitHub issues" — #38 (dashboardui `ExtraNav`) and #25 (impersonation forensics via session lifecycle audit events).
 **Verdict:** Both issues are code-complete and green in their own modules. The full-repo gate battery, docs/ADR pass, baseline bumps, and issue comments/closure are NOT done yet.

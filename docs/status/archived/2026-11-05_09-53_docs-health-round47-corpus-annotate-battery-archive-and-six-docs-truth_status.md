@@ -1,7 +1,7 @@
 # Status: docs-health round 47 — the 2026-0* corpus viewed, the annotate battery taken 58→0, two CHANGELOG sections cut, four reports archived, six living docs trued
 
 > **ANNOTATED 2026-11-06** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
-> The next session in the same arc is [`2026-11-06_00-27_fleet-libs-utilization-audit-delivery-and-self-review.md`](../2026-11-06_00-27_fleet-libs-utilization-audit-delivery-and-self-review.md), which closed docs-health round 47: every docs gate verified green in its own receipts; superseded by the newer fleet-libs delivery report at the tail head.
+> The next session in the same arc is [`2026-11-06_00-27_fleet-libs-utilization-audit-delivery-and-self-review.md`](2026-11-06_00-27_fleet-libs-utilization-audit-delivery-and-self-review.md), which closed docs-health round 47: every docs gate verified green in its own receipts; superseded by the newer fleet-libs delivery report at the tail head.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Session window:** 2026-11-05 ~07:50 → 09:53 CET · **Author:** this session (Crush), docs-only lane (one parallel session observed: the 07-24 keep-green/battery sibling — detected late, see §d7)

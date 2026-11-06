@@ -1,7 +1,7 @@
 # SUPERB plan: command/query permission gate at the dispatch boundary
 
 **Status:** proposed · **Author:** session 2026-11-06 07:30 · **Predecessor report:**
-[`docs/status/2026-11-06_07-24_command-permission-middleware-design-triage_status.md`](../status/2026-11-06_07-24_command-permission-middleware-design-triage_status.md)
+[`docs/status/2026-11-06_07-24_command-permission-middleware-design-triage_status.md`](../status/archived/2026-11-06_07-24_command-permission-middleware-design-triage_status.md)
 · **Related plan of record:**
 [`2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md`](2026-11-02_10-26_SUPERB-permission-system-hardcore-levelup-pareto-plan.md)
 (that plan built the contract, grants, route postures and gates; **it contains no

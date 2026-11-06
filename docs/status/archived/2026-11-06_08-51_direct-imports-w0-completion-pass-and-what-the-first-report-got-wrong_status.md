@@ -1,8 +1,12 @@
 # Direct Imports Only (W0) — completion pass, and what the first report got wrong
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_21-31_root-package-gates-conflict-hook-and-a-tree-that-deleted-work_status.md`](../2026-11-06_21-31_root-package-gates-conflict-hook-and-a-tree-that-deleted-work_status.md), which the 21-31 report lands the root-size ratchet and cluster manifest that mechanize the W0 re-export eviction's numbers, replacing the hand-measured root totals 08-51 recorded. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
+
 **Written:** 2026-11-06 08:51 · **Session:** second session on W0 (plan of record
-[`docs/planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md`](../planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md) §11)
-**Predecessor reports:** [`08:04`](archived/2026-11-06_08-04_direct-imports-only-w0-reexport-facade-eviction_status.md) (W0 execution), [`08:16`](archived/2026-11-06_08-16_direct-imports-w0-post-review-what-the-wave-forgot_status.md) (post-review).
+[`docs/planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md`](../../planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md) §11)
+**Predecessor reports:** [`08:04`](2026-11-06_08-04_direct-imports-only-w0-reexport-facade-eviction_status.md) (W0 execution), [`08:16`](2026-11-06_08-16_direct-imports-w0-post-review-what-the-wave-forgot_status.md) (post-review).
 This report supersedes both **on the four items they listed as outstanding**; it does not
 re-narrate W0 itself.
 

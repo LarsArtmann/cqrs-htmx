@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-11-06
-**Related:** [ADR 0057](0057-authorization-contract.md) (the contract this reuses), [ADR 0058](0058-defer-relationship-based-authorization.md) (why params stay closed), [ADR 0044](0044-casbin-first-class-dependency.md) (Casbin in identity-model), [ADR 0055](0055-owner-session-gated-credential-ceremonies.md) (library-enforced route posture), plan of record [`2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md`](../planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md), predecessor report [`2026-11-06_07-24_..._status.md`](../status/2026-11-06_07-24_command-permission-middleware-design-triage_status.md)
+**Related:** [ADR 0057](0057-authorization-contract.md) (the contract this reuses), [ADR 0058](0058-defer-relationship-based-authorization.md) (why params stay closed), [ADR 0044](0044-casbin-first-class-dependency.md) (Casbin in identity-model), [ADR 0055](0055-owner-session-gated-credential-ceremonies.md) (library-enforced route posture), plan of record [`2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md`](../planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md), predecessor report [`2026-11-06_07-24_..._status.md`](../status/archived/2026-11-06_07-24_command-permission-middleware-design-triage_status.md)
 
 ## Context
 

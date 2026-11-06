@@ -1,7 +1,7 @@
 # SUPERB — Fleet Libs Audit Follow-Through (Pareto Plan)
 
 **Date:** 2026-11-06 00:37 · **Author:** Crush · **Status:** plan of record for the audit-derived backlog
-**Inputs:** [fleet audit](../review/libs/index.html) (19 reports) · [delivery + self-review status](../status/2026-11-06_00-27_fleet-libs-utilization-audit-delivery-and-self-review.md) · [go-cqrs-lite plan of record](2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md) (R-lane owner — linked, not duplicated) · `TODO_LIST.md` (living backlog)
+**Inputs:** [fleet audit](../review/libs/index.html) (19 reports) · [delivery + self-review status](../status/archived/2026-11-06_00-27_fleet-libs-utilization-audit-delivery-and-self-review.md) · [go-cqrs-lite plan of record](2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md) (R-lane owner — linked, not duplicated) · `TODO_LIST.md` (living backlog)
 
 **Scope:** ALL todos from this session's audit + self-review. Standing rows owned elsewhere (authorization workstream, CI-catalog lane, Stripe S00-parked, DataStar demand-gated) are LINKED, not re-dispatched. Do not verschlimmbessern: every change leaves the repo verifiably no worse.
 

@@ -1,6 +1,6 @@
 # 2026-11-06 08:16 — Direct Imports Only: W0 Post-Review Status (what the wave forgot)
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md`](../2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md), which executes the three gaps it named (doc sweep, root test repoint, ADR class drift) and records the composite-battery attribution it declared unproven. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md`](2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md), which executes the three gaps it named (doc sweep, root test repoint, ADR class drift) and records the composite-battery attribution it declared unproven. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 

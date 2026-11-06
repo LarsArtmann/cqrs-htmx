@@ -1,6 +1,10 @@
 # Dropdown anchor root cause, e2e 76/76, train sweep + baseline bumps — round-46 M12 closure session
 
-**Date:** 2026-11-05 evening (session start ~18:42, report 22:31) · **Session:** continuation of the M10–M13 lane (prior report: [18-15](archived/2026-11-05_18-15_round46-m10-m13-cqrslint-triage-gotchas-l1-tail-templgen-repair_status.md)) · **Tree:** clean at `ecb65976`, nothing pushed.
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md`](../2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md), which the 03-19 follow-through re-ran the full battery and re-recorded gate state after 22-31's train sweep; the dropdown vendor fix and e2e 76/76 are durably recorded in AGENTS.md's popover two-layer-contract bullet and adminui/tailwind.css. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
+
+**Date:** 2026-11-05 evening (session start ~18:42, report 22:31) · **Session:** continuation of the M10–M13 lane (prior report: [18-15](2026-11-05_18-15_round46-m10-m13-cqrslint-triage-gotchas-l1-tail-templgen-repair_status.md)) · **Tree:** clean at `ecb65976`, nothing pushed.
 
 **TL;DR:** The one deterministic e2e red (`admin-behavior.spec.ts:126`, dropdown popover positioning) is root-caused and healed — **e2e 76/76 green**. The root cause is NOT in this repo: templ-components v1.27.0's popover CSS-anchor layer is broken on Chromium (verified empirically on nix Chromium 156); adminui now vendors a corrected layer. The post-repair battery ran in full: branching-flow re-pinned 203→204, release-train strict back to 0 lag (go-health-dashboard v0.13.2 swept), corpus + root-files baselines trued, lint clean, coverage gate PASSED, and `check-modules` carries ZERO non-catalog reds. Owner questions remain unanswered; owner-gated scope untouched.
 

@@ -1,5 +1,9 @@
 # Status — Fleet-plan wave 4 resumption: A7 command-fates core landed, ghost wave-3 report recovered
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_13-24_fleet-plan-wave-4-a7-command-fates-landed-ci-lint-drift-closed_status.md`](../2026-11-06_13-24_fleet-plan-wave-4-a7-command-fates-landed-ci-lint-drift-closed_status.md), which the 13-24 report records the same A7 command-fates wave LANDED with CI and the lint-drift closure, superseding 05-24's mid-flight state including its ghost-report recovery lineage. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
+
 **Written:** 2026-11-06 05:24 CET · **Basis:** this session only (~05:00→05:24; resumption of the wave-3 session per its handoff summary).
 **Parallel context:** the concurrent adminui/session-audit session went quiet at 04:36 (last daemon commit); tree was clean at session start; no collision events. This report ALSO carries the recovered essentials of the vanished wave-3 report (§ "Ghost report recovery") — that file was chat-delivered but never landed on disk.
 

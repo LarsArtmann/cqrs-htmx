@@ -1,5 +1,9 @@
 # 2026-11-06 07:24 — Command/Query Permission Middleware: Design Triage Status
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md`](../2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md), which the 08-42 report executes the dispatch-boundary authorization the 07-24 triage designed, including the posture and audit-only gate decisions. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
+
 > **Scope.** This report covers ONE session: a read-only design/verification pass on
 > cqrs-htmx's CQRS and authorization surface, ending in a recommended
 > `AuthorizeCommand` dispatch-layer design.

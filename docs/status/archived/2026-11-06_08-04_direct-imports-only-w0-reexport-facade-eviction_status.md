@@ -1,6 +1,6 @@
 # 2026-11-06 08:04 — Direct Imports Only: W0 Execution Status (re-export façade deprecation + gate)
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md`](../2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md), which supersedes it on all four items it listed as outstanding (doc-sweep size, test repoint, ADR class names, baseline count) and corrects its 33-occurrence measurement to 51. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md`](2026-11-06_08-51_direct-imports-w0-completion-pass-and-what-the-first-report-got-wrong_status.md), which supersedes it on all four items it listed as outstanding (doc-sweep size, test repoint, ADR class names, baseline count) and corrects its 33-occurrence measurement to 51. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 
