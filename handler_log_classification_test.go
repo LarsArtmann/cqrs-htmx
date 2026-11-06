@@ -59,8 +59,6 @@ func dispatchFailureApp(t *testing.T, err error) *httptest.ResponseRecorder {
 // The previous fixed-WARN record hid Corruption/Infrastructure failures at
 // warning level and carried no classification at all.
 func TestHandleErr_ClassifiedErrorLogging(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name       string
 		err        error
@@ -72,31 +70,29 @@ func TestHandleErr_ClassifiedErrorLogging(t *testing.T) {
 			err: errorfamily.Newf(errorfamily.Transient, "test.flap", "connection flapped").
 				WithContext("attempt", "2"),
 			wantLevel:  "WARN",
-			wantFamily: "Transient",
+			wantFamily: "transient",
 		},
 		{
 			name: "corruption logs error",
 			err:  errorfamily.Newf(errorfamily.Corruption, "test.mangled", "payload checksum mismatch"),
 			// Corruption is the data-loss family: it must NOT hide at WARN.
 			wantLevel:  "ERROR",
-			wantFamily: "Corruption",
+			wantFamily: "corruption",
 		},
 		{
 			name: "rejection logs error per fleet semantics",
 			err:  errorfamily.Newf(errorfamily.Rejection, "test.bad_input", "name is empty"),
 			// errorfamily's published mapping reserves WARN for retryable
-			// families; client faults log ERROR with family="Rejection" so
+			// families; client faults log ERROR with family="rejection" so
 			// consumers can filter by the attr.
 			wantLevel:  "ERROR",
-			wantFamily: "Rejection",
+			wantFamily: "rejection",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			var buf bytes.Buffer
+					var buf bytes.Buffer
 			prev := slog.Default()
 			slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
 			t.Cleanup(func() { slog.SetDefault(prev) })
@@ -130,8 +126,6 @@ func TestHandleErr_ClassifiedErrorLogging(t *testing.T) {
 // The retryable attr distinguishes self-healing families, and errorfamily
 // context keys ride as context.* attrs on the same record.
 func TestHandleErr_ClassifiedAttrsCarryContext(t *testing.T) {
-	t.Parallel()
-
 	var buf bytes.Buffer
 	prev := slog.Default()
 	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
@@ -164,8 +158,6 @@ func TestHandleErr_ClassifiedAttrsCarryContext(t *testing.T) {
 // classify: errorfamily.Classify falls back to a family instead of skipping
 // the record.
 func TestHandleErr_PlainErrorsStillClassify(t *testing.T) {
-	t.Parallel()
-
 	var buf bytes.Buffer
 	prev := slog.Default()
 	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
