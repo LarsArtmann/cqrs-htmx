@@ -153,9 +153,9 @@ func WithSyncPullFilter(pred SyncPullFilter) SyncPullOption {
 	return func(c *syncPullConfig) { c.filter = pred }
 }
 
-// WithSyncPullLimit sets the default batch size (applied when the request does
-// not carry ?limit=, and the ceiling when it does). Values are clamped to
-// [MaxSyncPullLimit]. Default: [DefaultSyncPullLimit].
+// WithSyncPullLimit sets the default batch size, applied when the request
+// does not carry ?limit=. An explicit ?limit= overrides it, clamped only by
+// the global [MaxSyncPullLimit]. Default: [DefaultSyncPullLimit].
 func WithSyncPullLimit(n int) SyncPullOption {
 	return func(c *syncPullConfig) { c.limit = n }
 }

@@ -130,8 +130,11 @@ func TestWithMaxReplayLimitsFirstConnect(t *testing.T) {
 	}
 }
 
-// TestWithSyncPullLimitDefaultAndCeiling proves the option sets the default
-// batch size AND the ceiling for an explicit larger ?limit=.
+// TestWithSyncPullLimitDefaultAndExplicitOverride pins the documented
+// contract: the option is the DEFAULT batch size; an explicit ?limit=
+// overrides it (clamped only by the global MaxSyncPullLimit) — a prior doc
+// comment claimed the option was also a ceiling, which the handler never
+// enforced.
 func TestWithSyncPullLimitDefaultAndCeiling(t *testing.T) {
 	t.Parallel()
 
@@ -149,8 +152,8 @@ func TestWithSyncPullLimitDefaultAndCeiling(t *testing.T) {
 		t.Errorf("default pull = %d events, want default 2", len(resp.Events))
 	}
 
-	rec = doPull(handler, "/sync/pull?limit=99")
-	if resp := pullSyncBody(t, rec); len(resp.Events) != 2 {
-		t.Errorf("ceiling pull = %d events, want clamped to 2", len(resp.Events))
+	rec = doPull(handler, "/sync/pull?limit=4")
+	if resp := pullSyncBody(t, rec); len(resp.Events) != 4 {
+		t.Errorf("explicit override = %d events, want 4", len(resp.Events))
 	}
 }
