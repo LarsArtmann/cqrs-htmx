@@ -124,19 +124,10 @@ func assetURLs(basePath string) ([]string, []string) {
 }
 
 // meta converts the internal page data into the exported shape a
-// [LayoutFunc] receives. Nav entries are mapped to their templ-components
-// icon names here so consumers never see the internal icon strings.
+// [LayoutFunc] receives. The nav list is cloned so a shell cannot mutate the
+// dashboard's own state.
 func (p pageData) meta() PageMeta {
-	nav := make([]NavLink, len(p.Nav))
-	for i, n := range p.Nav {
-		nav[i] = NavLink{
-			Href:     n.Href,
-			Label:    n.Label,
-			Icon:     n.Icon,
-			Active:   n.Active,
-			Verbatim: n.Verbatim,
-		}
-	}
+	nav := slices.Clone(p.Nav)
 
 	css, scripts := assetURLs(p.BasePath)
 

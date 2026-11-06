@@ -305,17 +305,6 @@ func (config Config) withPayloadRenderingDefaults() Config {
 	return config
 }
 
-// navItem represents a sidebar navigation entry.
-type navItem struct {
-	Href string
-	// Verbatim marks consumer ExtraNav entries: their Href is rendered as-is,
-	// without the BasePath prefix built-in entries get.
-	Verbatim bool
-	Label    string
-	Icon     icons.Name
-	Active   bool
-}
-
 // NavEntry is one consumer-owned sidebar navigation entry, appended after
 // the capability-derived items via [Config.ExtraNav].
 type NavEntry struct {
@@ -334,11 +323,11 @@ type NavEntry struct {
 	Icon icons.Name
 }
 
-// extraNavItems converts validated consumer entries to the internal nav
-// shape, defaulting the icon. Entries are appended AFTER the capability
-// items — buildNav stays the source of truth for those.
-func extraNavItems(entries []NavEntry) []navItem {
-	items := make([]navItem, 0, len(entries))
+// extraNavItems converts validated consumer entries to the rendered nav
+// shape ([NavLink]), defaulting the icon. Entries are appended AFTER the
+// capability items; buildNav stays the source of truth for those.
+func extraNavItems(entries []NavEntry) []NavLink {
+	items := make([]NavLink, 0, len(entries))
 
 	for _, entry := range entries {
 		icon := entry.Icon
@@ -346,17 +335,17 @@ func extraNavItems(entries []NavEntry) []navItem {
 			icon = icons.Link
 		}
 
-		items = append(items, navItem{Href: entry.Href, Verbatim: true, Label: entry.Label, Icon: icon})
+		items = append(items, NavLink{Href: entry.Href, Verbatim: true, Label: entry.Label, Icon: icon})
 	}
 
 	return items
 }
 
-func buildNav(caps Capabilities) []navItem {
-	var items []navItem
+func buildNav(caps Capabilities) []NavLink {
+	var items []NavLink
 
 	add := func(href, label string, icon icons.Name) {
-		items = append(items, navItem{Href: href, Label: label, Icon: icon})
+		items = append(items, NavLink{Href: href, Label: label, Icon: icon})
 	}
 
 	add("/", "Overview", icons.Chart)
@@ -406,7 +395,7 @@ type pageData struct {
 	BasePath  string
 	Accent    string
 	Brand     string
-	Nav       []navItem
+	Nav       []NavLink
 	LogoutURL string
 	CSRFToken string
 	// Nonce is the per-request CSP nonce (httputil.NonceFromRequest). Inline

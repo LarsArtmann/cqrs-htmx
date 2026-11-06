@@ -23,7 +23,7 @@ import (
 type Dashboard struct {
 	config      Config
 	caps        Capabilities
-	nav         []navItem
+	nav         []NavLink
 	twCSS       http.Handler
 	emptyStates map[EmptyStateKey]EmptyStateCopy
 	broadcaster *cqrshtmx.Broadcaster
@@ -107,7 +107,7 @@ func MustNew(config Config) *Dashboard {
 // page builds the pageData shell for a page, marking the nav item whose
 // href resolves to active.
 func (d *Dashboard) page(title, active string, r *http.Request) pageData {
-	nav := make([]navItem, len(d.nav))
+	nav := make([]NavLink, len(d.nav))
 	for i, n := range d.nav {
 		n.Active = navItemActive(d.config.BasePath, n, active)
 		nav[i] = n
