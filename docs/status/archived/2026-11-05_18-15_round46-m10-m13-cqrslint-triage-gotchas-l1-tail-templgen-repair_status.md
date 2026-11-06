@@ -1,6 +1,6 @@
 # Status: Round-46 M10–M13 executed — cqrs-lint triaged at v4.20.0, gotchas 51–53, the L1 tail, and two flake/e2e repairs the plan did not name
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md`](../2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md), which round-46 M10-M13 receipts fully absorbed into AGENTS/TODO/CHANGELOG and the fleet-plan execution; superseded by the waves-1-2 execution report. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md`](2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md), which round-46 M10-M13 receipts fully absorbed into AGENTS/TODO/CHANGELOG and the fleet-plan execution; superseded by the waves-1-2 execution report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 

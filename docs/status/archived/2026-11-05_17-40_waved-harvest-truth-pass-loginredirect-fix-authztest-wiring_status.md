@@ -1,6 +1,6 @@
 # Status — Wave D harvest truth pass, LoginRedirect fix, authztest wiring (round-47 tail, session 2)
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md`](../2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md), which Fully harvested: every section-a item closed with receipts; open threads (row-21 catalog watch, authorization consumer examples) carried into the fleet plan of record (A25/A27) and TODO_LIST. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md`](2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md), which Fully harvested: every section-a item closed with receipts; open threads (row-21 catalog watch, authorization consumer examples) carried into the fleet plan of record (A25/A27) and TODO_LIST. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 

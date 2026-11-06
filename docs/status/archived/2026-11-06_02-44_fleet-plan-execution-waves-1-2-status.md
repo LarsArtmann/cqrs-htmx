@@ -1,7 +1,11 @@
 # Fleet-Plan Execution — Waves 1–2 Partial Landing, Concurrent-Session Discovery
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md`](../2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md), which waves-1-2 execution state carried forward by the wave-5 report. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
+
 **Date:** 2026-11-06 02:44 · **Author:** Crush (plan-execution session) ·
-**Plan of record:** [`docs/planning/2026-11-06_00-37_SUPERB-fleet-libs-audit-follow-through-pareto-plan.md`](../planning/2026-11-06_00-37_SUPERB-fleet-libs-audit-follow-through-pareto-plan.md)
+**Plan of record:** [`docs/planning/2026-11-06_00-37_SUPERB-fleet-libs-audit-follow-through-pareto-plan.md`](../../planning/2026-11-06_00-37_SUPERB-fleet-libs-audit-follow-through-pareto-plan.md)
 **Session span:** A1 → A2 → A3 → A11 (in flight), interrupted for this report.
 
 ## The headline: a SECOND session is executing the same plan in this tree
