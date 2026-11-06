@@ -1195,7 +1195,7 @@
                       bash bash scripts/selftests/test-check-root-size.sh
                       bash bash scripts/checks/check-root-clusters.sh
                       bash bash scripts/selftests/test-check-root-clusters.sh
-                      bash DOCS_GATES_NO_NIX=1 bash scripts/checks/docs-gates-battery.sh
+                      bash bash scripts/checks/docs-gates-battery.sh
                       bash bash scripts/selftests/test-docs-gates-battery.sh
                       bash bash scripts/selftests/test-evict-archive.sh
                       bash bash scripts/selftests/test-archive-status.sh
@@ -1271,7 +1271,7 @@
                         "root-size-self-test:bash scripts/selftests/test-check-root-size.sh"
                         "root-clusters:bash scripts/checks/check-root-clusters.sh"
                         "root-clusters-self-test:bash scripts/selftests/test-check-root-clusters.sh"
-                        "docs-gates-battery:DOCS_GATES_NO_NIX=1 bash scripts/checks/docs-gates-battery.sh"
+                        "docs-gates-battery:bash scripts/checks/docs-gates-battery.sh"
                         "docs-gates-battery-self-test:bash scripts/selftests/test-docs-gates-battery.sh"
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
                         "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
