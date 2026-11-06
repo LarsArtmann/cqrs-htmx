@@ -93,26 +93,7 @@ func LoadCommandFates(
 	)
 
 	keep := func(batch []event.Event) {
-		for _, evt := range batch {
-			if evt.StreamType() != commandlifecycle.StreamTypeCommandLifecycle {
-				continue
-			}
-
-			fate, ok := decodeCommandFate(evt)
-			if !ok {
-				continue
-			}
-
-			total++
-
-			fates = append(fates, fate)
-
-			if len(fates) > limit {
-				trimmed := make([]CommandFate, 0, limit)
-				trimmed = append(trimmed, fates[len(fates)-limit:]...)
-				fates = trimmed
-			}
-		}
+		fates, total = keepFates(fates, batch, limit, total)
 	}
 
 	if cfg.SeekableJournal != nil {
@@ -157,6 +138,34 @@ func LoadCommandFates(
 	}
 
 	return fates, total, nil
+}
+
+// keepFates folds one journal batch into the rolling fates window,
+// counting every fate event (the total is the whole journal's fate count;
+// the window only ever holds the newest limit rows).
+func keepFates(fates []CommandFate, batch []event.Event, limit, total int) ([]CommandFate, int) {
+	for _, evt := range batch {
+		if evt.StreamType() != commandlifecycle.StreamTypeCommandLifecycle {
+			continue
+		}
+
+		fate, ok := decodeCommandFate(evt)
+		if !ok {
+			continue
+		}
+
+		total++
+
+		fates = append(fates, fate)
+
+		if len(fates) > limit {
+			trimmed := make([]CommandFate, 0, limit)
+			trimmed = append(trimmed, fates[len(fates)-limit:]...)
+			fates = trimmed
+		}
+	}
+
+	return fates, total
 }
 
 // decodeCommandFate maps one lifecycle event to a CommandFate row. ok is
@@ -310,6 +319,9 @@ func decodeLifecyclePayload(payload []byte, encoding codec.Encoding, dst any) er
 		return json.Unmarshal(payload, dst)
 	case codec.EncodingCBOR:
 		return codec.CBORCodec{}.Decode(payload, dst)
+	case codec.EncodingRaw:
+		return errorfamily.NewCorruption("dashboardui.command_fates.encoding_unsupported",
+			"no lifecycle payload decode for raw payload encoding")
 	default:
 		return errorfamily.NewCorruption("dashboardui.command_fates.encoding_unsupported",
 			"no lifecycle payload decode for the event's encoding")

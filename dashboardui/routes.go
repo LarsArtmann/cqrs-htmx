@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // Panel names used across the route table and the [Dashboard.Routes] manifest.
@@ -93,7 +94,7 @@ func whenCaps(predicate func(Capabilities) bool) func(Capabilities, bool) bool {
 // serveHTMXScript adapts the vendored HTMX script handler once, so the route
 // table can carry it like any dashboard handler.
 func serveHTMXScript() http.HandlerFunc {
-	script := cqrshtmx.HTMXScriptHandler()
+	script := htmx.ScriptHandler()
 
 	return script.ServeHTTP
 }
