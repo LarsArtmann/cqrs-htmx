@@ -153,11 +153,11 @@ func TestCommandFatesRoute_GatedByEventRead(t *testing.T) {
 
 func TestFateBadgeType(t *testing.T) {
 	cases := map[string]display.BadgeType{
-		"failed":        display.BadgeError,
-		"dead-lettered": display.BadgeError,
-		"rejected":      display.BadgeWarning,
-		"retried":       display.BadgeWarning,
-		"completed":     display.BadgeSuccess,
+		"failed":                    display.BadgeError,
+		"dead-lettered":             display.BadgeError,
+		"rejected":                  display.BadgeWarning,
+		"retried":                   display.BadgeWarning,
+		"completed":                 display.BadgeSuccess,
 		"command.never-heard-of-it": display.BadgeNeutral,
 	}
 

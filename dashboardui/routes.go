@@ -18,7 +18,7 @@ const (
 	panelProjections   = "Projections"
 	panelDeadLetters   = "Dead letters"
 	panelCommands      = "Commands"
-	panelCommandFates = "Command fates"
+	panelCommandFates  = "Command fates"
 	panelQueries       = "Queries"
 	panelTimeTravel    = "Time travel"
 	panelSnapshots     = "Snapshots"

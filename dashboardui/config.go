@@ -350,44 +350,30 @@ func buildNav(caps Capabilities) []NavLink {
 
 	add("/", "Overview", icons.Chart)
 
-	if caps.HasEventRead() {
-		add("/events", "Events", icons.QueueList)
+	// Capability-gated entries, in nav order. One row per panel keeps the
+	// gate beside the entry it guards.
+	gated := []struct {
+		when  bool
+		href  string
+		label string
+		icon  icons.Name
+	}{
+		{caps.HasEventRead(), "/events", "Events", icons.QueueList},
+		{caps.StreamReader || caps.EventSource, "/aggregates", "Aggregates", icons.Cube},
+		{caps.ProjectionHost, "/projections", "Projections", icons.ArrowPath},
+		{caps.DeadLetterStore || caps.ProjectionHost, "/dead-letters", "Dead Letters", icons.BugAnt},
+		{caps.CommandJournal, "/commands", "Commands", icons.Clipboard},
+		{caps.HasEventRead(), "/command-fates", "Command Fates", icons.ExclamationTriangle},
+		{caps.QueryJournal, "/queries", "Queries", icons.Search},
+		{caps.EventSource, "/time-travel", "Time Travel", icons.Clock},
+		{caps.SnapshotStore, "/snapshots", "Snapshots", icons.ArchiveBox},
+		{caps.Telemetry, "/telemetry", "Telemetry", icons.Signal},
 	}
 
-	if caps.StreamReader || caps.EventSource {
-		add("/aggregates", "Aggregates", icons.Cube)
-	}
-
-	if caps.ProjectionHost {
-		add("/projections", "Projections", icons.ArrowPath)
-	}
-
-	if caps.DeadLetterStore || caps.ProjectionHost {
-		add("/dead-letters", "Dead Letters", icons.BugAnt)
-	}
-
-	if caps.CommandJournal {
-		add("/commands", "Commands", icons.Clipboard)
-	}
-
-	if caps.HasEventRead() {
-		add("/command-fates", "Command Fates", icons.ExclamationTriangle)
-	}
-
-	if caps.QueryJournal {
-		add("/queries", "Queries", icons.Search)
-	}
-
-	if caps.EventSource {
-		add("/time-travel", "Time Travel", icons.Clock)
-	}
-
-	if caps.SnapshotStore {
-		add("/snapshots", "Snapshots", icons.ArchiveBox)
-	}
-
-	if caps.Telemetry {
-		add("/telemetry", "Telemetry", icons.Signal)
+	for _, entry := range gated {
+		if entry.when {
+			add(entry.href, entry.label, entry.icon)
+		}
 	}
 
 	return items
