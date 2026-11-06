@@ -21,6 +21,7 @@ use (
 	./examples/sync-demo
 	./examples/system-demo
 	./health
+	./huma
 	./identity-model
 	./integration_test
 	./loginpage

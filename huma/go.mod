@@ -3,6 +3,7 @@ module github.com/larsartmann/cqrs-htmx/huma/v4
 go 1.27.2
 
 require (
+	github.com/danielgtaylor/huma/v2 v2.40.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
