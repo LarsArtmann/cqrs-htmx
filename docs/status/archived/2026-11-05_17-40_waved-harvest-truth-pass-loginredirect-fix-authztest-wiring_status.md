@@ -1,5 +1,9 @@
 # Status — Wave D harvest truth pass, LoginRedirect fix, authztest wiring (round-47 tail, session 2)
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md`](../2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md), which Fully harvested: every section-a item closed with receipts; open threads (row-21 catalog watch, authorization consumer examples) carried into the fleet plan of record (A25/A27) and TODO_LIST. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
+
 **Written:** 2026-11-05 17:40 CET · **Basis:** this session only (~10:05→10:45 work + this report pass; ~40 min active).
 **Parallel context:** three sibling lanes were live during the session — the A013/B58-B59 editor (e2e/server + examples/sync-demo dirty at 10:11), the templ-generator fixer (commits `2a5a9abf`, `8710b96d` at 10:26–10:33: v0.3.1100 codegen restore + flake pin), and the daemon banking continuously. File sets stayed disjoint; no stash/collision events.
 
