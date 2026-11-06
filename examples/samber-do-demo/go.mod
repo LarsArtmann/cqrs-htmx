@@ -42,7 +42,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.8 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
@@ -60,7 +60,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 // indirect
@@ -107,7 +107,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
-	github.com/maypok86/otter/v2 v2.3.0 // indirect
+	github.com/maypok86/otter/v2 v2.4.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
