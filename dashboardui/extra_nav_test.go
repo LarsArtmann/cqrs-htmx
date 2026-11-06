@@ -212,3 +212,52 @@ func TestExtraNav_InternalHrefHighlightsWhenActive(t *testing.T) {
 		t.Errorf("sibling-surface ExtraNav entry = %+v, want never Active", external)
 	}
 }
+
+// TestExtraNav_EscapesLabelAndHref pins the injection surface: a consumer nav
+// entry is developer-supplied config, but it is rendered into a page served to
+// every dashboard user, so a quote in the label or href must be escaped by the
+// templ attribute/render path rather than breaking out of the markup.
+func TestExtraNav_EscapesLabelAndHref(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	d, err := New(Config{
+		EventSource: store,
+		Journal:     store,
+		BasePath:    "/obs",
+		ExtraNav: []NavEntry{{
+			Label: `<img src=x onerror="alert(1)">`,
+			Href:  `/x" onmouseover="alert(1)`,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/obs/")
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/obs/", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+
+	if strings.Contains(body, `onmouseover="alert(1)"`) {
+		t.Error("extra nav href broke out of the attribute")
+	}
+
+	if strings.Contains(body, `<img src=x onerror=`) {
+		t.Error("extra nav label rendered as raw markup")
+	}
+
+	if !strings.Contains(body, "&lt;img") {
+		t.Error("extra nav label is missing from the sidebar")
+	}
+
+	if !strings.Contains(body, `href="/x&#34; onmouseover=&#34;alert(1)"`) {
+		t.Error("extra nav href is missing from the sidebar, or was not quote-escaped")
+	}
+}
