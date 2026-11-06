@@ -1,5 +1,9 @@
 # Status: Round-46 M10–M13 executed — cqrs-lint triaged at v4.20.0, gotchas 51–53, the L1 tail, and two flake/e2e repairs the plan did not name
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md`](../2026-11-06_02-44_fleet-plan-execution-waves-1-2-status.md), which round-46 M10-M13 receipts fully absorbed into AGENTS/TODO/CHANGELOG and the fleet-plan execution; superseded by the waves-1-2 execution report. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
+
 **Session window:** 2026-11-05 ~09:52 → ~11:00 active work (report written 18:15 after a pause; tree advanced by daemon + a 17-40 sibling meanwhile)
 **Plan of record:** `docs/planning/2026-11-05_03-11_SUPERB-round46-tail-train-green-and-backlog-pareto-plan.md` (M10–M13 lane)
 **Author:** this session (Crush). Parallel lanes observed: the 09-53 docs-health round-47 session, and a 17-40 session (waved-harvest/loginredirect/authztest — their lane, untouched).
