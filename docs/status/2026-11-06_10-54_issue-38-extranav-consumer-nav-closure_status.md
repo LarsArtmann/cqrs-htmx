@@ -216,7 +216,7 @@ Composite attribution (none of the 7 is new work of mine, one carries a line of 
 31. `.agents/skills/cqrs-htmx/SKILL.md`: teach `ExtraNav` + `PageMeta.Nav` where the dashboard mounting path is described.
 32. `docs/guides/` has no dashboard-embedding guide; the README carries it. If one is written, `Verbatim` must be in it.
 33. `AGENTS.md` dashboardui bullet is now four sentences long; consider moving the config inventory to the module README and keeping a pointer.
-34. TODO row 23: convert to the table shape from e6.
+34. TODO row 23 (release train): convert to the table shape — module | unpublished symbol | consumer | gate it reds (from e6).
 35. Docs coastal cleanup: the 14-report tail needs an archive round (not mine to judge, but it is the next docs-health pass's first job).
 
 **Session hygiene**
