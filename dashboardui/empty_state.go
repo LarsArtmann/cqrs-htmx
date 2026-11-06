@@ -36,6 +36,8 @@ const (
 	EmptyStateTimeTravelAggregates EmptyStateKey = "timetravel-aggregates"
 	// EmptyStateSnapshotAggregates is the snapshots aggregate picker.
 	EmptyStateSnapshotAggregates EmptyStateKey = "snapshot-aggregates"
+	// EmptyStateCommandFates is the command fates list.
+	EmptyStateCommandFates EmptyStateKey = "command-fates"
 )
 
 // EmptyStateCopy is the brand-overridable text of one empty-state panel.
@@ -87,6 +89,10 @@ var defaultEmptyStates = map[EmptyStateKey]EmptyStateCopy{ //nolint:gochecknoglo
 	EmptyStateSnapshotAggregates: {
 		Title:   "No aggregates found",
 		Message: "Configure a StreamReader to browse snapshots by aggregate.",
+	},
+	EmptyStateCommandFates: {
+		Title:   "No command fates recorded",
+		Message: "Command outcomes (rejected, failed, retried, dead-lettered, completed) appear here when command lifecycle recording is enabled: set ServiceConfig.CommandLifecycle in usermgmt, or wire the commandlifecycle middleware pair.",
 	},
 }
 

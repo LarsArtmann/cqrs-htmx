@@ -1,0 +1,51 @@
+package dashboardui
+
+import (
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+)
+
+// ===== Command Fates =====
+
+templ commandFatesPage(p pageData, fates []commandFate, total int) {
+	@layout(p, commandFatesContent(p, fates, total))
+}
+
+templ commandFatesContent(p pageData, fates []commandFate, total int) {
+	if len(fates) == 0 {
+		@emptyStatePanel(
+			icons.ExclamationTriangle,
+			p.empty[EmptyStateCommandFates].Title,
+			p.empty[EmptyStateCommandFates].Message,
+		)
+	} else {
+		<div class="page-header">
+			<h2>Command Fates</h2>
+			<div class="page-subtitle">Newest { len(fates) } of { total } recorded fates</div>
+		</div>
+		@rawDataTable(
+			plainHeaders("Time", "Type", "Command ID", "Fate", "Attempt", "Error", ""),
+			"",
+			commandFateRows(p.BasePath, p.Nonce, fates),
+		)
+	}
+}
+
+templ commandFateRows(basePath, nonce string, fates []commandFate) {
+	for _, f := range fates {
+		<tr>
+			<td>{ fateTimeLabel(f.Time) }</td>
+			<td><code>{ f.CommandType }</code></td>
+			<td><span class="mono">{ truncate(f.CommandID, listIDWidth) }</span> @copyButton(f.CommandID, "", nonce)</td>
+			<td>
+				@badge(f.Fate, fateBadgeType(f.Fate))
+				if f.Family != "" {
+					@badge(familyBadgeLabel(f.Family, f.ErrorCode), display.BadgeNeutral)
+				}
+			</td>
+			<td>{ fateAttemptLabel(f.Attempt) }</td>
+			<td class="max-w-64 truncate" title={ f.Error }>{ f.Error }</td>
+			<td>@buttonLink("View", basePath+"/events/"+f.EventID.String(), "", display.ButtonSecondary, false)</td>
+		</tr>
+	}
+}

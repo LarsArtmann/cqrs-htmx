@@ -7,6 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/templ-components/errorpage"
 	"github.com/larsartmann/templ-components/icons"
 )
@@ -91,7 +92,7 @@ func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusNotFound)
 
-	if cqrshtmx.IsHTMXRequest(r) {
+	if htmx.IsRequest(r) {
 		_, _ = w.Write([]byte(b.String()))
 
 		return

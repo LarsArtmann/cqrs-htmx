@@ -130,6 +130,7 @@ func TestOverview_SSEHubCardCountsDrops(t *testing.T) {
 	if got := sseHubTone(stats); got != display.StatToneYellow {
 		t.Errorf("sseHubTone with drops = %v, want yellow", got)
 	}
+
 	if got := sseHubValue(stats); got != "1 · 1 dropped" {
 		t.Errorf("sseHubValue with drops = %q, want %q", got, "1 · 1 dropped")
 	}

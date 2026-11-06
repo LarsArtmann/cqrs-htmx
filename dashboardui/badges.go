@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 	"github.com/larsartmann/templ-components/display"
 )
 
@@ -38,4 +39,21 @@ func countBadgeType(count int) display.BadgeType {
 	}
 
 	return display.BadgeNeutral
+}
+
+// fateBadgeType maps a command fate to a badge type: failures and dead
+// letters are errors, rejections and retries are warnings, completions are
+// successes. Unknown fates (lifecycle event types newer than this build)
+// stay neutral so schema drift is visible without coloring judgment.
+func fateBadgeType(fate string) display.BadgeType {
+	switch fate {
+	case core.FateFailed, core.FateDeadLettered:
+		return display.BadgeError
+	case core.FateRejected, core.FateRetried:
+		return display.BadgeWarning
+	case core.FateCompleted:
+		return display.BadgeSuccess
+	default:
+		return display.BadgeNeutral
+	}
 }

@@ -370,6 +370,10 @@ func buildNav(caps Capabilities) []NavLink {
 		add("/commands", "Commands", icons.Clipboard)
 	}
 
+	if caps.HasEventRead() {
+		add("/command-fates", "Command Fates", icons.ExclamationTriangle)
+	}
+
 	if caps.QueryJournal {
 		add("/queries", "Queries", icons.Search)
 	}

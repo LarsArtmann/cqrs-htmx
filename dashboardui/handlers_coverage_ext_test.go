@@ -12,6 +12,7 @@ import (
 
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -495,7 +496,7 @@ func TestLoadRecentEvents_NoJournal(t *testing.T) {
 
 func TestIsHTMXRequest_NormalRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
-	if cqrshtmx.IsHTMXRequest(r) {
+	if htmx.IsRequest(r) {
 		t.Fatal("expected false for normal request")
 	}
 }
@@ -504,7 +505,7 @@ func TestIsHTMXRequest_BoostedRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
 	r.Header.Set("Hx-Request", "true")
 
-	if !cqrshtmx.IsHTMXRequest(r) {
+	if !htmx.IsRequest(r) {
 		t.Fatal("expected true for HTMX request")
 	}
 }

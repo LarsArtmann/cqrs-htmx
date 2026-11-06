@@ -11,6 +11,7 @@ import (
 
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/templ-components/errorpage"
@@ -104,7 +105,7 @@ func (d *Dashboard) renderError(
 	w.Header().Set("Content-Type", contentTypeHTML)
 	w.WriteHeader(statusCode)
 
-	if r != nil && cqrshtmx.IsHTMXRequest(r) {
+	if r != nil && htmx.IsRequest(r) {
 		_, _ = w.Write([]byte(b.String()))
 
 		return

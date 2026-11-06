@@ -46,6 +46,7 @@ type (
 	paginationState   = core.PageState
 	eventFilter       = core.EventFilter
 	dlqProjectionLink = core.DLQProjectionLink
+	commandFate       = core.CommandFate
 )
 
 // ===== Status constant aliases =====
@@ -212,6 +213,10 @@ func (d *Dashboard) loadTailEvents(
 
 func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
 	return core.LoadEventByID(ctx, d.config.coreConfig(), eventID)
+}
+
+func (d *Dashboard) loadCommandFates(ctx context.Context, limit int) ([]commandFate, int, error) {
+	return core.LoadCommandFates(ctx, d.config.coreConfig(), limit)
 }
 
 func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) (string, string) {

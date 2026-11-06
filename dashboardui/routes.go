@@ -18,6 +18,7 @@ const (
 	panelProjections   = "Projections"
 	panelDeadLetters   = "Dead letters"
 	panelCommands      = "Commands"
+	panelCommandFates = "Command fates"
 	panelQueries       = "Queries"
 	panelTimeTravel    = "Time travel"
 	panelSnapshots     = "Snapshots"
@@ -298,6 +299,15 @@ func (d *Dashboard) capabilityRoutes() []routeSpec {
 			panel:   panelCommands,
 			handler: d.commandDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.CommandJournal }),
+		},
+
+		// Command Fates.
+		{
+			method:  http.MethodGet,
+			pattern: "/command-fates",
+			panel:   panelCommandFates,
+			handler: d.commandFatesIndexHandler,
+			when:    whenCaps(Capabilities.HasEventRead),
 		},
 
 		// Query Audit.

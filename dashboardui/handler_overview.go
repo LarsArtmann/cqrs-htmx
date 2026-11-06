@@ -112,6 +112,7 @@ func sseHubValue(stats overviewStats) string {
 		if stats.SSEHub.Drops > 0 {
 			value += fmt.Sprintf(" · %d dropped", stats.SSEHub.Drops)
 		}
+
 		return value
 	}
 }

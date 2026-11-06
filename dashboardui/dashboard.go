@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
@@ -124,7 +125,7 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		Nonce:     d.nonce(r),
 		ReadOnly:  d.config.ReadOnly,
 		Caps:      d.caps,
-		HTMX:      cqrshtmx.IsHTMXRequest(r),
+		HTMX:      htmx.IsRequest(r),
 		empty:     d.emptyStates,
 		shell:     d.config.Layout,
 	}
