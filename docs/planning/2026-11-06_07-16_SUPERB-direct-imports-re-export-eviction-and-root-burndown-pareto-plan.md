@@ -546,8 +546,10 @@ that the real linter does not reproduce — stale LSP parse, ignore it.
     `dashboardui/core/command_fates.go:198` (gotcha 25 class).
   The ninth, `corpus-budget-ratchet`, WAS mine (this section's own growth) and is closed by
   bumping `docs/CORPUS_BASELINE` in the same commit, as the gate demands.
-  Still unrun as a set: `.#coverage-gate`, `.#check-cqrs-lint`, `.#check-erraudit-strict`
-  (each would fail on the same tag gap for the modules it covers), and `.#check-branching-flow`
-  (which DID run inside the composite: PASS).
+  `.#check-cqrs-lint` was then run too: **red in `dashboardui` and `systemadapter`** — both
+  were committed to by other sessions today (the gate was 14/14 green on 2026-11-05), and
+  neither module is touched by W0. Still unrun as a set: `.#coverage-gate` and
+  `.#check-erraudit-strict` (both would fail on the same tag gap for the modules they cover).
+  `.#check-branching-flow` DID run inside the composite: PASS.
 - **The five `exempt:pending` files** stay frozen (see above), and **W1–W4** wait for the v5
   window.
