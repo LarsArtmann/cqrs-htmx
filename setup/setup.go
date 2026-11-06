@@ -278,7 +278,7 @@ func (b *Bundle) attachAdmin() error {
 		return nil
 	}
 
-	admin, err := adminui.New(adminui.Config{
+	adminCfg := adminui.Config{
 		Service:      b.Service,
 		Title:        b.config.Title,
 		BasePath:     b.config.AdminPath,
@@ -291,7 +291,17 @@ func (b *Bundle) attachAdmin() error {
 		NonceFunc:    b.config.NonceFunc,
 		ExtraNav:     b.config.AdminExtraNav,
 		DashboardURL: b.config.AdminDashboardURL,
-	})
+	}
+
+	// The shared hub's health feeds the admin dashboard's operational cards
+	// (live subscribers + lifetime slow-consumer drops). Gated on the config
+	// paths (not the constructed hub) because attachAdmin runs before
+	// attachSSE wires Broadcaster/SSEDrops — the adapter reads them live.
+	if b.config.SSEPath != "" || b.config.DataStarPath != "" {
+		adminCfg.SSEHubStats = sseHubStats{bundle: b}
+	}
+
+	admin, err := adminui.New(adminCfg)
 	if err != nil {
 		return errorfamily.WrapRejection(
 			err,
