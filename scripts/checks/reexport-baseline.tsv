@@ -1,0 +1,77 @@
+# cqrs-htmx re-export baseline — the closed set of files holding cross-package aliases.
+#
+# Policy: docs/adr/0062-direct-imports-only.md
+# Tool:   go run scripts/checks/reexport_scanner.go          (per-declaration TSV)
+#         go run scripts/checks/reexport_scanner.go --files  (per-file summary)
+# Gate:   bash scripts/checks/check-reexport-policy.sh
+#
+# Frozen on 2026-11-06: 47 files, 418 alias declarations across the workspace.
+#
+# HOW TO CHANGE THIS FILE
+#   * alias counts may SHRINK freely (the gate only fails on growth);
+#   * a row may be DELETED when its file is deleted at the v5 cut;
+#   * a row may be ADDED only by amending ADR-0062 — the gate refuses an
+#     unclassified alias file, and refusing is the point;
+#   * bump this file in the SAME commit as the code change that moves a count.
+#
+# CLASSES
+#   reexport                  a compatibility layer: exported aliases must be
+#                             // Deprecated: and name their target package
+#   exempt:unexported         lowercase plumbing, not API
+#   exempt:internal           declaring package or alias target is under
+#                             internal/, so consumers cannot import it
+#   exempt:domain-vocabulary  the declaring package owns the constructors and
+#                             parsers for the type; the alias spells a domain
+#                             name, not a second import path
+#   exempt:pending            a candidate re-export layer whose disposition is
+#                             decided in the wave named in the note; frozen in
+#                             size, may not grow
+#
+# columns: path <TAB> class <TAB> aliases <TAB> note
+adminui/render.go	exempt:unexported	1	toastDetail, package-private templ helper
+adminui/util.go	exempt:unexported	1	errForbidden, package-private sentinel
+authztest/authztest.go	exempt:pending	5	route-posture vocabulary; disposition in W2 (repoint to authz.Posture)
+constants.go	exempt:internal	8	target is internal/hx, unimportable by consumers
+context.go	exempt:domain-vocabulary	4	package owns NewUserID/ParseUserID/MustParseUserID; id.* is the shared primitive
+csrf_reexport.go	reexport	14	v5 (removal class 1)
+dashboardui/core_bridge.go	exempt:pending	17	exported aliases of dashboardui/v4/core; disposition in W1
+dashboardui/render.go	exempt:unexported	1	toastDetail, package-private templ helper
+dashboardui/telemetry_helpers.go	exempt:unexported	4	package-private view projections
+datastar/broadcaster.go	reexport	5	v5 (removal class 2)
+datastar/patch.go	exempt:pending	63	facade over go-datastar; disposition in W1
+event_store_sse.go	reexport	4	v5 (removal class 1)
+eventcatalog_reexport.go	reexport	5	v5 (removal class 1b)
+health/probe.go	exempt:pending	1	aliases cqrshtmx.ProjectionStatus*; moves with the readiness extraction (W2)
+htmx_reexport.go	reexport	35	v5 (removal class 1b)
+httperr_reexport.go	reexport	42	v5 (removal class 1b)
+idempotency.go	reexport	3	v5 (removal class 2)
+identity-model/id.go	exempt:domain-vocabulary	7	package owns the ID constructors and parsers; id.* is the shared primitive
+internal/hx/context.go	exempt:internal	1	declaring package is internal, not consumer-visible
+ratelimit_reexport.go	reexport	11	v5 (removal class 1)
+security.go	reexport	4	v5 (removal class 1; the domain-aware middleware stays)
+server_timing_reexport.go	reexport	8	v5 (removal class 1)
+sse_event.go	reexport	6	v5 (removal class 1)
+usermgmt/auth_interfaces.go	reexport	4	v5 (removal class 3)
+usermgmt/authz_types.go	reexport	19	v5 (removal class 3)
+usermgmt/credential.go	reexport	3	v5 (removal class 3)
+usermgmt/email.go	reexport	1	v5 (removal class 3)
+usermgmt/errors.go	reexport	8	v5 (removal class 3)
+usermgmt/es_bot_commands.go	reexport	2	v5 (removal class 3)
+usermgmt/es_bot_events.go	reexport	2	v5 (removal class 3)
+usermgmt/es_bot_state.go	reexport	2	v5 (removal class 3)
+usermgmt/es_commands.go	reexport	12	v5 (removal class 3)
+usermgmt/es_constants.go	exempt:unexported	54	package-private command/event type plumbing
+usermgmt/es_events.go	reexport	13	v5 (removal class 3)
+usermgmt/es_membership_commands.go	reexport	3	v5 (removal class 3)
+usermgmt/es_membership_events.go	reexport	3	v5 (removal class 3)
+usermgmt/es_membership_state.go	reexport	4	v5 (removal class 3)
+usermgmt/es_state.go	reexport	2	v5 (removal class 3)
+usermgmt/es_tenant_commands.go	reexport	4	v5 (removal class 3)
+usermgmt/es_tenant_events.go	reexport	4	v5 (removal class 3)
+usermgmt/es_tenant_state.go	reexport	2	v5 (removal class 3)
+usermgmt/external_account.go	reexport	2	v5 (removal class 3)
+usermgmt/id.go	reexport	9	v5 (removal class 3)
+usermgmt/sql_event_store.go	exempt:pending	1	SQLEventStore alias of go-cqrs-lite storage; disposition in W1
+usermgmt/store_interfaces.go	reexport	4	v5 (removal class 3)
+usermgmt/upcaster.go	reexport	4	v5 (removal class 3)
+usermgmt/user.go	reexport	6	v5 (removal class 3)

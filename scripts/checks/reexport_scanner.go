@@ -200,6 +200,7 @@ func parseAliasFile(module, path string) (*aliasFile, error) {
 	}
 
 	file := &aliasFile{Module: module, Path: path}
+	imports := importNames(parsed)
 
 	for _, decl := range parsed.Decls {
 		gen, ok := decl.(*ast.GenDecl)
@@ -208,7 +209,7 @@ func parseAliasFile(module, path string) (*aliasFile, error) {
 		}
 
 		file.TopLevel += len(gen.Specs)
-		file.Aliases = append(file.Aliases, genAliases(module, path, gen)...)
+		file.Aliases = append(file.Aliases, genAliases(module, path, imports, gen)...)
 	}
 
 	if len(file.Aliases) == 0 {
@@ -220,7 +221,7 @@ func parseAliasFile(module, path string) (*aliasFile, error) {
 	return file, nil
 }
 
-func genAliases(module, path string, gen *ast.GenDecl) []aliasDecl {
+func genAliases(module, path string, imports map[string]string, gen *ast.GenDecl) []aliasDecl {
 	var out []aliasDecl
 
 	switch gen.Tok {
@@ -231,7 +232,7 @@ func genAliases(module, path string, gen *ast.GenDecl) []aliasDecl {
 				continue
 			}
 
-			if decl, ok := makeAlias(module, path, kindType, typeSpec.Name.Name, typeSpec.Type, gen.Doc, typeSpec.Doc, typeSpec.Comment); ok {
+			if decl, ok := makeAlias(module, path, imports, kindType, typeSpec.Name.Name, typeSpec.Type, gen.Doc, typeSpec.Doc, typeSpec.Comment); ok {
 				out = append(out, decl)
 			}
 		}
@@ -253,7 +254,7 @@ func genAliases(module, path string, gen *ast.GenDecl) []aliasDecl {
 					name = valueSpec.Names[i].Name
 				}
 
-				if decl, ok := makeAlias(module, path, kind, name, value, gen.Doc, valueSpec.Doc, valueSpec.Comment); ok {
+				if decl, ok := makeAlias(module, path, imports, kind, name, value, gen.Doc, valueSpec.Doc, valueSpec.Comment); ok {
 					out = append(out, decl)
 				}
 			}
@@ -264,7 +265,9 @@ func genAliases(module, path string, gen *ast.GenDecl) []aliasDecl {
 }
 
 func makeAlias(
-	module, path, kind, name string,
+	module, path string,
+	imports map[string]string,
+	kind, name string,
 	expr ast.Expr,
 	genDoc, specDoc, lineDoc *ast.CommentGroup,
 ) (aliasDecl, bool) {
@@ -287,7 +290,7 @@ func makeAlias(
 		Kind:        kind,
 		TargetPkg:   pkgIdent.Name,
 		Deprecated:  hasDeprecatedParagraph(doc),
-		NamesTarget: namesTarget(doc, pkgIdent.Name),
+		NamesTarget: namesTarget(doc, pkgIdent.Name, imports[pkgIdent.Name]),
 		Doc:         doc,
 	}, true
 }
@@ -318,10 +321,48 @@ func hasDeprecatedParagraph(doc string) bool {
 	return false
 }
 
+// importNames maps the identifier a file uses for an import (explicit alias or
+// the path's last element) to that import's full path.
+func importNames(file *ast.File) map[string]string {
+	names := make(map[string]string, len(file.Imports))
+
+	for _, spec := range file.Imports {
+		path, err := strconv.Unquote(spec.Path.Value)
+		if err != nil {
+			continue
+		}
+
+		local := path[strings.LastIndex(path, "/")+1:]
+		if spec.Name != nil {
+			local = spec.Name.Name
+		}
+
+		names[local] = path
+	}
+
+	return names
+}
+
 // namesTarget reports whether the deprecation text points the reader at the
-// package that actually owns the symbol.
-func namesTarget(doc, pkg string) bool {
-	return strings.Contains(doc, pkg+".")
+// package that actually owns the symbol. Every spelling a consumer might see is
+// accepted: the qualified form ("identitymodel.User"), the import path
+// ("github.com/larsartmann/cqrs-htmx/identity-model/v4") and the bare path
+// segment ("import .../identity-model/v4 directly").
+func namesTarget(doc, pkg, importPath string) bool {
+	if strings.Contains(doc, pkg+".") || strings.Contains(doc, importPath) {
+		return true
+	}
+
+	if importPath == "" {
+		return false
+	}
+
+	segment := importPath[strings.LastIndex(importPath, "/")+1:]
+	if strings.Contains(doc, segment) {
+		return true
+	}
+
+	return false
 }
 
 func writeDeclRows(root string, files []aliasFile) {

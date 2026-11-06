@@ -64,3 +64,4 @@
 | [0059](0059-cbor-binary-event-payloads.md)                 | CBOR for Binary Event Payloads — Five Byte-Heavy Events, Per-Event Stamps, Mixed Journals           | Accepted                                                             |
 | [0060](0060-session-lifecycle-audit-events.md)             | Session Lifecycle Audit Events (XS Scope) — Impersonation Forensics, Sessions Stay Ephemeral        | Accepted                                                             |
 | [0061](0061-audience-aware-error-detail.md)                | Audience-Aware Error Detail — Reader-Policy Redaction for 5xx Bodies (SafeDetailFor)               | Accepted                                                             |
+| [0062](0062-direct-imports-only.md)                        | Direct Imports Only — No Permanent Cross-Package Alias, One Breaking Window Per Major              | Accepted                                                             |
