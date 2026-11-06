@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
