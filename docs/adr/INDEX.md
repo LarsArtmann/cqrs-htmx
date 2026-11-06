@@ -62,3 +62,4 @@
 | [0057](0057-authorization-contract.md)                     | Authorization Contract — One Question Type, Durable Grants, Recognisable Denials                     | Accepted                                                             |
 | [0058](0058-defer-relationship-based-authorization.md)     | Defer Relationship-Based Authorization (ReBAC) — Numeric Reopen Trigger                             | Accepted                                                             |
 | [0059](0059-cbor-binary-event-payloads.md)                 | CBOR for Binary Event Payloads — Five Byte-Heavy Events, Per-Event Stamps, Mixed Journals           | Accepted                                                             |
+| [0060](0060-session-lifecycle-audit-events.md)             | Session Lifecycle Audit Events (XS Scope) — Impersonation Forensics, Sessions Stay Ephemeral        | Accepted                                                             |
