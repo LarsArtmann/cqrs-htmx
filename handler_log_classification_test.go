@@ -27,7 +27,7 @@ type capturedRecord struct {
 	Retryable bool   `json:"retryable"`
 	// The fixture mirrors the handler's actual log wire format, which is
 	// snake_case/dotted — not the linter's camelCase preference.
-	ExitCode  int    `json:"exit_code"` //nolint:tagliatelle // mirrors the handler's snake_case log key
+	ExitCode int `json:"exit_code"` //nolint:tagliatelle // mirrors the handler's snake_case log key
 
 	ContextPoolSize string `json:"context.pool_size"` //nolint:tagliatelle // mirrors the handler's dotted log key
 }
