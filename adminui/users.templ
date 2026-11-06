@@ -238,8 +238,9 @@ templ userDetailContent(d userDetailData) {
 			})
 		}
 	}
+	@userTimelineCard(d)
 	@display.Card(display.CardProps{
-		Header:    dangerZoneHeader(),
+		Header: dangerZoneHeader(),
 		BaseProps: utils.BaseProps{Attrs: templ.Attributes{"data-sync-target": ""}},
 	}) {
 		<div class="flex flex-wrap items-center justify-between gap-3.5">
@@ -445,6 +446,56 @@ templ platformAccessCard(d userDetailData) {
 				}
 			</div>
 		</form>
+	}
+}
+
+// userTimelineCard is the per-user audit glance: events about this user's
+// stream, both done by them and done to them. The full audit page (linked in
+// the card footer) stays the deep-dive.
+templ userTimelineCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:     "Activity",
+		Padding:   display.CardPaddingNone,
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		if len(d.Timeline.Entries) == 0 {
+			<div class="px-4 py-3 text-sm text-gray-500">No recorded activity yet.</div>
+		} else {
+			@display.Table(display.TableProps{
+				Headers:     []string{"Action", "Who", "When"},
+				Hover:       true,
+				Body:        userTimelineRows(d),
+				Flush:       true,
+				CellPadding: display.TableCellPaddingCompact,
+			})
+			if d.Timeline.Total > len(d.Timeline.Entries) {
+				<div class="px-4 py-2 text-xs text-gray-400">
+					<a class="no-underline hover:underline" href={ d.BasePath + "/audit?q=" + d.User.ID.Get().String() }>
+						View all { strconv.Itoa(d.Timeline.Total) } events
+					</a>
+				</div>
+			}
+		}
+	}
+}
+
+templ userTimelineRows(d userDetailData) {
+	for _, e := range d.Timeline.Entries {
+		<tr>
+			<td class="px-4 py-2">
+				@badge(auditLabel(e.Action), auditActionBadge(e.Action))
+			</td>
+			<td class="px-4 py-2">
+				if e.Email != "" {
+					<span class="font-medium">{ e.Email }</span>
+				} else {
+					<span class="text-gray-400">—</span>
+				}
+			</td>
+			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
+				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
+			</td>
+		</tr>
 	}
 }
 

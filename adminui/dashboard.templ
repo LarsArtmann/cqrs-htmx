@@ -75,7 +75,7 @@ templ recentActivityRows(d dashboardData) {
 			</td>
 			<td class="px-4 py-2">
 				if e.Email != "" && e.AggregateID.String() != "" {
-					<a class="font-medium no-underline hover:underline" href={ "/users/" + e.AggregateID.String() }>{ e.Email }</a>
+					<a class="font-medium no-underline hover:underline" href={ d.BasePath + "/users/" + e.AggregateID.String() }>{ e.Email }</a>
 				} else if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {

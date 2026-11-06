@@ -1,6 +1,6 @@
 # Status: samber-do-auditlog v0.12.2 release, the v4.16.0 family train, and the two-session coordination
 
-> **ANNOTATED 2026-11-05** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](../2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which The auditlog-release + train-verification arc: train executed, CI narrowed to the catalog class, CHANGELOG sections cut, gotchas 49/50 landed; every tail routed to TODO rows / plan M02-M05 / ROADMAP / owner parking lot. Strike depth:
+> **ANNOTATED 2026-11-05** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which The auditlog-release + train-verification arc: train executed, CI narrowed to the catalog class, CHANGELOG sections cut, gotchas 49/50 landed; every tail routed to TODO rows / plan M02-M05 / ROADMAP / owner parking lot. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-05 (docs-health round 47 (2026-11-05)).**
 

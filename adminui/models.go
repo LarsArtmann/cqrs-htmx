@@ -84,6 +84,7 @@ func tenantSubtitle(t *usermgmt.Tenant) string {
 type dashboardData struct {
 	Stats    []statCard
 	StatsURL string
+	BasePath string
 	Recent   []usermgmt.AuditEntry
 	// NoAdminGrant is true when nobody holds an admin-tier grant in the
 	// wildcard domain — the panel is one custom authorizer away from being
@@ -115,6 +116,7 @@ type userDetailData struct {
 	PlatformRoles       []identitymodel.Role            // roles in the wildcard domain ("*")
 	GrantableAdminRoles []identitymodel.Role            // the roles the platform-access card offers
 	IsSelf              bool                            // the shown user is the session user (self-lockout warnings)
+	Timeline            userTimeline                    // recent events about this user's stream
 	ConfiguredProviders []string                        // OAuth2 providers configured on the Service (for the link/unlink card)
 	UnlinkExternalBase  string                          // URL prefix for unlink POSTs: append "/{provider}/unlink"
 }

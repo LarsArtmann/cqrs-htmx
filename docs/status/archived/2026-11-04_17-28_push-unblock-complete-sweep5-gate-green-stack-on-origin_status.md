@@ -1,6 +1,6 @@
 # Status: push-unblock complete — sweep 5 landed, gate green (0 lag), all eight commits on origin, CI red = the documented gap class only
 
-> **ANNOTATED 2026-11-05** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](../2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which Sweep-5 push-unblock arc closed by the 2026-11-05 v4.16.0 family train (owner GO answered by execution; residual red = the upstream catalog class only). Strike depth:
+> **ANNOTATED 2026-11-05** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which Sweep-5 push-unblock arc closed by the 2026-11-05 v4.16.0 family train (owner GO answered by execution; residual red = the upstream catalog class only). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-05 (docs-health round 47 (2026-11-05)).**
 

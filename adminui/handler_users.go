@@ -85,6 +85,7 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 		PlatformRoles:        roles[identitymodel.WildcardDomain],
 		GrantableAdminRoles:  identitymodel.AdminRoles(),
 		IsSelf:               user != nil && user.ID == shown.ID,
+		Timeline:             h.userTimeline(shown),
 		ConfiguredProviders: h.config.Service.ConfiguredOAuth2Providers(),
 		UnlinkExternalBase:  h.config.BasePath + "/users/" + shown.ID.Get().String() + "/external",
 	}))
@@ -332,4 +333,36 @@ func (h *Handler) parseUserID(w http.ResponseWriter, r *http.Request) (identitym
 
 func (h *Handler) userPath(id identitymodel.UserID) string {
 	return h.config.BasePath + "/users/" + id.Get().String()
+}
+
+// userTimeline collects the audit trail for ONE user's aggregate stream —
+// events done BY them and done TO them (admin role grants, email changes,
+// deletions) alike, because both live on the user's stream. The AuditLog is
+// keyed by StreamID, and a user's stream id is the same ULID as their user
+// id, so matching on the string form avoids importing the id package. The
+// full audit page stays the deep-dive; this is the per-user glance.
+func (h *Handler) userTimeline(shown *identitymodel.User) userTimeline {
+	al := h.config.Service.AuditLog()
+	if al == nil {
+		return userTimeline{}
+	}
+	want := shown.ID.Get().String()
+	all := al.Recent(al.Count())
+	entries := make([]usermgmt.AuditEntry, 0, 16)
+	for _, e := range all {
+		if e.AggregateID.String() == want {
+			entries = append(entries, e)
+			if len(entries) >= 8 {
+				break
+			}
+		}
+	}
+	resolveAuditEmails(h.config.Service, entries)
+	total := 0
+	for _, e := range all {
+		if e.AggregateID.String() == want {
+			total++
+		}
+	}
+	return userTimeline{Entries: entries, Total: total}
 }

@@ -1,5 +1,9 @@
 # Status: push-unblock → full v4.16.0 family train + upstream dashboard release + two CI gate repairs
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md`](../2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md), which family train pushed and CI repair verified green in later runs; the round-47 report carries the follow-on gate/corpus/battery state that closed that work line. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
+
 **Session window:** 2026-11-04 ~18:00 → 2026-11-05 06:41 CET (two hard interruptions; a parallel wave session worked the same trees throughout)
 **Author:** this session (Crush), solo for the analysis/rerelease/train cuts, co-executor with the parallel session for sweeps
 **Verdict:** the original blocker (pre-push release-train gate, 30 lags) is resolved; master pushed and synced; `checks` job green; residual CI red is exactly one documented upstream-blocked class (go-cqrs-lite catalog docserver poison).

@@ -1,6 +1,6 @@
 # Status Report — Open-PR review, landing #40 + #39, and what remains
 
-> **ANNOTATED 2026-11-05** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](../2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which PR-landing report: the release train it gated was executed 2026-11-05; CHANGELOG sections cut; every tail routed to TODO rows / plan M02-M05. Strike depth:
+> **ANNOTATED 2026-11-05** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md`](2026-11-05_06-41_push-unblock-full-family-train-and-CI-repair-status.md), which PR-landing report: the release train it gated was executed 2026-11-05; CHANGELOG sections cut; every tail routed to TODO rows / plan M02-M05. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-05 (docs-health round 47 (2026-11-05)).**
 

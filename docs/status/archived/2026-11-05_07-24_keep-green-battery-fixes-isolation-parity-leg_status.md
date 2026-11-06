@@ -1,5 +1,9 @@
 # Status: keep-green after the v4.16.0 train — battery fixes (css bundles, branching-flow re-pin), the isolation-parity leg, and a reconciliation-first session
 
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md`](../2026-11-05_09-53_docs-health-round47-corpus-annotate-battery-archive-and-six-docs-truth_status.md), which isolation-parity leg and keep-green fixes held in every later green aggregate run; the round-47 report records the aggregate gate state that superseded them. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
+
 **Date:** 2026-11-05 07:24 CET · **Session task:** "Execute the round-46-tail pareto plan (READ, UNDERSTAND, … Execute and Verify one step at a time). Repeat until done."
 **Head at report time:** `f83dfda4` (daemon-cadence ~2-4 min all session; ≥1 sibling session active on the same tree until ~07:10).
 **Entry state:** the plan of record (`docs/planning/2026-11-05_03-11_SUPERB-round46-tail-train-green-and-backlog-pareto-plan.md`) was written at HEAD `1d8c8b68`; by session start a sibling had already executed M01 (the train: root/setup/usermgmt/adminui/dashboardui/loginpage `v4.16.0` + `usermgmt/v4.19.0`) and two post-train CI fixes (`96e90a69`, `714a6db9`).
