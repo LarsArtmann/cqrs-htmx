@@ -244,3 +244,15 @@ nix run .#train-preflight                        # before any tag-bearing wave
 ```
 
 **Execution rule:** waves in tier order (A1 → A2/A3/A5/A4 → 20%-lane → rest); commit at phase boundaries (gotcha 4); never tag with uncommitted go.mod edits (gotcha 5); BUILDFLOW_MAX_CONCURRENCY=1 on the first commit attempt under load (gotcha 51).
+
+## §12 Execution log (truth pass, 2026-11-06 23:0x CET)
+
+The original tables above are the frozen plan; this section is the measured outcome. Statuses verified against CHANGELOG receipts, tests, and gates — not memory.
+
+**DONE (18):** A1 (`usermgmt.ArchitectureCatalog()` from the one spec table + F032 disable removed — usermgmt CHANGELOG), A2 (all three legs: root `DropStats`/`NewBroadcaster` option + dashboardui overview card + adminui `Config.SSEHubStats` cards + setup auto-wiring — receipts in root/dashboardui/adminui CHANGELOGs), A3 (`health.NewDashboard` nonce forwarding — root CHANGELOG), A7 (command-fates panel), A8 (examples/basic partial-render showcase), A9 (`RecommendedSecurityStack`), A11 (audience-aware `SafeDetailFor`), A12 (classified dispatch-error logging), A13 (`-race` + embeds, pre-landed by siblings, receipted), A14/A15 (TODO truth pass + harvest — TODO rows carry the annotations, hygiene gate green), A16 (engine-breadth presets + bbolt e2e), A18 (N/A recorded as ADR-0056 Amendment 2 — the heuristic's own contract forbids adoption), A19 (`codec.Diagnose` EDN fallback in the payload inspector), A20 (bench spike: pooled median WINS 245.8 vs 259.3 ns/op but DROP verdict — no cqrs-htmx-owned call site; upstream ask (g) instead), A21 (event-throughput charts panel), A22 (appkit lifecycle-hook forwarding + B93 order test + B94 docs), A23 (systemd readiness §9 in production-readiness guide), A24 (upgrade-CLI atomic write + fingerprint-failure test), A26 (docs-health archive round COMPLETE 22:03; corpus/tail trued).
+
+**NOT ACTIONABLE (1):** A4 — the go-etag "lag" was an artifact (erratum 5 above): `v0.7.0` tags only the deprecated repo-root shim; the consumed `server`/`entitytag` submodules are at latest, treadmill worst-lag 0. The audit files (`docs/review/libs/index.html` + `go-etag.md`) were corrected 2026-11-06 to say so.
+
+**STILL OPEN (3, tracked in TODO_LIST row 34):** A5 (R4 SQLite DLQ default), A6 (R7 commandlifecycle opt-in + dashboardui FailureLog views beyond A7), A10 (R8 checkpoint batching).
+
+**GATED (2):** A25 (CI un-red — waits on go-cqrs-lite's catalog release; TODO row 51(b)), A17 (render-verification lane — owner question §g.2 of the 22-42 status report).
