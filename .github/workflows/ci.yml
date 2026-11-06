@@ -893,6 +893,17 @@ jobs:
       - name: Conflict marker gate self-test
         run: bash scripts/selftests/test-check-conflict-markers.sh
 
+      # Root-package size ratchet: the ONE source of the "N production files /
+      # M LOC" number that TODO_LIST and the re-export plan quote by hand.
+      # Growth fails; a deliberate bump re-runs --update-baseline in the same
+      # commit. Drift in prose (53 files / 7,594 LOC while the tree measured
+      # 54 / 8,547) is what this gate exists to make impossible.
+      - name: Root package size ratchet
+        run: bash scripts/checks/check-root-size.sh
+
+      - name: Root package size ratchet self-test
+        run: bash scripts/selftests/test-check-root-size.sh
+
       # The owner-gated archive eviction's tool: proves the keep-list protects
       # cited files and that the removal is exact and idempotent (no deletion).
       - name: Archive eviction tool self-test

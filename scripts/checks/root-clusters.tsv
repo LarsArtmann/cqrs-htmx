@@ -1,0 +1,54 @@
+authz contract+posture	authz_contract.go
+authz contract+posture	authz.go
+authz contract+posture	route_posture.go
+deprecated aliases	csrf_reexport.go
+deprecated aliases	ratelimit_reexport.go
+deprecated aliases	security.go
+deprecated aliases	server_timing_reexport.go
+deprecated aliases	sse_event.go
+deprecated aliases	sse_store.go
+dispatch gate	authz_dispatch.go
+handler/app core	app.go
+handler/app core	handler.go
+handler/app core	partial.go
+handler/app core	payload.go
+handler/app core	redirect.go
+handler/app core	response.go
+handler/app core	responsewriter.go
+leaf leftovers	constants.go
+middleware + context	context.go
+middleware + context	csrf_handler.go
+middleware + context	idempotency.go
+middleware + context	logging.go
+middleware + context	middleware.go
+middleware + context	notify.go
+middleware + context	recommended_middleware.go
+middleware + context	recovery.go
+middleware + context	requestmeta.go
+new-style aliases	eventcatalog_reexport.go
+new-style aliases	htmx_reexport.go
+new-style aliases	httperr_reexport.go
+options + rendering	decoder.go
+options + rendering	doc.go
+options + rendering	httputil.go
+options + rendering	openapi_collector.go
+options + rendering	options_decode.go
+options + rendering	options_htmx.go
+options + rendering	options_json.go
+options + rendering	options_openapi.go
+options + rendering	options_render.go
+options + rendering	options_types.go
+options + rendering	options_validate.go
+readiness/projections	projection_readiness.go
+readiness/projections	projection_status_handler.go
+readiness/projections	readiness.go
+realtime (sse)	ack.go
+realtime (sse)	asset_serve.go
+realtime (sse)	event_store_sse.go
+realtime (sse)	sse_broadcaster.go
+realtime (sse)	sse_drop_stats.go
+sync protocol	sync_embed.go
+sync protocol	sync_openapi.go
+sync protocol	sync_pull.go
+sync protocol	sync_push.go
+sync protocol	sync_serve.go

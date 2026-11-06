@@ -1191,6 +1191,8 @@
                       bash bash scripts/selftests/test-check-todo-hygiene.sh
                       bash bash scripts/checks/check-conflict-markers.sh
                       bash bash scripts/selftests/test-check-conflict-markers.sh
+                      bash bash scripts/checks/check-root-size.sh
+                      bash bash scripts/selftests/test-check-root-size.sh
                       bash bash scripts/selftests/test-evict-archive.sh
                       bash bash scripts/selftests/test-archive-status.sh
                       bash bash scripts/checks/check-docs-tail-budget.sh --ratchet
@@ -1261,6 +1263,8 @@
                         "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
                         "conflict-markers:bash scripts/checks/check-conflict-markers.sh"
                         "conflict-markers-self-test:bash scripts/selftests/test-check-conflict-markers.sh"
+                        "root-size:bash scripts/checks/check-root-size.sh"
+                        "root-size-self-test:bash scripts/selftests/test-check-root-size.sh"
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
                         "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
                         "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
@@ -1850,6 +1854,46 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-conflict-markers.sh
+                  '';
+                }
+              );
+            };
+
+            check-root-size = {
+              type = "app";
+              meta.description = "Measure the ROOT PACKAGE (top-level production .go) and ratchet it against scripts/checks/root-size.baseline — the ONE source of the 'N production files / M LOC' number that docs quote (--print for the sentence, --update-baseline for a deliberate bump, --advisory to report only)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-root-size";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-root-size.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-root-size = {
+              type = "app";
+              meta.description = "Fixture self-test for check-root-size.sh (11 cases: at-baseline/LOC growth/file growth/shrink hint/advisory/missing+malformed baseline/trailing field/--update-baseline/production-only/empty root)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-root-size";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-root-size.sh
                   '';
                 }
               );
