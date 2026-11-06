@@ -11,6 +11,10 @@
 #   7. an UNTRACKED conflicted file passes (only commits can carry the defect)
 #   8. a non-repo directory exits 2 (never green)
 #   9. every marker line in a multi-marker file is reported
+#  10. --staged fails on a marker in the INDEX even after the working tree was
+#      repaired (the pre-commit shape: the commit still carries the marker)
+#  11. --staged passes when the index is clean but the working tree is dirty
+#  12. an unknown argument exits 2 instead of scanning something else
 #
 # Usage: bash scripts/selftests/test-check-conflict-markers.sh
 set -uo pipefail
@@ -34,6 +38,10 @@ bad() {
 
 run() {
   CONFLICT_MARKERS_ROOT="$1" bash "$TOOL" 2>&1
+}
+
+run_staged() {
+  CONFLICT_MARKERS_ROOT="$1" bash "$TOOL" --staged 2>&1
 }
 
 new_repo() {
@@ -131,6 +139,46 @@ if [ "$rc" -eq 1 ] && [ "$hits" -eq 3 ]; then
 else
   bad "multi-marker file" "rc=$rc hits=$hits out=$out"
 fi
+
+# --- 10. --staged fails on an INDEX marker after the tree was repaired ------
+# The committed-conflict class exactly: the marker reached the index, the file
+# was then "fixed" in place, and a plain working-tree scan would go green while
+# the commit still carried the marker.
+r="$WORK/staged-dirty-index"
+new_repo "$r"
+printf 'one\n<<<<<<< Updated upstream\ntwo\n' >"$r/file.txt"
+git -C "$r" add -A
+printf 'one\ntwo\n' >"$r/file.txt" # working tree repaired, index still dirty
+out="$(run_staged "$r")"
+rc=$?
+if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q 'file.txt'; then
+  ok "--staged fails on an index marker the working tree no longer shows"
+else
+  bad "--staged dirty index" "rc=$rc out=$out"
+fi
+
+# --- 11. --staged passes with a clean index and a dirty working tree --------
+r="$WORK/staged-clean-index"
+new_repo "$r"
+printf 'alpha\n' >"$r/file.txt"
+git -C "$r" add -A
+printf 'alpha\n<<<<<<< HEAD\n' >"$r/file.txt" # unstaged marker only
+out="$(run_staged "$r")"
+rc=$?
+if [ "$rc" -eq 0 ]; then
+  ok "--staged passes when only the working tree carries a marker"
+else
+  bad "--staged clean index" "rc=$rc out=$out"
+fi
+
+# --- 12. unknown argument exits 2 ------------------------------------------
+r="$WORK/bad-arg"
+new_repo "$r"
+printf 'alpha\n' >"$r/file.txt"
+git -C "$r" add -A
+out="$(CONFLICT_MARKERS_ROOT="$r" bash "$TOOL" --bogus 2>&1)"
+rc=$?
+if [ "$rc" -eq 2 ]; then ok "unknown argument exits 2"; else bad "unknown argument" "rc=$rc out=$out"; fi
 
 echo
 if [ "$fail" -eq 0 ]; then
