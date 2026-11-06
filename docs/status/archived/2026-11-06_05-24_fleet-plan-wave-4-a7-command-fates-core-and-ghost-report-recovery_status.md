@@ -1,6 +1,6 @@
 # Status — Fleet-plan wave 4 resumption: A7 command-fates core landed, ghost wave-3 report recovered
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_13-24_fleet-plan-wave-4-a7-command-fates-landed-ci-lint-drift-closed_status.md`](../2026-11-06_13-24_fleet-plan-wave-4-a7-command-fates-landed-ci-lint-drift-closed_status.md), which the 13-24 report records the same A7 command-fates wave LANDED with CI and the lint-drift closure, superseding 05-24's mid-flight state including its ghost-report recovery lineage. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_13-24_fleet-plan-wave-4-a7-command-fates-landed-ci-lint-drift-closed_status.md`](2026-11-06_13-24_fleet-plan-wave-4-a7-command-fates-landed-ci-lint-drift-closed_status.md), which the 13-24 report records the same A7 command-fates wave LANDED with CI and the lint-drift closure, superseding 05-24's mid-flight state including its ghost-report recovery lineage. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
 
