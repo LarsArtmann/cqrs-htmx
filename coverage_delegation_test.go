@@ -52,6 +52,7 @@ func TestDelegatingWriterUnwrap(t *testing.T) {
 				t.Errorf("Flush through ResponseController panicked: %v", r)
 			}
 		}()
+
 		http.NewResponseController(wrapped).Flush()
 	}()
 }
@@ -65,6 +66,7 @@ func TestParseSSEEventID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseSSEEventID(valid): %v", err)
 	}
+
 	if id != MustParseSSEEventID("evt-1") {
 		t.Error("ParseSSEEventID and MustParseSSEEventID disagree")
 	}
@@ -88,20 +90,24 @@ func TestWriteSSEEventAndHeaders(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	evt := SSEEvent{Event: "domain", Data: `{"k":"v"}`, ID: sse.NewEventID("evt-9")}
 	if err := WriteSSEEvent(&buf, evt); err != nil {
 		t.Fatalf("WriteSSEEvent: %v", err)
 	}
+
 	out := buf.String()
 	if !strings.Contains(out, "event: domain") || !strings.Contains(out, `{"k":"v"}`) {
 		t.Errorf("wire format missing fields: %q", out)
 	}
+
 	if !strings.Contains(out, "id: evt-9") {
 		t.Errorf("wire format missing id: %q", out)
 	}
 
 	rec := httptest.NewRecorder()
 	SetSSEHeaders(rec)
+
 	if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, "text/event-stream") {
 		t.Errorf("Content-Type = %q, want text/event-stream", ct)
 	}
@@ -120,11 +126,14 @@ func TestWithMaxReplayLimitsFirstConnect(t *testing.T) {
 		return sse.Event{Event: "domain", Data: "x"}
 	}
 	journal := NewJournalSSEStore(store, mapper, WithMaxReplay(1))
+
 	var zeroID sse.EventID
+
 	got, err := journal.EventsAfter(zeroID)
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
+
 	if len(got) != 1 {
 		t.Errorf("replay = %d events, want clamped to 1", len(got))
 	}
@@ -148,6 +157,7 @@ func TestWithSyncPullLimitDefaultAndCeiling(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("default-limit status = %d", rec.Code)
 	}
+
 	if resp := pullSyncBody(t, rec); len(resp.Events) != 2 {
 		t.Errorf("default pull = %d events, want default 2", len(resp.Events))
 	}

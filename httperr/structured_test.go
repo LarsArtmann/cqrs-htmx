@@ -217,7 +217,7 @@ var _ = Describe("StructuredError accessors and the context variant", func() {
 
 	It("Unwrap returns nil for a nil error", func() {
 		se := httperr.NewStructuredError(nil, nil)
-		Expect(se.Unwrap()).To(BeNil())
+		Expect(se.Unwrap()).To(Succeed())
 	})
 
 	It("the context variant extracts the request ID without a request", func() {
@@ -244,13 +244,13 @@ var _ = Describe("WithHTTPStatus wrapper chain", func() {
 		cause := errorfamily.NewConflict("email_taken", "email already registered")
 		wrapped := httperr.WithHTTPStatus(cause, http.StatusTeapot)
 
-		statuser, ok := wrapped.(interface{ HTTPStatus() int })
+		statusCarrier, ok := wrapped.(interface{ HTTPStatus() int })
 		Expect(ok).To(BeTrue())
-		Expect(statuser.HTTPStatus()).To(Equal(http.StatusTeapot))
+		Expect(statusCarrier.HTTPStatus()).To(Equal(http.StatusTeapot))
 		Expect(errors.Is(wrapped, cause)).To(BeTrue())
 	})
 
 	It("passes nil through", func() {
-		Expect(httperr.WithHTTPStatus(nil, http.StatusTeapot)).To(BeNil())
+		Expect(httperr.WithHTTPStatus(nil, http.StatusTeapot)).To(Succeed())
 	})
 })

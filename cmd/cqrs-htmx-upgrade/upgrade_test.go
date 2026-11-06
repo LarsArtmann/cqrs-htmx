@@ -552,7 +552,8 @@ func status(err error) int {
 		t.Errorf("httperr import must be added:\n%s", rep.applied)
 	}
 
-	if !strings.Contains(rep.applied, "httperr.ErrForbidden") || !strings.Contains(rep.applied, "httperr.MapError(err)") {
+	if !strings.Contains(rep.applied, "httperr.ErrForbidden") ||
+		!strings.Contains(rep.applied, "httperr.MapError(err)") {
 		t.Errorf("references must be requalified onto httperr:\n%s", rep.applied)
 	}
 }

@@ -25,6 +25,7 @@ func TestSafeDetailFor_AudienceControlsServerFaultDetail(t *testing.T) {
 	if public == err.Error() {
 		t.Errorf("public audience leaked the raw 5xx detail: %q", public)
 	}
+
 	if !strings.Contains(public, errorfamily.Classify(err).DefaultMessage()) {
 		t.Errorf("public detail %q is not the family default message", public)
 	}
@@ -57,6 +58,7 @@ func TestSafeDetail_DelegatesToAudience(t *testing.T) {
 	if SafeDetail(err, 503, true) != err.Error() {
 		t.Error("includeInternal=true must behave like AudienceOperator")
 	}
+
 	if SafeDetail(err, 503, false) == err.Error() {
 		t.Error("includeInternal=false must behave like AudiencePublic")
 	}
@@ -84,6 +86,7 @@ func TestProblemDetailsAudienceHandler_RFC9457Body(t *testing.T) {
 		if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "application/problem+json") {
 			t.Fatalf("Content-Type = %q, want application/problem+json", ct)
 		}
+
 		if rec.Code != http.StatusServiceUnavailable {
 			t.Fatalf("status = %d, want 503", rec.Code)
 		}
@@ -103,6 +106,7 @@ func TestProblemDetailsAudienceHandler_RFC9457Body(t *testing.T) {
 		if strings.Contains(payload.Detail, "10.0.0.7") {
 			t.Errorf("public body leaked the internal address: %q", payload.Detail)
 		}
+
 		if payload.Context != nil {
 			t.Errorf("public body leaked 5xx machine context: %v", payload.Context)
 		}
@@ -115,6 +119,7 @@ func TestProblemDetailsAudienceHandler_RFC9457Body(t *testing.T) {
 		if !strings.Contains(payload.Detail, "10.0.0.7") {
 			t.Errorf("operator detail lost the internal address: %q", payload.Detail)
 		}
+
 		if payload.Context["pool_size"] != "42" || payload.Context["db"] != "users" {
 			t.Errorf("operator body lost the 5xx machine context: %v", payload.Context)
 		}

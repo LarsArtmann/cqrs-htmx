@@ -25,9 +25,11 @@ type capturedRecord struct {
 	Family    string `json:"family"`
 	Code      string `json:"code"`
 	Retryable bool   `json:"retryable"`
-	ExitCode  int    `json:"exit_code"`
+	// The fixture mirrors the handler's actual log wire format, which is
+	// snake_case/dotted — not the linter's camelCase preference.
+	ExitCode  int    `json:"exit_code"` //nolint:tagliatelle // mirrors the handler's snake_case log key
 
-	ContextPoolSize string `json:"context.pool_size"`
+	ContextPoolSize string `json:"context.pool_size"` //nolint:tagliatelle // mirrors the handler's dotted log key
 }
 
 // dispatchFailureApp builds an App whose "Fail" command always dispatches err,
@@ -45,6 +47,7 @@ func dispatchFailureApp(t *testing.T, err error) *httptest.ResponseRecorder {
 		if cerr != nil {
 			return nil, cerr
 		}
+
 		return core, nil
 	})))
 
@@ -94,7 +97,9 @@ func TestHandleErr_ClassifiedErrorLogging(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
+
 			prev := slog.Default()
+
 			slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
 			t.Cleanup(func() { slog.SetDefault(prev) })
 
@@ -111,12 +116,15 @@ func TestHandleErr_ClassifiedErrorLogging(t *testing.T) {
 			if record.Level != tt.wantLevel {
 				t.Errorf("level = %s, want %s (family %s)", record.Level, tt.wantLevel, tt.wantFamily)
 			}
+
 			if record.Family != tt.wantFamily {
 				t.Errorf("family attr = %q, want %q", record.Family, tt.wantFamily)
 			}
+
 			if record.Msg == "" {
 				t.Error("record message is empty — want the error text")
 			}
+
 			if record.Method != http.MethodPost || record.Path != "/fail" {
 				t.Errorf("method/path attrs = %s %s, want POST /fail", record.Method, record.Path)
 			}
@@ -128,7 +136,9 @@ func TestHandleErr_ClassifiedErrorLogging(t *testing.T) {
 // context keys ride as context.* attrs on the same record.
 func TestHandleErr_ClassifiedAttrsCarryContext(t *testing.T) {
 	var buf bytes.Buffer
+
 	prev := slog.Default()
+
 	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
 	t.Cleanup(func() { slog.SetDefault(prev) })
 
@@ -149,15 +159,18 @@ func TestHandleErr_ClassifiedAttrsCarryContext(t *testing.T) {
 	if record.Code != "cqrshtmx.dispatch.command_failed" {
 		t.Errorf("code attr = %q, want the dispatch wrapper code", record.Code)
 	}
+
 	if !strings.Contains(record.Msg, "test.flap") {
 		t.Errorf("message %q does not surface the inner domain code test.flap", record.Msg)
 	}
+
 	if record.ContextPoolSize != "7" {
 		t.Errorf(
 			"context.pool_size attr = %q, want 7 — the dispatch wrap must mirror inner context",
 			record.ContextPoolSize,
 		)
 	}
+
 	if record.ExitCode == 0 {
 		t.Error("exit_code attr missing (0) — want errorfamily's mapping")
 	}
@@ -168,7 +181,9 @@ func TestHandleErr_ClassifiedAttrsCarryContext(t *testing.T) {
 // the record.
 func TestHandleErr_PlainErrorsStillClassify(t *testing.T) {
 	var buf bytes.Buffer
+
 	prev := slog.Default()
+
 	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
 	t.Cleanup(func() { slog.SetDefault(prev) })
 
@@ -179,6 +194,7 @@ func TestHandleErr_PlainErrorsStillClassify(t *testing.T) {
 	if err := json.Unmarshal(buf.Bytes(), &record); err != nil {
 		t.Fatalf("decode log record: %v\nraw: %s", err, buf.String())
 	}
+
 	if rec.Code == http.StatusInternalServerError && record.Family == "" {
 		t.Error("plain error produced no family attr")
 	}

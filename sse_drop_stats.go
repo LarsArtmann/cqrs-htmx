@@ -34,7 +34,7 @@ type DropStats struct {
 
 // NewDropStats returns a zeroed drop counter, ready to wire.
 func NewDropStats() *DropStats {
-	return &DropStats{}
+	return &DropStats{total: atomic.Int64{}}
 }
 
 // Option returns the construction-time wiring for [NewBroadcaster]:

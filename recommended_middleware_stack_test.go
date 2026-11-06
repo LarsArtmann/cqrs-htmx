@@ -60,15 +60,19 @@ func TestRecommendedSecurityStack_EquivalentToMiddleware(t *testing.T) {
 		stackValue, ok := fromStack[name]
 		if !ok {
 			t.Errorf("stack form lost header %q (classic: %q)", name, classicValue)
+
 			continue
 		}
+
 		if name == "Content-Security-Policy" {
 			// Both carry a per-request nonce; compare the nonce-stripped rest.
 			if stripNonce(classicValue) != stripNonce(stackValue) {
 				t.Errorf("CSP differs beyond the nonce:\nclassic: %s\nstack:   %s", classicValue, stackValue)
 			}
+
 			continue
 		}
+
 		if stackValue != classicValue {
 			t.Errorf("header %q: stack %q != classic %q", name, stackValue, classicValue)
 		}
@@ -103,6 +107,7 @@ func TestRecommendedSecurityStack_RecoveryFirstAndExtendable(t *testing.T) {
 			httputil.MiddlewareRecovery,
 		)
 	}
+
 	if !slices.Contains(names, httputil.MiddlewareSecurityHeaders) ||
 		!slices.Contains(names, httputil.MiddlewareNonce) {
 		t.Errorf("baseline entries incomplete: %v", names)
@@ -112,6 +117,7 @@ func TestRecommendedSecurityStack_RecoveryFirstAndExtendable(t *testing.T) {
 	if err := stack.Add("session", inner); err != nil {
 		t.Fatalf("Add(session): %v", err)
 	}
+
 	if err := stack.Validate(); err != nil {
 		t.Errorf("Validate after extension: %v", err)
 	}
@@ -136,9 +142,11 @@ func TestRecommendedSecurityStack_RejectsDuplicateNames(t *testing.T) {
 	if second == nil {
 		t.Fatal("duplicate Add succeeded — duplicate detection did not fire")
 	}
+
 	if errorfamily.Classify(second) != errorfamily.Rejection {
 		t.Errorf("duplicate Add family = %v, want Rejection", errorfamily.Classify(second))
 	}
+
 	if contextual, ok := errors.AsType[errorfamily.Contextual](second); ok {
 		if name := contextual.ErrorContext()["name"]; name != httputil.MiddlewareCSRF {
 			t.Errorf("duplicate Add context name = %q, want %q", name, httputil.MiddlewareCSRF)
@@ -159,6 +167,7 @@ func keysOf(m map[string]string) []string {
 	for k := range m {
 		keys = append(keys, k)
 	}
+
 	slices.Sort(keys)
 
 	return keys

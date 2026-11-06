@@ -12,6 +12,7 @@ import (
 
 func TestDropStats_OptionCountsDroppedEvents(t *testing.T) {
 	drops := NewDropStats()
+
 	b := NewBroadcaster(
 		drops.Option(),
 		sse.WithBufferSize[sse.Event](1),
@@ -33,6 +34,7 @@ func TestDropStats_OptionCountsDroppedEvents(t *testing.T) {
 
 func TestDropStats_AttachWiresExistingBroadcaster(t *testing.T) {
 	drops := NewDropStats()
+
 	b := NewBroadcaster(sse.WithBufferSize[sse.Event](1))
 	defer b.Close()
 
@@ -51,6 +53,7 @@ func TestDropStats_AttachWiresExistingBroadcaster(t *testing.T) {
 
 func TestDropStats_SnapshotPairsHealthWithDrops(t *testing.T) {
 	drops := NewDropStats()
+
 	b := NewBroadcaster(drops.Option(), sse.WithBufferSize[sse.Event](1))
 	defer b.Close()
 
@@ -64,9 +67,11 @@ func TestDropStats_SnapshotPairsHealthWithDrops(t *testing.T) {
 	if snapshot.Health.SubscriberCount != 1 {
 		t.Errorf("snapshot.SubscriberCount = %d, want 1", snapshot.Health.SubscriberCount)
 	}
+
 	if snapshot.Health.BufferSize != 1 {
 		t.Errorf("snapshot.BufferSize = %d, want 1", snapshot.Health.BufferSize)
 	}
+
 	if snapshot.Drops != 1 {
 		t.Errorf("snapshot.Drops = %d, want 1", snapshot.Drops)
 	}
@@ -74,11 +79,13 @@ func TestDropStats_SnapshotPairsHealthWithDrops(t *testing.T) {
 
 func TestDropStats_MultipleFullSubscribersCountPerSubscriber(t *testing.T) {
 	drops := NewDropStats()
+
 	b := NewBroadcaster(drops.Option(), sse.WithBufferSize[sse.Event](1))
 	defer b.Close()
 
 	ch1 := b.Subscribe()
 	defer b.Unsubscribe(ch1)
+
 	ch2 := b.Subscribe()
 	defer b.Unsubscribe(ch2)
 

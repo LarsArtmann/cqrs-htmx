@@ -77,5 +77,6 @@ func httest() *http.Request {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.Header.Set(htmx.HeaderRequest, htmx.HeaderTrue)
 	r.Header.Set(htmx.HeaderTriggerName, "save")
+
 	return r
 }
