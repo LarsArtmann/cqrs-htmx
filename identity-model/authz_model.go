@@ -9,6 +9,14 @@ package identitymodel
 // hierarchy that actually fires is mirrored into g per domain by
 // EnsureRoleHierarchy (see authz_hierarchy.go); consumers who replace this
 // model must keep a domain-scoped 3-argument g for that to work.
+//
+// The object term is keyMatch(r.obj, p.obj), not equality: a policy object of
+// "*" still matches everything, "orders" still matches only "orders", and
+// "command/*" matches any dispatch object under that prefix. keyMatch treats
+// only "*" as special, so an object containing ":" or "." stays a literal (see
+// ADR 0063 and authz_matcher_test.go, which pins the spelling hazards). A
+// consumer who replaces this model with an exact-equality object matcher keeps
+// working and simply writes one row per object.
 const DefaultRBACModel = `[request_definition]
 r = sub, dom, obj, act
 
@@ -23,7 +31,7 @@ g2 = _, _
 e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 
 [matchers]
-m = (p.sub == "*" || g(r.sub, p.sub, r.dom) || g2(r.sub, p.sub)) && (p.dom == "*" || r.dom == p.dom) && (p.obj == "*" || r.obj == p.obj) && (p.act == "*" || r.act == p.act)`
+m = (p.sub == "*" || g(r.sub, p.sub, r.dom) || g2(r.sub, p.sub)) && (p.dom == "*" || r.dom == p.dom) && (p.obj == "*" || keyMatch(r.obj, p.obj)) && (p.act == "*" || r.act == p.act)`
 
 // DefaultPolicies returns the seed policies applied on enforcer creation.
 func DefaultPolicies() []Policy {

@@ -385,7 +385,12 @@ func TestDispatchGateServesHTTPHandlers(t *testing.T) {
 // --- declaration surface (DispatchGate) ---
 
 // newDeclaredGate builds a gate with one command posture already registered.
-func newDeclaredGate(t *testing.T, checker PermissionChecker, posture Posture, why string) (*DispatchGate, *command.Dispatcher) {
+func newDeclaredGate(
+	t *testing.T,
+	checker PermissionChecker,
+	posture Posture,
+	why string,
+) (*DispatchGate, *command.Dispatcher) {
 	t.Helper()
 
 	gate, err := NewDispatchGate(checker)
@@ -395,7 +400,7 @@ func newDeclaredGate(t *testing.T, checker PermissionChecker, posture Posture, w
 
 	disp := command.NewDispatcher()
 
-	if err := gate.RegisterCommand(disp, "CreateItem", posture, why,
+	if err := RegisterCommand(gate, disp, "CreateItem", posture, why,
 		func(context.Context, *gatedCmd) error { return nil }); err != nil {
 		t.Fatalf("register command: %v", err)
 	}
@@ -478,12 +483,12 @@ func TestDispatchGateRejectsContradictoryDeclarations(t *testing.T) {
 
 	disp := command.NewDispatcher()
 
-	if err := gate.RegisterCommand(disp, "CreateItem", PostureRoleGated, "gated",
+	if err := RegisterCommand(gate, disp, "CreateItem", PostureRoleGated, "gated",
 		func(context.Context, *gatedCmd) error { return nil }); err != nil {
 		t.Fatalf("first registration: %v", err)
 	}
 
-	err = gate.RegisterCommand(command.NewDispatcher(), "CreateItem", PosturePublic, "open",
+	err = RegisterCommand(gate, command.NewDispatcher(), "CreateItem", PosturePublic, "open",
 		func(context.Context, *gatedCmd) error { return nil })
 	if err == nil {
 		t.Fatal("gate accepted a second, contradictory posture for the same type")
@@ -504,7 +509,7 @@ func TestDispatchGateRejectsTypeDrift(t *testing.T) {
 		t.Fatalf("new gate: %v", err)
 	}
 
-	err = gate.RegisterCommand(command.NewDispatcher(), "WrongName", PostureRoleGated, "typo",
+	err = RegisterCommand(gate, command.NewDispatcher(), "WrongName", PostureRoleGated, "typo",
 		func(context.Context, *gatedCmd) error { return nil })
 	if err == nil {
 		t.Fatal("gate accepted a declaration that does not match the handler's type")

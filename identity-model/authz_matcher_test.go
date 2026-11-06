@@ -62,16 +62,58 @@ type matcherCase struct {
 func matcherCases() []matcherCase {
 	return []matcherCase{
 		{name: "exact_hit", policy: "command/CreateItem", request: "command/CreateItem", wantFlat: true, wantKey: true},
-		{name: "exact_miss", policy: "command/CreateItem", request: "command/DeleteItem", wantFlat: false, wantKey: false},
-		{name: "bare_star_matches_everything", policy: "*", request: "command/CreateItem", wantFlat: true, wantKey: true},
+		{
+			name:     "exact_miss",
+			policy:   "command/CreateItem",
+			request:  "command/DeleteItem",
+			wantFlat: false,
+			wantKey:  false,
+		},
+		{
+			name:     "bare_star_matches_everything",
+			policy:   "*",
+			request:  "command/CreateItem",
+			wantFlat: true,
+			wantKey:  true,
+		},
 		{name: "command_prefix", policy: "command/*", request: "command/CreateItem", wantFlat: false, wantKey: true},
-		{name: "command_prefix_second_name", policy: "command/*", request: "command/DeleteItem", wantFlat: false, wantKey: true},
+		{
+			name:     "command_prefix_second_name",
+			policy:   "command/*",
+			request:  "command/DeleteItem",
+			wantFlat: false,
+			wantKey:  true,
+		},
 		{name: "query_prefix", policy: "query/*", request: "query/ListItems", wantFlat: false, wantKey: true},
-		{name: "prefix_is_not_a_string_prefix", policy: "command/CreateItem", request: "command/CreateItemX", wantFlat: false, wantKey: false},
-		{name: "colon_stays_literal", policy: "command:CreateItem", request: "command:CreateItem", wantFlat: true, wantKey: true},
-		{name: "colon_is_not_a_wildcard", policy: "command:CreateItem", request: "command:DeleteItem", wantFlat: false, wantKey: false},
+		{
+			name:     "prefix_is_not_a_string_prefix",
+			policy:   "command/CreateItem",
+			request:  "command/CreateItemX",
+			wantFlat: false,
+			wantKey:  false,
+		},
+		{
+			name:     "colon_stays_literal",
+			policy:   "command:CreateItem",
+			request:  "command:CreateItem",
+			wantFlat: true,
+			wantKey:  true,
+		},
+		{
+			name:     "colon_is_not_a_wildcard",
+			policy:   "command:CreateItem",
+			request:  "command:DeleteItem",
+			wantFlat: false,
+			wantKey:  false,
+		},
 		{name: "case_sensitive", policy: "command/*", request: "Command/CreateItem", wantFlat: false, wantKey: false},
-		{name: "trailing_slash_matches_prefix", policy: "command/*", request: "command/", wantFlat: false, wantKey: true},
+		{
+			name:     "trailing_slash_matches_prefix",
+			policy:   "command/*",
+			request:  "command/",
+			wantFlat: false,
+			wantKey:  true,
+		},
 	}
 }
 
@@ -152,8 +194,11 @@ func TestKeyMatchIsASupersetOfTheExactObjectMatcher(t *testing.T) {
 			}
 
 			if gotFlat && !gotKey {
-				t.Errorf("keyMatch WITHDRAWS a permission the exact matcher grants (%q vs %q): scheme is not a superset",
-					tc.request, tc.policy)
+				t.Errorf(
+					"keyMatch WITHDRAWS a permission the exact matcher grants (%q vs %q): scheme is not a superset",
+					tc.request,
+					tc.policy,
+				)
 			}
 		})
 	}
@@ -225,4 +270,38 @@ func newMatcher3FieldEnforcer(t *testing.T, modelStr, objectPattern string) *cas
 	}
 
 	return e
+}
+
+// TestDefaultRBACModelUsesKeyMatch pins the shipped matcher: the prefix
+// permissions ADR 0063 relies on must come from DefaultRBACModel, not from a
+// test-local variant. Behaviour is asserted as well as the string, so a
+// semantically equivalent rewrite is allowed and a silent revert is not.
+func TestDefaultRBACModelUsesKeyMatch(t *testing.T) {
+	t.Parallel()
+
+	if !strings.Contains(DefaultRBACModel, objectMatcherKeyMatch) {
+		t.Fatalf("DefaultRBACModel must match objects with %q; it reads:\n%s",
+			objectMatcherKeyMatch, DefaultRBACModel)
+	}
+
+	authz := newMatcherAuthz(t, DefaultRBACModel, "command/*")
+
+	allowed, _, err := authz.Check("alice", WildcardDomain, "command/CreateItem", string(ActionExecute))
+	if err != nil {
+		t.Fatalf("check: %v", err)
+	}
+
+	if !allowed {
+		t.Fatal("shipped model did not honour a command/* prefix policy")
+	}
+
+	// The near-miss must stay denied: the prefix is "command/", not "command".
+	allowed, _, err = authz.Check("alice", WildcardDomain, "commandXCreateItem", string(ActionExecute))
+	if err != nil {
+		t.Fatalf("check near-miss: %v", err)
+	}
+
+	if allowed {
+		t.Fatal("shipped model matched an object outside the declared prefix")
+	}
 }

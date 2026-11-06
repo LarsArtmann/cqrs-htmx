@@ -10,17 +10,17 @@ package that owns the symbol). This guide has a recipe for each.
 
 ## TL;DR — What changed
 
-| Aspect                                       | v4                                 | v5                                             |
-| -------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
-| Realtime transport                           | SSE **and** WebSocket              | SSE only                                       |
-| Fan-out                                      | `Broadcaster` + `WSBroadcaster`    | `Broadcaster` only                             |
-| Client→server                                | HTTP dispatch + WS dispatch bridge | HTTP dispatch only (`app.Command`/`app.Query`) |
-| OOB HTML                                     | `OOBHTML` + `WSOOBHTML`            | `OOBHTML` only                                 |
-| Root subpackage aliases                      | `cqrshtmx.HTMXTarget`, `cqrshtmx.MapError`, … | `htmx.Target`, `httperr.MapError`, …  |
-| Deprecated `httputil` / `go-sse` aliases     | `cqrshtmx.CSRFMiddleware`, `cqrshtmx.SSEEvent` | import `httputil` / `go-sse`          |
-| `usermgmt` → `identity-model` aliases        | `usermgmt.UserCreatedPayload`, `usermgmt.User` | import `identity-model`              |
-| Removed WebSocket symbols                    | —                                  | 14                                             |
-| Removed alias declarations (whole workspace) | —                                  | 413 (see [v5 Removal Inventory](../guides/v5-removal-inventory.md)) |
+| Aspect                                       | v4                                             | v5                                                                  |
+| -------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------- |
+| Realtime transport                           | SSE **and** WebSocket                          | SSE only                                                            |
+| Fan-out                                      | `Broadcaster` + `WSBroadcaster`                | `Broadcaster` only                                                  |
+| Client→server                                | HTTP dispatch + WS dispatch bridge             | HTTP dispatch only (`app.Command`/`app.Query`)                      |
+| OOB HTML                                     | `OOBHTML` + `WSOOBHTML`                        | `OOBHTML` only                                                      |
+| Root subpackage aliases                      | `cqrshtmx.HTMXTarget`, `cqrshtmx.MapError`, …  | `htmx.Target`, `httperr.MapError`, …                                |
+| Deprecated `httputil` / `go-sse` aliases     | `cqrshtmx.CSRFMiddleware`, `cqrshtmx.SSEEvent` | import `httputil` / `go-sse`                                        |
+| `usermgmt` → `identity-model` aliases        | `usermgmt.UserCreatedPayload`, `usermgmt.User` | import `identity-model`                                             |
+| Removed WebSocket symbols                    | —                                              | 14                                                                  |
+| Removed alias declarations (whole workspace) | —                                              | 413 (see [v5 Removal Inventory](../guides/v5-removal-inventory.md)) |
 
 If you only used SSE and only direct imports in v4, there are **zero breaking
 changes** for you.
@@ -283,13 +283,13 @@ Three alias layers disappear. Each one exists today only so an older spelling
 keeps compiling; the package that OWNS the symbol is unchanged and is where
 your imports should point.
 
-| Layer | v4 spelling | v5 |
-| ----- | ----------- | -- |
-| Root `htmx` façade (35) | `cqrshtmx.HTMXTarget`, `cqrshtmx.HTMXScriptHandler`, `cqrshtmx.SwapInnerHTML`, `cqrshtmx.HTMXRequest` | `htmx.Target`, `htmx.ScriptHandler`, `htmx.SwapInnerHTML`, `htmx.Request` |
-| Root `httperr` façade (37) | `cqrshtmx.MapError`, `cqrshtmx.ErrForbidden`, `cqrshtmx.JSONErrorHandler` | `httperr.MapError`, `httperr.ErrForbidden`, `httperr.JSONErrorHandler` |
-| Root `eventcatalog` façade (5) | `cqrshtmx.EventCatalog`, `cqrshtmx.NewEventCatalog`, `cqrshtmx.EventCatalogHandler` | `eventcatalog.Catalog`, `eventcatalog.New`, `eventcatalog.Handler` |
-| Deprecated `httputil` / `go-sse` aliases (57) | `cqrshtmx.CSRFMiddleware`, `cqrshtmx.RateLimiterMiddleware`, `cqrshtmx.SSEEvent` | `httputil.CSRFMiddleware`, `httputil.RateLimiterMiddleware`, `sse.Event` |
-| `usermgmt` → `identity-model` aliases (176) | `usermgmt.UserCreatedPayload`, `usermgmt.User`, `usermgmt.FoldUser` | `identitymodel.UserCreatedPayload`, `identitymodel.User`, `identitymodel.FoldUser` |
+| Layer                                         | v4 spelling                                                                                           | v5                                                                                 |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Root `htmx` façade (35)                       | `cqrshtmx.HTMXTarget`, `cqrshtmx.HTMXScriptHandler`, `cqrshtmx.SwapInnerHTML`, `cqrshtmx.HTMXRequest` | `htmx.Target`, `htmx.ScriptHandler`, `htmx.SwapInnerHTML`, `htmx.Request`          |
+| Root `httperr` façade (37)                    | `cqrshtmx.MapError`, `cqrshtmx.ErrForbidden`, `cqrshtmx.JSONErrorHandler`                             | `httperr.MapError`, `httperr.ErrForbidden`, `httperr.JSONErrorHandler`             |
+| Root `eventcatalog` façade (5)                | `cqrshtmx.EventCatalog`, `cqrshtmx.NewEventCatalog`, `cqrshtmx.EventCatalogHandler`                   | `eventcatalog.Catalog`, `eventcatalog.New`, `eventcatalog.Handler`                 |
+| Deprecated `httputil` / `go-sse` aliases (57) | `cqrshtmx.CSRFMiddleware`, `cqrshtmx.RateLimiterMiddleware`, `cqrshtmx.SSEEvent`                      | `httputil.CSRFMiddleware`, `httputil.RateLimiterMiddleware`, `sse.Event`           |
+| `usermgmt` → `identity-model` aliases (176)   | `usermgmt.UserCreatedPayload`, `usermgmt.User`, `usermgmt.FoldUser`                                   | `identitymodel.UserCreatedPayload`, `identitymodel.User`, `identitymodel.FoldUser` |
 
 **The naming rule is mechanical for the two large layers:** drop the redundant
 prefix from the `htmx` vocabulary (`HTMXTarget` → `Target`,
@@ -319,6 +319,7 @@ func status(err error) int {
 
 ```go
 import (
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )

@@ -27,8 +27,8 @@ Files: `csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go`
 Files: `htmx_reexport.go` (35 aliases), `httperr_reexport.go` (37),
 `eventcatalog_reexport.go` (5). The 2026-11-02 decomposition MOVED these
 symbols into subpackages and then aliased every one of them back into
-`cqrshtmx` — with a header that said, in as many words, *"they are not
-deprecated"*. [ADR-0062](../adr/0062-direct-imports-only.md) reverses that.
+`cqrshtmx` — with a header that said, in as many words, _"they are not
+deprecated"_. [ADR-0062](../adr/0062-direct-imports-only.md) reverses that.
 
 - **What consumers do instead:** import the owning subpackage and use the
   unprefixed name — `htmx.Target` (was `cqrshtmx.HTMXTarget`),

@@ -219,10 +219,16 @@ func newDispatchGate(checker PermissionChecker, opts ...DispatchGateOption) *dis
 // (only Use/Register/Dispatch/Close), so a gate that did not learn the posture
 // at registration time could never learn it at all.
 //
-// Register the handler before installing the middleware — registration order
-// relative to `Use` does not matter, but the dispatch must be able to find a
-// handler when the gate admits it.
-func (g *DispatchGate) RegisterCommand[T command.Command](
+// It is a package-level function rather than a method because Go methods cannot
+// carry type parameters, the same constraint that makes [CommandTyped] a
+// function. Registration order relative to `Use` does not matter, but the
+// handler must be registered before anything dispatches the type.
+//
+//	err := cqrshtmx.RegisterCommand(gate, cmdDisp, "CreateItem",
+//	    cqrshtmx.PostureRoleGated, "creates an item",
+//	    func(ctx context.Context, cmd *createItemCmd) error { ... })
+func RegisterCommand[T command.Command](
+	gate *DispatchGate,
 	disp *command.Dispatcher,
 	cmdType command.Type,
 	posture Posture,
@@ -241,7 +247,7 @@ func (g *DispatchGate) RegisterCommand[T command.Command](
 			cmdType, got))
 	}
 
-	return g.declare(DispatchPosture{
+	return gate.Declare(DispatchPosture{
 		Kind:    DispatchCommandKind,
 		Name:    string(cmdType),
 		Posture: posture,
@@ -250,9 +256,9 @@ func (g *DispatchGate) RegisterCommand[T command.Command](
 }
 
 // RegisterQuery registers a typed query handler together with the posture it
-// requires. See [DispatchGate.RegisterCommand] for why registration is the
-// declaration.
-func (g *DispatchGate) RegisterQuery[Q query.Query, R any](
+// requires. See [RegisterCommand] for why registration is the declaration.
+func RegisterQuery[Q query.Query, R any](
+	gate *DispatchGate,
 	disp *query.Dispatcher,
 	qryType query.Type,
 	posture Posture,
@@ -265,7 +271,7 @@ func (g *DispatchGate) RegisterQuery[Q query.Query, R any](
 			"registering query type %s", qryType)
 	}
 
-	return g.declare(DispatchPosture{
+	return gate.Declare(DispatchPosture{
 		Kind:    DispatchQueryKind,
 		Name:    string(qryType),
 		Posture: posture,
@@ -273,10 +279,14 @@ func (g *DispatchGate) RegisterQuery[Q query.Query, R any](
 	})
 }
 
-// declare records one posture, rejecting an amendment that would change an
-// existing declaration: a posture that two code paths disagree about is exactly
-// the drift this surface exists to prevent.
-func (g *DispatchGate) declare(row DispatchPosture) error {
+// Declare records one posture without registering a handler, for wiring that
+// registers through the raw dispatcher (a `command.Handler` that cannot be typed,
+// or a registration owned by another module).
+//
+// An amendment that would change an existing declaration is rejected: a posture
+// two code paths disagree about is exactly the drift this surface exists to
+// prevent.
+func (g *DispatchGate) Declare(row DispatchPosture) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -459,7 +469,7 @@ func (g *dispatchGate) authorize(
 	if !declared {
 		outcome := DispatchOutcome{
 			Kind: kind, Name: name, Posture: PostureRoleGated, Request: req,
-			Decision: Decision{Allowed: false, Reason: ReasonNoMatchingPolicy},
+			Decision: Decision{Allowed: false, Reason: ReasonNoMatchingPolicy, MatchedRules: nil},
 		}
 
 		return g.settle(ctx, outcome, errorfamily.NewRejection("forbidden", fmt.Sprintf(
@@ -476,7 +486,7 @@ func (g *dispatchGate) authorize(
 	if req.Subject == "" {
 		outcome := DispatchOutcome{
 			Kind: kind, Name: name, Posture: posture, Request: req,
-			Decision: Decision{Allowed: false, Reason: ReasonNotAuthenticated},
+			Decision: Decision{Allowed: false, Reason: ReasonNotAuthenticated, MatchedRules: nil},
 		}
 
 		return g.settle(ctx, outcome, denyDispatch(req, outcome.Decision))
@@ -490,7 +500,7 @@ func (g *dispatchGate) authorize(
 	if g.checker == nil {
 		return errorfamily.NewInfrastructure(
 			"enforcer_nil",
-			fmt.Sprintf("dispatch gate has no checker for %s", req.Resource.String()),
+			"dispatch gate has no checker for "+req.Resource.String(),
 		).WithCause(ErrEnforcerNil)
 	}
 
@@ -567,7 +577,8 @@ func deriveDispatchRequest(
 ) Request {
 	req := Request{
 		Subject:  subject,
-		Resource: Resource{Type: DispatchObject(kind, name)},
+		Domain:   WildcardDomain,
+		Resource: Resource{Type: DispatchObject(kind, name), ID: ""},
 		Action:   dispatchAction(kind),
 	}
 
@@ -585,7 +596,7 @@ func deriveDispatchRequest(
 		req.Domain = overlay.Domain
 	}
 
-	if overlay.Resource != (Resource{}) {
+	if overlay.Resource.Type != "" || overlay.Resource.ID != "" {
 		req.Resource = overlay.Resource
 	}
 

@@ -53,8 +53,8 @@ if [ -z "$DECLS_FILE" ]; then
   trap 'rm -f "$DECLS_FILE"' EXIT
   # A writable GOCACHE + the workspace toolchain floor; a bare shell otherwise
   # fails on machines whose default cache dir is unwritable (gotcha 12).
-  # shellcheck source=../lib/go-cache-env.sh
-  source "$SCRIPT_DIR/../lib/go-cache-env.sh"
+  # shellcheck disable=SC1091
+  source "$(dirname "${BASH_SOURCE[0]}")/../lib/go-cache-env.sh"
   if ! (cd "$ROOT" && go run "$SCANNER") >"$DECLS_FILE" 2>"$DECLS_FILE.err"; then
     echo "✗ reexport-policy: inventory scan failed:" >&2
     sed 's/^/    /' "$DECLS_FILE.err" >&2
@@ -73,7 +73,7 @@ fail() {
 # --- baseline: path -> class, path -> expected alias count -------------------
 declare -A baseline_class=()
 declare -A baseline_count=()
-while IFS=$'\t' read -r path class count note; do
+while IFS=$'\t' read -r path class count _note; do
   case "$path" in '' | '#'*) continue ;; esac
   case "$class" in
   reexport | exempt:unexported | exempt:internal | exempt:domain-vocabulary | exempt:pending) ;;
