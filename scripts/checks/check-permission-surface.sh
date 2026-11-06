@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# check-permission-surface.sh — fail on the four authorization anti-patterns
-# that made the 2026-11-02 consumer audit expensive to read.
+# check-permission-surface.sh — fail on the authorization anti-patterns that
+# made the 2026-11-02 consumer audit expensive to read, plus the dispatch-boundary
+# one ADR 0063 added.
 #
 # The audit found that authorization in this ecosystem is written ad hoc:
 # grants written into the in-memory enforcer, policy engines called with raw
@@ -171,6 +172,41 @@ while IFS= read -r line; do
   report "$clean" "$lnum" \
     'split-sentinel — denial codes must be exactly "forbidden" / "unauthorized" (use CodeForbidden/CodeUnauthorized) so IsForbidden sees them'
 done <<<"$(grep -rnE 'NewRejection\("[^"]*(forbidden|unauthorized)' --include='*.go' "${excludes[@]}" . 2>/dev/null || true)"
+
+# Rule 5: a file that installs the dispatch gate must not also register handlers
+# behind its back. The dispatcher exposes no enumeration API, so the gate cannot
+# discover what is registered — registering IS declaring. A raw registration in a
+# file that installs the gate is therefore a posture nobody can prove.
+install_pattern='CommandMiddleware\(\)|QueryMiddleware\(\)|AuthorizeCommand\(|AuthorizeQuery\('
+register_pattern='command\.RegisterTyped\(|query\.RegisterTyped\(|\.Register\('
+
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  clean="${file#./}"
+
+  # the gate's own file is where the declaring helpers live.
+  case "$clean" in
+  authz_dispatch.go) continue ;;
+  esac
+
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    lnum="${line%%:*}"
+    text="${line#*:}"
+
+    if is_suppressed "$file" "$lnum" "$text"; then
+      suppressed=$((suppressed + 1))
+      continue
+    fi
+
+    if [ "$fail" -eq 0 ]; then
+      echo "FAIL: permission-surface violations"
+    fi
+    fail=1
+    report "$clean" "$lnum" \
+      'undeclared-dispatch — this file installs a dispatch gate, so its registrations must declare a posture (cqrshtmx.RegisterCommand/RegisterQuery, or DispatchGate.Declare)'
+  done <<<"$(grep -nE "$register_pattern" "$file" 2>/dev/null || true)"
+done <<<"$(grep -rlE "$install_pattern" --include='*.go' "${excludes[@]}" . 2>/dev/null | sort)"
 
 if [ "$fail" -ne 0 ]; then
   echo

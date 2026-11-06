@@ -7,6 +7,8 @@
 #   2. each of the four rules is detected independently (4 planted violations)
 #   3. an inline `permission-surface-allow` suppression is honoured and counted
 #   4. test files are exempt by design
+#   5. identity-model is the definition site (suppressed by path)
+#   6-8. rule 5 (undeclared-dispatch): planted violation, declaring helper, suppression
 
 set -uo pipefail
 
@@ -147,9 +149,68 @@ GO
 "$checker" --path "$own" >/dev/null
 assert_rc 0 $? "identity-model definition site"
 
+# --- case 6: gate installed next to a raw registration -------------------
+undeclared="$tmp/undeclared"
+mkdir -p "$undeclared/pkg"
+
+cat >"$undeclared/pkg/wiring.go" <<'GO'
+package pkg
+
+func Wire(disp *command.Dispatcher, gate *cqrshtmx.DispatchGate) {
+	disp.Use(gate.CommandMiddleware())
+	_ = command.RegisterTyped(disp, "CreateItem", handler)
+}
+GO
+
+out="$("$checker" --path "$undeclared" 2>&1)"
+assert_rc 1 $? "gate installed beside a raw registration"
+
+if ! printf '%s' "$out" | grep -q 'undeclared-dispatch'; then
+  echo "FAIL: rule undeclared-dispatch was not reported"
+  failures=$((failures + 1))
+fi
+
+# --- case 7: the declaring helper is the clean form ----------------------
+declared="$tmp/declared"
+mkdir -p "$declared/pkg"
+
+cat >"$declared/pkg/wiring.go" <<'GO'
+package pkg
+
+func Wire(disp *command.Dispatcher, gate *cqrshtmx.DispatchGate) {
+	disp.Use(gate.CommandMiddleware())
+	_ = cqrshtmx.RegisterCommand(gate, disp, "CreateItem", cqrshtmx.PostureRoleGated, "why", handler)
+}
+GO
+
+"$checker" --path "$declared" >/dev/null
+assert_rc 0 $? "declaring helper beside the gate"
+
+# --- case 8: rule 5 is suppressible with a reason -----------------------
+suppress5="$tmp/suppress5"
+mkdir -p "$suppress5/pkg"
+
+cat >"$suppress5/pkg/wiring.go" <<'GO'
+package pkg
+
+func Wire(disp *command.Dispatcher, gate *cqrshtmx.DispatchGate) {
+	disp.Use(gate.CommandMiddleware())
+	// permission-surface-allow: handler registered elsewhere, posture declared by DispatchGate.Declare.
+	_ = command.RegisterTyped(disp, "CreateItem", handler)
+}
+GO
+
+out="$("$checker" --path "$suppress5" 2>&1)"
+assert_rc 0 $? "rule 5 suppression"
+
+if ! printf '%s' "$out" | grep -q 'suppressed: 1'; then
+  echo "FAIL: rule 5 suppression not counted: $out"
+  failures=$((failures + 1))
+fi
+
 if [ "$failures" -ne 0 ]; then
   echo "check-permission-surface self-test: $failures failure(s)"
   exit 1
 fi
 
-echo "check-permission-surface self-test: 5/5 cases pass"
+echo "check-permission-surface self-test: 8/8 cases pass"

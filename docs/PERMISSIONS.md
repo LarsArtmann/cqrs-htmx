@@ -23,7 +23,7 @@ That is not a missing feature. It is a missing **system**: no write path, no
 contract, no proof, no inventory. This document is the inventory; the other
 three are in the library.
 
-## The five levels
+## The six levels
 
 Each level has exit criteria that can be checked by someone who did not write
 the service.
@@ -74,6 +74,26 @@ build artifact, not tribal knowledge.
 
 **Exit:** adding an unprotected route fails CI before review.
 
+### L5 — dispatch-gated
+
+L4 measures routes. A route is not the only way in: a service method, a seed, a
+scheduled job or an admin CLI dispatches a command without touching any HTTP
+handler, and a route gate lives in a `handlerConfig` the dispatcher never sees.
+An L4 service can therefore refuse a command on its route and admit the same
+command from a job.
+
+L5 is the dispatch boundary: each command and query type declares a posture at
+registration time, a middleware enforces it on the dispatcher itself, and a type
+nobody declared is denied (fail-closed) and named. See
+[ADR 0063](adr/0063-authorization-at-the-dispatch-boundary.md).
+
+The three postures are the L1–L4 vocabulary, unchanged: `public`,
+`authenticated`, `role-gated` — asked as `command/<Name>` / `query/<Name>` with
+the `execute` / `read` actions.
+
+**Exit:** a command dispatched with no route and no grant is refused, and
+`authztest.CommandSuite` proves it per declared type.
+
 ## The three write paths, in order of preference
 
 | Path                                            | Durable                              | Use it                                                      |
@@ -112,7 +132,7 @@ presence" — an unverified row, not a clean bill.
 
 | Service                  | Level | Posture at audit                                                                           | Evidence                                                                                                                                                                                             | Next step                                                |
 | ------------------------ | ----- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `cqrs-htmx`              | L4    | this library: contract + durable grants + scanner gate + committed route-posture manifests | `authz_contract.go`, `service_grants.go`, `check-permission-surface.sh`, `check-route-postures.sh` (in check-modules + CI), `Handler.Routes` / `Dashboard.Routes` / `Bundle.RoutePostures` manifests | keep every new route inside the tables                   |
+| `cqrs-htmx`              | L5    | this library: contract + durable grants + route postures + the dispatch gate               | `authz_contract.go`, `service_grants.go`, `authz_dispatch.go` (`DispatchGate`), `check-permission-surface.sh`, `check-route-postures.sh` (in check-modules + CI), `Handler.Routes` / `Dashboard.Routes` / `Bundle.RoutePostures` manifests | keep every new route inside the tables, every new dispatch inside a posture |
 | `browser-history`        | L1    | admin panel gated by `adminui.RequireAnyRole`, role re-granted on every drain              | `api/admin_panel.go` reconcile loop; `NonceFunc` bridge                                                                                                                                              | L2: switch to `GrantRoles`, delete the reconcile loop    |
 | `games/SwettySwipperWeb` | L1    | `adminui.RequireAnyRole` on API routes                                                     | one-shot `AddGroupPolicy` behind a "users exist" guard                                                                                                                                               | L2: grant on every boot, idempotently                    |
 | `crm`                    | L0    | `setup.New` with the default admin panel                                                   | zero role grants anywhere; `MaxUsers: 1`                                                                                                                                                             | L1: either seed an admin or `DisableAdmin`               |
@@ -206,7 +226,11 @@ arrived yet".
    that passes when the authorization call is deleted proves nothing.
    `authztest.Suite` + `authztest.GrantSuite` are that test — see
    [`authztest/README.md`](../authztest/README.md) for the full surface.
-5. **Ratchet it.** Commit the posture list and add the service's row here; the
+5. **Gate the dispatch boundary too (L5).** Install
+   `DispatchGate.CommandMiddleware()` / `QueryMiddleware()` outermost on each
+   dispatcher and register through `cqrshtmx.RegisterCommand` /
+   `RegisterQuery`, so a job or a service method cannot bypass the route gate.
+6. **Ratchet it.** Commit the posture list and add the service's row here; the
    maturity gate fails on a dropped level.
 
 ## The gate
@@ -217,8 +241,9 @@ nix run .#check-permission-maturity -- --ratchet # fail on a dropped level
 nix run .#check-permission-surface               # anti-pattern scanner
 ```
 
-The scanner fails on four defects: ephemeral grants, untyped engine calls, raw
-engine calls, and re-coded denial sentinels. Suppressions are inline
+The scanner fails on five defects: ephemeral grants, untyped engine calls, raw
+engine calls, re-coded denial sentinels, and (L5) a file that installs a dispatch
+gate while registering handlers behind its back. Suppressions are inline
 (`permission-surface-allow` with a reason) and are counted in the output, so
 they stay visible in review.
 

@@ -5,7 +5,7 @@
 # authorization posture each service claims. This gate makes sure the claim can
 # only improve: a service whose level drops below the committed baseline fails.
 #
-# Levels are ordered L0 < L1 < L2 < L3 < L4. The `?` level means "not
+# Levels are ordered L0 < L1 < L2 < L3 < L4 < L5. The `?` level means "not
 # inspected" and is neither ratcheted nor compared — an unverified row must not
 # masquerade as a level.
 #
@@ -46,7 +46,7 @@ fi
 # Extract "<service> TAB <level>" rows from the inventory table. The service cell
 # is the first cell and may be backtick-quoted; the level cell is the second.
 # shellcheck disable=SC2016 # the backticks are literal markdown table syntax, not substitutions
-current="$(sed -n 's/^| *`\{0,1\}\([^`|]*[^`| ]\)`\{0,1\} *| *\(L[0-4]\|[?]\) *|.*/\1\t\2/p' "$doc")"
+current="$(sed -n 's/^| *`\{0,1\}\([^`|]*[^`| ]\)`\{0,1\} *| *\(L[0-5]\|[?]\) *|.*/\1\t\2/p' "$doc")"
 
 if [ -z "$current" ]; then
   echo "FAIL: no inventory rows parsed from $doc" >&2
@@ -76,6 +76,7 @@ rank() {
   L2) echo 2 ;;
   L3) echo 3 ;;
   L4) echo 4 ;;
+  L5) echo 5 ;;
   *) echo -1 ;;
   esac
 }

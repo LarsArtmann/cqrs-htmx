@@ -141,8 +141,8 @@ func TestCommandSuite_AMutatedPostureReds(t *testing.T) {
 		t.Fatal("a public declaration over a gated command passed the matrix")
 	}
 
-	if !strings.Contains(strings.Join(recorder.messages, "\n"), "admitted") {
-		t.Fatalf("failure should say the anonymous caller was admitted, got: %v", recorder.messages)
+	if !strings.Contains(strings.Join(recorder.messages, "\n"), `declares "public"`) {
+		t.Fatalf("failure should name the contradicted posture, got: %v", recorder.messages)
 	}
 }
 
