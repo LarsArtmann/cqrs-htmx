@@ -155,3 +155,9 @@ A4 (go-etag bump) · A7 (FailureLog views) · A8 (partial-render showcase) · A9
 | `check-cqrs-lint` | 🔴 pre-existing root-tag-gap (identity-model tag pending) |
 | `check-modules` / full battery | ⏳ not yet run this session |
 | corpus/tail baselines | re-trued same-change as this report |
+
+## h) A14 docs-truth-pass closures (2026-11-06, resuming session)
+
+Rows removed as done (receipts: AGENTS gate inventory, round-45 M15/M16/M18; verified live before removal): **README badge resolver gate** (`check-readme-badges`, in check-modules + CI + fixture self-test), **"No permanently-red PR gate" guard** (`check-pr-secrets`, same wiring), **Dependency-CVE watch** (`check-dependabot-alerts`, advisory report, live-verified 0 open alerts 2026-10-31), **Error-context rendering row** (part a: `StructuredError.Context` carries `ErrorContext()` — concurrent session's A27 below 500 + ADR-0061 operator audience on 5xx; part b: upgrade CLI exits via `errorfamily.HandleError`, `cmd/cqrs-htmx-upgrade/main.go:124`). The **go-cqrs-lite leverage row** trued in place: R1/R2/R4/R7/R8 moved to landed (fleet-plan waves 1–2 receipts), F1/L1-tail/X1/X2/X3 stay open. TODO-hygiene green after: 69 rows, 0 violations. A15 verified: the consolidated fleet-plan row exists and routes to the plan of record (no new harvest needed).
+
+A11 resumed and completed: `WithContextMap` + charset-prefix test fixes → httperr + root suites green; ADR-0061 written + INDEX; README § error-mapping row; root CHANGELOG entries (audience + SSE drop stats); compat pins for the audience surface.
