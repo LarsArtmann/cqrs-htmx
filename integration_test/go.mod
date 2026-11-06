@@ -101,7 +101,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2 // indirect
@@ -113,6 +113,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-datastar v0.6.3 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
@@ -154,8 +155,9 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/pandatix/go-abnf v0.5.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
-	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/philhofer/fwd v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -182,6 +184,8 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261026165753-2ffab32bce7e // indirect
+	google.golang.org/grpc v1.85.0 // indirect
 	modernc.org/libc v1.80.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect

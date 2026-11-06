@@ -38,9 +38,9 @@ require (
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Azure/go-ansiterm v0.0.0-20261008234032-65faa4be4f89 // indirect
-	github.com/Microsoft/go-winio v0.6.3 // indirect
-	github.com/bits-and-blooms/bitset v1.26.0 // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20261013165250-51075c6ea6bc // indirect
+	github.com/Microsoft/go-winio v0.6.4 // indirect
+	github.com/bits-and-blooms/bitset v1.29.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
@@ -56,7 +56,7 @@ require (
 	github.com/docker/go-connections v0.8.2 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/ebitengine/purego v0.11.1 // indirect
+	github.com/ebitengine/purego v0.11.3 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.8 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
@@ -70,7 +70,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgx/v5 v5.12.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/klauspost/compress v1.20.1 // indirect
+	github.com/klauspost/compress v1.20.3 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
@@ -89,7 +89,7 @@ require (
 	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
-	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
+	github.com/lufia/plan9stats v0.0.0-20261101121723-be84dd9509a0 // indirect
 	github.com/magiconair/properties v1.18.12 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.4.0 // indirect
@@ -99,7 +99,7 @@ require (
 	github.com/moby/moby/client v0.6.2 // indirect
 	github.com/moby/patternmatcher v0.6.1 // indirect
 	github.com/moby/sys/sequential v0.7.0 // indirect
-	github.com/moby/sys/user v0.4.1 // indirect
+	github.com/moby/sys/user v0.5.0 // indirect
 	github.com/moby/sys/userns v0.2.1 // indirect
 	github.com/moby/term v0.5.2 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
@@ -111,7 +111,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20260916203055-22a1a467d9f0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.10 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
@@ -135,6 +135,8 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261026165753-2ffab32bce7e // indirect
+	google.golang.org/grpc v1.85.0 // indirect
 	modernc.org/libc v1.80.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
