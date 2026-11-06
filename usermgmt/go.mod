@@ -8,6 +8,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
 	github.com/larsartmann/go-codec v0.3.3
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
@@ -71,7 +72,6 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.12.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect

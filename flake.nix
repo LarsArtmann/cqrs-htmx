@@ -1201,6 +1201,7 @@
                       bash bash scripts/selftests/test-check-permission-surface.sh
                       bash bash scripts/checks/check-permission-maturity.sh --ratchet
                       bash bash scripts/selftests/test-check-permission-maturity.sh
+                      bash bash scripts/selftests/test-check-policy-rows.sh
                       bash bash scripts/checks/check-module-layers.sh
                       bash bash scripts/selftests/test-check-module-layers.sh
                       bash bash scripts/checks/check-branching-flow.sh
@@ -1271,6 +1272,7 @@
                         "permission-surface-self-test:bash scripts/selftests/test-check-permission-surface.sh"
                         "permission-maturity:bash scripts/checks/check-permission-maturity.sh --ratchet"
                         "permission-maturity-self-test:bash scripts/selftests/test-check-permission-maturity.sh"
+                        "policy-rows-self-test:bash scripts/selftests/test-check-policy-rows.sh"
                         "module-layers:bash scripts/checks/check-module-layers.sh"
                         "module-layers-self-test:bash scripts/selftests/test-check-module-layers.sh"
                         "streamid-identity:bash scripts/checks/check-streamid-identity.sh"
@@ -1850,7 +1852,7 @@
 
             check-permission-surface = {
               type = "app";
-              meta.description = "Fail on the four authorization anti-patterns: ephemeral grants, untyped engine calls, raw engine calls, re-coded denial sentinels";
+              meta.description = "Fail on the authorization anti-patterns: ephemeral grants, untyped engine calls, raw engine calls, re-coded denial sentinels, and a raw registration beside an installed dispatch gate";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-permission-surface";
@@ -1869,7 +1871,7 @@
 
             test-check-permission-surface = {
               type = "app";
-              meta.description = "Fixture self-test for check-permission-surface.sh (5 cases: clean/4 planted violations/suppression/test-exempt/definition site)";
+              meta.description = "Fixture self-test for check-permission-surface.sh (8 cases: clean/4 planted violations/suppression/test-exempt/definition site/rule-5 violation/rule-5 helper/rule-5 suppression)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "test-check-permission-surface";
@@ -1881,6 +1883,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-permission-surface.sh
+                  '';
+                }
+              );
+            };
+
+            check-policy-rows = {
+              type = "app";
+              meta.description = "Fail on a Casbin policy row whose object matches no declared dispatch (--declarations FILE --policies FILE...)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-policy-rows";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-policy-rows.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-policy-rows = {
+              type = "app";
+              meta.description = "Fixture self-test for check-policy-rows.sh (8 cases: clean/orphan/star/covering prefix/uncovered prefix/grouping rows/suppression/empty declarations)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-policy-rows";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-policy-rows.sh
                   '';
                 }
               );

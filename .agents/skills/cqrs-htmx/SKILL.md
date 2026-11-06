@@ -71,10 +71,13 @@ handler builder:
 
 Two rules that matter:
 
-1. **`cqrshtmx` is still the supported surface.** The three `*_reexport.go` files alias
-   the subpackage symbols, so `cqrshtmx.HTMXScriptHandler` and `htmx.ScriptHandler` are
-   the _identical function value_ — a public symbol, a type, and a const were not renamed,
-   only duplicated under the package-qualified spelling.
+1. **The subpackage is the surface (ADR-0062, 2026-11-06).** The three `*_reexport.go`
+   files still alias every subpackage symbol so existing v4 code compiles unchanged, but
+   each alias carries `// Deprecated:` naming the direct import and is deleted in v5.
+   Write `htmx.ScriptHandler`, not `cqrshtmx.HTMXScriptHandler`. `nix run
+   .#check-reexport-policy -- --strict` refuses a new alias file or alias growth; the
+   policy, the exemption classes and the one-breaking-window rule are in
+   `docs/adr/0062-direct-imports-only.md` in the repo.
 2. **The layering is one-way and gated.** `internal/hx` imports nothing in-module;
    `htmx`/`eventcatalog` import only `internal/hx`; `httperr` imports `htmx`+`internal/hx`;
    root imports all. `nix run .#check-module-layers` fails on any back-edge — so a
