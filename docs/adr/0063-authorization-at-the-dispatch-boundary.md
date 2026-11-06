@@ -154,6 +154,13 @@ names.
   sync push) is harmless but must not double-count denials. The outer layer's
   denial is the one that reaches the client; the gate is kept outermost so retry
   and circuit-breaker middleware never see an authorization decision.
+- **Neutral.** Declarations are a boot-time contract and the read path honours
+  that: `Declare` publishes a fresh immutable table and dispatches read it without
+  a lock, so a gate never becomes a serialisation point in front of every command
+  in the process. The object string is rendered once at declaration time beside
+  the posture. `TestDeclareIsSafeWhileDispatchReads` pins the contract, and it is
+  deliberately mutation-checked: writing into the published table turns it into a
+  data race in 26 ms rather than a rare production puzzle.
 
 ## Rejected alternatives
 

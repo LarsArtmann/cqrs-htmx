@@ -480,7 +480,7 @@ history; `git log 4cf82c0b..HEAD` is the authoritative list (70 files, +6369/−
 | M10 docs | `docs/PERMISSIONS.md` L5 + six-level heading + inventory row L4→L5 + gate section; `PERMISSIONS_BASELINE` L5; guide §5 with the three-layer table; maturity gate parser extended to `L[0-5]` (rank + self-test 8 → 10 cases) | `--ratchet`: 13 services at or above baseline |
 | M11 skill + README | SKILL §"Gating the dispatch boundary (L5)", two new gotchas, `references/core-api.md` dispatch-gate catalogue, README bullet | skill-snippets 42/42, skill-claims 248 symbols, readme-splitbrain green |
 | M12 library-owned dispatcher | `usermgmt/command_postures.go` (all 21 commands classified) + four integration tests: bootstrap grant works, unprivileged revoke denied naming `command/RemoveMember`, anonymous refused, public registration reachable. **The `setup` half needed no code** — `setup.Config.CommandMiddleware` already carries the gate, so it is documented, not built | `usermgmt` suite green (workspace mode). Hermetic mode red: `command_postures.go` consumes two unpublished root symbols — see "still open" |
-| M13 bench | `benchmark_authz_gate_test.go`, `b.Loop()` + `ReportAllocs` | bare 68 ns / 1 alloc · public 207 / 7 · authenticated 214 / 7 · gated-allow ~254 / 7 · gated-deny ~1 100 ns / 17 allocs. **Not under 5 %** — recorded honestly: the denominator here is an in-memory no-op handler, which is the cheapest dispatch that exists; the gate's absolute cost is what a real event-store dispatch pays in noise |
+| M13 bench | `benchmark_authz_gate_test.go`, `b.Loop()` + `ReportAllocs` | allocation, the only machine-independent number here: 48 B / 1 alloc bare · 176 B / 6 with the gate on any admitting path · 689 B / 16 denied. **Not under 5 %** — recorded honestly: the denominator here is an in-memory no-op handler, which is the cheapest dispatch that exists; the gate's absolute cost is what a real event-store dispatch pays in noise. The two §d experiments were then run and are resolved below |
 | M14 policy-row linter | `check-policy-rows.sh` + 8-case fixture self-test, flake apps, `check-modules` + CI parity legs. **Advisory promotion is self-test-only**: this repo authors no policy CSVs, so a run would check zero rows | 8/8; `keyMatch`-shaped matching, prefix suggestions, suppression counting |
 | M15 release posture | CHANGELOG entry, `TODO_LIST` stale-row true-up (the maturity ratchet was already blocking), `dashboardui/go.mod` + `usermgmt/go.mod` indirect→direct via `go mod tidy` | `check-modules`, corpus ratchet (48779), freshness, todo-hygiene, shellcheck 131 scripts, links 1378 all green |
 
@@ -536,3 +536,35 @@ landed but not *complete* — is in
   `release-train`, `train-consumers-hermetic`, `readme-quickstart`, `route-postures` (+ its
   self-test). Two further reds are **not** this class and not this plan's: `streamid-identity`
   (`dashboardui/core/command_fates.go:198` uses the display form in an identity slot).
+
+### The §d bench experiments, run and resolved
+
+The status report's §d listed two experiments as not attempted. Both are now settled, and the
+answer to the first one was "not the allocation you think".
+
+1. **Cache `DispatchObject` per type — DONE, but as a consequence of a better change.** The
+   object string is a fixed function of `(kind, name)`, so rendering it per dispatch was one
+   avoidable allocation. It is now rendered once, in `Declare`, and stored beside the
+   declaration (`dispatchRow.object`); the declaration-free form (`AuthorizeCommand`) has no
+   declaration to hang it on and keeps paying the concat. Measured: **200 B / 7 allocs →
+   176 B / 6 allocs** on the public, authenticated and gated-allow paths, and **713 B / 17 →
+   689 B / 16** on the denial path. Allocation counts are the only honest metric available
+   here: every ns/op reading taken this session moved with machine load (load average ~50, and
+   even the *bare* dispatch sub-bench drifted 87 → 146–182 ns while nothing about it changed).
+2. **The real win was next to it: the read path held a mutex.** `enforcedPosture` and
+   `Manifest` both took a `sync.Mutex` to read a table that is written at boot and never
+   again, which serialises every command in the process on one lock for the privilege of
+   re-reading constants. `Declare` now publishes a fresh immutable map through an
+   `atomic.Pointer` (copy-on-write), so readers take no lock at all and always see a
+   consistent snapshot. Correctness is pinned by
+   `TestDeclareIsSafeWhileDispatchReads`, which dispatches and reads the manifest while 200
+   declarations are being published — and which was **mutation-checked**: reverting `Declare`
+   to write into the published map turns it into `WARNING: DATA RACE` and
+   `fatal error: concurrent map read and map write` in 26 ms. The contract is stated on the
+   `rows` field: declarations are boot-time, the published table is immutable, and a reader
+   never needs a lock.
+3. **Declined, with reason: a per-type `sync.Map` cache for the declaration-free form.** It
+   would trade a ~20 ns concat for a ~15 ns `sync.Map` load plus a mutable cache and a new
+   failure mode (a cache that can disagree with the dispatcher's own type set), for 1 of 6
+   remaining allocations. Not worth it; the honest conclusion is that casbin's `Enforce`
+   dominates the gated path anyway.

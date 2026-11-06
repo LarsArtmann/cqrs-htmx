@@ -780,11 +780,7 @@ func TestDeclareIsSafeWhileDispatchReads(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		for range writes {
 			if _, ok := gate.enforcedPosture(DispatchCommandKind, "Seed"); !ok {
 				t.Error("a declared type vanished while another declaration was published")
@@ -805,13 +801,9 @@ func TestDeclareIsSafeWhileDispatchReads(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		for i := range writes {
 			if derr := gate.Declare(DispatchPosture{
 				Kind:    DispatchCommandKind,
@@ -824,7 +816,7 @@ func TestDeclareIsSafeWhileDispatchReads(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	wg.Wait()
 

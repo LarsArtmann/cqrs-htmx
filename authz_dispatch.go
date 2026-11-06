@@ -435,7 +435,7 @@ func AuthorizeQuery(checker PermissionChecker, opts ...DispatchGateOption) query
 // allGated is the posture lookup of the declaration-free form: every type is
 // role-gated, and nothing is claimed about a declaration set.
 func allGated(DispatchKind, string) (dispatchRow, bool) {
-	return dispatchRow{decl: DispatchPosture{Posture: PostureRoleGated}}, true
+	return dispatchRow{decl: DispatchPosture{Posture: PostureRoleGated}, object: ""}, true
 }
 
 // postureLookup resolves the declaration for one dispatch.
