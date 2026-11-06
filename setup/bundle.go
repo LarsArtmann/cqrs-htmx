@@ -223,43 +223,7 @@ func (b *Bundle) Close() error {
 		b.Dashboard.Close()
 	}
 
-	if b.Broadcaster != nil {
-		closeSSEDone(b)
-
-		// Slow-consumer drops are silent data loss without reconnect replay:
-		// surface the lifetime count at shutdown so operators learn a hub was
-		// consistently overrunning its buffers (per-subscriber count).
-		if b.SSEDrops != nil && b.SSEDrops.Total() > 0 {
-			logger := b.config.Logger
-			if logger == nil {
-				logger = slog.Default()
-			}
-
-			logger.Warn("setup: SSE hub dropped events for slow consumers since start",
-				"drops", b.SSEDrops.Total(),
-				"hint", "per-subscriber count; enlarge the subscriber buffer or drain consumers faster")
-		}
-
-		// Drain queued events to connected subscribers before closing the
-		// hub so a server restart does not drop in-flight events.
-		// Broadcaster and DataStarBroadcaster share one hub, so a single
-		// shutdown drains both feeds. A timed-out drain falls through to
-		// the abrupt Close below — shutdown never hangs on a slow client.
-		drainCtx, cancelDrain := context.WithTimeout(context.Background(), b.sseDrainTimeout)
-		if err := b.Broadcaster.Shutdown(drainCtx); err != nil {
-			logger := b.config.Logger
-			if logger == nil {
-				logger = slog.Default()
-			}
-
-			logger.Warn("setup: SSE hub drain timed out; proceeding with abrupt close",
-				"error", err)
-		}
-
-		cancelDrain()
-
-		closeSSEBroadcasters(b)
-	}
+	b.drainAndCloseSSE()
 
 	if b.ownsService && b.Service != nil {
 		if err := b.Service.Close(); err != nil {
@@ -268,4 +232,44 @@ func (b *Bundle) Close() error {
 	}
 
 	return nil
+}
+
+// drainAndCloseSSE reports and drains the shared SSE hub, then closes it.
+// Slow-consumer drops are silent data loss without reconnect replay, so the
+// lifetime count is surfaced at shutdown for operators; the queued-event drain
+// keeps in-flight events across a restart (Broadcaster and DataStarBroadcaster
+// share one hub, so a single shutdown drains both feeds). A timed-out drain
+// falls through to the abrupt Close — shutdown never hangs on a slow client.
+// No-op when no hub was wired.
+func (b *Bundle) drainAndCloseSSE() {
+	if b.Broadcaster == nil {
+		return
+	}
+
+	closeSSEDone(b)
+
+	if b.SSEDrops != nil && b.SSEDrops.Total() > 0 {
+		b.logger().Warn("setup: SSE hub dropped events for slow consumers since start",
+			"drops", b.SSEDrops.Total(),
+			"hint", "per-subscriber count; enlarge the subscriber buffer or drain consumers faster")
+	}
+
+	drainCtx, cancelDrain := context.WithTimeout(context.Background(), b.sseDrainTimeout)
+	if err := b.Broadcaster.Shutdown(drainCtx); err != nil {
+		b.logger().Warn("setup: SSE hub drain timed out; proceeding with abrupt close",
+			"error", err)
+	}
+
+	cancelDrain()
+
+	closeSSEBroadcasters(b)
+}
+
+// logger returns the configured logger, falling back to the default.
+func (b *Bundle) logger() *slog.Logger {
+	if b.config.Logger != nil {
+		return b.config.Logger
+	}
+
+	return slog.Default()
 }

@@ -67,24 +67,7 @@ func (b *Bundle) runWithAppkit(
 		handler = b.Middleware()(mux)
 	}
 
-	//nolint:exhaustruct // optional appkit fields default sensibly inside appkit
-	svc, err := appkit.NewService(appkit.ServiceConfig{
-		Addr:              addr,
-		LogLevel:          logLevel,
-		ReadTimeout:       appkit.NoTimeout,
-		ReadHeaderTimeout: runReadHeaderTimeout,
-		WriteTimeout:      appkit.NoTimeout,
-		IdleTimeout:       runIdleTimeout,
-		ShutdownTimeout:   runShutdownTimeout,
-		DrainDelay:        drainDelay,
-		ReadyCheck:        b.bundleReadyCheck(),
-		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready (see doc above)
-		Metrics:           b.config.Metrics,
-		Version:           b.config.Version,
-		StartHooks:        b.config.AppkitStartHooks,
-		DrainHooks:        b.config.AppkitDrainHooks,
-		ShutdownHooks:     b.config.AppkitShutdownHooks,
-	})
+	svc, err := appkit.NewService(b.appkitServiceConfig(addr, drainDelay, logLevel))
 	if err != nil {
 		//cqrs-lint:ignore(C023) error path: the config rejection is primary; Close is secondary
 		_ = b.Close()
@@ -136,6 +119,36 @@ func (b *Bundle) runWithAppkit(
 // flip before connections close. RunHandler has no drain phase at all; this is
 // the first behavioral uplift of RunHandler.
 const appkitDefaultDrainDelay = 2 * time.Second
+
+// appkitServiceConfig assembles the appkit.ServiceConfig for the bundle's
+// serve path: the SSE-safe timeout policy, the bundle readiness probe, and the
+// consumer-facing extras (Metrics, Version, and the three lifecycle-hook
+// seams forwarded from Config).
+//
+//nolint:exhaustruct // optional appkit fields default sensibly inside appkit
+func (b *Bundle) appkitServiceConfig(
+	addr string,
+	drainDelay time.Duration,
+	logLevel appkit.LogLevel,
+) appkit.ServiceConfig {
+	return appkit.ServiceConfig{
+		Addr:              addr,
+		LogLevel:          logLevel,
+		ReadTimeout:       appkit.NoTimeout,
+		ReadHeaderTimeout: runReadHeaderTimeout,
+		WriteTimeout:      appkit.NoTimeout,
+		IdleTimeout:       runIdleTimeout,
+		ShutdownTimeout:   runShutdownTimeout,
+		DrainDelay:        drainDelay,
+		ReadyCheck:        b.bundleReadyCheck(),
+		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready (see doc above)
+		Metrics:           b.config.Metrics,
+		Version:           b.config.Version,
+		StartHooks:        b.config.AppkitStartHooks,
+		DrainHooks:        b.config.AppkitDrainHooks,
+		ShutdownHooks:     b.config.AppkitShutdownHooks,
+	}
+}
 
 // bundleReadyCheck adapts the FULL bundle readiness composition onto appkit's
 // boolean probe: ready only when every check passes (projections drained,

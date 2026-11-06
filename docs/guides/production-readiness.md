@@ -105,6 +105,34 @@ graph TD
 - [ ] **API docs** — `openapi.OpenAPISpecHandler(spec)` or `catalog/v4/docserver` for OpenAPI/AsyncAPI
 - [ ] **See** `docs/guides/event-catalog-guide.md`
 
+### 9. systemd Readiness Signals (setup + RunWithAppkit)
+
+- [ ] **Serve with `RunWithAppkit`** — it is the production drain path: `/health/ready` flips to 503 the moment shutdown begins, waits `DrainDelay` (2s default), then stops accepting and drains (see `setup/README.md` § Drain posture)
+- [ ] **Wire `Type=notify` + the three hook seams** — `Config.AppkitStartHooks` (post-listen, pre-serve), `Config.AppkitDrainHooks` (at the readiness flip, before the listener closes), and `Config.AppkitShutdownHooks` (after connections release, before the bundle closes stores/projections/SSE)
+
+```go
+import "github.com/coreos/go-systemd/v22/daemon"
+
+bundle := setup.MustNew(setup.Config{
+    // ...
+    AppkitStartHooks: []appkit.Hook{func(context.Context) error {
+        _, _ = daemon.SdNotify(false, daemon.SdNotifyReady) // READY=1: port bound, about to serve
+        return nil
+    }},
+    AppkitDrainHooks: []appkit.Hook{func(context.Context) error {
+        _, _ = daemon.SdNotify(false, daemon.SdNotifyStopping) // STOPPING=1: readiness flipped, draining
+        return nil
+    }},
+    AppkitShutdownHooks: []appkit.Hook{func(ctx context.Context) error {
+        return otelProvider.Shutdown(ctx) // flush spans while stores/projections are still live
+    }},
+})
+```
+
+- [ ] **Ordering guarantee (pinned by test)** — start hooks run before the first accepted request, drain hooks before the listener closes, shutdown hooks before `Bundle.Close()`
+- [ ] **See** `setup/README.md` § Drain posture and the `appkit.ServiceConfig` hook contracts
+
+
 ## Quick-Start Template
 
 ```go

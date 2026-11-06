@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -20,7 +21,7 @@ import (
 // their Config path is unset — construction is cheap and keeps Mount trivial
 // — except that nothing is served without a path.
 func (b *Bundle) attachMachineEndpoints() error {
-	catalog, err := cqrshtmx.EventCatalogHandler(usermgmt.DefaultEventCatalog())
+	catalog, err := eventcatalog.Handler(usermgmt.DefaultEventCatalog())
 	if err != nil {
 		return errorfamily.WrapRejection(
 			err,

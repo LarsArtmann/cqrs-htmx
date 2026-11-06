@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/datastar/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // Mount registers all UI routes on the mux with the correct middleware ordering.
@@ -114,7 +115,7 @@ func (b *Bundle) mountEventFeeds(mux *http.ServeMux) {
 	// exists when only DataStarPath is set, and no /sse route mounts then.
 	if b.Broadcaster != nil && cfg.SSEPath != "" {
 		if cfg.SSEScriptPath != "" && cfg.SSEScriptPath != "-" {
-			mux.Handle(cfg.SSEScriptPath, cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
+			mux.Handle(cfg.SSEScriptPath, htmx.ExtensionHandler(htmx.ExtSSE))
 		}
 
 		mux.Handle(cfg.SSEPath, b.sseHandler())
