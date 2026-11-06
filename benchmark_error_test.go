@@ -3,8 +3,8 @@ package cqrshtmx_test
 import (
 	"testing"
 
-		errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func BenchmarkMapError(b *testing.B) {

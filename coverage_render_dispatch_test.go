@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {

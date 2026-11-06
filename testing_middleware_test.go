@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	. "github.com/onsi/gomega"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
+	. "github.com/onsi/gomega"
 )
 
 // --- Request/response helpers ---

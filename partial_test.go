@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // errTemplComponent is a TemplComponent that always fails to render.

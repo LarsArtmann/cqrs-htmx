@@ -9,10 +9,10 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	servertiming "github.com/larsartmann/httputil/server_timing"
-	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // examplePingDecoder is shared by ExampleApp_Command_BeforeAfter and

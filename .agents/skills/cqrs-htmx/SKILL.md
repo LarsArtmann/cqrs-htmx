@@ -75,7 +75,7 @@ Two rules that matter:
    files still alias every subpackage symbol so existing v4 code compiles unchanged, but
    each alias carries `// Deprecated:` naming the direct import and is deleted in v5.
    Write `htmx.ScriptHandler`, not `cqrshtmx.HTMXScriptHandler`. `nix run
-   .#check-reexport-policy -- --strict` refuses a new alias file or alias growth; the
+.#check-reexport-policy -- --strict` refuses a new alias file or alias growth; the
    policy, the exemption classes and the one-breaking-window rule are in
    `docs/adr/0062-direct-imports-only.md` in the repo.
 2. **The layering is one-way and gated.** `internal/hx` imports nothing in-module;

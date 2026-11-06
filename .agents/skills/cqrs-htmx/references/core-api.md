@@ -59,6 +59,7 @@ cqrshtmx.RequestGuard(func(r *http.Request, cmdOrQuery any) error)  // custom au
 `RequestGuard` supports any auth model that doesn't fit Casbin: cookie-based ownership checks,
 API key validation, JWT claims. The guard receives the decoded command/query (type-assert in your function).
 Return an error to abort dispatch (passed to the error handler); return nil to proceed.
+
 ### Dispatch gate (authorization at the dispatcher, ADR 0063)
 
 Route options only cover requests. These cover every dispatch, including a
@@ -181,7 +182,7 @@ Swap strategy constants: `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `S
 | `RecoveryMiddleware`                                                     | Package-level panic recovery (uses `DefaultErrorHandler`).                                                               |
 | `app.RecoverHandler()`                                                   | Panic recovery using the App's error handler.                                                                            |
 | `SecurityHeadersMiddleware` / `SecurityHeadersMiddlewareWithConfig(cfg)` | X-Content-Type-Options, X-Frame-Options, Referrer-Policy, optional CSP/HSTS. **Never auto-applied** (library principle). |
-| `HTMXMiddleware`                                                         | Detects HTMX requests, stores `htmx.Request` in context.                                                                  |
+| `HTMXMiddleware`                                                         | Detects HTMX requests, stores `htmx.Request` in context.                                                                 |
 | `ContextEnrichmentMiddleware(extractor)`                                 | Generates correlation/request IDs, injects user ID. (`app.Middleware()` wraps this.)                                     |
 | `CSRFMiddleware(cqrshtmx.CSRFConfig)`                                    | justinas/nosurf integration with origin checks + proxy trust.                                                            |
 | `CSRFResponseHeaderMiddleware`                                           | Exposes CSRF token via a response header.                                                                                |

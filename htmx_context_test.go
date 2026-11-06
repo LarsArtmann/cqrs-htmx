@@ -6,9 +6,9 @@ import (
 	"strconv"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 var _ = Describe("HTMX Request Context", func() {

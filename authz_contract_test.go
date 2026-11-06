@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 // fourArgEnforcer models the library's shipped RBAC model

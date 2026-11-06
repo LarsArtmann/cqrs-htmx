@@ -67,13 +67,13 @@ The catalog is a JSON array of event metadata:
 
 ## Registered Events (27 total)
 
-| Aggregate      | Event Types                                                                                                                                                                                                        |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Aggregate      | Event Types                                                                                                                                                                                                                        |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | User (13)      | UserRegistered, RolesUpdated (legacy), EmailChanged, DisplayNameChanged, UserDeleted, CredentialAdded, CredentialRemoved, CredentialUsed, EmailVerified, TOTPEnabled, TOTPDisabled, ExternalAccountLinked, ExternalAccountUnlinked |
-| Membership (3) | MemberAdded, MemberRolesChanged, MemberRemoved                                                                                                                                                                     |
-| Tenant (4)     | TenantCreated, TenantSuspended, TenantReactivated, TenantDeleted                                                                                                                                                   |
-| Bot (2)        | BotRegistered, BotDeleted                                                                                                                                                                                          |
-| Auth (5)       | LoginSucceeded, LoginFailed, RegistrationClosed, SessionStarted, SessionEnded                                                                                                                                      |
+| Membership (3) | MemberAdded, MemberRolesChanged, MemberRemoved                                                                                                                                                                                     |
+| Tenant (4)     | TenantCreated, TenantSuspended, TenantReactivated, TenantDeleted                                                                                                                                                                   |
+| Bot (2)        | BotRegistered, BotDeleted                                                                                                                                                                                                          |
+| Auth (5)       | LoginSucceeded, LoginFailed, RegistrationClosed, SessionStarted, SessionEnded                                                                                                                                                      |
 
 The inventory is drift-gated: `TestEventCatalog_InventoryMatchesEventConstants`
 (usermgmt) fails when an identity-model event constant and the catalog table
