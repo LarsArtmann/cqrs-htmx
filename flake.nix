@@ -1195,6 +1195,8 @@
                       bash bash scripts/selftests/test-check-root-size.sh
                       bash bash scripts/checks/check-root-clusters.sh
                       bash bash scripts/selftests/test-check-root-clusters.sh
+                      bash DOCS_GATES_NO_NIX=1 bash scripts/checks/docs-gates-battery.sh
+                      bash bash scripts/selftests/test-docs-gates-battery.sh
                       bash bash scripts/selftests/test-evict-archive.sh
                       bash bash scripts/selftests/test-archive-status.sh
                       bash bash scripts/checks/check-docs-tail-budget.sh --ratchet
@@ -1269,6 +1271,8 @@
                         "root-size-self-test:bash scripts/selftests/test-check-root-size.sh"
                         "root-clusters:bash scripts/checks/check-root-clusters.sh"
                         "root-clusters-self-test:bash scripts/selftests/test-check-root-clusters.sh"
+                        "docs-gates-battery:DOCS_GATES_NO_NIX=1 bash scripts/checks/docs-gates-battery.sh"
+                        "docs-gates-battery-self-test:bash scripts/selftests/test-docs-gates-battery.sh"
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
                         "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
                         "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
@@ -1938,6 +1942,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-root-clusters.sh
+                  '';
+                }
+              );
+            };
+
+            check-docs-gates-battery = {
+              type = "app";
+              meta.description = "Run the docs-health five-gate battery (freshness/audit-all/annotate/routing/cadence) as ONE matrix — advisory by default, --strict to block; self-skips with a printed reason when the docs-gates binary is unavailable (nix run fallback included)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-docs-gates-battery";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                    pkgs.nix
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/docs-gates-battery.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-docs-gates-battery = {
+              type = "app";
+              meta.description = "Fixture self-test for docs-gates-battery.sh (9 stub cases: green matrix/advisory WARNING/--strict exit 1/broken battery exit 2/crash not promotable/honest SKIP/non-executable binary/unknown arg/--json passthrough)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-docs-gates-battery";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-docs-gates-battery.sh
                   '';
                 }
               );

@@ -913,6 +913,14 @@ jobs:
       - name: Root cluster manifest gate self-test
         run: bash scripts/selftests/test-check-root-clusters.sh
 
+      # Docs-gates five-gate battery (docs-health): advisory on purpose —
+      # `.docs-gates.json`'s audit_max is a local policy pin and the binary is
+      # not a flake input, so the wrapper self-skips (exit 0, reason printed)
+      # when docs-gates is unavailable on the runner. Findings never red this
+      # step; promoting it to --strict is an owner decision.
+      - name: Docs-gates battery (advisory)
+        run: bash scripts/checks/docs-gates-battery.sh
+
       # The owner-gated archive eviction's tool: proves the keep-list protects
       # cited files and that the removal is exact and idempotent (no deletion).
       - name: Archive eviction tool self-test
