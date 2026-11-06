@@ -221,3 +221,4 @@ All 3 files: classification **ARCHIVE** (dated `> ANNOTATED 2026-11-05` blockquo
 ## Why not "update them all" ad hoc?
 
 Bulk-editing historical files without verification would be a [Verschlimmbesserung](https://en.wikipedia.org/wiki/Verschlimmbessern) — a well-intentioned change that makes things worse. The 2026-09-09 sweep did the verified version of this work once (every report read and checked against CHANGELOG/git/code before annotation). New reports: write them, and route anything still-open into the living docs so the next sweep stays small.
+  - 2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md
