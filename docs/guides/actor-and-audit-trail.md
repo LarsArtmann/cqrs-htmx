@@ -168,6 +168,61 @@ correlate by token hash. Known limitation: the SQL sweeper's bulk
 The `AuditLog` projection renders both as `session_started` /
 `session_ended` actions with the cause as the detail.
 
+Both events carry the IMPERSONATOR as their event actor for an impersonation
+session (the target rides the payload as `ActorID`), so one query for
+"everything admin Y did" returns the whole window.
+
+#### Answering the question
+
+Read the journal, not the user aggregate stream — the auth-audit events live
+on their own fresh Auth-typed streams, so `Load` on a user stream will never
+find them:
+
+```go
+journal, ok := any(bundle.EventStore).(event.Journal) // setup.Bundle, or EventSourcedSetup.Store
+if !ok {
+	panic("event store does not expose the journal")
+}
+events, err := journal.ReadAll(ctx)
+if err != nil {
+	return err
+}
+for _, evt := range events {
+	if evt.Type() != identitymodel.EventSessionStarted {
+		continue
+	}
+	var p identitymodel.SessionStartedPayload
+	if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		return err
+	}
+	// p.Impersonator != "" ⇒ an impersonation session; the forensic window is
+	// [p.StartedAt, p.ExpiresAt] and p.TokenHash joins it to its SessionEnded.
+}
+```
+
+The same journal, query side (SQLite/MySQL 8+; Postgres spells the accessor
+`payload::jsonb ->> 'impersonator'` and the encoding `payload_encoding` is
+still the guard for JSON-vs-CBOR payloads):
+
+```sql
+SELECT occurred_at,
+       json_extract(payload, '$.actor_id')     AS targeted_user,
+       json_extract(payload, '$.impersonator') AS admin,
+       json_extract(payload, '$.reason')       AS reason,
+       json_extract(payload, '$.started_at')   AS started_at,
+       json_extract(payload, '$.expires_at')   AS expires_at,
+       json_extract(payload, '$.token_hash')   AS correlation_key
+FROM events
+WHERE event_type = 'SessionStarted'
+  AND payload_encoding = 'json'
+  AND json_extract(payload, '$.impersonator') IS NOT NULL
+  AND occurred_at >= ? AND occurred_at < ?
+ORDER BY occurred_at;
+```
+
+For a live view: `AuditLog.Recent`/`EntriesFor` and adminui's audit log show
+the entries, and dashboardui's events panel shows the raw payloads.
+
 ## Checklist
 
 - [ ] Authenticated HTTP: nothing to do (auto-derived).

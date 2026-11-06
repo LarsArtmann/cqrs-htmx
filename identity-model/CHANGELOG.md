@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`SessionStarted` / `SessionEnded` events + the `SessionEndCause` vocabulary (cqrs-htmx#25, ADR 0060).** `SessionStartedPayload` carries `ActorID` (the target for an impersonation session), `Impersonator`, `Reason`, `StartedAt`, `ExpiresAt`, and `TokenHash`; `SessionEndedPayload` carries `ActorID`, `Impersonator`, `TokenHash`, and a bounded `Cause` (`logout` / `expired` / `impersonation_ended` / `revoked` / `deleted` — coarse classes only, never raw error text). `SessionTokenHash(token)` is the base64url SHA-256 correlation key linking a start to its end; the 256-bit token is never journaled and cannot be recovered from the digest. Event count 25 → 27 (5 auth-audit).
+
 - **The decision seam: `Authz.Check`, `WildcardDomain`, `AdminRoles()` (authorization level-up, 2026-11-02).** `Authz.Check(subject, domain, resource, action) (bool, []string, error)` answers one authorization question with the matched policy rows, and satisfies `cqrshtmx.PermissionChecker` **structurally** — the identity model still imports no HTTP, and the root package still imports no Casbin. `WildcardDomain` names the installation-wide domain (the literal `*`, previously spelled inline in three places), and `AdminRoles()` returns the admin tier (`super_admin`, `admin`) so "is anybody an admin?" stops being re-implemented per consumer. Additive only.
 
 - **`Authz.ApplyGroupPolicy` — the projection write seam.** The event-sourced `CasbinProjection` now writes through `ApplyGroupPolicy`, so replaying a membership event carries no deprecation warning. See the deprecation below for the consumer-facing rule.

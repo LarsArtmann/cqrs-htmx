@@ -530,13 +530,11 @@ that the real linter does not reproduce — stale LSP parse, ignore it.
 
 ### Still open after W0 (deliberately)
 
-- ~~**Push.** The branch is ahead of `origin/master`, a stale host git rewrite makes `git push`
-  fail on tag resolution, and the range also contains another session's unrelated commits.~~
-  **PUSHED 2026-11-06 ~10:50** — fast-forward `d0f181e2..ffa50a92` on `origin/master`
-  (31 commits); the pre-push hook's CI-parity legs (release-train strict + version-drift
-  `--strict`) were green at push time, and both workstreams' commits went out together. The
-  stale host rewrite named here did not block THIS push (the session log shows a plain
-  `git push` from `git sync` succeeding); `GIT_CONFIG_GLOBAL=/dev/null` stays the fallback.
+- ~~**Push.** The branch is ahead of `origin/master`, a stale host git rewrite makes `git push` fail on tag resolution, and the range also contains another session's unrelated commits.~~ done at `ffa50a92` — pushed fast-forward `d0f181e2..ffa50a92` to `origin/master` (31 commits).
+  The pre-push hook's CI-parity legs (release-train strict + version-drift `--strict`) were green
+  at push time, and both workstreams' commits went out together. The stale host rewrite named here
+  did not block THIS push (the session log shows a plain `git push` from `git sync` succeeding);
+  `GIT_CONFIG_GLOBAL=/dev/null` stays the fallback.
 - **The aggregate battery: RUN, and red for reasons that predate W0.** `nix run .#check-modules`
   = 92 stages, 9 failed (`corpus-budget-ratchet`, `module-isolation`, `module-isolation-examples`,
   `release-train`, `route-postures`, `route-postures-self-test`, `streamid-identity`,
