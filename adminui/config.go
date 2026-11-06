@@ -26,6 +26,20 @@ const (
 // [Config.AccentColor] is empty.
 const DefaultAccentColor = "#4f46e5"
 
+// SSEHubStatsSource reports live health for the consumer's shared SSE hub:
+// connected subscribers and the lifetime count of events dropped for slow
+// consumers (silent data loss without reconnect replay — the count existing
+// to be seen). Satisfied structurally by an adapter over the consumer's
+// broadcaster and drop counter; setup wires one automatically when its
+// shared SSE/DataStar hub is enabled.
+type SSEHubStatsSource interface {
+	// SubscriberCount is the number of live SSE connections right now.
+	SubscriberCount() int
+	// DroppedEvents is the lifetime total of events dropped for slow
+	// consumers since process start.
+	DroppedEvents() int64
+}
+
 // MaxListRows is the maximum number of rows rendered in a single list page. It
 // bounds memory and response size for large datasets. The UI shows a "showing N
 // of M" note when a list is truncated. (Real server-side pagination is a future
@@ -86,6 +100,13 @@ type Config struct {
 	// layout includes a data-sse-url attribute and renders the global sync
 	// indicator (.sync-bar). Empty disables honest UI sync tracking.
 	SSEURL string
+
+	// SSEHubStats, when set, adds two operational cards to the dashboard
+	// stats region (and its 30s polled refresh): live SSE subscribers and
+	// the lifetime slow-consumer drop count (amber tone when any occurred —
+	// drops are silent data loss, so nonzero deserves attention). Nil (the
+	// default) adds nothing; wire it only when a hub exists.
+	SSEHubStats SSEHubStatsSource
 
 	// NonceFunc returns a per-request CSP nonce for inline scripts (used by
 	// ToastContainer and GlobalErrorHandling). Return "" if CSP is not active.

@@ -62,6 +62,31 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 			Href:  p.BasePath + "/audit",
 		})
 	}
+
+	if s := h.config.SSEHubStats; s != nil {
+		dropped := s.DroppedEvents()
+
+		dropTone := display.StatToneGreen
+		if dropped > 0 {
+			dropTone = display.StatToneYellow
+		}
+
+		stats = append(stats,
+			statCard{
+				Label: "SSE live",
+				Value: strconv.Itoa(s.SubscriberCount()),
+				Icon:  iconSSE,
+				Tone:  display.StatToneGreen,
+			},
+			statCard{
+				Label: "Dropped events",
+				Value: strconv.FormatInt(dropped, 10),
+				Icon:  iconDrops,
+				Tone:  dropTone,
+			},
+		)
+	}
+
 	return stats
 }
 

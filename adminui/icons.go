@@ -13,4 +13,6 @@ const (
 	iconTenants   = string(icons.BuildingOffice2)
 	iconMembers   = string(icons.UserPlus)
 	iconAudit     = string(icons.Clock)
+	iconSSE       = string(icons.Signal)
+	iconDrops     = string(icons.Bolt)
 )
