@@ -1,6 +1,9 @@
 package adminui
 
 import (
+	"net/url"
+	"strings"
+
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
@@ -102,8 +105,9 @@ type listPage struct {
 // usersListData drives the users index.
 type usersListData struct {
 	Users    []*identitymodel.User
-	Total    int // total matching the search (may exceed len(Users) when paginated)
+	Total    int        // total matching the search + filter (may exceed len(Users) when paginated)
 	Search   string
+	Filter   userFilter // active status chip ("" = none)
 	BasePath string
 	listPage
 }
@@ -196,6 +200,46 @@ func revokeRolesConfirm(d userDetailData) string {
 	}
 	return "Revoke all platform roles for " + d.User.Email +
 		"? They lose admin-panel access until re-granted."
+}
+
+// userFilterChip is one rendered status chip on the users index.
+type userFilterChip struct {
+	Label  string
+	Href   string
+	Active bool
+}
+
+// userFilterChipsList builds the chip row, preserving an active search: the
+// active chip toggles the filter OFF (keeps q), the others toggle their own
+// filter ON (also keeping q).
+func userFilterChipsList(d usersListData) []userFilterChip {
+	base := d.BasePath + "/users"
+	type spec struct {
+		filter userFilter
+		label  string
+	}
+	specs := []spec{
+		{userFilterVerified, "Verified"},
+		{userFilterUnverified, "Unverified"},
+		{userFilterMFA, "MFA on"},
+		{userFilterExternal, "Has provider"},
+	}
+	chips := make([]userFilterChip, 0, len(specs))
+	for _, s := range specs {
+		href := base
+		params := make([]string, 0, 2)
+		if d.Search != "" {
+			params = append(params, "q="+url.QueryEscape(d.Search))
+		}
+		if s.filter != d.Filter {
+			params = append(params, "filter="+string(s.filter))
+		}
+		if len(params) > 0 {
+			href += "?" + strings.Join(params, "&")
+		}
+		chips = append(chips, userFilterChip{Label: s.label, Href: href, Active: s.filter == d.Filter})
+	}
+	return chips
 }
 
 // auditData drives the audit log page.

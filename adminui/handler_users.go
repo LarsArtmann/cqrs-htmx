@@ -12,11 +12,12 @@ import (
 
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
-	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q)
+	filter := parseUserFilter(r.URL.Query().Get("filter"))
+	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
 	d := usersListData{
 		Users: matched[offset : offset+limit], Total: len(matched), Search: q,
-		BasePath: h.config.BasePath, Page: page, TotalPages: totalPages,
+		Filter: filter, BasePath: h.config.BasePath, Page: page, TotalPages: totalPages,
 	}
 
 	if cqrshtmx.RenderPartial(r) {
@@ -27,21 +28,66 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 	renderPage(w, r, usersPage(p, d))
 }
 
-// filterUsers returns users whose email or display name contains q
-// (case-insensitive). Empty q returns all users.
-func filterUsers(all []*identitymodel.User, q string) []*identitymodel.User {
-	if q == "" {
-		return all
+// userFilter is a one-of status chip narrowing the users list. The zero
+// value means no filter (all users).
+type userFilter string
+
+const (
+	userFilterNone       userFilter = ""
+	userFilterVerified   userFilter = "verified"
+	userFilterUnverified userFilter = "unverified"
+	userFilterMFA        userFilter = "mfa"
+	userFilterExternal   userFilter = "external"
+)
+
+// parseUserFilter maps the query param to a chip, refusing unknown values
+// so a typo cannot silently mean "no filter".
+func parseUserFilter(raw string) userFilter {
+	switch userFilter(raw) {
+	case userFilterVerified, userFilterUnverified, userFilterMFA, userFilterExternal:
+		return userFilter(raw)
+	case userFilterNone:
+		return userFilterNone
+	default:
+		return userFilterNone
 	}
+}
+
+// filterUsers returns users whose email or display name contains q
+// (case-insensitive) and that satisfy the status chip. Empty q and no chip
+// return all users.
+func filterUsers(all []*identitymodel.User, q string, filter userFilter) []*identitymodel.User {
 	needle := strings.ToLower(q)
 	out := make([]*identitymodel.User, 0, len(all))
 	for _, u := range all {
-		if strings.Contains(strings.ToLower(u.Email), needle) ||
-			strings.Contains(strings.ToLower(u.DisplayName), needle) {
-			out = append(out, u)
+		if needle != "" &&
+			!strings.Contains(strings.ToLower(u.Email), needle) &&
+			!strings.Contains(strings.ToLower(u.DisplayName), needle) {
+			continue
 		}
+		if !userMatchesFilter(u, filter) {
+			continue
+		}
+		out = append(out, u)
 	}
 	return out
+}
+
+func userMatchesFilter(u *identitymodel.User, filter userFilter) bool {
+	switch filter {
+	case userFilterVerified:
+		return u.EmailVerified
+	case userFilterUnverified:
+		return !u.EmailVerified
+	case userFilterMFA:
+		return u.TOTPEnabled
+	case userFilterExternal:
+		return len(u.ExternalAccounts) > 0
+	case userFilterNone:
+		return true
+	default:
+		return true
+	}
 }
 
 func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {

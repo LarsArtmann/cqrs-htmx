@@ -52,8 +52,33 @@ templ usersContent(d usersListData) {
 			@feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})
 		</span>
 	</div>
+	@userFilterChips(d)
 	<div id="users-table">
 		@usersTableContent(d)
+	</div>
+}
+
+// userFilterChips renders the status chips (verified / unverified / MFA /
+// external). Each chip is a link that toggles itself: the active chip links
+// back to the unfiltered list (preserving the search), the inactive ones add
+// the filter. Full navigations keep history honest.
+templ userFilterChips(d usersListData) {
+	<div class="mb-4 flex flex-wrap items-center gap-1.5">
+		for _, chip := range userFilterChipsList(d) {
+			if chip.Active {
+				<a
+					class="rounded-full bg-gray-900 px-2.5 py-1 text-xs font-medium text-white no-underline dark:bg-white dark:text-gray-900"
+					href={ chip.Href }
+					aria-pressed="true"
+				>{ chip.Label }</a>
+			} else {
+				<a
+					class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 no-underline hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+					href={ chip.Href }
+					aria-pressed="false"
+				>{ chip.Label }</a>
+			}
+		}
 	</div>
 }
 
@@ -117,6 +142,9 @@ templ usersRows(d usersListData) {
 					}
 					if u.TOTPEnabled {
 						@statusBadge("MFA", display.BadgeInfo)
+					}
+					for _, ea := range u.ExternalAccounts {
+						@display.Badge(display.BadgeProps{Text: ea.Provider, Type: display.BadgeNeutral, Pill: true})
 					}
 				</div>
 			</td>

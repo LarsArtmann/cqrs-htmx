@@ -13,6 +13,7 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 	d := dashboardData{
 		Stats:    h.dashboardStats(r, p),
 		StatsURL: p.BasePath + "/partials/stats",
+		BasePath: p.BasePath,
 	}
 
 	if al := h.config.Service.AuditLog(); al != nil {
@@ -41,6 +42,7 @@ func (h *Handler) statsPartial(w http.ResponseWriter, r *http.Request, user *ide
 	renderPartial(w, r, dashboardStatsRegion(dashboardData{
 		Stats:    h.dashboardStats(r, p),
 		StatsURL: p.BasePath + "/partials/stats",
+		BasePath: p.BasePath,
 	}))
 }
 
