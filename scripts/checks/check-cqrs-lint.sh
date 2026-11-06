@@ -29,7 +29,7 @@ command -v cqrs-lint >/dev/null 2>&1 || {
 
 MODULES=("$@")
 if [ "${#MODULES[@]}" -eq 0 ]; then
-  MODULES=(. identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter health auditlog)
+  MODULES=(. identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar huma systemadapter health auditlog)
 fi
 
 echo "=== cqrs-lint strict check (stale suppressions fail) ==="

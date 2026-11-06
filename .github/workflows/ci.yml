@@ -183,6 +183,13 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Build huma submodule
+        run: cd huma && go build ./...
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Build auditlog submodule
         run: cd auditlog && go build ./...
         env:
@@ -306,6 +313,13 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Test huma submodule
+        run: cd huma && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Test auditlog submodule
         run: cd auditlog && go test ./... -count=1 -race -coverprofile=coverage.out
         env:
@@ -360,6 +374,11 @@ jobs:
         env:
           GOWORK: off
 
+      - name: huma coverage check
+        run: bash scripts/checks/check-coverage-threshold.sh huma
+        env:
+          GOWORK: off
+
       - name: auditlog coverage check
         run: bash scripts/checks/check-coverage-threshold.sh auditlog
         env:
@@ -373,7 +392,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [".", "usermgmt", "adminui", "identity-model", "dashboardui", "loginpage", "datastar", "setup", "systemadapter", "health", "auditlog"]
+        module: [".", "usermgmt", "adminui", "identity-model", "dashboardui", "loginpage", "datastar", "huma", "setup", "systemadapter", "health", "auditlog"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -427,7 +446,7 @@ jobs:
 
       - name: Verify go mod tidy (all modules)
         run: |
-          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui setup systemadapter health auditlog integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
+          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui huma datastar setup systemadapter health auditlog integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
             echo "=== Checking $mod ==="
             (cd "$mod" && go mod tidy -diff)
           done
@@ -976,7 +995,7 @@ jobs:
       - name: Error family check
         run: |
           echo "=== Error Family Check ==="
-          go run scripts/checks/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage datastar setup
+          go run scripts/checks/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage datastar huma setup
           echo "OK: All modules pass errorfamily check."
         env:
           GOEXPERIMENT: jsonv2
