@@ -7,7 +7,7 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -21,7 +21,7 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 		Filter: filter, BasePath: h.config.BasePath, Page: page, TotalPages: totalPages,
 	}
 
-	if cqrshtmx.RenderPartial(r) {
+	if htmx.RenderPartial(r) {
 		renderPartial(w, r, usersTableContent(d))
 		return
 	}

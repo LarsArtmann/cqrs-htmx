@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/templ-components/errorpage"
 )
@@ -150,7 +150,7 @@ func (h *Handler) respondErrorHTML(w http.ResponseWriter, r *http.Request, statu
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
-	if cqrshtmx.IsHTMXRequest(r) {
+	if htmx.IsRequest(r) {
 		_, _ = w.Write([]byte(body))
 		return
 	}

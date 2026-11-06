@@ -6,7 +6,7 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // auditIndex renders the audit log. In tenant-admin mode the log is global
@@ -35,7 +35,7 @@ func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *ident
 		listPage: pg,
 	}
 
-	if cqrshtmx.RenderPartial(r) {
+	if htmx.RenderPartial(r) {
 		renderPartial(w, r, auditTableContent(d))
 		return
 	}

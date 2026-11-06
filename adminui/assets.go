@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 //go:embed assets/admin-tw.css assets/admin.js
@@ -30,7 +31,7 @@ func newAssetHandler(fsys fs.FS, name, contentType string) (http.Handler, error)
 
 // htmxScriptHandler serves the embedded HTMX script (v2.0.10) from the root
 // cqrs-htmx module, so the panel is fully self-contained.
-func htmxScriptHandler() http.Handler { return cqrshtmx.HTMXScriptHandler() }
+func htmxScriptHandler() http.Handler { return htmx.ScriptHandler() }
 
 // syncWorkerHandler serves the offline sync SharedWorker from the root module.
 func syncWorkerHandler() http.Handler { return cqrshtmx.SyncWorkerHandler() }
