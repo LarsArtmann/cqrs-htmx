@@ -3,7 +3,7 @@
 **Created:** 2026-11-06, 11:49 CET
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`
 **Companion documents:** `docs/status/2026-11-06_11-13_usermgmt-m2m-ai-agent-answer-audit-and-two-policy-identity-traps_status.md` (the findings), `docs/status/2026-11-06_11-49_m2m-findings-report-and-superb-design-answer_status.md` (the audit of the answer)
-**Status:** plan only. Nothing in this document has been implemented. No code was changed to produce it.
+**Status:** W0 executed 2026-11-06 (see the TODO_LIST M2M rows + CHANGELOG Unreleased); W1 onward blocked on the owner decisions tracked in TODO_LIST.md. No code was changed to produce the plan itself.
 
 ---
 
@@ -331,7 +331,7 @@ Gate commands, in the repo's own vocabulary: the module test app, the lint app, 
 
 ---
 
-## 9. Decisions that block work (owner input required)
+## 9. Decisions that block work (owner input required) — canonical tracked copy: the TODO_LIST.md "M2M owner decisions" row; answer THERE, this table is the frozen snapshot
 
 | Decision | Blocks | Why it cannot be inferred |
 | --- | --- | --- |

@@ -241,7 +241,7 @@ Ordered roughly by the ratio of risk removed to effort spent. None of these were
 
 ---
 
-## g) Three questions only you can answer
+## g) Three questions only you can answer — tracked canonically in the TODO_LIST.md "M2M owner decisions" row since 2026-11-06
 
 1. **Is bot-token M2M a supported product surface, or a vestige?** The `FEATURES.md` marks every bot row green and functional, but nothing in the authorization path treats a bot as grantable. The answer decides whether §f items 1 to 3 are a fix or a removal — and a removal with a deprecation note is a legitimate, cheaper answer that would need your sign-off because it is a published surface.
 2. **Should a bot's authority come from its own scopes, or from its owner's roles?** Scopes-fit-agents (narrow, explicit, per-agent) and delegation (a bot acts as the human who registered it, with audit carried on both) are both defensible and produce different data models: the first needs scope-to-policy derivation, the second needs an owner-resolution step at dispatch time plus a delegation record for the audit trail. I cannot pick this from the code, because the code currently implies all three options at once.

@@ -24,7 +24,7 @@ No production code was written, no test was run, no linter was run, no ADR was w
 
 ## a) FULLY DONE
 
-### a1. Seven findings, each reproducible in one command
+### a1. Seven findings, each reproducible in one command — tracked in the TODO_LIST.md M2M rows since 2026-11-06 (W0 fixed findings 3 and 6; the remaining five ride plan W1/W2)
 
 All were verified by reading, and each carries a command in the report's verification table.
 
@@ -247,7 +247,7 @@ Grouped by intent; the execution decomposition lives in the plan document named 
 
 ---
 
-## g) Three questions only you can answer
+## g) Three questions only you can answer — tracked canonically in the TODO_LIST.md "M2M owner decisions" row since 2026-11-06
 
 1. **Do the seven findings become issues now, or wait for the wave that fixes them?** My preference is issues now, because a status report is archived and the finding becomes archaeology, but filing seven issues may collide with how you triage this repo's backlog, and that is your call rather than mine.
 
