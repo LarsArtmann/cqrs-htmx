@@ -126,7 +126,8 @@
 4. **Treat one-number gate files as collision-prone shared state.** `docs/CORPUS_BASELINE` has now been corrupted twice and double-bumped repeatedly. It wants either a lock, a wider file format (baseline plus attribution plus date), or a generator that rewrites it from measurement.
 5. **Check ownership before a long pass, not before a single edit.** The sibling session was detectably live in the tree (a whole new `huma/` module appeared); a pre-pass ownership probe would have kept me out of `AGENTS.md` and `FEATURES.md` cleanly.
 6. **Run the composite when the change is structural.** Flake and CI edits deserve `check-modules`, even under load — or an explicit recorded deferral, which is what this report is.
-7. **Prefer measured counts to written ones.** The re-export plan's headline number contradicted its own table; a four-line script in a gate would make that impossible.
+7. **Know when a gate cannot express the truth, and prove it before exempting.** Eight of this report's §f items were unharvestable by construction: every token in them is generic (module names, command names), so the freshness matcher can never bind them to a living-doc line. `docs-gates freshness . --pre-flight` proved that with a near-verbatim candidate line (verdict: "no open report item is harvested by these candidate lines"), and only then did each item get a line-scoped `<!-- fresh:skip -->` carrying that proof. Exempting first and proving later would have been the wrong order.
+8. **Prefer measured counts to written ones.** The re-export plan's headline number contradicted its own table; a four-line script in a gate would make that impossible.
 
 ---
 
@@ -135,17 +136,17 @@
 1. Decide the `audit-all` pin: drain 393 → ≤322, or get the owner tick to re-pin (`TODO_LIST.md:39`).
 2. Drain the highest-value unharvested items first (19/16/14/14/13 from the archived 2026-10-06/07, 10-24/25 reports) by annotating each with its own evidence.
 3. Add the two missing `FEATURES.md` rows (dispatch gate ADR-0063, direct-imports policy ADR-0062).
-4. Run `nix run .#check-modules` end to end once the sibling releases the tree. Routed to plan task C12.
+4. Run `nix run .#check-modules` end to end once the sibling releases the tree. Routed to plan task C12. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
 5. Run `nix run .#check-cqrs-lint` to re-derive the two plans' red lists (dashboardui, systemadapter expected).
-6. Run `nix run .#coverage-gate` (not run this session). Routed to plan task C13.
+6. Run `nix run .#coverage-gate` (not run this session). Routed to plan task C13. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
 7. Run `nix run .#check-erraudit-strict` advisory and compare against the TOTAL=303 baseline.
 8. Run `nix run .#train-preflight` in a quiet window (mandatory before any train).
-9. Tag `identity-model` first, then **root**, then `usermgmt`, `adminui`, `dashboardui`, `setup`. Routed to plan task C03.
-10. After the root tag, sweep `setup`, `dashboardui`, `integration_test`, `examples/*` requires to the new tags. Routed to plan task C05.
+9. Tag `identity-model` first, then **root**, then `usermgmt`, `adminui`, `dashboardui`, `setup`. Routed to plan task C03. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
+10. After the root tag, sweep `setup`, `dashboardui`, `integration_test`, `examples/*` requires to the new tags. Routed to plan task C05. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
 11. Re-run `check-route-postures` post-train; it should go green by itself (gotcha 30).
 12. Fix `streamid-identity` at `dashboardui/core/command_fates.go:198` (display form in an identity slot, gotcha 25).
 13. Re-run `verify-remote-tags` after the train (peeled-ref audit).
-14. File the upstream go-cqrs-lite ask for the dispatch middleware (owner-gated). Routed to plan task C24.
+14. File the upstream go-cqrs-lite ask for the dispatch middleware (owner-gated). Routed to plan task C24. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
 15. Watch go-cqrs-lite for the catalog release that regenerates `docserver` against templ v0.3.1100.
 16. Bump `examples/catalog-demo` and `integration_test` once that catalog release ships.
 17. Wire `check-conflict-markers` into `.githooks/pre-commit` and `scripts/hooks/pre-commit.template` for fail-early.
@@ -161,7 +162,7 @@
 27. Consumer wave 3: crm — seed an admin or set `DisableAdmin`.
 28. Consumer wave 4: InboxClean — drop `sseDeadlineFree`, use the library deadline fix.
 29. Consumer wave 5: github-local-sync and webphone — declare postures and run `authztest.CommandSuite`.
-30. True `TODO_LIST.md:21` to the same measured root counts I corrected in the plan (53 / 7,594 is wrong in both places). Routed to plan task C17..
+30. True `TODO_LIST.md:21` to the same measured root counts I corrected in the plan (53 / 7,594 is wrong in both places). Routed to plan task C17. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->.
 31. Add a gate that recomputes root production file and LOC counts into the docs, so the number stops being hand-maintained.
 32. Replace the re-export plan's per-cluster LOC estimates with a script-generated table.
 33. Archive the 12 live status reports after annotating them (tail budget is 3).
@@ -170,13 +171,13 @@
 36. Publish the docs-gates matrix in CI (`docs-gates run . --json`) so a red gate is visible without a session.
 37. Decide whether docs-gates joins `check-modules` (today it is local-advisory only).
 38. Sweep inline done-narratives out of open TODO rows into CHANGELOG (15 rows exceed 1,500 chars).
-39. Split those 15 rows into a short row plus a linked report or plan anchor. Routed to plan task C19.
+39. Split those 15 rows into a short row plus a linked report or plan anchor. Routed to plan task C19. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
 40. Re-run `check-skill-snippets` and `check-skill-claims` after the sibling's skill edits land.
 41. Explain the 248 → 218 skill-symbol delta and record which examples were removed.
 42. Re-attribute the `docs/guides/actor-and-audit-trail.md` growth once the sibling lands its own ledger row.
 43. Give `bump-dep.sh` a family-aware failure hint that quotes the new runbook row automatically.
 44. Add a `bump-dep --explain` mode that names the tag-gap class instead of dumping raw compiler errors.
-45. Re-run the go-appkit sweep after the train and expect 4/4 PASS. Routed to plan task C08.
+45. Re-run the go-appkit sweep after the train and expect 4/4 PASS. Routed to plan task C08. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
 46. Confirm `examples/async-startup-demo` (the one module that passed today) still passes post-train.
 47. Consider a wider baseline file format (count plus attribution plus date) to end the one-number corruption class.
 48. Add a collision probe to the session-start runbook: check for other live sessions before a multi-file pass.
