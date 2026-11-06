@@ -115,7 +115,7 @@ Every serious comparison uses `b.Loop()` (Go 1.24+) + `b.ReportAllocs()` + `b.Re
 
 ## Gotchas
 
-54 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
+55 numbered traps. Full text lives in **[`docs/gotchas.md`](docs/gotchas.md)** (each entry keeps its
 number and has a `#gotcha-N` anchor). This index is the scan surface; open the file for the detail.
 
 | #   | Trap                                                                                                                                                                                                                         | #   | Trap                                                                                                                                                                                                                                           |
@@ -149,6 +149,7 @@ number and has a `#gotcha-N` anchor). This index is the scan surface; open the f
 | 49  | GitHub API merges of workflow-file PRs are refused without the `workflow` OAuth scope — land via local merge + SSH push (Dependabot actions bumps hit this every time; full text: gotcha 49)                                 | 50  | A hook-red window suspends the safety gate for EVERY committer — name it in TODO, keep `--no-verify` commits docs-only or hand-verified, close the root cause the same session (full text: gotcha 50)                                          |
 | 51  | Under load >30 BuildFlow steps die to spawn starvation (not timeouts) — `BUILDFLOW_MAX_CONCURRENCY=1` on the FIRST commit attempt; the daemon commits through starved windows, verify content in HEAD (full text: gotcha 51) | 52  | Tailwind harvests class tokens from COMMENTS — a phantom `.shadow`-class token reds `check-css-bundle-classes` with zero real drift; diff token sets first: comment word = reword, real utility = stale bundle, rebuild (full text: gotcha 52) |
 | 53  | Tree-wide `nix fmt` formats concurrent sessions' in-flight files — scope every pass to owned paths + run the opening collision probe before tree-wide operations (full text: gotcha 53)                                      | 54  | A colon or dot in a policy OBJECT is a silent wildcard under keyMatch2 — dispatch objects are spelled `command/<Name>` (full text: gotcha 54)                                                                                                  |
+| 55  | `event.New` defaults its payload encoding to CBOR (go-cqrs-lite v4.15.2) — every payload decode must switch on `evt.Encoding()`; canonical switch in `dashboardui/core/payload.go` (full text: gotcha 55)                  |     |                                                                                                                                                                                                                                                |
 
 ---
 

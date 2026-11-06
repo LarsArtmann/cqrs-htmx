@@ -79,6 +79,7 @@ func TestRoutes_FullConfigExposesEveryPanel(t *testing.T) {
 		"Projections":   4,
 		"Dead letters":  6,
 		"Commands":      2,
+		"Command fates": 1,
 		"Queries":       2,
 		"Time travel":   2,
 		"Snapshots":     3,
@@ -144,8 +145,9 @@ func TestRoutes_MinimalConfigListsOnlyUnconditionalRoutes(t *testing.T) {
 
 	routes := d.Routes()
 
-	// 4 assets + 3 observability probes + the overview + 2 event routes.
-	const want = 10
+	// 4 assets + 3 observability probes + the overview + 2 event routes
+	// + the command-fates window (journal-derived, same gate as events).
+	const want = 11
 
 	if len(routes) != want {
 		t.Fatalf("Journal-only manifest has %d routes, want %d: %+v", len(routes), want, routes)
@@ -153,7 +155,7 @@ func TestRoutes_MinimalConfigListsOnlyUnconditionalRoutes(t *testing.T) {
 
 	for _, route := range routes {
 		switch route.Panel {
-		case "Assets", "Observability", "Overview", "Events":
+		case "Assets", "Observability", "Overview", "Events", "Command fates":
 		default:
 			t.Errorf("Journal-only manifest must not list panel %q (route %s %s)",
 				route.Panel, route.Method, route.Pattern)

@@ -162,8 +162,8 @@ interface activates a panel:
 | ----------------- | -------------------------------- | ----------------------------------------- |
 | `EventSource`     | `event.EventSource`              | Aggregates, Aggregate Detail, Time-Travel |
 | `EventByIDLoader` | `LoadByEventID(ctx, id.EventID)` | Event Detail (O(1) lookup)                |
-| `Journal`         | `event.Journal`                  | Events, Overview                          |
-| `SeekableJournal` | `event.SeekableJournal`          | Events (paginated)                        |
+| `Journal`         | `event.Journal`                  | Events, Overview, Command Fates           |
+| `SeekableJournal` | `event.SeekableJournal`          | Events (paginated), Command Fates         |
 | `StreamReader`    | `listing.StreamReader`           | Aggregate Browser                         |
 | `ProjectionHost`  | `*projectionhost.Host`           | Projections, Projection Reset             |
 | `DeadLetterStore` | `projectionhost.DeadLetterStore` | Dead-Letter Queue (delete/purge)          |
@@ -468,6 +468,27 @@ All list pages support data export via query parameters:
 - **`?format=csv`**: Downloads a CSV file with up to 10,000 rows
 - **`?format=json`**: Returns a JSON array of row objects
 - Available on: `/events`, `/commands`, `/queries`
+
+### Command Fates
+
+`/command-fates` answers "what happened to my commands?" — the newest
+rejected / failed / retried / dead-lettered / completed outcomes recorded by
+go-cqrs-lite's `commandlifecycle` package, decoded from the journal (CBOR and
+JSON payload encodings both handled):
+
+- **Fate badges**: rejected/failed/retried/dead-lettered/completed, colored
+  by severity; the errorfamily classification rides along as a second badge
+  (`rejection/user.email_taken`) when the rejecting chain declared one
+- **Honest drift**: lifecycle event types newer than this build stay visible
+  with the raw type as the fate; undecodable payloads keep their row
+- **`command.received` is not a fate**: arrival events are skipped — every
+  row is an outcome
+- Rows link into the event browser (`/events/{id}`) for the raw lifecycle
+  event
+
+Recording requires opting in: set `ServiceConfig.CommandLifecycle` in
+usermgmt (a `*commandlifecycle.Recorder` sharing your event store), or wire
+the `commandlifecycle` middleware pair on your own dispatcher.
 
 ### Detail Views
 
