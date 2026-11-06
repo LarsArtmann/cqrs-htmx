@@ -40,27 +40,40 @@ may ever exist again; the gate in W0 is what makes that monotone instead of aspi
 | `usermgmt` → `identity-model`                   | 22    | —     | 176         | yes                  | correctly dated, delete in v5        |
 | **Total**                                       | **31**| **718** | **~315**  |                      | **~9.5% of root LOC is aliasing**    |
 
-### 1.2 Root package clusters (measured, non-test)
+### 1.2 Root package clusters (generated, non-test)
 
-| Cluster                | Files | LOC   | In-module deps of the cluster        | Extraction blocker                       |
-| ---------------------- | ----- | ----- | ------------------------------------ | ---------------------------------------- |
-| handler/app core       | 7     | ~1,800 | everything                          | `HandlerOption`/`handlerConfig` are the public seam |
-| options + rendering    | 10    | 1,385 | `htmx`, `internal/hx`, core options  | depends on `HandlerOption`               |
-| middleware + context   | 9     | 1,310 | `context`, `authz`, `httperr`        | used by `App.Middleware()`               |
-| sync protocol          | 5     | 1,045 | `App`, `commandRegistry`, `handler`  | `App.SyncPushHandler` only               |
-| authz contract+posture | 3     | 633   | **none** (stdlib + errorfamily)      | nothing — cleanest seam in the tree      |
-| realtime (sse)         | 6     | 581   | `App` (AfterDispatch), `httperr`     | Broadcaster's hook seam                  |
-| readiness/projections  | 3     | 408   | `internal/hx`, errorfamily, etag     | none                                     |
-| deprecated aliases     | 6     | 382   | none                                 | ADR-0047 already decided                 |
-| new-style aliases      | 3     | 336   | none                                 | policy decision (this plan)              |
-| leaf leftovers         | 3     | ~150  | none                                 | too small for a boundary (FM#8)          |
+**Files and LOC below are GENERATED, never summed by hand** — they are the output of
+`bash scripts/checks/check-root-clusters.sh --emit`, which reads the manifest
+`scripts/checks/root-clusters.tsv` (one row per production file), proves the manifest is a
+*partition* of the root package (each file mapped exactly once, no stale rows), and reconciles
+its total against `scripts/checks/root-size.baseline`. Row order is the gate's (alphabetical) so
+this table can be diffed positionally against the command's output. The two right-hand columns
+are hand-kept judgement, not measurements. Adding or deleting a root production file now fails
+`check-root-clusters` until the manifest is updated — the table cannot silently rot again.
 
-**Re-measured 2026-11-06 09:30:** 54 production `.go` files / 8,547 LOC
-(`ls *.go | grep -v _test | grep -v _templ`, then `wc -l`). Two drifts in this section:
-the cluster column already sums to ~8,030, so §0's (and `TODO_LIST.md`'s) 7,594
-understates root even at planning time; and the +517 since then is the dispatch-gate
-wave (`authz_dispatch.go`, landed 07:44, after this measurement). Prefer the command
-to the prose number.
+| Cluster                | Files | LOC  | In-module deps of the cluster              | Extraction blocker                       |
+| ---------------------- | ----- | ---- | ------------------------------------------ | ---------------------------------------- |
+| authz contract+posture | 3     | 635  | **none** (stdlib + errorfamily)            | nothing — cleanest seam in the tree      |
+| deprecated aliases     | 6     | 382  | none                                       | ADR-0047 already decided                 |
+| dispatch gate          | 1     | 702  | `command`, `query`, `id`, errorfamily      | wraps both dispatchers (ADR-0063)        |
+| handler/app core       | 7     | 1519 | everything                                 | `HandlerOption`/`handlerConfig` are the public seam |
+| leaf leftovers         | 1     | 30   | `internal/hx`                              | too small for a boundary (FM#8)          |
+| middleware + context   | 9     | 1374 | `context`, `authz`, `httperr`              | used by `App.Middleware()`               |
+| new-style aliases      | 3     | 563  | none                                       | policy decision (this plan)              |
+| options + rendering    | 11    | 1356 | `htmx`, `internal/hx`, core options        | depends on `HandlerOption`               |
+| readiness/projections  | 3     | 408  | `internal/hx`, errorfamily, etag           | none                                     |
+| realtime (sse)         | 5     | 532  | `App` (AfterDispatch), `httperr`           | Broadcaster's hook seam                  |
+| sync protocol          | 5     | 1046 | `App`, `commandRegistry`, `handler`        | `App.SyncPushHandler` only               |
+| **Total**              | **54**| **8547** |                                        |                                          |
+
+**Re-measure history (kept, not rewritten).** At planning time this table was hand-summed:
+7,594 claimed total, ~8,030 across the clusters, against 8,547 measured at 09:30 — and it had
+**no row at all** for `authz_dispatch.go` (702 LOC, landed 07:44). Three defects, all from
+summing by hand. The generated table above (2026-11-06 11:35) is the correction: it carries the
+dispatch-gate row, the aliases' real 563 LOC (not 336 — the `// Deprecated:` markers grew them),
+`leaf leftovers` 30 LOC over one file instead of `~150` over three, and totals that reconcile to
+the byte. Commands of record: `bash scripts/checks/check-root-size.sh --print` (the one size
+number) and `bash scripts/checks/check-root-clusters.sh --emit` (this table).
 
 ### 1.3 The three findings that matter
 

@@ -904,6 +904,15 @@ jobs:
       - name: Root package size ratchet self-test
         run: bash scripts/selftests/test-check-root-size.sh
 
+      # Cluster manifest partition: makes the re-export plan's per-cluster table
+      # generated (not hand-summed) and fails when a root production file is
+      # added or deleted without updating the manifest.
+      - name: Root cluster manifest gate
+        run: bash scripts/checks/check-root-clusters.sh
+
+      - name: Root cluster manifest gate self-test
+        run: bash scripts/selftests/test-check-root-clusters.sh
+
       # The owner-gated archive eviction's tool: proves the keep-list protects
       # cited files and that the removal is exact and idempotent (no deletion).
       - name: Archive eviction tool self-test

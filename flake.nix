@@ -1193,6 +1193,8 @@
                       bash bash scripts/selftests/test-check-conflict-markers.sh
                       bash bash scripts/checks/check-root-size.sh
                       bash bash scripts/selftests/test-check-root-size.sh
+                      bash bash scripts/checks/check-root-clusters.sh
+                      bash bash scripts/selftests/test-check-root-clusters.sh
                       bash bash scripts/selftests/test-evict-archive.sh
                       bash bash scripts/selftests/test-archive-status.sh
                       bash bash scripts/checks/check-docs-tail-budget.sh --ratchet
@@ -1265,6 +1267,8 @@
                         "conflict-markers-self-test:bash scripts/selftests/test-check-conflict-markers.sh"
                         "root-size:bash scripts/checks/check-root-size.sh"
                         "root-size-self-test:bash scripts/selftests/test-check-root-size.sh"
+                        "root-clusters:bash scripts/checks/check-root-clusters.sh"
+                        "root-clusters-self-test:bash scripts/selftests/test-check-root-clusters.sh"
                         "evict-archive-self-test:bash scripts/selftests/test-evict-archive.sh"
                         "archive-status-self-test:bash scripts/selftests/test-archive-status.sh"
                         "tail-budget-ratchet:bash scripts/checks/check-docs-tail-budget.sh --ratchet"
@@ -1894,6 +1898,46 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-root-size.sh
+                  '';
+                }
+              );
+            };
+
+            check-root-clusters = {
+              type = "app";
+              meta.description = "Prove scripts/checks/root-clusters.tsv is a PARTITION of the root package (each production file mapped once, no stale rows) and emit the per-cluster table the re-export plan quotes (--emit for markdown)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-root-clusters";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-root-clusters.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-root-clusters = {
+              type = "app";
+              meta.description = "Fixture self-test for check-root-clusters.sh (11 cases: valid partition/unmapped/stale/duplicate/malformed/totals drift/missing manifest/missing baseline/empty root/--emit/unknown arg)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-root-clusters";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-root-clusters.sh
                   '';
                 }
               );

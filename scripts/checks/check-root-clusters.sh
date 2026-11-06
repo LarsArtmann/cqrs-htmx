@@ -116,6 +116,10 @@ if [ -f "$BASELINE" ]; then
     fi
     ;;
   esac
+else
+  # No baseline means the reconciliation floor is gone: refuse a green, exactly
+  # as check-root-size.sh does. A gate that cannot compare has verified nothing.
+  reconcile=2
 fi
 
 if [ "$MODE" = emit ]; then
