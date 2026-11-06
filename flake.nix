@@ -1277,6 +1277,8 @@
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
                         "root-files:bash scripts/checks/check-root-files.sh --strict"
                         "root-files-self-test:bash scripts/selftests/test-check-root-files.sh"
+                        "reexport-policy:bash scripts/checks/check-reexport-policy.sh --strict"
+                        "reexport-policy-self-test:bash scripts/selftests/test-check-reexport-policy.sh"
                         "buildflow-skips:bash scripts/checks/check-buildflow-skips.sh"
                         "buildflow-skips-self-test:bash scripts/selftests/test-check-buildflow-skips.sh"
                         "verify-tag-fixtures-untidy:bash scripts/checks/check-verify-tag-fixtures-untidy.sh"
@@ -1515,6 +1517,45 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-root-files.sh --strict
+                  '';
+                }
+              );
+            };
+
+            check-reexport-policy = {
+              type = "app";
+              meta.description = "ADR-0062 Direct Imports Only: no alias file outside the baseline, no alias growth, every re-export deprecated and pointed at the package that owns the symbol";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-reexport-policy";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.findutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-reexport-policy.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-reexport-policy = {
+              type = "app";
+              meta.description = "Fixture self-test for check-reexport-policy.sh (13 cases: clean/shrink/unexported/exempt class/new file/growth/empty reexport file/no deprecation/unnamed target/unclassified file/unknown class/advisory/missing baseline)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-reexport-policy";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.findutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-reexport-policy.sh "$@"
                   '';
                 }
               );

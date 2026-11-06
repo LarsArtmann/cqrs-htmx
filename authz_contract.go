@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -130,7 +131,7 @@ func Decide(checker PermissionChecker, req Request) (Decision, error) {
 		return Decision{}, errorfamily.NewInfrastructure(
 			"enforcer_nil",
 			"authorization checker is nil",
-		).WithCause(ErrEnforcerNil)
+		).WithCause(httperr.ErrEnforcerNil)
 	}
 
 	domain := req.Domain
@@ -170,14 +171,14 @@ func Decide(checker PermissionChecker, req Request) (Decision, error) {
 // wrap that necessarily replaces the outer code — is still recognised by its
 // cause.
 func IsForbidden(err error) bool {
-	return carriesCode(err, CodeForbidden)
+	return carriesCode(err, httperr.CodeForbidden)
 }
 
 // IsUnauthorized reports whether err represents a missing or invalid
 // authentication, whichever module produced it. See [IsForbidden] for why this
 // matches on the code and walks the chain.
 func IsUnauthorized(err error) bool {
-	return carriesCode(err, CodeUnauthorized)
+	return carriesCode(err, httperr.CodeUnauthorized)
 }
 
 // carriesCode reports whether err or any error it wraps declares code.
@@ -203,7 +204,7 @@ func (c enforcerChecker) Check(subject, domain, resource, action string) (bool, 
 		return false, nil, errorfamily.NewInfrastructure(
 			"enforcer_nil",
 			"casbin enforcer is required for authorization",
-		).WithCause(ErrEnforcerNil)
+		).WithCause(httperr.ErrEnforcerNil)
 	}
 
 	ok, err := enforceRequest(c.enforcer, subject, domain, resource, action)
@@ -288,9 +289,9 @@ func (a *App) authorizeWithRequest(r *http.Request, config *handlerConfig) error
 // decisionError turns a denial into the classified error the error handler maps
 // to 401 or 403.
 func decisionError(decision Decision, req Request) error {
-	sentinel := ErrForbidden
+	sentinel := httperr.ErrForbidden
 	if decision.Reason == ReasonNotAuthenticated {
-		sentinel = ErrUnauthorized
+		sentinel = httperr.ErrUnauthorized
 	}
 
 	return errorfamily.NewRejection(

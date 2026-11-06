@@ -43,7 +43,7 @@ event_store_sse.go	reexport	4	v5 (removal class 1)
 eventcatalog_reexport.go	reexport	5	v5 (removal class 1b)
 health/probe.go	exempt:pending	1	aliases cqrshtmx.ProjectionStatus*; moves with the readiness extraction (W2)
 htmx_reexport.go	reexport	35	v5 (removal class 1b)
-httperr_reexport.go	reexport	42	v5 (removal class 1b)
+httperr_reexport.go	reexport	37	v5 (removal class 1b)
 idempotency.go	reexport	3	v5 (removal class 2)
 identity-model/id.go	exempt:domain-vocabulary	7	package owns the ID constructors and parsers; id.* is the shared primitive
 internal/hx/context.go	exempt:internal	1	declaring package is internal, not consumer-visible

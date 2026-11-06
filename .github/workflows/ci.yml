@@ -628,6 +628,17 @@ jobs:
       - name: Root files allowlist self-test
         run: bash scripts/selftests/test-check-root-files.sh
 
+      # ADR-0062 Direct Imports Only. Two failure classes, one policy: a NEW
+      # *_reexport.go (or any alias file outside the frozen baseline) means a
+      # move shipped a compatibility shim instead of repointed consumers, and a
+      # deprecated-but-unnamed re-export leaves the reader without the direct
+      # import path. An aliasing policy with no gate is decoration.
+      - name: Re-export policy check
+        run: bash scripts/checks/check-reexport-policy.sh --strict
+
+      - name: Re-export policy self-test
+        run: bash scripts/selftests/test-check-reexport-policy.sh
+
       # Canary (c), gotcha 35: a daemon-captured .buildflow.yml deletion
       # resurrected documented-destructive steps. The 7 documented skips
       # must stay listed.

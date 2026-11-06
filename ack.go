@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
@@ -88,7 +89,7 @@ func newAck(commandID string, err error) CommandAck {
 	ack := CommandAck{CommandID: commandID}
 	if err != nil {
 		ack.Status = AckRejected
-		ack.Error = SafeDetail(err, errorfamily.Classify(err).HTTPStatus(), false)
+		ack.Error = httperr.SafeDetail(err, errorfamily.Classify(err).HTTPStatus(), false)
 	} else {
 		ack.Status = AckConfirmed
 	}

@@ -264,15 +264,3 @@ var (
 	// directly. Removed in cqrs-htmx v5.
 	ProblemDetailsErrorHandlerWithRedirect = httperr.ProblemDetailsErrorHandlerWithRedirect
 )
-
-// Unexported aliases keep the root package's own wiring-error call sites
-// reading the way they always have. They point at the single httperr values —
-// no second sentinel with a duplicate code.
-var (
-	errCommandsNil        = httperr.ErrCommandsNil
-	errQueriesNil         = httperr.ErrQueriesNil
-	errDecoderMissing     = httperr.ErrDecoderMissing
-	errDecoderReturnedNil = httperr.ErrDecoderReturnedNil
-)
-
-const defaultLoginRedirect = httperr.DefaultLoginRedirect

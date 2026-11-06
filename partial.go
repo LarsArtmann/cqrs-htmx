@@ -5,6 +5,8 @@ import (
 	stdhtml "html"
 	"net/http"
 	"strings"
+
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // RenderTemplComponent renders the partial component for HTMX partial requests
@@ -25,7 +27,7 @@ func RenderTemplComponent(w http.ResponseWriter, r *http.Request, partial, full 
 	w.Header().Set("Content-Type", ContentTypeHTML)
 
 	c := full
-	if RenderPartial(r) {
+	if htmx.RenderPartial(r) {
 		c = partial
 	}
 

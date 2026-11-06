@@ -51,6 +51,10 @@ DECLS_FILE="${REEXPORT_POLICY_DECLS:-}"
 if [ -z "$DECLS_FILE" ]; then
   DECLS_FILE="$(mktemp)"
   trap 'rm -f "$DECLS_FILE"' EXIT
+  # A writable GOCACHE + the workspace toolchain floor; a bare shell otherwise
+  # fails on machines whose default cache dir is unwritable (gotcha 12).
+  # shellcheck source=../lib/go-cache-env.sh
+  source "$SCRIPT_DIR/../lib/go-cache-env.sh"
   if ! (cd "$ROOT" && go run "$SCANNER") >"$DECLS_FILE" 2>"$DECLS_FILE.err"; then
     echo "✗ reexport-policy: inventory scan failed:" >&2
     sed 's/^/    /' "$DECLS_FILE.err" >&2

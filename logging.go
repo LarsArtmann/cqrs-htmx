@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -263,7 +264,7 @@ type dispatchErrorRecorder interface {
 // appendDispatchErrorAttrs extracts the error code, family, and context
 // key-values from a classified error and appends them as slog attributes.
 func appendDispatchErrorAttrs(attrs []slog.Attr, err error) []slog.Attr {
-	if code := ErrorCode(err); code != "" {
+	if code := httperr.ErrorCode(err); code != "" {
 		attrs = append(attrs, slog.String("error_code", code))
 	}
 

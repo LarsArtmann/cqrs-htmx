@@ -33,7 +33,7 @@ func NewResponse(w http.ResponseWriter, r *http.Request) *Response {
 
 // IsHTMX returns true if the current request is from HTMX.
 func (resp *Response) IsHTMX() bool {
-	return IsHTMXRequest(resp.r)
+	return htmx.IsRequest(resp.r)
 }
 
 // PushURL pushes a new URL into the browser history.
@@ -71,7 +71,7 @@ func (resp *Response) Redirect(url string) *Response {
 
 // Refresh triggers a full page refresh on the client.
 func (resp *Response) Refresh() *Response {
-	resp.w.Header().Set(htmx.HeaderRefresh, HeaderTrue)
+	resp.w.Header().Set(htmx.HeaderRefresh, htmx.HeaderTrue)
 
 	return resp
 }
@@ -84,7 +84,7 @@ func (resp *Response) Location(url string) *Response {
 }
 
 // Reswap changes how the response content is swapped.
-func (resp *Response) Reswap(strategy SwapStrategy) *Response {
+func (resp *Response) Reswap(strategy htmx.SwapStrategy) *Response {
 	resp.w.Header().Set(htmx.HeaderReswap, string(strategy))
 
 	return resp

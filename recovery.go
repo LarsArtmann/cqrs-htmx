@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -107,7 +108,7 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 					panic(rec)
 				}
 
-				writePanicResponse(w, r, rec, DefaultErrorHandler)
+				writePanicResponse(w, r, rec, httperr.DefaultErrorHandler)
 			}
 		}()
 

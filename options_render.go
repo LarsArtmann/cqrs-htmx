@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -68,7 +70,7 @@ func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
 			typed, ok := result.(T)
 			if !ok {
 				return errorfamily.NewRejection("unexpected_result_type",
-					fmt.Sprintf("unexpected result type %T", result)).WithCause(ErrDecodeFailed)
+					fmt.Sprintf("unexpected result type %T", result)).WithCause(httperr.ErrDecodeFailed)
 			}
 
 			component := mapper(typed)
@@ -144,7 +146,7 @@ func RenderIf(check func(*http.Request) bool, match, noMatch RenderFunc) Handler
 // string building, or any non-templ rendering. For templ users, prefer
 // [RenderPartialOrFull].
 func RenderPartialOrFullFunc(partial, full RenderFunc) HandlerOption {
-	return RenderIf(RenderPartial, partial, full)
+	return RenderIf(htmx.RenderPartial, partial, full)
 }
 
 // RenderPartialOrFull renders a partial templ fragment for HTMX requests and a
@@ -169,12 +171,12 @@ func RenderPartialOrFull[T any](partial, full func(T) TemplComponent) HandlerOpt
 			typed, ok := result.(T)
 			if !ok {
 				return errorfamily.NewRejection("unexpected_result_type",
-					fmt.Sprintf("unexpected result type %T", result)).WithCause(ErrDecodeFailed)
+					fmt.Sprintf("unexpected result type %T", result)).WithCause(httperr.ErrDecodeFailed)
 			}
 
 			w.Header().Set("Content-Type", ContentTypeHTML)
 
-			if RenderPartial(r) {
+			if htmx.RenderPartial(r) {
 				return partial(typed).Render(r.Context(), w)
 			}
 

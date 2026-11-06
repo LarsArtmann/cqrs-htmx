@@ -1,6 +1,10 @@
 package cqrshtmx
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+)
 
 // HTMXRedirect issues an HTMX-aware redirect: HX-Redirect for HTMX requests
 // (so the browser replaces the page without a full navigation round-trip), or
@@ -8,7 +12,7 @@ import "net/http"
 // sanitized via [SafeRedirectPath] when it originates from user-controlled
 // input.
 func HTMXRedirect(w http.ResponseWriter, r *http.Request, path string) {
-	if IsHTMXRequest(r) {
+	if htmx.IsRequest(r) {
 		w.Header().Set("Hx-Redirect", path)
 		w.WriteHeader(http.StatusOK)
 

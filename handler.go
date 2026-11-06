@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -113,7 +114,7 @@ func dispatchRequest[Q, R any](
 	}
 
 	if decoderNil() {
-		a.handleErr(w, r, ctx, config, errDecoderMissing)
+		a.handleErr(w, r, ctx, config, httperr.ErrDecoderMissing)
 
 		return
 	}
@@ -135,7 +136,7 @@ func dispatchRequest[Q, R any](
 		// The decoder was configured but returned (nil, nil): a server-side
 		// wiring bug, not a transient infrastructure problem. Classify as
 		// Corruption (500) so it is not retried as 503.
-		a.handleErr(w, r, ctx, config, errDecoderReturnedNil)
+		a.handleErr(w, r, ctx, config, httperr.ErrDecoderReturnedNil)
 
 		return
 	}
@@ -191,10 +192,10 @@ func (a *App) executePreDispatchChecks(
 	config *handlerConfig,
 ) error {
 	if config.requireMethod != "" && r.Method != config.requireMethod {
-		a.errorHandler(w, r, errorfamily.Wrapf(ErrMethodNotAllowed, event.Rejection,
+		a.errorHandler(w, r, errorfamily.Wrapf(httperr.ErrMethodNotAllowed, event.Rejection,
 			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, config.requireMethod))
 
-		return ErrMethodNotAllowed
+		return httperr.ErrMethodNotAllowed
 	}
 
 	if err := a.executeAuthorization(r, config); err != nil {
@@ -299,7 +300,7 @@ func handleCommandTypedDispatch[Q command.Command](
 			if !ok {
 				var zero Q
 
-				return zero, errorfamily.Wrapf(ErrDecodeFailed, event.Rejection,
+				return zero, errorfamily.Wrapf(httperr.ErrDecodeFailed, event.Rejection,
 					"cqrshtmx.handler.command_type_mismatch",
 					"expected %T, got %T", zero, v)
 			}
@@ -342,7 +343,7 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 			if !ok {
 				var zero Q
 
-				return zero, errorfamily.Wrapf(ErrDecodeFailed, event.Rejection,
+				return zero, errorfamily.Wrapf(httperr.ErrDecodeFailed, event.Rejection,
 					"cqrshtmx.handler.query_type_mismatch",
 					"expected %T, got %T", zero, v)
 			}

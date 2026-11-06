@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -90,7 +91,7 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if enforcer == nil {
 		return errorfamily.NewInfrastructure("enforcer_nil",
 			fmt.Sprintf("enforcer is nil for subject=%s resource=%s action=%s",
-				subject, resource, action)).WithCause(ErrEnforcerNil)
+				subject, resource, action)).WithCause(httperr.ErrEnforcerNil)
 	}
 
 	ok, err := enforceRequest(enforcer, subject, WildcardDomain, resource, action)
@@ -103,7 +104,7 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	if !ok {
 		return errorfamily.NewRejection("forbidden",
 			fmt.Sprintf("subject=%s resource=%s action=%s", subject, resource, action)).
-			WithCause(ErrForbidden)
+			WithCause(httperr.ErrForbidden)
 	}
 
 	return nil
@@ -122,7 +123,7 @@ func EnforceIn(enforcer Enforcer, subject, domain, resource, action string) erro
 	if enforcer == nil {
 		return errorfamily.NewInfrastructure("enforcer_nil",
 			fmt.Sprintf("enforcer is nil for subject=%s domain=%s resource=%s action=%s",
-				subject, domain, resource, action)).WithCause(ErrEnforcerNil)
+				subject, domain, resource, action)).WithCause(httperr.ErrEnforcerNil)
 	}
 
 	ok, err := enforceRequest(enforcer, subject, domain, resource, action)
@@ -136,7 +137,7 @@ func EnforceIn(enforcer Enforcer, subject, domain, resource, action string) erro
 		return errorfamily.NewRejection("forbidden",
 			fmt.Sprintf("subject=%s domain=%s resource=%s action=%s",
 				subject, domain, resource, action)).
-			WithCause(ErrForbidden)
+			WithCause(httperr.ErrForbidden)
 	}
 
 	return nil
@@ -185,10 +186,10 @@ func (a *App) executeAuthorization(r *http.Request, config *handlerConfig) error
 	if userID.IsZero() {
 		if config.authMode == authAuthorized {
 			return errorfamily.NewRejection("unauthorized",
-				fmt.Sprintf("%s/%s", config.resource, config.action)).WithCause(ErrUnauthorized)
+				fmt.Sprintf("%s/%s", config.resource, config.action)).WithCause(httperr.ErrUnauthorized)
 		}
 
-		return ErrUnauthorized
+		return httperr.ErrUnauthorized
 	}
 
 	if config.authMode == authAuthorized {
@@ -200,8 +201,8 @@ func (a *App) executeAuthorization(r *http.Request, config *handlerConfig) error
 
 func handleUnauthorized(w http.ResponseWriter, r *http.Request, resource, action, redirect string) {
 	authErr := errorfamily.NewRejection("unauthorized",
-		fmt.Sprintf("%s/%s", resource, action)).WithCause(ErrUnauthorized)
-	DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
+		fmt.Sprintf("%s/%s", resource, action)).WithCause(httperr.ErrUnauthorized)
+	httperr.DefaultErrorHandlerWithRedirect(w, r, authErr, redirect)
 }
 
 // AuthorizeMiddleware returns an HTTP middleware that checks Casbin authorization.
@@ -213,7 +214,7 @@ func AuthorizeMiddleware(
 	extractor UserIDExtractor,
 	loginRedirect ...string,
 ) func(http.Handler) http.Handler {
-	redirect := defaultLoginRedirect
+	redirect := httperr.DefaultLoginRedirect
 	if len(loginRedirect) > 0 && loginRedirect[0] != "" {
 		redirect = loginRedirect[0]
 	}
@@ -240,7 +241,7 @@ func AuthorizeMiddleware(
 			}
 
 			if err := Enforce(enforcer, subject, resource, action); err != nil {
-				DefaultErrorHandlerWithRedirect(w, r, err, redirect)
+				httperr.DefaultErrorHandlerWithRedirect(w, r, err, redirect)
 
 				return
 			}

@@ -157,7 +157,7 @@ func New(config Config) (*App, error) {
 
 	loginRedirect := config.LoginRedirect
 	if loginRedirect == "" {
-		loginRedirect = defaultLoginRedirect
+		loginRedirect = httperr.DefaultLoginRedirect
 	}
 
 	errorHandler := config.ErrorHandler
@@ -246,7 +246,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
-			a.errorHandler(w, r, errCommandsNil)
+			a.errorHandler(w, r, httperr.ErrCommandsNil)
 
 			return
 		}
@@ -272,7 +272,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
-			a.errorHandler(w, r, errQueriesNil)
+			a.errorHandler(w, r, httperr.ErrQueriesNil)
 
 			return
 		}
@@ -300,7 +300,7 @@ func CommandTyped[Q command.Command](a *App, cmdType command.Type, opts ...Handl
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
-			a.errorHandler(w, r, errCommandsNil)
+			a.errorHandler(w, r, httperr.ErrCommandsNil)
 
 			return
 		}
@@ -327,7 +327,7 @@ func QueryTyped[Q query.Query, R any](a *App, qryType query.Type, opts ...Handle
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
-			a.errorHandler(w, r, errQueriesNil)
+			a.errorHandler(w, r, httperr.ErrQueriesNil)
 
 			return
 		}

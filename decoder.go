@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	form "github.com/go-playground/form/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -79,7 +80,7 @@ func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
 	}
 
 	if maxBodySize > 0 && int64(len(body)) > maxBodySize {
-		return nil, errorfamily.Wrapf(ErrRequestTooLarge, event.Rejection,
+		return nil, errorfamily.Wrapf(httperr.ErrRequestTooLarge, event.Rejection,
 			"cqrshtmx.decode.body.too_large", "body of %d bytes exceeds limit", len(body)).
 			WithContextAny("max_body_size", maxBodySize)
 	}

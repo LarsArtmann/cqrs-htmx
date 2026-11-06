@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -242,14 +243,14 @@ func (a *App) dispatchSyncPushEnvelope(ctx context.Context, r *http.Request, env
 	inner := synthesizeSyncPushRequest(ctx, r, envelope)
 
 	if err := a.executeAuthorization(inner, config); err != nil {
-		return rejectedSyncPushResult(envelope.CommandID, ErrorCode(err), err.Error(),
+		return rejectedSyncPushResult(envelope.CommandID, httperr.ErrorCode(err), err.Error(),
 			errorfamily.Classify(err))
 	}
 
 	cmd, err := config.commandDecoder(inner)
 	if err != nil || cmd == nil {
 		if err == nil {
-			err = errDecoderReturnedNil
+			err = httperr.ErrDecoderReturnedNil
 		}
 
 		return rejectedSyncPushResult(envelope.CommandID, "cqrshtmx.sync.push.decode_failed",
@@ -258,7 +259,7 @@ func (a *App) dispatchSyncPushEnvelope(ctx context.Context, r *http.Request, env
 
 	if config.requestGuard != nil {
 		if err := config.requestGuard(inner, cmd); err != nil {
-			return rejectedSyncPushResult(envelope.CommandID, ErrorCode(err), err.Error(),
+			return rejectedSyncPushResult(envelope.CommandID, httperr.ErrorCode(err), err.Error(),
 				errorfamily.Classify(err))
 		}
 	}
@@ -275,8 +276,8 @@ func (a *App) dispatchSyncPushEnvelope(ctx context.Context, r *http.Request, env
 	a.afterDispatchHook(dispatchCtx, inner, dispatchErr)
 
 	if dispatchErr != nil {
-		return rejectedSyncPushResult(envelope.CommandID, ErrorCode(dispatchErr),
-			SafeDetail(dispatchErr, MapError(dispatchErr), false),
+		return rejectedSyncPushResult(envelope.CommandID, httperr.ErrorCode(dispatchErr),
+			httperr.SafeDetail(dispatchErr, httperr.MapError(dispatchErr), false),
 			errorfamily.Classify(dispatchErr))
 	}
 

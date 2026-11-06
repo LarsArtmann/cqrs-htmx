@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	cqrshtmxtransport "github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/go-sse"
 )
@@ -110,7 +111,7 @@ func (b *Broadcaster) BroadcastOnSuccessFunc(
 // when a command dispatch fails (err != nil).
 func (b *Broadcaster) BroadcastOnError(eventName string) AfterDispatchHook {
 	return b.broadcastOnErrorHook(func(r *http.Request, err error) sse.Event {
-		payload := NewStructuredError(err, r)
+		payload := httperr.NewStructuredError(err, r)
 
 		return sse.Event{Event: eventName, Data: payload.JSON()}
 	})

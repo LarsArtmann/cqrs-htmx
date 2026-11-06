@@ -1,6 +1,7 @@
 package identitymodel
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -164,22 +165,24 @@ func TestKeyMatchIsASupersetOfTheExactObjectMatcher(t *testing.T) {
 func TestKeyMatchOnThreeFieldModel(t *testing.T) {
 	t.Parallel()
 
-	flatModel := downgradeObjectMatcher(threeFieldModel)
-	keyModel := upgradeObjectMatcher(threeFieldModel)
+	flatModel := fmt.Sprintf(threeFieldModel, objectMatcherExact)
+	keyModel := fmt.Sprintf(threeFieldModel, objectMatcherKeyMatch)
 
 	for _, tc := range matcherCases() {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			flat := newMatcher3FieldAuthz(t, flatModel, tc.policy)
-			key := newMatcher3FieldAuthz(t, keyModel, tc.policy)
+			flat := newMatcher3FieldEnforcer(t, flatModel, tc.policy)
+			key := newMatcher3FieldEnforcer(t, keyModel, tc.policy)
 
-			gotFlat, _, err := flat.Check("alice", WildcardDomain, tc.request, string(ActionExecute))
+			// Three arguments is the shape enforceRequest falls back to after
+			// Casbin rejects the four-argument request as an arity mismatch.
+			gotFlat, err := flat.Enforce("alice", tc.request, string(ActionExecute))
 			if err != nil {
 				t.Fatalf("exact matcher check: %v", err)
 			}
 
-			gotKey, _, err := key.Check("alice", WildcardDomain, tc.request, string(ActionExecute))
+			gotKey, err := key.Enforce("alice", tc.request, string(ActionExecute))
 			if err != nil {
 				t.Fatalf("keyMatch matcher check: %v", err)
 			}
@@ -195,9 +198,12 @@ func TestKeyMatchOnThreeFieldModel(t *testing.T) {
 	}
 }
 
-// newMatcher3FieldAuthz builds an Authz over a model whose request definition
-// has no domain column, so EnforceEx's four-argument call is an arity mismatch.
-func newMatcher3FieldAuthz(t *testing.T, modelStr, objectPattern string) *Authz {
+// newMatcher3FieldEnforcer builds a bare enforcer over a model whose request
+// definition has no domain column. It is deliberately not an Authz: Authz.Check
+// calls the four-argument shape unconditionally, so a domain-less model can only
+// be exercised through the three-argument call root's enforceRequest falls back
+// to.
+func newMatcher3FieldEnforcer(t *testing.T, modelStr, objectPattern string) *casbin.Enforcer {
 	t.Helper()
 
 	m, err := casbinmodel.NewModelFromString(modelStr)
@@ -218,5 +224,5 @@ func newMatcher3FieldAuthz(t *testing.T, modelStr, objectPattern string) *Authz 
 		t.Fatalf("add grouping policy: %v", err)
 	}
 
-	return &Authz{enforcer: e}
+	return e
 }
