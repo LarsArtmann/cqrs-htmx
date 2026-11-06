@@ -459,4 +459,63 @@ Nothing from §f is dropped; items 43–48 are explicitly deferred to per-repo s
 
 ## 10. Execution receipt
 
-*(empty — filled by M15.8 with what actually landed, per-milestone, with commit hashes.)*
+**Executed 2026-11-06, 07:44–08:25 CET.** All fifteen milestones landed; nothing was
+deferred except the two items §1.4 already placed outside this plan (consumer waves,
+upstream ask). The auto-commit daemon committed the work in flight, so the hash column
+names the range that carries each milestone rather than a tidy one-commit-per-milestone
+history; `git log 4cf82c0b..HEAD` is the authoritative list (70 files, +6369/−225).
+
+| Milestone | Landed | Receipt |
+| --- | --- | --- |
+| M01 hole proof | `authz_dispatch_test.go` — `TestDispatchWithoutRouteIsUngated` (service-level dispatch, and the sharper case: refused on a gated route, admitted through the dispatcher) | green before M04, still green after (the gate is opt-in) |
+| M01 erratum | the predecessor report's §a4 now carries the correction inline | `sync_push.go:248/261/271` |
+| M02 matcher proof | `identity-model/authz_matcher_test.go` — 11-row capability table on the 4-field model + the same table on a 3-field model, with the superset property asserted mechanically | **verdict: `keyMatch` IS a superset** — kill point 1 passed |
+| M03 ADR | `docs/adr/0063-authorization-at-the-dispatch-boundary.md` + INDEX row (0061/0062 were taken; the missing 0052 row was added on sight) | links gate: 1291 links OK at the time |
+| M04 core middleware | `authz_dispatch.go` — `AuthorizeCommand`/`AuthorizeQuery`, `DispatchObject`, `ActionExecute`/`ActionRead`, `PolicyContext`, `DispatchOutcome`, `DispatchSubject` | `authz_dispatch_gate_test.go` (allow / deny / engine-error / both dispatchers / `PolicyContext` overlay / outermost placement / one-denial) |
+| M05 declare-on-register | `DispatchGate`, `RegisterCommand`/`RegisterQuery` (package-level generics — Go forbids type parameters on methods, and the repo's `golines` cannot parse them anyway), `Declare`, `Manifest`, `Validate`, fail-closed undeclared denial | declaration tests incl. contradictory + missing-reason + empty-set failures |
+| M06 model change | `DefaultRBACModel` object term is `keyMatch(r.obj, p.obj)`; doc comment trued | `TestDefaultRBACModelUsesKeyMatch` + identity-model/usermgmt/adminui/setup suites green |
+| M07 audit mode | `AuditOnly()`, `OnDecision`, one structured `WarnContext` per denial, one-wave rule in godoc | `TestAuditOnlyReportsWithoutDenying`, `TestEnforceModeReportsOneAuditFreeDenial` |
+| M08 `authztest.CommandSuite` | `authztest/command_suite.go` + `README.md` §3 | self-proof + a mutation check that reds a flipped posture; `-race` green |
+| M09 gate rule 5 | `undeclared-dispatch` in `check-permission-surface.sh`; self-test 5 → 8 cases | planted violation fails, helper passes, suppression counted (8/8) |
+| M10 docs | `docs/PERMISSIONS.md` L5 + six-level heading + inventory row L4→L5 + gate section; `PERMISSIONS_BASELINE` L5; guide §5 with the three-layer table; maturity gate parser extended to `L[0-5]` (rank + self-test 8 → 10 cases) | `--ratchet`: 13 services at or above baseline |
+| M11 skill + README | SKILL §"Gating the dispatch boundary (L5)", two new gotchas, `references/core-api.md` dispatch-gate catalogue, README bullet | skill-snippets 42/42, skill-claims 248 symbols, readme-splitbrain green |
+| M12 library-owned dispatcher | `usermgmt/command_postures.go` (all 21 commands classified) + four integration tests: bootstrap grant works, unprivileged revoke denied naming `command/RemoveMember`, anonymous refused, public registration reachable | `usermgmt` suite green; no `setup` code needed — `setup.Config.CommandMiddleware` already carries the gate, documented instead |
+| M13 bench | `benchmark_authz_gate_test.go`, `b.Loop()` + `ReportAllocs` | bare 68 ns / 1 alloc · public 207 / 7 · authenticated 214 / 7 · gated-allow ~254 / 7 · gated-deny ~1 100 ns / 17 allocs. **Not under 5 %** — recorded honestly: the denominator here is an in-memory no-op handler, which is the cheapest dispatch that exists; the gate's absolute cost is what a real event-store dispatch pays in noise |
+| M14 policy-row linter | `check-policy-rows.sh` + 8-case fixture self-test, flake apps, `check-modules` + CI parity legs | 8/8; `keyMatch`-shaped matching, prefix suggestions, suppression counting |
+| M15 release posture | CHANGELOG entry, `TODO_LIST` stale-row true-up (the maturity ratchet was already blocking), `dashboardui/go.mod` + `usermgmt/go.mod` indirect→direct via `go mod tidy` | `check-modules`, corpus ratchet (48779), freshness, todo-hygiene, shellcheck 131 scripts, links 1378 all green |
+
+### Deviations from the plan, and why
+
+1. **`RegisterCommand`/`RegisterQuery` are package-level functions, not methods.** Go
+   1.27 does carry generic methods, but the repo's `golines` (built with go1.26) cannot
+   parse them, so a method form would have made `nix fmt` unformattable. The
+   package-level shape also matches the existing `CommandTyped`/`QueryTyped` idiom.
+2. **The boot check cannot see a behind-the-back registration** (kill point 3, taken).
+   The dispatcher exposes no enumeration API, so `Validate()` checks the declaration set
+   it was told about (valid posture, a reason, no contradictions, not-empty) and the
+   undeclared case is caught at dispatch time — denied, named, and flagged statically by
+   gate rule 5. The weakened guarantee is stated in the ADR and in `Validate`'s godoc.
+3. **`DispatchSubject` prefers the user, then falls back to the actor.** Without the
+   fallback a bootstrap grant (`context.Background()`) would be unauthenticated by
+   construction; with it, machine callers authorize as `system:<name>` while a session
+   keeps the route spelling. Both are pinned.
+4. **M08 was proven in `authztest`'s own suite, not in `examples/`.** Example modules are
+   outside the test gates that run here; a test nobody runs is theatre. The kit's
+   self-proof runs in every gate that runs the root module.
+5. **M10's guide section is in `docs/guides/authorization-system.md` §5**, not a new
+   document — one canon beats two.
+
+### Open decisions — answered by proceeding, reversible
+
+| # | Default taken | How to reverse |
+| --- | --- | --- |
+| Q1 | Root ownership (D1) + an upstream ask still to be filed (owner-gated: `gh` needs the `workflow`-scope-free path) | move M04/M05 upstream |
+| Q2 | Construction-time refusal is acceptable **because the gate is opt-in** — no existing consumer breaks on upgrade | the runtime `Validate()` path already exists |
+| Q3 | Policy rows live in policy files for v1 | an event-sourced grant path is ADR-0057 territory |
+
+### Still open (outside this plan's scope)
+
+- The upstream go-cqrs-lite ask (M03.11) — owner-gated, tracked in `TODO_LIST.md`.
+- Consumer adoption waves (six repos, each in its own repo per guardrail 7).
+- `check-policy-rows` is self-test-only in `check-modules` because this repo authors no
+  policy CSVs; it becomes a blocking run the moment a consumer commits one.
