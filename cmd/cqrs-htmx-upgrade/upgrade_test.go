@@ -464,3 +464,163 @@ func wire() {
 		t.Errorf("blank import was dropped or rewritten:\n%s", rep.applied)
 	}
 }
+
+// facadeTable mirrors what deriveMappings derives from the three root façade
+// files (ADR-0062 class 1b). Kept separate from fixtureTable so the earlier
+// R1/R2 tests keep asserting against a table without the façade rules — the
+// combination is what a real run sees.
+func facadeTable() rulesTable {
+	return rulesTable{
+		rootImportPath: {
+			"HTMXTarget":      {targetImportPath: rootImportPath + "/htmx", targetName: "Target", rule: "R11"},
+			"RenderPartial":   {targetImportPath: rootImportPath + "/htmx", targetName: "RenderPartial", rule: "R11"},
+			"MapError":        {targetImportPath: rootImportPath + "/httperr", targetName: "MapError", rule: "R12"},
+			"ErrForbidden":    {targetImportPath: rootImportPath + "/httperr", targetName: "ErrForbidden", rule: "R12"},
+			"NewEventCatalog": {targetImportPath: rootImportPath + "/eventcatalog", targetName: "New", rule: "R13"},
+			"EventCatalogHandler": {
+				targetImportPath: rootImportPath + "/eventcatalog",
+				targetName:       "Handler",
+				rule:             "R13",
+			},
+		},
+	}
+}
+
+// TestR11_HTMXFacadeAlias: the extracted htmx vocabulary is requalified onto
+// the subpackage, with the rename the extraction applied (Target, not
+// HTMXTarget).
+func TestR11_HTMXFacadeAlias(t *testing.T) {
+	dir := t.TempDir()
+
+	src := `package app
+
+import (
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+)
+
+func wire(r *http.Request) bool {
+	_ = cqrshtmx.HTMXTarget(r)
+	return cqrshtmx.RenderPartial(r)
+}
+`
+	path := writeFile(t, dir, "app.go", src)
+
+	rep, err := planFile(path, facadeTable())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(rep.applied, `"github.com/larsartmann/cqrs-htmx/v4/htmx"`) {
+		t.Errorf("htmx import must be added:\n%s", rep.applied)
+	}
+
+	if !strings.Contains(rep.applied, "htmx.Target(r)") || !strings.Contains(rep.applied, "htmx.RenderPartial(r)") {
+		t.Errorf("references must be requalified onto htmx:\n%s", rep.applied)
+	}
+
+	if strings.Contains(rep.applied, "cqrshtmx.") {
+		t.Errorf("no cqrshtmx reference may survive:\n%s", rep.applied)
+	}
+}
+
+// TestR12_HTTPErrFacadeAlias: the error vocabulary moves to httperr.
+func TestR12_HTTPErrFacadeAlias(t *testing.T) {
+	dir := t.TempDir()
+
+	src := `package app
+
+import (
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+)
+
+func status(err error) int {
+	if err == cqrshtmx.ErrForbidden {
+		return http.StatusForbidden
+	}
+
+	return cqrshtmx.MapError(err)
+}
+`
+	path := writeFile(t, dir, "app.go", src)
+
+	rep, err := planFile(path, facadeTable())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(rep.applied, `"github.com/larsartmann/cqrs-htmx/v4/httperr"`) {
+		t.Errorf("httperr import must be added:\n%s", rep.applied)
+	}
+
+	if !strings.Contains(rep.applied, "httperr.ErrForbidden") || !strings.Contains(rep.applied, "httperr.MapError(err)") {
+		t.Errorf("references must be requalified onto httperr:\n%s", rep.applied)
+	}
+}
+
+// TestR13_EventcatalogFacadeAlias: the published-language vocabulary moves to
+// eventcatalog, and the constructor handlers take their unprefixed names.
+func TestR13_EventcatalogFacadeAlias(t *testing.T) {
+	dir := t.TempDir()
+
+	src := `package app
+
+import (
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+)
+
+func wire(mux *http.ServeMux) {
+	catalog := cqrshtmx.NewEventCatalog()
+	mux.Handle("/events.json", cqrshtmx.EventCatalogHandler(catalog))
+}
+`
+	path := writeFile(t, dir, "app.go", src)
+
+	rep, err := planFile(path, facadeTable())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(rep.applied, `"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"`) {
+		t.Errorf("eventcatalog import must be added:\n%s", rep.applied)
+	}
+
+	if !strings.Contains(rep.applied, "eventcatalog.New()") {
+		t.Errorf("NewEventCatalog must rewrite to eventcatalog.New():\n%s", rep.applied)
+	}
+
+	if !strings.Contains(rep.applied, "eventcatalog.Handler(catalog)") {
+		t.Errorf("EventCatalogHandler must rewrite to eventcatalog.Handler:\n%s", rep.applied)
+	}
+}
+
+// TestDeriveMappings_FacadeRules proves the R11/R12/R13 tables come from the
+// installed library's own alias declarations, not a hardcoded list: rename an
+// alias in the façade file and the codemod follows.
+func TestDeriveMappings_FacadeRules(t *testing.T) {
+	table, err := deriveMappings()
+	if err != nil {
+		t.Skipf("live module graph unavailable (workspace-mode test): %v", err)
+	}
+
+	root := table[rootImportPath]
+
+	for _, tc := range []struct {
+		symbol string
+		target string
+		name   string
+		rule   string
+	}{
+		{symbol: "HTMXTarget", target: rootImportPath + "/htmx", name: "Target", rule: "R11"},
+		{symbol: "MapError", target: rootImportPath + "/httperr", name: "MapError", rule: "R12"},
+		{symbol: "NewEventCatalog", target: rootImportPath + "/eventcatalog", name: "New", rule: "R13"},
+	} {
+		got, ok := root[tc.symbol]
+		if !ok {
+			t.Fatalf("%s missing from the derived root table (R11/R12/R13 not wired?)", tc.symbol)
+		}
+
+		if got.targetImportPath != tc.target || got.targetName != tc.name || got.rule != tc.rule {
+			t.Errorf("%s = %+v, want {%s %s %s}", tc.symbol, got, tc.target, tc.name, tc.rule)
+		}
+	}
+}

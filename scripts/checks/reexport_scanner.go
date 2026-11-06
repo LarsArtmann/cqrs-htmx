@@ -232,7 +232,17 @@ func genAliases(module, path string, imports map[string]string, gen *ast.GenDecl
 				continue
 			}
 
-			if decl, ok := makeAlias(module, path, imports, kindType, typeSpec.Name.Name, typeSpec.Type, gen.Doc, typeSpec.Doc, typeSpec.Comment); ok {
+			if decl, ok := makeAlias(
+				module,
+				path,
+				imports,
+				kindType,
+				typeSpec.Name.Name,
+				typeSpec.Type,
+				gen.Doc,
+				typeSpec.Doc,
+				typeSpec.Comment,
+			); ok {
 				out = append(out, decl)
 			}
 		}
@@ -254,7 +264,17 @@ func genAliases(module, path string, imports map[string]string, gen *ast.GenDecl
 					name = valueSpec.Names[i].Name
 				}
 
-				if decl, ok := makeAlias(module, path, imports, kind, name, value, gen.Doc, valueSpec.Doc, valueSpec.Comment); ok {
+				if decl, ok := makeAlias(
+					module,
+					path,
+					imports,
+					kind,
+					name,
+					value,
+					gen.Doc,
+					valueSpec.Doc,
+					valueSpec.Comment,
+				); ok {
 					out = append(out, decl)
 				}
 			}

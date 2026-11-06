@@ -187,14 +187,6 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 		pathToQual[p] = qual
 	}
 
-	// defaultQual is the qualifier a rewrite introduces when the file does
-	// not import the target package yet.
-	targetQual := map[string]string{
-		httputilImportPath: "httputil",
-		gosseImportPath:    "sse",
-		identityImportPath: "identitymodel",
-	}
-
 	remainingRefs := map[string]int{}
 	needImport := map[string]bool{}
 
@@ -205,7 +197,6 @@ func planFile(path string, table rulesTable) (fileReport, error) {
 		table:         table,
 		qualToPath:    qualToPath,
 		pathToQual:    pathToQual,
-		targetQual:    targetQual,
 		remainingRefs: remainingRefs,
 		needImport:    needImport,
 		edits:         edits,
@@ -557,14 +548,15 @@ func requalify(
 	sel *ast.SelectorExpr,
 	sym mappedSymbol,
 	pathToQual map[string]string,
-	targetQual map[string]string,
 	needImport map[string]bool,
 	edits *[]textEdit,
 	rep *fileReport,
 ) {
 	newQual := pathToQual[sym.targetImportPath]
 	if newQual == "" {
-		newQual = targetQual[sym.targetImportPath]
+		// One derivation for both the qualifier AND the import spec
+		// missingImports writes, so the two can never disagree.
+		newQual = defaultQualFor(sym.targetImportPath)
 		needImport[sym.targetImportPath] = true
 	}
 
@@ -612,7 +604,6 @@ type planCtx struct {
 	table         rulesTable
 	qualToPath    map[string]string
 	pathToQual    map[string]string
-	targetQual    map[string]string
 	remainingRefs map[string]int
 	needImport    map[string]bool
 	edits         []textEdit
@@ -656,7 +647,7 @@ func (p *planCtx) visit(n ast.Node) bool {
 	}
 
 	p.remainingRefs[ident.Name]--
-	requalify(p.fset, ident, sel, sym, p.pathToQual, p.targetQual, p.needImport, &p.edits, p.rep)
+	requalify(p.fset, ident, sel, sym, p.pathToQual, p.needImport, &p.edits, p.rep)
 
 	return true
 }

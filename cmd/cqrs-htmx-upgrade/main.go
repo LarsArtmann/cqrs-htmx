@@ -11,10 +11,14 @@
 //	    sites are REPORTED for manual migration (type-ambiguous to rewrite safely)
 //	R9  usermgmt deprecated type aliases → identity-model
 //	R10 usermgmt deprecated var/const re-exports → identity-model
+//	R11 root htmx façade aliases  → github.com/larsartmann/cqrs-htmx/v4/htmx
+//	R12 root httperr façade aliases → github.com/larsartmann/cqrs-htmx/v4/httperr
+//	R13 root eventcatalog façade aliases → github.com/larsartmann/cqrs-htmx/v4/eventcatalog
 //
-// The R1/R2/R9/R10 symbol tables are NOT hardcoded: they are derived at run
-// time from the alias declarations of the cqrs-htmx version present in the
-// consumer's module graph, so the codemod can never drift from the library.
+// The R1/R2/R9/R10/R11/R12/R13 symbol tables are NOT hardcoded: they are
+// derived at run time from the alias declarations of the cqrs-htmx version
+// present in the consumer's module graph, so the codemod can never drift from
+// the library.
 //
 // Usage:
 //

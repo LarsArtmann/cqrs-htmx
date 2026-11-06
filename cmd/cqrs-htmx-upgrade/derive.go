@@ -50,6 +50,25 @@ func rootGoSSEFiles() []string {
 	return []string{"sse_event.go", "sse_store.go", "event_store_sse.go"}
 }
 
+// facadeRule is one root re-export file and the extracted subpackage it
+// shadows (ADR-0062 class 1b: the symbols were MOVED, then aliased back).
+type facadeRule struct {
+	file   string
+	target string
+	rule   string
+}
+
+// rootFacadeRules are the subpackage facade alias files added by the 2026-11-02
+// decomposition. They are deprecated in place and deleted at v5, so a consumer
+// migration is exactly the R1/R2 shape: requalify, then swap the import.
+func rootFacadeRules() []facadeRule {
+	return []facadeRule{
+		{file: "htmx_reexport.go", target: rootImportPath + "/htmx", rule: "R11"},
+		{file: "httperr_reexport.go", target: rootImportPath + "/httperr", rule: "R12"},
+		{file: "eventcatalog_reexport.go", target: rootImportPath + "/eventcatalog", rule: "R13"},
+	}
+}
+
 // usermgmt identity-model alias layer (class 3): the named files plus every
 // es_*.go event/command/state file.
 func usermgmtAliasFiles(dir string) []string {
@@ -117,20 +136,55 @@ func deriveMappings() (rulesTable, error) {
 	root := symbolMap{}
 	maps.Copy(root, httputil)
 
-	for sym, m := range gosse {
-		if _, clash := root[sym]; clash {
-			return nil, errorfamily.Newf(
-				errorfamily.Corruption,
-				"cqrshtmx.upgrade.reexport_clash",
-				"re-export clash: %s",
-				sym,
-			)
+	if err := mergeSymbols(root, gosse, "R2"); err != nil {
+		return nil, err
+	}
+
+	for _, facade := range rootFacadeRules() {
+		table, err := deriveGroup(rootDir, []string{facade.file}, facade.target, facade.rule,
+			"cqrshtmx.upgrade.derive_"+strings.ToLower(facade.rule)+"_failed",
+			facade.rule+" ("+facade.file+")")
+		if err != nil {
+			return nil, err
 		}
 
-		root[sym] = m
+		if err := mergeSymbols(root, table, facade.rule); err != nil {
+			return nil, err
+		}
 	}
 
 	return rulesTable{rootImportPath: root, usermgmtImportPath: identity}, nil
+}
+
+// deriveGroup derives one symbol table and wraps a failure with the rule's
+// own error code, so a red run names WHICH group drifted.
+func deriveGroup(dir string, files []string, target, rule, code, label string) (symbolMap, error) {
+	table, err := deriveFromFiles(dir, files, target, rule)
+	if err != nil {
+		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), code, "%s", label)
+	}
+
+	return table, nil
+}
+
+// mergeSymbols folds one rule group into the root table, refusing a clash: two
+// re-export groups claiming one symbol means the codemod would guess.
+func mergeSymbols(dst, src symbolMap, rule string) error {
+	for sym, m := range src {
+		if _, clash := dst[sym]; clash {
+			return errorfamily.Newf(
+				errorfamily.Corruption,
+				"cqrshtmx.upgrade.reexport_clash",
+				"re-export clash: %s (%s)",
+				sym,
+				rule,
+			)
+		}
+
+		dst[sym] = m
+	}
+
+	return nil
 }
 
 // deriveFromFiles parses alias files and collects every `X = pkg.Y` alias
