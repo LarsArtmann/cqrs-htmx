@@ -150,6 +150,48 @@ func toMemberRows(memberships []*identitymodel.Membership) []memberRow {
 	return members
 }
 
+// hasRole reports whether roles contains role.
+func hasRole(roles []identitymodel.Role, role identitymodel.Role) bool {
+	for _, r := range roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+
+// removeCredentialConfirm builds the passkey-removal confirm text: removing
+// the user's last passkey leaves them dependent on linked OAuth2 providers
+// (or locked out entirely), and the admin deserves to know which world they
+// are choosing.
+func removeCredentialConfirm(d userDetailData, cred identitymodel.WebAuthnCredential) string {
+	name := cred.Name
+	if name == "" {
+		name = "this passkey"
+	}
+	if len(d.User.Credentials) == 1 && len(d.User.ExternalAccounts) == 0 {
+		return "Remove " + name + "? It is the user's ONLY way to sign in — they will be " +
+			"locked out until a passkey is re-enrolled or a provider is linked. This cannot be undone lightly."
+	}
+	if len(d.User.Credentials) == 1 {
+		return "Remove " + name + "? It is the user's last passkey — afterwards they can only " +
+			"sign in via a linked OAuth2 provider."
+	}
+	return "Remove " + name + "? The user can no longer sign in with it."
+}
+
+// revokeRolesConfirm builds the platform-role revocation confirm text. When
+// the admin is revoking their own access, the warning escalates: the panel
+// itself becomes unreachable for them.
+func revokeRolesConfirm(d userDetailData) string {
+	if d.IsSelf {
+		return "Revoke YOUR OWN platform roles? You will lock yourself out of this panel " +
+			"until another admin re-grants them."
+	}
+	return "Revoke all platform roles for " + d.User.Email +
+		"? They lose admin-panel access until re-granted."
+}
+
 // auditData drives the audit log page.
 type auditData struct {
 	Entries  []usermgmt.AuditEntry

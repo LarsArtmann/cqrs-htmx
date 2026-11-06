@@ -214,12 +214,15 @@ templ userDetailContent(d userDetailData) {
 			Items: []display.DefinitionItem{
 				{Term: "User ID", DetailComponent: userIDDetail(d.User.ID.Get().String())},
 				{Term: "Email", Detail: d.User.Email},
-				{Term: "Verified", DetailComponent: verifiedBadge(d.User.EmailVerified)},
+				{Term: "Verified", DetailComponent: verifiedDetail(d)},
 				{Term: "TOTP MFA", DetailComponent: totpBadge(d.User.TOTPEnabled)},
 			},
 		})
 	}
+	@profileEditCard(d)
+	@passkeysCard(d)
 	@externalAccountsCard(d)
+	@platformAccessCard(d)
 	if len(d.TenantRoles) > 0 {
 		@display.Card(display.CardProps{
 			Title:     "Roles & memberships",
@@ -259,6 +262,192 @@ templ userDetailContent(d userDetailData) {
 
 // userDetailAvatar keeps the identity anchor on the user detail page: the
 // square initials avatar rides in the PageHeader action slot.
+// verifiedDetail pairs the verified badge with the admin-side "Resend
+// verification" action. The action error path explains honestly when the
+// Service has no email verification configured.
+templ verifiedDetail(d userDetailData) {
+	<span class="flex flex-wrap items-center gap-2">
+		@verifiedBadge(d.User.EmailVerified)
+		if !d.User.EmailVerified {
+			@display.Button(display.ButtonProps{
+				Text:    "Resend verification",
+				Variant: display.ButtonSecondary,
+				Size:    display.ButtonSizeSM,
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"hx-post":         d.BasePath + "/users/" + d.User.ID.Get().String() + "/resend-verification",
+					"hx-disabled-elt": "this",
+				}},
+			})
+		}
+	</span>
+}
+
+// profileEditCard holds the two inline profile edits: display name and
+// sign-in email. Each is its own form so a save never mixes fields; the email
+// form carries a confirm dialog because it changes how the user signs in.
+templ profileEditCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:     "Edit profile",
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/display-name" } hx-target="this" class="mb-4">
+			@forms.Input(forms.InputProps{
+				BaseProps: utils.BaseProps{ID: "display_name", Class: "mb-2"},
+				Name:       "display_name",
+				Value:      d.User.DisplayName,
+				Placeholder: "Display name",
+				Label:      "Display name",
+			})
+			@display.Button(display.ButtonProps{
+				Text:    "Save display name",
+				Type:    display.ButtonHTMLSubmit,
+				Variant: display.ButtonSecondary,
+				Size:    display.ButtonSizeSM,
+			})
+		</form>
+		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/email" } hx-target="this">
+			@forms.Input(forms.InputProps{
+				BaseProps: utils.BaseProps{ID: "email", Class: "mb-2"},
+				Name:       "email",
+				Type:       forms.InputEmail,
+				Value:      d.User.Email,
+				Placeholder: "email@example.com",
+				Label:      "Email",
+				HelpText:   "Changing the email changes how the user signs in and is found.",
+			})
+			@display.Button(display.ButtonProps{
+				Text:    "Save email",
+				Type:    display.ButtonHTMLSubmit,
+				Variant: display.ButtonSecondary,
+				Size:    display.ButtonSizeSM,
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"data-confirm":       "Change this user's email? OAuth providers match by email — the user may lose linked access until re-linked.",
+					"data-confirm-title": "Change email",
+				}},
+			})
+		</form>
+	}
+}
+
+// passkeysCard lists the user's WebAuthn credentials with a remove action.
+// Credential ids are binary, so they travel base64url-encoded in the POST
+// path. Removing the last passkey leaves the user dependent on OAuth2 (or
+// locked out entirely) — the confirm text says so.
+templ passkeysCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:     "Passkeys",
+		Padding:   display.CardPaddingNone,
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		if len(d.User.Credentials) == 0 {
+			<div class="px-4 py-3 text-sm text-gray-500">
+				No passkeys enrolled. The user signs in via a linked provider or enrolls
+				one from their own account page.
+			</div>
+		} else {
+			@display.Table(display.TableProps{
+				Headers:     []string{"Name", "Added", "Backup", ""},
+				Hover:       true,
+				Body:        credentialRows(d),
+				Flush:       true,
+				CellPadding: display.TableCellPaddingCompact,
+			})
+		}
+	}
+}
+
+templ credentialRows(d userDetailData) {
+	for _, c := range d.User.Credentials {
+		<tr>
+			<td class="px-4 py-2 text-sm font-medium">
+				if c.Name != "" {
+					{ c.Name }
+				} else {
+					<span class="font-mono text-xs text-gray-400">{ base64.RawURLEncoding.EncodeToString(c.ID)[:12] }…</span>
+				}
+			</td>
+			<td class="px-4 py-2 text-gray-500">
+				@display.RelativeTime(display.RelativeTimeProps{Time: c.CreatedAt})
+			</td>
+			<td class="px-4 py-2">
+				if c.BackupState {
+					@statusBadge("backed up", display.BadgeSuccess)
+				} else if c.BackupEligible {
+					@statusBadge("sync pending", display.BadgeWarning)
+				} else {
+					<span class="text-sm text-gray-400">—</span>
+				}
+			</td>
+			<td class="px-4 py-2 text-right">
+				@display.Button(display.ButtonProps{
+					Text:    "Remove",
+					Variant: display.ButtonDanger,
+					Size:    display.ButtonSizeSM,
+					Icon:    icon("trash"),
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/credentials/" + base64.RawURLEncoding.EncodeToString(c.ID) + "/delete",
+						"data-confirm":       removeCredentialConfirm(d, c),
+						"data-confirm-title": "Remove passkey",
+						"hx-disabled-elt":    "this",
+					}},
+				})
+			</td>
+		</tr>
+	}
+}
+
+// platformAccessCard grants and revokes wildcard-domain roles through the
+// durable GrantRoles path (membership events, replayed by the projection —
+// ADR-0057). Granting replaces the role set, so the checkboxes show the
+// user's current platform roles as the starting point.
+templ platformAccessCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:     "Platform access",
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		if d.IsSelf {
+			<div class="mb-3 rounded-md bg-amber-50 px-3.5 py-2.5 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+				This is your own account — revoking your platform roles locks you out of
+				this panel until another admin re-grants them.
+			</div>
+		}
+		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/roles" } hx-target="this">
+			<div class="mb-3 flex flex-wrap gap-4">
+				for _, role := range d.GrantableAdminRoles {
+					@forms.Checkbox(forms.CheckboxProps{
+						BaseProps: utils.BaseProps{ID: "role-" + string(role)},
+						Name:       "roles",
+						Value:      string(role),
+						Label:      string(role),
+						Checked:    hasRole(d.PlatformRoles, role),
+					})
+				}
+			</div>
+			<div class="flex flex-wrap items-center gap-2.5">
+				@display.Button(display.ButtonProps{
+					Text:    "Save platform roles",
+					Type:    display.ButtonHTMLSubmit,
+					Variant: display.ButtonPrimary,
+					Size:    display.ButtonSizeSM,
+				})
+				if len(d.PlatformRoles) > 0 {
+					@display.Button(display.ButtonProps{
+						Text:    "Revoke all",
+						Variant: display.ButtonDanger,
+						Size:    display.ButtonSizeSM,
+						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+							"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/roles/revoke",
+							"data-confirm":       revokeRolesConfirm(d),
+							"data-confirm-title": "Revoke platform roles",
+							"hx-disabled-elt":    "this",
+						}},
+					})
+				}
+			</div>
+		</form>
+	}
+}
+
 templ userDetailAvatar(d userDetailData) {
 	@display.Avatar(display.AvatarProps{Initials: initials(d.User.Email), Size: display.AvatarSizeLG, Shape: display.AvatarShapeSquare, BaseProps: utils.BaseProps{Class: "h-[52px] w-[52px] rounded-[14px] text-lg"}})
 }

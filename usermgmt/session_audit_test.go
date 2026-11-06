@@ -317,7 +317,7 @@ func TestSessionAudit_AuditLogRecordsSessionLifecycle(t *testing.T) {
 	var started, ended bool
 
 	for _, entry := range auditLog.Entries() {
-		switch entry.Action { //nolint:exhaustive // only the two session actions matter here
+		switch entry.Action {
 		case AuditActionSessionStarted:
 			started = true
 		case AuditActionSessionEnded:
