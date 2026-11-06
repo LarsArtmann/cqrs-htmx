@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	healthdashboard "github.com/larsartmann/go-health-dashboard"
 	gohealth "github.com/larsartmann/go-health"
+	healthdashboard "github.com/larsartmann/go-health-dashboard"
 )
 
 // A3's verification bar: the bridge must forward go-health-dashboard

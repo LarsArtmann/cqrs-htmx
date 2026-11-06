@@ -196,7 +196,8 @@ func parseAliasFile(module, path string) (*aliasFile, error) {
 
 	parsed, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 	if err != nil {
-		return nil, fmt.Errorf("parse %s: %w", path, err)
+		fmt.Fprintf(os.Stderr, "reexport_scanner: parse %s: %v\n", path, err)
+		return nil, err
 	}
 
 	file := &aliasFile{Module: module, Path: path}
