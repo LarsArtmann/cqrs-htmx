@@ -38,6 +38,8 @@ const (
 	EmptyStateSnapshotAggregates EmptyStateKey = "snapshot-aggregates"
 	// EmptyStateCommandFates is the command fates list.
 	EmptyStateCommandFates EmptyStateKey = "command-fates"
+	// EmptyStateThroughput is the event-throughput chart.
+	EmptyStateThroughput EmptyStateKey = "throughput"
 )
 
 // EmptyStateCopy is the brand-overridable text of one empty-state panel.
@@ -93,6 +95,10 @@ var defaultEmptyStates = map[EmptyStateKey]EmptyStateCopy{ //nolint:gochecknoglo
 	EmptyStateCommandFates: {
 		Title:   "No command fates recorded",
 		Message: "Command outcomes (rejected, failed, retried, dead-lettered, completed) appear here when command lifecycle recording is enabled: set ServiceConfig.CommandLifecycle in usermgmt, or wire the commandlifecycle middleware pair.",
+	},
+	EmptyStateThroughput: {
+		Title:   "No events to chart",
+		Message: "The throughput chart buckets journal events into fixed time windows — record events and refresh.",
 	},
 }
 

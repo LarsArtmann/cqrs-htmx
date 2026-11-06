@@ -47,6 +47,7 @@ type (
 	eventFilter       = core.EventFilter
 	dlqProjectionLink = core.DLQProjectionLink
 	commandFate       = core.CommandFate
+	eventThroughput   = core.EventThroughput
 )
 
 // ===== Status constant aliases =====
@@ -217,6 +218,14 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 
 func (d *Dashboard) loadCommandFates(ctx context.Context, limit int) ([]commandFate, int, error) {
 	return core.LoadCommandFates(ctx, d.config.coreConfig(), limit)
+}
+
+func (d *Dashboard) loadEventThroughput(
+	ctx context.Context,
+	span time.Duration,
+	buckets int,
+) (eventThroughput, error) {
+	return core.LoadEventThroughput(ctx, d.config.coreConfig(), span, buckets)
 }
 
 func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) (string, string) {
