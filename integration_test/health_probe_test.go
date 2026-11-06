@@ -97,6 +97,7 @@ func TestHealthProbe_StartAndRoutesE2E(t *testing.T) {
 	probe, err := health.NewProbe(svc,
 		gohealth.WithCriticalServices("user-read-model", "casbin-projection"),
 		gohealth.WithRefreshInterval(50*time.Millisecond),
+		gohealth.WithVersion("integration-test"),
 	)
 	require.NoError(t, err)
 

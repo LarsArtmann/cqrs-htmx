@@ -195,6 +195,43 @@ func TestRequireBot_RejectsWithoutBot(t *testing.T) {
 	}
 }
 
+// TestRequireBot_RejectsWithProblemDocument pins the shared error vocabulary
+// on the machine surface: a bot client is a program, so the rejection must be
+// an RFC 9457 problem document with the stable shared code, not prose.
+func TestRequireBot_RejectsWithProblemDocument(t *testing.T) {
+	handler := RequireBot(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		t.Error("handler should not be called without bot")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want %d", rr.Code, http.StatusUnauthorized)
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != "application/problem+json; charset=utf-8" {
+		t.Errorf("content type = %q, want application/problem+json", ct)
+	}
+	var payload struct {
+		Title  string `json:"title"`
+		Status int    `json:"status"`
+		Code   string `json:"code"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("rejection body is not a JSON problem document: %v; body: %s", err, rr.Body.String())
+	}
+	if payload.Code != "unauthorized" {
+		t.Errorf("code = %q, want the shared denial code %q", payload.Code, "unauthorized")
+	}
+	if payload.Status != http.StatusUnauthorized {
+		t.Errorf("status field = %d, want %d", payload.Status, http.StatusUnauthorized)
+	}
+	if payload.Title == "" {
+		t.Error("problem document must carry a title")
+	}
+}
+
 // TestAPITokenMiddleware_BotActorInContext is the zero-actor guard: an
 // authenticated bot must carry its machine actor in the request context, so a
 // dispatched command is attributed to `bot:<id>` instead of landing as a

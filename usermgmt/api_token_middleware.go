@@ -2,11 +2,14 @@ package usermgmt
 
 import (
 	"context"
+	"encoding/json/v2"
 	"log/slog"
 	"net/http"
 	"strings"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 // botContextKeyType is the context key for the authenticated Bot.
@@ -70,12 +73,24 @@ func NewAPITokenMiddleware(service *Service) func(http.Handler) http.Handler {
 	}
 }
 
+// contentTypeProblem matches the RFC 9457 content type the root httperr
+// package writes; redeclared because internal/hx is not importable here.
+const contentTypeProblem = "application/problem+json; charset=utf-8"
+
 // RequireBot is HTTP middleware that rejects requests without an authenticated
 // Bot in the context. Use after NewAPITokenMiddleware to enforce bot-only routes.
+//
+// The rejection is the shared RFC 9457 problem document (application/problem+json)
+// with the stable shared denial code "unauthorized" — the same document every
+// other cqrs-htmx surface emits, because the consumer of a machine gate is a
+// program that branches on the code, not a human reading prose.
 func RequireBot(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := BotFromContext(r.Context()); !ok {
-			http.Error(w, "Unauthorized: valid API token required", http.StatusUnauthorized)
+			status := httperr.MapError(identitymodel.ErrUnauthorized)
+			w.Header().Set("Content-Type", contentTypeProblem)
+			w.WriteHeader(status)
+			_ = json.MarshalWrite(w, httperr.NewStructuredError(identitymodel.ErrUnauthorized, r))
 			return
 		}
 		next.ServeHTTP(w, r)
