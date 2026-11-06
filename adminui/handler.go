@@ -91,7 +91,7 @@ func buildNav(config Config) []navItem {
 	}
 	if config.DashboardURL != "" {
 		nav = append(nav, navItem{
-			Href: config.DashboardURL, Label: "Event store", Icon: string(icons.ChartBar), Verbatim: true,
+			Href: config.DashboardURL, Label: "Event store", Icon: string(icons.Chart), Verbatim: true,
 		})
 	}
 	return nav
