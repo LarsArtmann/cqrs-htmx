@@ -96,33 +96,13 @@ func (s CommandSuite) Verify() error {
 	wantsUnprivileged, wantsPrivileged := false, false
 
 	for _, c := range s.Cases {
-		if c.Dispatch == nil {
-			return errorfamily.NewRejection(
-				"authztest.command_dispatch_nil",
-				fmt.Sprintf("%s has no Dispatch function", c),
-			)
+		needsUnprivileged, needsPrivileged, err := c.validate()
+		if err != nil {
+			return err
 		}
 
-		if strings.TrimSpace(c.Why) == "" {
-			return errorfamily.NewRejection(
-				"authztest.command_why_empty",
-				fmt.Sprintf("%s declares no reason; a posture without a reason is a guess", c),
-			)
-		}
-
-		switch c.Posture {
-		case Public:
-		case Authenticated:
-			wantsPrivileged = true
-		case RoleGated:
-			wantsUnprivileged = true
-			wantsPrivileged = true
-		default:
-			return errorfamily.NewRejection(
-				"authztest.command_posture_unknown",
-				fmt.Sprintf("%s declares posture %q, which the dispatch matrix cannot probe", c, c.Posture),
-			)
-		}
+		wantsUnprivileged = wantsUnprivileged || needsUnprivileged
+		wantsPrivileged = wantsPrivileged || needsPrivileged
 	}
 
 	if wantsUnprivileged && s.Unprivileged == nil {
@@ -140,6 +120,43 @@ func (s CommandSuite) Verify() error {
 	}
 
 	return nil
+}
+
+// validate checks one declaration and reports which identities its posture needs
+// to be proven.
+func (c DispatchCase) validate() (bool, bool, error) {
+	if c.Dispatch == nil {
+		return false, false, errorfamily.NewRejection(
+			"authztest.command_dispatch_nil",
+			fmt.Sprintf("%s has no Dispatch function", c),
+		)
+	}
+
+	if strings.TrimSpace(c.Why) == "" {
+		return false, false, errorfamily.NewRejection(
+			"authztest.command_why_empty",
+			fmt.Sprintf("%s declares no reason; a posture without a reason is a guess", c),
+		)
+	}
+
+	switch c.Posture {
+	case Public:
+		return false, false, nil
+	case Authenticated:
+		return false, true, nil
+	case RoleGated:
+		return true, true, nil
+	case Ungated:
+		return false, false, errorfamily.NewRejection(
+			"authztest.command_posture_unknown",
+			fmt.Sprintf("%s declares %q, which is a manifest truth, not a probe contract", c, c.Posture),
+		)
+	default:
+		return false, false, errorfamily.NewRejection(
+			"authztest.command_posture_unknown",
+			fmt.Sprintf("%s declares posture %q, which the dispatch matrix cannot probe", c, c.Posture),
+		)
+	}
 }
 
 // Run verifies the declarations and probes every case as a subtest. A failing
@@ -181,6 +198,14 @@ func (s CommandSuite) probe(report testingTB, c DispatchCase) {
 		requireUnauthorized(report, c, "anonymous", anonErr)
 		requireForbidden(report, c, "unprivileged", c.Dispatch(s.Unprivileged(context.Background())))
 		requireAllowed(report, c, "privileged", c.Dispatch(s.Privileged(context.Background())))
+
+	case Ungated:
+		// Unreachable through Run (Verify refuses it); listed so the switch
+		// stays exhaustive if a case is probed directly.
+		report.Errorf("%s declares %q, which the matrix cannot probe", c, c.Posture)
+
+	default:
+		report.Errorf("%s declares posture %q, which the matrix cannot probe", c, c.Posture)
 	}
 }
 
