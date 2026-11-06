@@ -1151,6 +1151,15 @@
         </div>
 
         <h2 id="plan"><span class="num">04</span>Execution plan (27 tasks, 30&ndash;100 min each)</h2>
+        <p style="border-left:3px solid var(--accent); padding:8px 12px; margin:12px 0;">
+          <strong>Status 2026-11-06 03:45:</strong> waves W1&ndash;W7 all code-complete and green
+          (adminui tests + lint 0 issues, route-postures adminui leg green, manifest golden updated,
+          coverage 67.3% &ge; 66 floor, CSS bundles class-exact, setup passthrough + tests at 92.9%,
+          both demos build). Remaining: the release train &mdash; hermetic gates (route-postures
+          dashboardui/setup legs, cqrs-lint dashboardui/systemadapter) are red on the gotcha-30
+          root-tag-gap until root + identity-model + usermgmt + adminui are tagged and consumer pins
+          bumped; that push is an owner decision (status report &sect;g).
+        </p>
         <table>
           <thead><tr><th>Wave</th><th>Task</th><th>Idea #</th><th>Verifies via</th></tr></thead>
           <tbody>

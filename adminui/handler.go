@@ -77,7 +77,7 @@ func buildNav(config Config) []navItem {
 	} else {
 		nav = []navItem{
 			{Href: "/", Label: "Dashboard", Icon: iconDashboard},
-			{Href: "/users", Label: "Users", Icon: iconUsers},
+			{Href: patternUsers, Label: "Users", Icon: iconUsers},
 			{Href: "/tenants", Label: "Tenants", Icon: iconTenants},
 			{Href: "/audit", Label: "Audit log", Icon: iconAudit},
 		}

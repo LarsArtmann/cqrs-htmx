@@ -21,6 +21,7 @@ const (
 
 // Shared route patterns (referenced by the table and the sidebar nav).
 const (
+	patternUsers   = "/users"
 	patternTenants = "/tenants"
 	patternMembers = "/members"
 	patternAudit   = "/audit"
@@ -185,18 +186,21 @@ func (h *Handler) fallbackRoutes() []routeSpec {
 func (h *Handler) superAdminRoutes() []routeSpec {
 	return slices.Concat(
 		h.superAdminUserRoutes(),
+		h.superAdminUserAccountRoutes(),
 		h.superAdminTenantRoutes(),
 		h.superAdminTenantMemberRoutes(),
 	)
 }
 
-// superAdminUserRoutes administer users across every tenant.
+// superAdminUserRoutes administer the user DIRECTORY across every tenant:
+// listing, creation, detail, and deletion. Writes that change how an
+// existing user AUTHENTICATES live in [Handler.superAdminUserAccountRoutes].
 //
 //nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
 func (h *Handler) superAdminUserRoutes() []routeSpec {
 	return []routeSpec{
 		{
-			method: http.MethodGet, pattern: "/users", panel: panelUsers, guarded: h.usersIndex,
+			method: http.MethodGet, pattern: patternUsers, panel: panelUsers, guarded: h.usersIndex,
 			mode: routeModeSuperAdmin, why: "the user list spans every tenant",
 		},
 		{
@@ -204,9 +208,28 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, why: "the creation form itself reveals the directory shape",
 		},
 		{
-			method: http.MethodPost, pattern: "/users", panel: panelUsers, guarded: h.userCreate,
+			method: http.MethodPost, pattern: patternUsers, panel: panelUsers, guarded: h.userCreate,
 			mode: routeModeSuperAdmin, write: true, why: "creating accounts is platform-admin territory",
 		},
+		{
+			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,
+			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
+		},
+		{
+			method: http.MethodPost, pattern: "/users/{id}/delete", panel: panelUsers, guarded: h.userDelete,
+			mode: routeModeSuperAdmin, write: true, why: "deleting users is platform-admin territory",
+		},
+	}
+}
+
+// superAdminUserAccountRoutes write the AUTHENTICATION surface of one user:
+// profile fields, credentials, external accounts, and platform roles. Each
+// row changes how the target user signs in or who they can be — the highest-
+// stakes writes in the panel, so each carries its own why.
+//
+//nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
+func (h *Handler) superAdminUserAccountRoutes() []routeSpec {
+	return []routeSpec{
 		{
 			method:  http.MethodPost,
 			pattern: "/users/{id}/display-name",
@@ -219,14 +242,6 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 		{
 			method: http.MethodPost, pattern: "/users/{id}/email", panel: panelUsers, guarded: h.userUpdateEmail,
 			mode: routeModeSuperAdmin, write: true, why: "changing a sign-in email changes how the user authenticates",
-		},
-		{
-			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,
-			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
-		},
-		{
-			method: http.MethodPost, pattern: "/users/{id}/delete", panel: panelUsers, guarded: h.userDelete,
-			mode: routeModeSuperAdmin, write: true, why: "deleting users is platform-admin territory",
 		},
 		{
 			method:  http.MethodPost,

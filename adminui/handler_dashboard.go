@@ -47,80 +47,13 @@ func (h *Handler) statsPartial(w http.ResponseWriter, r *http.Request, user *ide
 }
 
 func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
-	svc := h.config.Service
 	var stats []statCard
 	if h.config.Mode == ModeSuperAdmin {
-		users := svc.ReadModel().AllUsers()
-		verified, mfa := 0, 0
-		for _, u := range users {
-			if u.EmailVerified {
-				verified++
-			}
-			if u.TOTPEnabled {
-				mfa++
-			}
-		}
-		suspended := 0
-		for _, t := range svc.AllTenants() {
-			if t.Suspended {
-				suspended++
-			}
-		}
-		stats = []statCard{
-			{
-				Label: "Users",
-				Value: strconv.Itoa(len(users)),
-				Icon:  iconUsers,
-				Tone:  display.StatToneBlue,
-				Href:  p.BasePath + "/users",
-			},
-			{
-				Label: "Verified",
-				Value: percent(verified, len(users)),
-				Icon:  iconUsers,
-				Tone:  display.StatToneBlue,
-				Href:  p.BasePath + "/users",
-			},
-			{
-				Label: "MFA adoption",
-				Value: percent(mfa, len(users)),
-				Icon:  iconUsers,
-				Tone:  display.StatToneBlue,
-				Href:  p.BasePath + "/users",
-			},
-			{
-				Label: "Tenants",
-				Value: strconv.Itoa(len(svc.AllTenants())),
-				Icon:  iconTenants,
-				Tone:  display.StatTonePurple,
-				Href:  p.BasePath + "/tenants",
-			},
-			{
-				Label: "Suspended tenants",
-				Value: strconv.Itoa(suspended),
-				Icon:  iconTenants,
-				Tone:  display.StatTonePurple,
-				Href:  p.BasePath + "/tenants",
-			},
-		}
+		stats = h.superAdminStats(p)
 	} else {
-		members := svc.TenantMembers(r.Context(), h.config.TenantID)
-		tenantName := h.config.TenantID.Get()
-		if t, err := svc.GetTenant(r.Context(), h.config.TenantID); err == nil && t.DisplayName != "" {
-			tenantName = t.DisplayName
-		}
-		stats = []statCard{
-			{
-				Label: "Members",
-				Value: strconv.Itoa(len(members)),
-				Icon:  iconMembers,
-				Tone:  display.StatToneBlue,
-				Href:  p.BasePath + "/members",
-			},
-			{Label: "Tenant", Value: tenantName, Icon: iconTenants, Tone: display.StatTonePurple},
-		}
+		stats = h.tenantStats(r, p)
 	}
-	if al := svc.AuditLog(); al != nil {
+	if al := h.config.Service.AuditLog(); al != nil {
 		stats = append(stats, statCard{
 			Label: "Audit events",
 			Value: strconv.Itoa(al.Count()),
@@ -130,6 +63,85 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 		})
 	}
 	return stats
+}
+
+// superAdminStats are the platform-wide cards: directory size, adoption
+// ratios (verified, MFA), and the tenant fleet with its suspension count.
+func (h *Handler) superAdminStats(p pageData) []statCard {
+	svc := h.config.Service
+	users := svc.ReadModel().AllUsers()
+	verified, mfa := 0, 0
+	for _, u := range users {
+		if u.EmailVerified {
+			verified++
+		}
+		if u.TOTPEnabled {
+			mfa++
+		}
+	}
+	suspended := 0
+	for _, t := range svc.AllTenants() {
+		if t.Suspended {
+			suspended++
+		}
+	}
+	return []statCard{
+		{
+			Label: "Users",
+			Value: strconv.Itoa(len(users)),
+			Icon:  iconUsers,
+			Tone:  display.StatToneBlue,
+			Href:  p.BasePath + "/users",
+		},
+		{
+			Label: labelVerified,
+			Value: percent(verified, len(users)),
+			Icon:  iconUsers,
+			Tone:  display.StatToneBlue,
+			Href:  p.BasePath + "/users",
+		},
+		{
+			Label: "MFA adoption",
+			Value: percent(mfa, len(users)),
+			Icon:  iconUsers,
+			Tone:  display.StatToneBlue,
+			Href:  p.BasePath + "/users",
+		},
+		{
+			Label: "Tenants",
+			Value: strconv.Itoa(len(svc.AllTenants())),
+			Icon:  iconTenants,
+			Tone:  display.StatTonePurple,
+			Href:  p.BasePath + "/tenants",
+		},
+		{
+			Label: "Suspended tenants",
+			Value: strconv.Itoa(suspended),
+			Icon:  iconTenants,
+			Tone:  display.StatTonePurple,
+			Href:  p.BasePath + "/tenants",
+		},
+	}
+}
+
+// tenantStats are the tenant-mode cards: membership size and tenant identity.
+func (h *Handler) tenantStats(r *http.Request, p pageData) []statCard {
+	svc := h.config.Service
+	members := svc.TenantMembers(r.Context(), h.config.TenantID)
+	tenantName := h.config.TenantID.Get()
+	if t, err := svc.GetTenant(r.Context(), h.config.TenantID); err == nil && t.DisplayName != "" {
+		tenantName = t.DisplayName
+	}
+	return []statCard{
+		{
+			Label: "Members",
+			Value: strconv.Itoa(len(members)),
+			Icon:  iconMembers,
+			Tone:  display.StatToneBlue,
+			Href:  p.BasePath + "/members",
+		},
+		{Label: "Tenant", Value: tenantName, Icon: iconTenants, Tone: display.StatTonePurple},
+	}
 }
 
 // percent renders part/total as an integer percentage; an empty set reads as

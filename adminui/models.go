@@ -212,6 +212,10 @@ type userFilterChip struct {
 	Active bool
 }
 
+// labelVerified is the one display label for the verified-email concept:
+// the dashboard adoption card and the users filter chip share it.
+const labelVerified = "Verified"
+
 // userFilterChipsList builds the chip row, preserving an active search: the
 // active chip toggles the filter OFF (keeps q), the others toggle their own
 // filter ON (also keeping q).
@@ -222,7 +226,7 @@ func userFilterChipsList(d usersListData) []userFilterChip {
 		label  string
 	}
 	specs := []spec{
-		{userFilterVerified, "Verified"},
+		{userFilterVerified, labelVerified},
 		{userFilterUnverified, "Unverified"},
 		{userFilterMFA, "MFA on"},
 		{userFilterExternal, "Has provider"},

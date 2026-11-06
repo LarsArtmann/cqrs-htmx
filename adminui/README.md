@@ -93,16 +93,29 @@ Override with your own `Config.Authorizer`, or use the helpers
 | `AccentColor` | Highlight color (CSS literal: #hex, rgb()/hsl(), or named; validated at `New`). | indigo     |
 | `Authorizer`  | Access-control function.                                                        | role-based |
 | `LogoutURL`   | "Sign out" link target. Empty hides the link.                                   | —          |
+| `SSEURL`      | SSE endpoint for the live sync indicator.                                        | disabled   |
+| `ExtraNav`    | Consumer-owned sidebar entries appended after the built-ins. Hrefs render       | —          |
+|               | VERBATIM (no `BasePath` prefix) — point at sibling surfaces (`/dashboard`,      |            |
+|               | `https://docs.example.com`). Empty `Label` or `Href` is rejected at `New`.      |            |
+| `DashboardURL`| Cross-links the sibling [dashboardui](../dashboardui) panel as an "Event        | hidden     |
+|               | store" sidebar entry. Pass its mount path (usually `"/dashboard/"`). For more  |            |
+|               | than one link, prefer `ExtraNav`.                                                |            |
 
 ## What you get
 
-- **Dashboard** — user/tenant/audit counts + recent activity.
-- **Users** — searchable list, per-user detail (credentials, MFA, roles across
-  tenants), delete.
+- **Dashboard** — user/tenant/audit counts, adoption ratios (verified email,
+  MFA), a no-admin-grant warning banner, + recent activity.
+- **Users** — searchable, filterable list (verified / MFA / external provider
+  chips) + the full user lifecycle: create, edit display name and email,
+  grant/revoke platform roles (durable, event-sourced), manage passkeys and
+  external accounts, resend verification, delete. Each write escalates its
+  confirmation dialog to match its blast radius.
 - **Tenants** — list, create, suspend, reactivate, delete, and view members.
 - **Members** — add a user by email + role, or remove a member, on any tenant
   (super-admin) or your scoped tenant (tenant-admin).
-- **Audit log** — the recorded user/tenant events.
+- **Audit log** — searchable/filterable event trail with human-readable action
+  labels and severity badges; the user detail page carries the per-user
+  timeline.
 - **Theme toggle** — user-controllable dark mode (v4.12.0): a header button
   persists the choice to `localStorage` and a pre-paint script applies it
   (falling back to the OS preference), so there is no flash of the wrong

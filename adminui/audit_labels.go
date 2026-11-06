@@ -18,6 +18,10 @@ func auditLabel(action string) string {
 	return action
 }
 
+// The table is immutable after init; auditLabel falls back to the raw action
+// for anything unmapped, so unknown actions degrade honestly.
+//
+//nolint:gochecknoglobals // immutable display lookup table, read-only after init
 var auditLabels = map[string]string{
 	"register":             "User registered",
 	"roles_updated":        "Roles updated",

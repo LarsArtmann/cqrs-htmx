@@ -8,6 +8,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
@@ -398,7 +399,10 @@ func (h *Handler) userPath(id identitymodel.UserID) string {
 func (h *Handler) userTimeline(shown *identitymodel.User) userTimeline {
 	al := h.config.Service.AuditLog()
 	if al == nil {
-		return userTimeline{}
+		return userTimeline{ // the zero timeline: no entries, no total
+			Entries: nil,
+			Total:   0,
+		}
 	}
 	want := shown.ID.Get().String()
 	all := al.Recent(al.Count())

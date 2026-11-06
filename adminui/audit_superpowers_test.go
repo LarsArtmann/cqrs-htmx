@@ -183,7 +183,7 @@ func TestRender_DashboardAdoptionStatsAndBanner(t *testing.T) {
 
 	// Grant an admin: the warning disappears.
 	if err := svc.GrantRoles(ctx,
-		usermgmt.ActorIDFromUser(user.ID),
+		identitymodel.ActorIDFromUser(user.ID),
 		identitymodel.NewTenantID(identitymodel.WildcardDomain),
 		[]identitymodel.Role{identitymodel.RoleSuperAdmin},
 	); err != nil {

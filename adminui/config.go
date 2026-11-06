@@ -162,13 +162,22 @@ func (config Config) withDefaults() (Config, error) {
 			"Config.AuthorizerPosture must be empty (role-gated default), cqrshtmx.PostureAuthenticated, or cqrshtmx.PostureRoleGated",
 		)
 	}
-	for i, entry := range config.ExtraNav {
-		if entry.Label == "" {
-			return config, errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Label must not be empty")
-		}
-		if entry.Href == "" {
-			return config, errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Href must not be empty")
-		}
+	if err := validateExtraNav(config.ExtraNav); err != nil {
+		return config, err
 	}
 	return config, nil
+}
+
+// validateExtraNav rejects consumer nav entries without a label or href — a
+// sidebar link with empty text or no destination is a silent lie.
+func validateExtraNav(entries []NavEntry) error {
+	for i, entry := range entries {
+		if entry.Label == "" {
+			return errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Label must not be empty")
+		}
+		if entry.Href == "" {
+			return errConfig("Config.ExtraNav[" + strconv.Itoa(i) + "].Href must not be empty")
+		}
+	}
+	return nil
 }

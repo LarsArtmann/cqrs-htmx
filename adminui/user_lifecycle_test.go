@@ -57,49 +57,66 @@ func TestFlow_UserCreateRejectsDuplicateEmail(t *testing.T) {
 	}
 }
 
-func TestFlow_UserUpdateDisplayName(t *testing.T) {
-	ctx := context.Background()
-	user := mustUser(t, "admin@example.com")
-	h, svc := newTestPanel(t, user)
-
-	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: identitymodel.SyntheticUserID("u-rename"), Email: "rename@example.com",
-	})
-	if err != nil {
-		t.Fatal(err)
+// TestFlow_UserProfileEdits covers both inline profile forms on the user
+// detail page: display name and sign-in email. Each case registers a fresh
+// user, posts the edit, and asserts the redirect lands back on the detail
+// page with the field actually changed on the read side.
+func TestFlow_UserProfileEdits(t *testing.T) {
+	cases := []struct {
+		name        string
+		seedID      string
+		seedEmail   string
+		action      string
+		formField   string
+		formValue   string
+		wantChanged func(u *identitymodel.User) bool
+	}{
+		{
+			name:      "display name",
+			seedID:    "u-rename",
+			seedEmail: "rename@example.com",
+			action:    "display-name",
+			formField: "display_name",
+			formValue: "Renamed",
+			wantChanged: func(u *identitymodel.User) bool {
+				return u.DisplayName == "Renamed"
+			},
+		},
+		{
+			name:      "email",
+			seedID:    "u-reemail",
+			seedEmail: "old@example.com",
+			action:    "email",
+			formField: "email",
+			formValue: "new@example.com",
+			wantChanged: func(u *identitymodel.User) bool {
+				return u.Email == "new@example.com"
+			},
+		},
 	}
-	id := target.User.ID.Get().String()
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			user := mustUser(t, "admin@example.com")
+			h, svc := newTestPanel(t, user)
 
-	rec := postForm(h, "/admin/users/"+id+"/display-name", url.Values{"display_name": {"Renamed"}})
-	if rec.Header().Get("HX-Redirect") != "/admin/users/"+id {
-		t.Fatalf("HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
-	}
-	shown, err := svc.GetUser(ctx, target.User.ID)
-	if err != nil || shown.DisplayName != "Renamed" {
-		t.Fatalf("display name not updated: %v %+v", err, shown)
-	}
-}
+			target, err := svc.Register(ctx, usermgmt.RegisterRequest{
+				ID: identitymodel.SyntheticUserID(tc.seedID), Email: tc.seedEmail,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			id := target.User.ID.Get().String()
 
-func TestFlow_UserUpdateEmail(t *testing.T) {
-	ctx := context.Background()
-	user := mustUser(t, "admin@example.com")
-	h, svc := newTestPanel(t, user)
-
-	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: identitymodel.SyntheticUserID("u-reemail"), Email: "old@example.com",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	id := target.User.ID.Get().String()
-
-	rec := postForm(h, "/admin/users/"+id+"/email", url.Values{"email": {"new@example.com"}})
-	if rec.Header().Get("HX-Redirect") != "/admin/users/"+id {
-		t.Fatalf("HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
-	}
-	shown, err := svc.GetUser(ctx, target.User.ID)
-	if err != nil || shown.Email != "new@example.com" {
-		t.Fatalf("email not updated: %v %+v", err, shown)
+			rec := postForm(h, "/admin/users/"+id+"/"+tc.action, url.Values{tc.formField: {tc.formValue}})
+			if rec.Header().Get("HX-Redirect") != "/admin/users/"+id {
+				t.Fatalf("HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
+			}
+			shown, err := svc.GetUser(ctx, target.User.ID)
+			if err != nil || !tc.wantChanged(shown) {
+				t.Fatalf("%s not updated: %v %+v", tc.name, err, shown)
+			}
+		})
 	}
 }
 
@@ -333,7 +350,7 @@ func TestRender_PlatformRolesChecked(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := svc.GrantRoles(ctx,
-		usermgmt.ActorIDFromUser(target.User.ID),
+		identitymodel.ActorIDFromUser(target.User.ID),
 		identitymodel.NewTenantID(identitymodel.WildcardDomain),
 		[]identitymodel.Role{identitymodel.RoleSuperAdmin},
 	); err != nil {
