@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.13.0
 	github.com/larsartmann/httputil v1.8.0
 )
 
@@ -11,7 +11,7 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1100 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect

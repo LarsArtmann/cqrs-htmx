@@ -82,15 +82,8 @@ func run(paths []string, table rulesTable, apply bool) (int, []fileReport, error
 					)
 			}
 
-			info, err := os.Stat(path)
-			if err != nil {
-				return len(goFiles), reports, errorfamily.Wrapf(err, errorfamily.Infrastructure,
-					"cqrshtmx.upgrade.stat_failed", "stat %s", path)
-			}
-
-			if err := os.WriteFile(path, []byte(rep.applied), info.Mode().Perm()); err != nil {
-				return len(goFiles), reports, errorfamily.Wrapf(err, errorfamily.Infrastructure,
-					"cqrshtmx.upgrade.write_failed", "write %s", path)
+			if err := writeFileAtomic(path, []byte(rep.applied)); err != nil {
+				return len(goFiles), reports, err
 			}
 		}
 
@@ -98,6 +91,67 @@ func run(paths []string, table rulesTable, apply bool) (int, []fileReport, error
 	}
 
 	return len(goFiles), reports, nil
+}
+
+// writeFileAtomic replaces path's contents via write-temp-then-rename so a
+// crash or disk-full mid-write can never leave a truncated consumer file:
+// a reader (or a re-run of this tool) sees either the complete original or
+// the complete rewrite, never a mix. The temp file is created in the same
+// directory (rename must not cross filesystems), carries the original's
+// permissions (CreateTemp forces 0600), and is removed on every failure path.
+func writeFileAtomic(path string, content []byte) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.stat_failed", "stat %s", path)
+	}
+
+	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.temp_create_failed", "create temp file next to %s", path)
+	}
+
+	tmpName := tmp.Name()
+
+	if err := stageTemp(tmp, tmpName, content, info.Mode().Perm()); err != nil {
+		_ = os.Remove(tmpName)
+
+		return err
+	}
+
+	if err := os.Rename(tmpName, path); err != nil {
+		_ = os.Remove(tmpName)
+
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.rename_failed", "rename %s onto %s", tmpName, path)
+	}
+
+	return nil
+}
+
+// stageTemp writes the content into the opened temp file, restores the
+// original permissions, and closes it — the steps between creation and the
+// final rename. On any failure the caller removes the temp file.
+func stageTemp(tmp *os.File, tmpName string, content []byte, perm os.FileMode) error {
+	if _, err := tmp.Write(content); err != nil {
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.temp_write_failed", "write %s", tmpName)
+	}
+
+	if err := tmp.Chmod(perm); err != nil {
+		_ = tmp.Close()
+
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.temp_chmod_failed", "chmod %s", tmpName)
+	}
+
+	if err := tmp.Close(); err != nil {
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
+			"cqrshtmx.upgrade.temp_close_failed", "close %s", tmpName)
+	}
+
+	return nil
 }
 
 // skipDirs are never scanned.

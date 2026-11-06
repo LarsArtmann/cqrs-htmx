@@ -624,3 +624,110 @@ func TestDeriveMappings_FacadeRules(t *testing.T) {
 		}
 	}
 }
+
+// rewriteTriggerSource is a minimal consumer file the fixture rules will
+// rewrite (R1: the deprecated CSRF re-export), used by the atomic-write tests.
+const rewriteTriggerSource = `package app
+
+import (
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+)
+
+func wire() {
+	var cfg cqrshtmx.CSRFConfig
+	_ = cfg
+}
+`
+
+// TestAtomicWrite_FailureLeavesOriginalIntact (B98): the fingerprint of a
+// consumer file must survive any write failure byte-identically. The write
+// may fail loudly, but a crash, full disk, or unwritable directory must never
+// leave a truncated or half-written file behind — write-temp-then-rename
+// guarantees the original stays whole until the rename lands.
+func TestAtomicWrite_FailureLeavesOriginalIntact(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("read-only directories do not block writes for root")
+	}
+
+	dir := t.TempDir()
+	path := writeFile(t, dir, "app.go", rewriteTriggerSource)
+
+	original, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make every write into the directory fail: the temp file cannot even be
+	// created, which is the earliest failure point of the atomic write.
+	if err := os.Chmod(dir, 0o555); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() { _ = os.Chmod(dir, 0o755) })
+
+	_, _, err = run([]string{dir}, fixtureTable(), true)
+	if err == nil {
+		t.Fatal("run(apply) on an unwritable directory must fail")
+	}
+
+	if err := os.Chmod(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	after, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(after) != string(original) {
+		t.Fatal("original file changed despite write failure — atomicity broken")
+	}
+
+	litter, err := filepath.Glob(filepath.Join(dir, ".*.tmp-*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(litter) > 0 {
+		t.Errorf("temp files leaked on failure: %v", litter)
+	}
+}
+
+// TestAtomicWrite_SuccessLeavesNoTempAndKeepsMode: a successful apply must
+// consume its temp file via the rename (no dotfile litter) and preserve the
+// original file's permissions.
+func TestAtomicWrite_SuccessLeavesNoTempAndKeepsMode(t *testing.T) {
+	dir := t.TempDir()
+	path := writeFile(t, dir, "app.go", rewriteTriggerSource)
+
+	if _, _, err := run([]string{dir}, fixtureTable(), true); err != nil {
+		t.Fatalf("run(apply): %v", err)
+	}
+
+	rewritten, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(rewritten) == rewriteTriggerSource {
+		t.Fatal("file was not rewritten")
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if perm := info.Mode().Perm(); perm != 0o644 {
+		t.Errorf("permissions changed across the atomic write: %o, want 644", perm)
+	}
+
+	litter, err := filepath.Glob(filepath.Join(dir, ".*.tmp-*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(litter) > 0 {
+		t.Errorf("temp files leaked on success: %v", litter)
+	}
+}
