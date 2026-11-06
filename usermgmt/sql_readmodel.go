@@ -54,7 +54,9 @@ type SQLUserReadModel struct {
 	counter kv.ViewCounter[UserView]
 	// cache fronts the store on the FindByID path (write-through on the
 	// projection sync path). Disabled by default; see [WithViewCacheCapacity].
-	cache *viewCache[UserView, UserID]
+	// kv.ViewStore since the kv v4.4.0 migration: the enabled path is a
+	// kv.Cache, the disabled path is the raw store itself.
+	cache kv.ViewStore[UserView, UserID]
 }
 
 func userViewMapper() storage.ViewMapper[UserView] { //nolint:staticcheck // ADR-0123 v5
