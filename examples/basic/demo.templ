@@ -1,0 +1,73 @@
+package main
+
+import (
+	"fmt"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/a-h/templ"
+)
+
+// demoPage is the FULL page of the partial-render showcase. Direct browser
+// navigation to /demo/items renders this; HTMX partial requests render just
+// itemsPartial (see RenderPartialOrFull in main.go).
+templ demoPage(items []item) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8">
+			<title>Partial-render showcase — cqrs-htmx</title>
+			<script src="/htmx.js"></script>
+		</head>
+		<body>
+			<h1>Partial-render showcase</h1>
+			<p><a href="/">← back to the basic example</a></p>
+
+			<h2>1. RenderPartialOrFull</h2>
+			<p>
+				One endpoint serves both shapes: a direct visit renders this full page,
+				while an HTMX request (<code>HX-Request: true</code>) renders only the
+				list fragment below.
+			</p>
+			<p><a href="/demo/items">Reload as a full page</a></p>
+
+			<h2>2. OOBHTML</h2>
+			<p>Every partial response also carries an out-of-band block that refreshes the badge:</p>
+			<div>Item count: <span id="item-count">{ itemCountLabel(items) }</span></div>
+
+			<h2>3. RenderIf (custom predicate)</h2>
+			<p>
+				The button below targets <code>#item-count</code>; the endpoint's
+				RenderIf predicate inspects <code>HX-Target</code> and answers with the
+				bare count instead of the page.
+			</p>
+			<p><button hx-get="/demo/items/count" hx-target="#item-count">Refresh count only</button></p>
+
+			<div id="item-list">
+				@itemList(items)
+			</div>
+		</body>
+	</html>
+}
+
+// itemsPartial is the HTMX partial response: the list fragment plus an
+// out-of-band update for the #item-count badge (cqrshtmx.OOBHTML).
+templ itemsPartial(items []item) {
+	@itemList(items)
+	@templ.Raw(cqrshtmx.OOBHTML("item-count", itemCountLabel(items)))
+}
+
+templ itemList(items []item) {
+	if len(items) == 0 {
+		<p><em>No items yet — add some from the <a href="/">main page</a>.</em></p>
+	} else {
+		<ul>
+			for _, it := range items {
+				<li>{ it.Name } <small>({ it.ID })</small></li>
+			}
+		</ul>
+	}
+}
+
+func itemCountLabel(items []item) string {
+	return fmt.Sprintf("%d items", len(items))
+}

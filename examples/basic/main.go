@@ -13,13 +13,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-sse"
@@ -323,6 +326,35 @@ func newHandler() http.Handler {
 		cqrshtmx.RenderJSON[[]auditEntry](),
 	))
 
+	// GET /demo/items — partial-render showcase. RenderPartialOrFull picks the
+	// shape: a direct visit gets the full templ page, an HTMX request gets just
+	// the list fragment plus the OOBHTML block that refreshes #item-count.
+	mux.Handle("GET /demo/items", app.Query(
+		"ListItems",
+		cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
+			return &listItemsQuery{}, nil
+		}),
+		cqrshtmx.RenderPartialOrFull(
+			func(items []item) cqrshtmx.TemplComponent { return itemsPartial(items) },
+			func(items []item) cqrshtmx.TemplComponent { return demoPage(items) },
+		),
+	))
+
+	// GET /demo/items/count — RenderIf demo: the custom predicate inspects
+	// HX-Target, so an HTMX request aimed at #item-count gets the bare count
+	// while every other request gets the full showcase page.
+	mux.Handle("GET /demo/items/count", app.Query(
+		"ListItems",
+		cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
+			return &listItemsQuery{}, nil
+		}),
+		cqrshtmx.RenderIf(
+			func(r *http.Request) bool { return htmx.Target(r) == "#item-count" },
+			renderItemCount,
+			renderDemoPage,
+		),
+	))
+
 	// GET /api/events — SSE live updates
 	mux.HandleFunc("GET /api/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := sse.NewStream(w, r)
@@ -358,6 +390,35 @@ func newHandler() http.Handler {
 	return httputil.Compression(httputil.DefaultCompressionConfig())(mux)
 }
 
+// renderItemCount is the RenderIf "match" branch: the bare count text.
+func renderItemCount(w http.ResponseWriter, _ *http.Request, result any) error {
+	items, err := asItems(result)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = io.WriteString(w, itemCountLabel(items))
+	return nil
+}
+
+// renderDemoPage is the RenderIf "no match" branch: the full showcase page.
+func renderDemoPage(w http.ResponseWriter, r *http.Request, result any) error {
+	items, err := asItems(result)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return demoPage(items).Render(r.Context(), w)
+}
+
+func asItems(result any) ([]item, error) {
+	items, ok := result.([]item)
+	if !ok {
+		return nil, event.Newf("unexpected result type %T", result)
+	}
+	return items, nil
+}
+
 func main() {
 	handler := newHandler()
 
@@ -383,6 +444,8 @@ func indexPage(w http.ResponseWriter, _ *http.Request) {
 <head><script src="/htmx.js"></script></head>
 <body>
   <h1>cqrs-htmx Basic Example</h1>
+
+  <p><a href="/demo/items">Partial-render showcase (RenderPartialOrFull + OOBHTML + RenderIf)</a></p>
 
   <h2>Untyped (mapper-based)</h2>
   <form hx-post="/api/items" hx-swap="none">

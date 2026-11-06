@@ -13,6 +13,8 @@
 #   9. an empty root exits 2
 #  10. --emit prints the markdown table including the reconciled total
 #  11. an unknown argument exits 2
+#  12. a baseline with a trailing field exits 2 (a half-edited baseline is not
+#      a number anyone can reconcile against)
 #
 # Usage: bash scripts/selftests/test-check-root-clusters.sh
 set -uo pipefail
@@ -165,6 +167,18 @@ mkfixture "$r"
 out="$(run "$r" --bogus)"
 rc=$?
 if [ "$rc" -eq 2 ]; then ok "unknown argument exits 2"; else bad "unknown argument" "rc=$rc out=$out"; fi
+
+# --- 12. trailing baseline field exits 2 ---------------------------------
+r="$WORK/extra-field"
+mkfixture "$r"
+echo '2 20 99' >"$r/baseline"
+out="$(run "$r")"
+rc=$?
+if [ "$rc" -eq 2 ] && printf '%s' "$out" | grep -q 'nothing else'; then
+  ok "a baseline with a trailing field exits 2"
+else
+  bad "trailing field" "rc=$rc out=$out"
+fi
 
 echo
 if [ "$fail" -eq 0 ]; then

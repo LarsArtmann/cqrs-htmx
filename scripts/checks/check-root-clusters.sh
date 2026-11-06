@@ -116,6 +116,12 @@ if [ -f "$BASELINE" ]; then
     fi
     ;;
   esac
+  if [ -n "${extra:-}" ]; then
+    # Same strictness as check-root-size.sh: 'files loc' and nothing else, so a
+    # half-edited baseline cannot reconcile against a number nobody reads.
+    echo "✗ root-clusters: $BASELINE must be 'files loc' and nothing else (found trailing '$extra') (rc=2)" >&2
+    reconcile=2
+  fi
 else
   # No baseline means the reconciliation floor is gone: refuse a green, exactly
   # as check-root-size.sh does. A gate that cannot compare has verified nothing.
