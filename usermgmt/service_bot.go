@@ -24,8 +24,9 @@ type RegisterBotResult struct {
 }
 
 // TokenPepper is the server-side secret used for HMAC-SHA256 token hashing.
-// It must be set before registering or authenticating bots. Set via
-// ServiceConfig.TokenPepper or by calling Service.SetTokenPepper.
+// It must be set before registering or authenticating bots, via
+// ServiceConfig.TokenPepper. There is no setter; the pepper is read from the
+// config exactly once at service construction.
 type TokenPepper = []byte
 
 // RegisterBot creates a new bot, generates a 256-bit API token, and dispatches

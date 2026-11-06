@@ -117,11 +117,17 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		return p.removeAllRolesForDomain(subject)
 
 	case eventBotDeleted:
-		// Remove all Casbin policies for the deleted bot.
+		// Removes GROUPING rows (role assignments) for the bot's raw
+		// stream-ID subject only. Direct policy rows survive, and rows
+		// written under the dispatcher's kind-prefixed machine-actor
+		// subject (DispatchSubject) do not match this spelling, so they
+		// are invisible to this removal. There is no BotRegistered branch
+		// yet, so bots derive no durable rows today — this is NOT
+		// complete revocation.
 		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
 			return errorfamily.WrapInfrastructure(
 				err, "usermgmt.casbin_projection.bot_delete_failed",
-				"remove all policies for deleted bot "+subject,
+				"remove grouping policies for deleted bot "+subject,
 			)
 		}
 
