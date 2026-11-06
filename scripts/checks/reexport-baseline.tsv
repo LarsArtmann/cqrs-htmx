@@ -36,7 +36,7 @@ authztest/authztest.go	exempt:pending	5	route-posture vocabulary; disposition in
 constants.go	exempt:internal	8	target is internal/hx, unimportable by consumers
 context.go	exempt:domain-vocabulary	4	package owns NewUserID/ParseUserID/MustParseUserID; id.* is the shared primitive
 csrf_reexport.go	reexport	14	v5 (removal class 1)
-dashboardui/core_bridge.go	exempt:pending	17	exported aliases of dashboardui/v4/core; disposition in W1
+dashboardui/core_bridge.go	exempt:pending	19	exported aliases of dashboardui/v4/core; disposition in W1. 17→19 adjudicated 2026-11-06 22:2x: +commandFate (fleet-plan A7, a48cf1d8) +eventThroughput (wave-5, 3db33a89) are package-internal facade plumbing over the extracted core package (gotcha-48 mandated shape, used only by dashboardui's own templ pages — zero consumer surface), not ADR-0062 re-export shims
 dashboardui/render.go	exempt:unexported	1	toastDetail, package-private templ helper
 dashboardui/telemetry_helpers.go	exempt:unexported	4	package-private view projections
 datastar/broadcaster.go	reexport	5	v5 (removal class 2)
