@@ -13,32 +13,33 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 func TestWithHTTPStatus_OverridesFamilyDefault(t *testing.T) {
-	wrapped := cqrshtmx.WithHTTPStatus(cqrshtmx.ErrValidationFailed, http.StatusNotFound)
+	wrapped := httperr.WithHTTPStatus(httperr.ErrValidationFailed, http.StatusNotFound)
 
-	got := cqrshtmx.MapError(wrapped)
+	got := httperr.MapError(wrapped)
 	if got != http.StatusNotFound {
 		t.Errorf("WithHTTPStatus: got %d, want %d", got, http.StatusNotFound)
 	}
 }
 
 func TestWithHTTPStatus_PreservesSentinelIdentity(t *testing.T) {
-	wrapped := cqrshtmx.WithHTTPStatus(cqrshtmx.ErrValidationFailed, http.StatusNotFound)
-	if !errors.Is(wrapped, cqrshtmx.ErrValidationFailed) {
+	wrapped := httperr.WithHTTPStatus(httperr.ErrValidationFailed, http.StatusNotFound)
+	if !errors.Is(wrapped, httperr.ErrValidationFailed) {
 		t.Error("WithHTTPStatus: errors.Is must still match the wrapped sentinel")
 	}
 }
 
 func TestWithHTTPStatus_NilReturnsNil(t *testing.T) {
-	if cqrshtmx.WithHTTPStatus(nil, 404) != nil {
+	if httperr.WithHTTPStatus(nil, 404) != nil {
 		t.Error("WithHTTPStatus(nil, ...) must return nil")
 	}
 }
 
 func TestWithHTTPStatus_PreservesFamily(t *testing.T) {
-	wrapped := cqrshtmx.WithHTTPStatus(cqrshtmx.ErrValidationFailed, http.StatusNotFound)
+	wrapped := httperr.WithHTTPStatus(httperr.ErrValidationFailed, http.StatusNotFound)
 	if errorfamily.Classify(wrapped) != event.Rejection {
 		t.Error("WithHTTPStatus must preserve the wrapped error's family")
 	}
@@ -90,7 +91,7 @@ func TestMapError_FamilyDefaults(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := cqrshtmx.MapError(tc.err); got != tc.want {
+			if got := httperr.MapError(tc.err); got != tc.want {
 				t.Errorf("MapError(%v) = %d, want %d", tc.err, got, tc.want)
 			}
 		})
@@ -105,7 +106,7 @@ func TestMapError_WrappedRejectionStillMapsTo400(t *testing.T) {
 	t.Parallel()
 
 	err := fmt.Errorf("create user: %w", errorfamily.NewRejection("bad_input", "email is required"))
-	if got := cqrshtmx.MapError(err); got != http.StatusBadRequest {
+	if got := httperr.MapError(err); got != http.StatusBadRequest {
 		t.Errorf("MapError(wrapped Rejection) = %d, want %d", got, http.StatusBadRequest)
 	}
 }
@@ -117,8 +118,8 @@ func TestMapError_ExplicitOverrideBeatsFamily(t *testing.T) {
 	t.Parallel()
 
 	// A Rejection (family default 400) surfaced as 404 via an explicit carrier.
-	err := cqrshtmx.WithHTTPStatus(errorfamily.NewRejection("not_found", "user not found"), http.StatusNotFound)
-	if got := cqrshtmx.MapError(err); got != http.StatusNotFound {
+	err := httperr.WithHTTPStatus(errorfamily.NewRejection("not_found", "user not found"), http.StatusNotFound)
+	if got := httperr.MapError(err); got != http.StatusNotFound {
 		t.Errorf("MapError(overridden Rejection) = %d, want %d", got, http.StatusNotFound)
 	}
 }
@@ -126,7 +127,7 @@ func TestMapError_ExplicitOverrideBeatsFamily(t *testing.T) {
 func TestSafeDetail_RedactsServerFaults(t *testing.T) {
 	err := errorfamily.NewTransient("db.down", "connection refused at 10.0.0.5:5432")
 
-	detail := cqrshtmx.SafeDetail(err, http.StatusServiceUnavailable, false)
+	detail := httperr.SafeDetail(err, http.StatusServiceUnavailable, false)
 	if detail == "connection refused at 10.0.0.5:5432" {
 		t.Error("SafeDetail must redact 5xx internal detail")
 	}
@@ -139,7 +140,7 @@ func TestSafeDetail_RedactsServerFaults(t *testing.T) {
 func TestSafeDetail_PreservesClientErrors(t *testing.T) {
 	err := errorfamily.NewRejection("bad_input", "email is required")
 
-	detail := cqrshtmx.SafeDetail(err, http.StatusBadRequest, false)
+	detail := httperr.SafeDetail(err, http.StatusBadRequest, false)
 	if !strings.Contains(detail, "email is required") {
 		t.Errorf("SafeDetail must preserve 4xx detail, got %q", detail)
 	}
@@ -148,14 +149,14 @@ func TestSafeDetail_PreservesClientErrors(t *testing.T) {
 func TestSafeDetail_IncludeInternalOverridesRedaction(t *testing.T) {
 	err := errorfamily.NewTransient("db.down", "connection refused")
 
-	detail := cqrshtmx.SafeDetail(err, http.StatusServiceUnavailable, true)
+	detail := httperr.SafeDetail(err, http.StatusServiceUnavailable, true)
 	if !strings.Contains(detail, "connection refused") {
 		t.Errorf("SafeDetail with includeInternal must show raw detail, got %q", detail)
 	}
 }
 
 func TestStructuredError_MetadataForRejection(t *testing.T) {
-	se := cqrshtmx.NewStructuredError(cqrshtmx.ErrValidationFailed, nil)
+	se := httperr.NewStructuredError(httperr.ErrValidationFailed, nil)
 	if se.Message == "" {
 		t.Error("StructuredError.Message must be populated")
 	}
@@ -166,7 +167,7 @@ func TestStructuredError_MetadataForRejection(t *testing.T) {
 }
 
 func TestStructuredError_MetadataForTransient(t *testing.T) {
-	se := cqrshtmx.NewStructuredError(cqrshtmx.ErrDispatchFailed, nil)
+	se := httperr.NewStructuredError(httperr.ErrDispatchFailed, nil)
 	if se.Message == "" {
 		t.Error("StructuredError.Message must be populated for Transient")
 	}
@@ -183,7 +184,7 @@ func TestStructuredError_MetadataForTransient(t *testing.T) {
 func TestProblemDetailsErrorHandler_ShapeAndContentType(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	cqrshtmx.ProblemDetailsErrorHandler(w, r, cqrshtmx.ErrValidationFailed)
+	httperr.ProblemDetailsErrorHandler(w, r, httperr.ErrValidationFailed)
 
 	if ct := w.Header().Get("Content-Type"); ct != cqrshtmx.ContentTypeProblem {
 		t.Errorf("Content-Type: got %q, want %q", ct, cqrshtmx.ContentTypeProblem)
@@ -193,7 +194,7 @@ func TestProblemDetailsErrorHandler_ShapeAndContentType(t *testing.T) {
 		t.Errorf("status: got %d, want %d", w.Code, http.StatusBadRequest)
 	}
 
-	var payload cqrshtmx.StructuredError
+	var payload httperr.StructuredError
 	if err := json.Unmarshal(w.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("body must be valid StructuredError JSON: %v", err)
 	}
@@ -207,9 +208,9 @@ func TestProblemDetailsErrorHandler_RedactsServerFaults(t *testing.T) {
 	err := errorfamily.NewTransient("db.down", "secret internal detail")
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	cqrshtmx.ProblemDetailsErrorHandler(w, r, err)
+	httperr.ProblemDetailsErrorHandler(w, r, err)
 
-	var payload cqrshtmx.StructuredError
+	var payload httperr.StructuredError
 
 	_ = json.Unmarshal(w.Body.Bytes(), &payload)
 	if payload.Detail == "secret internal detail" {
@@ -221,7 +222,7 @@ func TestProblemDetailsErrorHandler_AuthRedirectForHTMX(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
-	cqrshtmx.ProblemDetailsErrorHandler(w, r, cqrshtmx.ErrUnauthorized)
+	httperr.ProblemDetailsErrorHandler(w, r, httperr.ErrUnauthorized)
 
 	if w.Code != http.StatusSeeOther {
 		t.Errorf("HTMX auth: got %d, want %d", w.Code, http.StatusSeeOther)
@@ -235,7 +236,7 @@ func TestProblemDetailsErrorHandler_AuthRedirectForHTMX(t *testing.T) {
 func TestProblemDetailsErrorHandler_IncludesCodeField(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	cqrshtmx.ProblemDetailsErrorHandler(w, r, cqrshtmx.ErrValidationFailed)
+	httperr.ProblemDetailsErrorHandler(w, r, httperr.ErrValidationFailed)
 
 	var decoded map[string]any
 	if err := json.Unmarshal(w.Body.Bytes(), &decoded); err != nil {
@@ -251,7 +252,7 @@ func TestProblemDetailsErrorHandler_OmitsCodeWhenAbsent(t *testing.T) {
 	err := errors.New("plain unclassified error")
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	cqrshtmx.ProblemDetailsErrorHandler(w, r, err)
+	httperr.ProblemDetailsErrorHandler(w, r, err)
 
 	var decoded map[string]any
 	if e := json.Unmarshal(w.Body.Bytes(), &decoded); e != nil {
@@ -327,7 +328,7 @@ func TestErrorCode_ReturnsDeepestCodeThroughWrapChain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := cqrshtmx.ErrorCode(tt.err)
+			got := httperr.ErrorCode(tt.err)
 			if got != tt.wantCode {
 				t.Errorf("ErrorCode() = %q, want %q", got, tt.wantCode)
 			}
@@ -341,7 +342,7 @@ func TestErrorCode_PrefersDeepestOverOutermost(t *testing.T) {
 	inner := errorfamily.NewConflict("inner.deep", "domain conflict")
 	outer := errorfamily.Wrapf(inner, errorfamily.Conflict, "outer.code", "wrapped outer")
 
-	got := cqrshtmx.ErrorCode(outer)
+	got := httperr.ErrorCode(outer)
 	if got != "inner.deep" {
 		t.Errorf("ErrorCode() = %q, want %q (deepest code, not outermost)", got, "inner.deep")
 	}
@@ -351,7 +352,7 @@ func TestErrorCode_WithTransientFamily(t *testing.T) {
 	inner := errorfamily.NewTransient("db.connection_failed", "db down")
 	outer := errorfamily.Wrapf(inner, errorfamily.Transient, "cqrshtmx.dispatch.command_failed", "dispatch failed")
 
-	got := cqrshtmx.ErrorCode(outer)
+	got := httperr.ErrorCode(outer)
 	if got != "db.connection_failed" {
 		t.Errorf("ErrorCode() = %q, want %q", got, "db.connection_failed")
 	}

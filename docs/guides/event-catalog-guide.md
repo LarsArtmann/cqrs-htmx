@@ -173,5 +173,5 @@ for _, e := range events {
 - [`integration_test/catalog_test.go`](../../integration_test/catalog_test.go) —
   contract test proving the composition over a live App
 - [Projection Health Monitoring](./projection-health-monitoring.md)
-- `eventcatalog/catalog.go` — the `Catalog` type (root re-export: `eventcatalog.Catalog` = `eventcatalog.Catalog`)
-- `eventcatalog/handler.go` — the HTTP handler (root re-export: `eventcatalog.Handler`)
+- `eventcatalog/catalog.go` — the `Catalog` type (deprecated root alias `cqrshtmx.EventCatalog`)
+- `eventcatalog/handler.go` — the HTTP handler (deprecated root alias `cqrshtmx.EventCatalogHandler`)

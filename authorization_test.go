@@ -8,6 +8,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Authorization", func() {
@@ -23,7 +24,7 @@ var _ = Describe("Authorization", func() {
 			e := newTestEnforcer()
 			err := cqrshtmx.Enforce(e, viewerUserID.String(), "users", "create")
 			Expect(err).To(HaveOccurred())
-			Expect(errors.Is(err, cqrshtmx.ErrForbidden)).To(BeTrue())
+			Expect(errors.Is(err, httperr.ErrForbidden)).To(BeTrue())
 			Expect(err.Error()).To(ContainSubstring(
 				"subject=" + viewerUserID.String() + " resource=users action=create",
 			))
@@ -31,7 +32,7 @@ var _ = Describe("Authorization", func() {
 
 		It("returns error for nil enforcer", func() {
 			err := cqrshtmx.Enforce(nil, "admin", "users", "create")
-			Expect(errors.Is(err, cqrshtmx.ErrEnforcerNil)).To(BeTrue())
+			Expect(errors.Is(err, httperr.ErrEnforcerNil)).To(BeTrue())
 			Expect(err.Error()).To(ContainSubstring("subject=admin resource=users action=create"))
 		})
 	})

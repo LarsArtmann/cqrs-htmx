@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
@@ -74,7 +75,7 @@ var _ = Describe("Coverage Gaps - Notifications and Dispatch", func() {
 
 	Describe("DefaultErrorHandlerWithRedirect empty loginRedirect", func() {
 		It("uses default /login when empty string is passed", func() {
-			assertHTMXErrorRedirect(cqrshtmx.ErrUnauthorized, "", "/login")
+			assertHTMXErrorRedirect(httperr.ErrUnauthorized, "", "/login")
 		})
 	})
 

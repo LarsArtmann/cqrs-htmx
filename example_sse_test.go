@@ -9,6 +9,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-sse"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 func ExampleWriteSSEEvent() {
@@ -75,8 +76,8 @@ func ExampleBroadcaster_BroadcastOnError() {
 }
 
 func ExampleStructuredError() {
-	err := cqrshtmx.ErrValidationFailed
-	se := cqrshtmx.NewStructuredError(err, nil)
+	err := httperr.ErrValidationFailed
+	se := httperr.NewStructuredError(err, nil)
 
 	fmt.Println(se.Status, se.Type)
 	// Output: 400 rejection

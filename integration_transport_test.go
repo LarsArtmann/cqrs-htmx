@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-sse"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Transport Parity Integration", func() {
@@ -38,7 +39,7 @@ var _ = Describe("Transport Parity Integration", func() {
 			Eventually(ch).Should(Receive(&event))
 			Expect(event.Event).To(Equal("commandError"))
 
-			var payload cqrshtmx.StructuredError
+			var payload httperr.StructuredError
 			Expect(json.Unmarshal([]byte(event.Data), &payload)).To(Succeed())
 			Expect(payload.Detail).To(ContainSubstring("email already exists"))
 			Expect(payload.Status).To(BeNumerically(">", 0))
@@ -65,7 +66,7 @@ var _ = Describe("Transport Parity Integration", func() {
 						broadcaster.Broadcast(sse.Event{Event: "ok", Data: "success"})
 					} else {
 						errorCount++
-						payload := cqrshtmx.NewStructuredError(err, r)
+						payload := httperr.NewStructuredError(err, r)
 						broadcaster.Broadcast(sse.Event{
 							Event: "error",
 							Data:  payload.JSON(),

@@ -13,6 +13,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
@@ -20,7 +21,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 		DescribeTable(
 			"maps CQRS error families",
 			func(err error, expected int) {
-				Expect(cqrshtmx.MapError(err)).To(Equal(expected))
+				Expect(httperr.MapError(err)).To(Equal(expected))
 			},
 			Entry(
 				"Conflict to 409",
@@ -72,7 +73,7 @@ var _ = Describe("Coverage Gaps - Render Dispatch and HTMX", func() {
 			e := newTestEnforcer()
 			err := cqrshtmx.Enforce(e, "admin", "users", "create")
 			Expect(err).To(HaveOccurred())
-			Expect(errors.Is(err, cqrshtmx.ErrForbidden)).To(BeTrue())
+			Expect(errors.Is(err, httperr.ErrForbidden)).To(BeTrue())
 		})
 	})
 

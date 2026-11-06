@@ -14,6 +14,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
@@ -142,7 +143,7 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 				r := httptest.NewRequest(http.MethodGet, "/items"+query, nil)
 				_, err := cqrshtmx.DecodePaginationStrict(r)
 				Expect(err).To(HaveOccurred())
-				Expect(cqrshtmx.MapError(err)).To(Equal(http.StatusBadRequest))
+				Expect(httperr.MapError(err)).To(Equal(http.StatusBadRequest))
 				Expect(errorfamily.Code(err)).To(ContainSubstring(wantCode))
 			},
 			Entry("malformed page", "?page=abc", "cqrshtmx.pagination"),

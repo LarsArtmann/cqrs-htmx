@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 func ExampleNewResponse() {
@@ -32,7 +33,7 @@ func ExampleNewResponse() {
 }
 
 func ExampleSwapStrategy() {
-	strategies := []cqrshtmx.SwapStrategy{
+	strategies := []htmx.SwapStrategy{
 		cqrshtmx.SwapInnerHTML,
 		cqrshtmx.SwapOuterHTML,
 		cqrshtmx.SwapBeforeBegin,
@@ -54,11 +55,11 @@ func ExampleHTMXMiddleware() {
 
 	mux.Handle("/", cqrshtmx.HTMXMiddleware(
 		http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-			if cqrshtmx.IsHTMXRequest(r) {
+			if htmx.IsRequest(r) {
 				fmt.Println("HTMX request")
 			}
 
-			if cqrshtmx.RenderPartial(r) {
+			if htmx.RenderPartial(r) {
 				fmt.Println("render partial")
 			}
 		}),
@@ -74,7 +75,7 @@ func ExampleHTMXMiddleware() {
 
 func ExampleHTMXScriptHandler() {
 	mux := http.NewServeMux()
-	mux.Handle("/static/htmx.js", cqrshtmx.HTMXScriptHandler())
+	mux.Handle("/static/htmx.js", htmx.ScriptHandler())
 	fmt.Println("mounted")
 	// Output: mounted
 }
@@ -82,7 +83,7 @@ func ExampleHTMXScriptHandler() {
 func ExampleHTMXScriptHandlerWith() {
 	customJS := []byte("// my custom htmx build")
 	mux := http.NewServeMux()
-	mux.Handle("/static/htmx.js", cqrshtmx.HTMXScriptHandlerWith(customJS, "4.0.0"))
+	mux.Handle("/static/htmx.js", htmx.ScriptHandlerWith(customJS, "4.0.0"))
 	fmt.Println("mounted")
 	// Output: mounted
 }
@@ -112,8 +113,8 @@ func ExampleSyncVersion() {
 }
 
 func ExampleHTMXCDNScriptTag() {
-	fmt.Println(cqrshtmx.HTMXCDNScriptTag(""))
-	fmt.Println(cqrshtmx.HTMXCDNScriptTag("4.0.0"))
+	fmt.Println(htmx.CDNScriptTag(""))
+	fmt.Println(htmx.CDNScriptTag("4.0.0"))
 	// Output: <script src="https://unpkg.com/htmx.org@2.0.10"></script>
 	// <script src="https://unpkg.com/htmx.org@4.0.0"></script>
 }

@@ -11,6 +11,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // errTemplComponent is a TemplComponent that always fails to render.
@@ -178,7 +179,7 @@ var _ = Describe("Partial Rendering", func() {
 					"GetUser",
 					decodeGetUserJSONQuery(),
 					cqrshtmx.RenderIf(
-						func(r *http.Request) bool { return cqrshtmx.HTMXTarget(r) == "#avatar" },
+						func(r *http.Request) bool { return htmx.Target(r) == "#avatar" },
 						func(w http.ResponseWriter, _ *http.Request, result any) error {
 							s, _ := result.(string)
 							_, err := w.Write([]byte("<avatar>" + s + "</avatar>"))

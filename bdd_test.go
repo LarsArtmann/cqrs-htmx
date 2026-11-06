@@ -16,6 +16,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 const (
@@ -198,7 +199,7 @@ var _ = Describe("BDD: Consumer Integration Scenarios", func() {
 		DescribeTable(
 			"error family mappings",
 			func(err error, expected int) {
-				Expect(cqrshtmx.MapError(err)).To(Equal(expected))
+				Expect(httperr.MapError(err)).To(Equal(expected))
 			},
 			Entry(
 				"conflict to 409",

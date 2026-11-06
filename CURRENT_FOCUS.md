@@ -45,8 +45,12 @@ codegen hook audit).
    `nix run .#check-reexport-policy -- --strict`, frozen
    [`scripts/checks/reexport-baseline.tsv`](scripts/checks/reexport-baseline.tsv)
    (47 alias files / 413 declarations), and codemod rules R11/R12/R13. The three
-   root façades are deprecated and root no longer uses them itself, so the v5 cut
-   is a file delete plus a consumer repoint. Remaining waves (all inside the ONE
+   root façades are deprecated and root no longer uses them itself — production
+   code AND its 25 own test files were repointed by the codemod, with
+   `api_surface_compat_test.go` deliberately left pinning the aliases until v5 —
+   so the v5 cut is a file delete plus a consumer repoint. Zero living doc still
+   teaches a removed spelling unlabelled (the 10 survivors are labelled contrasts
+   or frozen `CHANGELOG` history). Remaining waves (all inside the ONE
    v5 window, never a second break): W1 delete the 9 root alias files + 176
    `usermgmt` aliases and run the codemod on `examples/`, `e2e/`,
    `integration_test/`, `setup/`, `dashboardui/`; W2 alias-free extractions

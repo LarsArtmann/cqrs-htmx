@@ -149,6 +149,7 @@ import (
 	"sync"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -353,10 +354,14 @@ independently importable when you want one concern without the whole handler bui
 | `eventcatalog` | `github.com/larsartmann/cqrs-htmx/v4/eventcatalog` | The published event language: `New`, `Register`, `Handler`                                                                                                   |
 | `internal/hx`  | not importable                                     | Shared plumbing that breaks the import cycle (JSON keys, immutable serving, request-ID context)                                                              |
 
-`cqrshtmx` remains the supported surface: three `*_reexport.go` facades alias the
-subpackage symbols, so `htmx.ScriptHandler` and `htmx.ScriptHandler` are the
-same function value. The layering is one-way and machine-checked — `nix run
-.#check-module-layers` fails if a subpackage imports the root package.
+**Import the subpackage, not a façade.** These packages are the surface. Three
+`*_reexport.go` files in `cqrshtmx` still alias every moved symbol so existing code keeps
+compiling, but those aliases are `// Deprecated:` ([ADR-0062](docs/adr/0062-direct-imports-only.md))
+and are deleted in v5: write `htmx.ScriptHandler`, not `cqrshtmx.HTMXScriptHandler`, and
+`httperr.MapError`, not `cqrshtmx.MapError`. `cmd/cqrs-htmx-upgrade` rewrites the old spellings
+mechanically. The layering is one-way and machine-checked — `nix run .#check-module-layers` fails
+if a subpackage imports the root package, and `nix run .#check-reexport-policy` fails if a new
+alias file appears.
 
 ## Realtime: SSE and offline sync
 

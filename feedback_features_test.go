@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 // --- Feedback-driven feature tests ---
@@ -41,8 +42,8 @@ var _ = Describe("Feedback-driven features", func() {
 
 	Describe("SecurityHeaderSkip sentinel", func() {
 		It("suppresses ContentTypeOptions when set to skip", func() {
-			mw := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
-				ContentTypeOptions: cqrshtmx.SecurityHeaderSkip,
+			mw := cqrshtmx.SecurityHeadersMiddlewareWithConfig(httputil.SecurityHeadersConfig{
+				ContentTypeOptions: httputil.SecurityHeaderSkip,
 			})
 			w := httptest.NewRecorder()
 			mw(okHandler()).ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
@@ -50,8 +51,8 @@ var _ = Describe("Feedback-driven features", func() {
 		})
 
 		It("still sets other headers when one is skipped", func() {
-			mw := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
-				ContentTypeOptions: cqrshtmx.SecurityHeaderSkip,
+			mw := cqrshtmx.SecurityHeadersMiddlewareWithConfig(httputil.SecurityHeadersConfig{
+				ContentTypeOptions: httputil.SecurityHeaderSkip,
 			})
 			w := httptest.NewRecorder()
 			mw(okHandler()).ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
@@ -231,7 +232,7 @@ var _ = Describe("Feedback-driven features", func() {
 			})
 			app := mustNewApp(cqrshtmx.Config{
 				Commands:     disp,
-				ErrorHandler: cqrshtmx.JSONErrorHandler,
+				ErrorHandler: httperr.JSONErrorHandler,
 			})
 
 			handler := app.Command("CreateUser",
@@ -239,7 +240,7 @@ var _ = Describe("Feedback-driven features", func() {
 					return &testCreateUserCmd{aggID: id.NewStreamID(), cmdID: id.NewCommandID()}, nil
 				}),
 				cqrshtmx.RequestGuard(func(_ *http.Request, _ any) error {
-					return cqrshtmx.ErrForbidden
+					return httperr.ErrForbidden
 				}),
 			)
 
@@ -315,7 +316,7 @@ var _ = Describe("Feedback-driven features", func() {
 			})
 			app := mustNewApp(cqrshtmx.Config{
 				Commands:     disp,
-				ErrorHandler: cqrshtmx.JSONErrorHandler,
+				ErrorHandler: httperr.JSONErrorHandler,
 			})
 
 			handler := app.Command("CreateUser",

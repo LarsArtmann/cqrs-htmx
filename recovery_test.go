@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Recovery Middleware", func() {
@@ -172,7 +173,7 @@ var _ = Describe("Recovery Middleware", func() {
 						"[request_id: %s] [correlation_id: %s] %s",
 						cqrshtmx.RequestIDFromContext(r.Context()).String(),
 						cqrshtmx.CorrelationIDFromContext(r.Context()).String(),
-						cqrshtmx.SafeDetail(err, http.StatusInternalServerError, false),
+						httperr.SafeDetail(err, http.StatusInternalServerError, false),
 					))
 				},
 			})

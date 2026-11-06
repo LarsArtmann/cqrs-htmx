@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // The HTMX script handler and the offline-sync JS handlers share one serving
@@ -12,7 +13,7 @@ import (
 // HTMX and sync assets.
 
 func TestHTMXScriptHandler_IfNoneMatchSpec(t *testing.T) {
-	runConditionalGetSpec(t, cqrshtmx.HTMXScriptHandler(), "/htmx.js")
+	runConditionalGetSpec(t, htmx.ScriptHandler(), "/htmx.js")
 }
 
 func TestSyncHandlers_IfNoneMatchSpec(t *testing.T) {

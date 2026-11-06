@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
@@ -128,22 +129,22 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 
 	Describe("Recommended security constants", func() {
 		It("provides recommended HSTS value", func() {
-			Expect(cqrshtmx.RecommendedHSTS).To(ContainSubstring("max-age="))
+			Expect(httputil.RecommendedHSTS).To(ContainSubstring("max-age="))
 		})
 
 		It("provides recommended CSP value", func() {
-			Expect(cqrshtmx.RecommendedCSP).To(ContainSubstring("default-src"))
+			Expect(httputil.RecommendedCSP).To(ContainSubstring("default-src"))
 		})
 
 		It("applies recommended HSTS in security middleware", func() {
-			handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
-				StrictTransportSecurity: cqrshtmx.RecommendedHSTS,
+			handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(httputil.SecurityHeadersConfig{
+				StrictTransportSecurity: httputil.RecommendedHSTS,
 			})(okHandler())
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			handler.ServeHTTP(w, r)
-			Expect(w.Header().Get("Strict-Transport-Security")).To(Equal(cqrshtmx.RecommendedHSTS))
+			Expect(w.Header().Get("Strict-Transport-Security")).To(Equal(httputil.RecommendedHSTS))
 		})
 	})
 
@@ -172,7 +173,7 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 
 	Describe("ErrMethodNotAllowed mapping", func() {
 		It("maps to 405", func() {
-			Expect(cqrshtmx.MapError(cqrshtmx.ErrMethodNotAllowed)).To(Equal(http.StatusMethodNotAllowed))
+			Expect(httperr.MapError(httperr.ErrMethodNotAllowed)).To(Equal(http.StatusMethodNotAllowed))
 		})
 	})
 

@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 var _ = Describe("Integration: Body Size and Middleware", func() {
@@ -39,13 +40,13 @@ var _ = Describe("Integration: Body Size and Middleware", func() {
 
 			var (
 				receivedUserID  cqrshtmx.UserID
-				htmxFromContext *cqrshtmx.HTMXRequest
+				htmxFromContext *htmx.Request
 				requestID       cqrshtmx.RequestID
 			)
 
 			_ = disp.Register("CreateUser", func(ctx context.Context, _ command.Command) error {
 				receivedUserID = cqrshtmx.UserIDFromContext(ctx)
-				htmxFromContext = cqrshtmx.HTMXFromContext(ctx)
+				htmxFromContext = htmx.FromContext(ctx)
 				requestID = cqrshtmx.RequestIDFromContext(ctx)
 
 				return nil

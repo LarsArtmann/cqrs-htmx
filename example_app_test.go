@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	servertiming "github.com/larsartmann/httputil/server_timing"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 // examplePingDecoder is shared by ExampleApp_Command_BeforeAfter and
@@ -96,7 +97,7 @@ func ExampleApp_HealthHandler() {
 }
 
 func ExampleHTMXVersion() {
-	fmt.Println(cqrshtmx.HTMXVersion())
+	fmt.Println(htmx.Version())
 	// Output: 2.0.10
 }
 
@@ -143,7 +144,7 @@ func ExampleApp_Query_typedRegister() {
 }
 
 func ExampleHTMXScriptTag() {
-	fmt.Println(cqrshtmx.HTMXScriptTag("/static/htmx.js"))
+	fmt.Println(htmx.ScriptTag("/static/htmx.js"))
 	// Output: <script src="/static/htmx.js"></script>
 }
 

@@ -74,7 +74,7 @@ Two rules that matter:
 1. **The subpackage is the surface (ADR-0062, 2026-11-06).** The three `*_reexport.go`
    files still alias every subpackage symbol so existing v4 code compiles unchanged, but
    each alias carries `// Deprecated:` naming the direct import and is deleted in v5.
-   Write `htmx.ScriptHandler`, not `htmx.ScriptHandler`. `nix run
+   Write `htmx.ScriptHandler`, not `cqrshtmx.HTMXScriptHandler`. `nix run
    .#check-reexport-policy -- --strict` refuses a new alias file or alias growth; the
    policy, the exemption classes and the one-breaking-window rule are in
    `docs/adr/0062-direct-imports-only.md` in the repo.
@@ -149,7 +149,7 @@ http.ListenAndServe(":8080", cqrshtmx.Chain(
 )(mux))
 ```
 
-Available without `App`: `Chain`, `RecoveryMiddleware`, `RequestLoggingSlog`, `HTMXScriptHandler`/`HTMXExtensionHandler`, `NewSSEStream`/`Broadcaster`/`JournalSSEStore`, `MapError`/`JSONErrorHandler`, `WriteJSON`, `IsHTMXRequest`/`RenderPartial`, `NewResponse(w, r)`. **Deprecated re-exports/aliases (import `github.com/larsartmann/httputil` instead):** `CSRFMiddleware`/`CSRFConfig`, `RateLimiterMiddleware`/`DefaultRateLimiterConfig`, `ServerTimingMiddleware`/`MeasureServerTiming`, `SecurityHeadersMiddleware`/`SecurityHeadersConfig`/`SecurityHeaderSkip`/`RecommendedHSTS`/`RecommendedCSP`. All remain as backward-compat aliases but are deprecated and will be removed in v5. Use `httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())` for security headers.
+Available without `App`: `Chain`, `RecoveryMiddleware`, `RequestLoggingSlog`, `NewSSEStream`/`Broadcaster`/`JournalSSEStore`, `WriteJSON`, `NewResponse(w, r)`, plus from the subpackages: `htmx.ScriptHandler`/`htmx.ExtensionHandler`, `httperr.MapError`/`httperr.JSONErrorHandler`, `htmx.IsRequest`/`htmx.RenderPartial`. **Deprecated re-exports/aliases (import `github.com/larsartmann/httputil` instead):** `CSRFMiddleware`/`CSRFConfig`, `RateLimiterMiddleware`/`DefaultRateLimiterConfig`, `ServerTimingMiddleware`/`MeasureServerTiming`, `SecurityHeadersMiddleware`/`SecurityHeadersConfig`/`SecurityHeaderSkip`/`RecommendedHSTS`/`RecommendedCSP`. All remain as backward-compat aliases but are deprecated and will be removed in v5. Use `httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())` for security headers.
 
 ## Path A -- CQRS + HTMX endpoints (root only)
 
@@ -614,7 +614,7 @@ mux.Handle("GET /ext/sse.js", htmx.ExtensionHandler(htmx.ExtSSE))
 mux.Handle("GET /ext/bundle.js", htmx.ExtensionsHandler(htmx.ExtSSE, htmx.ExtIdiomorph))
 ```
 
-Same caching as `HTMXScriptHandler` (ETag, `Cache-Control: 1yr immutable`, 304). Add `<script>` tags after htmx core.
+Same caching as `htmx.ScriptHandler` (ETag, `Cache-Control: 1yr immutable`, 304). Add `<script>` tags after htmx core.
 
 ## Top gotchas (the ones that bite)
 

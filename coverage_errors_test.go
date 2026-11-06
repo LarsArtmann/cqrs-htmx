@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
@@ -28,13 +29,13 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 
 	Describe("MapError nil input", func() {
 		It("returns 500 for nil error", func() {
-			Expect(cqrshtmx.MapError(nil)).To(Equal(http.StatusInternalServerError))
+			Expect(httperr.MapError(nil)).To(Equal(http.StatusInternalServerError))
 		})
 	})
 
 	Describe("MapError unknown family", func() {
 		It("returns 503 for Infrastructure errors", func() {
-			Expect(cqrshtmx.MapError(
+			Expect(httperr.MapError(
 				errorfamily.NewInfrastructure("test.infra", "infra failure"),
 			)).To(Equal(http.StatusServiceUnavailable))
 		})
@@ -43,7 +44,7 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 	Describe("Enforce nil enforcer", func() {
 		It("returns ErrEnforcerNil when enforcer is nil", func() {
 			err := cqrshtmx.Enforce(nil, "user1", "resource", "read")
-			Expect(errors.Is(err, cqrshtmx.ErrEnforcerNil)).To(BeTrue())
+			Expect(errors.Is(err, httperr.ErrEnforcerNil)).To(BeTrue())
 		})
 	})
 

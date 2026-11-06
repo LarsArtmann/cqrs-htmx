@@ -10,6 +10,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 // --- Request/response helpers ---
@@ -72,7 +73,7 @@ func assertHTMXErrorRedirect(err error, loginRedirect, expectedRedirect string) 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 	r.Header.Set("Hx-Request", cqrshtmx.HeaderTrue)
-	cqrshtmx.DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
+	httperr.DefaultErrorHandlerWithRedirect(w, r, err, loginRedirect)
 	ExpectWithOffset(1, w.Header().Get("Hx-Redirect")).To(Equal(expectedRedirect))
 }
 

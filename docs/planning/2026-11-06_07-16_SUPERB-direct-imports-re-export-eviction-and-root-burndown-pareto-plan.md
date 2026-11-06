@@ -1,6 +1,7 @@
 # SUPERB — Direct Imports Only: evict the re-export façade, burn the root package down
 
-**Written:** 2026-11-06 07:16 · **Owner:** Lars · **Status:** proposed (W0 is executable today)
+**Written:** 2026-11-06 07:16 · **Owner:** Lars · **Status:** accepted — W0 DELIVERED 2026-11-06 (v4, non-breaking);
+W1–W4 gated on the single v5 window and not started
 **Driver (owner, 2026-11-06):** "I kind of hate re-exports. People should import the code as
 directly as possible. Only refactoring + deprecated aliases may temporarily be okay."
 
@@ -443,3 +444,80 @@ candidate re-export layers that W0 froze instead of deprecating: they are
 consumer-facing convenience surfaces whose replacement is a real design change,
 and deprecating them as a drive-by would have been a Verschlimmbesserung. The
 gate forbids them from growing; W1 decides each one.
+
+### W0 completion pass — 2026-11-06 (second session)
+
+W0 shipped with four honesty gaps. All four are now closed, and two of them were worse
+than the first session reported.
+
+**1. The doc sweep was twice the reported size.** The report said 33 markdown occurrences
+still taught a deprecated alias. The measurement was wrong because `rg` skips hidden
+directories by default, and the project skill lives in `.agents/`. Actual: **51**. The
+old→new mapping was not hand-written — it was derived from the alias declarations
+themselves (`^	(Old) = (pkg)\.(New)$` inside the three façade files), so a doc cannot
+acquire a spelling the code does not have. `htmx.Version`, `htmx.CDNScriptTag`,
+`htmx.ExtensionNames` and friends came out of that derivation, not from memory.
+
+**2. A blind substitution produced self-referential nonsense, and it was caught.** Five
+sites contrasted old vs new (`write \`htmx.ScriptHandler\`, not \`cqrshtmx.HTMXScriptHandler\``);
+a mechanical rewrite collapsed both sides to the same symbol. Those five are hand-restored.
+The residual claim is now checkable: **10 occurrences remain in living docs, every one
+either a labelled contrast ("write X, not the deprecated Y"), an explicitly-labelled
+"deprecated root alias" mapping note, or a frozen `CHANGELOG` history entry.** Zero
+unlabelled teaching of a removed spelling.
+
+**3. Root's own tests still used the façades.** 25 `_test.go` files, 196 edits. Done by
+running **the codemod on this repo** (`go run ./cmd/cqrs-htmx-upgrade -apply <test files>`),
+which is the only honest test of a consumer migration tool. Two files were deliberately
+excluded: `api_surface_compat_test.go` (the compile-time pin — repointing it would delete
+the safety net it exists to be) and `cmd/cqrs-htmx-upgrade/upgrade_test.go` (it asserts
+the old→new rewrite; rewriting the fixture destroys the test). Note the codemod's own
+dry-run had said `849 files, 352 edits, 6 manual findings` — scoping to root tests made it
+`29 files, 196 edits, 0 manual`, which is the correct unit of work for W0. The other
+modules stay for W1 (B2), where the repoint and the v5 delete happen together.
+
+**4. Documented class names did not match the mechanism.** ADR-0062's exemption table said
+`exempt:internal-target`; `check-reexport-policy.sh` accepts `exempt:internal`. The gate is
+the single source of truth, so the ADR was corrected and now says so explicitly. The
+baseline header also claimed 418 declarations against a measured 413 — corrected.
+
+Also corrected in this pass: the README's layering paragraph still asserted "`cqrshtmx`
+remains the supported surface", which ADR-0062 supersedes; the README quick start was
+using `cqrshtmx.HTMXScriptHandler()` and therefore needed the `htmx` import added for the
+`check-readme-quickstart` gate to compile it.
+
+**Verification actually run in this pass** (the first session's report listed these as
+"not run"):
+
+| Command | Result |
+| --- | --- |
+| `check-reexport-policy.sh --strict` | green, 47 files / 413 decls |
+| `test-check-reexport-policy.sh` | 13/13 |
+| `check-skill-snippets.sh` | 43 fences parse, 29 signature fences skipped |
+| `check-skill-claims.sh` | 218 symbols resolve |
+| `check-docs-links.sh` | 1398 links OK |
+| `check-readme-quickstart.sh` | compiles in a throwaway consumer module (GOWORK=off) |
+| `go build ./...` / `go vet ./...` | clean |
+| `go test ./... -count=1` (root module) | 9 packages ok |
+| `golangci-lint run --new-from-rev=origin/master ./` | 0 issues |
+
+**Pre-existing, NOT caused by W0** (recorded so the next session does not chase it): a full
+`golangci-lint run ./` on the root module reports 33 issues (27 `wsl_v5`, 3 `nlreturn`, 2
+`tagliatelle`, 1 `exhaustruct_v5`) in test files untouched by this work. `--new-from-rev`
+against either `origin/master` or the pre-W0 plan commit returns 0, which is what proves
+W0 introduced none of them. The LSP also still advertises 79 `deprecatedComment` warnings
+that the real linter does not reproduce — stale LSP parse, ignore it.
+
+### Still open after W0 (deliberately)
+
+- **Push.** The branch is ahead of `origin/master` and a stale host git rewrite
+  (`url./home/lars/projects/go-appkit.insteadof https://github.com/larsartmann/go-appkit`)
+  makes `git push` fail on tag resolution; `GIT_CONFIG_GLOBAL=/dev/null git push origin master`
+  is the workaround. Not executed: pushing is the owner's call, and the range also contains
+  another session's unrelated commits (`authz_dispatch*`, `identity-model/authz_matcher_test.go`,
+  `authztest/command_suite*.go`, `docs/adr/0063-*`, `check-policy-rows.sh`).
+- **The aggregate battery.** `nix run .#check-modules` (~90 stages), `-race`, `.#coverage-gate`,
+  `.#check-cqrs-lint`, `.#check-erraudit-strict`, `.#check-branching-flow` were not run as a
+  set. Each affected stage was run individually and is green; the composite is unproven.
+- **The five `exempt:pending` files** stay frozen (see above), and **W1–W4** wait for the v5
+  window.

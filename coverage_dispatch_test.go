@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
@@ -94,7 +95,7 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 	Describe("MapError conflict family", func() {
 		It("returns 409 for conflict family errors", func() {
 			err := fmt.Errorf("wrap: %w", errorfamily.NewConflict("test.conflict", "conflict occurred"))
-			status := cqrshtmx.MapError(err)
+			status := httperr.MapError(err)
 			Expect(status).To(Equal(http.StatusConflict))
 		})
 	})
@@ -102,14 +103,14 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 	Describe("MapError transient family", func() {
 		It("returns 503 for transient family errors", func() {
 			err := fmt.Errorf("wrap: %w", errorfamily.NewTransient("test.transient", "temporary failure"))
-			status := cqrshtmx.MapError(err)
+			status := httperr.MapError(err)
 			Expect(status).To(Equal(http.StatusServiceUnavailable))
 		})
 	})
 
 	Describe("MapError ErrRequestTooLarge", func() {
 		It("returns 413 for body size exceeded", func() {
-			status := cqrshtmx.MapError(cqrshtmx.ErrRequestTooLarge)
+			status := httperr.MapError(httperr.ErrRequestTooLarge)
 			Expect(status).To(Equal(http.StatusRequestEntityTooLarge))
 		})
 	})

@@ -9,6 +9,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 // fourArgEnforcer models the library's shipped RBAC model
@@ -250,8 +251,8 @@ func TestEnforce_FourArgModelReturnsForbiddenNotEngineError(t *testing.T) {
 		t.Fatalf("denial must classify as forbidden, got %v", err)
 	}
 
-	if cqrshtmx.MapError(err) != http.StatusForbidden {
-		t.Fatalf("status = %d, want 403", cqrshtmx.MapError(err))
+	if httperr.MapError(err) != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", httperr.MapError(err))
 	}
 }
 

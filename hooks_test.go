@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 type (
@@ -98,7 +99,7 @@ var _ = Describe("Lifecycle Hooks", func() {
 			called, capturedErr, hook := trackAfterDispatch()
 			disp := command.NewDispatcher()
 			_ = disp.Register("CreateUser", func(_ context.Context, _ command.Command) error {
-				return cqrshtmx.ErrDecodeFailed
+				return httperr.ErrDecodeFailed
 			})
 
 			app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp, AfterDispatch: hook})

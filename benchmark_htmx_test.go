@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 type benchComponent struct{}
@@ -51,7 +52,7 @@ func BenchmarkParseHTMXRequest(b *testing.B) {
 func BenchmarkRenderPartial(b *testing.B) {
 	mw := cqrshtmx.HTMXMiddleware(
 		http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-			if cqrshtmx.RenderPartial(r) {
+			if htmx.RenderPartial(r) {
 				sink = "partial"
 			} else {
 				sink = "full"

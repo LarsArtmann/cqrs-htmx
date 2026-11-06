@@ -88,7 +88,7 @@ Empty command/query type strings are rejected at registration. Always use real `
 
 - `app.Middleware()` (context enrichment) reads HTMX context set by `HTMXMiddleware`. So HTMX must run **before** enrichment.
 - CSRF must wrap mutations, so it runs **outside** HTMX.
-- Getting this order wrong causes silent CSRF gaps or missing `HTMXRequest` in context.
+- Getting this order wrong causes silent CSRF gaps or a missing `htmx.Request` in context.
 
 ### Session/auth goes OUTSIDE CSRF
 
