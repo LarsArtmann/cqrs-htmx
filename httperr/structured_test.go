@@ -202,3 +202,55 @@ var _ = Describe("StructuredError", func() {
 		})
 	})
 })
+
+var _ = Describe("StructuredError accessors and the context variant", func() {
+	It("String returns the same JSON the wire carries", func() {
+		se := httperr.NewStructuredError(httperr.ErrValidationFailed, nil)
+		Expect(se.String()).To(Equal(se.JSON()))
+	})
+
+	It("Unwrap exposes the cause for errors.Is traversal", func() {
+		cause := errorfamily.NewConflict("email_taken", "email already registered")
+		se := httperr.NewStructuredError(cause, nil)
+		Expect(errors.Is(se, cause)).To(BeTrue())
+	})
+
+	It("Unwrap returns nil for a nil error", func() {
+		se := httperr.NewStructuredError(nil, nil)
+		Expect(se.Unwrap()).To(BeNil())
+	})
+
+	It("the context variant extracts the request ID without a request", func() {
+		rid := hx.NewRequestID()
+		ctx := hx.WithRequestID(context.Background(), rid)
+
+		se := httperr.NewStructuredErrorForAudienceWithContext(
+			httperr.ErrValidationFailed, ctx, httperr.AudiencePublic,
+		)
+		Expect(se.Instance).To(Equal(rid.String()))
+	})
+
+	It("the context variant returns the zero value for a nil error", func() {
+		se := httperr.NewStructuredErrorForAudienceWithContext(
+			nil, context.Background(), httperr.AudienceOperator,
+		)
+		Expect(se.Status).To(Equal(0))
+		Expect(se.Detail).To(BeEmpty())
+	})
+})
+
+var _ = Describe("WithHTTPStatus wrapper chain", func() {
+	It("preserves the cause so errors.Is keeps matching", func() {
+		cause := errorfamily.NewConflict("email_taken", "email already registered")
+		wrapped := httperr.WithHTTPStatus(cause, http.StatusTeapot)
+
+		statuser, ok := wrapped.(interface{ HTTPStatus() int })
+		Expect(ok).To(BeTrue())
+		Expect(statuser.HTTPStatus()).To(Equal(http.StatusTeapot))
+		Expect(errors.Is(wrapped, cause)).To(BeTrue())
+	})
+
+	It("passes nil through", func() {
+		Expect(httperr.WithHTTPStatus(nil, http.StatusTeapot)).To(BeNil())
+	})
+})
