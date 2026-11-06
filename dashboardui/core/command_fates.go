@@ -192,10 +192,16 @@ func decodeCommandFate(evt event.Event) (CommandFate, bool) {
 
 // newCommandFateRow seeds a row with the fate label and the stream-keyed
 // command identity; the per-fate decoders fill in the payload fields.
+//
+// The stream ID is read in its bare (Get) form on purpose: a lifecycle stream
+// is keyed by the command ID, so the bare value is exactly what the payload
+// carries (upstream records CommandKey(cmd.ID().String())), and StreamID's
+// String() adds a second brand prefix ("StreamMarker:…") that no other view
+// renders. Row and payload therefore print the same identity (gotcha 25).
 func newCommandFateRow(evt event.Event, fate string) CommandFate {
 	return CommandFate{
 		Fate:      fate,
-		CommandID: evt.StreamID().String(),
+		CommandID: evt.StreamID().Get(),
 		EventID:   evt.ID(),
 	}
 }

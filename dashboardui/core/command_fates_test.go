@@ -40,10 +40,15 @@ func lifecycleEvent(
 // cmd-1 received+completed (one fate row), cmd-2 received+failed+retried+
 // failed+dead-lettered (three fate rows), cmd-3 rejected (one row). Journal
 // order is oldest-first; the newest-first expectation below is reversed.
-func commandFatesFixture(t *testing.T, base time.Time) ([]event.Event, map[string]id.StreamID) {
+//
+// The streams are derived with id.StreamIDFrom, exactly as
+// commandlifecycle.LifecycleStreamRef does, so the fixture has the real
+// production shape: the stream's bare value is the command's display identity.
+func commandFatesFixture(t *testing.T, base time.Time) ([]event.Event, map[string]id.CommandID) {
 	t.Helper()
 
-	cmd1, cmd2, cmd3 := id.NewStreamID(), id.NewStreamID(), id.NewStreamID()
+	cmd1, cmd2, cmd3 := id.NewCommandID(), id.NewCommandID(), id.NewCommandID()
+	stream1, stream2, stream3 := id.StreamIDFrom(cmd1), id.StreamIDFrom(cmd2), id.StreamIDFrom(cmd3)
 
 	payloads := []struct {
 		eventType event.Type
@@ -51,30 +56,30 @@ func commandFatesFixture(t *testing.T, base time.Time) ([]event.Event, map[strin
 		version   int
 		payload   any
 	}{
-		{commandlifecycle.TypeReceived, cmd1, 1, commandlifecycle.ReceivedPayload{
+		{commandlifecycle.TypeReceived, stream1, 1, commandlifecycle.ReceivedPayload{
 			CommandID: commandlifecycle.CommandKey(cmd1.String()), CommandType: "RegisterUser",
 			ReceivedAt: base,
 		}},
-		{commandlifecycle.TypeCompleted, cmd1, 2, commandlifecycle.CompletedPayload{
+		{commandlifecycle.TypeCompleted, stream1, 2, commandlifecycle.CompletedPayload{
 			CommandID: commandlifecycle.CommandKey(cmd1.String()), CommandType: "RegisterUser",
 			CompletedAt: base.Add(1 * time.Minute),
 		}},
-		{commandlifecycle.TypeReceived, cmd2, 1, commandlifecycle.ReceivedPayload{
+		{commandlifecycle.TypeReceived, stream2, 1, commandlifecycle.ReceivedPayload{
 			CommandID: commandlifecycle.CommandKey(cmd2.String()), CommandType: "SendEmail",
 			ReceivedAt: base.Add(2 * time.Minute),
 		}},
-		{commandlifecycle.TypeFailed, cmd2, 2, commandlifecycle.FailedPayload{
+		{commandlifecycle.TypeFailed, stream2, 2, commandlifecycle.FailedPayload{
 			CommandID: commandlifecycle.CommandKey(cmd2.String()), CommandType: "SendEmail",
 			Error: "smtp flap", Attempt: 1, FailedAt: base.Add(3 * time.Minute),
 		}},
-		{commandlifecycle.TypeRetried, cmd2, 3, commandlifecycle.RetriedPayload{
+		{commandlifecycle.TypeRetried, stream2, 3, commandlifecycle.RetriedPayload{
 			CommandType: "SendEmail", Attempt: 1, RetriedAt: base.Add(4 * time.Minute),
 		}},
-		{commandlifecycle.TypeDeadLettered, cmd2, 4, commandlifecycle.DeadLetteredPayload{
+		{commandlifecycle.TypeDeadLettered, stream2, 4, commandlifecycle.DeadLetteredPayload{
 			CommandType: "SendEmail", Error: "smtp flap", Attempts: 2,
 			DeadLetteredAt: base.Add(5 * time.Minute),
 		}},
-		{commandlifecycle.TypeRejected, cmd3, 1, commandlifecycle.RejectedPayload{
+		{commandlifecycle.TypeRejected, stream3, 1, commandlifecycle.RejectedPayload{
 			CommandID: commandlifecycle.CommandKey(cmd3.String()), CommandType: "InviteMember",
 			Error: "email already invited", Family: "rejection", ErrorCode: "member.duplicate",
 			Attempt: 1, RejectedAt: base.Add(6 * time.Minute),
@@ -86,7 +91,7 @@ func commandFatesFixture(t *testing.T, base time.Time) ([]event.Event, map[strin
 		events = append(events, lifecycleEvent(t, p.eventType, p.commandID, p.version, p.payload))
 	}
 
-	return events, map[string]id.StreamID{"cmd1": cmd1, "cmd2": cmd2, "cmd3": cmd3}
+	return events, map[string]id.CommandID{"cmd1": cmd1, "cmd2": cmd2, "cmd3": cmd3}
 }
 
 // TestLoadCommandFates_DecodesAllFates skips command.received, decodes the
@@ -120,14 +125,23 @@ func TestLoadCommandFates_DecodesAllFates(t *testing.T) {
 	wantFates := []struct {
 		fate        string
 		commandType string
-		commandID   id.StreamID
+		commandID   id.CommandID
 		attempt     int
 		errMsg      string
 		family      string
 		errorCode   string
 		time        time.Time
 	}{
-		{FateRejected, "InviteMember", cmds["cmd3"], 1, "email already invited", "rejection", "member.duplicate", base.Add(6 * time.Minute)},
+		{
+			FateRejected,
+			"InviteMember",
+			cmds["cmd3"],
+			1,
+			"email already invited",
+			"rejection",
+			"member.duplicate",
+			base.Add(6 * time.Minute),
+		},
 		{FateDeadLettered, "SendEmail", cmds["cmd2"], 2, "smtp flap", "", "", base.Add(5 * time.Minute)},
 		{FateRetried, "SendEmail", cmds["cmd2"], 1, "", "", "", base.Add(4 * time.Minute)},
 		{FateFailed, "SendEmail", cmds["cmd2"], 1, "smtp flap", "", "", base.Add(3 * time.Minute)},
@@ -146,7 +160,7 @@ func TestLoadCommandFates_DecodesAllFates(t *testing.T) {
 		}
 
 		if got.CommandID != want.commandID.String() {
-			t.Errorf("fates[%d].CommandID = %q, want %q", i, got.CommandID, want.commandID)
+			t.Errorf("fates[%d].CommandID = %q, want %q", i, got.CommandID, want.commandID.String())
 		}
 
 		if got.Attempt != want.attempt {
@@ -208,13 +222,19 @@ func TestLoadCommandFates_LimitKeepsNewest(t *testing.T) {
 // TestLoadCommandFates_CommandIDFallsBackToStream pins the pre-v4.4 shape:
 // FailedPayload without a CommandID still identifies the command via the
 // lifecycle stream ID (streams are keyed by command ID).
+//
+// The fallback must print the SAME string a payload-carrying event prints:
+// LifecycleStreamRef derives the stream from the command ID, so its bare
+// value is the command's display identity. A StreamID display form here would
+// re-brand the same command twice in one view (gotcha 25).
 func TestLoadCommandFates_CommandIDFallsBackToStream(t *testing.T) {
 	t.Parallel()
 
-	cmdID := id.NewStreamID()
+	cmdID := id.NewCommandID()
+	stream := id.StreamIDFrom(cmdID)
 
 	events := []event.Event{
-		lifecycleEvent(t, commandlifecycle.TypeFailed, cmdID, 1, commandlifecycle.FailedPayload{
+		lifecycleEvent(t, commandlifecycle.TypeFailed, stream, 1, commandlifecycle.FailedPayload{
 			CommandType: "LegacyCommand", Error: "boom", Attempt: 3,
 			FailedAt: time.Date(2026, 11, 6, 4, 0, 0, 0, time.UTC),
 		}),
@@ -234,7 +254,11 @@ func TestLoadCommandFates_CommandIDFallsBackToStream(t *testing.T) {
 	}
 
 	if fates[0].CommandID != cmdID.String() {
-		t.Errorf("CommandID = %q, want the lifecycle stream ID %q", fates[0].CommandID, cmdID)
+		t.Errorf("CommandID = %q, want the command identity %q", fates[0].CommandID, cmdID.String())
+	}
+
+	if fates[0].CommandID != stream.Get() {
+		t.Errorf("CommandID = %q, want the stream's bare value %q", fates[0].CommandID, stream.Get())
 	}
 
 	if fates[0].Attempt != 3 {
