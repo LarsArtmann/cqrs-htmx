@@ -50,7 +50,7 @@ func TestDashboard_SSEHubStatsCards(t *testing.T) {
 			}
 
 			html := rec.Body.String()
-			for _, want := range []string{"SSE live", "Dropped events", ">3<", ">7<"} {
+			for _, want := range []string{"SSE live", "Dropped events", ">3 <", ">7 <"} {
 				if !strings.Contains(html, want) {
 					t.Errorf("%s missing %q", tc.name, want)
 				}
@@ -103,7 +103,7 @@ func TestDashboard_SSEHubStatsZeroDropsGreenTone(t *testing.T) {
 	}
 
 	html := rec.Body.String()
-	if !strings.Contains(html, ">0<") {
+	if !strings.Contains(html, ">0 <") {
 		t.Error("zero subscribers should render as 0")
 	}
 

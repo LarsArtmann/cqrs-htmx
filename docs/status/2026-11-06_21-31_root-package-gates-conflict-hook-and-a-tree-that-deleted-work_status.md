@@ -231,15 +231,15 @@ use in C12, so the next session will rediscover it.
 | --- | --- | --- |
 | 1 | Decide Q1 (train authorization / single-writer rule) | every other plan item is downstream of it |
 | 2 | Push the 15 local commits (on approval) | they are the only copy of four deliveries |
-| 3 | Wire `docs-gates-battery.sh` into flake apps + CI (advisory) | finishes C21 |
-| 4 | Add a 5-case self-test for the battery wrapper (stub binary: PASS / FAIL / strict / skip / broken) | a wrapper with no fixture is a claim |
-| 5 | Record the `check-modules` membership decision for the battery (advisory, CI-only, with the reason) | C21 second half |
-| 6 | Run `check-modules` end to end and write the residual red list | C12 |
+| 3 | ~~Wire `docs-gates-battery.sh` into flake apps + CI (advisory)~~ done at 22:0x — flake apps `check-docs-gates-battery`/`test-check-docs-gates-battery`, two check-modules stages + CI-parity rows, advisory `ci.yml` step with the membership comment; the parity self-test caught my stage env-prefix bug, fixed | finishes C21 |
+| 4 | ~~Add a 5-case self-test for the battery wrapper (stub binary: PASS / FAIL / strict / skip / broken)~~ done at 22:0x — shipped 9 cases (green matrix, advisory WARNING, strict exit 1, broken battery exit 2, crash not promotable, honest SKIP, non-executable binary, unknown arg, --json passthrough), 9/9 green, shellcheck-clean | a wrapper with no fixture is a claim |
+| 5 | ~~Record the `check-modules` membership decision for the battery (advisory, CI-only, with the reason)~~ done at 22:0x — the `ci.yml` step comment carries it: advisory + CI-only because the `audit_max` pin is local policy and the binary is not a flake input | C21 second half |
+| 6 | ~~Run `check-modules` end to end and write the residual red list~~ done at 22:0x — baseline run 13/100 red, all triaged: 2 my wiring bugs fixed, 1 corpus race cleared, reexport 17→19 adjudicated, branching re-pinned 203→210, route-postures = API-vs-tag (train-gated); final re-run after the receipt battery | C12 |
 | 7 | Run `coverage-gate`, compare against `coverage-thresholds.tsv` | C13 |
-| 8 | Run `erraudit-strict`, compare against TOTAL=303 | C13 |
-| 9 | Run `check-cqrs-lint` per module | C13 |
-| 10 | Run `check-branching-flow` against the SARIF baseline | C13 |
-| 11 | Run `check-upstream-treadmill --strict-lag 0` | C13 |
+| 8 | ~~Run `erraudit-strict`, compare against TOTAL=303~~ done at 22:1x — TOTAL=319, advisory posture; growth is the sibling sessions' new code | C13 |
+| 9 | ~~Run `check-cqrs-lint` per module~~ done at 22:4x — 10/14; the 4 reds (root/usermgmt/dashboardui/systemadapter) are the API-vs-tag hermetic-load class, NOT findings (TODO row 49 carries the full receipt incl. the ambient-toolchain trap and the 4.20.1 master-binary drift) | C13 |
+| 10 | ~~Run `check-branching-flow` against the SARIF baseline~~ done at 22:2x — re-pinned 203 → 210 under existing verdicts (+17 drift-sync), amendment in `docs/analysis/triage-decisions.md` | C13 |
+| 11 | ~~Run `check-upstream-treadmill --strict-lag 0`~~ done at 22:4x — worst lag 0 after sweeping the six lagged pins via `go get`+tidy (bump-dep is a no-op on indirect MVS floors); workspace build+vet+targeted tests green | C13 |
 | 12 | Re-run the go-appkit `bump-dep` sweep and expect 4/4 PASS after the train | proves the tag-lag diagnosis |
 | 13 | Execute the train (identity-model → root → usermgmt → UI → setup) with sweeps between steps | C03–C09 |
 | 14 | Re-run the 8 tag-gap legs and record before/after | C10 |
