@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-datastar v0.6.3
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
 	github.com/larsartmann/go-sse v0.7.0
@@ -24,5 +24,5 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
 )
