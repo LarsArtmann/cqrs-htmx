@@ -3,13 +3,13 @@ module github.com/larsartmann/cqrs-htmx/loginpage/v4
 go 1.27.2
 
 require (
-	github.com/a-h/templ v0.3.1070
+	github.com/a-h/templ v0.3.1100
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.15.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/httputil v1.8.0
-	github.com/larsartmann/templ-components v1.26.0
-	github.com/larsartmann/templ-components/utils v1.26.0
+	github.com/larsartmann/templ-components v1.27.0
+	github.com/larsartmann/templ-components/utils v1.27.0
 )
 
 require (
@@ -67,8 +67,8 @@ require (
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
-	github.com/larsartmann/templ-components/htmx v1.26.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.26.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.27.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.27.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20261101121723-be84dd9509a0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -101,14 +101,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.61.1 // indirect
 )
-
-// Pinned at the v1.26.0 family train (2026-11-06): catalog v4.13.0 needs templ v0.3.1070-era
-// runtime (templ.ResolveAttributeValue); v1.27.0 code needs the v0.3.1100-era runtime.
-// Remove when the UI-module re-tag train lands or catalog ships a 1100-era docserver.
-replace github.com/larsartmann/templ-components => github.com/larsartmann/templ-components v1.26.0
-
-replace github.com/larsartmann/templ-components/htmx => github.com/larsartmann/templ-components/htmx v1.26.0
-
-replace github.com/larsartmann/templ-components/icons => github.com/larsartmann/templ-components/icons v1.26.0
-
-replace github.com/larsartmann/templ-components/utils => github.com/larsartmann/templ-components/utils v1.26.0

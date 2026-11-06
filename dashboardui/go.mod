@@ -22,11 +22,11 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.8.0
-	github.com/larsartmann/templ-components v1.26.0
-	github.com/larsartmann/templ-components/errorpage v1.26.0
-	github.com/larsartmann/templ-components/htmx v1.26.0
-	github.com/larsartmann/templ-components/icons v1.26.0
-	github.com/larsartmann/templ-components/utils v1.26.0
+	github.com/larsartmann/templ-components v1.27.0
+	github.com/larsartmann/templ-components/errorpage v1.27.0
+	github.com/larsartmann/templ-components/htmx v1.27.0
+	github.com/larsartmann/templ-components/icons v1.27.0
+	github.com/larsartmann/templ-components/utils v1.27.0
 	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 )
@@ -125,22 +125,3 @@ require (
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
-
-// Pinned at the v1.26.0 family train (2026-11-06): catalog v4.13.0 needs templ v0.3.1070-era
-// runtime (templ.ResolveAttributeValue); v1.27.0 code needs the v0.3.1100-era runtime.
-// Remove when the UI-module re-tag train lands or catalog ships a 1100-era docserver.
-replace github.com/larsartmann/templ-components => github.com/larsartmann/templ-components v1.26.0
-
-replace github.com/larsartmann/templ-components/errorpage => github.com/larsartmann/templ-components/errorpage v1.26.0
-
-replace github.com/larsartmann/templ-components/htmx => github.com/larsartmann/templ-components/htmx v1.26.0
-
-replace github.com/larsartmann/templ-components/icons => github.com/larsartmann/templ-components/icons v1.26.0
-
-replace github.com/larsartmann/templ-components/utils => github.com/larsartmann/templ-components/utils v1.26.0
-
-// templ replace-pinned (2026-11-06, family-downgrade split): tidy keeps
-// re-selecting v0.3.1100 whose runtime removed templ.ResolveAttributeValue,
-// which the regenerated v0.3.1070-era templates and catalog v4.13.0's
-// docserver call. Remove with the family replace pins at the re-tag train.
-replace github.com/a-h/templ => github.com/a-h/templ v0.3.1070
