@@ -14,7 +14,7 @@ import (
 // rather than derived: a new command must appear here and in CommandPostures in
 // the same change, so a forgotten posture is a test failure instead of a
 // runtime denial in a consumer's job.
-var everyDispatchedCommand = []string{
+var everyDispatchedCommand = []string{ //nolint:gochecknoglobals // exhaustive posture table, drift-gated by the test
 	"AddCredential",
 	"AddMember",
 	"ChangeDisplayName",

@@ -4,55 +4,55 @@ import (
 	"net/http"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 // All domain error sentinels now live in identity-model (domain-only, no HTTP
 // dependency). Here we re-export them, wrapping those that need a non-default
-// HTTP status with cqrshtmx.WithHTTPStatus. Errors whose family default is
+// HTTP status with httperr.WithHTTPStatus. Errors whose family default is
 // already correct (Rejection→400, Conflict→409, Transient→503) are aliased
 // directly.
 //
-// ErrForbidden and ErrUnauthorized are NOT wrapped because cqrshtmx.MapError
+// ErrForbidden and ErrUnauthorized are NOT wrapped because httperr.MapError
 // already maps codes "forbidden"→403 and "unauthorized"→401 via
 // authStatusFromErrorCode.
 var (
 	// ErrUserNotFound is returned when a user cannot be located by ID.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrUserNotFound = cqrshtmx.WithHTTPStatus(identitymodel.ErrUserNotFound, http.StatusNotFound)
+	ErrUserNotFound = httperr.WithHTTPStatus(identitymodel.ErrUserNotFound, http.StatusNotFound)
 	// ErrUserIDExists is returned when attempting to create a user with an ID that already exists.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrUserIDExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrUserIDExists, http.StatusConflict)
+	ErrUserIDExists = httperr.WithHTTPStatus(identitymodel.ErrUserIDExists, http.StatusConflict)
 	// ErrEmailExists is returned when attempting to register an email that is already taken.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrEmailExists = cqrshtmx.WithHTTPStatus(identitymodel.ErrEmailExists, http.StatusConflict)
+	ErrEmailExists = httperr.WithHTTPStatus(identitymodel.ErrEmailExists, http.StatusConflict)
 	// ErrInvalidCredentials is returned when WebAuthn login fails.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrInvalidCredentials = cqrshtmx.WithHTTPStatus(identitymodel.ErrInvalidCredentials, http.StatusUnauthorized)
+	ErrInvalidCredentials = httperr.WithHTTPStatus(identitymodel.ErrInvalidCredentials, http.StatusUnauthorized)
 	// ErrNoCredentials is returned when a user has no registered WebAuthn credentials.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrNoCredentials = cqrshtmx.WithHTTPStatus(identitymodel.ErrNoCredentials, http.StatusNotFound)
+	ErrNoCredentials = httperr.WithHTTPStatus(identitymodel.ErrNoCredentials, http.StatusNotFound)
 	// ErrWebAuthnNotConfigured is returned when WebAuthn is required but not configured.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrWebAuthnNotConfigured = cqrshtmx.WithHTTPStatus(identitymodel.ErrWebAuthnNotConfigured, http.StatusUnauthorized)
+	ErrWebAuthnNotConfigured = httperr.WithHTTPStatus(identitymodel.ErrWebAuthnNotConfigured, http.StatusUnauthorized)
 	// ErrSessionDataNotFound is returned when WebAuthn session data is not found or expired.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrSessionDataNotFound = cqrshtmx.WithHTTPStatus(identitymodel.ErrSessionDataNotFound, http.StatusUnauthorized)
+	ErrSessionDataNotFound = httperr.WithHTTPStatus(identitymodel.ErrSessionDataNotFound, http.StatusUnauthorized)
 	// ErrSessionNotFound is returned when a session token does not match any stored session.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrSessionNotFound = cqrshtmx.WithHTTPStatus(identitymodel.ErrSessionNotFound, http.StatusNotFound)
+	ErrSessionNotFound = httperr.WithHTTPStatus(identitymodel.ErrSessionNotFound, http.StatusNotFound)
 	// ErrSessionExpired is returned when a session token has passed its expiration time.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrSessionExpired = cqrshtmx.WithHTTPStatus(identitymodel.ErrSessionExpired, http.StatusUnauthorized)
+	ErrSessionExpired = httperr.WithHTTPStatus(identitymodel.ErrSessionExpired, http.StatusUnauthorized)
 	// ErrForbidden is returned when an authorization check denies access.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
@@ -69,15 +69,15 @@ var (
 	// maximum allowed failed attempts.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrAccountLocked = cqrshtmx.WithHTTPStatus(identitymodel.ErrAccountLocked, http.StatusTooManyRequests)
+	ErrAccountLocked = httperr.WithHTTPStatus(identitymodel.ErrAccountLocked, http.StatusTooManyRequests)
 	// ErrEnforcerNotInitialized is returned when an Authz operation is called before
 	// the Casbin enforcer has been set up.
-	ErrEnforcerNotInitialized = cqrshtmx.WithHTTPStatus(
+	ErrEnforcerNotInitialized = httperr.WithHTTPStatus(
 		identitymodel.ErrEnforcerNotInitialized, http.StatusInternalServerError,
 	)
 	// ErrEmailVerificationNotConfigured is returned when email verification is
 	// used without being configured in ServiceConfig.
-	ErrEmailVerificationNotConfigured = cqrshtmx.WithHTTPStatus(
+	ErrEmailVerificationNotConfigured = httperr.WithHTTPStatus(
 		identitymodel.ErrEmailVerificationNotConfigured,
 		http.StatusServiceUnavailable,
 	)
@@ -90,15 +90,15 @@ var (
 	// an already-verified email.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrEmailAlreadyVerified = cqrshtmx.WithHTTPStatus(identitymodel.ErrEmailAlreadyVerified, http.StatusConflict)
+	ErrEmailAlreadyVerified = httperr.WithHTTPStatus(identitymodel.ErrEmailAlreadyVerified, http.StatusConflict)
 	// ErrTOTPNotConfigured is returned when TOTP MFA is used without being configured.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrTOTPNotConfigured = cqrshtmx.WithHTTPStatus(identitymodel.ErrTOTPNotConfigured, http.StatusServiceUnavailable)
+	ErrTOTPNotConfigured = httperr.WithHTTPStatus(identitymodel.ErrTOTPNotConfigured, http.StatusServiceUnavailable)
 	// ErrTOTPAlreadyEnabled is returned when TOTP setup is requested for a user who already has it.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrTOTPAlreadyEnabled = cqrshtmx.WithHTTPStatus(identitymodel.ErrTOTPAlreadyEnabled, http.StatusConflict)
+	ErrTOTPAlreadyEnabled = httperr.WithHTTPStatus(identitymodel.ErrTOTPAlreadyEnabled, http.StatusConflict)
 	// ErrTOTPNotEnabled is returned when TOTP verification is requested for a user without TOTP.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
@@ -106,7 +106,7 @@ var (
 	// ErrInvalidTOTPCode is returned when the provided TOTP code is invalid.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrInvalidTOTPCode = cqrshtmx.WithHTTPStatus(identitymodel.ErrInvalidTOTPCode, http.StatusUnauthorized)
+	ErrInvalidTOTPCode = httperr.WithHTTPStatus(identitymodel.ErrInvalidTOTPCode, http.StatusUnauthorized)
 	// ErrTOTPSetupExpired is returned when the pending TOTP setup has expired.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
@@ -114,11 +114,11 @@ var (
 	// ErrOAuthNotConfigured is returned when OAuth2 is used without being configured.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrOAuthNotConfigured = cqrshtmx.WithHTTPStatus(identitymodel.ErrOAuthNotConfigured, http.StatusServiceUnavailable)
+	ErrOAuthNotConfigured = httperr.WithHTTPStatus(identitymodel.ErrOAuthNotConfigured, http.StatusServiceUnavailable)
 	// ErrOAuthProviderNotFound is returned when the requested provider is not configured.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrOAuthProviderNotFound = cqrshtmx.WithHTTPStatus(identitymodel.ErrOAuthProviderNotFound, http.StatusNotFound)
+	ErrOAuthProviderNotFound = httperr.WithHTTPStatus(identitymodel.ErrOAuthProviderNotFound, http.StatusNotFound)
 	// ErrOAuthInvalidState is returned when the state token is invalid, expired, or missing.
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
@@ -129,7 +129,7 @@ var (
 	ErrOAuthTokenExchange error = identitymodel.ErrOAuthTokenExchange
 	// ErrExternalAccountAlreadyLinked is returned when an external account
 	// (provider+subject pair) is already linked to a different user.
-	ErrExternalAccountAlreadyLinked = cqrshtmx.WithHTTPStatus(
+	ErrExternalAccountAlreadyLinked = httperr.WithHTTPStatus(
 		identitymodel.ErrExternalAccountAlreadyLinked,
 		http.StatusConflict,
 	)
@@ -137,7 +137,7 @@ var (
 	// user count has reached the configured maximum (ServiceConfig.MaxUsers).
 	//
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-	ErrRegistrationClosed = cqrshtmx.WithHTTPStatus(
+	ErrRegistrationClosed = httperr.WithHTTPStatus(
 		identitymodel.ErrRegistrationClosed,
 		http.StatusForbidden,
 	)

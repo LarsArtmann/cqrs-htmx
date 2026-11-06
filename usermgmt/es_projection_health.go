@@ -4,6 +4,7 @@ import (
 	"context"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
@@ -13,8 +14,8 @@ import (
 // --- EventSourcedSetup methods ---
 
 // EventCatalog returns a catalog populated with all 21 usermgmt event types.
-// Use this with cqrshtmx.EventCatalogHandler to serve an event schema endpoint.
-func (s *EventSourcedSetup) EventCatalog() *cqrshtmx.EventCatalog {
+// Use this with eventcatalog.Handler to serve an event schema endpoint.
+func (s *EventSourcedSetup) EventCatalog() *eventcatalog.Catalog {
 	return DefaultEventCatalog()
 }
 
@@ -44,8 +45,8 @@ func (s *EventSourcedSetup) RebuildProjection(ctx context.Context, name string) 
 // --- Service methods ---
 
 // EventCatalog returns a catalog populated with all 21 usermgmt event types.
-// Use this with cqrshtmx.EventCatalogHandler to serve an event schema endpoint.
-func (svc *Service) EventCatalog() *cqrshtmx.EventCatalog {
+// Use this with eventcatalog.Handler to serve an event schema endpoint.
+func (svc *Service) EventCatalog() *eventcatalog.Catalog {
 	return DefaultEventCatalog()
 }
 

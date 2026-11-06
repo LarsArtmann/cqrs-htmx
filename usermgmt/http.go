@@ -13,6 +13,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/httputil"
 )
 
@@ -370,11 +371,11 @@ func friendlyAuthMessage(err error) string {
 }
 
 // errorStatus derives the HTTP status for an error. Each usermgmt sentinel
-// carries its own status (via cqrshtmx.WithHTTPStatus) where it differs from
-// the error-family default, so this delegates entirely to cqrshtmx.MapError —
+// carries its own status (via httperr.WithHTTPStatus) where it differs from
+// the error-family default, so this delegates entirely to httperr.MapError —
 // no parallel switch to keep in sync with the root module.
 func errorStatus(err error) int {
-	return cqrshtmx.MapError(err)
+	return httperr.MapError(err)
 }
 
 // writeDispatchError writes an error response with the HTTP status derived from
@@ -384,7 +385,7 @@ func errorStatus(err error) int {
 func writeDispatchError(w http.ResponseWriter, r *http.Request, err error) {
 	status := errorStatus(err)
 	body := map[string]string{errorKey: friendlyAuthMessage(err)}
-	if code := cqrshtmx.ErrorCode(err); code != "" {
+	if code := httperr.ErrorCode(err); code != "" {
 		body[codeKey] = code
 	}
 	if r != nil {

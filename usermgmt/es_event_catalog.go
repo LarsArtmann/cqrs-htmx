@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// DefaultEventCatalog builds a cqrshtmx.EventCatalog populated with all 27
+// DefaultEventCatalog builds a eventcatalog.Catalog populated with all 27
 // event types across the five aggregates (User, Membership, Tenant, Bot,
 // Auth). Both wire formats derive from ONE table (eventCatalogSpecs): the
 // served catalog's PayloadFields are reflected from the payload structs
@@ -24,10 +24,10 @@ import (
 // table: they are prose, not derivable. Consumers can serve this catalog at
 // an HTTP endpoint (e.g. GET /events/catalog) so that projection builders
 // can discover the event schema without reading the source code.
-func DefaultEventCatalog() *cqrshtmx.EventCatalog {
-	catalog := cqrshtmx.NewEventCatalog()
+func DefaultEventCatalog() *eventcatalog.Catalog {
+	catalog := eventcatalog.New()
 	for _, spec := range eventCatalogSpecs {
-		catalog.Register(cqrshtmx.EventMetadata{
+		catalog.Register(eventcatalog.EventMetadata{
 			Type:          string(spec.eventType),
 			Aggregate:     string(spec.aggregate),
 			SchemaVersion: identitymodel.CurrentSchemaVersion,
@@ -40,18 +40,18 @@ func DefaultEventCatalog() *cqrshtmx.EventCatalog {
 
 // eventCatalogSpec is one row of the identity domain's published event
 // language: the single registration table feeding BOTH wire formats (the
-// served cqrshtmx.EventCatalog and the architecture catalog.Catalog). The
+// served eventcatalog.Catalog and the architecture catalog.Catalog). The
 // two function fields are generic instantiations over the same payload
 // struct, so a payload change cannot update one format and not the other.
 type eventCatalogSpec struct {
 	eventType   event.Type
 	aggregate   id.StreamType
 	description string
-	schema      func() *catalog.Schema         // shared go-cqrs-lite JSON-schema derivation
-	fields      func() []cqrshtmx.PayloadField // Go-source vocabulary for the served catalog
+	schema      func() *catalog.Schema             // shared go-cqrs-lite JSON-schema derivation
+	fields      func() []eventcatalog.PayloadField // Go-source vocabulary for the served catalog
 }
 
-var eventCatalogSpecs = []eventCatalogSpec{
+var eventCatalogSpecs = []eventCatalogSpec{ //nolint:gochecknoglobals // single-table source of truth for the served + architecture catalogs (R2)
 	// User events
 	{
 		eventType:   identitymodel.EventUserRegistered,
@@ -259,16 +259,16 @@ var eventCatalogSpecs = []eventCatalogSpec{
 // catalog keeps its historical shape. Embedded structs (CredentialCore,
 // ExternalAccountCore) are walked, so promoted fields appear exactly like
 // declared ones — the drift class the hand-maintained lists missed.
-func payloadFieldsFrom[T any]() []cqrshtmx.PayloadField {
+func payloadFieldsFrom[T any]() []eventcatalog.PayloadField {
 	t := reflect.TypeOf(*new(T))
-	fields := make([]cqrshtmx.PayloadField, 0, t.NumField())
+	fields := make([]eventcatalog.PayloadField, 0, t.NumField())
 	for field := range t.Fields() {
 		fields = append(fields, fieldsFromStructField(field)...)
 	}
 	return fields
 }
 
-func fieldsFromStructField(f reflect.StructField) []cqrshtmx.PayloadField {
+func fieldsFromStructField(f reflect.StructField) []eventcatalog.PayloadField {
 	if f.Anonymous {
 		t := f.Type
 		if t.Kind() == reflect.Pointer {
@@ -277,7 +277,7 @@ func fieldsFromStructField(f reflect.StructField) []cqrshtmx.PayloadField {
 		if t.Kind() != reflect.Struct {
 			return nil
 		}
-		embedded := make([]cqrshtmx.PayloadField, 0, t.NumField())
+		embedded := make([]eventcatalog.PayloadField, 0, t.NumField())
 		for field := range t.Fields() {
 			embedded = append(embedded, fieldsFromStructField(field)...)
 		}
@@ -293,7 +293,7 @@ func fieldsFromStructField(f reflect.StructField) []cqrshtmx.PayloadField {
 		name = f.Name
 	}
 
-	return []cqrshtmx.PayloadField{{
+	return []eventcatalog.PayloadField{{
 		Name:     name,
 		Type:     goTypeName(f.Type),
 		Required: !strings.Contains(options, "omitempty"),
@@ -319,4 +319,3 @@ func goTypeName(t reflect.Type) string {
 	}
 	return t.Kind().String()
 }
-

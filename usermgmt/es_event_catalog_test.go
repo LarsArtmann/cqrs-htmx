@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
@@ -58,12 +58,12 @@ func TestEventCatalog_InventoryMatchesEventConstants(t *testing.T) {
 
 func TestEventCatalog_FieldsDerivedFromPayloads(t *testing.T) {
 	cat := DefaultEventCatalog()
-	byType := make(map[string][]cqrshtmx.PayloadField, len(cat.Events()))
+	byType := make(map[string][]eventcatalog.PayloadField, len(cat.Events()))
 	for _, e := range cat.Events() {
 		byType[e.Type] = e.PayloadFields
 	}
 
-	assertFields := func(t *testing.T, eventType string, want []cqrshtmx.PayloadField) {
+	assertFields := func(t *testing.T, eventType string, want []eventcatalog.PayloadField) {
 		t.Helper()
 		got := byType[eventType]
 		if !slices.Equal(got, want) {
@@ -72,7 +72,7 @@ func TestEventCatalog_FieldsDerivedFromPayloads(t *testing.T) {
 	}
 
 	t.Run("TOTPEnabled", func(t *testing.T) {
-		assertFields(t, "TOTPEnabled", []cqrshtmx.PayloadField{
+		assertFields(t, "TOTPEnabled", []eventcatalog.PayloadField{
 			{Name: "schema_version", Type: "int", Required: true},
 			{Name: "secret", Type: "[]byte", Required: true},
 		})
@@ -82,7 +82,7 @@ func TestEventCatalog_FieldsDerivedFromPayloads(t *testing.T) {
 	// the embedded CredentialCore) carries eleven wire fields. This pilot
 	// proves embedded walking and pins the corrected contract.
 	t.Run("CredentialAdded", func(t *testing.T) {
-		assertFields(t, "CredentialAdded", []cqrshtmx.PayloadField{
+		assertFields(t, "CredentialAdded", []eventcatalog.PayloadField{
 			{Name: "schema_version", Type: "int", Required: true},
 			{Name: "id", Type: "[]byte", Required: true},
 			{Name: "public_key", Type: "[]byte", Required: true},
@@ -99,7 +99,7 @@ func TestEventCatalog_FieldsDerivedFromPayloads(t *testing.T) {
 	})
 
 	t.Run("LoginFailed", func(t *testing.T) {
-		assertFields(t, "LoginFailed", []cqrshtmx.PayloadField{
+		assertFields(t, "LoginFailed", []eventcatalog.PayloadField{
 			{Name: "schema_version", Type: "int", Required: true},
 			{Name: "method", Type: "AuthMethod", Required: true},
 			{Name: "reason", Type: "AuthFailureReason", Required: true},

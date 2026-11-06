@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
@@ -74,7 +74,7 @@ func TestArchitectureCatalog_FieldParity(t *testing.T) {
 	}
 
 	served := DefaultEventCatalog()
-	servedFields := make(map[string][]cqrshtmx.PayloadField, len(served.Events()))
+	servedFields := make(map[string][]eventcatalog.PayloadField, len(served.Events()))
 	for _, e := range served.Events() {
 		servedFields[e.Type] = e.PayloadFields
 	}
