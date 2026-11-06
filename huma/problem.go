@@ -8,7 +8,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
-// Problem is the RFC 9457 problem document the adapter answers with.
+// ProblemError is the RFC 9457 problem document the adapter answers with.
 //
 // It embeds httperr.StructuredError — the same document the route-based error
 // handler writes — so an OpenAPI-first client gets one error shape whether the
@@ -19,17 +19,17 @@ import (
 //
 // The struct implements huma.StatusError and huma.ContentTypeFilter, which is
 // what makes Huma answer with this type and label it application/problem+json.
-type Problem struct {
+type ProblemError struct {
 	httperr.StructuredError
 }
 
 // GetStatus implements huma.StatusError: Huma sets the response status from the
 // problem's own status, which came from httperr.MapError.
-func (p *Problem) GetStatus() int { return p.Status }
+func (p *ProblemError) GetStatus() int { return p.Status }
 
 // ContentType implements huma.ContentTypeFilter so the document is served as
 // application/problem+json (RFC 9457) instead of plain application/json.
-func (p *Problem) ContentType(contentType string) string {
+func (p *ProblemError) ContentType(contentType string) string {
 	switch contentType {
 	case "application/json":
 		return "application/problem+json"
@@ -63,7 +63,7 @@ func MapError(ctx context.Context, err error) error {
 		return err
 	}
 
-	problem := &Problem{
+	problem := &ProblemError{
 		StructuredError: httperr.NewStructuredErrorWithContext(err, ctx),
 	}
 

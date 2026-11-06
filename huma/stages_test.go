@@ -3,14 +3,15 @@ package huma_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"testing"
 	"time"
 
 	humav2 "github.com/danielgtaylor/huma/v2"
+	cqrsadapter "github.com/larsartmann/cqrs-htmx/huma/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
-	cqrsadapter "github.com/larsartmann/cqrs-htmx/huma/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -332,10 +333,10 @@ func TestWithTimeout_BoundsTheDispatch(t *testing.T) {
 func TestProblem_ContentTypes(t *testing.T) {
 	t.Parallel()
 
-	problem, ok := cqrsadapter.MapError(context.Background(),
-		errorfamily.NewRejection("visit.invalid", "invalid")).(*cqrsadapter.Problem)
-	if !ok {
-		t.Fatalf("MapError returned %T, want *Problem", problem)
+	var problem *cqrsadapter.ProblemError
+	if !errors.As(cqrsadapter.MapError(context.Background(),
+		errorfamily.NewRejection("visit.invalid", "invalid")), &problem) {
+		t.Fatalf("MapError did not return a *ProblemError")
 	}
 
 	if got := problem.ContentType("application/cbor"); got != "application/problem+cbor" {
@@ -346,10 +347,10 @@ func TestProblem_ContentTypes(t *testing.T) {
 		t.Errorf("ContentType(unknown) = %q, want it echoed back", got)
 	}
 
-	// Problem keeps the underlying error reachable, so callers can still ask
-	// "was this a denial?" through the problem document.
+	// ProblemError keeps the underlying error reachable, so callers can still
+	// ask "was this a denial?" through the problem document.
 	if problem.Unwrap() == nil {
-		t.Error("Problem lost its cause")
+		t.Error("ProblemError lost its cause")
 	}
 
 	encoded, err := json.Marshal(problem)
@@ -358,7 +359,7 @@ func TestProblem_ContentTypes(t *testing.T) {
 	}
 
 	if string(encoded) == "" {
-		t.Error("Problem marshalled to an empty document")
+		t.Error("ProblemError marshalled to an empty document")
 	}
 }
 

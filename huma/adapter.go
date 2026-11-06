@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/cqrs-htmx/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -111,7 +111,7 @@ func (a *Adapter) dispatchCommand(ctx context.Context, override time.Duration, c
 	ctx, cancel := a.dispatchContext(ctx, override)
 	defer cancel()
 
-	return a.commands.Dispatch(ctx, cmd) //nolint:wrapcheck // callers map the error; a wrap would shadow its context
+	return a.commands.Dispatch(ctx, cmd)
 }
 
 // dispatchQuery is the query-side mirror of dispatchCommand.
@@ -126,7 +126,7 @@ func (a *Adapter) dispatchQuery(ctx context.Context, override time.Duration, qry
 	ctx, cancel := a.dispatchContext(ctx, override)
 	defer cancel()
 
-	result, err := a.queries.Dispatch(ctx, qry) //nolint:wrapcheck // callers map the error; a wrap would shadow its context
+	result, err := a.queries.Dispatch(ctx, qry)
 	if err != nil {
 		return nil, err
 	}

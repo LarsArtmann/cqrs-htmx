@@ -69,7 +69,8 @@ func RegisterCommand[I any](
 			return nil, a.fail(ctx, op, err)
 		}
 
-		return nil, nil
+		// No response body: Huma answers op.DefaultStatus (204 unless set).
+		return nil, nil //nolint:nilnil // a command operation succeeds with an empty body
 	})
 }
 
@@ -150,7 +151,7 @@ func (a *Adapter) authorize(ctx context.Context, cfg *operationConfig, in any) e
 	case authRequired:
 		return requireAuthenticated(ctx, cfg.resource, cfg.action)
 	case authAuthorized:
-		req := cqrshtmx.Request{ //nolint:exhaustruct_v5 // Subject defaults from ctx below
+		req := cqrshtmx.Request{
 			Domain:   cfg.domain,
 			Resource: cqrshtmx.Resource{Type: cfg.resource, ID: ""},
 			Action:   cfg.action,

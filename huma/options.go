@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/larsartmann/cqrs-htmx/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -122,7 +122,8 @@ func AuthorizeOn[I any](resolve func(ctx context.Context, in *I) (cqrshtmx.Reque
 		cfg.resolve = func(ctx context.Context, in any) (cqrshtmx.Request, error) {
 			typed, ok := in.(*I)
 			if !ok {
-				return cqrshtmx.Request{}, //nolint:exhaustruct_v5 // zero-value return on a wiring bug
+				//nolint:exhaustruct_v5 // zero-value return on a wiring bug
+				return cqrshtmx.Request{},
 					errorfamily.NewCorruption("huma_adapter_input_type",
 						"[cqrs-htmx/huma] AuthorizeOn option was applied to an operation with a different input type")
 			}

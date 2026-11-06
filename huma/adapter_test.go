@@ -3,6 +3,7 @@ package huma_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -12,9 +13,9 @@ import (
 
 	humav2 "github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
+	cqrsadapter "github.com/larsartmann/cqrs-htmx/huma/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
-	cqrsadapter "github.com/larsartmann/cqrs-htmx/huma/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -234,7 +235,7 @@ func TestRegisterQuery_ReturnsTypedOutput(t *testing.T) {
 			A int `query:"a"`
 			B int `query:"b"`
 		},
-		result any,
+			result any,
 		) (*sumOutput, error) {
 			total, ok := result.(int)
 			if !ok {
@@ -380,8 +381,15 @@ func TestAuthorization_Matrix(t *testing.T) {
 				t.Fatalf("New: %v", err)
 			}
 
-			cqrsadapter.RegisterCommand(env.api, pipe,
-				humav2.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: http.StatusCreated},
+			cqrsadapter.RegisterCommand(
+				env.api,
+				pipe,
+				humav2.Operation{
+					OperationID:   "create-visit",
+					Method:        "POST",
+					Path:          "/visits",
+					DefaultStatus: http.StatusCreated,
+				},
 				func(_ context.Context, _ *struct{}) (command.Command, error) {
 					return newGreetingCommand(t, "visit"), nil
 				},
@@ -443,11 +451,18 @@ func TestAuthorizeOn_DerivesTheQuestionFromTypedInput(t *testing.T) {
 
 	type revokeInput struct {
 		Tenant  string `header:"X-Tenant"`
-		TokenID string `path:"token" doc:"token id"`
+		TokenID string `                  path:"token" doc:"token id"`
 	}
 
-	cqrsadapter.RegisterCommand(env.api, pipe,
-		humav2.Operation{OperationID: "revoke", Method: "POST", Path: "/tokens/{token}/revoke", DefaultStatus: http.StatusNoContent},
+	cqrsadapter.RegisterCommand(
+		env.api,
+		pipe,
+		humav2.Operation{
+			OperationID:   "revoke",
+			Method:        "POST",
+			Path:          "/tokens/{token}/revoke",
+			DefaultStatus: http.StatusNoContent,
+		},
 		func(_ context.Context, _ *revokeInput) (command.Command, error) {
 			return newGreetingCommand(t, "revoke"), nil
 		},
@@ -511,8 +526,15 @@ func TestValidateCommand_IsARejectionWithTheSharedCode(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	cqrsadapter.RegisterCommand(env.api, pipe,
-		humav2.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: http.StatusCreated},
+	cqrsadapter.RegisterCommand(
+		env.api,
+		pipe,
+		humav2.Operation{
+			OperationID:   "create-visit",
+			Method:        "POST",
+			Path:          "/visits",
+			DefaultStatus: http.StatusCreated,
+		},
 		func(_ context.Context, _ *struct{}) (command.Command, error) {
 			return newGreetingCommand(t, ""), nil
 		},
@@ -536,7 +558,10 @@ func TestValidateCommand_IsARejectionWithTheSharedCode(t *testing.T) {
 	}
 
 	if problem.Context["form_key"] != "url" {
-		t.Errorf("problem context = %v, want form_key=url (client-fault context must survive the wrap)", problem.Context)
+		t.Errorf(
+			"problem context = %v, want form_key=url (client-fault context must survive the wrap)",
+			problem.Context,
+		)
 	}
 
 	if dispatched {
@@ -561,8 +586,15 @@ func TestGuard_RunsAfterBuildAndCanDenyWithAnyStatus(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	cqrsadapter.RegisterCommand(env.api, pipe,
-		humav2.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: http.StatusCreated},
+	cqrsadapter.RegisterCommand(
+		env.api,
+		pipe,
+		humav2.Operation{
+			OperationID:   "create-visit",
+			Method:        "POST",
+			Path:          "/visits",
+			DefaultStatus: http.StatusCreated,
+		},
 		func(_ context.Context, _ *struct{}) (command.Command, error) {
 			return newGreetingCommand(t, "visit"), nil
 		},
@@ -637,8 +669,15 @@ func TestDispatchErrors_MapToTheirFamily(t *testing.T) {
 				t.Fatalf("New: %v", err)
 			}
 
-			cqrsadapter.RegisterCommand(env.api, pipe,
-				humav2.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: http.StatusCreated},
+			cqrsadapter.RegisterCommand(
+				env.api,
+				pipe,
+				humav2.Operation{
+					OperationID:   "create-visit",
+					Method:        "POST",
+					Path:          "/visits",
+					DefaultStatus: http.StatusCreated,
+				},
 				func(_ context.Context, _ *struct{}) (command.Command, error) {
 					return newGreetingCommand(t, "visit"), nil
 				},
@@ -674,8 +713,15 @@ func TestBuildErrors_PassHumaStatusErrorsThrough(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	cqrsadapter.RegisterCommand(env.api, pipe,
-		humav2.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: http.StatusCreated},
+	cqrsadapter.RegisterCommand(
+		env.api,
+		pipe,
+		humav2.Operation{
+			OperationID:   "create-visit",
+			Method:        "POST",
+			Path:          "/visits",
+			DefaultStatus: http.StatusCreated,
+		},
 		func(_ context.Context, _ *struct{}) (command.Command, error) {
 			// The consumer already decided the response shape; the adapter must
 			// not relabel it.
@@ -701,8 +747,15 @@ func TestBuildNilCommand_IsAServerFault(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	cqrsadapter.RegisterCommand(env.api, pipe,
-		humav2.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: http.StatusCreated},
+	cqrsadapter.RegisterCommand(
+		env.api,
+		pipe,
+		humav2.Operation{
+			OperationID:   "create-visit",
+			Method:        "POST",
+			Path:          "/visits",
+			DefaultStatus: http.StatusCreated,
+		},
 		func(_ context.Context, _ *struct{}) (command.Command, error) {
 			return nil, nil
 		},
@@ -728,8 +781,15 @@ func TestMissingDispatcher_Answers503(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	cqrsadapter.RegisterCommand(env.api, pipe,
-		humav2.Operation{OperationID: "create-visit", Method: "POST", Path: "/visits", DefaultStatus: http.StatusCreated},
+	cqrsadapter.RegisterCommand(
+		env.api,
+		pipe,
+		humav2.Operation{
+			OperationID:   "create-visit",
+			Method:        "POST",
+			Path:          "/visits",
+			DefaultStatus: http.StatusCreated,
+		},
 		func(_ context.Context, _ *struct{}) (command.Command, error) {
 			return newGreetingCommand(t, "visit"), nil
 		},
@@ -846,10 +906,10 @@ func TestMapError_DocumentsMapToProblemDetails(t *testing.T) {
 		t.Fatalf("MapError(nil) = %v, want nil", err)
 	}
 
-	problem, ok := cqrsadapter.MapError(context.Background(),
-		errorfamily.NewConflict("visit.exists", "visit already recorded")).(*cqrsadapter.Problem)
-	if !ok {
-		t.Fatalf("MapError returned %T, want *Problem", problem)
+	var problem *cqrsadapter.ProblemError
+	if !errors.As(cqrsadapter.MapError(context.Background(),
+		errorfamily.NewConflict("visit.exists", "visit already recorded")), &problem) {
+		t.Fatalf("MapError did not return a *ProblemError")
 	}
 
 	if problem.GetStatus() != http.StatusConflict {
@@ -865,10 +925,10 @@ func TestMapError_DocumentsMapToProblemDetails(t *testing.T) {
 	}
 
 	// Server faults must not leak internal detail to a public client.
-	corruption, ok := cqrsadapter.MapError(context.Background(),
-		errorfamily.NewCorruption("state_corrupt", "stream 01HZZ internal detail")).(*cqrsadapter.Problem)
-	if !ok {
-		t.Fatalf("MapError returned %T, want *Problem", corruption)
+	var corruption *cqrsadapter.ProblemError
+	if !errors.As(cqrsadapter.MapError(context.Background(),
+		errorfamily.NewCorruption("state_corrupt", "stream 01HZZ internal detail")), &corruption) {
+		t.Fatalf("MapError did not return a *ProblemError")
 	}
 
 	if strings.Contains(corruption.Detail, "01HZZ") {
@@ -883,7 +943,7 @@ func TestMapError_DocumentsMapToProblemDetails(t *testing.T) {
 	// status survives.
 	humaErr := humav2.Error404NotFound("no such visit")
 
-	if mapped := cqrsadapter.MapError(context.Background(), humaErr); mapped != humaErr {
+	if mapped := cqrsadapter.MapError(context.Background(), humaErr); !errors.Is(mapped, humaErr) {
 		t.Errorf("MapError rewrapped a Huma status error: %v", mapped)
 	}
 }
@@ -1018,10 +1078,10 @@ func TestOpenAPI_IsStillGeneratedByHuma(t *testing.T) {
 // ---- helpers ----------------------------------------------------------------
 
 // decodeProblem reads the problem document out of a response recorder.
-func decodeProblem(t *testing.T, rec *httptest.ResponseRecorder) cqrsadapter.Problem {
+func decodeProblem(t *testing.T, rec *httptest.ResponseRecorder) cqrsadapter.ProblemError {
 	t.Helper()
 
-	var problem cqrsadapter.Problem
+	var problem cqrsadapter.ProblemError
 	if err := json.Unmarshal(rec.Body.Bytes(), &problem); err != nil {
 		t.Fatalf("decode problem document: %v (body: %s)", err, rec.Body.String())
 	}
