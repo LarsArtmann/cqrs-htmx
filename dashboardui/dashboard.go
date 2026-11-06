@@ -105,11 +105,11 @@ func MustNew(config Config) *Dashboard {
 }
 
 // page builds the pageData shell for a page, marking the nav item whose
-// Href matches active.
+// href resolves to active.
 func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 	nav := make([]navItem, len(d.nav))
 	for i, n := range d.nav {
-		n.Active = n.Href == active
+		n.Active = navItemActive(d.config.BasePath, n, active)
 		nav[i] = n
 	}
 

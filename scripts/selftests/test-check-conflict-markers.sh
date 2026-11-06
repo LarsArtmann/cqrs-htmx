@@ -85,7 +85,7 @@ if [ "$rc" -eq 1 ]; then ok ">>>>>>> line fails"; else bad ">>>>>>> line" "rc=$r
 # --- 5. marker quoted mid-line passes --------------------------------------
 r="$WORK/prose"
 new_repo "$r"
-printf 'The file held a `<<<<<<< Updated upstream` marker.\n' >"$r/file.txt"
+printf '%s\n' 'The file held a <<<<<<< Updated upstream marker inside prose.' >"$r/file.txt"
 git -C "$r" add -A
 out="$(run "$r")"
 rc=$?
@@ -94,7 +94,7 @@ if [ "$rc" -eq 0 ]; then ok "mid-line quote passes"; else bad "mid-line quote" "
 # --- 6. a quoted marker after indentation passes ---------------------------
 r="$WORK/codespan"
 new_repo "$r"
-printf '1. **`docs/X` was committed broken** (markers: `<<<<<<< A ======= B >>>>>>> S`).\n' >"$r/file.md"
+printf '%s\n' '1. **docs/X was committed broken** (markers: <<<<<<< A ======= B >>>>>>> S).' >"$r/file.md"
 git -C "$r" add -A
 out="$(run "$r")"
 rc=$?

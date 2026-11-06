@@ -437,6 +437,15 @@ type Config struct {
 	// Nil (the default) keeps the standalone dashboard shell.
 	DashboardLayout dashboardui.LayoutFunc
 
+	// DashboardExtraNav appends consumer-owned entries to the dashboard's
+	// sidebar (dashboardui.Config.ExtraNav). Hrefs render verbatim, so sibling
+	// surfaces outside the dashboard subtree (an event catalog, a metrics
+	// page) stay reachable from the panel navigation. With DashboardLayout
+	// set, the entries also arrive in dashboardui.PageMeta.Nav, where
+	// NavLink.Verbatim tells the shell not to prefix BasePath. Nil (the
+	// default) changes nothing.
+	DashboardExtraNav []dashboardui.NavEntry
+
 	// LogoutURL is shown as a link in the admin and dashboard panels (default: "" = hidden).
 	LogoutURL string
 

@@ -30,6 +30,20 @@ func navHref(basePath string, item navItem) string {
 	return basePath + item.Href
 }
 
+// navItemActive reports whether a nav item points at the page currently being
+// rendered (active is the BasePath-relative path of that page). Built-in
+// entries carry that path directly. Verbatim consumer entries spell it either
+// way (with or without the BasePath prefix, depending on whether the consumer
+// linked a panel page or a sibling surface), so both spellings match; a
+// sibling surface or an absolute URL never does.
+func navItemActive(basePath string, item navItem, active string) bool {
+	if !item.Verbatim {
+		return item.Href == active
+	}
+
+	return item.Href == active || item.Href == basePath+active
+}
+
 // firstRune returns s's first rune as a string, "?" when s does not decode
 // as UTF-8 (never a mojibake byte).
 func firstRune(s string) string {

@@ -413,6 +413,7 @@ func buildDashboardConfig(
 		AccentColor:          cfg.AccentColor,
 		Authorizer:           cfg.DashboardAuthorizer,
 		Layout:               cfg.DashboardLayout,
+		ExtraNav:             cfg.DashboardExtraNav,
 		NonceFunc:            cfg.NonceFunc,
 		SSEHeartbeatInterval: cfg.SSEHeartbeatInterval,
 		SSEMaxReplay:         cfg.SSEMaxReplay,

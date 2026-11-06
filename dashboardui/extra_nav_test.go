@@ -147,4 +147,64 @@ func TestExtraNav_FlowsToPageMeta(t *testing.T) {
 	if nav.Label != "Event Catalog" || nav.Icon != icons.ArchiveBox || nav.Active {
 		t.Errorf("PageMeta extra nav = %+v, want inactive Event Catalog with the archive icon", nav)
 	}
+
+	if !nav.Verbatim {
+		t.Error("PageMeta extra nav.Verbatim = false; a custom shell would prefix BasePath onto a sibling-surface href")
+	}
+
+	for _, builtIn := range shell.got.Nav {
+		if builtIn.Verbatim {
+			t.Errorf("built-in nav entry %+v marked Verbatim; only ExtraNav entries are rendered as-is", builtIn)
+		}
+	}
+}
+
+// TestExtraNav_InternalHrefHighlightsWhenActive proves an ExtraNav entry that
+// points at a dashboard page (basePath + panel path) is marked Active exactly
+// like the built-in entry, while a sibling-surface entry never is.
+func TestExtraNav_InternalHrefHighlightsWhenActive(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	shell := &embedShell{}
+
+	d, err := New(Config{
+		EventSource: store,
+		Journal:     store,
+		BasePath:    "/obs",
+		Layout:      shell.render,
+		ExtraNav: []NavEntry{
+			{Label: "Events (custom)", Href: "/obs/events"},
+			{Label: "Event Catalog", Href: "/event-catalog"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/obs/")
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/obs/events", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body=%s", rec.Code, rec.Body.String())
+	}
+
+	internal, found := findNav(shell.got.Nav, "/obs/events")
+	if !found {
+		t.Fatal("internal ExtraNav entry missing from PageMeta.Nav")
+	}
+
+	if !internal.Active {
+		t.Errorf("internal ExtraNav entry = %+v, want Active on the page it links to", internal)
+	}
+
+	external, found := findNav(shell.got.Nav, "/event-catalog")
+	if !found {
+		t.Fatal("sibling-surface ExtraNav entry missing from PageMeta.Nav")
+	}
+
+	if external.Active {
+		t.Errorf("sibling-surface ExtraNav entry = %+v, want never Active", external)
+	}
 }

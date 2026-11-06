@@ -50,9 +50,11 @@ type PageMeta struct {
 	// BasePath is the trimmed mount path ("/cqrs"), for link and asset URLs.
 	BasePath string
 
-	// Nav is the capability-filtered sidebar navigation. Href is relative
-	// to BasePath ("/", "/events"); Active marks the current page; Icon is
-	// a templ-components icon name.
+	// Nav is the sidebar navigation: the capability-filtered built-in items
+	// followed by any [Config.ExtraNav] entries. Check [NavLink.Verbatim]
+	// before prefixing Href with BasePath, because consumer entries are
+	// rendered verbatim and may point outside the mounted subtree. Active
+	// marks the current page; Icon is a templ-components icon name.
 	Nav []NavLink
 
 	// CSSURLs are the absolute stylesheet URLs the content markup requires
@@ -84,7 +86,9 @@ type PageMeta struct {
 
 // NavLink is one sidebar navigation entry exposed to a [LayoutFunc].
 type NavLink struct {
-	// Href is relative to BasePath ("/", "/events", "/projections").
+	// Href is the link target. Built-in entries are relative to BasePath
+	// ("/", "/events", "/projections"); consumer [Config.ExtraNav] entries
+	// are absolute as written ("/event-catalog"), see Verbatim.
 	Href string
 
 	// Label is the display text ("Events").
@@ -95,6 +99,12 @@ type NavLink struct {
 
 	// Active marks the entry matching the current page.
 	Active bool
+
+	// Verbatim reports that Href is rendered as-is: do NOT prefix it with
+	// BasePath. True for consumer [Config.ExtraNav] entries (a sibling
+	// surface, an absolute URL, or a dashboard-internal path the consumer
+	// built itself); false for every capability-derived built-in entry.
+	Verbatim bool
 }
 
 // assetURLs are the per-page asset URLs passed to a custom layout. They are
@@ -120,10 +130,11 @@ func (p pageData) meta() PageMeta {
 	nav := make([]NavLink, len(p.Nav))
 	for i, n := range p.Nav {
 		nav[i] = NavLink{
-			Href:   n.Href,
-			Label:  n.Label,
-			Icon:   n.Icon,
-			Active: n.Active,
+			Href:     n.Href,
+			Label:    n.Label,
+			Icon:     n.Icon,
+			Active:   n.Active,
+			Verbatim: n.Verbatim,
 		}
 	}
 
