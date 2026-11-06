@@ -37,8 +37,10 @@ func TestRecommendedBreadthPresets_Shape(t *testing.T) {
 			dsn:    "app.db",
 		},
 		{
-			name:   "postgres",
-			preset: func() system.DeploymentConfig { return systemadapter.RecommendedPostgresDeployment("postgres://localhost:5432/app?sslmode=require") },
+			name: "postgres",
+			preset: func() system.DeploymentConfig {
+				return systemadapter.RecommendedPostgresDeployment("postgres://localhost:5432/app?sslmode=require")
+			},
 			driver: "postgres",
 			dsn:    "postgres://localhost:5432/app?sslmode=require",
 		},
@@ -49,8 +51,10 @@ func TestRecommendedBreadthPresets_Shape(t *testing.T) {
 			dsn:    "analytics.db",
 		},
 		{
-			name:   "turso",
-			preset: func() system.DeploymentConfig { return systemadapter.RecommendedTursoDeployment("libsql://db.turso.io") },
+			name: "turso",
+			preset: func() system.DeploymentConfig {
+				return systemadapter.RecommendedTursoDeployment("libsql://db.turso.io")
+			},
 			driver: "turso",
 			dsn:    "libsql://db.turso.io",
 		},

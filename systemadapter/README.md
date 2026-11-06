@@ -34,9 +34,26 @@ authz, audit log) that `system.New` auto-wires onto its projection host.
 | `RecommendedMemoryDeployment()`                               | one memory engine, every role             | dev, tests                                             |
 | `RecommendedSQLiteDeployment(dsn)`                            | one WAL SQLite file, every role           | single-binary persistence                              |
 | `RecommendedSplitSQLiteDeployment(eventsDSN, projectionsDSN)` | journal and projections on separate files | production — replays never contend with the write path |
+| `RecommendedPebbleDeployment(dir)`                            | one Pebble engine, every role             | read-heavy point-lookup workloads (LSM tree)           |
+| `RecommendedBBoltDeployment(path)`                            | one bbolt file, every role                | dependency-light embedded persistence                  |
+| `RecommendedPostgresDeployment(dsn)`                          | one PostgreSQL engine, every role         | server deployments, operational tooling                |
+| `RecommendedDuckDBDeployment(path)`                           | one DuckDB engine, every role             | aggregate-heavy analytics projections                  |
+| `RecommendedTursoDeployment(dsn)`                             | one Turso/libSQL engine, every role       | embedded `""` = in-memory; `libsql://` = remote server |
 
 Each returns a plain `system.DeploymentConfig` — inspect, tweak, or pass
 straight through.
+
+**Breadth engines self-register via blank import.** The four breadth presets
+above build config only — the engine driver enters YOUR `go.mod` (this module
+deliberately does not carry pebble/postgres/duckdb/turso dependency trees;
+bbolt is linked here as the one construction-proof engine). One line per
+engine:
+
+```go
+import _ "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4" // "pebble"
+// bboltengine/v4 ("bbolt"), pgengine/v4 ("postgres"),
+// duckdbengine/v4 ("duckdb"), tursoengine/v4 ("turso") — same pattern
+```
 
 ### Projection knobs
 

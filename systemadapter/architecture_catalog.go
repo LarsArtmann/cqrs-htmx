@@ -25,12 +25,16 @@ func ArchitectureCatalog(
 	ctx context.Context,
 	opts ...systemcatalog.Option,
 ) (*catalog.Catalog, error) {
-	return systemcatalog.FromDomainConfig(ctx, DomainConfig(), append([]systemcatalog.Option{
+	base := make([]systemcatalog.Option, 0, 3+len(opts))
+	base = append(base,
 		systemcatalog.WithTitle("cqrs-htmx identity"),
 		systemcatalog.WithServiceName("systemadapter (cqrs-htmx identity)"),
 		systemcatalog.WithServiceSummary(
-			"The identity domain composed through system.New: four deciders, the full command" +
+			"The identity domain composed through system.New: four deciders, the full command"+
 				" surface, and the declared event universe",
 		),
-	}, opts...)...)
+	)
+
+	//nolint:wrapcheck // passthrough — this function adds defaults only, every arg flows through
+	return systemcatalog.FromDomainConfig(ctx, DomainConfig(), append(base, opts...)...)
 }
