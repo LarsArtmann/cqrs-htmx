@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type APIRequestContext, type Page } from "@playwright/test";
 
 /**
  * DataStar adapter behavior gate (2026-11-07). Asserts DOM facts against the
@@ -36,16 +36,30 @@ async function createTodo(page: Page, title: string) {
 }
 
 /**
- * Deterministic "the SSE stream is open" signal: register the wait BEFORE
- * navigation, resolve when /api/events response HEADERS arrive (a streaming
- * response's headers mean the stream is live; the body never ends). Without
- * this, a probe POST can race the page's data-init fetch.
+ * Deterministic "the live stream delivers" proof. Playwright emits NO
+ * response event for an open fetch-streamed SSE response (verified
+ * empirically 2026-11-07: request fires, response never does while the
+ * stream is open) — so connection state is proven the only honest way:
+ * fire a probe command and require its event to land, retrying while the
+ * page's data-init fetch is still connecting. Fails loudly after ~20s if
+ * the stream never goes live.
  */
-function sseConnected(page: Page): Promise<unknown> {
-  return page.waitForResponse(
-    (res) => res.url().includes("/api/events") && res.status() === 200,
-    { timeout: 15_000 },
-  );
+async function connectStream(page: Page, request: APIRequestContext, label: string): Promise<void> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const before = await eventCount(page);
+    const resp = await request.post(`${DEMO}/api/todos`, {
+      headers: { "Content-Type": "application/json" },
+      data: { title: `${label}-${attempt}` },
+    });
+    if (!resp.ok()) throw new Error(`probe POST failed: ${label}`);
+    try {
+      await expect.poll(async () => eventCount(page), { timeout: 4_000 }).toBeGreaterThan(before);
+      return;
+    } catch {
+      // stream not live yet — retry with a fresh probe
+    }
+  }
+  throw new Error(`SSE stream never went live: ${label}`);
 }
 
 test("boot: initial @get patch populates list and stats (the data-on:load regression)", async ({ page }) => {
@@ -84,85 +98,41 @@ test("create round-trip: bound signal posts, list+stats+notification patch back"
 });
 
 test("live feed: an event fired after page load lands in the event log", async ({ page, request }) => {
-  const sse = sseConnected(page);
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
-  await sse;
 
-  // Prove the SSE connection is live before firing the event: the feed is
-  // live-only (no replay for fresh clients), so the probe event below only
-  // appears if the stream is connected.
-  const before = await eventCount(page);
-  const resp = await request.post(`${DEMO}/api/todos`, {
-    headers: { "Content-Type": "application/json" },
-    data: { title: "live-probe" },
-  });
-  expect(resp.ok()).toBeTruthy();
-
-  await expect
-    .poll(async () => eventCount(page), { timeout: 15_000 })
-    .toBe(before + 1);
+  // The feed is live-only (no replay for fresh clients) — a delivered probe
+  // event is itself the proof that the stream connected post-load.
+  await connectStream(page, request, "live-probe");
 });
 
-test("live-only honesty: an event fired while offline stays missed; post-reconnect events arrive", async ({ page, request }) => {
-  const sse = sseConnected(page);
+test("live-only honesty: a fresh client receives nothing from before its connection", async ({ page }) => {
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
-  await sse;
 
-  // Connect proof (same as above): one delivered event means the stream is up.
-  await request.post(`${DEMO}/api/todos`, {
-    headers: { "Content-Type": "application/json" },
-    data: { title: "reconnect-proof" },
-  });
-  await expect
-    .poll(async () => eventCount(page), { timeout: 15_000 })
-    .toBeGreaterThanOrEqual(1);
-
-  // Sever the page's network. The node-side request fixture is NOT affected
-  // by page-context offline, so the server still accepts the command.
-  await page.context().setOffline(true);
-  const missed = await eventCount(page); // count before the missed event
-  await request.post(`${DEMO}/api/todos`, {
-    headers: { "Content-Type": "application/json" },
-    data: { title: "missed-while-offline" },
-  });
-
-  // Reconnect. DataStar retries with backoff (1s * 2 scaler, capped 30s).
-  await page.context().setOffline(false);
-
-  // The feed is live-only by design (docs/guides/datastar-integration.md:
-  // replay needs the broadcast ring; this demo broadcaster serves live
-  // patches) — the missed event must STAY absent. No resurrected facts.
-  await page.waitForTimeout(2_500);
-  expect(await eventCount(page)).toBe(missed);
-
-  // ...but the connection resumes: a fresh event after reconnect arrives.
-  await request.post(`${DEMO}/api/todos`, {
-    headers: { "Content-Type": "application/json" },
-    data: { title: "after-reconnect" },
-  });
-  await expect
-    .poll(async () => eventCount(page), { timeout: 15_000 })
-    .toBe(missed + 1);
-  // And the honesty held the whole time: the missed event never appeared.
-  expect(await page.locator(EVENT_LOG).count()).toBe(missed + 1);
-});
-
-test("multi-tab: a second tab on the same origin receives the same live feed", async ({ page, context }) => {
-  const sse1 = sseConnected(page);
-  await page.goto(`${DEMO}/`, { waitUntil: "load" });
-  const tab2 = await context.newPage();
-  const sse2 = sseConnected(tab2);
-  await tab2.goto(`${DEMO}/`, { waitUntil: "load" });
-  await sse1;
-  await sse2;
-
-  // Both tabs boot.
+  // Earlier tests created many todos — the journal/broadcaster holds plenty
+  // of past events. This demo's feed is live-only by design (plain
+  // broadcast.Broadcaster, no replay ring: docs/guides/datastar-integration.md
+  // "Reconnection and Replay"), so a fresh page must start at ZERO entries:
+  // no resurrected facts from before the connection existed.
+  //
+  // (Offline-emulation cannot test the missed-event half: Playwright's
+  // setOffline does not sever an ESTABLISHED fetch stream — verified
+  // empirically 2026-11-07; the missed event arrived through the still-open
+  // connection. The fresh-client half pins the same no-replay contract
+  // deterministically.)
   await expect
     .poll(async () => page.locator(`${TODO_LIST} > *`).count(), { timeout: 10_000 })
-    .toBeGreaterThan(0);
-  await expect
-    .poll(async () => tab2.locator(`${TODO_LIST} > *`).count(), { timeout: 10_000 })
-    .toBeGreaterThan(0);
+    .toBeGreaterThan(0); // page is up and patched (initial @get round-trip)
+  expect(await eventCount(page)).toBe(0);
+});
+
+test("multi-tab: a second tab on the same origin receives the same live feed", async ({ page, context, request }) => {
+  await page.goto(`${DEMO}/`, { waitUntil: "load" });
+  const tab2 = await context.newPage();
+  await tab2.goto(`${DEMO}/`, { waitUntil: "load" });
+
+  // Both tabs' streams proven live.
+  await connectStream(page, request, "tab1-probe");
+  await connectStream(tab2, request, "tab2-probe");
 
   // A create on tab 1 lands on BOTH tabs' live feeds (fan-out).
   const [before1, before2] = await Promise.all([eventCount(page), eventCount(tab2)]);
