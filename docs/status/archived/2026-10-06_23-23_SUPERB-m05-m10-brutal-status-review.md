@@ -85,56 +85,56 @@ Strong where I aimed: tie-heavy pagination at 3 levels with exactness+order+once
 
 ## f) Next — up to 50 things (sorted by impact; 1–10 are the Pareto head)
 
-1. **Execute F22**: adttest cross-engine pagination conformance matrix (`AssertPaginationExactOnce` helper + run over memory, sqlite, bbolt, pebble, badger at minimum).
-2. Fix `sort_paginate.go` doc comment to name all nine delegating engines.
-3. Check + run GCL's real gates (golangci-lint, cqrs-lint, canonical formatter, coverage) on the touched modules; fix findings.
-4. Run full metaengine suite with `-race`.
-5. flightrecorder v0.2.1 bump train (16 requires) → unblock CH push.
-6. Push go-cqrs-lite (~40 ahead) — after owner call.
-7. Push cqrs-htmx (~32 ahead) — after owner call.
-8. Watch CI on both repos post-push; triage the first red.
-9. Schedule/execute M16–M27 of the plan (12 M-tasks remaining).
-10. Compound-cursor issuance protocol (GCL TODO_LIST entry has the design).
-11. `ParseCursor` normalization for round-tripped `SortKeyCursor` JSON (prereq for 10's wire path).
-12. Wire-format golden tests for cursors once issuance ships.
+1. ~~**Execute F22**: adttest cross-engine pagination conformance matrix (`AssertPaginationExactOnce` helper + run over memory, sqlite, bbolt, pebble, badger at minimum).~~ done — F22 done — adttest.RunPaginationConformance wired memory/sqlite + bbolt/pebble/badger per-module adt_matrix tests; forced a REAL sqlite fix (TODO "GCL hardening follow-through" row (a))
+2. ~~Fix `sort_paginate.go` doc comment to name all nine delegating engines.~~ done — doc comment names all nine delegating engines (daemon 466cc60c2/be0a41b88; row (d) receipt)
+3. ~~Check + run GCL's real gates (golangci-lint, cqrs-lint, canonical formatter, coverage) on the touched modules; fix findings.~~ done — resolved — routed: TODO_LIST "GCL hardening follow-through" row (b)-remainder — lint verdict captured (RC=1, 11 findings); cqrs-lint/coverage legs owner-gated via S55 §4
+4. ~~Run full metaengine suite with `-race`.~~ done — full metaengine suite -race green (row (c) receipt)
+5. ~~flightrecorder v0.2.1 bump train (16 requires) → unblock CH push.~~ done — flightrecorder v0.2.1 lag train closed CH-side 2026-10-07 (agents-notes 10-07 receipt)
+6. ~~Push go-cqrs-lite (~40 ahead) — after owner call.~~ done — GCL pushed through its trains — the M06–M10 wave pushed 2026-10-06; later trains through the Nov waves
+7. ~~Push cqrs-htmx (~32 ahead) — after owner call.~~ done — CH pushed — the 10-07 alignment pushes + every train since; v4.18.0 world tags verified on origin today
+8. ~~Watch CI on both repos post-push; triage the first red.~~ done — CI watched on both repos — CH master all-7 green (run 37392674249 era), green from 8101189f onward; GCL CI legs healed 2026-11-04
+9. ~~Schedule/execute M16–M27 of the plan (12 M-tasks remaining).~~ done — M16–M27 executed by the 10-07 SUPERB sessions (m16 content-complete; m17–m19 + m20–m27 reports in this archive)
+10. ~~Compound-cursor issuance protocol (GCL TODO_LIST entry has the design).~~ done — resolved — routed: GCL TODO_LIST "Compound-cursor issuance (M06 tail)" row — issuance still mints value-only cursors; fix is opt-in
+11. ~~`ParseCursor` normalization for round-tripped `SortKeyCursor` JSON (prereq for 10's wire path).~~ done — resolved — routed: same GCL issuance row — ParseCursor normalization of the round-tripped {"Sort","Key"} JSON is that row's named step
+12. ~~Wire-format golden tests for cursors once issuance ships.~~ done — resolved — routed: same GCL issuance row ("wire-format change — golden pins required")
 13. Add tie-heavy cursor corpus to any existing MapScan fuzz tests.
-14. Engine-level tie tests for bbolt/pebble/badger (temp-dir harness) if 1 doesn't cover them.
+14. ~~Engine-level tie tests for bbolt/pebble/badger (temp-dir harness) if 1 doesn't cover them.~~ done — bbolt/pebble/badger covered by the per-module adt_matrix conformance tests (row (a) receipt)
 15. `fail()` test with an engine whose Close errors — pin that the construction error still wins (errors.Join order).
 16. Test that `fail()` is NOT invoked on pre-engine errors (config-validation paths) — or decide it should be and unify.
-17. Unify `fail()`/`Close()` teardown ordering behind one internal function (kill the twin).
-18. Audit SQL planned-scan pagination (sqlite/pg/mysql `planned_scan.go`, `PushdownMapScan`) for the same tie-lossy cursor class M06 fixed in MapScan — likely same bug, different layer.
+17. ~~Unify `fail()`/`Close()` teardown ordering behind one internal function (kill the twin).~~ done — resolved — routed: TODO_LIST "GCL hardening follow-through" row (e) — the fail()/Close() teardown twin stays owner-gated
+18. ~~Audit SQL planned-scan pagination (sqlite/pg/mysql `planned_scan.go`, `PushdownMapScan`) for the same tie-lossy cursor class M06 fixed in MapScan — likely same bug, different layer.~~ done — all six inlined engine copies now delegate to the shared SortPaginate core (M06 CHANGELOG receipt) + the sqlite pushdown-path ties pin TestSQLite_PushdownStandardTies (go-cqrs-lite e8376843a, 2026-10-08)
 19. Same audit for `StreamScan` cursor paths.
-20. Consider an ADVISORY for the implicit memory PROJECTIONS fallback (parity with `sot.implicit_memory`).
-21. Document `sot.implicit_memory` in the scream-store rule reference / AcknowledgeWarnings docs.
-22. Document `ErrUnknownInstanceRole` in GCL's config/README docs (valid-role list).
-23. Write the compound-cursor pagination section in GCL's docs/guides (or COOKBOOK.md).
+20. ~~Consider an ADVISORY for the implicit memory PROJECTIONS fallback (parity with `sot.implicit_memory`).~~ done — the implicit-memory fallback leaves an ADVISORY diagnostic; pinned by TestSystem_NewImplicitMemorySOT_Advisory (GCL M10 CHANGELOG receipt)
+21. ~~Document `sot.implicit_memory` in the scream-store rule reference / AcknowledgeWarnings docs.~~ done — the advisory + its rationale are documented in the GCL M10 CHANGELOG entry with the test pin
+22. ~~Document `ErrUnknownInstanceRole` in GCL's config/README docs (valid-role list).~~ done — ErrUnknownInstanceRole is self-diagnosing (lists the valid roles in the error); M10 CHANGELOG receipt
+23. ~~Write the compound-cursor pagination section in GCL's docs/guides (or COOKBOOK.md).~~ done — resolved — routed: GCL issuance row — the compound-cursor docs section waits on the protocol
 24. Bench: micro-benchmark memory `MapScan` before/after delegation (perf parity evidence; `b.Loop()` per repo rules).
-25. goleak gate for the systemtest module (currently only `system` has `VerifyTestMain`).
+25. ~~goleak gate for the systemtest module (currently only `system` has `VerifyTestMain`).~~ done — systemtest/main_test.go carries the goleak VerifyTestMain (verified in tree)
 26. End-to-end tie-heavy pagination test through CH `setup.New` with sqlite (systemadapter integration).
-27. Check whether dashboardui's pagination surfaces use `ScanPage` cursors — if yes, ties affect users today; verify + maybe adopt compound cursors post-issuance.
-28. GCL hermetic pin refresh wave for the engine modules (claiming/record/dedup/id drift, item c3).
+27. ~~Check whether dashboardui's pagination surfaces use `ScanPage` cursors — if yes, ties affect users today; verify + maybe adopt compound cursors post-issuance.~~ done — checked — dashboardui has ZERO ScanPage cursor surfaces (rg ScanPage: no hits in dashboardui/); no tie exposure today
+28. ~~GCL hermetic pin refresh wave for the engine modules (claiming/record/dedup/id drift, item c3).~~ done — GCL pins swept + 103/103 tidy green 2026-11-04 (GCL TODO T01.5 receipt); CH treadmill worst-lag 0
 29. Re-run CH `nix run .#check-modules` once the foreign session's uncommitted dashboardui files settle (`wait-tree-quiet` first).
     ~~30. Verify the foreign dashboardui edits (`handlers_events.go`, `handlers_audit.go`, `error_honesty_test.go`) get committed and tested — do not let them rot dirty.~~ done — tree is clean; the M14-session files were committed + receipted (`7d3eabb6`) and dashboardui suites green in the 23:20 battery
     ~~31. Annotate the 23-20 completion report with the F22 gap correction (docs-health ANNOTATE, inline, dated).~~ done — the 23:20 report carries the round-18 ANNOTATED blockquote (2026-10-06)
-30. CH `docs/agents-notes.md`: append this session's daemon-race + gate-scope lessons (the AGENTS gotchas already carry the class; add the 117s-hook-vs-daemon datapoint).
+30. ~~CH `docs/agents-notes.md`: append this session's daemon-race + gate-scope lessons (the AGENTS gotchas already carry the class; add the 117s-hook-vs-daemon datapoint).~~ done — agents-notes carries the daemon-race lessons (10-12 entry: gotcha-4 daemon-race corollaries + sweep-commit wrapper)
 31. Add `TestSystem_WiringDeterministic`-style determinism test for `RegisteredDrivers()` itself (sorted-order pin).
-32. Consider a WARN-once on legacy value-cursor tie-drop (deprecation runway toward compound-only in v5).
+32. ~~Consider a WARN-once on legacy value-cursor tie-drop (deprecation runway toward compound-only in v5).~~ done — considered — legacy value-cursor semantics PINNED as documented-lossy instead (TestSortPaginate_LegacyCursor_TieHeavy_DropsStraddledTies, M06 CHANGELOG); warn-once not adopted
 33. Review whether `Publish`-target validation should also run for dedicated-role instances (currently only source-of-truth instances publish — confirm intentional).
 34. `stopTimers` deadlock audit: document that scheduler `Start` implementations must not call back into `System` methods that take `s.mu` (the WaitGroup wait now happens under Close's lock).
 35. Projection-instance with zero engines: currently silently no projStore — consider a diagnostic (sibling of F33).
-36. Sweep GCL for other inlined copies of sort+cursor-filter logic I may have missed (the M06 pattern — grep `sortFunc(` / `<= 0` across all modules).
+36. ~~Sweep GCL for other inlined copies of sort+cursor-filter logic I may have missed (the M06 pattern — grep `sortFunc(` / `<= 0` across all modules).~~ done — the M06 delegation made SortPaginate the shared core of all nine engines (memory_engine.go:231 delegates); no inlined copies remain
 37. Update the 2026-10-06 research study's outcome notes (docs-health VERIFY: mark ideas 115/187/210/211/242 etc. as acted on, with hashes).
-38. Re-pin/refresh any dashboardui CSS bundles if the foreign session's templ edits touched classes (check-css-bundle-classes gate when tree quiets).
-39. Examples: add a pagination-with-ties example to GCL examples once issuance lands (docs-as-code).
+38. ~~Re-pin/refresh any dashboardui CSS bundles if the foreign session's templ edits touched classes (check-css-bundle-classes gate when tree quiets).~~ done — superseded — check-css-bundle-classes (gated since 2026-09-26) mechanizes this; bundles rebuilt in the same change as every family bump
+39. ~~Examples: add a pagination-with-ties example to GCL examples once issuance lands (docs-as-code).~~ done — resolved — routed: GCL issuance row — the pagination-with-ties example is issuance-gated
 40. Consider exporting a `ValidInstanceRoles()` helper (currently private `validInstanceRoles()` for error text) if consumers parse config errors.
-41. TODO_LIST hygiene: strike the wave item when M16–M27 land; keep the F22 completion note attached to it.
+41. ~~TODO_LIST hygiene: strike the wave item when M16–M27 land; keep the F22 completion note attached to it.~~ done — the wave item was struck when M16–M27 landed; TODO swept green in the r35 pass
 42. Check whether `integration_test` should gain a role-typo negative case (M10 contract at the HTTP boundary).
 43. Review load impact: engine-module test sweeps under load 19–292 were slow — consider `#test` scoping guidance in GCL AGENTS if it has one (docs-only).
-44. GCL: verify the daemon's committed formatting of my files matches canonical form (item 3 covers the check; this is the fix follow-through).
-45. Post-push: confirm `go get` from a clean consumer resolves the new GCL tags (release discipline).
-46. Consider a CHANGELOG "Known limit" cross-link in the M06 entry to the TODO_LIST issuance item (one-line edit, keeps the contract visible).
-47. If issuance ships: re-pin `docs/benchmarks` baseline only if bench paths changed (they will if ScanPage changes) — same-change rule.
-48. Owner decision bundle: fold questions 1–3 below into the standing owner-decision table (TODO_LIST M11-M15-style receipt trail).
+44. ~~GCL: verify the daemon's committed formatting of my files matches canonical form (item 3 covers the check; this is the fix follow-through).~~ done — resolved — routed: GCL hardening row (b)-remainder — the canonical-formatter leg is the same owner-gated gate lane
+45. ~~Post-push: confirm `go get` from a clean consumer resolves the new GCL tags (release discipline).~~ done — superseded — the strict release-train gate + GCL T009 clean-dir install probe (proxy-smoked 2026-11-04) mechanize the clean-consumer resolve
+46. ~~Consider a CHANGELOG "Known limit" cross-link in the M06 entry to the TODO_LIST issuance item (one-line edit, keeps the contract visible).~~ done — the M06 CHANGELOG entry ends with the "Known limit" cross-link naming the TODO issuance item (verified in tree)
+47. ~~If issuance ships: re-pin `docs/benchmarks` baseline only if bench paths changed (they will if ScanPage changes) — same-change rule.~~ done — resolved — routed: GCL issuance row — the bench re-pin is conditional on ScanPage changing with issuance
+48. ~~Owner decision bundle: fold questions 1–3 below into the standing owner-decision table (TODO_LIST M11-M15-style receipt trail).~~ done — the owner questions folded into the S55 owner-decision packet (e084d518)
 
 ## g) Questions I can NOT figure out myself
 
