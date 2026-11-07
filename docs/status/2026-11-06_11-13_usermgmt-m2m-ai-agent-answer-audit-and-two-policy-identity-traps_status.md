@@ -188,30 +188,30 @@ Every defect above was visible in the same files the answer cited. Two of them w
 
 Ordered roughly by the ratio of risk removed to effort spent. None of these were implemented this session.
 
-1. Add a `BotRegistered` branch to `CasbinProjection` that derives policy rows from `Scopes`, using the dispatcher's prefixed subject. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 1 — durable grant path (plan T8/W1, blocked on owner decisions D1/D2)**
-2. Fix `eventBotDeleted` cleanup to remove direct policy rows, not only grouping rows, and to target the subject spelling the dispatcher checks. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 2 — subject-correct delete cleanup (plan T10/W1)**
-3. Prove both with one end-to-end test: register, authorize, delete, re-authorize, assert deny. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the end-to-end test is plan T11/A11 behind T8/T10**
-4. Add an audit event for a successful bot authentication (who, when, which token fingerprint). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)**
-5. Add an audit event for a failed bot authentication (unknown token, deleted bot). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)**
+~~1. Add a `BotRegistered` branch to `CasbinProjection` that derives policy rows from `Scopes`, using the dispatcher's prefixed subject.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 1 — durable grant path (plan T8/W1, blocked on owner decisions D1/D2)
+~~2. Fix `eventBotDeleted` cleanup to remove direct policy rows, not only grouping rows, and to target the subject spelling the dispatcher checks.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 2 — subject-correct delete cleanup (plan T10/W1)
+~~3. Prove both with one end-to-end test: register, authorize, delete, re-authorize, assert deny.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — the end-to-end test is plan T11/A11 behind T8/T10
+~~4. Add an audit event for a successful bot authentication (who, when, which token fingerprint).~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)
+~~5. Add an audit event for a failed bot authentication (unknown token, deleted bot).~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)
 6. ~~Bridge a bot into the actor chain inside `NewAPITokenMiddleware` (set `cqrshtmx.WithActorID` from `ActorIDFromBot`), so bot-dispatched commands are attributed without consumer code.~~ done at `4084bf49`
-7. Decide and document the bot authority model: scopes, owner delegation, or consumer-owned. **→ TODO_LIST.md "M2M owner decisions" row — this is decision D2 (authority source), which blocks W1/W2**
+~~7. Decide and document the bot authority model: scopes, owner delegation, or consumer-owned.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row — this is decision D2 (authority source), which blocks W1/W2
 8. ~~Delete the false `SetTokenPepper` sentence from `usermgmt/service_bot.go:28`.~~ done at `d877e64e`
 9. ~~Rewrite the bot-delete comment in `usermgmt/es_casbin_projection.go:119` to state what is actually removed.~~ done at `d877e64e`
 10. ~~Correct the `FEATURES.md` "CasbinProjection" row that claims full bot deletion cleanup.~~ done at `d877e64e`
 11. ~~Make `RequireBot` emit the shared problem document with a stable code.~~ done at `4084bf49`
-12. Add a scope-check middleware or handler option, so `Scopes` stops being decorative. **→ TODO_LIST.md "M2M owner decisions" row (D2) blocks W1 — scope enforcement rides the authority-source answer**
-13. Give the bot a token prefix or checksum, so a leaked token is identifiable in logs without revealing it. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — token prefix + checksum is plan A5/T6**
-14. Add an optional token expiry to the bot aggregate and enforce it in resolution. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — token expiry is plan A6/T7**
-15. Add token rotation as a service method that emits its own event. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — rotation is plan A26**
+~~12. Add a scope-check middleware or handler option, so `Scopes` stops being decorative.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row (D2) blocks W1 — scope enforcement rides the authority-source answer
+~~13. Give the bot a token prefix or checksum, so a leaked token is identifiable in logs without revealing it.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — token prefix + checksum is plan A5/T6
+~~14. Add an optional token expiry to the bot aggregate and enforce it in resolution.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — token expiry is plan A6/T7
+~~15. Add token rotation as a service method that emits its own event.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — rotation is plan A26
 16. Add a `LastUsedAt` projection field so idle agents are visible.
-17. Export `Service.ListBots(ctx, ownerID)` instead of leaving `FindByOwner` internal to cascade delete. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the ListBots export is plan A14**
+~~17. Export `Service.ListBots(ctx, ownerID)` instead of leaving `FindByOwner` internal to cascade delete.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — the ListBots export is plan A14
 18. Add an ownership predicate to bot management methods, or document that the caller owns that check.
 19. Verify and, if needed, make constant-time comparison part of the resolve path, or document why a map lookup is acceptable.
-20. Document the hydrate requirement for token resolution in the usermgmt README bot section (which does not exist yet). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — hydration-dependent resolution (plan T12/W1), the doc rides it**
+~~20. Document the hydrate requirement for token resolution in the usermgmt README bot section (which does not exist yet).~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — hydration-dependent resolution (plan T12/W1), the doc rides it
 21. Write that bot section: register, mount middleware, bridge actor, authorize, revoke.
 22. Add a worked example under `examples/` showing a bot calling a command endpoint.
-23. State in the README that SSE feeds are session-gated and bots cannot subscribe, with the request/response alternative. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 4 — SSE session-gating (plan T15/W2)**
-24. Add a bot-failure test asserting no token material appears in logs. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — the no-secret leg of plan A7/W1 (granularity is owner decision D4)**
+~~23. State in the README that SSE feeds are session-gated and bots cannot subscribe, with the request/response alternative.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 4 — SSE session-gating (plan T15/W2)
+~~24. Add a bot-failure test asserting no token material appears in logs.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — the no-secret leg of plan A7/W1 (granularity is owner decision D4)
 25. Consider per-bot rate limiting reusing `httputil` limiters keyed by bot ID.
 26. Add a builder/helper that returns a fully wired bot middleware stack so consumers stop hand-ordering it.
 27. Add a gate rule that a documented setter must exist (the `SetTokenPepper` class is mechanically detectable).
@@ -220,24 +220,24 @@ Ordered roughly by the ratio of risk removed to effort spent. None of these were
 30. Audit other `RemoveAll*` calls for the direct-row blind spot.
 31. Decide whether deleted bots should be tombstoned instead of removed, so audit references stay resolvable.
 32. Check whether `Bot.Deleted` is ever observable, given the read model deletes the entry.
-33. Add bot-shaped entries to the event catalog docs describing when a bot token event will appear. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — catalog registration is a leg of plan A7/W1 (granularity is owner decision D4)**
+~~33. Add bot-shaped entries to the event catalog docs describing when a bot token event will appear.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — catalog registration is a leg of plan A7/W1 (granularity is owner decision D4)
 34. Publish the bot surface in the module README table alongside tenants and members.
 35. Add a `check-skill-claims` style verification for the bot rows in `FEATURES.md`.
-36. Confirm bot policies survive a projection rebuild, given they would be event-derived after item 1. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 1 — rebuild survival is proven together with the T8/W1 derivation**
-37. Add a restart test: register bot, restart with hydrate, authenticate, assert success. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — the hydration restart test is plan T12/W1**
-38. Add a rotation test asserting the old token stops resolving. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — the rotation test rides plan A26**
-39. Add a deletion test asserting the token stops resolving and the policies are gone. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 2 — the deletion test proves the T10/W1 cleanup**
+~~36. Confirm bot policies survive a projection rebuild, given they would be event-derived after item 1.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 1 — rebuild survival is proven together with the T8/W1 derivation
+~~37. Add a restart test: register bot, restart with hydrate, authenticate, assert success.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — the hydration restart test is plan T12/W1
+~~38. Add a rotation test asserting the old token stops resolving.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — the rotation test rides plan A26
+~~39. Add a deletion test asserting the token stops resolving and the policies are gone.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 2 — the deletion test proves the T10/W1 cleanup
 40. Add a cross-tenant test for a bot used in a scoped domain.
 41. Review whether `ActorService` and `ActorSystem` deserve the same treatment as `ActorBot` before any of this is built once.
 42. Decide whether agent-supplied scopes should be reject-not-ignore when unsupported.
 43. Add a validation that scopes are from a closed set, once scopes mean something.
 44. Consider exposing a `PermissionChecker`-shaped bot authority so `Decide` answers for agents too.
-45. Wire the bot subject into `authztest` suites so agent postures are provable like route postures. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the authztest principal matrix is plan A13/T13**
-46. Record the bot authority decision in an ADR before code, since the shape is hard to reverse. **→ TODO_LIST.md "M2M owner decisions" row — D2 gates ADRs A15/A16 before any W1 code**
+~~45. Wire the bot subject into `authztest` suites so agent postures are provable like route postures.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — the authztest principal matrix is plan A13/T13
+~~46. Record the bot authority decision in an ADR before code, since the shape is hard to reverse.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row — D2 gates ADRs A15/A16 before any W1 code
 47. Add a doc line stating what a bot cannot do today, so consumers do not infer capability from the presence of `Scopes`.
-48. Delete or implement `authztest` coverage for the machine actor kind, whichever is honest. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — authztest machine-actor coverage is the A13/T13 matrix**
+~~48. Delete or implement `authztest` coverage for the machine actor kind, whichever is honest.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — authztest machine-actor coverage is the A13/T13 matrix
 49. Sweep the guides for statements about machine clients that predate the SSE gating.
-50. After items 1 to 3, re-run this audit and check whether the answer changed. **→ TODO_LIST.md "M2M/AI-agent hardening" row Verify field — re-run this audit after W1 lands**
+~~50. After items 1 to 3, re-run this audit and check whether the answer changed.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row Verify field — re-run this audit after W1 lands
 
 ---
 

@@ -177,24 +177,24 @@ Composite attribution (none of the 7 is new work of mine, one carries a line of 
 
 **Unblockers first (owner-gated; nothing below works without them)**
 
-~~1. Answer the train question (g1) so root `DropStats` + dispatch-boundary API can be tagged.~~ v	owner standing-GO directive (05-20/09-00 headers); the v4.17.0 family train executed — 05-20 report §a5
-~~2. `nix run .#train-preflight` (S52: every stage, or a recorded reason).~~ v	preflight ran per the S52 mandate — 05-20 report §a4 (lint stage red with the recorded reason)
-~~3. `nix run .#wave-tag -- . v4.17.0` (root: `DropStats`, `NewDropStats`, `NewBroadcaster(opts)`, dispatch-boundary API).~~ h	32dbc009 — root v4.17.0 tagged (DropStats + dispatch-boundary API public)
-~~4. `bump-dep` sweep for root consumers, then `wave-tag usermgmt` (session-audit decorator + `command_postures`).~~ h	ce01d9d3 — usermgmt/v4.20.0; consumer sweeps between every tag per 05-20 §a6
-~~5. `wave-tag adminui` (NavEntry/ExtraNav/DashboardURL + superbification wave).~~ h	89feea63 — adminui/v4.17.0
-~~6. `wave-tag dashboardui` — this session's `ExtraNav` + `NavLink.Verbatim`, and the honest changelog entry goes public with it.~~ h	a76ec264 — dashboardui/v4.17.0 (the honest ExtraNav changelog entry public)
-~~7. `wave-tag setup` (`AdminExtraNav`, `AdminDashboardURL`, `DashboardExtraNav`).~~ h	259099f8 — setup/v4.17.0
-~~8. `nix run .#push-and-watch` + `.#verify-remote-tags` after the train.~~ v	tags pushed + verify-remote-tags 7/7 peeled ok — 05-20 report §a5/§a9
-~~9. Re-run `nix run .#check-cqrs-lint` (hermetic, unblocked by 3–7) and close TODO row 41-class residue.~~ v	fresh strict run this session: 14/14 modules green via the flake app — the API-vs-tag residue class healed
-~~10. Re-run `nix run .#check-modules`; expect `module-isolation*`, `route-postures*` to flip green on the tag alone.~~ v	module-isolation + route-postures + permission-maturity all green this session — the named red classes flipped green on the tags
+~~1. Answer the train question (g1) so root `DropStats` + dispatch-boundary API can be tagged.~~ verified — owner standing-GO directive (05-20/09-00 headers); the v4.17.0 family train executed — 05-20 report §a5
+~~2. `nix run .#train-preflight` (S52: every stage, or a recorded reason).~~ verified — preflight ran per the S52 mandate — 05-20 report §a4 (lint stage red with the recorded reason)
+~~3. `nix run .#wave-tag -- . v4.17.0` (root: `DropStats`, `NewDropStats`, `NewBroadcaster(opts)`, dispatch-boundary API).~~ done at 32dbc009 — root v4.17.0 tagged (DropStats + dispatch-boundary API public)
+~~4. `bump-dep` sweep for root consumers, then `wave-tag usermgmt` (session-audit decorator + `command_postures`).~~ done at ce01d9d3 — usermgmt/v4.20.0; consumer sweeps between every tag per 05-20 §a6
+~~5. `wave-tag adminui` (NavEntry/ExtraNav/DashboardURL + superbification wave).~~ done at 89feea63 — adminui/v4.17.0
+~~6. `wave-tag dashboardui` — this session's `ExtraNav` + `NavLink.Verbatim`, and the honest changelog entry goes public with it.~~ done at a76ec264 — dashboardui/v4.17.0 (the honest ExtraNav changelog entry public)
+~~7. `wave-tag setup` (`AdminExtraNav`, `AdminDashboardURL`, `DashboardExtraNav`).~~ done at 259099f8 — setup/v4.17.0
+~~8. `nix run .#push-and-watch` + `.#verify-remote-tags` after the train.~~ verified — tags pushed + verify-remote-tags 7/7 peeled ok — 05-20 report §a5/§a9
+~~9. Re-run `nix run .#check-cqrs-lint` (hermetic, unblocked by 3–7) and close TODO row 41-class residue.~~ verified — fresh strict run this session: 14/14 modules green via the flake app — the API-vs-tag residue class healed
+~~10. Re-run `nix run .#check-modules`; expect `module-isolation*`, `route-postures*` to flip green on the tag alone.~~ verified — module-isolation + route-postures + permission-maturity all green this session — the named red classes flipped green on the tags
 
 **Immediately after the train (cheap, high value)**
 
 11. `examples/setup-demo`: show `DashboardExtraNav` — one sibling-surface link, one README line (deferred only because the leg was red).
-~~12. `examples/admin-demo`: keep the admin equivalent visible in the same demo so the pair reads as one feature.~~ v	examples/admin-demo/main.go:104 mounts ExtraNav []adminui.NavEntry (landed b4df9651)
+~~12. `examples/admin-demo`: keep the admin equivalent visible in the same demo so the pair reads as one feature.~~ verified — examples/admin-demo/main.go:104 mounts ExtraNav []adminui.NavEntry (landed b4df9651)
 ~~13. Release-notes draft under `docs/proposals/` harvesting dashboardui + setup `[Unreleased]`.~~ h	a76ec264 — superseded by the train's per-module CHANGELOG cuts (setup 259099f8): the ExtraNav row is in the v4.17.0 section
 14. FEATURES.md: give `ExtraNav` its own row instead of a clause inside Integration Modes.
-~~15. `dashboardui/README.md`: a one-line snippet for the custom-layout seat (`meta.Nav` + `Verbatim`), not just the bundle seat.~~ v	both seats carry code: § Integration Modes fenced Layout snippet renders meta.Nav (:110-117) + Verbatim prefix-rule bullet (:124-127); § Extra Nav Entries fence (:216-225)
+~~15. `dashboardui/README.md`: a one-line snippet for the custom-layout seat (`meta.Nav` + `Verbatim`), not just the bundle seat.~~ verified — both seats carry code: § Integration Modes fenced Layout snippet renders meta.Nav (:110-117) + Verbatim prefix-rule bullet (:124-127); § Extra Nav Entries fence (:216-225)
 16. `setup/README.md`: a "consumer nav" paragraph in the mounting section pointing at both knobs.
 
 **Code quality / gates**
@@ -202,17 +202,17 @@ Composite attribution (none of the 7 is new work of mine, one carries a line of 
 17. `nix run .#lint-workspace` (or a `GOWORK=` override app) so authors can lint unpublished code (e4).
 18. Coverage script: ignore profiles older than the newest source file (e4, TODO §e6).
 19. `check-docs-corpus-budget`: fail a baseline bump whose delta has no ledger sentence.
-~~20. `branching-flow`: the sibling's `huma/` + `command_fates`/`streamid-identity` findings need their owner's settle pass, then one re-pin.~~ r	TODO_LIST.md art-dupl round-3 tails row — the huma/ + command_fates settle pass re-pins
-~~21. Replace the two remaining `dashboardui/core/command_fates.go` identity-position `String()` calls with `.Get()` (owner: command-fates session; flagged here with the exact line).~~ v	dashboardui/core/command_fates.go:213 uses .Get(); zero non-comment .String() identity calls remain
+~~20. `branching-flow`: the sibling's `huma/` + `command_fates`/`streamid-identity` findings need their owner's settle pass, then one re-pin.~~ resolved — routed: TODO_LIST.md art-dupl round-3 tails row — the huma/ + command_fates settle pass re-pins
+~~21. Replace the two remaining `dashboardui/core/command_fates.go` identity-position `String()` calls with `.Get()` (owner: command-fates session; flagged here with the exact line).~~ verified — dashboardui/core/command_fates.go:213 uses .Get(); zero non-comment .String() identity calls remain
 22. Consider a `sidebar` extraction inside `dashboardui` (nav build + render + active) now that `NavLink` is the single type — it is a clean, testable unit.
-~~23. `exhaustruct_v5` ignore-list review: `paginationState`/`eventFilter`/`routeSpec` are pinned; the nav types now need no exception, keep it that way.~~ v	ignore-patterns verified: dashboardui pins paginationState|eventFilter only — no NavLink/NavEntry/ExtraNav exceptions anywhere
-~~24. Add an `ExtraNav` fixture to the golden suite so a future refactor cannot silently drop the extra link from the built-in sidebar.~~ v	extra_nav_test.go TestExtraNav_RendersInBuiltInSidebarWithVerbatimHref pins the extra link in the built-in sidebar
-~~25. Benchmark the nav build (`buildNav` + `extraNavItems` + clone) if anyone reports per-request cost — it is O(nav) and allocation-light; likely unnecessary (recorded as a deliberate skip).~~ w	recorded deliberate skip in the line itself — O(nav) + allocation-light; revisit only on a reported per-request cost
+~~23. `exhaustruct_v5` ignore-list review: `paginationState`/`eventFilter`/`routeSpec` are pinned; the nav types now need no exception, keep it that way.~~ verified — ignore-patterns verified: dashboardui pins paginationState|eventFilter only — no NavLink/NavEntry/ExtraNav exceptions anywhere
+~~24. Add an `ExtraNav` fixture to the golden suite so a future refactor cannot silently drop the extra link from the built-in sidebar.~~ verified — extra_nav_test.go TestExtraNav_RendersInBuiltInSidebarWithVerbatimHref pins the extra link in the built-in sidebar
+~~25. Benchmark the nav build (`buildNav` + `extraNavItems` + clone) if anyone reports per-request cost — it is O(nav) and allocation-light; likely unnecessary (recorded as a deliberate skip).~~ won’t implement — recorded deliberate skip in the line itself — O(nav) + allocation-light; revisit only on a reported per-request cost
 
 **Decisions worth making (not code)**
 
-~~26. `aria-current="page"` on active nav links (g3).~~ r	TODO_LIST.md ExtraNav follow-through row (b) — owner decision
-~~27. Dangerous URL schemes in `ExtraNav.Href` (g2).~~ r	TODO_LIST.md ExtraNav follow-through row (a) — owner decision
+~~26. `aria-current="page"` on active nav links (g3).~~ resolved — routed: TODO_LIST.md ExtraNav follow-through row (b) — owner decision
+~~27. Dangerous URL schemes in `ExtraNav.Href` (g2).~~ resolved — routed: TODO_LIST.md ExtraNav follow-through row (a) — owner decision
 28. Should `NavEntry.Icon` be required instead of defaulting to `icons.Link`? Silently substituting an icon is a small honesty problem.
 29. Should `ExtraNav` support ordering relative to built-ins (e.g. `Before`/`After` a named item) or is append-only enough? Append-only is what shipped; confirm it is what consumers want.
 30. Should `ExtraNav` entries be filterable per-role (an admin-only sibling surface)? Today a consumer must add it in `Config`, which is process-wide.
@@ -220,14 +220,14 @@ Composite attribution (none of the 7 is new work of mine, one carries a line of 
 **Documentation debt observed this session**
 
 31. `.agents/skills/cqrs-htmx/SKILL.md`: teach `ExtraNav` + `PageMeta.Nav` where the dashboard mounting path is described.
-~~32. `docs/guides/` has no dashboard-embedding guide; the README carries it. If one is written, `Verbatim` must be in it.~~ r	TODO_LIST.md ExtraNav follow-through row (c) — the embedding guide + Verbatim condition
+~~32. `docs/guides/` has no dashboard-embedding guide; the README carries it. If one is written, `Verbatim` must be in it.~~ resolved — routed: TODO_LIST.md ExtraNav follow-through row (c) — the embedding guide + Verbatim condition
 33. `AGENTS.md` dashboardui bullet is now four sentences long; consider moving the config inventory to the module README and keeping a pointer.
-~~34. TODO row 23 (release train): convert to the table shape — module | unpublished symbol | consumer | gate it reds (from e6).~~ r	TODO_LIST.md ExtraNav follow-through row (d) — the table-shape conversion
-~~35. Docs coastal cleanup: the 14-report tail needs an archive round (not mine to judge, but it is the next docs-health pass's first job).~~ v	Round-25 archive pass executed — 05-20 §a12 / 09-00 §a13: four reports archived, TAIL_BASELINE 16→13, cadence healed
+~~34. TODO row 23 (release train): convert to the table shape — module | unpublished symbol | consumer | gate it reds (from e6).~~ resolved — routed: TODO_LIST.md ExtraNav follow-through row (d) — the table-shape conversion
+~~35. Docs coastal cleanup: the 14-report tail needs an archive round (not mine to judge, but it is the next docs-health pass's first job).~~ verified — Round-25 archive pass executed — 05-20 §a12 / 09-00 §a13: four reports archived, TAIL_BASELINE 16→13, cadence healed
 
 **Session hygiene**
 
-~~36. Batch HTML assertions behind a probe helper (`renderNavForTest(t, cfg) string`) so future nav tests do not each rebuild the mux.~~ r	TODO_LIST.md ExtraNav follow-through row (e) — the renderNavForTest probe helper
+~~36. Batch HTML assertions behind a probe helper (`renderNavForTest(t, cfg) string`) so future nav tests do not each rebuild the mux.~~ resolved — routed: TODO_LIST.md ExtraNav follow-through row (e) — the renderNavForTest probe helper
 37. Add a `TestNavLink_VerbatimContract` compile-level doc test? The field doc + README + PageMeta doc already triangulate; probably enough.
 38. Record in AGENTS: devshell `GOWORK=off` means `nix develop -c golangci-lint` is hermetic (e5).
 39. Make `setup` own a CHANGELOG (b6), or state explicitly in `CONTRIBUTING` that setup has none.
@@ -237,6 +237,6 @@ Composite attribution (none of the 7 is new work of mine, one carries a line of 
 
 ## g) QUESTIONS (cannot answer from this seat)
 
-~~1. **The train.** The unpublished surface now spans five modules and four sessions (root `DropStats` + dispatch-boundary, identity-model session events, usermgmt, adminui, dashboardui `ExtraNav`, setup passthrough). Do I prepare and cut that train now (preflight → `wave-tag` root → sweep), or does another session own the next train and I hold? This decides whether #38's consumers can actually `go get` it this week.~~ v	answered by the owner's standing-GO directive (05-20 header); the v4.17.0 family train executed end-to-end
-~~2. **Href scheme policy.** Should `dashboardui`/`adminui` `NavEntry.Href` reject `javascript:`/`data:`/`vbscript:` at `Validate`, the way `AccentColor` is validated because it is interpolated, or is templ's attribute escaping the intended and sufficient boundary?~~ r	TODO_LIST.md ExtraNav follow-through row (a) — owner decision
-~~3. **`aria-current`.** Should active nav links (built-in *and* extra) carry `aria-current="page"`? It is a genuine a11y improvement, but it changes every sidebar golden and both UI modules, so I want it named as a decision rather than smuggled in under #38.~~ r	TODO_LIST.md ExtraNav follow-through row (b) — owner decision
+~~1. **The train.** The unpublished surface now spans five modules and four sessions (root `DropStats` + dispatch-boundary, identity-model session events, usermgmt, adminui, dashboardui `ExtraNav`, setup passthrough). Do I prepare and cut that train now (preflight → `wave-tag` root → sweep), or does another session own the next train and I hold? This decides whether #38's consumers can actually `go get` it this week.~~ verified — answered by the owner's standing-GO directive (05-20 header); the v4.17.0 family train executed end-to-end
+~~2. **Href scheme policy.** Should `dashboardui`/`adminui` `NavEntry.Href` reject `javascript:`/`data:`/`vbscript:` at `Validate`, the way `AccentColor` is validated because it is interpolated, or is templ's attribute escaping the intended and sufficient boundary?~~ resolved — routed: TODO_LIST.md ExtraNav follow-through row (a) — owner decision
+~~3. **`aria-current`.** Should active nav links (built-in *and* extra) carry `aria-current="page"`? It is a genuine a11y improvement, but it changes every sidebar golden and both UI modules, so I want it named as a decision rather than smuggled in under #38.~~ resolved — routed: TODO_LIST.md ExtraNav follow-through row (b) — owner decision

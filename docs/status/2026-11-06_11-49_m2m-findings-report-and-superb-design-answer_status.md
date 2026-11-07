@@ -181,11 +181,11 @@ Grouped by intent; the execution decomposition lives in the plan document named 
 
 **Reachability and correctness (the real hole)**
 
-6. Add a `BotRegistered` branch to the Casbin projection deriving rows from scopes. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 1 — durable grant path (plan T8/W1, blocked on owner decisions D1/D2)**
-7. Add `BotScopesChanged` so authority itself is an event. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — BotScopesChanged is plan A9/T9 and rides the D2 authority-source answer**
-8. Make bot deletion remove direct policy rows, on the subject spelling the dispatcher checks. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 2 — subject-correct delete cleanup (plan T10/W1)**
-9. Prove the four-step invariant in one test: register, authorize, delete, re-authorize, expect deny. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the four-step invariant test is plan T11/A11, sequenced behind T8/T10**
-10. Add a restart test: register, restart with hydration, authenticate, expect success. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — hydration-dependent token resolution (plan T12/W1)**
+~~6. Add a `BotRegistered` branch to the Casbin projection deriving rows from scopes.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 1 — durable grant path (plan T8/W1, blocked on owner decisions D1/D2)
+~~7. Add `BotScopesChanged` so authority itself is an event.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — BotScopesChanged is plan A9/T9 and rides the D2 authority-source answer
+~~8. Make bot deletion remove direct policy rows, on the subject spelling the dispatcher checks.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 2 — subject-correct delete cleanup (plan T10/W1)
+~~9. Prove the four-step invariant in one test: register, authorize, delete, re-authorize, expect deny.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — the four-step invariant test is plan T11/A11, sequenced behind T8/T10
+~~10. Add a restart test: register, restart with hydration, authenticate, expect success.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — hydration-dependent token resolution (plan T12/W1)
 11. Grep every other projection for the raw-subject versus prefixed-subject mismatch.
 12. Grep every other `RemoveAll*` call for the grouping-only blind spot.
 13. Decide whether deleted bots tombstone instead of vanish, then check whether `Bot.Deleted` is reachable at all.
@@ -193,38 +193,38 @@ Grouped by intent; the execution decomposition lives in the plan document named 
 
 **Credential lifecycle**
 
-15. Add a token prefix and checksum so a leak is identifiable without disclosure. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — token prefix + checksum is plan A5/T6**
-16. Require expiry at registration and enforce it in resolution. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — required expiry is plan A6/T7**
-17. Add rotation with an overlap window and its own event. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — rotation overlap is plan A26**
-18. Replace the single pepper with a keyring and a key-id in the hash. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — keyring pepper is plan A25**
+~~15. Add a token prefix and checksum so a leak is identifiable without disclosure.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — token prefix + checksum is plan A5/T6
+~~16. Require expiry at registration and enforce it in resolution.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — required expiry is plan A6/T7
+~~17. Add rotation with an overlap window and its own event.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — rotation overlap is plan A26
+~~18. Replace the single pepper with a keyring and a key-id in the hash.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — keyring pepper is plan A25
 19. Add audience binding so a credential minted for one project is refused by another.
 20. Design the short-lived exchange (long-lived credential to minutes-long token) before implementing it.
 21. Verify or justify the resolution path's comparison against a constant-time alternative.
-22. Add a test that a rotated-away token stops resolving and that the failure is a 401, not a 500. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — the rotation test rides plan A26**
+~~22. Add a test that a rotated-away token stops resolving and that the failure is a 401, not a 500.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — the rotation test rides plan A26
 
 **Principal and surface consistency**
 
-23. Resolve one principal abstraction from either a cookie session or a bearer credential. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — principal resolution is plan A17**
-24. Make the SSE and DataStar feeds accept a machine principal with a scoped filter. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 4 — SSE/DataStar session-gating (plan T15/W2)**
-25. Make the sync pull and push handlers accept the same principal. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — sync pull/push is plan A19**
-26. Make the Huma adapter and the route pipeline derive the same subject for the same caller. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — Huma/route subject parity is plan A20**
+~~23. Resolve one principal abstraction from either a cookie session or a bearer credential.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — principal resolution is plan A17
+~~24. Make the SSE and DataStar feeds accept a machine principal with a scoped filter.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 4 — SSE/DataStar session-gating (plan T15/W2)
+~~25. Make the sync pull and push handlers accept the same principal.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — sync pull/push is plan A19
+~~26. Make the Huma adapter and the route pipeline derive the same subject for the same caller.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — Huma/route subject parity is plan A20
 27. ~~Replace `RequireBot`'s plain-text rejection with the shared problem document and a stable code.~~ done at `4084bf49`
 28. ~~Bridge a machine principal into the actor chain inside the token middleware.~~ done at `4084bf49`
-29. Measure the hot-path cost of principal resolution before adopting it, and record the number. **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — hot-path benchmark is plan A27**
+~~29. Measure the hot-path cost of principal resolution before adopting it, and record the number.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W2 — hot-path benchmark is plan A27
 30. Add a gate or test asserting every documented policy-subject form matches the dispatcher's output.
 
 **Delegation (the agent differentiator)**
 
-31. Draft the delegation aggregate: delegator, delegate, scope subset, purpose, expiry, revocation. **→ TODO_LIST.md "M2M owner decisions" row gates W2 (D3 shapes the delegation shape) — the delegation aggregate is plan A21**
-32. Enforce that delegation never exceeds the delegator's authority at dispatch time. **→ TODO_LIST.md "M2M owner decisions" row gates W2 — dispatch-time subset re-evaluation is plan A22**
-33. Record both actors on every delegated event, reusing the impersonation shape from ADR-0060. **→ TODO_LIST.md "M2M owner decisions" row gates W2 — on-behalf-of audit fields are plan A23 (ADR-0060 shape)**
-34. Add a revocation path that takes effect on the next dispatch without restart. **→ TODO_LIST.md "M2M owner decisions" row gates W2 — the revocation path rides plans A21/A22**
-35. Prove the demotion case: grant while admin, demote the human, expect the agent denied. **→ TODO_LIST.md "M2M owner decisions" row gates W2 — the demotion proof is plan A24**
+~~31. Draft the delegation aggregate: delegator, delegate, scope subset, purpose, expiry, revocation.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row gates W2 (D3 shapes the delegation shape) — the delegation aggregate is plan A21
+~~32. Enforce that delegation never exceeds the delegator's authority at dispatch time.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row gates W2 — dispatch-time subset re-evaluation is plan A22
+~~33. Record both actors on every delegated event, reusing the impersonation shape from ADR-0060.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row gates W2 — on-behalf-of audit fields are plan A23 (ADR-0060 shape)
+~~34. Add a revocation path that takes effect on the next dispatch without restart.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row gates W2 — the revocation path rides plans A21/A22
+~~35. Prove the demotion case: grant while admin, demote the human, expect the agent denied.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row gates W2 — the demotion proof is plan A24
 
 **Observability**
 
-36. Add a successful authentication event carrying a credential fingerprint, never the credential. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)**
-37. Add a failed authentication event with a reason and no secret material. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)**
+~~36. Add a successful authentication event carrying a credential fingerprint, never the credential.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)
+~~37. Add a failed authentication event with a reason and no secret material.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is owner decision D4)
 38. Journal denials with the decision reason instead of only returning a status.
 39. Add per-principal usage counters so idle credentials are visible.
 40. Write the query that must be answerable, as a test fixture, not as prose.
@@ -232,17 +232,17 @@ Grouped by intent; the execution decomposition lives in the plan document named 
 **Documentation and examples**
 
 41. Write the missing bot section in the usermgmt README: register, mount, bridge, authorize, revoke.
-42. State plainly that realtime feeds are session-gated today and what the request/response alternative is. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 4 — the README statement rides the SSE session-gating finding (plan T15/W2)**
+~~42. State plainly that realtime feeds are session-gated today and what the request/response alternative is.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 4 — the README statement rides the SSE session-gating finding (plan T15/W2)
 43. Add a runnable example of a machine principal calling a command endpoint.
-44. Document the hydration requirement for token authentication. **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — the hydration requirement doc rides plan T12/W1**
-45. Record the principal model and the authority-source decisions as ADRs before code. **→ TODO_LIST.md "M2M owner decisions" row — D2 gates ADRs A15/A16 before any W1 code**
+~~44. Document the hydration requirement for token authentication.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — the hydration requirement doc rides plan T12/W1
+~~45. Record the principal model and the authority-source decisions as ADRs before code.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row — D2 gates ADRs A15/A16 before any W1 code
 46. Add the data-mesh resource naming convention to the authorization guide.
 47. Publish the catalog access metadata field so a data product can declare what it requires.
 
 **Process and proof**
 
-48. File the seven findings as issues, or as owned rows in the TODO list, and delete them from the report. **→ TODO_LIST.md "M2M/AI-agent hardening" row — the owned-rows venue was taken (W0 §a6), the report stays as the findings source**
-49. Extend the authorization proof kit with a principal matrix covering user, bot, system, service, and delegation. **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the principal matrix is plan A13/T13**
+~~48. File the seven findings as issues, or as owned rows in the TODO list, and delete them from the report.~~ resolved — routed: TODO_LIST.md "M2M/AI-agent hardening" row — the owned-rows venue was taken (W0 §a6), the report stays as the findings source
+~~49. Extend the authorization proof kit with a principal matrix covering user, bot, system, service, and delegation.~~ resolved — routed: TODO_LIST.md "M2M owner decisions" row blocks W1 — the principal matrix is plan A13/T13
 50. Add a post-commit baseline re-measure step to the report-and-plan habit, so a shared-tree pin is never written blind.
 
 ---
