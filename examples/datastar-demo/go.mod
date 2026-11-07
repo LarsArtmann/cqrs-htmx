@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/datastar-demo
 
-go 1.27.2
+go 1.27.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2

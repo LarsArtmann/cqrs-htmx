@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/huma/v4
 
-go 1.27.2
+go 1.27.3
 
 require (
 	github.com/danielgtaylor/huma/v2 v2.40.0
