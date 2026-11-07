@@ -41,7 +41,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.17.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.13.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.14.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect

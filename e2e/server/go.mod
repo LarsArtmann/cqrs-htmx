@@ -49,7 +49,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.13.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.14.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
