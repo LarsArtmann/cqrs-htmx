@@ -2,7 +2,7 @@
 
 **Created:** 2026-11-07, 07:21 CET
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`
-**Status:** Plan only — no code changed. W0 is docs+example, executable immediately; W1+ are additive v4 API.
+**Status:** W0+W1 EXECUTED 2026-11-07 same-day (receipts in CHANGELOG [Unreleased]: middleware + three options + 415 sentinel + guide + example + parity tests; corpus baseline 55010). W2+ open — W2 gated on D3 + NV4/NV5, W3 on NV1 + D4, W4/W5 unblocked but sequenced after.
 
 ---
 
@@ -160,25 +160,25 @@ Naming follows the existing vocabulary (`*Middleware`, `Require*` options); all 
 
 ## 6. Waves
 
-### W0 — truth on disk (docs + example; no new API)
+### W0 — truth on disk (docs + example; no new API) — **EXECUTED 2026-11-07**
 
 | # | Task | Done when |
 | --- | --- | --- |
-| W0.1 | Guide skeleton with the verified fact base (§3) and the three rung recipes | `docs/guides/http-query-method.md` exists; corpus baseline bumped same-commit; no links to not-yet-existing files |
-| W0.2 | `examples/basic`: `QUERY /api/items` + `POST /api/items` override twin on one handler; demo page button uses the override recipe | example builds; curl recipes in its README work |
-| W0.3 | `integration_test/query_method_test.go`: parity + 405/Allow assertions | `GOEXPERIMENT=jsonv2 go test ./integration_test/... -run Query -race` green |
-| W0.4 | TODO_LIST row pointing here | `nix run .#check-todo-hygiene` green |
+| W0.1 | Guide skeleton with the verified fact base (§3) and the three rung recipes | **DONE** — `docs/guides/http-query-method.md` (documents the shipped W1 API, not the hand-rolled patterns; corpus baseline bumped same-commit) |
+| W0.2 | `examples/basic`: `QUERY /api/items/search` + `POST /api/items/search` override twin on one handler; demo page button uses the override recipe | **DONE** — routes + README curl recipes; live byte-parity verified on a running server (`PARITY-OK`) |
+| W0.3 | `integration_test/query_method_test.go`: parity + 405/Allow assertions | **DONE** — 4 tests green under `-race`; published-API-only (hermetic isolation stays green) |
+| W0.4 | TODO_LIST row pointing here | **DONE** — P1 row, todo-hygiene green |
 
-### W1 — the fallback ladder as API (root, additive)
+### W1 — the fallback ladder as API (root, additive) — **EXECUTED 2026-11-07**
 
 | # | Task | Done when |
 | --- | --- | --- |
-| W1.1 | `MethodOverrideMiddleware` (header rewrite pre-routing, safe-target-only, `r.Clone`) + unit tests incl. a mux-routing proof AND the placement proof (mounted inside CSRF: an override POST without a token is refused; with the token, passes) | middleware test proves one `QUERY /x` pattern serves POST+override AND that the CSRF layer saw the wire POST |
-| W1.2 | `httperr.ErrUnsupportedMediaType` (415) + `MapError` wiring + sentinel table row | httperr tests; `docs`/README error table updated |
-| W1.3 | `RequireContentType` option (400 missing/lying, 415 wrong) | option tests incl. ordering (after authorize, before decode) |
-| W1.4 | Decoder-driven `Accept-Query` (JSON query decoders advertise `application/json` on responses) + `AcceptQuery` add-only override + `Allow` enrichment on 405 | golden test pins header bytes; a test proves a handler WITHOUT JSON decoder advertises nothing (no aspirational types) |
-| W1.5 | `RequireAnyMethod` (generalizes `RequireMethod`, which stays) | 405 matrix test |
-| W1.6 | Guide § fallback updated from hand-rolled to shipped API; skill snippet fences | `nix run .#check-skill-snippets` + skill-claims green |
+| W1.1 | `MethodOverrideMiddleware` (header rewrite pre-routing, safe-target-only, `r.Clone`) + unit tests incl. a mux-routing proof AND the placement proof (mounted inside CSRF: an override POST without a token is refused; with the token, passes) | **DONE** — `method_override.go` + 7 tests incl. `TestMethodOverride_WireMethodSeenByOuterLayers` (the wire-POST proof; the CSRF-token refusal itself rides the httputil middleware and stays documented in the guide — see erratum E5) |
+| W1.2 | `httperr.ErrUnsupportedMediaType` (415) + `MapError` wiring + sentinel table row | **DONE** — `httperr/errors.go`, maps via `explicitErrorStatus` |
+| W1.3 | `RequireContentType` option (400 missing/lying, 415 wrong) | **DONE** — `options_json.go` `checkRequiredContentType`; charset params ignored; bodyless always allowed; ladder test green |
+| W1.4 | Decoder-driven `Accept-Query` (JSON query decoders advertise `application/json` on responses) + `AcceptQuery` add-only override + `Allow` enrichment on 405 | **DONE** — advertisement set on success AND error responses; form decoders advertise nothing (test-pinned) |
+| W1.5 | `RequireAnyMethod` (generalizes `RequireMethod`, which stays) | **DONE** — 405 + `Allow` header; legacy single-method message byte-compatible |
+| W1.6 | Guide § fallback updated from hand-rolled to shipped API; skill snippet fences | **DONE** — guide documents the shipped API; skill gains the QUERY subsection
 
 ### W2 — HTMX lane
 
@@ -250,6 +250,8 @@ Also sharpened: S2 now cites the decoder (`decoder.go:36-53`, no Content-Type ga
 **Provenance note:** this file was twice nearly lost the same day — a sibling session's `Git Town WIP` stash (`stash@{0}`, gotcha 47 strike three) captured the uncommitted plan + TODO row + baseline bump before the daemon could commit them; recovered read-only via `git restore --source=stash@{0}` (the stash was never popped — it holds the sibling's work too) and the amendments were applied on top.
 
 ### 9.2 Original errata
+
+- **E5 (execution pass, 2026-11-07):** the W1.1 done-when promised a CSRF-token refusal test, but that behavior belongs to httputil's middleware, not ours — the shipped placement proof (`TestMethodOverride_WireMethodSeenByOuterLayers`) pins the load-bearing half (outer layers see the wire POST); the token-refusal half is exercised by the CSRF test battery in httputil and stays documented in the guide's posture section. Promising it here conflated layers.
 
 - The in-session Go stdlib proof (S1) used the ambient toolchain, not `nix develop` — same 1.27 floor, but W0.3 re-proves inside the repo test battery.
 - MDN's QUERY page carries no browser-compat table ("not relevant" — browsers don't gate it, P3); any "browser support" claim in the guide must cite fetch-spec method-token rules, not a version matrix.
