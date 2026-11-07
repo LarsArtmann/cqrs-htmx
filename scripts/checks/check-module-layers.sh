@@ -40,11 +40,11 @@ LAYERS=(
 
 allowed_for() {
   case "$1" in
-    "$MODULE/internal/hx") echo "" ;;
-    "$MODULE/htmx") echo "$MODULE/internal/hx" ;;
-    "$MODULE/eventcatalog") echo "$MODULE/internal/hx" ;;
-    "$MODULE/httperr") echo "$MODULE/htmx $MODULE/internal/hx" ;;
-    *) echo "" ;;
+  "$MODULE/internal/hx") echo "" ;;
+  "$MODULE/htmx") echo "$MODULE/internal/hx" ;;
+  "$MODULE/eventcatalog") echo "$MODULE/internal/hx" ;;
+  "$MODULE/httperr") echo "$MODULE/htmx $MODULE/internal/hx" ;;
+  *) echo "" ;;
   esac
 }
 
@@ -65,7 +65,10 @@ for pkg in "${LAYERS[@]}"; do
 done
 
 # One go list call: package path + its (non-test and test) imports.
-list_out=$(GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}" go list \
+# GOWORK=off: the tracked go.work's local-dev replaces (go-cqrs-lite subtree)
+# resolve nowhere on CI runners; the layer packages live in the root module,
+# whose own go.mod resolves hermetically from the proxy.
+list_out=$(GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}" GOWORK=off go list \
   -f '{{.ImportPath}}|{{join .Imports " "}} {{join .TestImports " "}}' \
   "${LAYERS[@]}" 2>&1)
 list_rc=$?
@@ -83,8 +86,8 @@ while IFS='|' read -r pkg imports; do
 
   for imp in $imports; do
     case "$imp" in
-      "$MODULE" | "$MODULE"/*) ;;
-      *) continue ;;
+    "$MODULE" | "$MODULE"/*) ;;
+    *) continue ;;
     esac
     # A package always "imports" itself in the test binary; not an edge.
     [ "$imp" = "$pkg" ] && continue

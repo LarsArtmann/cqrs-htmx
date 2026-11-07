@@ -84,6 +84,7 @@ new_scratch() { # echoes scratch dir; repo-local hooksPath keeps the suite
   cp "$INSTALLER" "$scratch/scripts/tools/"
   cp "$SCRIPT_DIR/../checks/check-large-files.sh" "$SCRIPT_DIR/../checks/check-release-train.sh" \
     "$SCRIPT_DIR/../checks/check-version-drift.sh" "$SCRIPT_DIR/../checks/check-templ-codegen-staged.sh" \
+    "$SCRIPT_DIR/../checks/check-conflict-markers.sh" \
     "$scratch/scripts/checks/"
   cp "$SCRIPT_DIR/../tools/prewarm-gocache.sh" "$scratch/scripts/tools/"
   cp "$SCRIPT_DIR/../lib/go-cache-env.sh" "$SCRIPT_DIR/../lib/replace-exemption.sh" \
