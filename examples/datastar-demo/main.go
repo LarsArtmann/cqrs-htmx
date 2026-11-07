@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/httputil"
@@ -24,7 +25,10 @@ func main() {
 	mux.Handle("GET /api/events", cqrs.Broadcast)
 	mux.HandleFunc("POST /api/simulate", handleSimulate(cqrs))
 
-	addr := ":8095"
+	// 8095 avoids clashing with unrelated services on well-known dev ports;
+	// the e2e battery overrides it (DATASTAR_DEMO_ADDR=:18931) the same way
+	// admin-demo does, so the shipped demo itself stays the artifact under test.
+	addr := envOr("DATASTAR_DEMO_ADDR", ":8095")
 	fmt.Printf("CQRS + Datastar Todo Demo\n")
 	fmt.Printf("Event-sourced: all mutations produce domain events\n")
 	fmt.Printf("Real-time: open multiple tabs to see live event stream\n")
@@ -39,6 +43,13 @@ func main() {
 	if err := <-srv.Start(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func serveIndex(w http.ResponseWriter, r *http.Request) {
