@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.17.0] - 2026-11-07
+
+Maintenance release riding the 2026-11-06/07 family trains — no loginpage API or behavior change.
+
+### Changed
+
+- **Dependency train alignment.** `github.com/larsartmann/cqrs-htmx/v4` → **v4.18.1** (pristine htmx 2.0.11 + idiomorph 0.8.0 assets with sha pins, HTTP QUERY W0/W1/W2 surface), `cqrs-htmx/usermgmt/v4` → **v4.20.0**, templ-components family → **v1.27.0** (+submodules, one templ era), `go-cqrs-lite/kv/v4` → **v4.4.0**, `go-sse` → current.
+- **Go directive 1.27.2 → 1.27.3.**
+- **`page_templ.go` regenerated with the canonical templ v0.3.1100 generator** (the 2026-11-06 templ-era resolution; output-only change, the `.templ` source is untouched).
+
 ## [v4.16.0] - 2026-11-05
 
 > Section cut retroactively 2026-11-07: the v4.16.0 family train tagged this module while its CHANGELOG entry sat in [Unreleased] — the features below shipped in the tag (verified: `Routes()` and `Config.NoWebAuthn` are present in `git show loginpage/v4.16.0:loginpage/`).
