@@ -11,6 +11,30 @@ import (
 	"github.com/larsartmann/templ-components/icons"
 )
 
+// renderNavForTest mounts a dashboard with the given config and returns the
+// rendered body of its index page — the probe HTML nav assertions run
+// against, so nav tests stop re-building the mux and guessing markup shapes.
+func renderNavForTest(t *testing.T, cfg Config) string {
+	t.Helper()
+
+	d, err := New(cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, cfg.BasePath+"/")
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, cfg.BasePath+"/", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("index status = %d, body=%s", rec.Code, rec.Body.String())
+	}
+
+	return rec.Body.String()
+}
+
 func TestValidate_RejectsExtraNavWithEmptyLabel(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 
@@ -78,28 +102,11 @@ func TestNew_AppendsExtraNavAfterCapabilityItems(t *testing.T) {
 }
 
 func TestExtraNav_RendersInBuiltInSidebarWithVerbatimHref(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-
-	d, err := New(Config{
-		EventSource: store,
+	body := renderNavForTest(t, Config{
+		EventSource: memorystorage.NewMemoryStore(),
 		BasePath:    "/dashboard",
 		ExtraNav:    []NavEntry{{Label: "Event Catalog", Href: "/event-catalog"}},
 	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/dashboard/")
-
-	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/", nil))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, body=%s", rec.Code, rec.Body.String())
-	}
-
-	body := rec.Body.String()
 
 	if !strings.Contains(body, `href="/event-catalog"`) {
 		t.Error("extra nav entry href missing or not verbatim (BasePath must NOT be prefixed)")
@@ -220,7 +227,7 @@ func TestExtraNav_InternalHrefHighlightsWhenActive(t *testing.T) {
 func TestExtraNav_EscapesLabelAndHref(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 
-	d, err := New(Config{
+	body := renderNavForTest(t, Config{
 		EventSource: store,
 		Journal:     store,
 		BasePath:    "/obs",
@@ -229,21 +236,6 @@ func TestExtraNav_EscapesLabelAndHref(t *testing.T) {
 			Href:  `/x" onmouseover="alert(1)`,
 		}},
 	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	d.Mount(mux, "/obs/")
-
-	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/obs/", nil))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, body=%s", rec.Code, rec.Body.String())
-	}
-
-	body := rec.Body.String()
 
 	if strings.Contains(body, `onmouseover="alert(1)"`) {
 		t.Error("extra nav href broke out of the attribute")
