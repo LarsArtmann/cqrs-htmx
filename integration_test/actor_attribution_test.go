@@ -136,7 +136,7 @@ func TestActorAttribution_BotDispatchIsNeverAnonymous(t *testing.T) {
 	userID := reg.User.ID
 
 	botReg, err := svc.RegisterBot(ctx, usermgmt.RegisterBotRequest{
-		ID:      usermgmt.NewBotID("01JXBOT00000000000000000005"),
+		ID:      identitymodel.NewBotID("01JXBOT00000000000000000005"),
 		Name:    "attribution-bot",
 		OwnerID: userID,
 		Scopes:  []string{"read"},

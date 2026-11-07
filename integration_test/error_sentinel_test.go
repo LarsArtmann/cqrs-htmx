@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 )
 
 // TestCrossModuleErrUnauthorized verifies that ErrUnauthorized sentinels from
@@ -17,14 +17,14 @@ import (
 func TestCrossModuleErrUnauthorized(t *testing.T) {
 	t.Parallel()
 
-	rootErr := cqrshtmx.ErrUnauthorized
+	rootErr := httperr.ErrUnauthorized
 	usermgmtErr := identitymodel.ErrUnauthorized
 
 	// Both should map to HTTP 401 via root's MapError (code-based check).
-	if status := cqrshtmx.MapError(rootErr); status != http.StatusUnauthorized {
+	if status := httperr.MapError(rootErr); status != http.StatusUnauthorized {
 		t.Errorf("root ErrUnauthorized: MapError = %d, want %d", status, http.StatusUnauthorized)
 	}
-	if status := cqrshtmx.MapError(usermgmtErr); status != http.StatusUnauthorized {
+	if status := httperr.MapError(usermgmtErr); status != http.StatusUnauthorized {
 		t.Errorf("usermgmt ErrUnauthorized: MapError = %d, want %d", status, http.StatusUnauthorized)
 	}
 }
@@ -34,13 +34,13 @@ func TestCrossModuleErrUnauthorized(t *testing.T) {
 func TestCrossModuleErrForbidden(t *testing.T) {
 	t.Parallel()
 
-	rootErr := cqrshtmx.ErrForbidden
+	rootErr := httperr.ErrForbidden
 	usermgmtErr := identitymodel.ErrForbidden
 
-	if status := cqrshtmx.MapError(rootErr); status != http.StatusForbidden {
+	if status := httperr.MapError(rootErr); status != http.StatusForbidden {
 		t.Errorf("root ErrForbidden: MapError = %d, want %d", status, http.StatusForbidden)
 	}
-	if status := cqrshtmx.MapError(usermgmtErr); status != http.StatusForbidden {
+	if status := httperr.MapError(usermgmtErr); status != http.StatusForbidden {
 		t.Errorf("usermgmt ErrForbidden: MapError = %d, want %d", status, http.StatusForbidden)
 	}
 }
