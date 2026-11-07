@@ -1,5 +1,13 @@
 # loginpage v4.14.0 — pre-staged release notes (next train)
 
+> **SUPERSEDED 2026-11-07 (blanket-directive session):** the "last tag v4.13.0"
+> belief this draft was verified against was wrong — `loginpage/v4.16.0`
+> (2026-11-05) exists and ALREADY SHIPS every delta below (verified against the
+> tag's `handler.go`/`config.go`; the notes' content now lives as the
+> retroactive [v4.16.0] section in `loginpage/CHANGELOG.md`). The next loginpage
+> release is **v4.17.0** (family alignment: root v4.18.x, usermgmt v4.20.0,
+> go floor 1.27.3), not v4.14.0. Kept as the drafting history.
+
 > Pre-staged per TODO row 98 (round-36 §f24): the §g3 train-timing decision
 > converts to execution in one step. Verified 2026-11-07: loginpage did NOT
 > ride the v4.17.0 family train (last tag `loginpage/v4.13.0`, 2026-10-14);

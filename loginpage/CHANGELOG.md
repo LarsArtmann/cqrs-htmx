@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.16.0] - 2026-11-05
+
+> Section cut retroactively 2026-11-07: the v4.16.0 family train tagged this module while its CHANGELOG entry sat in [Unreleased] — the features below shipped in the tag (verified: `Routes()` and `Config.NoWebAuthn` are present in `git show loginpage/v4.16.0:loginpage/`).
+
 ### Added
 
 - **`Handler.Routes()` — the page's route-posture manifest (authorization L4, 2026-11-03).** One public row (`GET /`, relative to the mount pattern): the login page is the anonymous entry point by definition — gating it would lock every visitor out before they can authenticate. Only GET/HEAD are answered; other methods 405. Part of the family-wide route-posture system (`docs/guides/route-posture.md` in the root module).
@@ -23,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`NewPageData` (Option B) now populates Nonce, Theme, CSRF, and the error message from the request (S36, 2026-10-25).** Consumers embedding the login form via `NewPageData` into their own layout got a `PageData` with an empty Nonce and no Theme — under the recommended nonce-CSP the embedded scripts were dead, and SSR theming was silently lost. Both construction paths (`ServeHTTP` and `NewPageData`) now share one request-scoped enrichment helper; a hostile nonce is sanitized the same way in both. Pinned by `TestNewPageData_PopulatesNonceAndTheme`.
 
 - **Favicon data-URI percent-encoding (2026-10-18 full-code-review wave).** The inline SVG favicon carried the raw accent color (`fill='#4f46e5'`) unencoded — data-URI content ends at the first `#`, so every hex accent (the default!) truncated the URI at the fragment boundary and no favicon ever rendered. The SVG is now `url.QueryEscape`-encoded; tests pin `%23` and reject any raw `#`.
+
+### Changed
+
+- **Family train alignment (2026-11-05).** Rode the v4.16.0 family train: root v4.16.0, usermgmt v4.18.0, templ-components v1.27.0 (+submodules), the `go` floor 1.27.2, and every `_templ.go` regenerated with the canonical pinned templ v0.3.1100 generator.
 
 ## [v4.13.0] - 2026-10-14
 
