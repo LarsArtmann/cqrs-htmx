@@ -13,6 +13,7 @@ var (
 	errNilSpec              = errors.New("openapi: spec is nil")
 	errNoOperationID        = errors.New("openapi: operation has no operationId")
 	errDuplicateOperationID = errors.New("openapi: duplicate operationId")
+	errQueryNeeds32         = errors.New("openapi: query operation requires OpenAPI 3.2.0 (set OpenAPI to \"3.2.0\", or register it with openapi.Query via Spec.Path/PathOp which auto-bumps)")
 )
 
 // errNoResponses names the fix in its message: per the OpenAPI Specification
@@ -29,7 +30,11 @@ var errNoResponses = errors.New("openapi: no responses — OpenAPI requires at l
 //   - operationIds are unique across the whole spec (best practice that
 //     codegen tooling relies on; duplicates silently shadow each other),
 //   - every registered operation carries a non-empty operationId (the
-//     Get/Post/... constructors take one — an empty one is a copy-paste bug).
+//     Get/Post/... constructors take one — an empty one is a copy-paste bug),
+//   - a `query` operation (RFC 10008) is only valid in an OpenAPI 3.2.0
+//     document — a spec that carries one while claiming another version is
+//     lying to every toolchain that reads it (builder-constructed specs are
+//     auto-bumped and never trip this).
 //
 // [Spec.JSON] calls this before marshaling; call it directly when assembling a
 // spec programmatically and serializing later.
@@ -50,6 +55,10 @@ func (s *Spec) Validate() error {
 		for method, operation := range item.operations() {
 			if operation == nil {
 				continue
+			}
+
+			if method == "query" && s.OpenAPI != "3.2.0" {
+				errs = append(errs, fmt.Errorf("%w: %s", errQueryNeeds32, path))
 			}
 
 			if operation.OperationID == "" {

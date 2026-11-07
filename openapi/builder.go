@@ -1,7 +1,9 @@
 package openapi
 
 // New creates a Spec rooted at OpenAPI 3.1.0 with the given title and version,
-// and an empty paths map ready to receive operations.
+// and an empty paths map ready to receive operations. Registering a QUERY
+// operation (RFC 10008) via Path/PathOp auto-bumps the document to 3.2.0 —
+// the only version where the `query` operation type exists.
 func New(title, version string) *Spec {
 	return &Spec{
 		OpenAPI: "3.1.0",
@@ -38,6 +40,7 @@ func (s *Spec) Path(path string, operations ...*opBuilder) *Spec {
 
 	for _, op := range operations {
 		op.apply(item)
+		s.noteMethod(op.method)
 	}
 
 	return s
@@ -63,8 +66,19 @@ func (s *Spec) PathOp(path string, operation Operation) *Spec {
 	}
 
 	(&opBuilder{method: operation.HTTPMethod, op: &operation}).apply(item)
+	s.noteMethod(operation.HTTPMethod)
 
 	return s
+}
+
+// noteMethod records that an operation of the method was registered on some
+// path, upgrading the document version when a newer-spec field is used. The
+// `query` operation type (RFC 10008's HTTP QUERY method) exists only in
+// OpenAPI 3.2.0; a spec that carries one must not claim 3.1.0.
+func (s *Spec) noteMethod(method string) {
+	if method == "query" {
+		s.OpenAPI = "3.2.0"
+	}
 }
 
 // pathItem returns the PathItem for path, creating and registering an empty
@@ -114,6 +128,8 @@ func (b *opBuilder) apply(item *PathItem) {
 		item.Head = b.op
 	case "options":
 		item.Options = b.op
+	case "query":
+		item.Query = b.op
 	}
 }
 
@@ -137,6 +153,12 @@ func Head(operationID string) *opBuilder { return newOp("head", operationID) }
 
 // Options starts an OPTIONS operation with the given operationId.
 func Options(operationID string) *opBuilder { return newOp("options", operationID) }
+
+// Query starts a QUERY operation with the given operationId (RFC 10008: the
+// safe, idempotent, request-body-carrying read method). Registering one
+// auto-bumps the spec to OpenAPI 3.2.0 — the `query` operation type does not
+// exist in 3.1.
+func Query(operationID string) *opBuilder { return newOp("query", operationID) }
 
 func newOp(method, operationID string) *opBuilder {
 	return &opBuilder{

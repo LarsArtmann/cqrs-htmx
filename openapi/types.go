@@ -36,7 +36,10 @@ type Components struct {
 	Schemas map[string]*Schema `json:"schemas,omitempty"`
 }
 
-// PathItem describes the operations available on a single path.
+// PathItem describes the operations available on a single path. The Query
+// field is the RFC 10008 HTTP QUERY method (safe, idempotent,
+// request-body-carrying); it exists only in OpenAPI 3.2, which is why
+// registering one through the builder auto-bumps the spec version.
 type PathItem struct {
 	Summary     string      `json:"summary,omitempty"`
 	Description string      `json:"description,omitempty"`
@@ -47,11 +50,12 @@ type PathItem struct {
 	Delete      *Operation  `json:"delete,omitempty"`
 	Head        *Operation  `json:"head,omitempty"`
 	Options     *Operation  `json:"options,omitempty"`
+	Query       *Operation  `json:"query,omitempty"`
 	Parameters  []Parameter `json:"parameters,omitempty"`
 }
 
 // hasMethod reports whether the PathItem already carries an operation for the
-// lowercase HTTP method ("get", "post", ...). Used by the builder's
+// lowercase HTTP method ("get", "post", "query", ...). Used by the builder's
 // double-registration guard.
 func (p *PathItem) hasMethod(method string) bool {
 	switch method {
@@ -69,6 +73,8 @@ func (p *PathItem) hasMethod(method string) bool {
 		return p.Head != nil
 	case "options":
 		return p.Options != nil
+	case "query":
+		return p.Query != nil
 	}
 
 	return false
@@ -85,6 +91,7 @@ func (p *PathItem) operations() map[string]*Operation {
 		"delete":  p.Delete,
 		"head":    p.Head,
 		"options": p.Options,
+		"query":   p.Query,
 	}
 }
 
