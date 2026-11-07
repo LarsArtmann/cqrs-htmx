@@ -84,9 +84,9 @@ func main() {
 	}
 
 	dash, err := dashboardui.New(dashboardui.Config{
-		EventSource:     dstore,
-		Journal:         dstore,
-		EventBus:        dashBus,
+		EventSource: dstore,
+		Journal:     dstore,
+		EventBus:    dashBus,
 		// Explicit (the auto-derive keys on capabilities the in-memory
 		// store only partially satisfies): the time-travel aggregate list
 		// needs a StreamReader — without it the page renders its
