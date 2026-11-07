@@ -115,56 +115,56 @@ Ordered by impact per minute. Items 1–26 are the plan's remaining milestones; 
 
 | # | Item | Blocked by | ~min |
 | --- | --- | --- | ---: |
-| 1 | M6 — fix `docs/status/README.md` counts (46 → 57 md + 14 html, or delete the numbers) | — | 30 |
-| 2 | M7 — annotate + archive the live status tail 57 md → ≤3 | — | 100 |
-| 3 | M8 — gate: zero `[x]` rows (+ planted-failure fixture) | M2 | 40 |
-| 4 | M9 — gate: zero struck-title rows (+ fixture) | M3 | 30 |
-| 5 | M10 — gate: no section >30% dead (+ fixture) | M4 | 30 |
-| 6 | M11 — gate: header length ≤300 chars (+ fixture) | M1 | 25 |
-| 7 | M12 — wire M8–M11 into flake apps + `check-modules` + CI + docs | M8–M11 | 60 |
-| 8 | M18 — dry-run all doc gates against a scratch evicted tree | — | 60 |
-| 9 | M13 — supersession triage of the 18 live planning files | — | 60 |
-| 10 | M14 — evict `docs/status/archived/` minus the 9 linked targets | Q2, M18 | 60 |
-| 11 | M15 — evict `docs/planning/archived/` + the 4 single-file archives | Q2, M18 | 30 |
-| 12 | M16 — keep-or-rewrite the 9 live→archived link targets | M14 | 60 |
-| 13 | M17 — eviction manifest + `ARCHIVE_EVICTED.md` restore command | M14–M16 | 30 |
-| 14 | M19 — split `AGENTS.md` into core (≤80 lines) + 4 per-module files | M12 | 100 |
-| 15 | M20 — extract the 29 gotchas into `docs/gotchas.md` with anchors | M19 | 60 |
-| 16 | M21 — 5-line orientation block at the top of `AGENTS.md` | M5 | 30 |
-| 17 | M22 — `docs/runbooks/session-start.md` + prove `agents-notes.md` is not auto-loaded | M21 | 30 |
-| 18 | M23 — triage `docs/research/` (31) + `docs/architecture-understanding/` (5) | — | 60 |
-| 19 | M24 — verify `VERSIONING.md` (82 lines, untouched since 2026-07-12) + `DOMAIN_LANGUAGE.md` (161 lines, 2026-09-30) against code | — | 60 |
-| 20 | M25 — corpus-size budget gate (docs md lines ceiling + fixture) | M12 | 60 |
-| 21 | M26 — measure dashboardui ↔ root co-change with a correct anchor (yesterday's awk was broken; the metric is still unmeasured) | — | 30 |
-| 22 | M27 — read + cite `docs/modularization/2026-10-18_PROPOSAL.html` (KEEP-ALL) in the plan | — | 30 |
-| 23 | M28 — two-repo-by-audience decision memo, or no-verdict memo | Q1, M26–M27 | 60 |
-| 24 | M29 — HARVEST this plan's unexecuted items into `TODO_LIST.md` / `ROADMAP.md` | M4 | 40 |
-| 25 | M30 — full battery (`.#check-modules`, `.#test`, `.#lint`, `.#coverage-gate`) + successor receipt | M12, M25 | 100 |
-| 26 | Close out `TODO_LIST` row "Docs-health round 19" — it is superseded by M7 | M7 | 5 |
-| 27 | **Reconcile the train and push** — `bump-dep.sh` sweeps for `id v4.7.3`, `systemscenario v4.2.1`, `system v4.15.2`, and the 11 `go-output` family modules at v0.38.7; refresh the tag cache **after** the last sweep (gotcha 39) | owner | 180 |
-| 28 | Correct the plan's own success-metric table (71 → 57 md / 71 files) and re-derive the target | — | 10 |
-| 29 | Commit the receipt-audit table for the 36 deleted rows (durable evidence, currently transcript-only) | — | 15 |
-| 30 | Give the two deleted hardening-wave narrative bullets a home (`agents-notes.md` or the plan's annotation) | — | 10 |
+| ~~1~~ | ~~M6 — fix `docs/status/README.md` counts (46 → 57 md + 14 html, or delete the numbers)~~ done — docs/status/README.md rewritten with derived counts + the HTML corpus policy — the hand-maintained numbers are gone (verified in tree) | ~~—~~ | ~~30~~ |
+| ~~2~~ | ~~M7 — annotate + archive the live status tail 57 md → ≤3~~ done — M7 done — the tail went 58 → 44 → 37 under the ratchet; tail 14 today with one-in-one-out enforced | ~~—~~ | ~~100~~ |
+| ~~3~~ | ~~M8 — gate: zero `[x]` rows (+ planted-failure fixture)~~ done — S07 done at 26f1d746 — zero-[x] rule + planted fixture, consolidated into check-todo-hygiene.sh | ~~M2~~ | ~~40~~ |
+| ~~4~~ | ~~M9 — gate: zero struck-title rows (+ fixture)~~ done — S08 done at 26f1d746 — zero-struck-title rule + fixture (same script) | ~~M3~~ | ~~30~~ |
+| ~~5~~ | ~~M10 — gate: no section >30% dead (+ fixture)~~ done — S09 done at 26f1d746 — >30%-dead-section rule + fixture (same script) | ~~M4~~ | ~~30~~ |
+| ~~6~~ | ~~M11 — gate: header length ≤300 chars (+ fixture)~~ done — S10 done at 26f1d746 — header discipline (<1,500 total, paragraph ≤300) + 10-case self-test | ~~M1~~ | ~~25~~ |
+| ~~7~~ | ~~M12 — wire M8–M11 into flake apps + `check-modules` + CI + docs~~ done — S10 wiring — flake app + check-modules stage + CI step + AGENTS row (CHANGELOG five-mechanisms receipt) | ~~M8–M11~~ | ~~60~~ |
+| ~~8~~ | ~~M18 — dry-run all doc gates against a scratch evicted tree~~ done at `26f1d746` | ~~—~~ | ~~60~~ |
+| ~~9~~ | ~~M13 — supersession triage of the 18 live planning files~~ done — S16 done — 16 spent plans outcome-annotated + archived, 5 stay live (05-50 report §a) | ~~—~~ | ~~60~~ |
+| ~~10~~ | ~~M14 — evict `docs/status/archived/` minus the 9 linked targets~~ done — S13 executed — docs/status/archived 532 → 41+README kept, 491 removed (ARCHIVE_EVICTED.md execution table) | ~~Q2, M18~~ | ~~60~~ |
+| ~~11~~ | ~~M15 — evict `docs/planning/archived/` + the 4 single-file archives~~ done — S14 executed — planning/archived 112 removed / 8 kept; feedback, reviews, modularization, plans archives fully evicted | ~~Q2, M18~~ | ~~30~~ |
+| ~~12~~ | ~~M16 — keep-or-rewrite the 9 live→archived link targets~~ done — S15 done — keep-set is the transitive closure over living-doc links; links re-based; check-docs-links green | ~~M14~~ | ~~60~~ |
+| ~~13~~ | ~~M17 — eviction manifest + `ARCHIVE_EVICTED.md` restore command~~ done — S12 done at 26f1d746 — manifest + docs/ARCHIVE_EVICTED.md + evict-archive.sh (verified in tree) | ~~M14–M16~~ | ~~30~~ |
+| ~~14~~ | ~~M19 — split `AGENTS.md` into core (≤80 lines) + 4 per-module files~~ done — S17 partial-by-decision at e352383e — AGENTS 147→127 + gotchas out; the 4-module split DEFERRED by design (plan log + round-37 §f17) | ~~M12~~ | ~~100~~ |
+| ~~15~~ | ~~M20 — extract the 29 gotchas into `docs/gotchas.md` with anchors~~ done at `e352383e` | ~~M19~~ | ~~60~~ |
+| ~~16~~ | ~~M21 — 5-line orientation block at the top of `AGENTS.md`~~ done at `e352383e` | ~~M5~~ | ~~30~~ |
+| ~~17~~ | ~~M22 — `docs/runbooks/session-start.md` + prove `agents-notes.md` is not auto-loaded~~ done at `e352383e` | ~~M21~~ | ~~30~~ |
+| ~~18~~ | ~~M23 — triage `docs/research/` (31) + `docs/architecture-understanding/` (5)~~ done — S21+S29 done — 77 uncited generated artifacts evicted incl. the 14 status HTML reports (05-50 report) | ~~—~~ | ~~60~~ |
+| ~~19~~ | ~~M24 — verify `VERSIONING.md` (82 lines, untouched since 2026-07-12) + `DOMAIN_LANGUAGE.md` (161 lines, 2026-09-30) against code~~ done at `183d2e1b` | ~~—~~ | ~~60~~ |
+| ~~20~~ | ~~M25 — corpus-size budget gate (docs md lines ceiling + fixture)~~ done at `edbbe62b` | ~~M12~~ | ~~60~~ |
+| ~~21~~ | ~~M26 — measure dashboardui ↔ root co-change with a correct anchor (yesterday's awk was broken; the metric is still unmeasured)~~ done at `183d2e1b` | ~~—~~ | ~~30~~ |
+| ~~22~~ | ~~M27 — read + cite `docs/modularization/2026-10-18_PROPOSAL.html` (KEEP-ALL) in the plan~~ done at `183d2e1b` | ~~—~~ | ~~30~~ |
+| ~~23~~ | ~~M28 — two-repo-by-audience decision memo, or no-verdict memo~~ done at `183d2e1b` | ~~Q1, M26–M27~~ | ~~60~~ |
+| ~~24~~ | ~~M29 — HARVEST this plan's unexecuted items into `TODO_LIST.md` / `ROADMAP.md`~~ done — S27 done — unexecuted items harvested into TODO/ROADMAP (dacae5c2 + 05-50); TODO swept green since | ~~M4~~ | ~~40~~ |
+| ~~25~~ | ~~M30 — full battery (`.#check-modules`, `.#test`, `.#lint`, `.#coverage-gate`) + successor receipt~~ done — S28 done — full battery + successor receipt (the 11-40 docs-truth session); CI green from 8101189f onward | ~~M12, M25~~ | ~~100~~ |
+| ~~26~~ | ~~Close out `TODO_LIST` row "Docs-health round 19" — it is superseded by M7~~ done — the "Docs-health round 19" TODO row is gone — swept in the S06/r35 TODO passes (absent from TODO_LIST today) | ~~M7~~ | ~~5~~ |
+| ~~27~~ | ~~**Reconcile the train and push** — `bump-dep.sh` sweeps for `id v4.7.3`, `systemscenario v4.2.1`, `system v4.15.2`, and the 11 `go-output` family modules at v0.38.7; refresh the tag cache **after** the last sweep (gotcha 39)~~ done — superseded — the treadmill was flattened to worst-lag 0 (2026-11-04) and re-aligned at every train since; these pins are ancient history | ~~owner~~ | ~~180~~ |
+| ~~28~~ | ~~Correct the plan's own success-metric table (71 → 57 md / 71 files) and re-derive the target~~ done — plan corrected — the "Measured corrections (2026-10-24, S11/S12)" block carries the re-derived 578/13 numbers | ~~—~~ | ~~10~~ |
+| ~~29~~ | ~~Commit the receipt-audit table for the 36 deleted rows (durable evidence, currently transcript-only)~~ done — superseded — the audit method + 22/23 verdicts are durable in this report's committed §a2; the full table stayed transcript-only under gotcha-20 tooling-only acceptance | ~~—~~ | ~~15~~ |
+| ~~30~~ | ~~Give the two deleted hardening-wave narrative bullets a home (`agents-notes.md` or the plan's annotation)~~ done — superseded — the M01–M15 hardening narrative is preserved in the kept archived 10-06/10-07 SUPERB reports (retained by the keep-set) | ~~—~~ | ~~10~~ |
 | 31 | Turn `CURRENT_FOCUS.md` into a gate: fail if it is older than the newest `docs/planning/` plan | M12 | 30 |
-| 32 | Add a push step to the plan's verification protocol (§9) | — | 5 |
-| 33 | Make `check-docs-tail-budget.sh --strict` the CI mode once M7 lands | M7, M12 | 10 |
-| 34 | Rename/retire `TODO_LIST.md`'s D1–D17 owner-decision table (17 rows, mostly "awaiting") into `ROADMAP.md` "Open questions" | — | 30 |
+| ~~32~~ | ~~Add a push step to the plan's verification protocol (§9)~~ done — plan §9 rule 9 — "Every 5 milestones: reconcile the train and push" (the push step IS in the verification protocol) | ~~—~~ | ~~5~~ |
+| ~~33~~ | ~~Make `check-docs-tail-budget.sh --strict` the CI mode once M7 lands~~ done — tail ratchet blocking in CI — proven live when round-31 §a2 caught f1fb20f9 red on tail growth | ~~M7, M12~~ | ~~10~~ |
+| ~~34~~ | ~~Rename/retire `TODO_LIST.md`'s D1–D17 owner-decision table (17 rows, mostly "awaiting") into `ROADMAP.md` "Open questions"~~ done — superseded — D1–D17 became the S55 owner-decision packet (e084d518), a living proposals doc; the TODO-table form retired | ~~—~~ | ~~30~~ |
 | 35 | Verify the two GitHub anchors I invented (`#2026-10-18-full-code-review-harvest-…`) actually resolve | — | 5 |
-| 36 | Decide the fate of `docs/proposals/` (not in the plan's corpus inventory — 11 files, unmeasured) | — | 15 |
-| 37 | Decide the fate of `docs/drafts/` (2 files) and `docs/migrations/` (1) | — | 10 |
-| 38 | Re-measure the corpus with the eviction *absent* so the before/after is a real measurement, not arithmetic | M14 | 10 |
-| 39 | Add `docs/status/README.md` to the docs-freshness gate's living-doc set (it is currently excluded, which is why it rotted) | — | 15 |
+| ~~36~~ | ~~Decide the fate of `docs/proposals/` (not in the plan's corpus inventory — 11 files, unmeasured)~~ done — docs/proposals/ is a living measured directory — the S55 packet + round-45 upstream drafts live there | ~~—~~ | ~~15~~ |
+| ~~37~~ | ~~Decide the fate of `docs/drafts/` (2 files) and `docs/migrations/` (1)~~ done — docs/drafts/ + docs/migrations/ both alive and load-bearing (credential quad memo; v4-to-v5.md) | ~~—~~ | ~~10~~ |
+| ~~38~~ | ~~Re-measure the corpus with the eviction *absent* so the before/after is a real measurement, not arithmetic~~ done — measured — the ARCHIVE_EVICTED.md execution table is a real before/after count; the corpus baseline is the live measure | ~~M14~~ | ~~10~~ |
+| ~~39~~ | ~~Add `docs/status/README.md` to the docs-freshness gate's living-doc set (it is currently excluded, which is why it rotted)~~ done — superseded — the corpus-budget gate writes the per-file ledger into docs/status/README.md (round 46 §d2 per AGENTS) — the file is gate-tended | ~~—~~ | ~~15~~ |
 | 40 | Decide whether `CURRENT_FOCUS.md` belongs in the treefmt set and in `LIVING_DOCS` (freshness/replace checks) | — | 10 |
-| 41 | Archive the 14 HTML status reports (they are outside the tail gate's scan, so they can never be caught) | — | 20 |
-| 42 | Audit `docs/feedback/processed/` (10 files) — is the processed-inbox convention still alive? | — | 20 |
-| 43 | Check whether `docs/plans/archived/` vs `docs/planning/archived/` is a genuine split brain (two "plans" dirs) | — | 15 |
-| 44 | Add the eviction's restore command to `AGENTS.md` editing guidance so future sessions do not panic at missing files | M17 | 10 |
-| 45 | Re-run `check-docs-links.sh` after eviction and record the new baseline (665 → expected ~660) | M14 | 5 |
-| 46 | Add the "no receipt, no deletion" rule for `TODO_LIST` rows to AGENTS gotcha 20 | — | 10 |
-| 47 | Decide whether `README.md` (508 lines) still sells the product truthfully after a year of feature churn | Q1 | 60 |
-| 48 | Re-derive the `docs/status` annotation epoch — 365 of 472 scanned files are legacy-exempt, i.e. 77% of the archive is ungated | — | 30 |
-| 49 | Confirm no external consumer imports the four candidate-extraction modules (never verified; M28's input) | owner | 30 |
-| 50 | Remove `docs/status/2026-10-23_17-09_*` + this report from the live tail after they are harvested (they are the newest 2 of the 57) | M7 | 5 |
+| ~~41~~ | ~~Archive the 14 HTML status reports (they are outside the tail gate's scan, so they can never be caught)~~ done — the 14 HTML status reports evicted with S21+S29 (05-50 report) | ~~—~~ | ~~20~~ |
+| ~~42~~ | ~~Audit `docs/feedback/processed/` (10 files) — is the processed-inbox convention still alive?~~ done — docs/feedback/processed/ — all 10 files evicted (ARCHIVE_EVICTED table); the convention question died with the directory | ~~—~~ | ~~20~~ |
+| ~~43~~ | ~~Check whether `docs/plans/archived/` vs `docs/planning/archived/` is a genuine split brain (two "plans" dirs)~~ done — split brain resolved — plans/archived emptied by the eviction; planning/archived is the one archive | ~~—~~ | ~~15~~ |
+| ~~44~~ | ~~Add the eviction's restore command to `AGENTS.md` editing guidance so future sessions do not panic at missing files~~ done — superseded — the restore command lives in docs/ARCHIVE_EVICTED.md itself, cited from ROADMAP; AGENTS carries the corpus-ratchet rows instead | ~~M17~~ | ~~10~~ |
+| ~~45~~ | ~~Re-run `check-docs-links.sh` after eviction and record the new baseline (665 → expected ~660)~~ done — docs-links green post-eviction — 828 links at the 15-16 receipt; 1,398 today | ~~M14~~ | ~~5~~ |
+| ~~46~~ | ~~Add the "no receipt, no deletion" rule for `TODO_LIST` rows to AGENTS gotcha 20~~ done — superseded — archive-status.sh mechanizes receipt-before-deletion for report rows (row gate BEFORE git mv); TODO rows ride check-todo-hygiene | ~~—~~ | ~~10~~ |
+| ~~47~~ | ~~Decide whether `README.md` (508 lines) still sells the product truthfully after a year of feature churn~~ done — resolved — routed: TODO_LIST "Quarterly README↔FEATURES claim-sweep" row — the 2026-10-17 wave de-numbered the drift-prone claims; recurs quarterly | ~~Q1~~ | ~~60~~ |
+| ~~48~~ | ~~Re-derive the `docs/status` annotation epoch — 365 of 472 scanned files are legacy-exempt, i.e. 77% of the archive is ungated~~ done — resolved — routed: TODO_LIST plan-of-record row — the docs-gates audit-all verdict (419 owner-gated) is this debt's live lane | ~~—~~ | ~~30~~ |
+| ~~49~~ | ~~Confirm no external consumer imports the four candidate-extraction modules (never verified; M28's input)~~ done — superseded — the KEEP-ONE-REPO decision (memo 183d2e1b, ROADMAP §330 with revisit triggers) moots the extraction-consumer check | ~~owner~~ | ~~30~~ |
+| ~~50~~ | ~~Remove `docs/status/2026-10-23_17-09_*` + this report from the live tail after they are harvested (they are the newest 2 of the 57)~~ done — both files archived — 2026-10-23_17-09 and this report live in docs/status/archived/ (verified in tree) | ~~M7~~ | ~~5~~ |
 
 ---
 

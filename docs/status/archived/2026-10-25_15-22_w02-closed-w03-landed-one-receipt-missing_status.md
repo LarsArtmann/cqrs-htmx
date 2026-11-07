@@ -58,56 +58,56 @@
 
 ## f) NEXT (up to 50, ordered)
 
-1. Write the missing usermgmt CHANGELOG S39 receipt (empty-subject + nonce flow) — 2 min, unblocks the dangling root pointer.
-2. Check CI verdict for the tip commit (`471ab2b2`/`5f47d846`); triage if red (shellcheck on new test files is the only plausible risk).
-3. W04.0: re-verify every S38 `file:line` in identity-model (3 of 6 S37 tails were already fixed by others; expect the same here).
-4. W04: `GenerateUserID` → `brandid.NewID` call-order tail.
-5. W04: strict `ParseTenantID`/`ParseBotID` (reject malformed prefixes).
-6. W04: `Exists`/`IsActive` split on the authz surface.
-7. W04: g2-guard under custom Casbin model (hierarchy seeding must not corrupt a consumer model that reuses g2).
-8. W04: `NotConfigured` errors → permanent family (not transient).
-9. W04: accessor methods return copies where they return aliased slices/maps.
-10. W04: kill the internal deprecated `NewUserID` (identity-model).
-11. W04: idm CHANGELOG receipts + `.#test-identity-model`.
-12. W05: declarative Enforce ladder vs legacy Casbin grants — align or document honestly (the silent-widening-on-migration class).
-13. W05: audit Action vocabulary parity with `usermgmt.AuditAction*`.
-14. W05: ActorID carried into declarative audit entries.
-15. W05: systemadapter CHANGELOG + declarative suite.
-16. W06: DocsHandler/DocsPath end-to-end mount test.
-17. W06: `RecorderChain(Recorder(svc), auditPlugin)` composition proof.
-18. W06: `StateShape` round-trip (SQL snapshot + codec; file upstream if the stamp drops).
-19. W07: `WithSchemaVersion(1)` on the 21 idm constructors.
-20. W07: `WithSchemaVersion(1)` on e2e/demo sites (8 sites).
-21. W07: delete health status mirrors + root require bump + integration_test half.
-22. W07: receipts + idm/health suites.
-23. W08: verify sibling's S45 EventHandler section + idm README receipts.
-24. W08: verify S52 mandate row, S53 credential memo, S54 v5 skeleton (presence + docs gates + AGENTS truth pass).
-25. W10: Playwright WebAuthn virtual-authenticator E2E (register + login through the rendered loginpage).
-26. W10: full-page render golden (stable IDs, nonce-insensitive).
-27. W11: split `setup/config.go` (1186 lines).
-28. W11: split `systemadapter/declarations.go` (609).
-29. W11: split `usermgmt/service_core.go` (576).
-30. W11: split `dashboardui/layout.go` (518 → assets).
-31. W11: split `e2e/server/main.go` (487); verify `check-large-files` + suites.
-32. W12: full battery — `nix run .#test` (4× rc=0 target, two attempts max).
-33. W12: `nix run .#lint` + `.#coverage-gate` + `.#check-modules -- --report`.
-34. W12: push through strict pre-push gates + `gh run watch` + `.#verify-remote-tags` + ahead-0.
-35. W12: `git log --stat` book reconciliation with sibling's 15-16 receipt (their "11 commits ahead" note vs current synced state — confirm nothing of theirs was lost in my pushes).
-36. W14: loginpage AutoRedirect follow-through (NoWebAuthn asymmetry memo, AuthPrefix validation, guide, FEATURES row).
-37. W14: dashboardui 09-48 tails — rune-safe truncate/initials.
-38. W14: dashboardui PathEscape on path-derived values.
-39. W14: dashboardui data-base-path on the layout shell.
-40. W14: dashboardui audit streaming + neighbour early-stop.
-41. W14: dashboardui snapshot 404/500 + boost-inheritance guard sweep.
-42. W14: root declutter — biome.json prove-or-remove, allowlist sketch.
-43. W14: sweep-plan M18/M20/M21 + RequireSession export-or-document.
-44. W15: art-dupl r3 accept-baseline + 2 extractions.
-45. W15: `check-skill-claims.sh` skeleton + snippet compile gate + README split-brain scan.
-46. W15: tooling canaries a–g + upstream ask drafts batch (packet U1 approves drafting).
-47. W17: FINAL battery + push + final receipt superseding both 13-30 (archived) and the sibling's 15-16 interim + CURRENT_FOCUS rewrite.
+1. ~~Write the missing usermgmt CHANGELOG S39 receipt (empty-subject + nonce flow) — 2 min, unblocks the dangling root pointer.~~ done — usermgmt CHANGELOG S39 receipt written — "OAuth2 empty-subject defense + OIDC nonce" entry (verified in tree 2026-11-07; the root pointer is no longer dangling)
+2. ~~Check CI verdict for the tip commit (`471ab2b2`/`5f47d846`); triage if red (shellcheck on new test files is the only plausible risk).~~ done — CI verdicts checked — the tip pushes were triaged in the successor rounds; CI green from 8101189f onward (round-31 §a1–2)
+3. ~~W04.0: re-verify every S38 `file:line` in identity-model (3 of 6 S37 tails were already fixed by others; expect the same here).~~ done — W04.0 re-verification done — S38 a–g ALL LANDED (round-31 §a3)
+4. ~~W04: `GenerateUserID` → `brandid.NewID` call-order tail.~~ done — S38a — GenerateUserID ordering via brandid.NewID + ULID-ordering tests (round-31 §a3)
+5. ~~W04: strict `ParseTenantID`/`ParseBotID` (reject malformed prefixes).~~ done — S38b — strict ParseTenantID/ParseBotID with parse accept/reject vectors, wired into FoldMembership (round-31 §a3)
+6. ~~W04: `Exists`/`IsActive` split on the authz surface.~~ done — S38c — additive UserState.IsActive/BotState.IsActive, Exists semantics frozen (round-31 §a3)
+7. ~~W04: g2-guard under custom Casbin model (hierarchy seeding must not corrupt a consumer model that reuses g2).~~ done — S38d — NewAuthz skips g2 seeding under custom models (seedDefaultRoleHierarchy extracted; round-31 §a3)
+8. ~~W04: `NotConfigured` errors → permanent family (not transient).~~ done — S38e — NotConfigured → Rejection 400-class permanent family (round-31 §a3)
+9. ~~W04: accessor methods return copies where they return aliased slices/maps.~~ done — S38f — 7 command slice accessors return slices.Clone, mutation probes green (round-31 §a3)
+10. ~~W04: kill the internal deprecated `NewUserID` (identity-model).~~ done — S38g — internal NewUserID uses killed: role resolution parses via ParseUserID (idm CHANGELOG S38g receipt; the exported deprecated shim stays by design)
+11. ~~W04: idm CHANGELOG receipts + `.#test-identity-model`.~~ done — idm CHANGELOG receipt written + suite green, CI 8101189f SUCCESS (round-31 §a3)
+12. ~~W05: declarative Enforce ladder vs legacy Casbin grants — align or document honestly (the silent-widening-on-migration class).~~ done — S42a — Enforce answers what legacy Casbin answers; live parity test 5 roles × 3 actions (round-31 §a4)
+13. ~~W05: audit Action vocabulary parity with `usermgmt.AuditAction*`.~~ done — S42b — audit Action vocabulary = usermgmt.AuditAction* constants (round-31 §a4)
+14. ~~W05: ActorID carried into declarative audit entries.~~ done — S42c — AuditEntryView gains ActorID + Detail; upstream system.Execute limit documented honestly (round-31 §a4)
+15. ~~W05: systemadapter CHANGELOG + declarative suite.~~ done — systemadapter CHANGELOG + declarative suite green (round-31 §a4)
+16. ~~W06: DocsHandler/DocsPath end-to-end mount test.~~ done — S46a — TestSetup_DocsHandler_SessionGatedMount end-to-end through setup.New (round-31 §a5)
+17. ~~W06: `RecorderChain(Recorder(svc), auditPlugin)` composition proof.~~ done — S46b — TestHealth_RecorderChain_MergesProjectionsAndAuditPlugin proof (round-31 §a5)
+18. ~~W06: `StateShape` round-trip (SQL snapshot + codec; file upstream if the stamp drops).~~ done — resolved — routed: TODO_LIST "StateShape SQL round-trip" row — verdict tests landed (d4a65b0f); upstream ask go-cqrs-lite#117 filed 2026-11-07
+19. ~~W07: `WithSchemaVersion(1)` on the 21 idm constructors.~~ done — W07 stamped — WithSchemaVersion(1) on all 31 construction sites (round-32)
+20. ~~W07: `WithSchemaVersion(1)` on e2e/demo sites (8 sites).~~ done — W07 e2e/demo sites stamped within the 31 (round-32)
+21. ~~W07: delete health status mirrors + root require bump + integration_test half.~~ done — W07 mirrors deleted + root require bump + integration_test half — rider row closed, all three halves true (round-32 §a5)
+22. ~~W07: receipts + idm/health suites.~~ done — W07 receipts + idm/health suites green (round-32)
+23. ~~W08: verify sibling's S45 EventHandler section + idm README receipts.~~ done — W08.1 verified — S45 section checked 1:1 against event/v4@v4.15.2 (round-33 W08)
+24. ~~W08: verify S52 mandate row, S53 credential memo, S54 v5 skeleton (presence + docs gates + AGENTS truth pass).~~ done — W08.2 verified — S52 mandate, S53 memo, S54 skeleton all truthful + gates rc=0 (round-33 W08)
+25. ~~W10: Playwright WebAuthn virtual-authenticator E2E (register + login through the rendered loginpage).~~ done — W10 done — e2e/tests/loginpage-webauthn.spec.ts virtual-authenticator E2E; caught the publicKey-envelope bug (round-33 W10; in tree)
+26. ~~W10: full-page render golden (stable IDs, nonce-insensitive).~~ done — W10 golden — e2e/tests/loginpage-golden.spec.ts full-page render golden (round-33 W10; in tree)
+27. ~~W11: split `setup/config.go` (1186 lines).~~ done — W11.1 — setup/config.go 1186 → config.go + config_validate.go + config_paths.go (round-33 W11, 408c0356)
+28. ~~W11: split `systemadapter/declarations.go` (609).~~ done — W11.2 — declarations.go → declarations_identity/user/authz (round-33 W11)
+29. ~~W11: split `usermgmt/service_core.go` (576).~~ done — W11.3 — service_core.go → core/factory/lifecycle (round-33 W11)
+30. ~~W11: split `dashboardui/layout.go` (518 → assets).~~ done — W11.4 — dashboardui/layout.go 518 → layout.go + layout_assets.go (round-33 W11)
+31. ~~W11: split `e2e/server/main.go` (487); verify `check-large-files` + suites.~~ done — W11.5 — e2e/server/main.go split; check-large-files + suites green (round-33 W11)
+32. ~~W12: full battery — `nix run .#test` (4× rc=0 target, two attempts max).~~ done — W12 gate 1 — .#test rc=0 after one flake rerun (round-33)
+33. ~~W12: `nix run .#lint` + `.#coverage-gate` + `.#check-modules -- --report`.~~ done — W12 gates 2–4 — lint rc=0, coverage rc=0, check-modules green after round-34 healed the streamid pin (rounds 33–34)
+34. ~~W12: push through strict pre-push gates + `gh run watch` + `.#verify-remote-tags` + ahead-0.~~ done — W12 push — strict gates, CI watched green, verify-remote-tags 179/179 (round-36)
+35. ~~W12: `git log --stat` book reconciliation with sibling's 15-16 receipt (their "11 commits ahead" note vs current synced state — confirm nothing of theirs was lost in my pushes).~~ done — W12 book reconciliation — git log --stat f6dec11d..HEAD vs receipts consistent, nothing theirs lost (round-36)
+36. ~~W14: loginpage AutoRedirect follow-through (NoWebAuthn asymmetry memo, AuthPrefix validation, guide, FEATURES row).~~ done — W14 AutoRedirect DONE (round-34 §f25)
+37. ~~W14: dashboardui 09-48 tails — rune-safe truncate/initials.~~ done — w14.2 — UTF-8 rune-safe truncate/initials (TODO "dashboardui 09-48 self-review tails" row, DONE 2026-10-26)
+38. ~~W14: dashboardui PathEscape on path-derived values.~~ done — w14.2 — url.PathEscape segments (same row)
+39. ~~W14: dashboardui data-base-path on the layout shell.~~ done — w14.2 — data-base-path hook (same row)
+40. ~~W14: dashboardui audit streaming + neighbour early-stop.~~ done — w14.3 — audit export cursor streaming + stall guards; FindEventNeighbors early-stop (same row)
+41. ~~W14: dashboardui snapshot 404/500 + boost-inheritance guard sweep.~~ done — w14.3/w14.4 — snapshot 404/500 split + idempotent delete; boost-inheritance guard (same row)
+42. ~~W14: root declutter — biome.json prove-or-remove, allowlist sketch.~~ done — W14.5 — biome.json REMOVED + check-root-files gate (round-35)
+43. ~~W14: sweep-plan M18/M20/M21 + RequireSession export-or-document.~~ done — W14.6 — sweep-plan M18/M20/M21 completed + RequireSession gated via setup.RequireSessionRedirect (rounds 34–35)
+44. ~~W15: art-dupl r3 accept-baseline + 2 extractions.~~ done — resolved — routed: TODO_LIST "art-dupl round-3 tails" row — accept-baseline + extractions HELD owner-gated (not re-pinned 2026-11-06)
+45. ~~W15: `check-skill-claims.sh` skeleton + snippet compile gate + README split-brain scan.~~ done — W15.2/W15.3 — check-skill-claims.sh + snippet gate + README split-brain scan all landed 2026-10-26 (TODO "Skill-maintenance gates" row)
+46. ~~W15: tooling canaries a–g + upstream ask drafts batch (packet U1 approves drafting).~~ done — canaries a–g landed (round-35); U1 drafting executed — 5 drafts under docs/proposals/upstream/ (round-45 pack); filing remains owner-gated in the TODO row
+47. ~~W17: FINAL battery + push + final receipt superseding both 13-30 (archived) and the sibling's 15-16 interim + CURRENT_FOCUS rewrite.~~ done — W17 final battery + receipts + CURRENT_FOCUS rewrite landed (round-35); 13-30 and the 15-16 interim both superseded/archived
 48. Next-train prep (owner-gated): promote the OIDC nonce into the BASE OAuth2Provider interface as a coordinated idm+oauth2+usermgmt train (the additive pair is the v4 bridge; see question 2).
 49. Consider a one-liner "test-name claims vs assertions" audit script (improvement e4).
-50. Consider archiving the 15-16 sibling interim when the W17 final receipt lands (keep tail ≤2; same-commit baseline moves).
+50. ~~Consider archiving the 15-16 sibling interim when the W17 final receipt lands (keep tail ≤2; same-commit baseline moves).~~ done — the 15-16 sibling interim IS archived (in docs/status/archived/; verified in tree)
 
 ## g) QUESTIONS (cannot figure out myself)
 
