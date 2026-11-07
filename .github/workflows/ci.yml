@@ -446,7 +446,7 @@ jobs:
 
       - name: Verify go mod tidy (all modules)
         run: |
-          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui huma datastar setup systemadapter health auditlog integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
+          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui huma datastar setup systemadapter health auditlog integration_test e2e/server examples/basic examples/admin-demo examples/async-startup-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/middleware-showcase examples/observability-demo examples/dashboard-demo examples/samber-do-demo examples/setup-demo examples/sync-demo examples/system-demo; do
             echo "=== Checking $mod ==="
             (cd "$mod" && go mod tidy -diff)
           done
