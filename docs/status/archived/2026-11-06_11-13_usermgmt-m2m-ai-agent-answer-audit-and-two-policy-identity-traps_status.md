@@ -1,5 +1,9 @@
 # Status — The M2M/AI-agent answer, audited: no durable grant path, a cleanup that removes the wrong rows, and a setter that does not exist
 
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md`](../2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md), which M2M audit findings + the two identity traps were executed and closed by the M2M W0 execution report (truth attribution landed); open rows live in TODO_LIST. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-07 (round-23 htmx-session (2026-11-07)).**
+
 **Date:** 2026-11-06, 11:05–11:45 CET
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`, shared working tree. One uncommitted modification exists (`scripts/selftests/test-check-conflict-markers.sh`) that this session did not author and deliberately did not touch.
 **Scope of this session:** a single in-conversation question — "What does usermgmt offer for machine-to-machine communications or AI Agents?" No code was written, no test was run, no gate was run, nothing was tagged or committed. This report is the retrospective audit of that answer plus the verification pass I owed it.

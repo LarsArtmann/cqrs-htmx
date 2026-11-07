@@ -1,7 +1,7 @@
 # Status — the v4.17.0 family train executed end-to-end, and CI green
 
 **Written:** 2026-11-07 06:4x CET · **Session window:** 00:45 → 05:2x · **HEAD at writing:** the docs commit carrying this report (see `git log -1`)
-**Predecessor:** [23-52 receipt battery](archived/2026-11-06_23-52_receipt-battery-dep-sweep-coverage-recovery-and-owner-gated-train_status.md) (archived this pass — its §g1/§g3 answered by this session's execution) · [00-15 templ-era conflict + push unblock](2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md) (live; its §g2 go-work policy and §c/f queue carried)
+**Predecessor:** [23-52 receipt battery](archived/2026-11-06_23-52_receipt-battery-dep-sweep-coverage-recovery-and-owner-gated-train_status.md) (archived this pass — its §g1/§g3 answered by this session's execution) · [00-15 templ-era conflict + push unblock](archived/2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md) (live; its §g2 go-work policy and §c/f queue carried)
 **Operator directive:** the owner cancelled the §g questionnaire and re-sent "keep going until done" — the recorded precedent (2026-11-03_20-15 §0) treats that as the standing GO; the train, the verification battery, and safe hygiene items executed under it. Posture-only calls (§g below) were NOT self-answered.
 
 ## a) Fully done (verified in-tree this session)

@@ -1,5 +1,9 @@
 # Status — Second pass: the M2M findings report, and a design answer I published before proving it reachable
 
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md`](../2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md), which the SUPERB design answer was adopted and executed by the M2M W0 report; design decisions recorded in the decision batch. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-07 (round-23 htmx-session (2026-11-07)).**
+
 **Date:** 2026-11-06, 11:05–11:50 CET
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`, shared working tree with sibling sessions committing alongside this one (the daemon auto-committed this session's report as `be5dbb6f`; `d66af0c5` and `048f041b` after it are not mine).
 **Scope of this session:** two deliverables on top of a single question. First, an audit report for the answer I gave about usermgmt's machine-to-machine surface (`docs/status/2026-11-06_11-13_usermgmt-m2m-ai-agent-answer-audit-and-two-policy-identity-traps_status.md`). Second, a design answer to "what would make project-to-project, data-mesh, AI-agent, and M2M auth superb and default-secure", followed by a Pareto execution plan (`docs/planning/2026-11-06_11-49_SUPERB-m2m-agent-and-data-mesh-auth-pareto-plan.md`).

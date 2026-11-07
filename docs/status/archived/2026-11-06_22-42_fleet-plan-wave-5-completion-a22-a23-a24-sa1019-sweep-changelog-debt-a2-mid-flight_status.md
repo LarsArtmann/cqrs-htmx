@@ -1,7 +1,7 @@
 # Fleet-plan wave-5 completion pass: A22 verified + B93/B94, A23, A24, CHANGELOG debt cleared, SA1019 sweep workspace-wide green, A2-adminui mid-flight
 
 > **ANNOTATED 2026-11-07** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-07 (train-execution).**
-> The next session in the same arc is [`2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md`](../2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md), which Wave-5 complete and receipted; its render-lane owner question rides the fleet-libs TODO row; SA1019 sweep healed at the v4.17.0 train.
+> The next session in the same arc is [`2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md`](2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md), which Wave-5 complete and receipted; its render-lane owner question rides the fleet-libs TODO row; SA1019 sweep healed at the v4.17.0 train.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Date:** 2026-11-06 22:42 CET · **Session:** resumption of the fleet-plan executor (wave 5 tail) · **Plan of record:** `docs/planning/2026-11-06_00-37_SUPERB-fleet-libs-audit-follow-through-pareto-plan.md` · **Mode:** execute + verify one item at a time.
