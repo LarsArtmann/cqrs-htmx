@@ -182,7 +182,7 @@
 ~~45. Re-run the go-appkit sweep after the train and expect 4/4 PASS. Routed to plan task C08. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ routed — TODO_LIST.md:21 plan-of-record row, coarse task C08 (go-appkit bumped to v0.12.0 at 5661c288; the 4/4 sweep receipt rides the row)
 ~~46. Confirm `examples/async-startup-demo` (the one module that passed today) still passes post-train.~~ verified — checked this session: go build green in examples/async-startup-demo and go test rc 0 (the module ships no test files; build is the leg)
 47. Consider a wider baseline file format (count plus attribution plus date) to end the one-number corruption class.
-~~48. Add a collision probe to the session-start runbook: check for other live sessions before a multi-file pass.~~ routed — TODO_LIST.md:104 shared-tree branch-guard row (sibling-session warning plus session-start wiring)
+~~48. Add a collision probe to the session-start runbook: check for other live sessions before a multi-file pass.~~ resolved — routed to TODO_LIST.md:104 shared-tree branch-guard row (sibling-session warning plus session-start wiring)
 49. Record the quiet-window policy evidence (load 32–42 on 32 cores today) in `docs/runbooks/release-next-train-prep.md`.
 ~~50. Track the `huma/` module that appeared mid-session: it is a sibling's new surface and will need its own gates wired.~~ verified — huma is wired into the fleet gates: dep-budgets row, isolation output, cqrs-lint huma green (TODO_LIST row 21 receipt); the nine files the huma session touched
 
