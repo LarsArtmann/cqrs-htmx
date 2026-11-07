@@ -153,6 +153,20 @@ const res = await fetch("/contacts/search", {
 });
 ```
 
+## Proxy and CDN compatibility (verified rows only)
+
+Retrieved 2026-11-07 against official docs/changelogs; every YES row cites its
+source, every blank is UNVERIFIED — the fallback ladder exists precisely for
+the unverified middle.
+
+| Proxy / CDN | Forwards QUERY? | Evidence (official) | Caveats |
+| --- | --- | --- | --- |
+| Envoy v1.40+ | **YES** (explicit RFC 10008 changelog entry; HTTP/2+3 always did) | [v1.40 release notes](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.0): "The QUERY request method, registered by RFC 10008, is now recognized by the HTTP/1 codec and is forwarded rather than rejected" | ≤ v1.39 over HTTP/1 rejected QUERY with 400; v1.40 requires `Content-Type` on QUERY (400 `query_missing_content_type` otherwise — pair with `RequireContentType`) |
+| Caddy | **YES** (method-agnostic by doc) | [reverse_proxy docs](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy): upstream request uses "the same HTTP method and URI as the incoming request" | Never rewrite QUERY to GET/HEAD — Caddy drops the body on that rewrite |
+| nginx | **YES** (client method forwarded; no default allowlist) | [proxy_module docs](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_method): method override is opt-in only | `limit_except` blocks QUERY if you wrote one; no RFC 10008 mention through nginx 1.31.8 |
+| Cloudflare | UNVERIFIED (edge forwarding) | Workers Cache API rejects QUERY today ([workerd#6849](https://github.com/cloudflare/workerd/issues/6849), open PR #6857) | WAF/edge method handling undocumented for QUERY — test your zone or ride the override fallback |
+| AWS ALB | UNVERIFIED | [rule conditions](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html) officially match custom methods incl. QUERY | Default forwarding of unknown methods to targets not documented — test or ride the fallback |
+
 ## Posture notes
 
 - **CSRF:** httputil's CSRF middleware (the one cqrs-htmx re-exposes) currently challenges native QUERY — its safe-method exemption covers GET/HEAD/OPTIONS/TRACE only, and QUERY is spec-safe. Until the exemption is fixed upstream, either mount QUERY routes outside CSRF or send the token; rung 2 always carries it. The fallback-POST rule above does not change either way.
