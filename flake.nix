@@ -47,11 +47,14 @@
           # go_1_27 = 1.27.1, so pin the patch version forward via
           # overrideAttrs (same mechanism go-health used in reverse for gosec
           # on 2026-10-11) instead of a whole nixpkgs bump.
+          # 2026-11-07: 1.27.3 — go-faster/errors v0.8.0's MVS floor pushed
+          # go.work past 1.27.2; the fleet floor follows (all module go.mods
+          # bumped same-wave).
           goPkg = pkgs.go_1_27.overrideAttrs (_old: rec {
-            version = "1.27.2";
+            version = "1.27.3";
             src = pkgs.fetchurl {
               url = "https://go.dev/dl/go${version}.src.tar.gz";
-              hash = "sha256-A0ldorpkiU1A9cSZLklFT6eLUGkGBP+Stq//UIG3bmI=";
+              hash = "sha256-bndJA1zzYPBrJXXRYup535/ajvZxiJ5cN1+OUHd/Jrs=";
             };
           });
 
