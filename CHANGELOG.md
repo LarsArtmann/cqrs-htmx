@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.18.1] - 2026-11-07
+
 ### Added
 
 - **Embedded asset drift pins (2026-11-07).** `htmx/asset_pins_test.go` sha256-pins all four vendored `.min.js` assets (default core, htmx 4 core, SSE ext, idiomorph ext) to their pristine upstream dist bytes — a re-vendor of the wrong version, a partial copy, or a formatter re-pretty-print fails CI with the expected source URL in the failure message. The first pin run is also the receipt for the discovery below: every one of the four pre-bump files would have failed it (all had been formatter-prettified: core 51,238→72,513 B, SSE 2,853→3,886 B, idiomorph 10,153→14,509 B).
