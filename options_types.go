@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
@@ -70,9 +71,51 @@ type handlerConfig struct {
 	timeout        time.Duration
 	successStatus  int
 	requireMethod  string
-	onError        func(*http.Request, error)
-	requestGuard   RequestGuardFunc
-	openapiMeta    *openapi.Operation
+	// requireMethods is the multi-method generalization of requireMethod
+	// (RequireAnyMethod): when set, the request method must be one of these.
+	requireMethods []string
+	// requiredContentType, when set (RequireContentType), rejects requests
+	// whose declared Content-Type is missing with a body (400) or different
+	// from the required media type (415) — the RFC 10008 media-type ladder.
+	requiredContentType string
+	// acceptQuery carries the media types advertised via the Accept-Query
+	// response header (RFC 10008 discovery). JSON body-query decoders seed it
+	// with application/json so the advertisement cannot drift from what the
+	// handler actually decodes; AcceptQuery appends consumer types.
+	acceptQuery  []string
+	onError      func(*http.Request, error)
+	requestGuard RequestGuardFunc
+	openapiMeta  *openapi.Operation
+}
+
+// methodAllowed reports whether the HTTP method passes the method guard:
+// the single-method RequireMethod when set, then the multi-method
+// RequireAnyMethod set. No guard configured means every method is allowed
+// (the consumer's mux pattern owns method routing in that case).
+func (c *handlerConfig) methodAllowed(method string) bool {
+	if c.requireMethod != "" {
+		return method == c.requireMethod
+	}
+	if len(c.requireMethods) > 0 {
+		for _, allowed := range c.requireMethods {
+			if method == allowed {
+				return true
+			}
+		}
+		return false
+	}
+	return true
+}
+
+// allowedMethodsHeader renders the configured methods for the Allow header
+// and the 405 error message: the RequireMethod spelling for a single method
+// (byte-identical to the pre-RequireAnyMethod error), the configured order
+// for a set.
+func (c *handlerConfig) allowedMethodsHeader() string {
+	if c.requireMethod != "" {
+		return c.requireMethod
+	}
+	return strings.Join(c.requireMethods, ", ")
 }
 
 // hasNoExplicitBody returns true if the handler has no render function and

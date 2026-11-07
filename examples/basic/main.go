@@ -17,6 +17,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -120,6 +121,20 @@ type listItemsPaginatedQuery struct {
 }
 
 func (q *listItemsPaginatedQuery) Type() query.Type { return query.Type("ListItemsPaginated") }
+
+// searchItemsRequest is the request body for the QUERY-method showcase.
+type searchItemsRequest struct {
+	Filter string `json:"filter"`
+}
+
+// searchItemsQuery is the HTTP QUERY (RFC 10008) showcase: a read whose
+// criteria travel in the request body instead of the URL — safe and
+// idempotent like GET, body-carrying like POST.
+type searchItemsQuery struct {
+	Filter string `json:"filter"`
+}
+
+func (q *searchItemsQuery) Type() query.Type { return query.Type("SearchItems") }
 
 // --- Typed command/query types (no mapper needed) ---
 
@@ -248,6 +263,19 @@ func newHandler() http.Handler {
 			return auditLog.list(), nil
 		})
 
+	// QUERY-method showcase handler: case-insensitive name filter.
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
+	_ = query.RegisterTyped(qryDisp, "SearchItems",
+		func(_ context.Context, q *searchItemsQuery) ([]item, error) {
+			matched := make([]item, 0)
+			for _, it := range db.list() {
+				if q.Filter == "" || strings.Contains(strings.ToLower(it.Name), strings.ToLower(q.Filter)) {
+					matched = append(matched, it)
+				}
+			}
+			return matched, nil
+		})
+
 	// --- Build the App ---
 	app := cqrshtmx.MustNew(cqrshtmx.Config{
 		Commands: cmdDisp,
@@ -287,6 +315,32 @@ func newHandler() http.Handler {
 			return &listItemsPaginatedQuery{pagination: cqrshtmx.DecodePagination(r)}, nil
 		}),
 		cqrshtmx.RenderPaginatedJSON[item](),
+	))
+
+	// QUERY /api/items/search — HTTP QUERY method (RFC 10008): a safe,
+	// idempotent read whose criteria travel as a JSON body, so complex
+	// filters never get squeezed into URL params. App.Query is
+	// method-agnostic; the mux pattern carries the method.
+	mux.Handle("QUERY /api/items/search", app.Query(
+		"SearchItems",
+		cqrshtmx.DecodeJSONQuery(func(req searchItemsRequest) (query.Query, error) {
+			return &searchItemsQuery{Filter: req.Filter}, nil
+		}),
+		cqrshtmx.RenderJSON[[]item](),
+	))
+
+	// POST /api/items/search — the fallback twin: the identical handler for
+	// clients and proxies that cannot send QUERY (htmx 2.x, older WAFs).
+	// Same JSON body, ordinary POST. With MethodOverrideMiddleware a
+	// POST + "X-HTTP-Method-Override: QUERY" header reaches the QUERY route
+	// above and this registration becomes unnecessary — see
+	// docs/guides/http-query-method.md (the fallback ladder).
+	mux.Handle("POST /api/items/search", app.Query(
+		"SearchItems",
+		cqrshtmx.DecodeJSONQuery(func(req searchItemsRequest) (query.Query, error) {
+			return &searchItemsQuery{Filter: req.Filter}, nil
+		}),
+		cqrshtmx.RenderJSON[[]item](),
 	))
 
 	// POST /api/greet — typed command handler (no mapper, no type assertion)

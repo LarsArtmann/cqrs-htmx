@@ -7,6 +7,7 @@ A minimal onboarding example showing the core cqrs-htmx library usage.
 - **App builder** — `cqrshtmx.Config{Commands: disp, Queries: disp}`
 - **Command handler** — POST with JSON decode via mapper function
 - **Query handler** — GET with JSON result rendering
+- **HTTP QUERY method** — `QUERY /api/items/search` (RFC 10008: safe, idempotent, body-carrying read) with a `POST /api/items/search` fallback twin — one handler, both transports
 - **Actor metadata** — POST `/api/audit` propagates the acting user from the request context into command metadata (`cqrshtmx.CommandOptionsFromContext`) and reads it back — the audit-trail pattern
 - **Partial-render showcase** — GET `/demo/items` serves the full page for direct visits and just the fragment for HTMX (`cqrshtmx.RenderPartialOrFull`, templ), refreshes the `#item-count` badge out-of-band (`cqrshtmx.OOBHTML`), and GET `/demo/items/count` answers the bare count when `HX-Target` is `#item-count` (`cqrshtmx.RenderIf` custom predicate)
 - **SSE live updates** — Broadcaster fan-out on command success
@@ -56,3 +57,16 @@ app.Query("ListItems",
 ```go
 broadcaster.Broadcast(sse.Event{Event: "itemCreated", Data: jsonStr})
 ```
+
+### HTTP QUERY method (RFC 10008)
+
+The same search served three ways — native `QUERY` with a JSON body, the `POST` fallback twin (identical handler), and plain `GET` with URL params for tiny filters:
+
+```bash
+curl -X QUERY localhost:8096/api/items/search -H 'Content-Type: application/json' \
+  -d '{"filter":"demo"}'
+curl -X POST localhost:8096/api/items/search -H 'Content-Type: application/json' \
+  -d '{"filter":"demo"}'
+```
+
+Both return the identical JSON — `App.Query` is method-agnostic, so the mux pattern carries the method. See `docs/guides/http-query-method.md` in the repo root module for the full fallback ladder (including `MethodOverrideMiddleware`, which lets one `QUERY` route serve the POST twin via `X-HTTP-Method-Override`).

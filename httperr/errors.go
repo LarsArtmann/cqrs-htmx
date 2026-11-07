@@ -41,6 +41,11 @@ var (
 	ErrValidationFailed error = errorfamily.NewRejection("validation_failed", "request validation failed")
 	ErrRequestTooLarge  error = errorfamily.NewRejection("request_too_large", "request body exceeds maximum size")
 	ErrMethodNotAllowed error = errorfamily.NewRejection("method_not_allowed", "HTTP method not allowed")
+	// ErrUnsupportedMediaType maps to 415 per the RFC 10008 QUERY media-type
+	// ladder: the declared type is understood in general but not accepted
+	// by this endpoint. RequireContentType produces it.
+	ErrUnsupportedMediaType error = errorfamily.NewRejection(
+		"unsupported_media_type", "request content type is not supported by this endpoint")
 
 	// ErrCommandsNil reports a missing command dispatcher — a wiring bug.
 	ErrCommandsNil error = errorfamily.NewInfrastructure("commands_nil", "command dispatcher is required")
@@ -103,6 +108,8 @@ func explicitErrorStatus(err error) int {
 		return http.StatusRequestEntityTooLarge
 	case errors.Is(err, ErrMethodNotAllowed):
 		return http.StatusMethodNotAllowed
+	case errors.Is(err, ErrUnsupportedMediaType):
+		return http.StatusUnsupportedMediaType
 	default:
 		// Cross-module code-based check: usermgmt defines separate sentinels
 		// with the same error codes for module independence. This ensures

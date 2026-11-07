@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -108,6 +109,13 @@ func dispatchRequest[Q, R any](
 	dispatch func(ctx context.Context, q Q) (R, error),
 	respond func(http.ResponseWriter, *http.Request, *handlerConfig, R),
 ) {
+	// Accept-Query (RFC 10008 discovery) is set before any check so error
+	// responses advertise too — the JSON query decoders seed it (see
+	// options_decode.go); a handler without a body decoder advertises nothing.
+	if len(config.acceptQuery) > 0 {
+		w.Header().Set("Accept-Query", strings.Join(config.acceptQuery, ", "))
+	}
+
 	ctx, err := a.dispatchContext(w, r, config)
 	if err != nil {
 		return
@@ -191,9 +199,10 @@ func (a *App) executePreDispatchChecks(
 	r *http.Request,
 	config *handlerConfig,
 ) error {
-	if config.requireMethod != "" && r.Method != config.requireMethod {
+	if !config.methodAllowed(r.Method) {
+		w.Header().Set("Allow", config.allowedMethodsHeader())
 		a.errorHandler(w, r, errorfamily.Wrapf(httperr.ErrMethodNotAllowed, event.Rejection,
-			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, config.requireMethod))
+			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, config.allowedMethodsHeader()))
 
 		return httperr.ErrMethodNotAllowed
 	}
@@ -205,6 +214,10 @@ func (a *App) executePreDispatchChecks(
 	}
 
 	if err := executeCSRFValidation(w, r, config); err != nil {
+		return err
+	}
+
+	if err := a.checkRequiredContentType(w, r, config); err != nil {
 		return err
 	}
 

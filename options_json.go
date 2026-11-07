@@ -2,8 +2,11 @@ package cqrshtmx
 
 import (
 	"fmt"
+	"mime"
 	"net/http"
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -63,6 +66,101 @@ func renderJSONWithStatus[T any](status int) HandlerOption {
 func RequireMethod(method string) HandlerOption {
 	return func(config *handlerConfig) {
 		config.requireMethod = method
+	}
+}
+
+// RequireAnyMethod returns a HandlerOption that rejects requests whose HTTP
+// method is not one of the given methods — the multi-method generalization of
+// [RequireMethod], for handlers that legitimately serve several transports of
+// the same operation (the RFC 10008 QUERY fallback ladder: QUERY plus the
+// POST fallback twin, plus a GET twin for URL-sized queries). A mismatch
+// answers 405 with an Allow header listing the configured methods.
+//
+// Usage:
+//
+//	app.Query("SearchContacts",
+//	    cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RequireAnyMethod("QUERY", http.MethodPost),
+//	)
+func RequireAnyMethod(methods ...string) HandlerOption {
+	return func(config *handlerConfig) {
+		config.requireMethods = methods
+	}
+}
+
+// RequireContentType returns a HandlerOption that enforces the RFC 10008
+// media-type ladder on requests: a body-carrying request without a declared
+// Content-Type answers 400 (the server must not guess the media type), and a
+// declared type different from the required one answers 415
+// ([httperr.ErrUnsupportedMediaType]). Parameters such as "; charset=utf-8"
+// are ignored in the comparison. A request without a body is always allowed
+// (there is nothing to mis-declare).
+//
+// The library default is deliberately lenient (decoders accept any bytes they
+// can parse); this option is the opt-in for routes that want the strict,
+// spec-exact behavior. Usage:
+//
+//	app.Query("SearchContacts",
+//	    cqrshtmx.DecodeJSONQuery(...),
+//	    cqrshtmx.RequireContentType("application/json"),
+//	)
+func RequireContentType(mediaType string) HandlerOption {
+	return func(config *handlerConfig) {
+		config.requiredContentType = mediaType
+	}
+}
+
+// checkRequiredContentType enforces config.requiredContentType after the
+// security checks, before decode (see executePreDispatchChecks).
+func (a *App) checkRequiredContentType(w http.ResponseWriter, r *http.Request, config *handlerConfig) error {
+	if config.requiredContentType == "" {
+		return nil
+	}
+
+	declared := r.Header.Get("Content-Type")
+	if declared == "" {
+		if r.Body == nil || r.ContentLength == 0 {
+			return nil
+		}
+		a.errorHandler(w, r, errorfamily.Wrapf(httperr.ErrDecodeFailed, event.Rejection,
+			"cqrshtmx.handler.content_type_missing",
+			"request carries a body but no Content-Type; want %s", config.requiredContentType))
+
+		return httperr.ErrDecodeFailed
+	}
+
+	got, _, err := mime.ParseMediaType(declared)
+	if err != nil {
+		a.errorHandler(w, r, errorfamily.Wrapf(httperr.ErrDecodeFailed, event.Rejection,
+			"cqrshtmx.handler.content_type_invalid",
+			"malformed Content-Type %q: %v", declared, err))
+
+		return httperr.ErrDecodeFailed
+	}
+
+	if !strings.EqualFold(got, config.requiredContentType) {
+		a.errorHandler(w, r, errorfamily.Wrapf(httperr.ErrUnsupportedMediaType, event.Rejection,
+			"cqrshtmx.handler.unsupported_media_type",
+			"got %q, want %q", got, config.requiredContentType))
+
+		return httperr.ErrUnsupportedMediaType
+	}
+
+	return nil
+}
+
+// AcceptQuery returns a HandlerOption that ADDS media types to the
+// Accept-Query response header (RFC 10008 discovery: which query formats the
+// resource accepts). The JSON body-query decoders already advertise
+// application/json themselves, so this option is only needed for consumer
+// decoders that accept additional formats.
+func AcceptQuery(mediaTypes ...string) HandlerOption {
+	return func(config *handlerConfig) {
+		for _, mt := range mediaTypes {
+			if !slices.Contains(config.acceptQuery, mt) {
+				config.acceptQuery = append(config.acceptQuery, mt)
+			}
+		}
 	}
 }
 

@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -37,8 +38,20 @@ func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
 // An empty body (e.g. a GET request with no body) is treated as a zero-value T,
 // not an error. This is useful for queries that take no parameters or rely
 // entirely on context (path values, headers, query params).
+//
+// The option also seeds the Accept-Query response header (RFC 10008
+// discovery) with application/json — the decoder is the component that
+// knows which media type it accepts, so the advertisement cannot drift
+// from what the handler actually decodes. AcceptQuery adds further types.
+// DecodeJSONQueryTyped inherits both behaviors.
 func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
-	return decodeAndSet(decodeJSONBody[T], mapper, setQueryDecoder)
+	inner := decodeAndSet(decodeJSONBody[T], mapper, setQueryDecoder)
+	return func(config *handlerConfig) {
+		inner(config)
+		if !slices.Contains(config.acceptQuery, "application/json") {
+			config.acceptQuery = append(config.acceptQuery, "application/json")
+		}
+	}
 }
 
 // DecodeForm decodes form data into a command using the mapper.
