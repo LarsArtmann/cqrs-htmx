@@ -106,7 +106,7 @@ No native `hx-query` — use rung 2; the override header rides `hx-headers`:
 
 ### htmx 4
 
-Native `hx-query`: `<button hx-query="/contacts/search">`. Serve htmx 4 yourself alongside the embedded 2.0.10 with `htmx.ScriptHandlerWith(js, "4.x.y")` until the library embeds a 4.x asset (plan W2).
+Native `hx-query`: `<button hx-query="/contacts/search">`. The library embeds htmx 4.0.1 alongside the 2.0.10 default — serve it with `htmx.ScriptHandler4()` (ETag + immutable caching, same contract as the default handler); the default flips to 4.x only in v5.
 
 ### DataStar
 

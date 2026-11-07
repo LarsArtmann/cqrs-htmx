@@ -471,6 +471,7 @@ err = gate.Validate()                 // boot check: no declarations / no reason
 
 ```go
 mux.Handle("GET /htmx.js", htmx.ScriptHandler()) // embedded htmx 2.0.10, ETag + 1yr cache
+// htmx 4 (native hx-query) rides alongside: mux.Handle("GET /htmx4.js", htmx.ScriptHandler4())
 
 http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecommendedSecurityMiddleware(),
