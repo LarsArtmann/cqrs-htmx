@@ -7,6 +7,7 @@ git fetch origin --tags && git branch --show-current && git status --short && gi
 cat CURRENT_FOCUS.md                            # 2. the ONE active thread + its "done when"
 nix run .#check-modules                         # 3. is the tree green before I touch it?
 nix run .#check-release-train -- --refresh-cache --strict-lag 0   # 4. has upstream tagged anything since? (a docs-only commit can redden master)
+bash scripts/checks/check-docs-tail-budget.sh --ratchet && bash scripts/checks/check-docs-corpus-budget.sh --ratchet && bash scripts/checks/check-conflict-markers.sh   # 5. one line, ~5s: the docs ratchets + conflict markers — the 18:35 closeout shipped BOTH ratchets red unnoticed (found only by the next session's report ritual); make the start-check the habit (18-49 report §f30)
 ```
 
 > **One writer per worktree.** The daemon commits whatever branch is checked out in the

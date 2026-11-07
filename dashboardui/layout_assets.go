@@ -408,20 +408,27 @@ document.addEventListener("submit", function(e) {
 // Time-travel version slider wiring (CSP-safe — replaces the former inline
 // onchange/oninput attributes, which nonce CSP blocks): update the version
 // display and aria-valuetext while dragging, navigate on release.
-(function() {
-  var slider = document.getElementById("version-slider");
-  if (!slider) return;
+//
+// DELEGATED at the document level on purpose: the app-layout wrapper boosts
+// navigation, and a boosted swap replaces the page DOM WITHOUT re-evaluating
+// dashboard.js — an element-bound listener attached at script load died with
+// the pre-swap DOM, so the slider only worked on direct detail loads (found
+// by the e2e battery 2026-11-07). Re-querying per event (like the keydown
+// handler below) makes the wiring survive every swap.
+document.addEventListener("input", function(e) {
+  var slider = e.target;
+  if (!slider || slider.id !== "version-slider") return;
   var display = document.getElementById(slider.dataset.sliderDisplay || "slider-version-display");
-  slider.addEventListener("input", function() {
-    if (display) display.textContent = slider.value;
-    slider.setAttribute("aria-valuetext", "Version " + slider.value + " of " + slider.max);
-  });
-  slider.addEventListener("change", function() {
-    if (slider.dataset.navBase) {
-      window.location.href = slider.dataset.navBase + slider.value;
-    }
-  });
-})();
+  if (display) display.textContent = slider.value;
+  slider.setAttribute("aria-valuetext", "Version " + slider.value + " of " + slider.max);
+});
+document.addEventListener("change", function(e) {
+  var slider = e.target;
+  if (!slider || slider.id !== "version-slider") return;
+  if (slider.dataset.navBase) {
+    window.location.href = slider.dataset.navBase + slider.value;
+  }
+});
 
 // Keyboard navigation for the time-travel version slider: ArrowLeft/ArrowRight
 // anywhere on the page move the slider and navigate to the selected version.
