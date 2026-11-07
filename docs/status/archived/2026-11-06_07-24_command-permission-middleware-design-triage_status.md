@@ -317,91 +317,91 @@ failures (consumers not inspected, plan not read, test not run), not coding fail
 
 ### Tier 1 — verification (cheap, unblocks everything else)
 
-1. Write a Casbin table test proving `keyMatch` is a superset of the current equality
-   matcher for: exact match, non-match, bare `*`, and `command:*` prefix.
-2. Same test against a consumer-shaped 3-field model (the `enforceRequest` fallback
-   arity) to prove the change does not break 3-argument consumers.
+1. ~~Write a Casbin table test proving `keyMatch` is a superset of the current equality~~ done — authz_matcher_test.go pins the keyMatch capability table (CHANGELOG v4.17.0 dispatch entry)
+   ~~matcher for: exact match, non-match, bare `*`, and `command:*` prefix.~~
+2. ~~Same test against a consumer-shaped 3-field model (the `enforceRequest` fallback~~ done — same receipt - both the four-field and a three-field model
+   ~~arity) to prove the change does not break 3-argument consumers.~~
 3. Grep the fleet (when in scope) for `DefaultRBACModel` replacements vs imports — turn
    §d3's unscoped claim into a scoped one.
-4. Read `docs/planning/2026-11-02_...-permission-system-hardcore-levelup-pareto-plan.md`
-   and record which of this §f is already planned.
-5. Read `docs/guides/authorization-system.md` and note any statement the new design
-   would invalidate.
-6. Reproduce the two `go.mod` tidy warnings (`dashboardui` commandlifecycle,
-   `usermgmt` catalog) with `go mod tidy -diff` before touching them.
-7. Confirm `SyncPushHandler` really can dispatch a gated command with no authz today
-   (read `sync_push.go` fully; write a failing test that proves the hole).
+4. ~~Read `docs/planning/2026-11-02_...-permission-system-hardcore-levelup-pareto-plan.md`~~ **Superseded — docs/planning/2026-11-06_07-30 plan of record absorbed the section-f routing.**
+   ~~and record which of this §f is already planned.~~
+5. ~~Read `docs/guides/authorization-system.md` and note any statement the new design~~ done — authorization-system.md gained the dispatch-boundary section (guide 5; TODO_LIST dispatch row)
+   ~~would invalidate.~~
+6. ~~Reproduce the two `go.mod` tidy warnings (`dashboardui` commandlifecycle,~~ done — the two go.mod tidy fixes landed (TODO_LIST dispatch row, Landed list)
+   ~~`usermgmt` catalog) with `go mod tidy -diff` before touching them.~~
+7. ~~Confirm `SyncPushHandler` really can dispatch a gated command with no authz today~~ done — hole proof TestDispatchWithoutRouteIsUngated landed (CHANGELOG v4.17.0)
+   ~~(read `sync_push.go` fully; write a failing test that proves the hole).~~
 
 ### Tier 2 — the design artifact
 
-8. Write ADR 0061 *or* a 0057 amendment: "authorization at the dispatch boundary".
-9. Decide the object spelling (`command:NAME` vs `command.NAME`) and record it as a
-   decision, not a preference.
-10. Decide the action vocabulary (`execute`/`read` baseline vs domain verbs).
-11. Specify `PolicyContext` as a closed interface returning `cqrshtmx.Request`.
-12. Specify the posture enum and where it is declared (`public`/`authenticated`/`gated`).
-13. Specify the boot-time undeclared-command failure (error text, which `Config` field,
-    which constructor fails).
-14. Specify audit mode: config knob, log fields, metric, aggregation story.
-15. Specify middleware ordering relative to retry/circuit-breaker/idempotency and record
-    it in `docs/guides/dispatch-middleware-ordering.md`.
-16. Write the plan-of-record file for this workstream (planning doc, Pareto-ordered).
+8. ~~Write ADR 0061 *or* a 0057 amendment: "authorization at the dispatch boundary".~~ done at `e6204bb6`
+9. ~~Decide the object spelling (`command:NAME` vs `command.NAME`) and record it as a~~ done — ADR 0063 - objects are command/<Name> and query/<Name> with execute/read
+   ~~decision, not a preference.~~
+10. ~~Decide the action vocabulary (`execute`/`read` baseline vs domain verbs).~~ done — execute/read baseline adopted (CHANGELOG dispatch entry)
+11. ~~Specify `PolicyContext` as a closed interface returning `cqrshtmx.Request`.~~ done — PolicyContext closed interface (ADR-0058 seam; CHANGELOG)
+12. ~~Specify the posture enum and where it is declared (`public`/`authenticated`/`gated`).~~ done — postures reuse the route vocabulary (PosturePublic/Authenticated/RoleGated)
+13. ~~Specify the boot-time undeclared-command failure (error text, which `Config` field,~~ done — undeclared denied and named, fail-closed; Validate() boot check (CHANGELOG)
+    ~~which constructor fails).~~
+14. ~~Specify audit mode: config knob, log fields, metric, aggregation story.~~ done — AuditOnly() + OnDecision with one-wave limit (CHANGELOG)
+15. ~~Specify middleware ordering relative to retry/circuit-breaker/idempotency and record~~ done — docs/guides/dispatch-middleware-ordering.md exists; the guide pins gate-outermost ordering
+    ~~it in `docs/guides/dispatch-middleware-ordering.md`.~~
+16. ~~Write the plan-of-record file for this workstream (planning doc, Pareto-ordered).~~ done — plan of record written - docs/planning/2026-11-06_07-30 (TODO_LIST dispatch row)
 
 ### Tier 3 — implementation (root module)
 
-17. Implement `AuthorizeCommand(checker)` as `command.Middleware`.
-18. Implement the query mirror `AuthorizeQuery(checker)`.
-19. Add a shared generic core so command/query do not fork into two rule sets.
-20. Add `App`/`Config` wiring so a consumer gets it with one field, not a hand-written
-    `Use` call (mirror `ServiceConfig.CommandMiddleware`).
-21. Emit denials with the shared `forbidden`/`unauthorized` codes so `IsForbidden`
-    classifies them without new code paths.
-22. Add a `RequestGuard`-equivalent for dispatch-level attribute checks (avoid a second
-    ad-hoc hook shape).
-23. Cover `CommandTyped`/`QueryTyped` paths explicitly (they skip the mapper; make sure
-    the gate is not on the mapper path only).
-24. Unit tests: deny/allow/engine-error per dispatch path (4 paths × 3 outcomes).
-25. Bench: measure the gate's cost on the hot dispatch path (`b.Loop()`,
-    `ReportAllocs`), compare against the no-gate baseline.
+17. ~~Implement `AuthorizeCommand(checker)` as `command.Middleware`.~~ done — AuthorizeCommand + DispatchGate.CommandMiddleware installed outermost (CHANGELOG)
+18. ~~Implement the query mirror `AuthorizeQuery(checker)`.~~ done — AuthorizeQuery + QueryMiddleware (CHANGELOG)
+19. ~~Add a shared generic core so command/query do not fork into two rule sets.~~ done — generic core - RegisterCommand[T command.Command] (authz_dispatch.go:247); query mirrors
+20. ~~Add `App`/`Config` wiring so a consumer gets it with one field, not a hand-written~~ done — ServiceConfig.CommandMiddleware carries the gate as one field (CHANGELOG)
+    ~~`Use` call (mirror `ServiceConfig.CommandMiddleware`).~~
+21. ~~Emit denials with the shared `forbidden`/`unauthorized` codes so `IsForbidden`~~ done — denials reuse the ADR-0057 codes; IsForbidden/IsUnauthorized keep working
+    ~~classifies them without new code paths.~~
+22. ~~Add a `RequestGuard`-equivalent for dispatch-level attribute checks (avoid a second~~ done — PolicyContext is the closed-interface attribute shape (no ad-hoc hook)
+    ~~ad-hoc hook shape).~~
+23. ~~Cover `CommandTyped`/`QueryTyped` paths explicitly (they skip the mapper; make sure~~ done — the typed path is the registration form - RegisterCommand[T] declares posture + handler (authz_dispatch.go:240)
+    ~~the gate is not on the mapper path only).~~
+24. ~~Unit tests: deny/allow/engine-error per dispatch path (4 paths × 3 outcomes).~~ done — authztest.CommandSuite proves the posture x identity x grant matrix
+25. ~~Bench: measure the gate's cost on the hot dispatch path (`b.Loop()`,~~ done — bench by allocation - 48B/1-alloc bare, 176B/6 gated, 689B/16 denial (CHANGELOG)
+    ~~`ReportAllocs`), compare against the no-gate baseline.~~
 
 ### Tier 4 — integration and proof
 
-26. Wire the gate into `usermgmt.Service` (it owns its dispatcher; the seam is
-    `ServiceConfig.CommandMiddleware`).
-27. Wire it into `setup.Config` (flattens to the service).
+26. ~~Wire the gate into `usermgmt.Service` (it owns its dispatcher; the seam is~~ done — ServiceConfig.CommandMiddleware + usermgmt.CommandPostures() (21 commands) + four integration tests
+    ~~`ServiceConfig.CommandMiddleware`).~~
+27. ~~Wire it into `setup.Config` (flattens to the service).~~ resolved — routed: TODO_LIST dispatch-boundary row remaining (c) - setup.Config.DispatchGate behind a two-consumer bar
 28. Wire it into `systemadapter`/`system.New` composition.
 29. Prove the sync-push hole is closed with an integration test.
-30. Prove the same for `dashboardui`'s replay/bridge and `adminui`'s write actions.
-31. Extend `authztest` with a command matrix (mirroring `Suite`'s route matrix).
+30. ~~Prove the same for `dashboardui`'s replay/bridge and `adminui`'s write actions.~~ resolved — routed: TODO_LIST dispatch-boundary row remaining (b) consumer adoption waves
+31. ~~Extend `authztest` with a command matrix (mirroring `Suite`'s route matrix).~~ done — authztest.CommandSuite shipped (CHANGELOG)
 32. Add `authztest.CommandSuite` to `setup/route_postures_behavior_test.go`'s sibling.
-33. Add a "forgotten posture" fixture test: a registered-but-undeclared command must
-    fail construction loudly.
+33. ~~Add a "forgotten posture" fixture test: a registered-but-undeclared command must~~ done — registering IS declaring; undeclared-dispatch rule 5; fail-closed (CHANGELOG)
+    ~~fail construction loudly.~~
 
 ### Tier 5 — gates and ratchets
 
-34. Extend `check-permission-surface` with rule 5: a `Register` call with no posture.
-35. Add a `check-permission-maturity` row for dispatch-level coverage (L5 candidate).
-36. Promote `check-permission-maturity` from advisory to blocking once the two-green-wave
-    condition is met (`TODO_LIST.md:25` item 3).
-37. Add a policy-table linter: fail on rows whose object matches no registered command
-    (the "policy for an action nothing asks" class ADR-0057 named).
-38. Add a `keyMatch`-model regression gate so a future model edit cannot silently return
-    to exact-match.
+34. ~~Extend `check-permission-surface` with rule 5: a `Register` call with no posture.~~ done — check-permission-surface rule 5 undeclared-dispatch (CHANGELOG)
+35. ~~Add a `check-permission-maturity` row for dispatch-level coverage (L5 candidate).~~ done — PERMISSIONS.md L5 (CHANGELOG)
+36. ~~Promote `check-permission-maturity` from advisory to blocking once the two-green-wave~~ done — maturity ratchet already blocking (flake.nix --ratchet; TODO_LIST authorization row trued 2026-11-06)
+    ~~condition is met (`TODO_LIST.md:25` item 3).~~
+37. ~~Add a policy-table linter: fail on rows whose object matches no registered command~~ done — check-policy-rows fails on a policy row matching no declared dispatch
+    ~~(the "policy for an action nothing asks" class ADR-0057 named).~~
+38. ~~Add a `keyMatch`-model regression gate so a future model edit cannot silently return~~ done — authz_matcher_test.go pins capability table + spelling hazards (regression gate)
+    ~~to exact-match.~~
 
 ### Tier 6 — docs and consumer fleet
 
-39. `docs/guides/authorization-system.md`: add the dispatch-boundary section.
+39. ~~`docs/guides/authorization-system.md`: add the dispatch-boundary section.~~ done — guide 5 dispatch-boundary section (TODO_LIST dispatch row)
 40. `docs/PERMISSIONS.md`: fill the remaining `?` rows (`TODO_LIST.md:25` item 5).
-41. Skill update: `.agents/skills/cqrs-htmx/SKILL.md` §Authorization gains the
-    dispatch gate (with a `//doc:api-tour` fence so `check-skill-snippets` parses it).
-42. Root README: one paragraph, no renewal of the "full CQRS" overclaim.
-43. Consumer wave: browser-history (`GrantRoles`, delete `reconcileSuperAdmins`).
-44. Consumer wave: Swetty (idempotent `bootstrapAdmin` grant).
-45. Consumer wave: crm (seed an admin or `DisableAdmin`).
-46. Consumer wave: InboxClean (`sseDeadlineFree` removal + declare postures).
-47. Consumer wave: github-local-sync + webphone (declare postures).
+41. ~~Skill update: `.agents/skills/cqrs-htmx/SKILL.md` §Authorization gains the~~ done — skill Authorization section + README updated (TODO_LIST dispatch row: skill/README)
+    ~~dispatch gate (with a `//doc:api-tour` fence so `check-skill-snippets` parses it).~~
+42. ~~Root README: one paragraph, no renewal of the "full CQRS" overclaim.~~ done — root README dispatch-boundary paragraph (README.md:95)
+43. ~~Consumer wave: browser-history (`GrantRoles`, delete `reconcileSuperAdmins`).~~ resolved — routed: TODO_LIST authorization workstream row remaining (4) - browser-history
+44. ~~Consumer wave: Swetty (idempotent `bootstrapAdmin` grant).~~ resolved — routed: TODO_LIST authorization workstream row remaining (4) - Swetty
+45. ~~Consumer wave: crm (seed an admin or `DisableAdmin`).~~ resolved — routed: TODO_LIST authorization workstream row remaining (4) - crm
+46. ~~Consumer wave: InboxClean (`sseDeadlineFree` removal + declare postures).~~ resolved — routed: TODO_LIST authorization workstream row remaining (4) - InboxClean
+47. ~~Consumer wave: github-local-sync + webphone (declare postures).~~ resolved — routed: TODO_LIST authorization workstream row remaining (4) - github-local-sync + webphone
 48. Migration guide `docs/migrations/*`: how a repo moves audit → enforce.
-49. `CHANGELOG [Unreleased]` entry once wave 1 lands.
+49. ~~`CHANGELOG [Unreleased]` entry once wave 1 lands.~~ done — CHANGELOG v4.17.0 dispatch-boundary entry
 50. Re-run this report's §a tables as a verification pass after implementation, so
     "verified" stays true rather than becoming folklore.
 

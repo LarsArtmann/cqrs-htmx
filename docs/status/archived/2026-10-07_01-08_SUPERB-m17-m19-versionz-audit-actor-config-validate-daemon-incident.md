@@ -96,51 +96,51 @@ Background shell 008 ran `nix run .#lint` in GCL; reaped without output, and the
 
 ## f) NEXT UP TO 50 (roughly priority order)
 
-1. M20 F68: probe-table refactor of Autodetect (map[probeFunc]field), drop `//nolint:cyclop`
-2. M20 F69: `Autodetect(sources ...any)` merge semantics
-3. M20 F70: conflict test — two sources claiming the same capability
-4. M20 F71: README integration-modes update
-5. M21 F72: `Routes() []Route` manifest implementation
-6. M21 F73: routes-vs-registered-mux parity test
-7. M21 F74: README allowlisting example
-8. M22 F75: systemadapter `WithCheckpointStore` option
-9. M22 F76: `WithHostOptions` + DLQ store default wiring
-10. M22 F77: durable-checkpoint restart-equivalence test (ADR-0149)
-11. M22 F78: declarative-projections.md checkpoint section rewrite
-12. M23 F79: `RecommendedDeployment(driver, dsn)` presets (memory/sqlite/split)
-13. M23 F80: dedupe the guide's 3 hand-rolled DeploymentConfigs
-14. M23 F81: systemadapter README declarative-first restructure
-15. M23 F82: package doc polish + examples link
-16. M23 F83: godoc Example for `DomainConfig()`
-17. M24 F84: leveraging-system-metaengine.md deprecation banner + steps 4-5 rewrite off NewProjectionLayer
-18. M24 F85: same guide — Advanced → OnRecordTyped + EventWithID pattern
-19. M24 F86: declarative-projections.md checkpoint/DLQ reality
-20. M24 F87: dashboardui README — remove dead demo + data-copyable sections
-21. M24 F88: core/capabilities.go package doc — drop the false fmt.Fprintf claim
+1. ~~M20 F68: probe-table refactor of Autodetect (map[probeFunc]field), drop `//nolint:cyclop`~~ done — dashboardui CHANGELOG M20 receipt - fieldProbe table, cyclop suppression gone
+2. ~~M20 F69: `Autodetect(sources ...any)` merge semantics~~ done — Autodetect(sources ...any) shipped (autodetect.go:98; M20 receipt)
+3. ~~M20 F70: conflict test — two sources claiming the same capability~~ done — first-wins merge pinned by tests (M20 receipt; autodetect_test.go)
+4. ~~M20 F71: README integration-modes update~~ done — README Integration Modes documents merge semantics (M20 receipt)
+5. ~~M21 F72: `Routes() []Route` manifest implementation~~ done — Routes() manifest landed (M21 receipt, dashboardui CHANGELOG)
+6. ~~M21 F73: routes-vs-registered-mux parity test~~ done — manifest-equals-registration parity test shipped (M21 receipt)
+7. ~~M21 F74: README allowlisting example~~ done — README Route Manifest shows the allowlisting pattern (M21 receipt)
+8. ~~M22 F75: systemadapter `WithCheckpointStore` option~~ done — WithCheckpointStore landed (systemadapter CHANGELOG, M22 receipt)
+9. ~~M22 F76: `WithHostOptions` + DLQ store default wiring~~ done — WithHostOptions + WithDeadLetterStore landed (M22 receipt)
+10. ~~M22 F77: durable-checkpoint restart-equivalence test (ADR-0149)~~ done — TestDeclarative_DurableCheckpointSurvivesRestart (M22 receipt)
+11. ~~M22 F78: declarative-projections.md checkpoint section rewrite~~ done — guide Custom checkpoint / dead-letter stores section rewritten (M22 receipt)
+12. ~~M23 F79: `RecommendedDeployment(driver, dsn)` presets (memory/sqlite/split)~~ done — RecommendedMemory/SQLite/SplitSQLite presets landed (M23 receipt; presets_test.go)
+13. ~~M23 F80: dedupe the guide's 3 hand-rolled DeploymentConfigs~~ done — guide DeploymentConfigs deduped onto the presets (M23 receipt)
+14. ~~M23 F81: systemadapter README declarative-first restructure~~ done — systemadapter README declarative-first quick start (M23 receipt)
+15. ~~M23 F82: package doc polish + examples link~~ done — package doc + presets pointer (M23 receipt)
+16. ~~M23 F83: godoc Example for `DomainConfig()`~~ done — ExampleDomainConfig godoc example (systemadapter/example_test.go; M23 receipt)
+17. ~~M24 F84: leveraging-system-metaengine.md deprecation banner + steps 4-5 rewrite off NewProjectionLayer~~ done — leveraging-system-metaengine.md deprecation banner shipped
+18. ~~M24 F85: same guide — Advanced → OnRecordTyped + EventWithID pattern~~ done — guide documents OnRecordTyped + EventWithID (Advanced section)
+19. ~~M24 F86: declarative-projections.md checkpoint/DLQ reality~~ done — declarative-projections.md checkpoint/DLQ reality section (M22 receipt)
+20. ~~M24 F87: dashboardui README — remove dead demo + data-copyable sections~~ done — data-copyable section gone from dashboardui README (verified in tree; demo reference is live)
+21. ~~M24 F88: core/capabilities.go package doc — drop the false fmt.Fprintf claim~~ done — false fmt.Fprintf claim gone from core/capabilities.go (verified in tree)
 22. M24 F89: IMPROVEMENT_IDEAS.md prune vs CHANGELOG + stale-check note
-23. M25 F90: core capability adapters System→Journal/Seekable/EventByID/Bus/QueryStore
-24. M25 F91: Host + SnapshotStore mapping (interface, not concrete, per idea 293)
-25. M25 F92: `Autodetect(*system.System)` special-case via the bridge
-26. M25 F93: integration test — panels light up from a `system.New` instance
-27. M25 F94: README integration-modes section + guide cross-link
-28. M26 F95: TopologyProvider capability + read-only topology panel
-29. M26 F96: HealthCheckDetailed → healthz/readyz composition (+ quarantine note)
-30. M26 F97: QueryPlacement table panel (engine, ADT, volume, est. latency)
-31. M26 F98: engine stats cards (RTT EWMA/p95, samples, stale)
-32. M26 F99: goldens for new panels + capability-off behavior
-33. M27 F100: CH battery (`check-modules`, `#lint`, `#test` race, coverage-gate)
-34. M27 F101: GCL battery on touched modules
-35. M27 F102: per-module CHANGELOG sweep (consumer-visible only)
-36. F103/F104: release trains BOTH repos — **OWNER-GATED, no push until ruled**
+23. ~~M25 F90: core capability adapters System→Journal/Seekable/EventByID/Bus/QueryStore~~ done — FromSystem maps all system adapters (M25 receipt, dashboardui CHANGELOG)
+24. ~~M25 F91: Host + SnapshotStore mapping (interface, not concrete, per idea 293)~~ done — duck-typed System accessor interface, not concrete (M25 receipt)
+25. ~~M25 F92: `Autodetect(*system.System)` special-case via the bridge~~ done — Autodetect recognizes System values (M25 receipt)
+26. ~~M25 F93: integration test — panels light up from a `system.New` instance~~ done — TestDashboard_FromSystem_PanelsLightUp (M25 receipt)
+27. ~~M25 F94: README integration-modes section + guide cross-link~~ done — README Integration Modes From-a-system mode (M25 receipt)
+28. ~~M26 F95: TopologyProvider capability + read-only topology panel~~ done — Topology provider + topology table (M26 receipt)
+29. ~~M26 F96: HealthCheckDetailed → healthz/readyz composition (+ quarantine note)~~ done — EngineHealths composes into healthz/readyz probes (M26 receipt)
+30. ~~M26 F97: QueryPlacement table panel (engine, ADT, volume, est. latency)~~ done — query-placement table panel (M26 receipt)
+31. ~~M26 F98: engine stats cards (RTT EWMA/p95, samples, stale)~~ done — engine latency cards RTT EWMA/P95/samples (M26 receipt)
+32. ~~M26 F99: goldens for new panels + capability-off behavior~~ done — capability-gating + inline-error tests, byte-identical absence (M26 receipt)
+33. ~~M27 F100: CH battery (`check-modules`, `#lint`, `#test` race, coverage-gate)~~ done — battery rc=0 + CI 18/18 at 98a6ff59 (14-49 plan ANNOTATED header)
+34. ~~M27 F101: GCL battery on touched modules~~ resolved — routed: TODO_LIST GCL hardening follow-through row (lint verdict captured; cqrs-lint and coverage legs owner-gated)
+35. ~~M27 F102: per-module CHANGELOG sweep (consumer-visible only)~~ done — F102 CHANGELOG receipts done (14-49 plan banner)
+36. ~~F103/F104: release trains BOTH repos — **OWNER-GATED, no push until ruled**~~ done at `c7f64281 (root v4.18.0`, ` 2026-11-07) + family v4.17.0 train - TODO_LIST header`
 37. Re-run GCL `#lint` with a fixed log path; capture the missing verdict
-38. Update the plan's execution-status table (M16–M19 rows still say "Not started")
+38. ~~Update the plan's execution-status table (M16–M19 rows still say "Not started")~~ done — 14-49 plan execution-status table annotated 2026-10-07 (M16-M26 done rows)
 39. Example coverage for the two new seams (VersionzRequireAuth, ActorAuthorizer) in setup-demo or a new example
 40. dashboardui command/query detail panels: verify ActorID from event meta is surfaced (it exists in meta — idea 40's display half)
 41. Owner ruling: the 5 pre-existing foreign dashboardui lint findings (handlers_events.go cyclop, handlers_audit.go dupl ×2, accent_color.go gochecknoglobals+mnd)
 42. Known-red (foreign): benchkit `TestEveryModuleGoSumIsTidy`
-43. Known-red (next train): sqliteengine `GOWORK=off` hermetic pin drift
+43. ~~Known-red (next train): sqliteengine `GOWORK=off` hermetic pin drift~~ done — sqliteengine v4.7.1 swept, workspace build+vet green (treadmill receipt, TODO_LIST 09-48 row)
 44. Consider a post-daemon-commit compile gate (see §g Q3)
-45. TODO_LIST.md battery rows: coverage re-run owed post-wave (foreign docs session territory — coordinate)
+45. ~~TODO_LIST.md battery rows: coverage re-run owed post-wave (foreign docs session territory — coordinate)~~ resolved — routed: TODO_LIST Plan-of-record 09-48 row (first wave carries the coverage-gate run)
 
 (45 concrete items; remaining headroom = sub-steps of the above.)
 

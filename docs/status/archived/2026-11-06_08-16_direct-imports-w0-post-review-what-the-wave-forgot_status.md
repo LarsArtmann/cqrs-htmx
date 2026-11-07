@@ -219,63 +219,63 @@ The gocritic class (d6) would have cost one file instead of 77 declarations.
 
 ### Tier 1 — close this session's own holes
 
-1. **Push** with `GIT_CONFIG_GLOBAL=/dev/null git push origin master`, after deciding the sibling
-   commit question (§g1). [carried, escalated]
-2. Sweep the 33 teaching occurrences in §b1, worst first: SKILL.md (16), `references/core-api.md`
-   (9), `event-catalog-guide.md` (7), README (2), then the eight single-hit files.
-3. Switch the skill's Path 0 / Path A / Path C fences to direct imports and re-run
-   `check-skill-snippets` + `check-skill-claims` + `.#check-readme-quickstart`.
-4. Same for `README.md`'s two occurrences, then run `.#check-readme-quickstart` (it compiles the
-   fence in a throwaway consumer module).
-5. Add a `docs/guides/event-catalog-guide.md` note that `cqrshtmx.NewEventCatalog` is now
-   `eventcatalog.New` and deprecated.
-6. Run `nix run .#check-modules` and record the aggregate result. [carried]
-7. Run `nix run .#test` with `-race` for root + `htmx` + `httperr` + `eventcatalog`. [carried]
-8. Run `.#coverage-gate`, `.#check-cqrs-lint`, `.#check-erraudit-strict`, `.#check-branching-flow`. [carried]
-9. Repoint root's `_test.go` files off the aliases. [carried]
+1. ~~**Push** with `GIT_CONFIG_GLOBAL=/dev/null git push origin master`, after deciding the sibling~~ done — master pushed - the whole stack on origin, strict-lag 0 (CHANGELOG 2026-11-04 receipt; v4.18.0 bump 2c077269)
+   ~~commit question (§g1). [carried, escalated]~~
+2. ~~Sweep the 33 teaching occurrences in §b1, worst first: SKILL.md (16), `references/core-api.md`~~ done — completion pass swept 51 occurrences across skill + 9 guides; 10 deliberate contrasts remain (TODO_LIST W0 row)
+   ~~(9), `event-catalog-guide.md` (7), README (2), then the eight single-hit files.~~
+3. ~~Switch the skill's Path 0 / Path A / Path C fences to direct imports and re-run~~ done — skill fences switched; check-skill-snippets 43/43 + skill-claims 218 green (TODO_LIST W0 receipts)
+   ~~`check-skill-snippets` + `check-skill-claims` + `.#check-readme-quickstart`.~~
+4. ~~Same for `README.md`'s two occurrences, then run `.#check-readme-quickstart` (it compiles the~~ done — README quick-start fixed; check-readme-quickstart compiles (TODO_LIST W0 row)
+   ~~fence in a throwaway consumer module).~~
+5. ~~Add a `docs/guides/event-catalog-guide.md` note that `cqrshtmx.NewEventCatalog` is now~~ done — event-catalog-guide teaches eventcatalog.New + notes the deprecated aliases (guide lines 92, 176-177)
+   ~~`eventcatalog.New` and deprecated.~~
+6. ~~Run `nix run .#check-modules` and record the aggregate result. [carried]~~ done — check-modules battery receipts 2026-11-06 (TODO_LIST 09-48 row; W0 green list)
+7. ~~Run `nix run .#test` with `-race` for root + `htmx` + `httperr` + `eventcatalog`. [carried]~~ done — root -race batteries green (root CHANGELOG v4.18.0)
+8. ~~Run `.#coverage-gate`, `.#check-cqrs-lint`, `.#check-erraudit-strict`, `.#check-branching-flow`. [carried]~~ resolved — routed: TODO_LIST Plan-of-record 09-48 row - first wave carries the coverage-gate run; erraudit 319 / branching 210 / cqrs-lint 10/14 receipted
+9. ~~Repoint root's `_test.go` files off the aliases. [carried]~~ done at `4380de92 - root 25 _test.go files repointed by dogfooding the codemod (TODO_LIST W0 row)`
 10. Decide whether a semantic-staleness gate is buildable: "a file named `*_reexport.go` may not be
     called the supported surface in any markdown file". Cheap shell implementation; only worth it if
     item 2 shows the drift recurs.
 
 ### Tier 2 — finish the policy paperwork
 
-11. Update the plan header (`Status:` still reads "proposed — W0 is executable today"). [new]
-12. Add the `exempt:pending` class to ADR-0062's exemption table (it documents four; the baseline
-    uses five). [carried, narrowed]
+11. ~~Update the plan header (`Status:` still reads "proposed — W0 is executable today"). [new]~~ done — plan Status header now reads accepted - W0 DELIVERED 2026-11-06; W1-W4 gated on the v5 window
+12. ~~Add the `exempt:pending` class to ADR-0062's exemption table (it documents four; the baseline~~ done — ADR-0062 exemption table documents all five classes incl. exempt:pending (ADR line 63)
+    ~~uses five). [carried, narrowed]~~
 13. `docs/gotchas.md`: a gotcha for the empty-qualifier codemod class (`.New()`), if a second
     instance ever appears — do not pad the list speculatively. [new]
 14. Record in ADR-0062 that a façade's deprecation must land in the same commit as the AGENTS.md and
     skill edits (the §d2 lesson, mechanised as convention). [new]
-15. `docs/guides/leveraging-httputil.md` + `production-readiness.md`: they also mention the aliases;
-    add a one-line "deprecated, import httputil" pointer rather than rewriting the examples. [new]
+15. ~~`docs/guides/leveraging-httputil.md` + `production-readiness.md`: they also mention the aliases;~~ done — both guides swept by the completion pass - only deliberate contrasts remain (TODO_LIST W0 row)
+    ~~add a one-line "deprecated, import httputil" pointer rather than rewriting the examples. [new]~~
 
 ### Tier 3 — the v5 window (W1)
 
-16. Write the single-window checklist and link it from `VERSIONING.md`. [carried]
-17. `grep -rn` every `/v4` consumer path outside `go.work`. [carried]
-18. `-apply` the codemod on `examples/`, then `e2e/`, `setup/`, `dashboardui/`, `integration_test/` —
+16. ~~Write the single-window checklist and link it from `VERSIONING.md`. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+17. ~~`grep -rn` every `/v4` consumer path outside `go.work`. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+18. ~~`-apply` the codemod on `examples/`, then `e2e/`, `setup/`, `dashboardui/`, `integration_test/` —~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     one module per commit. [carried]
-19. Re-run the dry run and prove 0 remaining R11/R12/R13 edits. [carried]
-20. Delete the three façade files; let the gate print the shrink note; lower the baseline. [carried]
-21. Retire the alias half of `api_surface_compat_test.go`. [carried]
-22. Delete the six deprecated root httputil/go-sse alias files plus the now-unused requires. [carried]
-23. Delete the 176 `usermgmt` → `identity-model` aliases, keep the constructor wrappers. [carried]
-24. Re-baseline `root-files.baseline` (9 files leave root) and the coverage thresholds. [carried]
-25. Decide the five `exempt:pending` files, one written reason each. [carried]
-26. Treat `datastar/patch.go` (63 aliases) as its own ADR. [carried]
-27. Treat `dashboardui/core_bridge.go` (17) as "the `core/` package is the import" and deprecate the
+19. ~~Re-run the dry run and prove 0 remaining R11/R12/R13 edits. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+20. ~~Delete the three façade files; let the gate print the shrink note; lower the baseline. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+21. ~~Retire the alias half of `api_surface_compat_test.go`. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+22. ~~Delete the six deprecated root httputil/go-sse alias files plus the now-unused requires. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+23. ~~Delete the 176 `usermgmt` → `identity-model` aliases, keep the constructor wrappers. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+24. ~~Re-baseline `root-files.baseline` (9 files leave root) and the coverage thresholds. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+25. ~~Decide the five `exempt:pending` files, one written reason each. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+26. ~~Treat `datastar/patch.go` (63 aliases) as its own ADR. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+27. ~~Treat `dashboardui/core_bridge.go` (17) as "the `core/` package is the import" and deprecate the~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     bridge. [carried]
 
 ### Tier 4 — extractions (W2/W3)
 
-28. Measure `authz_contract.go`'s real dependency set before moving it (the §d4 lesson). [carried]
-29. Decide the denial-vocabulary home (`authz/` vs `httperr`) — gates the whole `authz` move. [carried]
-30. Extract `authz/` + repoint `authz.go`, `authztest`, `adminui`, `dashboardui`, `setup`. [carried]
-31. Add the `authz` layer-gate row + planted-violation fixture. [carried]
-32. Decide the readiness home; then extract `readiness/` and delete `health`'s root edge. [carried]
-33. Extract `sync/` with `App.SyncPushHandler` reduced to a delegate. [carried]
-34. Extract `realtime/`; settle `AfterDispatchHook` ownership. [carried]
-35. ADR-0038 type map, then move `HandlerOption`/`handlerConfig`/`App` into `internal/handler`. [carried]
+28. ~~Measure `authz_contract.go`'s real dependency set before moving it (the §d4 lesson). [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+29. ~~Decide the denial-vocabulary home (`authz/` vs `httperr`) — gates the whole `authz` move. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+30. ~~Extract `authz/` + repoint `authz.go`, `authztest`, `adminui`, `dashboardui`, `setup`. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+31. ~~Add the `authz` layer-gate row + planted-violation fixture. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+32. ~~Decide the readiness home; then extract `readiness/` and delete `health`'s root edge. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+33. ~~Extract `sync/` with `App.SyncPushHandler` reduced to a delegate. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+34. ~~Extract `realtime/`; settle `AfterDispatchHook` ownership. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+35. ~~ADR-0038 type map, then move `HandlerOption`/`handlerConfig`/`App` into `internal/handler`. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
 
 ### Tier 5 — repo hygiene this session kept tripping over
 
@@ -284,14 +284,14 @@ The gocritic class (d6) would have cost one file instead of 77 declarations.
 38. Lead `docs/runbooks/session-start.md` with the one-session-per-worktree rule. [carried]
 39. Fix the 33 pre-existing root lint findings (`wsl_v5` 27, `nlreturn` 3, `tagliatelle` 2,
     `exhaustruct_v5` 1) so `--new-from-rev` stops being the only honest signal. [carried]
-40. Resolve the two `gopls go mod tidy` warnings (`dashboardui` commandlifecycle, `usermgmt` catalog). [carried]
+40. ~~Resolve the two `gopls go mod tidy` warnings (`dashboardui` commandlifecycle, `usermgmt` catalog). [carried]~~ done — the two gopls tidy warnings fixed (TODO_LIST dispatch row, Landed list)
 41. Add `reexport-policy` to the pre-push hook's legs so a push cannot be greener than CI on it. [carried]
 42. Pin the ambient `golangci-lint` (2.14.0) to the flake's 2.15.0 story, or record the delta. [carried]
-43. Close the W0 row in `TODO_LIST.md` into `CHANGELOG.md` once W1 opens the v5 window. [carried]
+43. ~~Close the W0 row in `TODO_LIST.md` into `CHANGELOG.md` once W1 opens the v5 window. [carried]~~ resolved — routed: TODO_LIST direct-imports row - W0 receipts recorded; closure into CHANGELOG rides the W1 v5 window
 44. Decide whether `docs/status` reports should be prettier-formatted (they are currently emitted as
     0 files, i.e. excluded — confirm that is deliberate and documented). [new]
-45. Re-read `docs/planning/2026-11-06_07-16_…` §1.2 and correct any remaining row that the execution
-    disproved (only the authz row is known so far). [new]
+45. ~~Re-read `docs/planning/2026-11-06_07-16_…` §1.2 and correct any remaining row that the execution~~ done — plan section 1.2 carries the re-measured 54/8,547 correction (plan header note)
+    ~~disproved (only the authz row is known so far). [new]~~
 
 ### Tier 6 — smaller observations
 
@@ -301,7 +301,7 @@ The gocritic class (d6) would have cost one file instead of 77 declarations.
     TSVs). Add one tiny fixture module. [carried]
 48. The gate's rule 2 accepts a deprecation that merely CONTAINS the package name; a stricter form
     (must appear in the `Deprecated:` paragraph specifically) was considered and not implemented. [new]
-49. `authztest/authztest.go`'s five `cqrshtmx.Posture` aliases are `exempt:pending`; W2's `authz`
+49. ~~`authztest/authztest.go`'s five `cqrshtmx.Posture` aliases are `exempt:pending`; W2's `authz`~~ resolved — routed: TODO_LIST direct-imports row - W2 authz extraction carries the authztest baseline edit
     extraction changes their target, so they will need a baseline edit in that commit. [new]
 50. Nothing in this wave touched `go.mod`/`go.sum` — zero new dependencies, zero new modules. Worth
     stating in the release note when v5 is cut. [new]
