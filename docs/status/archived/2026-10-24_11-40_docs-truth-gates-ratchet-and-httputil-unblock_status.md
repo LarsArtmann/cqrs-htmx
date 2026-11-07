@@ -90,55 +90,55 @@
 
 ## f) Up to 50 things we should get done next (impact-ordered)
 
-1. **Answer Q2** and run `bash scripts/tools/evict-archive.sh --apply --yes` (578 files, −42% of the repo).
-2. **S05 batch 2** — the next verified archive batch (10-07 SUPERB/art-dupl series, 10-09 sync pair, 10-14 buildflow pair), then lower the baseline.
-3. **Fold the archive ritual into a script** (annotate + check-rows + re-base + move + manifest).
-4. **S23 corpus-size budget gate** with a fixture.
-5. **S28 full battery**: `.#test`, `.#test-all`, `.#coverage-gate`, `.#check-cqrs-lint`, `.#erraudit-inventory --gate`.
-6. **Resolve the golangci-lint version gap** (bump CI to 2.15.0 + `ignoreSigs`, or pin the flake to 2.14.0).
-7. **CHANGELOG receipt** for `check-todo-hygiene`, the tail ratchet, and `evict-archive`.
-8. **S31** — identity-model `g2` hierarchy + `Authz.Apply` atomicity (the current focus).
-9. **S32** — WebAuthn sign-counter persistence (clone detection is dead today).
-10. **S33** — root exported-contract honesty pass (9 sub-items).
-11. **S21** — triage `docs/research/` (31) + `architecture-understanding/` (5).
-12. **S16** — triage the 20 live planning files.
-13. **S27** — harvest the remaining unexecuted plan items into TODO/ROADMAP.
-14. **S17** — decide for or against the 4-module AGENTS split, and record the decision.
-15. **S24** — measure dashboardui ↔ root co-change correctly.
-16. **S25** — read and cite (or supersede) the 2026-10-18 modularization proposal.
-17. **S26** — repo memo (needs Q1).
-18. **Fix `docs/status/README.md`’s “~60 HTML” claim** (actual: 14 status + 5 architecture = 19).
-19. **Record the round-22 strike depth in the manifest** (“supersession verdict”).
-20. **Correct the plan’s 582 → 578 and 9 → 13** in the milestone text.
-21. **S34** openapi builder validity + media types.
-22. **S35** dashboardui leftovers (CSP nonce, phantom DLQ, dead window trim).
-23. **S36** loginpage `NewPageData` + adminui `AccentColor` validation.
-24. **S37** usermgmt medium tails (6).
-25. **S38** identity-model type-safety tails (7).
-26. **S39** transport/auditlog/health/datastar small tails (6).
-27. **S40** five file-size splits.
-28. **S41** setup `RunWithAppkit` health composition.
-29. **S42** systemadapter declarative fidelity.
-30. **S43** `Spec.JSON()` deterministic emit.
-31. **S44** sync wire DTO hardening.
-32. **S45** `EventHandler` docs + identity-model README review.
-33. **S46** integration_test seam tests.
-34. **S47** `bump-dep --lint` leg.
-35. **S48** formatter → templ-generate chain.
-36. **S49** `StateShape` persistence round-trip.
-37. **S50** `check-upstream-treadmill.sh`.
-38. **S51** `wave-tag.sh`.
-39. **S52** mandate `train-preflight`.
-40. **S53** credential 4× duplication memo.
-41. **S54** v5 migration plan + auto-upgrade workstream.
-42. **S55** owner-decision packet (D1–D17).
-43. **S56** housekeeping watches.
-44. **S57** loginpage Playwright WebAuthn E2E + render golden.
-45. **S58** health train rider + `WithSchemaVersion(1)` stamping.
-46. **Add the new gates to FEATURES.md** (honest inventory).
-47. **README gate documentation** for the three new commands.
-48. **Re-check the tail baseline every session** before writing a new report (one-in, one-out).
-49. **Delete the prunable `/tmp/cqrs-htmx-retro-t04` worktree registration** (`git worktree prune`).
+1. ~~**Answer Q2** and run `bash scripts/tools/evict-archive.sh --apply --yes` (578 files, −42% of the repo).~~ done — Q2 answered delete+manifest by the owner 2026-10-24 directive; executed same day — ARCHIVE_EVICTED.md header "Executed 2026-10-24 ✅ DONE", 694 uncited files evicted (ROADMAP recent-arcs); prepare commit b60fec34
+2. ~~**S05 batch 2** — the next verified archive batch (10-07 SUPERB/art-dupl series, 10-09 sync pair, 10-14 buildflow pair), then lower the baseline.~~ done — S05 tail work finished by a later session — tail 38 → 1 (07-43 report §f6); batches receipted in the archived/README.md manifests
+3. ~~**Fold the archive ritual into a script** (annotate + check-rows + re-base + move + manifest).~~ done at `66c682ae`
+4. ~~**S23 corpus-size budget gate** with a fixture.~~ done at `edbbe62b`
+5. ~~**S28 full battery**: `.#test`, `.#test-all`, `.#coverage-gate`, `.#check-cqrs-lint`, `.#erraudit-inventory --gate`.~~ done — full batteries green through the wave-D rounds — CI green from 8101189f onward (round-31 report) and re-run per master-plan checkpoint
+6. ~~**Resolve the golangci-lint version gap** (bump CI to 2.15.0 + `ignoreSigs`, or pin the flake to 2.14.0).~~ done at `bcc64baa`
+7. ~~**CHANGELOG receipt** for `check-todo-hygiene`, the tail ratchet, and `evict-archive`.~~ done — CHANGELOG receipt exists — the "Docs-corpus governance (2026-10-24)" entry covers check-todo-hygiene, the tail ratchet, and evict-archive (all five mechanisms)
+8. ~~**S31** — identity-model `g2` hierarchy + `Authz.Apply` atomicity (the current focus).~~ done at `8e7b2174`
+9. ~~**S32** — WebAuthn sign-counter persistence (clone detection is dead today).~~ done — WebAuthn sign-counter persistence landed 2026-10-25 (07-43 execution report; ROADMAP "WebAuthn sign-counter persistence train (S32)")
+10. ~~**S33** — root exported-contract honesty pass (9 sub-items).~~ done at `1a81bb11`
+11. ~~**S21** — triage `docs/research/` (31) + `architecture-understanding/` (5).~~ done — S21+S29 executed — 77 uncited generated artifacts evicted, policies updated (05-50 master-plan report §a)
+12. ~~**S16** — triage the 20 live planning files.~~ done — S16 executed — 16 spent plans outcome-annotated + archived, 5 stay live (05-50 report §a)
+13. ~~**S27** — harvest the remaining unexecuted plan items into TODO/ROADMAP.~~ done at `dacae5c2`
+14. ~~**S17** — decide for or against the 4-module AGENTS split, and record the decision.~~ done — decided + recorded — deferred by design (Crush does not auto-load nested AGENTS); recorded in the round-37 §f17 note, the structural answer stays documented
+15. ~~**S24** — measure dashboardui ↔ root co-change correctly.~~ done at `183d2e1b`
+16. ~~**S25** — read and cite (or supersede) the 2026-10-18 modularization proposal.~~ done at `183d2e1b`
+17. ~~**S26** — repo memo (needs Q1).~~ done at `183d2e1b`
+18. ~~**Fix `docs/status/README.md`’s “~60 HTML” claim** (actual: 14 status + 5 architecture = 19).~~ done — docs/status/README.md rewritten with the truthful HTML corpus policy + eviction history; the "~60 HTML" claim is gone (verified in tree 2026-11-07)
+19. ~~**Record the round-22 strike depth in the manifest** (“supersession verdict”).~~ done — round-22 manifest rows carry the ARCHIVE—superseded verdict (archived/README.md round-22 block; successor-pointer commit 433eedf0)
+20. ~~**Correct the plan’s 582 → 578 and 9 → 13** in the milestone text.~~ done — plan corrected — the "Measured corrections (2026-10-24, S11/S12)" header carries 578 + 13 (verified in tree)
+21. ~~**S34** openapi builder validity + media types.~~ done — CHANGELOG receipt — "openapi: valid specs by construction + deterministic serialization (2026-10-24, master plan S34+S43)"
+22. ~~**S35** dashboardui leftovers (CSP nonce, phantom DLQ, dead window trim).~~ done — S35 CHANGELOG receipt verified in-tree (dacae5c2 — nonce grammar + dashboardui leftovers)
+23. ~~**S36** loginpage `NewPageData` + adminui `AccentColor` validation.~~ done — S36 closed — w02.5 receipts in loginpage + adminui CHANGELOGs (15-22 w02-closed report; code green, goldens stable)
+24. ~~**S37** usermgmt medium tails (6).~~ done — W01/S37 closed end-to-end (13-30 w01 report; TODO rows updated)
+25. ~~**S38** identity-model type-safety tails (7).~~ done at `8101189f`
+26. ~~**S39** transport/auditlog/health/datastar small tails (6).~~ done — W03/S39 landed — oauth2 empty-sub + OIDC nonce, usermgmt CHANGELOG receipt line 38 (15-22 report + receipt verified 2026-11-07)
+27. ~~**S40** five file-size splits.~~ done at `408c0356`
+28. ~~**S41** setup `RunWithAppkit` health composition.~~ done — S41 receipt verified in-tree (dacae5c2 — run_appkit.go health composition)
+29. ~~**S42** systemadapter declarative fidelity.~~ done at `688f7683`
+30. ~~**S43** `Spec.JSON()` deterministic emit.~~ done — CHANGELOG receipt line 129 — Spec/Components/Operation canonical MarshalJSONTo, 100-iteration determinism loop (S34+S43)
+31. ~~**S44** sync wire DTO hardening.~~ done — CHANGELOG receipt line 125 — "sync wire DTO hardening (S44, landed 2026-10-24)"; TODO_LIST sync-follow-through row receipt
+32. ~~**S45** `EventHandler` docs + identity-model README review.~~ done — verified truthful by round-33 W08 — README §95 API checked 1:1 against event/v4@v4.15.2
+33. ~~**S46** integration_test seam tests.~~ done at `d4a65b0f`
+34. ~~**S47** `bump-dep --lint` leg.~~ done at `ae3b80dd`
+35. ~~**S48** formatter → templ-generate chain.~~ done at `ae3b80dd`
+36. ~~**S49** `StateShape` persistence round-trip.~~ done — resolved — routed: TODO_LIST "StateShape SQL round-trip" row — verdict tests landed at d4a65b0f; upstream ask go-cqrs-lite#117 filed 2026-11-07
+37. ~~**S50** `check-upstream-treadmill.sh`.~~ done — scripts/checks/check-upstream-treadmill.sh + fixture live; TODO row closed into CHANGELOG (14-01 report)
+38. ~~**S51** `wave-tag.sh`.~~ done — scripts/tools/wave-tag.sh + offline self-test live; TODO row closed into CHANGELOG (14-01 report)
+39. ~~**S52** mandate `train-preflight`.~~ done — mandate recorded (release-playbook §1 + AGENTS row, round-33 W08 verified); executed at the 2026-11-05/07 trains "per the S52 mandate"
+40. ~~**S53** credential 4× duplication memo.~~ done — memo at docs/drafts/2026-10-25-credential-quad-memo.md (verified in tree, 5.2 KB)
+41. ~~**S54** v5 migration plan + auto-upgrade workstream.~~ done — docs/migrations/v4-to-v5.md Rollout section + ROADMAP V007 link (round-33 W08 verified)
+42. ~~**S55** owner-decision packet (D1–D17).~~ done at `e084d518`
+43. ~~**S56** housekeeping watches.~~ done at `e084d518`
+44. ~~**S57** loginpage Playwright WebAuthn E2E + render golden.~~ done — resolved — routed: TODO_LIST "loginpage test-depth debt" row — the Playwright WebAuthn E2E + render golden remain its open tail
+45. ~~**S58** health train rider + `WithSchemaVersion(1)` stamping.~~ done — S58 WithSchemaVersion(1) stamped on all 31 construction sites (round-32 report; S58 + health-train-rider TODO rows deleted — all three halves true)
+46. ~~**Add the new gates to FEATURES.md** (honest inventory).~~ done — resolved — routed: TODO_LIST plan-of-record row ("the two missing FEATURES.md rows" debt) — FEATURES.md still lacks the docs-gates rows
+47. ~~**README gate documentation** for the three new commands.~~ done — gate documentation landed in AGENTS.md quick-ref rows (TODO hygiene, Corpus ratchet, Archive pass) instead of README — verified in tree
+48. ~~**Re-check the tail baseline every session** before writing a new report (one-in, one-out).~~ done — superseded — the tail-ratchet gate (check-docs-tail-budget --ratchet, blocking in check-modules + CI) enforces one-in-one-out mechanically; same-commit baseline bumps are the live norm
+49. ~~**Delete the prunable `/tmp/cqrs-htmx-retro-t04` worktree registration** (`git worktree prune`).~~ done — git worktree list shows only the main worktree — the retro-t04 registration is gone (verified 2026-11-07)
 50. **Revisit the 30-minute `nix run .#check-modules` cost** — 52 stages, mostly serial; a `--fast` profile would make it a pre-commit habit rather than a pre-push ritual.
 
 ---
