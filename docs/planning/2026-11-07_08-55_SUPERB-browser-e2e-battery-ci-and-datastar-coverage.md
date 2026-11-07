@@ -76,7 +76,21 @@ trigger; next train), CSP guide section (docs-only, rides TODO_LIST).
 | F25 | Commit 2 (CI job), commit 3 (docs+plan+baselines) — detailed messages | M6 | 10 |
 | F26 | Push (hook protocol); `nix run .#push-and-watch`; fix-forward if CI red | M6 | 12 |
 
-## Execution graph
+## Breadth wave (added 2026-11-07 09:0x after scope correction: the battery must cover EVERY client-facing sub-project, not only the surface that bit us)
+
+Coverage matrix driver — every zero row gets a medium task; huma is deliberately excluded (JSON API; Go contract tests are the right layer). Architecture rule: **shipped examples become webServers** (the artifact under test is the example itself); **root surfaces and bridges mount into the existing e2e/server** (flat CI cost, follows its established pattern: dashboard, loginpage, sync halves, debug endpoints already live there).
+
+| # | Task | Est. | Surface covered | Shape |
+| --- | --- | --- | --- | --- |
+| M7 | examples/basic as webServer (:18932) + `root-htmx.spec.ts`: partial-vs-full render contract, OOB swap, `RenderIf`, toast/`HX-Trigger` response path | 60 min | root HTMX helpers (zero today) | webServer + spec |
+| M8 | setup-demo as webServer (:18933) + `setup-bundle.spec.ts`: session gate redirects on gated surfaces, `/health` readiness, mounted panels answer, SSE indicator states | 75 min | setup bundle (zero today) | webServer + spec |
+| M9 | e2e/server: `POST /api/debug/emit` (append event to dashboard journal + broadcast — the existing debug-endpoint pattern) + dashboard depth specs: live SSE event appends a row, time-travel slider navigates, offline→online replays from journal (dashboard `/sse` HAS replay — the honest counterpart to the datastar live-only spec) | 90 min | dashboardui live/replay + root SSE transport contract | server extension + spec |
+| M10 | e2e/server: mount health `NewDashboard` + auditlog SSE viewer (bridges — the shared server is the right level, not new examples) + smoke specs (pages render, viewer receives an entry) | 60 min | health + auditlog (zero today) | server extension + spec |
+| M11 | e2e/server loginpage surface extension: logout clears session, `/auth/me` posture after logout | 40 min | usermgmt session flows (partial today) | server extension + spec |
+
+Kill points: M9's debug-emit must not change existing dashboard spec behavior (seed data stays deterministic); M10 mounts stay optional-config so the server keeps booting if a bridge API shifts.
+
+Execution order after M1: M7 → M8 → M9 → M10 → M11, then M2 (CI) rides the grown battery, then M4/M5/M6.
 
 ```mermaid
 graph TD

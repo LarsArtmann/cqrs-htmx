@@ -22,6 +22,7 @@ import (
 
 	dashboardui "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -51,7 +52,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// --- Static JS assets (embedded via go:embed in cqrs-htmx) ---
-	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+	mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 	mux.Handle("GET /sync-worker.js", cqrshtmx.SyncWorkerHandler())
 	mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 

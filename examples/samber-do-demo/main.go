@@ -22,6 +22,7 @@ import (
 	"strconv"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	gohealth "github.com/larsartmann/go-health"
@@ -100,7 +101,7 @@ func buildRouter(container *Container) (*http.ServeMux, error) {
 	// A method-less "/" is strictly more general than every other pattern —
 	// no conflict, and the index answers any method as a plain info page.
 	mux.HandleFunc("/", indexHandler)
-	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+	mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 	// Real Kubernetes health probes from the go-health surface NewContainer
 	// started: /healthz (liveness — dependency-blind, always 200), /readyz
 	// (readiness — 503 while projections drain or a critical projection

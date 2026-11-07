@@ -284,7 +284,7 @@ func newHandler() http.Handler {
 
 	// --- Wire routes ---
 	mux := http.NewServeMux()
-	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+	mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 
 	// POST /api/items — command handler
 	mux.Handle("POST /api/items", app.Command(

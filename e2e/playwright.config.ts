@@ -93,5 +93,23 @@ export default defineConfig({
         GOWORK,
       },
     },
+    {
+      // datastar-demo for tests/datastar.spec.ts (DataStar adapter behavior
+      // gate — added 2026-11-07 after the demo shipped dead-in-browser
+      // through every gate). The SHIPPED demo is the artifact under test;
+      // DATASTAR_DEMO_ADDR pins the e2e port (admin-demo pattern).
+      command: "go run .",
+      cwd: "../examples/datastar-demo",
+      url: "http://localhost:18931/",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        GOEXPERIMENT: "jsonv2",
+        ...(GOTOOLCHAIN ? { GOTOOLCHAIN } : {}),
+        // See the GOWORK note at the top of this file.
+        GOWORK,
+        DATASTAR_DEMO_ADDR: ":18931",
+      },
+    },
   ],
 });

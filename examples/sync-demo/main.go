@@ -26,6 +26,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -138,7 +139,7 @@ func newHandler() http.Handler {
 	mux := http.NewServeMux()
 
 	// Embedded JS assets: HTMX core + the sync worker/client pair.
-	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+	mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 	mux.Handle("GET /sync-worker.js", cqrshtmx.SyncWorkerHandler())
 	mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 
