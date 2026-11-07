@@ -46,8 +46,10 @@ func DecodeJSON[T any](mapper func(T) (command.Command, error)) HandlerOption {
 // DecodeJSONQueryTyped inherits both behaviors.
 func DecodeJSONQuery[T any](mapper func(T) (query.Query, error)) HandlerOption {
 	inner := decodeAndSet(decodeJSONBody[T], mapper, setQueryDecoder)
+
 	return func(config *handlerConfig) {
 		inner(config)
+
 		if !slices.Contains(config.acceptQuery, "application/json") {
 			config.acceptQuery = append(config.acceptQuery, "application/json")
 		}

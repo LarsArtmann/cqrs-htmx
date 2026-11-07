@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +10,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,7 +56,7 @@ var contactsFixture = []contact{
 func searchContacts(_ context.Context, qry query.Query) (any, error) {
 	sq, ok := qry.(*searchContactsQuery)
 	if !ok {
-		return nil, errors.New("unexpected query type registered for SearchContacts")
+		return nil, errorfamily.NewRejection("unexpected_query_type", "wiring bug: unexpected query type")
 	}
 
 	if sq.Filter == "" {

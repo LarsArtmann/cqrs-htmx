@@ -38,14 +38,17 @@ func TestMethodOverride_POSTWithOverrideHeaderServesQueryRoute(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	var seenMethod string
+
 	capture := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seenMethod = r.Method
+
 		w.WriteHeader(http.StatusOK)
 	})
 	handler := cqrshtmx.MethodOverrideMiddleware(capture)
 
 	req := httptest.NewRequest(http.MethodPost, "/contacts", strings.NewReader(`{}`))
 	req.Header.Set(cqrshtmx.MethodOverrideHeader, cqrshtmx.MethodQuery)
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -64,6 +67,7 @@ func TestMethodOverride_RewritesBeforeRouting(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/contacts", strings.NewReader(`{}`))
 	req.Header.Set(cqrshtmx.MethodOverrideHeader, cqrshtmx.MethodQuery)
 	req.Header.Set("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -98,6 +102,7 @@ func TestMethodOverride_OriginalRequestNotMutated(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/contacts", strings.NewReader(`{}`))
 	req.Header.Set(cqrshtmx.MethodOverrideHeader, cqrshtmx.MethodQuery)
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -110,14 +115,17 @@ func TestMethodOverride_UnsafeOverrideTargetIgnored(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	var seenMethod string
+
 	capture := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seenMethod = r.Method
+
 		w.WriteHeader(http.StatusOK)
 	})
 	handler := cqrshtmx.MethodOverrideMiddleware(capture)
 
 	req := httptest.NewRequest(http.MethodPost, "/contacts", strings.NewReader(`{}`))
 	req.Header.Set(cqrshtmx.MethodOverrideHeader, http.MethodDelete)
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -139,6 +147,7 @@ func TestMethodOverride_PlainPostAndNativeQueryPassThrough(t *testing.T) {
 
 	native := httptest.NewRequest(cqrshtmx.MethodQuery, "/contacts", strings.NewReader(`{}`))
 	native.Header.Set("Content-Type", "application/json")
+
 	w = httptest.NewRecorder()
 	cqrshtmx.MethodOverrideMiddleware(mux).ServeHTTP(w, native)
 	g.Expect(w.Code).To(Equal(http.StatusOK))
@@ -152,6 +161,7 @@ func TestMethodOverride_WireMethodSeenByOuterLayers(t *testing.T) {
 	// (CSRF-shaped) middleware still sees the wire method POST — the
 	// fallback stays token-checked no matter how QUERY exemptions evolve.
 	var outerSeen string
+
 	outer := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		outerSeen = r.Method
 		cqrshtmx.MethodOverrideMiddleware(newOverrideMux()).ServeHTTP(w, r)
@@ -160,6 +170,7 @@ func TestMethodOverride_WireMethodSeenByOuterLayers(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/contacts", strings.NewReader(`{}`))
 	req.Header.Set(cqrshtmx.MethodOverrideHeader, cqrshtmx.MethodQuery)
 	req.Header.Set("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
 	outer.ServeHTTP(w, req)
 

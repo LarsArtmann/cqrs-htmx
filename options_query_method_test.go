@@ -77,6 +77,7 @@ func TestRequireMethod_StillEnforcesSingleMethod(t *testing.T) {
 
 	ok := httptest.NewRequest(cqrshtmx.MethodQuery, "/contacts", strings.NewReader(`{}`))
 	ok.Header.Set("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, ok)
 	g.Expect(w.Code).To(Equal(http.StatusOK))

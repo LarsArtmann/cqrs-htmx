@@ -96,14 +96,17 @@ func (c *handlerConfig) methodAllowed(method string) bool {
 	if c.requireMethod != "" {
 		return method == c.requireMethod
 	}
+
 	if len(c.requireMethods) > 0 {
 		for _, allowed := range c.requireMethods {
 			if method == allowed {
 				return true
 			}
 		}
+
 		return false
 	}
+
 	return true
 }
 
@@ -115,6 +118,7 @@ func (c *handlerConfig) allowedMethodsHeader() string {
 	if c.requireMethod != "" {
 		return c.requireMethod
 	}
+
 	return strings.Join(c.requireMethods, ", ")
 }
 

@@ -122,6 +122,7 @@ func (a *App) checkRequiredContentType(w http.ResponseWriter, r *http.Request, c
 		if r.Body == nil || r.ContentLength == 0 {
 			return nil
 		}
+
 		a.errorHandler(w, r, errorfamily.Wrapf(httperr.ErrDecodeFailed, event.Rejection,
 			"cqrshtmx.handler.content_type_missing",
 			"request carries a body but no Content-Type; want %s", config.requiredContentType))
