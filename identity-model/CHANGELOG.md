@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.17.0] - 2026-11-07
+
 ### Added
 
 - **`SessionStarted` / `SessionEnded` events + the `SessionEndCause` vocabulary (cqrs-htmx#25, ADR 0060).** `SessionStartedPayload` carries `ActorID` (the target for an impersonation session), `Impersonator`, `Reason`, `StartedAt`, `ExpiresAt`, and `TokenHash`; `SessionEndedPayload` carries `ActorID`, `Impersonator`, `TokenHash`, and a bounded `Cause` (`logout` / `expired` / `impersonation_ended` / `revoked` / `deleted` — coarse classes only, never raw error text). `SessionTokenHash(token)` is the base64url SHA-256 correlation key linking a start to its end; the 256-bit token is never journaled and cannot be recovered from the digest. Event count 25 → 27 (5 auth-audit).
