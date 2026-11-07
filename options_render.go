@@ -1,8 +1,12 @@
 package cqrshtmx
 
 import (
+	"bytes"
 	"fmt"
+	"log/slog"
 	"net/http"
+
+	etag "github.com/larsartmann/go-etag/server"
 
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
@@ -111,6 +115,77 @@ func PushURL(url string) HandlerOption {
 		config.pushURL = url
 	}
 }
+
+// ETagResults wraps the query-result renderer with conditional-request
+// semantics (RFC 9110 §13.1): the rendered bytes are hashed (FNV-1a, the same
+// family the immutable-JSON handlers use) into a strong ETag, and a request
+// whose If-None-Match satisfies the tag is answered 304 Not Modified without
+// sending the body again.
+//
+// Order matters: apply it AFTER the renderer option — it wraps whatever
+// [handlerConfig.render] is set at that point ([RenderJSON], [RenderTempl],
+// [Render], ...). Applied before any renderer it is a logged no-op (the
+// renderer set later would replace the wrapper silently otherwise).
+//
+//	app.Query("SearchContacts", decoder,
+//	    cqrshtmx.RenderJSON[[]contact](),
+//	    cqrshtmx.ETagResults(),
+//	)
+//
+// The ETag hashes the RENDERED bytes, so it is correct across renderers and
+// stable for identical results; a changing result set changes the tag.
+func ETagResults() HandlerOption {
+	return func(config *handlerConfig) {
+		inner := config.render
+
+		if inner == nil {
+			slog.Warn("cqrshtmx: ETagResults applied before a renderer — it has nothing to wrap",
+				slog.String("hint", "apply ETagResults after the renderer option, e.g. RenderJSON[...](), ETagResults()"))
+
+			return
+		}
+
+		config.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+			buffered := &etagBufferedResponse{header: http.Header{}}
+			if err := inner(buffered, r, result); err != nil {
+				return err
+			}
+
+			tag := `"` + hx.HashTag(buffered.body.Bytes()) + `"`
+			for key, values := range buffered.header {
+				for _, value := range values {
+					w.Header().Add(key, value)
+				}
+			}
+
+			w.Header().Set("ETag", tag)
+
+			if current, ok := etag.ParseETag(tag); ok &&
+				etag.MatchesIfNoneMatch(current, r.Header.Get("If-None-Match")) {
+				w.WriteHeader(http.StatusNotModified)
+
+				return nil
+			}
+
+			hx.WriteAll(w, buffered.body.Bytes())
+
+			return nil
+		}
+	}
+}
+
+// etagBufferedResponse captures the headers and body of one render pass so the
+// ETag wrapper can hash the complete response before committing it. The status
+// code is ignored: the wrapper owns the final status (200 implicit, or 304 on
+// revalidation).
+type etagBufferedResponse struct {
+	header http.Header
+	body   bytes.Buffer
+}
+
+func (b *etagBufferedResponse) Header() http.Header { return b.header }
+func (b *etagBufferedResponse) Write(p []byte) (int, error) { return b.body.Write(p) }
+func (b *etagBufferedResponse) WriteHeader(int)                   {}
 
 // RenderIf selects between two render functions based on a request predicate.
 // When check returns true, match is used; otherwise noMatch is used.

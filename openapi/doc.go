@@ -5,6 +5,11 @@
 // (or a code generator) declare the spec explicitly and serialize it to valid
 // OpenAPI 3.1 JSON in one call.
 //
+// A spec that registers a QUERY operation (RFC 10008's safe, idempotent,
+// request-body-carrying read method — see [Query]) is automatically versioned
+// OpenAPI 3.2.0, the only version where the `query` operation type exists;
+// [Spec.Validate] rejects a query operation riding any other version.
+//
 // # Quick start
 //
 //	spec := openapi.New("My API", "1.0.0").
