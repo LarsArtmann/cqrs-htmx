@@ -4,68 +4,49 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-11-05 (post-train) · **Owner:** Lars · **Module count:** 29 (`go.work`)
+**As of:** 2026-11-07 (evening, blanket-directive execution) · **Owner:** Lars · **Module count:** 30 (`go.work`)
 
 ## The active thread
 
-**Round 46/47 tail — the train shipped; take the verified-green.** The v4.16.0 family
-train was cut and pushed 2026-11-05 (root v4.16.0 carries the root package split +
-`Posture*` in ONE tag; usermgmt v4.19.0 carries `ViewCacheConfig`/shape stamps;
-adminui/dashboardui/loginpage v4.16.0; setup/v4.16.0 stays the 2026-11-02 tag —
-nothing post-v4.16.0 is consumed). The `--no-verify` window is closed; the release-train
-gate reads 0 unpublished / 0 lag.
+**Blanket-directive execution — the 2026-11-07 wave landed; drain the receipts and the two owner-held packets.**
+Three tags shipped this evening on a strict 0/0 train: **root v4.18.1** (pristine htmx 2.0.11 +
+idiomorph 0.8.0 + SSE 2.2.4 assets with sha pins), **loginpage v4.17.0** (train-alignment maintenance
+release), **huma v4.0.0** (first tag of the Huma v2 adapter, cqrs-htmx#41). All 21 consumer requires
+swept, e2e/server's stale third-party family pins swept (that sweep also repaired a hermetic typecheck:
+go-health-dashboard v0.12.1 was templ-poisoned), docs-gates **5/5 PASS** (audit-all pinned ≤268 and held),
+tail back at 13 after archiving the 18-49 report.
 
-What stands between this tree and fully green CI is exactly ONE upstream blocker:
-**the go-cqrs-lite `catalog/v4` release** (v4.12.0's docserver ships templ-poisoned
-generated code; their master already carries the regenerated templ but is not
-releasable from here — in-flight work behind a local-path replace). Once it ships:
-bump `integration_test` + `examples/catalog-demo`, run `push-and-watch`, close the
-TODO P1 CI row with evidence, and archive per docs-health.
+Two decision packets now sit one tick from GO, both with recommendations pre-staged:
 
-Then the post-train battery (plan M02) on the merged tree: `nix run .#check-modules`
-aggregate, `.#coverage-gate` (root LOC moved 8,121 → 7,325 in the split),
-`.#check-readme-quickstart` against TAGGED v4.16.0, `.#check-cqrs-lint` /
-erraudit-strict / branching-flow re-runs — none have run on the final post-train tree.
+- **M2M D1–D4** ([`docs/proposals/2026-11-07_m2m-owner-decisions-d1-d4.md`](docs/proposals/2026-11-07_m2m-owner-decisions-d1-d4.md)) —
+  no plan-recorded defaults exist (the plan §9 says each answer is un-inferable), so W1/W2 code waits for
+  the tick; the packet's recommendations (supported / event-derived scopes / single-delegator /
+  per-authentication-outcome events) make the tick one word per row.
+- **usermgmt → system/metaengine D1–D5** ([`docs/proposals/2026-11-07_usermgmt-system-metaengine-migration-decisions-d1-d5.md`](docs/proposals/2026-11-07_usermgmt-system-metaengine-migration-decisions-d1-d5.md)) —
+  defaults adopted under the directive; W1–W2 probes are GO without further owner input.
 
-- Plan of record: [`docs/planning/2026-11-05_03-11_SUPERB-round46-tail-train-green-and-backlog-pareto-plan.md`](docs/planning/2026-11-05_03-11_SUPERB-round46-tail-train-green-and-backlog-pareto-plan.md) (M01 done; M02–M05 next, M06+ after).
-- Authorization thread receipts: [ADR-0057](docs/adr/0057-authorization-contract.md),
-  [gotcha 45](docs/gotchas.md#gotcha-45), [`authztest`](authztest/README.md),
-  [docs/guides/authorization-system.md](docs/guides/authorization-system.md),
-  [docs/guides/route-posture.md](docs/guides/route-posture.md).
+Consumer waves C27 landed where the tree allowed: browser-history (durable `GrantRoles` bootstrap),
+InboxClean (`sseDeadlineFree` deleted — the pinned v4.16.0 stream handler owns its deadline),
+github-local-sync (route-posture manifest + truth-sync tests + their stale 1070-era `dashboard_templ.go`
+regenerated). **Swetty/SwettySwipperWeb is unlocatable** (not local, not in `gh repo list`, not archived) —
+the row records it. webphone's leg is deferred (active session in that tree at execution time).
 
-**Done when** master's CI is green end-to-end (catalog released + consumers bumped),
-the post-train battery is green on the merged tree, the TODO P1 CI row is closed with
-CI evidence, and the keep-green traps are mechanized (API-vs-tag drift gate, templ
-codegen hook audit).
+**Done when** the post-tag battery is green on master's CI (check-modules, coverage-gate, erraudit
+receipt, badges ✓, dependabot 0 ✓), the C27 leftovers are dispositioned (webphone when quiet, Swetty
+row trued), and the two packets sit in the owner's queue with nothing else blocking.
 
 ## The next thread (pick ONE)
 
-1. **Direct imports only — the v5 alias cut** (W0 landed 2026-11-06). The
-   preference is now a policy with a gate: [ADR-0062](docs/adr/0062-direct-imports-only.md),
-   `nix run .#check-reexport-policy -- --strict`, frozen
-   [`scripts/checks/reexport-baseline.tsv`](scripts/checks/reexport-baseline.tsv)
-   (47 alias files / 413 declarations), and codemod rules R11/R12/R13. The three
-   root façades are deprecated and root no longer uses them itself — production
-   code AND its 25 own test files were repointed by the codemod, with
-   `api_surface_compat_test.go` deliberately left pinning the aliases until v5 —
-   so the v5 cut is a file delete plus a consumer repoint. Zero living doc still
-   teaches a removed spelling unlabelled (the 10 survivors are labelled contrasts
-   or frozen `CHANGELOG` history). Remaining waves (all inside the ONE
-   v5 window, never a second break): W1 delete the 9 root alias files + 176
-   `usermgmt` aliases and run the codemod on `examples/`, `e2e/`,
-   `integration_test/`, `setup/`, `dashboardui/`; W2 alias-free extractions
-   `authz/` → `readiness/` → `sync/` → `realtime/`; W3 `internal/handler`.
-   Plan: [`docs/planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md`](docs/planning/2026-11-06_07-16_SUPERB-direct-imports-re-export-eviction-and-root-burndown-pareto-plan.md).
-2. **Consumer waves** (plan M06–M09) — one repo at a time, each with its own tests:
-   `browser-history` (`reconcileSuperAdmins` → `GrantRoles`), `InboxClean`
-   (delete `sseDeadlineFree`), `SwettySwipperWeb` (drop the `Count() > 0` guard),
-   `crm` (seed an admin or `DisableAdmin`). The exact call to replace is the
-   "Next step" column of [docs/PERMISSIONS.md](docs/PERMISSIONS.md).
-3. **Advisory month for erraudit strict** (passive): green month at TOTAL ≤ 303,
-   then flip `--strict --gate`.
-
-(The former item 2 — cqrs-lint 4.19.1 triage, plan M10 — is DONE 2026-11-05:
-binary rebuilt at the published v4.20.0 tag, gate green 14/14, `3c544dc9`.)
+1. **C28 — dispatch-gate adoption in the consumer repos that dispatch own commands**
+   (browser-history, InboxClean; github-local-sync is vacuous — zero commands by design;
+   webphone deferred). Each repo: `cqrshtmx.NewDispatchGate` on its dispatcher, per-command
+   posture declarations with reasons, `authztest.CommandSuite` in its own suite
+   ([docs/guides/authorization-system.md](docs/guides/authorization-system.md) § dispatch gate).
+2. **v4.19.0 wave planning** — the HTTP QUERY remainder rides it: W3 DataStar lane
+   (fork `go-datastar/static` bundle bump, gated on NV1/D4), W5 upstream legs (httputil CSRF
+   safe-list, verified-only proxy table). ROADMAP q35's 4.x-default clock started at v4.18.0.
+3. **NV4 probe** (ExtSSE/ExtIdiomorph compat under htmx 4.x) — the sibling e2e lane covers the
+   runtime battery; the library-level verdict + the `examples/basic` htmx-4 dogfood are ours.
 
 ## Ground rules that keep this honest
 
