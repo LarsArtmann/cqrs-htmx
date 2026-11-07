@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
@@ -25,7 +25,7 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/a-h/templ v0.3.1100 // indirect
-	github.com/bits-and-blooms/bitset v1.26.0 // indirect
+	github.com/bits-and-blooms/bitset v1.29.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
@@ -55,6 +55,7 @@ require (
 	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
@@ -70,6 +71,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
@@ -136,8 +138,8 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/libc v1.77.1 // indirect
+	modernc.org/libc v1.80.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.60.1 // indirect
+	modernc.org/sqlite v1.61.1 // indirect
 )
