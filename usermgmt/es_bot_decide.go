@@ -60,7 +60,7 @@ func decideRegisterBot(
 				Scopes:        scopesCopy,
 			},
 			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
-			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
+			event.WithCodec(cborEventCodec), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

@@ -9,6 +9,11 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// cborEventCodec is the one shared instance of the stateless CBOR codec
+// (ADR 0059's binary-heavy payloads): constructed once per process instead
+// of once per event (A027 codec-once).
+var cborEventCodec = codec.CBORCodec{}
+
 func decideAddCredential(
 	aggID id.StreamID,
 	cred WebAuthnCredential,
@@ -42,7 +47,7 @@ func decideAddCredential(
 				Name:            cred.Name,
 			},
 			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
-			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
+			event.WithCodec(cborEventCodec), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -85,7 +90,7 @@ func decideRemoveCredential(
 				ID:            credentialID,
 			},
 			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
-			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
+			event.WithCodec(cborEventCodec), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -147,7 +152,7 @@ func decideRecordCredentialUse(
 				BackupState:   use.BackupState,
 			},
 			// ADR 0059: binary-heavy payload — CBOR, not base64-inflated JSON.
-			event.WithCodec(codec.CBORCodec{}), event.WithSchemaVersion(1),
+			event.WithCodec(cborEventCodec), event.WithSchemaVersion(1),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
