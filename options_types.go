@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -98,13 +99,7 @@ func (c *handlerConfig) methodAllowed(method string) bool {
 	}
 
 	if len(c.requireMethods) > 0 {
-		for _, allowed := range c.requireMethods {
-			if method == allowed {
-				return true
-			}
-		}
-
-		return false
+		return slices.Contains(c.requireMethods, method)
 	}
 
 	return true
