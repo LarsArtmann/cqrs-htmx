@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -121,3 +123,58 @@ func seedDashboard(
 		}
 	}
 }
+
+// emitDebugHandler backs POST /api/debug/emit: one distinctive event lands in
+// the dashboard journal (fresh clients see it after reload — replay) and on
+// the bus (connected dashboards append the row live). The name rides the
+// payload so specs can assert the exact row.
+func emitDebugHandler(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		name := r.FormValue("name")
+		if name == "" {
+			name = "unnamed-probe"
+		}
+
+		aggID := id.NewStreamID()
+		ref := id.StreamRef{Type: e2eDebugStreamType, ID: aggID}
+
+		evt, err := event.New(
+			e2eDebugEventType,
+			aggID,
+			e2eDebugStreamType,
+			event.Version(1),
+			map[string]string{"name": name},
+			event.WithSchemaVersion(1),
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+
+		ctx := r.Context()
+		if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+
+		if err := bus.Publish(ctx, evt); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = fmt.Fprintf(w, `{"id":%q,"name":%q}`, evt.ID().String(), name)
+	}
+}
+
+// e2eDebugStreamType/EventType are deliberately outside the seeded User/
+// Tenant vocabulary: specs must be able to assert exactly the emitted row,
+// never a seed row.
+const (
+	e2eDebugStreamType = id.StreamType("E2e")
+	e2eDebugEventType  = event.Type("E2e.debugEmitted")
+)

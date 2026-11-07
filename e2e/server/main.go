@@ -25,6 +25,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
@@ -62,6 +63,11 @@ func main() {
 	// panels so all nine pages render without a full event-sourced stack. ---
 	dstore := memorystorage.NewMemoryStore()
 
+	// The bus feeds the dashboard's SSE bridge (dashboardui wires
+	// EventBus -> Broadcaster); POST /api/debug/emit publishes on it so specs
+	// can drive the live feed deterministically (the dashboard-demo pattern).
+	dashBus := eventtest.NewFakeBus()
+
 	//cqrs-lint:ignore(C017) ephemeral Playwright test server — in-memory DLQ is intentional, the process is disposable per test run
 	deadStore := projectionhost.NewMemoryDeadLetterStore()
 
@@ -79,6 +85,7 @@ func main() {
 	dash, err := dashboardui.New(dashboardui.Config{
 		EventSource:     dstore,
 		Journal:         dstore,
+		EventBus:        dashBus,
 		CommandJournal:  emptyCommandJournal{},
 		QueryJournal:    emptyQueryJournal{},
 		SnapshotStore:   emptySnapshotStore{},
@@ -95,6 +102,14 @@ func main() {
 
 	seedDashboard(dstore, host, deadStore)
 	dash.Mount(mux, "/dashboard/")
+
+	// TEST-ONLY debug endpoint: appends one event to the dashboard journal
+	// AND publishes it on the bus, so specs can pin both halves of the
+	// dashboard's SSE contract — the live append (connected clients gain a
+	// row without reload) and the journal replay (a fresh client still sees
+	// the event after reconnect — the honest counterpart to the datastar
+	// demo's live-only feed). Same never-ship-this rule as rotate-backend.
+	mux.HandleFunc("POST /api/debug/emit", emitDebugHandler(dstore, dashBus))
 
 	// --- HTML page --- ({$}: exact root only, else it conflicts with the
 	// /dashboard/ subtree's method-agnostic pattern)
