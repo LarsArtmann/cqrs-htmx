@@ -57,6 +57,7 @@ func TestScriptHandler4_RevalidatesAndGuardsMethods(t *testing.T) {
 
 	reval := httptest.NewRequest(http.MethodGet, "/htmx4.js", nil)
 	reval.Header.Set("If-None-Match", tag)
+
 	second := httptest.NewRecorder()
 	handler.ServeHTTP(second, reval)
 

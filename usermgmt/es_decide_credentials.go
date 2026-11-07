@@ -12,7 +12,7 @@ import (
 // cborEventCodec is the one shared instance of the stateless CBOR codec
 // (ADR 0059's binary-heavy payloads): constructed once per process instead
 // of once per event (A027 codec-once).
-var cborEventCodec = codec.CBORCodec{}
+var cborEventCodec = codec.CBORCodec{} //nolint:gochecknoglobals // stateless empty struct (A027 codec-once): one shared instance, immutable after init
 
 func decideAddCredential(
 	aggID id.StreamID,

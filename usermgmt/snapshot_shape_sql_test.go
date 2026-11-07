@@ -12,7 +12,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
-
 	_ "modernc.org/sqlite"
 )
 
@@ -32,7 +31,7 @@ func TestSnapshotShape_SQLStoreDropsStampToday(t *testing.T) {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	defer db.Close()
+	t.Cleanup(func() { _ = db.Close() })
 
 	if _, err := db.Exec(sqlpkg.SQLiteDialect{}.SnapshotSchema()); err != nil {
 		t.Fatalf("create snapshots schema: %v", err)
