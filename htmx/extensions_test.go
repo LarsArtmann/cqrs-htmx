@@ -26,6 +26,7 @@ var _ = Describe("ExtensionHandler", func() {
 		},
 		Entry("sse", htmx.ExtSSE, "2.2.4"),
 		Entry("idiomorph", htmx.ExtIdiomorph, "0.7.4"),
+		Entry("cqrs-query", htmx.ExtCQRSQuery, "1.0.0"),
 	)
 
 	It("returns 304 for matching If-None-Match", func() {
@@ -118,6 +119,7 @@ var _ = Describe("ExtensionVersion", func() {
 		},
 		Entry("sse", htmx.ExtSSE, "2.2.4"),
 		Entry("idiomorph", htmx.ExtIdiomorph, "0.7.4"),
+		Entry("cqrs-query", htmx.ExtCQRSQuery, "1.0.0"),
 	)
 
 	It("returns empty string for unknown extension", func() {
@@ -128,12 +130,12 @@ var _ = Describe("ExtensionVersion", func() {
 var _ = Describe("ExtensionNames", func() {
 	It("returns all extension names sorted alphabetically", func() {
 		names := htmx.ExtensionNames()
-		Expect(names).To(Equal([]string{"idiomorph", "sse"}))
+		Expect(names).To(Equal([]string{"cqrs-query", "idiomorph", "sse"}))
 	})
 
 	It("returns names that join cleanly for error messages", func() {
 		names := htmx.ExtensionNames()
-		Expect(strings.Join(names, ", ")).To(Equal("idiomorph, sse"))
+		Expect(strings.Join(names, ", ")).To(Equal("cqrs-query, idiomorph, sse"))
 	})
 })
 

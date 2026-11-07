@@ -19,6 +19,9 @@ var extSSEJS []byte
 //go:embed extensions/idiomorph-ext.min.js
 var extIdiomorphJS []byte
 
+//go:embed extensions/cqrs-query.js
+var extCQRSQueryJS []byte
+
 // HTMX extension name constants for use with ExtensionHandler and
 // ExtensionsHandler. These are the extensions that have direct server-side
 // counterparts in cqrs-htmx (SSE building blocks) or are commonly paired
@@ -31,6 +34,12 @@ const (
 	// ExtIdiomorph provides the morph swap strategy via idiomorph.
 	// Commonly used alongside SSE for efficient partial DOM updates.
 	ExtIdiomorph = "idiomorph"
+
+	// ExtCQRSQuery upgrades htmx 2 requests to the native HTTP QUERY method
+	// (RFC 10008) with automatic downgrade to POST + X-Http-Method-Override
+	// when an intermediary answers 405/501. cqrs-htmx's own extension — pairs
+	// with MethodOverrideMiddleware on the server.
+	ExtCQRSQuery = "cqrs-query"
 )
 
 // htmxExtension holds an embedded HTMX extension's JS payload and version.
@@ -45,6 +54,7 @@ type htmxExtension struct {
 var htmxExtensions = map[string]htmxExtension{
 	ExtSSE:       {js: extSSEJS, version: "2.2.4"},
 	ExtIdiomorph: {js: extIdiomorphJS, version: "0.7.4"},
+	ExtCQRSQuery: {js: extCQRSQueryJS, version: "1.0.0"},
 }
 
 // ExtensionHandler returns an http.Handler that serves the embedded
