@@ -104,6 +104,29 @@ No native `hx-query` — use rung 2; the override header rides `hx-headers`:
 
 (With `MethodOverrideMiddleware` the POST lands on your `QUERY` pattern. The CSRF token flows through your existing `hx-headers` wiring.)
 
+#### Or: the `cqrs-query` extension (native first, automatic downgrade)
+
+The library ships its own htmx 2 extension that upgrades the request to the
+native QUERY method and only falls back when an intermediary forces it —
+serve it with `htmx.ExtensionHandler(htmx.ExtCQRSQuery)`:
+
+```html
+<script src="/htmx.js"></script>
+<script src="/ext/cqrs-query.js"></script>
+
+<button hx-post="/contacts/search" hx-query hx-ext="cqrs-query, json-enc"
+        hx-target="#results">
+  Search
+</button>
+```
+
+`hx-post` stays the trigger and the fallback transport; `hx-query` (empty
+value reuses the `hx-post` URL) upgrades the verb to native `QUERY`. The
+first 405/501 answer on an origin (a proxy rejecting the unknown method)
+remembers the origin in `sessionStorage` for an hour, retries that request
+immediately as POST + `X-HTTP-Method-Override: QUERY`, and skips the native
+attempt for every later request on that origin.
+
 ### htmx 4
 
 Native `hx-query`: `<button hx-query="/contacts/search">`. The library embeds htmx 4.0.1 alongside the 2.0.10 default — serve it with `htmx.ScriptHandler4()` (ETag + immutable caching, same contract as the default handler); the default flips to 4.x only in v5.
