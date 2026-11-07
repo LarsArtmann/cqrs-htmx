@@ -236,6 +236,37 @@ mux.Handle("GET /items", app.Query("ListItems",
 ))
 ```
 
+### HTTP QUERY method (RFC 10008): body-carrying safe reads
+
+`App.Query` is method-agnostic — the same handler serves native `QUERY`
+(safe + idempotent + request body; complex filters never squeezed into URLs)
+and the POST fallback from one `QUERY` pattern via one middleware:
+
+```go
+mux.Handle("QUERY /contacts", app.Query("SearchContacts",
+    cqrshtmx.DecodeJSONQuery(func(req searchRequest) (query.Query, error) {
+        return &searchContactsQuery{Filter: req.Filter}, nil
+    }),
+    cqrshtmx.RenderJSON[[]contact](),
+))
+
+// Mount INSIDE the security middleware (CSRF must see the wire POST):
+srv := cqrshtmx.Chain(app.Middleware())(cqrshtmx.MethodOverrideMiddleware(mux))
+```
+
+- `MethodOverrideMiddleware` rewrites POST + `X-HTTP-Method-Override: QUERY`
+  (legacy `X-Http-Method` honored) into QUERY before routing; QUERY is the
+  only override target — an override to DELETE is ignored by design.
+- `DecodeJSONQuery`/`DecodeJSONQueryTyped` advertise `Accept-Query:
+  application/json` themselves (error responses too); form decoders advertise
+  nothing. `AcceptQuery(...)` appends consumer types.
+- `RequireAnyMethod("QUERY", http.MethodPost)` guards multi-method mounts
+  (405 + `Allow` header); `RequireContentType("application/json")` opts a
+  route into the RFC media-type ladder (missing type + body → 400, wrong type
+  → 415 via `httperr.ErrUnsupportedMediaType`).
+- Client recipes (htmx 2.x `hx-post` + override header, htmx 4 `hx-query`,
+  DataStar, CSRF/CORS posture): `docs/guides/http-query-method.md`.
+
 ### Form-based (SSR / HTMX): POST form -> dispatch -> redirect
 
 ```go

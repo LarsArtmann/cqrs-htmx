@@ -70,7 +70,7 @@
 - NV2: proxy/CDN/WAF behavior for QUERY (Cloudflare, nginx, Envoy, Caddy, ALB) — the guide must carry a verified table, not folklore.
 - NV3: whether Huma v2 can register a QUERY-method operation (OpenAPI 3.2 awareness).
 - NV4: htmx 4 extension compatibility for the embedded SSE/idiomorph extensions (htmx 4 rewrote parts of the extension surface).
-- NV5: whether htmx 2.0.10's internal XHR path accepts a non-standard verb cleanly (body-vs-params switch) — needed before promising the upgrade extension.
+- ~~NV5: whether htmx 2.0.10's internal XHR path accepts a non-standard verb cleanly (body-vs-params switch)~~ **RESOLVED 2026-11-07, static proof in the embedded bundle:** `methodsThatUseUrlParams: ["get", "delete"]` + `methodsThatUseUrlParams.indexOf(t) >= 0` decides body-vs-URL-params, so QUERY (not in the list) rides the body path exactly like POST, and the transport is `XMLHttpRequest.open(...)` which accepts arbitrary method tokens — the W2.4 extension's `htmx:configRequest` verb flip is mechanically sound. Runtime proof still owed by the W2.4 browser e2e.
 
 - NV6: the exact htmx 4 line detail ("4.0.1, 2026-11-01") is second-hand from an assistant research pass — re-verify from the htmx releases page at W2.3 before embedding a pin.
 
@@ -184,7 +184,7 @@ Naming follows the existing vocabulary (`*Middleware`, `Require*` options); all 
 
 | # | Task | Done when |
 | --- | --- | --- |
-| W2.1 | Resolve NV5 (htmx 2.0.10 non-standard verb path) with a minimal browser probe | verdict recorded here (go/no-go for the 2.x upgrade path) |
+| W2.1 | Resolve NV5 (htmx 2.0.10 non-standard verb path) with a minimal browser probe | **DONE 2026-11-07 (static)** — `methodsThatUseUrlParams` proof recorded in §3 NV5; runtime confirmation folded into W2.4's e2e |
 | W2.2 | Resolve NV4 (htmx 4 extension compat for `ExtSSE`/`ExtIdiomorph`) | verdict recorded; 4.x embed scope decided |
 | W2.3 | `htmx/htmx4.min.js` + `ScriptHandler4()` + `Version4()` (default unchanged) | served with ETag; version pin + banner comments; `check-templates`-style gate if needed |
 | W2.4 | `cqrs-query` extension (upgrade + auto-downgrade + sessionStorage memory, ~1 KB, CSP-safe) | served via extension machinery; browser e2e (e2e/server) proves upgrade, downgrade-on-405, and memory |
