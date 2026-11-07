@@ -25,7 +25,7 @@
 2. **Fallback parity:** native QUERY, override POST, and (for small queries) GET must produce byte-identical success responses from one handler registration.
 3. **Fallback honesty:** the override POST is still a POST at the CSRF layer — it carries the token and is checked. We never bypass CSRF to "make QUERY work"; QUERY's own CSRF exemption is an upstream (httputil) fix, not a local hack.
 4. **Safe means safe:** nothing in the QUERY paths may dispatch commands or write; they route to `App.Query` only.
-5. **One advertisement source:** `Accept-Query` names what the decoders actually accept — no aspirational media types.
+5. **No advertisement lies:** `Accept-Query`/`Allow` and the OpenAPI `query` operation must describe shipped behavior only — the decoder-driven default (W1.4) and the 3.2 auto-bump (W4.1) exist to make lying structurally impossible.
 6. **Spec-truth in OpenAPI:** a `query` operation renders in an OpenAPI **3.2.0** document or not at all — never a 3.1.0 doc carrying a 3.2 field.
 7. **Additive only in v4**; removals/defaults flips wait for the v5 window.
 
@@ -36,7 +36,7 @@
 | # | Fact | Evidence |
 | --- | --- | --- |
 | S1 | Go stdlib mux registers and routes `QUERY /path` patterns; client sends QUERY with a body; status 200 round-trips | proven live in-session (throwaway module, `ServeMux` + `http.NewRequest("QUERY", ...)`) |
-| S2 | `App.Query`/`QueryTyped` handlers never inspect `r.Method` — method-agnostic today | `app.go:270-285`, `app.go:325-339` |
+| S2 | `App.Query`/`QueryTyped` handlers never inspect `r.Method`, and neither do the decoders: `decodeJSONBody` reads the body with no method and no Content-Type gate (empty body → zero-value T) | `app.go:270-285`, `app.go:325-339`, `decoder.go:36-53` |
 | S3 | `RequireMethod(method string)` is single-method, enforced at `handler.go:194` (405) | `options_json.go:63` |
 | S4 | CSRF (httputil v1.8.0, nosurf-based) exempts only GET/HEAD/OPTIONS/TRACE — a native QUERY **is challenged** despite being spec-safe | `httputil@v1.8.0/csrf.go:789` |
 | S5 | `httperr` has no 415/422 mapping today (sentinels: 401/403/405/413; families 400/409/500/503) | `httperr/errors.go:97-105` |
@@ -52,7 +52,7 @@
 | C2 | Embedded htmx is 2.0.10 — no QUERY support; `ScriptHandlerWith(js, version)` exists explicitly for serving other versions ("a custom build, a beta, or htmx 4.0") | `htmx/embed.go:6`, `htmx/serve.go:19-31` |
 | C3 | Current upstream DataStar documents `@query()` (signals in body, safe+idempotent, RFC 10008) with `headers`, `retry`, `openWhenHidden` options | data-star.dev/reference/actions (fetched 2026-11-07) |
 | C4 | Our embedded datastar.js is upstream **1.0.3** (fork `go-datastar/static` v0.6.1) and registers only get/patch/post/put/delete fetch actions — **no `@query`**; the plugin API (`datastar.action(...)`) IS exported, so custom actions can be registered at runtime | `static@v0.6.1/static.go:22` (`Version = "1.0.3"`), action registration table in the bundle: `Le("get","GET",!1);Le("patch",...);Le("post",...);Le("put",...);Le("delete",...)`; `export{V as action,...}` |
-| C5 | `ds.ReadSignals(r, &target)` decodes the signals body regardless of method; response handling is content-type driven (SSE/HTML/JSON/JS) — QUERY changes neither | `datastar/patch.go:169`, data-star.dev § Response Handling |
+| C5 | `ds.ReadSignals` handles QUERY correctly **by construction**: the fork routes GET/DELETE to URL-query signals and *everything else* (incl. QUERY) to the JSON body — re-verified in source, not asserted | go-datastar `inbound.go:55-68` (`isQueryMethod` = GET/DELETE only), `datastar/patch.go:169` |
 | C6 | DataStar non-GET actions default `openWhenHidden: true` — QUERY keeps SSE feeds alive in background tabs | data-star.dev/reference/actions § Options |
 
 ### Specs / protocol
@@ -71,6 +71,8 @@
 - NV3: whether Huma v2 can register a QUERY-method operation (OpenAPI 3.2 awareness).
 - NV4: htmx 4 extension compatibility for the embedded SSE/idiomorph extensions (htmx 4 rewrote parts of the extension surface).
 - NV5: whether htmx 2.0.10's internal XHR path accepts a non-standard verb cleanly (body-vs-params switch) — needed before promising the upgrade extension.
+
+- NV6: the exact htmx 4 line detail ("4.0.1, 2026-11-01") is second-hand from an assistant research pass — re-verify from the htmx releases page at W2.3 before embedding a pin.
 
 ## 4. The design
 
@@ -91,19 +93,33 @@ Server-side this is ONE handler because `App.Query` is method-agnostic (S2); the
 ### 4.2 Server surface (root, additive)
 
 ```go
-// 1. The fallback seam — wrap the mux (OUTERMOST, before routing):
+// 1. The fallback seam — wrap the mux (INSIDE the middleware trio; see the
+// ordering table below — the security layers must validate the WIRE method):
 mux := http.NewServeMux()
 mux.Handle("QUERY /contacts", app.Query("SearchContacts", cqrshtmx.DecodeJSONQuery(...)))
-mux.Handle("POST /contacts", app.Query("SearchContacts", cqrshtmx.DecodeJSONQuery(...))) // same handler
 
-http.ListenAndServe(":8080",
-    cqrshtmx.MethodOverrideMiddleware(mux)) // POST + X-HTTP-Method-Override: QUERY -> r.Method="QUERY" pre-routing
+srv := cqrshtmx.Chain(
+    cqrshtmx.RecommendedSecurityMiddleware(),
+    sessionMW,
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    cqrshtmx.HTMXMiddleware,
+    app.Middleware(), // enrichment sees QUERY, not the wire POST
+)(cqrshtmx.MethodOverrideMiddleware(mux)) // POST + override header -> r.Method="QUERY" pre-routing
 ```
 
+**Placement is a security decision, not a style choice.** The rewrite must sit AFTER CSRF and BEFORE the mux:
+
+| Placement | What CSRF validates | Today (QUERY challenged, S4) | After W5.1 (QUERY safe-listed) |
+ | --- | --- | --- | --- |
+ | **Inside CSRF (wraps the mux) — chosen** | the wire method (POST) | override POST demands the token | override POST still demands the token — behavior never changes |
+ | Outside CSRF (outermost — rejected) | the logical method (QUERY) | override POST demands the token (accidentally correct) | override POST silently stops demanding the token — fallback auth becomes coupled to an upstream fix |
+
+The rejected placement "works" today by accident and breaks the day W5.1 lands; the chosen one keeps the fallback rung permanently as strict as a POST, which is what it is on the wire. Native QUERY requests pass through untouched either way (challenged today per S4, exempt after W5.1 — the desired endgame for a safe method).
+
 - **`cqrshtmx.MethodOverrideMiddleware(next http.Handler) http.Handler`** — rewrites `POST` + `X-HTTP-Method-Override: QUERY` (and the legacy `X-HTTP-Method` spelling) to `r.Method = "QUERY"` via `r.Clone` BEFORE the mux sees it, so a single `QUERY /path` pattern serves both rungs (the dual registration above becomes optional). Overriding into a non-safe target (e.g. `Override: DELETE`) is ignored — this middleware is for read fallbacks only, by construction.
-- **`cqrshtmx.AcceptQuery(types ...string) HandlerOption`** — sets `Accept-Query: application/json` (and contributes to `Allow` on 405s) so clients can discover rung 1 per RFC 10008 §5.3. Advertisement defaults to nothing (invariant 5) and the option refuses types the shipped decoders cannot decode.
+- **`cqrshtmx.AcceptQuery(types ...string) HandlerOption`** — overrides the `Accept-Query` advertisement (default: the decoder already advertises itself — see below); contributes `QUERY` to the `Allow` header on 405s so clients can discover rung 1 per RFC 10008 §5.3. The DEFAULT source of truth is the decoder, not this option: `DecodeJSONQuery`/`DecodeJSONQueryTyped` set `Accept-Query: application/json` on the responses they produce, so the advertisement can never drift from what the handler actually decodes (a hand-set header option would re-create exactly that split brain). `AcceptQuery` exists only to ADD types (e.g. a consumer decoder that also accepts `application/sql`).
 - **`cqrshtmx.RequireAnyMethod(methods ...string) HandlerOption`** — the multi-method generalization of `RequireMethod` (S3) for consumers who mount one handler under several patterns without method-scoped mux patterns (Chi/Gin).
-- **`cqrshtmx.RequireContentType(mt string) HandlerOption`** — 400 on missing/lying Content-Type and 415 on a known-but-wrong type, per RFC 10008's media-type ladder (P1). Backed by a new `httperr.ErrUnsupportedMediaType` sentinel → 415 (S5 closes). Runs after authorize, before decode.
+- **`cqrshtmx.RequireContentType(mt string) HandlerOption`** — 400 on missing/lying Content-Type and 415 on a known-but-wrong type, per RFC 10008's media-type ladder (P1). Backed by a new `httperr.ErrUnsupportedMediaType` sentinel → 415 (S5 closes). Runs after authorize, before decode. **Documented divergence:** RFC 10008 says servers MUST reject a missing/inconsistent Content-Type; our default is lenient (S2 — `decodeJSONBody` never looks), because the library principle forbids enforcing a default consumers might disagree with. `RequireContentType` is the opt-in that makes a route RFC-pure; the guide states this plainly instead of letting consumers believe the default is spec-exact.
 - **`cqrshtmx.ETagResults() HandlerOption`** — opt-in conditional-query support: FNV-1a the rendered bytes, set `ETag`, answer `If-None-Match` with 304 (machinery exists, S6). Explicitly opt-in because hashing every response is a CPU trade the consumer should choose.
 
 Naming follows the existing vocabulary (`*Middleware`, `Require*` options); all four are additive v4 API, no alias files (ADR-0062 — these are new symbols in the owning package, root).
@@ -157,10 +173,10 @@ Naming follows the existing vocabulary (`*Middleware`, `Require*` options); all 
 
 | # | Task | Done when |
 | --- | --- | --- |
-| W1.1 | `MethodOverrideMiddleware` (header rewrite pre-routing, safe-target-only, `r.Clone`) + unit tests incl. a mux-routing proof | middleware test proves one `QUERY /x` pattern serves POST+override |
+| W1.1 | `MethodOverrideMiddleware` (header rewrite pre-routing, safe-target-only, `r.Clone`) + unit tests incl. a mux-routing proof AND the placement proof (mounted inside CSRF: an override POST without a token is refused; with the token, passes) | middleware test proves one `QUERY /x` pattern serves POST+override AND that the CSRF layer saw the wire POST |
 | W1.2 | `httperr.ErrUnsupportedMediaType` (415) + `MapError` wiring + sentinel table row | httperr tests; `docs`/README error table updated |
 | W1.3 | `RequireContentType` option (400 missing/lying, 415 wrong) | option tests incl. ordering (after authorize, before decode) |
-| W1.4 | `AcceptQuery` option (validated against decodable types; sets `Accept-Query`; enriches 405 `Allow`) | golden test pins header bytes |
+| W1.4 | Decoder-driven `Accept-Query` (JSON query decoders advertise `application/json` on responses) + `AcceptQuery` add-only override + `Allow` enrichment on 405 | golden test pins header bytes; a test proves a handler WITHOUT JSON decoder advertises nothing (no aspirational types) |
 | W1.5 | `RequireAnyMethod` (generalizes `RequireMethod`, which stays) | 405 matrix test |
 | W1.6 | Guide § fallback updated from hand-rolled to shipped API; skill snippet fences | `nix run .#check-skill-snippets` + skill-claims green |
 
@@ -187,7 +203,7 @@ Naming follows the existing vocabulary (`*Middleware`, `Require*` options); all 
 
 | # | Task | Done when |
 | --- | --- | --- |
-| W4.1 | `openapi.Query()` + spec-version auto-bump to 3.2.0 on first query op + tests + README tooling note | a rendered spec with a query op declares `openapi: 3.2.0` — test-pinned |
+| W4.1 | `openapi.Query()` — four touchpoints: `PathItem.Query` field, `hasMethod` case, `operations()` map entry, the constructor — + spec-version auto-bump to 3.2.0 on first query op + tests + README tooling note | a rendered spec with a query op declares `openapi: 3.2.0` — test-pinned; `PathItem` JSON shows the `query` key |
 | W4.2 | `ETagResults()` option (FNV over rendered bytes; If-None-Match → 304) | conditional test: second identical QUERY → 304, empty body |
 | W4.3 | huma verdict (NV3): QUERY-method registration support | verdict + README gap-note or recipe |
 | W4.4 | ADR-0064: the fallback ladder as library contract (rungs, safety argument, CSRF posture) | ADR Accepted; guide links it |
@@ -216,8 +232,24 @@ Naming follows the existing vocabulary (`*Middleware`, `Require*` options); all 
 | D2 | Move validation failures to 422 for QUERY (RFC-ladder-pure) at the cost of the 400 contract? | no — 400 stays in v4; 422 is a v5 decision |
 | D3 | Ship the `cqrs-query` extension for htmx 2, or docs-only override recipe until 4.x default? | ship it (the auto-downgrade is the differentiator), gated on W2.1 |
 | D4 | Bundle-bump cadence for `go-datastar/static` (ride upstream minors?) | ride releases that add actions we document (here: `@query`) |
+| D5 | `MethodOverrideMiddleware` home: root (CQRS-coupled, safe-targets-only variant, ships in v4) vs upstream httputil offer (it is generic HTTP plumbing; httputil v1.8.0 has none — verified) | root first, offer upstream in W5 if it proves general (the SSE-deadline-fix pattern) |
 
 ## 9. Errata / honest notes
+
+### 9.1 Re-review pass 2026-11-07 (same day, after the "is it superb?" challenge)
+
+Four defects found by re-verifying the plan's own claims against source (a review's verdict is a claim, not a fact):
+
+1. **The middleware placement instruction was wrong.** §4.2 originally said "OUTERMOST" — which puts the rewrite before CSRF and couples fallback authentication to the W5.1 upstream CSRF fix (accidentally strict today, silently token-free the day QUERY is safe-listed). Corrected to inside-CSRF placement with the ordering table; W1.1's done-when now includes the placement proof.
+2. **`AcceptQuery` overpromised validation magic.** "Refuses types the shipped decoders cannot decode" had no mechanism (decoders are closures; the option sees strings). Replaced with the decoder-driven advertisement — the component that knows the media type is the one that advertises it, killing the drift split brain by construction.
+3. **C5 was asserted, not verified.** `ReadSignals` method-agnosticism was claimed from the signature alone. Source read now: `inbound.go:55-68` routes GET/DELETE to URL-query and everything else to the body, so QUERY reads the JSON body — correct by construction (deliberate fork design). Claim now cites source.
+4. **C1's version detail was second-hand** ("4.0.1, 2026-11-01" from an assistant research pass, not the releases page) — promoted to NV6, verified at W2.3.
+
+Also sharpened: S2 now cites the decoder (`decoder.go:36-53`, no Content-Type gate — which makes the RFC's MUST-reject media-type ladder an opt-in divergence, now stated in `RequireContentType`), and W4.1 names all four `PathItem` touchpoints (typed struct, not a map — `openapi/types.go:40-92`).
+
+**Provenance note:** this file was twice nearly lost the same day — a sibling session's `Git Town WIP` stash (`stash@{0}`, gotcha 47 strike three) captured the uncommitted plan + TODO row + baseline bump before the daemon could commit them; recovered read-only via `git restore --source=stash@{0}` (the stash was never popped — it holds the sibling's work too) and the amendments were applied on top.
+
+### 9.2 Original errata
 
 - The in-session Go stdlib proof (S1) used the ambient toolchain, not `nix develop` — same 1.27 floor, but W0.3 re-proves inside the repo test battery.
 - MDN's QUERY page carries no browser-compat table ("not relevant" — browsers don't gate it, P3); any "browser support" claim in the guide must cite fetch-spec method-token rules, not a version matrix.
