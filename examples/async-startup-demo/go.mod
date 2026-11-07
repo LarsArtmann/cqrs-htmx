@@ -42,7 +42,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.16.0 // indirect
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.18.0 // indirect
-	github.com/larsartmann/go-appkit v0.11.0 // indirect
+	github.com/larsartmann/go-appkit v0.12.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.14.0 // indirect
