@@ -161,7 +161,9 @@ func run() error {
 
 // dsDemoPage is the minimal DataStar client for /ds-demo: the SDK connects
 // to /ds/events and the span re-renders whenever the "broadcasts" signal is
-// patched by POST /broadcast.
+// patched by POST /broadcast. The signals declaration uses the object
+// expression form — the form the shipped datastar-demo is verified with in
+// the e2e battery.
 const dsDemoPage = `<!doctype html>
 <html lang="en">
 <head>
@@ -169,7 +171,7 @@ const dsDemoPage = `<!doctype html>
   <title>setup-demo — DataStar feed</title>
   <script type="module" src="/datastar.js"></script>
 </head>
-<body data-signals-broadcasts="0">
+<body data-signals="{broadcasts: 0}">
   <h1>Live broadcasts (DataStar)</h1>
   <p>POST /broadcast to bump the counter — the patch arrives on /ds/events.</p>
   <p>Broadcasts so far: <span data-text="$broadcasts"></span></p>
