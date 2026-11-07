@@ -141,9 +141,9 @@ Verified honestly rather than hand-waved:
 
 **Close this session's edges (blocking the "done" claim):**
 
-~~1. **Cut the release wave, in dependency order**: `identity-model v4.16.0` (session events) → root (`DispatchPosture`, `DropStats` — already pending) → `usermgmt` → `systemadapter`/`adminui`/`dashboardui`/`setup` → consumer sweep. Verify: `nix run .#wave-tag -- identity-model v4.16.0` (dry-run first), then `nix run .#check-release-train --refresh-cache --strict-lag 0`, then `GOWORK=off go build ./...` in `usermgmt/` and `systemadapter/`.~~ verified — wave cut 2026-11-07: all tags verified on origin (identity-model v4.17.0, root v4.17.0 then v4.18.0, usermgmt v4.20.0, systemadapter v4.13.0, adminui/dashboardui/setup v4.17.0; TODO_LIST header)
-~~2. Write the corpus ledger sentence for this report in `docs/status/README.md` (the sibling's ledger line is stable now). Verify: `bash scripts/checks/check-docs-corpus-budget.sh --ratchet`.~~ verified — the ledger sentence exists: the 10-54 pass ledgered this report (+209 lines, docs/status/README.md corpus ledger, baselines pinned)
-~~3. Raise `TAIL_BASELINE` to the live count in the same change as this report, or archive two settled 2026-11-05 reports instead. Verify: `bash scripts/checks/check-docs-tail-budget.sh --ratchet`.~~ verified — TAIL_BASELINE was raised 15 to 16 same-change with this report (ledger); it stands at 15 after the round-24/25 archive passes archived ten reports
+1. ~~**Cut the release wave, in dependency order**: `identity-model v4.16.0` (session events) → root (`DispatchPosture`, `DropStats` — already pending) → `usermgmt` → `systemadapter`/`adminui`/`dashboardui`/`setup` → consumer sweep. Verify: `nix run .#wave-tag -- identity-model v4.16.0` (dry-run first), then `nix run .#check-release-train --refresh-cache --strict-lag 0`, then `GOWORK=off go build ./...` in `usermgmt/` and `systemadapter/`.~~ verified — wave cut 2026-11-07: all tags verified on origin (identity-model v4.17.0, root v4.17.0 then v4.18.0, usermgmt v4.20.0, systemadapter v4.13.0, adminui/dashboardui/setup v4.17.0; TODO_LIST header)
+2. ~~Write the corpus ledger sentence for this report in `docs/status/README.md` (the sibling's ledger line is stable now). Verify: `bash scripts/checks/check-docs-corpus-budget.sh --ratchet`.~~ verified — the ledger sentence exists: the 10-54 pass ledgered this report (+209 lines, docs/status/README.md corpus ledger, baselines pinned)
+3. ~~Raise `TAIL_BASELINE` to the live count in the same change as this report, or archive two settled 2026-11-05 reports instead. Verify: `bash scripts/checks/check-docs-tail-budget.sh --ratchet`.~~ verified — TAIL_BASELINE was raised 15 to 16 same-change with this report (ledger); it stands at 15 after the round-24/25 archive passes archived ten reports
 
 **Session-audit follow-on (same code, small):**
 
@@ -173,16 +173,16 @@ Verified honestly rather than hand-waved:
 
 19. Put the tag order for session events into `docs/guides/release-playbook.md` as the worked example of a two-module API dependency (identity-model → usermgmt).
 20. After the wave: `nix run .#verify-remote-tags` and `nix run .#push-and-watch`; close the TODO P1 row with the CI run id.
-~~21. Check `usermgmt/CHANGELOG.md`'s new entry lands under the version that actually ships (currently `## [Unreleased]` — move it to the tag's section at wave time; same for `identity-model`).~~ verified — both entries landed under shipped sections: usermgmt v4.20.0 (2026-11-07) and identity-model v4.17.0 (2026-11-07) carry the session-lifecycle entries
+21. ~~Check `usermgmt/CHANGELOG.md`'s new entry lands under the version that actually ships (currently `## [Unreleased]` — move it to the tag's section at wave time; same for `identity-model`).~~ verified — both entries landed under shipped sections: usermgmt v4.20.0 (2026-11-07) and identity-model v4.17.0 (2026-11-07) carry the session-lifecycle entries
 
 **Sibling-lane items this session noticed but must not touch:**
 
-~~22. `integration_test` panic: `go-health v0.10.0` `Probe.RegisterRoutes` (`health_probe_test.go:109`) — the health bridge needs updating to the new API (owner: appkit/go-health sweep session).~~ verified — green this session: the Health probe tests pass, including TestHealthProbe_StartAndRoutesE2E which mounts Probe.RegisterRoutes (health_probe_test.go:110); no panic at go-health v0.10.0
-~~23. usermgmt's 31 lint findings (27 SA1019 + 2 gci + 2 gochecknoglobals) — W1 of the direct-imports plan.~~ resolved — routed to TODO_LIST.md:22 direct-imports row (W1 rides the v5 window)
+22. ~~`integration_test` panic: `go-health v0.10.0` `Probe.RegisterRoutes` (`health_probe_test.go:109`) — the health bridge needs updating to the new API (owner: appkit/go-health sweep session).~~ verified — green this session: the Health probe tests pass, including TestHealthProbe_StartAndRoutesE2E which mounts Probe.RegisterRoutes (health_probe_test.go:110); no panic at go-health v0.10.0
+23. ~~usermgmt's 31 lint findings (27 SA1019 + 2 gci + 2 gochecknoglobals) — W1 of the direct-imports plan.~~ resolved — routed to TODO_LIST.md:22 direct-imports row (W1 rides the v5 window)
 24. `setup` lint `nestif` in `bundle.go:226` (DropStats shutdown block) — already in the TODO P1 row.
-~~25. `docs-gates audit-all` red (393 unharvested items vs pinned 322) — needs the harvest-or-archive decision the sibling's 09-38 report lays out.~~ resolved — routed to TODO_LIST.md:46 audit-all row (the harvest-or-re-pin decision)
-~~26. Tail at 15 vs budget 3 — archive the settled 2026-11-05/06 set (`nix run .#archive-status`).~~ resolved — routed to TODO_LIST.md:21 plan-of-record row (the archive pass to a tail of 3)
-~~27. The two rule-F inline-code findings the sibling reported fixed — re-run `docs-gates annotate .` to confirm nothing regressed.~~ verified — annotate clean: the 09:30 pass fixed the five rule-F findings (146 files, 555 struck, 0 findings) and the round-24 battery stayed clean (TODO_LIST row 46)
+25. ~~`docs-gates audit-all` red (393 unharvested items vs pinned 322) — needs the harvest-or-archive decision the sibling's 09-38 report lays out.~~ resolved — routed to TODO_LIST.md:46 audit-all row (the harvest-or-re-pin decision)
+26. ~~Tail at 15 vs budget 3 — archive the settled 2026-11-05/06 set (`nix run .#archive-status`).~~ resolved — routed to TODO_LIST.md:21 plan-of-record row (the archive pass to a tail of 3)
+27. ~~The two rule-F inline-code findings the sibling reported fixed — re-run `docs-gates annotate .` to confirm nothing regressed.~~ verified — annotate clean: the 09:30 pass fixed the five rule-F findings (146 files, 555 struck, 0 findings) and the round-24 battery stayed clean (TODO_LIST row 46)
 
 **Broader follow-ups worth scheduling:**
 

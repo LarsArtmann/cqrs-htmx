@@ -5,7 +5,7 @@
 > ride the v4.17.0 family train (last tag `loginpage/v4.13.0`, 2026-10-14);
 > the dashboardui W14 half of the row DID ride it (`dashboardui/v4.17.0`) and
 > is therefore not re-drafted here. Every delta below has a receipt in
-> [`loginpage/CHANGELOG.md`](../loginpage/CHANGELOG.md) § [Unreleased].
+> [`loginpage/CHANGELOG.md`](../../loginpage/CHANGELOG.md) § [Unreleased].
 
 ## v4.14.0 — ready when the train rolls
 

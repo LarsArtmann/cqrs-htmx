@@ -100,14 +100,22 @@ Files: every `es_*.go` event/command/state file plus `authz_types.go`,
   consumer examples left on the legacy path (`examples/system-demo` migrates
   with the same cut); the module's own equivalence tests keep exercising it
   until then via a scoped staticcheck exclusion in
-  `systemadapter/.golangci.yml`. **Accepted limitation (recorded 2026-09-20):**
-  the declarative path has no custom checkpoint/DLQ store injection —
-  `system.New` uses an internal in-memory checkpoint store — so consumers with
-  durable-checkpoint or dead-letter requirements stay on `NewProjectionLayer`
-  (with `WithCheckpointStore`/`WithDeadLetterStore`) until go-cqrs-lite ships a
-  `system.New` option for both. If no such option lands before the v5 cut,
-  removal proceeds with this documented in the migration guide
+  `systemadapter/.golangci.yml`. **Accepted limitation (CORRECTED 2026-11-07,
+  was stale):** the old "`system.New` uses an internal in-memory checkpoint
+  store" claim is false at the pinned `system/v4 v4.17.0` — checkpoints now
+  resolve consumer store → engine-backed `system_checkpoints` Map collection
+  → memory only as the no-Map-ADT fallback (`system/checkpoint.go:52-61`);
+  `ResetProjection` is published too. What remains is the custom
+  checkpoint/DLQ INJECTION seam (no `system.New` option for either) — the
+  durable-checkpoint half is covered by engine-backed checkpoints on
+  persistent engines, so the residual is DLQ injection + volatile-engine
+  placements. Consumers needing those stay on `NewProjectionLayer` (with
+  `WithCheckpointStore`/`WithDeadLetterStore`) until go-cqrs-lite ships the
+  options; if none lands before the v5 cut, removal proceeds with this
+  documented in the migration guide
   (`docs/guides/declarative-projections.md` §checkpoint-store caveat).
+  Criterion verdict and waves: the 2026-11-07 migration plan
+  (`docs/planning/2026-11-07_10-45_SUPERB-usermgmt-system-metaengine-migration-plan.md`).
 - Root in-memory idempotency default — nolint-justified (library principle,
   consumer opts into a durable store); revisit at v5.
 
@@ -172,6 +180,18 @@ host uses an internal in-memory checkpoint store
 (`docs/guides/declarative-projections.md` §Custom checkpoint / dead-letter
 stores) and there is no declarative equivalent of the `Hydrator` restart
 contract. The SQL read models therefore stay on the v4 trains unchanged.
+
+**SUPERSEDED 2026-11-07** (migration-plan research, source-verified at
+`system/v4 v4.17.0` + `metaengine/v4 v4.22.0`): the 2026-10-03 paragraph's
+premises are stale — checkpoints now resolve consumer store → engine-backed
+`system_checkpoints` Map collection → memory only as the no-Map-ADT fallback,
+and the hydration contract is met by construction on persistent engines
+(fold state is engine-resident; rebuilds ride `ResetProjection`), not by a
+`Hydrator` symbol. The residual gap is durability-pairing enforcement
+(volatile-engine placements can starve) plus the DLQ injection seam. The
+criterion verdict is PARTIALLY MET with a local test path, not
+upstream-blocked; waves and owner decisions live in the migration plan
+(`docs/planning/2026-11-07_10-45_SUPERB-usermgmt-system-metaengine-migration-plan.md`).
 
 **Re-verified 2026-11-04** (post R1–R9 of the leverage plan,
 `cqrs-upgrade -dry-run --workspace` at go-cqrs-lite master `6e117971a`):

@@ -202,10 +202,10 @@ I did **not** touch any of those files, per the "never revert changes you did no
 
 **Delivery of this work**
 
-~~1. Tag `huma/v4.0.0` and push (owner-gated); then `nix run .#verify-remote-tags` and a real `go get` from a throwaway module.~~ routed — TODO_LIST.md:45 Tag huma/v4 row carries it (owner-gated push; no huma tag exists yet)
+1. ~~Tag `huma/v4.0.0` and push (owner-gated); then `nix run .#verify-remote-tags` and a real `go get` from a throwaway module.~~ resolved — routed to TODO_LIST.md:45 Tag huma/v4 row carries it (owner-gated push; no huma tag exists yet)
 2. Add the `huma/v4` row to the release-train playbook so the next train re-tags it when its root pin moves.
-~~3. Post the issue #41 closure comment linking `huma/README.md` + the guide section (owner-gated).~~ verified — cqrs-htmx#41 closed 2026-11-06 with the closure comment linking huma/README.md and the fullstack-wiring guide section
-~~4. Re-pin the `huma` root require to the next root tag when the sibling train lands (v4.17.0), and re-run the hermetic legs.~~ done at `2c077269` — huma root require re-pinned, now v4.18.0 (past the v4.17.0 this item named)
+3. ~~Post the issue #41 closure comment linking `huma/README.md` + the guide section (owner-gated).~~ verified — cqrs-htmx#41 closed 2026-11-06 with the closure comment linking huma/README.md and the fullstack-wiring guide section
+4. ~~Re-pin the `huma` root require to the next root tag when the sibling train lands (v4.17.0), and re-run the hermetic legs.~~ done at `2c077269` — huma root require re-pinned, now v4.18.0 (past the v4.17.0 this item named)
 
 **Adapter depth (in the order I would do them)**
 
@@ -252,10 +252,10 @@ I did **not** touch any of those files, per the "never revert changes you did no
 
 **Repo hygiene this session surfaced**
 
-~~36. Archive pass down to a tail of 3 (13 live reports, budget 3, `TAIL_BASELINE` 13) — every session is now bumping the baseline instead of archiving.~~ routed — TODO_LIST.md:21 plan-of-record row (the archive pass down to a tail of 3 rides its 20-percent debt list)
+36. ~~Archive pass down to a tail of 3 (13 live reports, budget 3, `TAIL_BASELINE` 13) — every session is now bumping the baseline instead of archiving.~~ resolved — routed to TODO_LIST.md:21 plan-of-record row (the archive pass down to a tail of 3 rides its 20-percent debt list)
 37. `docs/CORPUS_BASELINE` is being bumped by whoever edits docs; consider making the ratchet report the per-directory delta so growth stays visible.
-~~38. The composite's 7 reds should be listed in one place with owners (this report's §d table is the draft).~~ superseded — the v4.17.0 family train executed 2026-11-07 and healed the composite reds (TODO_LIST header; 05-20 report), so the 7-red owner list is moot
-~~39. The `stash@{0} Git Town WIP` and `stash@{1} root-split WIP` entries are ancient; someone should decide to drop or apply them.~~ verified — git stash list is empty; both ancient WIP stashes are gone
+38. ~~The composite's 7 reds should be listed in one place with owners (this report's §d table is the draft).~~ superseded — the v4.17.0 family train executed 2026-11-07 and healed the composite reds (TODO_LIST header; 05-20 report), so the 7-red owner list is moot
+39. ~~The `stash@{0} Git Town WIP` and `stash@{1} root-split WIP` entries are ancient; someone should decide to drop or apply them.~~ verified — git stash list is empty; both ancient WIP stashes are gone
 40. `check-modules` prints only the tail 15 lines per failing stage; a `--verbose` flag that dumps full stage output would have saved three separate re-runs this session.
 
 **Consumer-facing follow-through**
@@ -264,7 +264,7 @@ I did **not** touch any of those files, per the "never revert changes you did no
 42. Ask that consumer whether they want `RegisterCommand` output support (#7) — it is the most likely second ask.
 43. Evaluate whether `setup` should expose its dispatchers behind an explicit opt-in (the real reason a `setup` consumer cannot use this adapter).
 44. Consider an `adminui`-style "adapter posture manifest" so Huma ops appear in `Bundle.RoutePostures()`.
-~~45. Decide whether Huma should be mentioned in `VERSIONING.md`'s release-cadence section (new module = new tag train entry).~~ verified — huma/v4 is listed in VERSIONING.md § Module Paths; the Release Cadence section stays module-agnostic
+45. ~~Decide whether Huma should be mentioned in `VERSIONING.md`'s release-cadence section (new module = new tag train entry).~~ verified — huma/v4 is listed in VERSIONING.md § Module Paths; the Release Cadence section stays module-agnostic
 46. Watch huma v2's release cadence before pinning it loosely; the adapter compiles against `huma.API`, so minor bumps should be safe — a `check-release-train`-style watch for third-party frameworks does not exist.
 47. Add `huma` to the fleet-libs utilization audit's inventory (it is a module with a third-party framework dep, a new category).
 48. Consider documenting `ProblemError`'s schema-extension caveat in the OpenAPI guide consumers read.
