@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.20.0] - 2026-11-07
+
 ### Added
 
 - **`ArchitectureCatalog()` — the events-only published language derived from one spec table (fleet-plan A1 / leverage-plan R2, 2026-11-06).** `usermgmt.ArchitectureCatalog()` builds the full `catalog.Catalog` (every audited/lifecycle event with payload schema + summary) from the same `eventCatalogSpecs` table that serves the event-catalog endpoint — one table, zero drift between the served catalog, the `DefaultEventCatalog()` registration set, and the `AssertEventInventory` drift gates that pin them against the decider declarations. Consumers get the events-only published language WITHOUT the ephemeral system boot `systemadapter.ArchitectureCatalog` needs (that form remains for the full command+event inventory). The F032 `no-catalog-import` cqrs-lint disable whose recorded remove-when trigger was exactly this catalog is gone from `.cqrs-lint.json`.
