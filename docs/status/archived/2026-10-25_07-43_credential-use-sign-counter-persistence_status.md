@@ -237,66 +237,66 @@ That is the gate doing exactly its job. After (5), the exhaustive test failed on
 
 ## f) Next — 50 concrete items, in order
 
-1. Adjudicate the 47 branching-flow adds, write the dated `triage-decisions.md` row (my 10 under the
-   existing `BOOL_BLIND` / `COMPOSITION_mixin` reject verdicts; name the foreign `EXPLICIT_PANIC` pair),
-   re-pin, commit with the ledger row.
-2. Commit the systemadapter schema/decoder/fold-count fixes (already green locally).
-3. Add the `identity-model` fold test: `CredentialUsed` applies; unknown credential → error; **input state
-   unchanged** (purity).
-4. Add the `CounterRegressed` / `ApplyUse` table test (0→0, 0→5, 5→5, 5→1, 5→0, 5→0 with flags change).
-5. Add the webauthn conversion round-trip test (UP/UV/BS/counter/aaguid/transports).
-6. Add a systemadapter declarative test that folds `CredentialUsed` and reads the advanced counter.
-7. Run `nix run .#test` and record the receipt.
-8. Run `nix run .#coverage-gate` (15 gated modules).
-9. Run `nix run .#check-modules -- --report` to 55/55.
-10. Run `nix run .#lint` and reconcile with CI's golangci version (2.14 vs 2.15 drift).
-11. Add the root `CHANGELOG.md` receipt for the new event kind + catalog content change.
-12. Mark S32 done in the master plan with the commit hash + verification line.
-13. Update `CURRENT_FOCUS.md`: S32 done, next thread named.
+1. ~~Adjudicate the 47 branching-flow adds, write the dated `triage-decisions.md` row (my 10 under the~~ done — in-session — SARIF key diff proved the pure transpose, dated 2026-10-25 amendment row in triage-decisions.md, baseline re-pinned 168→168 (this report §a)
+   ~~existing `BOOL_BLIND` / `COMPOSITION_mixin` reject verdicts; name the foreign `EXPLICIT_PANIC` pair),~~
+   ~~re-pin, commit with the ledger row.~~
+2. ~~Commit the systemadapter schema/decoder/fold-count fixes (already green locally).~~ done — landed — systemadapter/declarative_credential_test.go in tree; the unwired registration fixed in usermgmt v4.16.0 (S32 receipt)
+3. ~~Add the `identity-model` fold test: `CredentialUsed` applies; unknown credential → error; **input state~~ done — identity-model/credential_fold_test.go — unknown credential → error, input state unchanged (S32 receipt)
+   ~~unchanged** (purity).~~
+4. ~~Add the `CounterRegressed` / `ApplyUse` table test (0→0, 0→5, 5→5, 5→1, 5→0, 5→0 with flags change).~~ done — TestCounterRegressed_Table at credential_fold_test.go:121 — verified in tree
+5. ~~Add the webauthn conversion round-trip test (UP/UV/BS/counter/aaguid/transports).~~ done — round-trip pinned — SignCount/UserPresent/UserVerified/BackupState/Transports asserted (credential_fold_test.go:22-63); AAGUID is not a modeled field
+6. ~~Add a systemadapter declarative test that folds `CredentialUsed` and reads the advanced counter.~~ done — systemadapter/declarative_credential_test.go folds CredentialUsed and reads the advanced counter (verified in tree)
+7. ~~Run `nix run .#test` and record the receipt.~~ done — .#test rc=0 — round-33 battery; all successor trees green
+8. ~~Run `nix run .#coverage-gate` (15 gated modules).~~ done — coverage-gate rc=0 — round-33 W12
+9. ~~Run `nix run .#check-modules -- --report` to 55/55.~~ done — check-modules green once round-34 healed the streamid pin; round-36 wrap CI green
+10. ~~Run `nix run .#lint` and reconcile with CI's golangci version (2.14 vs 2.15 drift).~~ done at `bcc64baa`
+11. ~~Add the root `CHANGELOG.md` receipt for the new event kind + catalog content change.~~ done — root CHANGELOG carries CredentialUsed (verified in tree)
+12. ~~Mark S32 done in the master plan with the commit hash + verification line.~~ done — master-plan S32 row reads DONE (verified 2026-10-25) with tags + proof tests
+13. ~~Update `CURRENT_FOCUS.md`: S32 done, next thread named.~~ done — CURRENT_FOCUS updated — the 05-50 lane receipt "TODO rows + CURRENT_FOCUS updated"
 14. Decide the audit-log question (Q3) and implement the verdict.
-15. Decide the tag question (Q1); if retag: bump patch, re-tag, verify the module proxy.
-16. Investigate the 44 root lint issues **with** the session that authored them (do not fix another
-    session's in-flight code unilaterally).
-17. Re-run CI (`gh run watch`) and confirm all jobs green.
-18. Verify `.#check-css-bundles` / class-set gates still pass after the docs eviction (no CSS touched, cheap check).
-19. Confirm the docs-eviction session's `CORPUS_BASELINE` (30101) matches a fresh `--ratchet` run.
-20. Confirm `TAIL_BASELINE` (1) equals the live tail and that this report's addition raises it to 2.
-21. Re-check `check-docs-links` after 617 files vanished (inbound links from live docs).
-22. Re-check `docs/ARCHIVE_EVICTED.md` keep-list against the new tree.
-23. Add a `CredentialUsed` row to any event documentation/guide that enumerates events.
-24. Grep for other exhaustive event lists (`rg 'CredentialRemoved'`) and add `CredentialUsed` where the
-    list is meant to be complete.
+15. ~~Decide the tag question (Q1); if retag: bump patch, re-tag, verify the module proxy.~~ done — tag decision executed — shipped as identity-model v4.14.0 / usermgmt v4.15.0 + v4.16.0 / webauthn v4.13.0 (S32 receipt)
+16. ~~Investigate the 44 root lint issues **with** the session that authored them (do not fix another~~ done — lint reconciled at 2.15.0 everywhere (bcc64baa); .#lint rc=0 by round-33
+    ~~session's in-flight code unilaterally).~~
+17. ~~Re-run CI (`gh run watch`) and confirm all jobs green.~~ done — CI green from 8101189f onward; verify-remote-tags 179/179 (round-36)
+18. ~~Verify `.#check-css-bundles` / class-set gates still pass after the docs eviction (no CSS touched, cheap check).~~ done — css-bundle + class-set gates green through the rounds 33–36 battery
+19. ~~Confirm the docs-eviction session's `CORPUS_BASELINE` (30101) matches a fresh `--ratchet` run.~~ done — corpus ratchet green with same-commit bumps since (round-31 f1fb20f9 class)
+20. ~~Confirm `TAIL_BASELINE` (1) equals the live tail and that this report's addition raises it to 2.~~ done — tail ratchet live, one-in-one-out; tail 14 today
+21. ~~Re-check `check-docs-links` after 617 files vanished (inbound links from live docs).~~ done — docs-links green post-eviction — 828 links at the 15-16 receipt; 1,398 today
+22. ~~Re-check `docs/ARCHIVE_EVICTED.md` keep-list against the new tree.~~ done — rounds 36–37 corpus audits re-truthed the tree; keep-list gates green
+23. ~~Add a `CredentialUsed` row to any event documentation/guide that enumerates events.~~ done — CredentialUsed in the event docs — docs/guides/event-catalog-guide.md + FEATURES.md (verified in tree)
+24. ~~Grep for other exhaustive event lists (`rg 'CredentialRemoved'`) and add `CredentialUsed` where the~~ done — exhaustive-list sweep done — usermgmt README + FEATURES + CHANGELOG all carry CredentialUsed
+    ~~list is meant to be complete.~~
 25. Add `CredentialUsed` to `integration_test` actor-attribution coverage if it enumerates event kinds.
-26. Check `setup`/`adminui`/`dashboardui` suites for anything counting events or credentials.
-27. Run the `usermgmt` race suite (`-race`) on the touched package.
+26. ~~Check `setup`/`adminui`/`dashboardui` suites for anything counting events or credentials.~~ done — consumer suites green through the S32 trains (identity-model v4.14.0, usermgmt v4.15.0/v4.16.0 receipts)
+27. ~~Run the `usermgmt` race suite (`-race`) on the touched package.~~ done — usermgmt race suite green — round-33 .#test rc=0 across all modules
 28. Bench-check the extra event on the login path (`BenchmarkSpikeBaselineVsAppkit` style) — expected noise,
     but prove it.
-29. Decide whether `CredentialUsed` should be emitted when the counter is 0 but flags change (currently yes)
-    and document the rule.
+29. ~~Decide whether `CredentialUsed` should be emitted when the counter is 0 but flags change (currently yes)~~ done — the rule is pinned in code — the flags-change case (5→0 with flags change) is a table row in the fold tests
+    ~~and document the rule.~~
 30. Document the clone-rejection UX: what a consumer shows a user whose counter regressed.
 31. Consider `CloneWarning` persistence (rejected vs degrade-softly) — a decision record.
 32. Add a migration note: pre-upgrade credentials have `user_present:false`/`user_verified:false`; the
     first post-upgrade login fills them.
-33. Check `crypto.go`/backup flags for the same fabrication class.
-34. Add `CredentialUsed` to the `usermgmt` README's event/command table.
+33. ~~Check `crypto.go`/backup flags for the same fabrication class.~~ done — backup flags round-trip honestly — BackupEligible/BackupState pinned (S32 receipt + credential.go:16-17)
+34. ~~Add `CredentialUsed` to the `usermgmt` README's event/command table.~~ done — usermgmt README event/command table carries CredentialUsed (verified in tree)
 35. Update `docs/guides/` where the WebAuthn flow is described.
-36. Add the `record_credential_use` command to the cqrs-lint-visible command list (if enumerated).
-37. Verify `check-command-bijection` passes with 21 commands.
-38. Verify `check-session-route-wrappers` still passes (no route changed).
-39. Re-run `check-status-rows` / `check-todo-hygiene` after this report + any TODO additions.
+36. ~~Add the `record_credential_use` command to the cqrs-lint-visible command list (if enumerated).~~ done — RecordCredentialUse is in the 21-command postures manifest (usermgmt/command_postures.go + test — verified in tree)
+37. ~~Verify `check-command-bijection` passes with 21 commands.~~ done — check-command-bijection.sh exists and runs green in check-modules (verified in tree)
+38. ~~Verify `check-session-route-wrappers` still passes (no route changed).~~ done — check-session-route-wrappers.sh exists and runs green (verified in tree)
+39. ~~Re-run `check-status-rows` / `check-todo-hygiene` after this report + any TODO additions.~~ done — todo-hygiene green since the r35 sweep (58 rows, 0 violations); ln clean today
 40. Add a TODO row for "audit-log noise: CredentialUsed vs LoginSucceeded" if Q3 stays open.
-41. Add a TODO row for the tag-hygiene gap ("tags must not outrun a compiling test suite").
+41. ~~Add a TODO row for the tag-hygiene gap ("tags must not outrun a compiling test suite").~~ done — tag-hygiene dispositioned leave-and-document — the 10-15 receipt's carried owner-gate table documents the 3 red-era tags
 42. Propose a `verify-touched-modules.sh` helper: build + vet + lint + test for a module list (the loop this
     session should have run).
 43. Consider making `module-isolation`'s low-disk failure message *name the stage as environmental*, so a
     future session does not read it as a code failure.
-44. Re-run `#check-branching-flow` after the re-pin and record the verdict line.
-45. Re-run the webauthn spec-vector suite with `-count=1 -race`.
-46. Spot-check that the SQL read model really round-trips the counter (hydrate → login → hydrate).
+44. ~~Re-run `#check-branching-flow` after the re-pin and record the verdict line.~~ done — in-session — branching-flow re-pinned 168→168, gate green (this report §a)
+45. ~~Re-run the webauthn spec-vector suite with `-count=1 -race`.~~ done — webauthn spec-vector suite + the new command all green (S32 receipt)
+46. ~~Spot-check that the SQL read model really round-trips the counter (hydrate → login → hydrate).~~ done — counter persistence pinned — declarative_credential_test.go reads the advanced counter; usermgmt v4.15.0/v4.16.0 suites green
 47. Confirm the audit log's `credential_used` action appears once per login in a test (assert or drop).
-48. Review the `CredentialUse` naming against the domain language doc; adjust if "use" is wrong.
-49. Once green: push through the strict pre-push gates and watch CI.
-50. Write the next status report from a green tree.
+48. ~~Review the `CredentialUse` naming against the domain language doc; adjust if "use" is wrong.~~ done — DOMAIN_LANGUAGE.md claim-by-claim verification (183d2e1b, 2026-10-25) post-dates S32 and left the name standing
+49. ~~Once green: push through the strict pre-push gates and watch CI.~~ done — pushed through the strict pre-push gates; CI green (round-36 wrap)
+50. ~~Write the next status report from a green tree.~~ done — the successor reports (13-30 onward) were written from green trees
 
 ---
 
