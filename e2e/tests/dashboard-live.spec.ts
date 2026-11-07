@@ -76,8 +76,10 @@ test("time travel: the slider updates the display while dragging and navigates o
   const slider = page.locator("#version-slider");
   await expect(slider).toHaveValue("2", { timeout: 10_000 });
 
-  // Drag to v1: the live display updates BEFORE any navigation (input event).
-  await slider.fill("1");
+  // Arrow to v1 (the page's documented interaction): the live display
+  // updates on the input event, BEFORE any navigation.
+  await slider.focus();
+  await page.keyboard.press("ArrowLeft");
   await expect(page.locator("#slider-version-display")).toHaveText("1");
 
   // Release (change event) navigates to ?v=1 — the server-rendered state.
