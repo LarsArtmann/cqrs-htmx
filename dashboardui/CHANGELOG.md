@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.17.0] - 2026-11-07
+
 ### Added
 
 - **SSE hub card reports slow-consumer drops (fleet-plan A2 dashboardui leg, 2026-11-06).** The shared hub's `OnDrop` counter (root `cqrshtmx.NewDropStats`, wired as a `NewBroadcaster` option by `setup` and by consumers who own their hub) surfaces in the overview's SSE hub card: when drops occurred the card appends " · N dropped" in an amber tone, so a hub consistently overrunning its per-subscriber buffers is visible on the dashboard instead of being silent data loss. Pinned by `overview_sse_hub_test.go`; root-owned counting semantics pinned in the root module (`sse_drop_stats_test.go`).
