@@ -23,8 +23,10 @@ Pinned as an executable test in cqrs-htmx (`usermgmt/snapshot_shape_sql_test.go`
 
 ## Impact
 
-Silent, restart-timed: a consumer stamps snapshots, runs on SQL, later bumps its state shape version — and every pre-bump snapshot that should have been discarded and rebuilt from the journal is instead accepted as "legacy unstamped". First observable symptom is a decode error or, worse, subtly wrong state. cqrs-htmx's own `snapshotStateShapeVersion` stamping (`usermgmt/snapshot.go`, R10 of the 2026-11-03 leverage plan) is affected on every SQL deployment.
+Silent, restart-timed: a consumer stamps snapshots, runs on SQL, later bumps its state shape version — and every pre-bump snapshot that should have been discarded and rebuilt from the journal is instead accepted as "legacy unstamped". First observable symptom is a decode error or, worse, subtly wrong state. cqrs-htmx's own `snapshotStateShapeVersion` stamping (`usermgmt/snapshot.go`, R10 of the 2026-11-03 adoption plan) is affected on every SQL deployment.
 
 ## Suggested fix
 
 Mirror `Encoding`: add `state_shape TEXT NOT NULL DEFAULT ''`, bind it in the INSERT, scan it on load, behind the same auto-migration pattern the snapshots table already uses. Pre-change rows keep `''` (absent = accept), which is the documented semantics for unstamped snapshots — so the migration is backward-safe and the guard starts working from the first stamped write.
+
+💘 Generated with Crush

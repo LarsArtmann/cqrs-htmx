@@ -267,3 +267,22 @@ func TestDecideRecordCredentialUse_AdvancesCounter(t *testing.T) {
 		t.Errorf("event type = %s, want %s", events[0].Type(), eventCredentialUsed)
 	}
 }
+
+// TestRecordCredentialUse_RejectsZeroUserID is round-42's third case: the
+// aggIDFromUser conversion-failure branch in recordCredentialUse. A zero
+// UserID renders as "StreamMarker:" (empty identity after the brand strip),
+// which ParseStreamID rejects — the recording must fail with the conversion
+// error and never reach the dispatcher.
+func TestRecordCredentialUse_RejectsZeroUserID(t *testing.T) {
+	svc := newWebAuthnTestServiceWithConfig(t)
+
+	err := svc.recordCredentialUse(context.Background(), UserID{}, []byte(`{"id":"dGVzdA=="}`))
+	if err == nil {
+		t.Fatal("expected the conversion failure, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "userid_conversion_failed") &&
+		!strings.Contains(err.Error(), "invalid_userid") {
+		t.Fatalf("error should name the conversion failure, got: %v", err)
+	}
+}
