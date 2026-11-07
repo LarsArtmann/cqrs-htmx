@@ -71,55 +71,55 @@
 ## f) NEXT — up to 50 things (impact-ordered)
 
 1. Amend daemon commit `5425e73e`'s message (baseline re-pin).
-2. `nix run .#lint` full canonical run.
-3. Push master (8 commits; pre-push hook runs strict train + version-drift — expected green).
-4. `.#push-and-watch` + step-level triage of the resulting CI run (expect: build/test/mod-tidy/module-architecture/lint(setup) heal; `test` job may stay red on the systemadapter leg until the go-cqrs-lite train).
+2. ~~`nix run .#lint` full canonical run.~~ done — lint rc=0 by round-33; the 2.14/2.15 split closed at bcc64baa (2.15.0 everywhere)
+3. ~~Push master (8 commits; pre-push hook runs strict train + version-drift — expected green).~~ done — master pushed many times through the strict pre-push gates; v4.18.0 world tags verified on origin today
+4. ~~`.#push-and-watch` + step-level triage of the resulting CI run (expect: build/test/mod-tidy/module-architecture/lint(setup) heal; `test` job may stay red on the systemadapter leg until the go-cqrs-lite train).~~ done — push-and-watch + step triage done — CI green receipts since (8101189f onward; round-36 wrap 179/179 tags)
 5. Re-run the receipt: `buildflow -s go-mod-update`, `-s 'go-mod-update [setup]'`, `-s type-check`.
-6. `buildflow -s nix-hash-fix --fix` for vendorHash.nix (run the derivation; never trust the checker's hash alone — gotcha 31).
-7. Re-run full `nix run .#test` at final HEAD (post-sweep state).
-8. TODO_LIST: systemadapter hermetic red — record as blocked-on-go-cqrs-lite-train with this session's bisect matrix (system v4.13/v4.14 × metaengine v4.18/v4.19 all red; workspace green).
-9. AGENTS.md gotcha-40 refinement (§e-6 above).
-10. docs-health HARVEST of this report + the unharvested 2026-10-14 21:46 loginpage report §f.
+6. ~~`buildflow -s nix-hash-fix --fix` for vendorHash.nix (run the derivation; never trust the checker's hash alone — gotcha 31).~~ done — superseded — gotcha 43: the stale-vendorHash warning is a documented NON-FIX (the hash belongs to the benchstat derivation, not this repo)
+7. ~~Re-run full `nix run .#test` at final HEAD (post-sweep state).~~ done — .#test rc=0 at final HEADs (round-33, race suite green across all modules)
+8. ~~TODO_LIST: systemadapter hermetic red — record as blocked-on-go-cqrs-lite-train with this session's bisect matrix (system v4.13/v4.14 × metaengine v4.18/v4.19 all red; workspace green).~~ done — superseded — the family trains bumped the pins; systemadapter suites green at worst-lag 0 (2026-11-06 receipt battery); today's residual red is the unrelated catalog templ poison
+9. ~~AGENTS.md gotcha-40 refinement (§e-6 above).~~ done — gotcha 40 carries the sequential-CI-red lesson (verified in the AGENTS table)
+10. ~~docs-health HARVEST of this report + the unharvested 2026-10-14 21:46 loginpage report §f.~~ done — the 10-14 21:46 report was evicted with the corpus; its §f was re-listed here (items 16–33) and closed via round-34 W14 + this drain
 11. Make `check-branching-flow.sh` print the added findings (or keep the delta log at a stable /tmp path).
-12. Consider a repo-side hermetic-tidy sweep gate (or a post-BuildFlow `--fix` checklist item) to mechanize the residue strip.
-13. Fix the 4 remaining golangci findings in e2e/server/main.go (varnamelen `f` + wrapcheck ×3 — likely wrap with event-family context; e2e module).
-14. Fix the cqrs-lint "embeds BasicCommand by value" pair (e2e/server/main.go:453, examples/sync-demo/main.go:44).
-15. cqrs-lint STRONG_ID trio on root `sync_pull.go` (SyncEvent.EventID/StreamID/BackendID) — adjudicate wire-DTO vs branded-ID (ADR-0056 wire contract says wire DTO; suppress or accept).
-16. loginpage: close the NoOAuth2/NoWebAuthn asymmetry (`Config.NoWebAuthn`, setup passthrough) — prior session's §f-8.
-17. loginpage: `AuthPrefix` validation at `New` (feeds a 302 Location now) — prior session's §f-10.
-18. loginpage: AutoRedirect × existing-session semantics decision (§g-1 there).
+12. ~~Consider a repo-side hermetic-tidy sweep gate (or a post-BuildFlow `--fix` checklist item) to mechanize the residue strip.~~ done — tidy-sweep.sh landed — per-module hermetic tidy, testdata excluded by construction (round-35 canary (a))
+13. ~~Fix the 4 remaining golangci findings in e2e/server/main.go (varnamelen `f` + wrapcheck ×3 — likely wrap with event-family context; e2e module).~~ done — fixed in round-33 W11 — the e2e lint findings died with the file splits (varnamelen f→form, wrapcheck nolints); .#lint rc=0 since
+14. ~~Fix the cqrs-lint "embeds BasicCommand by value" pair (e2e/server/main.go:453, examples/sync-demo/main.go:44).~~ done — 2026-11-06 — B58/B59 BasicCommand value-embeds, fleet-plan A13, receipt in root CHANGELOG [Unreleased] (TODO leverage row)
+15. ~~cqrs-lint STRONG_ID trio on root `sync_pull.go` (SyncEvent.EventID/StreamID/BackendID) — adjudicate wire-DTO vs branded-ID (ADR-0056 wire contract says wire DTO; suppress or accept).~~ done — resolved — routed: TODO_LIST sync follow-through N5 streamId-form watch — the STRONG_ID adjudication rides the id-module branding publish
+16. ~~loginpage: close the NoOAuth2/NoWebAuthn asymmetry (`Config.NoWebAuthn`, setup passthrough) — prior session's §f-8.~~ done — Config.NoWebAuthn shipped 2026-10-26 + setup passthrough (FEATURES.md:356 — verified in tree)
+17. ~~loginpage: `AuthPrefix` validation at `New` (feeds a 302 Location now) — prior session's §f-10.~~ done — AuthPrefix validated root-relative at New (FEATURES.md:356; loginpage README:85; handler_test.go:1151)
+18. ~~loginpage: AutoRedirect × existing-session semantics decision (§g-1 there).~~ done — decided + documented — session-agnostic by design, wrap with setup.RequireSessionRedirect (FEATURES.md:356)
 19. loginpage: stale "Zero external asset requests / CSS inlined" bullet in doc.go — prior session's §e-2, still unfixed.
-20. FEATURES.md inventory for AutoRedirect + LoginAutoRedirect.
+20. ~~FEATURES.md inventory for AutoRedirect + LoginAutoRedirect.~~ done — FEATURES.md:356 OAuth2 Auto-Redirect row + :432 LoginAutoRedirect (verified in tree)
 21. OAuth-only recipe guide (docs/guides/) incl. first-login account-creation path.
 22. Runnable OAuth-only example (setup-demo variant with LoginAutoRedirect).
-23. Behavioral setup e2e: OAuth-stubbed service → assert bundle.Login 302s.
+23. ~~Behavioral setup e2e: OAuth-stubbed service → assert bundle.Login 302s.~~ done — TestNew_LoginAutoRedirect (setup_defaults_test.go:420) + the raw-302 assertion pattern (setup_authhandler_config_test.go:146-158)
 24. HEAD-request 302 test + 302-fallback-body disambiguation test (prior §f-18/19).
-25. Test AutoRedirect with explicit single-provider OAuth2Buttons (not just auto-detect).
+25. ~~Test AutoRedirect with explicit single-provider OAuth2Buttons (not just auto-detect).~~ done — TestServeHTTP_AutoRedirect_SingleProvider at loginpage/handler_test.go:902 (verified in tree)
 26. Test AutoRedirect + NoRegistration combination pin.
 27. Remove `loginpage/coverage.out` if stale (prior §f-23).
 28. Align loginpage `.golangci.yml` exhaustruct → exhaustruct_v5 (prior §f-24; mid-migration train).
-29. setup/config.go: migrate deprecated `usermgmt.TenantID`/`User` aliases to identity-model imports (prior §f-25).
-30. Re-verify loginpage gates after the concurrent SSE-flake/exhaustruct session's work lands (prior §f-26; its status doc was untracked at 21:44).
-31. Post-train sanity: `.#check-css-bundles` + `.#check-codegen` (prior §f-48; no CSS/templ changed, expect green).
-32. Root CHANGELOG: split the one-paragraph Unreleased blob per-module at the next root cut (prior §f-16).
+29. ~~setup/config.go: migrate deprecated `usermgmt.TenantID`/`User` aliases to identity-model imports (prior §f-25).~~ done — setup/config.go carries no usermgmt.TenantID/User alias uses today (verified by rg); residual alias debt rides the v5 re-export row
+30. ~~Re-verify loginpage gates after the concurrent SSE-flake/exhaustruct session's work lands (prior §f-26; its status doc was untracked at 21:44).~~ done — loginpage gates green — suites + lint through the W14 close and every train since
+31. ~~Post-train sanity: `.#check-css-bundles` + `.#check-codegen` (prior §f-48; no CSS/templ changed, expect green).~~ done — css-bundle + codegen gates green through the battery rounds (33–36)
+32. ~~Root CHANGELOG: split the one-paragraph Unreleased blob per-module at the next root cut (prior §f-16).~~ done — root CHANGELOG per-module sections — the v4.18.0 section cut at 6b804a01
 33. examples README sweep for AutoRedirect mention post-release (prior §f-46).
-34. Watch go-cqrs-lite for the family train; when it lands: bump pins here, re-run hermetic systemadapter tests, expect the battery fully green.
-35. Consider pinning the metaengine/projectionadapter sibling-replace story: CI clones go-cqrs-lite for it — the ci.yml comment's removal condition should be re-checked (is the replace still in go.mod?).
-36. BuildFlow repo: file gomod-freshness mode-mismatch issue (workspace tidy check vs hermetic consumers).
-37. BuildFlow repo: resume-checkpoint SQLITE_BUSY under concurrent instances (WAL/timeout).
+34. ~~Watch go-cqrs-lite for the family train; when it lands: bump pins here, re-run hermetic systemadapter tests, expect the battery fully green.~~ done — the GCL trains landed; pins swept to worst-lag 0; battery green (2026-11-06 receipt)
+35. ~~Consider pinning the metaengine/projectionadapter sibling-replace story: CI clones go-cqrs-lite for it — the ci.yml comment's removal condition should be re-checked (is the replace still in go.mod?).~~ done — ci.yml:26-33 documents the clone step + the removal condition (verified in tree)
+36. ~~BuildFlow repo: file gomod-freshness mode-mismatch issue (workspace tidy check vs hermetic consumers).~~ done — resolved — routed: S55 packet §T01 (gomod-freshness pre-commit asks) + TODO "Upstream ask drafts batch" row — BuildFlow asks owner-gated
+37. ~~BuildFlow repo: resume-checkpoint SQLITE_BUSY under concurrent instances (WAL/timeout).~~ done — resolved — routed: TODO "Upstream ask drafts batch" row names BuildFlow resume-checkpoint SQLITE_BUSY
 38. BuildFlow repo: go-work-paths `/v4`-suffix false positive for multi-module workspaces.
-39. BuildFlow repo: type-check "no compiler diagnostics" misclassification of pretty-format tsc output.
+39. ~~BuildFlow repo: type-check "no compiler diagnostics" misclassification of pretty-format tsc output.~~ done — resolved — routed: same row names the type-check no-diagnostics misclassification
 40. BuildFlow repo: binary-freshness — the installed binary is behind its repo HEAD (7ccd809); rebuild/reinstall.
-41. lychee.toml: add `exclude_path` for the two archived doc dirs.
-42. dependabot 29-module > 20-entry cap: document or split config.
+41. ~~lychee.toml: add `exclude_path` for the two archived doc dirs.~~ done — superseded — no lychee.toml exists; check-docs-links.sh owns link checking today
+42. ~~dependabot 29-module > 20-entry cap: document or split config.~~ done — dependabot.yml posture block documents the cap decision (file head, reviewed 2026-09-20 / accepted 2026-10-07)
 43. Baseline ratchet-down candidates (165 pin): the three re-attributed phantom findings could be genuinely fixed (brand the ActorID/NewActorID raw slots) as a ratchet-down exercise.
-44. file-size-check 86 findings: biggest offenders (>450 lines) triage for splits.
-45. jscpd 4 script-duplication findings: extract shared fixture-harness helpers in scripts/selftests.
-46. The go-licenses "cannot find license" noise for examples/* (devShell shim covers usermgmt/webauthn; examples lack LICENSE files — add or exclude).
-47. SECURITY.md: consider adding the actual disclosure contact link to the repo's GitHub Security Advisories if enabled.
+44. ~~file-size-check 86 findings: biggest offenders (>450 lines) triage for splits.~~ done — the five biggest offenders split in round-33 W11 (setup/config, declarations, service_core, layout, e2e main); check-large-files green
+45. ~~jscpd 4 script-duplication findings: extract shared fixture-harness helpers in scripts/selftests.~~ done — scripts/selftests/lib/ carries the shared fixture-harness helpers (verified in tree)
+46. ~~The go-licenses "cannot find license" noise for examples/* (devShell shim covers usermgmt/webauthn; examples lack LICENSE files — add or exclude).~~ done — superseded — no go-licenses step exists in CI or scripts today; the noise class is gone
+47. ~~SECURITY.md: consider adding the actual disclosure contact link to the repo's GitHub Security Advisories if enabled.~~ done — SECURITY.md:147-149 reports via GitHub security advisories + security@lars.software (verified in tree)
 48. vulnix 23 nix-store drv advisories: mostly stdenv bootstrap; re-scan after next nixpkgs bump.
 49. Interrogate/ruff/shellcheck/mypy not in devShell (BuildFlow ran them via nix-run without project deps): add to devShells.default or accept.
-50. Reconcile `docs/status/` filename convention: two `_status.md`-suffixed files from different sessions within minutes (2026-10-14 21:44/21:46) — session-slug prefix norm (prior §f-44).
+50. ~~Reconcile `docs/status/` filename convention: two `_status.md`-suffixed files from different sessions within minutes (2026-10-14 21:44/21:46) — session-slug prefix norm (prior §f-44).~~ done — the _status.md session-slug convention is the norm — all living and archived files conform (verified)
 
 ## g) Questions I cannot answer myself (decisions, not lookups)
 
