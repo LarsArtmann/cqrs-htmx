@@ -5,8 +5,8 @@ go 1.27.3
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
-	github.com/larsartmann/go-datastar v0.6.3
-	github.com/larsartmann/go-datastar/broadcast v0.6.2
+	github.com/larsartmann/go-datastar v0.7.0
+	github.com/larsartmann/go-datastar/broadcast v0.7.0
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/stretchr/testify v1.12.1
 )
@@ -23,7 +23,7 @@ require (
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
+	github.com/larsartmann/go-datastar/static v0.7.0 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/onsi/ginkgo/v2 v2.33.1 // indirect

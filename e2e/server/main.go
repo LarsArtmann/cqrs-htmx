@@ -27,6 +27,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
@@ -86,6 +87,11 @@ func main() {
 		EventSource:     dstore,
 		Journal:         dstore,
 		EventBus:        dashBus,
+		// Explicit (the auto-derive keys on capabilities the in-memory
+		// store only partially satisfies): the time-travel aggregate list
+		// needs a StreamReader — without it the page renders its
+		// "Configure a StreamReader" empty state.
+		StreamReader:    listing.NewInMemoryStreamReader(dstore),
 		CommandJournal:  emptyCommandJournal{},
 		QueryJournal:    emptyQueryJournal{},
 		SnapshotStore:   emptySnapshotStore{},

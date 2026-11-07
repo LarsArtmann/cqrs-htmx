@@ -71,7 +71,7 @@ test("time travel: the slider updates the display while dragging and navigates o
   const userRow = page.locator("table tbody tr", { hasText: "User" }).first();
   await expect(userRow).toBeVisible();
   await userRow.getByRole("link").first().click();
-  await expect(page.getByText("Viewing version 2 of 2")).toBeVisible();
+  await expect(page.locator(".page-subtitle", { hasText: "Viewing version 2 of 2" })).toBeVisible();
 
   const slider = page.locator("#version-slider");
   await expect(slider).toHaveValue("2", { timeout: 10_000 });
@@ -82,7 +82,7 @@ test("time travel: the slider updates the display while dragging and navigates o
 
   // Release (change event) navigates to ?v=1 — the server-rendered state.
   await expect(page).toHaveURL(/\/time-travel\/User\/[^\s]+\?v=1$/);
-  await expect(page.getByText("Viewing version 1 of 2")).toBeVisible();
+  await expect(page.locator(".page-subtitle", { hasText: "Viewing version 1 of 2" })).toBeVisible();
   await expect(page.locator("#version-slider")).toHaveValue("1");
 });
 

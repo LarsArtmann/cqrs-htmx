@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
-	github.com/larsartmann/go-datastar/broadcast v0.6.2
+	github.com/larsartmann/go-datastar/broadcast v0.7.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/httputil v1.8.0
 )
@@ -24,8 +24,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-datastar v0.6.3 // indirect
-	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
+	github.com/larsartmann/go-datastar v0.7.0 // indirect
+	github.com/larsartmann/go-datastar/static v0.7.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect

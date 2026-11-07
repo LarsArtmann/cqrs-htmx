@@ -77,8 +77,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-datastar v0.6.3 // indirect
-	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
+	github.com/larsartmann/go-datastar v0.7.0 // indirect
+	github.com/larsartmann/go-datastar/static v0.7.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
