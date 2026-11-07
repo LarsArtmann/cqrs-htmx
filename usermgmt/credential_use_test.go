@@ -268,21 +268,24 @@ func TestDecideRecordCredentialUse_AdvancesCounter(t *testing.T) {
 	}
 }
 
-// TestRecordCredentialUse_RejectsZeroUserID is round-42's third case: the
-// aggIDFromUser conversion-failure branch in recordCredentialUse. A zero
-// UserID renders as "StreamMarker:" (empty identity after the brand strip),
-// which ParseStreamID rejects — the recording must fail with the conversion
-// error and never reach the dispatcher.
-func TestRecordCredentialUse_RejectsZeroUserID(t *testing.T) {
+// TestRecordCredentialUse_ZeroUserIDReachesTheDecider is round-42's third
+// case, settled as a reachability verdict: the aggIDFromUser
+// conversion-failure branch in recordCredentialUse is DEFENSIVE dead code for
+// the typed surface — UserID.Get().String() is always a well-formed ULID
+// (the zero value included: "0000…"), so ParseStreamID cannot reject it.
+// The zero UserID therefore converts to the zero aggregate and the dispatch
+// runs, failing honestly at the decider ("user does not exist"). This test
+// pins that path; if aggIDFromUser ever starts failing here, the typed UserID
+// contract changed and this test is the tripwire.
+func TestRecordCredentialUse_ZeroUserIDReachesTheDecider(t *testing.T) {
 	svc := newWebAuthnTestServiceWithConfig(t)
 
 	err := svc.recordCredentialUse(context.Background(), UserID{}, []byte(`{"id":"dGVzdA=="}`))
 	if err == nil {
-		t.Fatal("expected the conversion failure, got nil")
+		t.Fatal("expected the decider rejection for the zero aggregate, got nil")
 	}
 
-	if !strings.Contains(err.Error(), "userid_conversion_failed") &&
-		!strings.Contains(err.Error(), "invalid_userid") {
-		t.Fatalf("error should name the conversion failure, got: %v", err)
+	if !strings.Contains(err.Error(), "record_credential_use.not_found") {
+		t.Fatalf("error should be the decider's user-not-found rejection, got: %v", err)
 	}
 }

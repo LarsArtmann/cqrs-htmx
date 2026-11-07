@@ -178,35 +178,35 @@ Grouped; plan-task IDs in parentheses route to the 11:49 plan's tables. Items 1�
 
 **Decisions and filings (owner-gated)**
 
-1. Answer D1 in the TODO row: is bot-token M2M a supported surface or a vestige to deprecate? This gates ALL of W1 — and a deprecation is the cheaper branch.
-2. Answer D2: authority source — bot scopes, owner delegation, or consumer-owned? Gates W1/W2 and the two ADRs.
-3. Answer D3 (single- vs multi-delegator agents) and D4 (machine access in the journal, at what granularity) — D4 shapes A7's event design.
+1. Answer D1 in the TODO row: is bot-token M2M a supported surface or a vestige to deprecate? This gates ALL of W1 — and a deprecation is the cheaper branch. **→ TODO_LIST.md "M2M owner decisions" row — this is D1 (supported surface vs deprecate), blocks all of W1**
+2. Answer D2: authority source — bot scopes, owner delegation, or consumer-owned? Gates W1/W2 and the two ADRs. **→ TODO_LIST.md "M2M owner decisions" row — this is D2 (authority source), blocks W1/W2 and ADRs A15/A16**
+3. Answer D3 (single- vs multi-delegator agents) and D4 (machine access in the journal, at what granularity) — D4 shapes A7's event design. **→ TODO_LIST.md "M2M owner decisions" row — these are D3 (delegator shape) and D4 (journal granularity, which shapes A7)**
 4. Decide the tracking venue for findings/decisions: keep TODO rows (current), or ALSO file repo issues (owner-gated `gh`; workflow-file PRs hit gotcha 49's scope trap but plain issues do not).
 5. File the A38 tombstone spike question ("is `Bot.Deleted` reachable at all") as a decision note once answered (A38.1/A38.2).
 
 **W1 — durable machine authority (the actual hole; ~4h, blocked on 1–3)**
 
-6. Token prefix + checksum: format, parse, keep HMAC hashing, legacy-token test (A5).
-7. Required expiry: event field, aggregate state, resolution check, zero-expiry rejection test (A6).
-8. Bot auth events: success + failure with fingerprint-only payloads, catalog registration, no-secret grep (A7).
-9. `BotRegistered` → scope-policy derivation in the Casbin projection, replay-safe via `ApplyGroupPolicy` (A8).
-10. `BotScopesChanged` command/event/decider/projection (A9).
-11. Subject-correct delete cleanup: kind-prefixed subject + direct-row removal (A10).
-12. The four-step invariant test: register → authorize → delete → re-authorize → expect deny (A11).
-13. Hydrate restart test for token resolution (A12).
-14. Principal matrix skeleton in authztest with bot rows (A13).
-15. Export `ListBots(ctx, ownerID)` + test (A14).
+6. Token prefix + checksum: format, parse, keep HMAC hashing, legacy-token test (A5). **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — token prefix + checksum is plan A5/T6**
+7. Required expiry: event field, aggregate state, resolution check, zero-expiry rejection test (A6). **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — required expiry is plan A6/T7**
+8. Bot auth events: success + failure with fingerprint-only payloads, catalog registration, no-secret grep (A7). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 5 — audit-journal silence (plan A7/W1, granularity is D4)**
+9. `BotRegistered` → scope-policy derivation in the Casbin projection, replay-safe via `ApplyGroupPolicy` (A8). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 1 — durable grant path (plan T8/W1)**
+10. `BotScopesChanged` command/event/decider/projection (A9). **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — BotScopesChanged is plan A9/T9, rides the D2 answer**
+11. Subject-correct delete cleanup: kind-prefixed subject + direct-row removal (A10). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 2 — subject-correct delete cleanup (plan T10/W1)**
+12. The four-step invariant test: register → authorize → delete → re-authorize → expect deny (A11). **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the invariant test is plan T11/A11 behind T8/T10**
+13. Hydrate restart test for token resolution (A12). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 7 — hydration restart test is plan T12/W1**
+14. Principal matrix skeleton in authztest with bot rows (A13). **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the principal matrix is plan A13/T13**
+15. Export `ListBots(ctx, ownerID)` + test (A14). **→ TODO_LIST.md "M2M owner decisions" row blocks W1 — the ListBots export is plan A14**
 
 **W2 — one principal, all surfaces (~2 days, blocked on W1's invariant test)**
 
-16. ADR: principal model (A15).
-17. ADR: machine authority source (A16).
-18. Principal resolution from cookie session OR bearer (A17).
-19. Machines on SSE + DataStar with permission-scoped filters (A18; the `setup/sse.go:97,109` session-gate is the surface).
-20. Machines on sync pull + push (A19).
-21. Huma/route subject parity test (A20).
-22. Delegation aggregate (A21) + dispatch-time subset re-evaluation (A22) + on-behalf-of audit fields (A23).
-23. Demotion proof test (A24), keyring pepper (A25), rotation overlap (A26), hot-path benchmark (A27).
+16. ADR: principal model (A15). **→ TODO_LIST.md "M2M owner decisions" row — D2 gates ADR A15 (the row Verify field names A15/A16)**
+17. ADR: machine authority source (A16). **→ TODO_LIST.md "M2M owner decisions" row — D2 gates ADR A16**
+18. Principal resolution from cookie session OR bearer (A17). **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — principal resolution is plan A17**
+19. Machines on SSE + DataStar with permission-scoped filters (A18; the `setup/sse.go:97,109` session-gate is the surface). **→ TODO_LIST.md "M2M/AI-agent hardening" row, finding 4 — SSE session-gating is the T15/W2 surface**
+20. Machines on sync pull + push (A19). **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — sync pull/push is plan A19**
+21. Huma/route subject parity test (A20). **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — Huma/route parity is plan A20**
+22. Delegation aggregate (A21) + dispatch-time subset re-evaluation (A22) + on-behalf-of audit fields (A23). **→ TODO_LIST.md "M2M owner decisions" row gates W2 (D3 shapes the delegation model) — plans A21/A22/A23**
+23. Demotion proof test (A24), keyring pepper (A25), rotation overlap (A26), hot-path benchmark (A27). **→ TODO_LIST.md "M2M owner decisions" row blocks W2 — demotion proof A24, keyring A25, rotation A26, benchmark A27**
 
 **W3 — mesh + hygiene (~1 week, blocked on principal parity)**
 
@@ -217,19 +217,19 @@ Grouped; plan-task IDs in parentheses route to the 11:49 plan's tables. Items 1�
 
 **Debt and verification this session left behind (no plan ID; do first or alongside)**
 
-28. Run `nix run .#check-modules` end to end — the delivering invocation this session's green claims are missing.
-29. Run `nix run github:Artmann-Technologies/docs-gates -- run .` over this report and the session's doc edits (freshness, annotate, routing, cadence; audit-all's pinned 322 vs measured ~400 is a separate tracked row).
-30. Run `nix run .#coverage-gate` — usermgmt gained tests, so thresholds should hold, but the gate is the proof.
-31. `push-and-watch` the daemon's commits (the health-probe fix + W0 code) through CI once any lane pushes.
-32. `check-release-train --refresh-cache --strict-lag 0` — confirm the middleware-internal change creates no unpublished-API pressure.
-33. Prove or retire §b1: `git log -p` the plan/status files for the "Human authority" table; if it ever existed in-tree, correct the historical record per the annotate mode.
+28. ~~Run `nix run .#check-modules` end to end — the delivering invocation this session's green claims are missing.~~ done — run end to end by the 2026-11-07 01-34 session — its VERIFIED list names the check-modules battery 3x on the post-W0 tree
+29. ~~Run `nix run github:Artmann-Technologies/docs-gates -- run .` over this report and the session's doc edits (freshness, annotate, routing, cadence; audit-all's pinned 322 vs measured ~400 is a separate tracked row).~~ done — docs-gates battery green corpus-wide incl. this report — 2026-11-07 09-00 report (freshness/annotate/routing/cadence PASS, audit-all owner-gated pin as this item anticipated)
+30. ~~Run `nix run .#coverage-gate` — usermgmt gained tests, so thresholds should hold, but the gate is the proof.~~ done — coverage gate PASSED 15/15 modules — 2026-11-07 05-20 report, re-confirmed by the 09-00 report
+31. ~~`push-and-watch` the daemon's commits (the health-probe fix + W0 code) through CI once any lane pushes.~~ done — pushed and CI-watched — 01-34 report (sanctioned push landed, CI triaged job-by-job), 05-20 CI green at 578c8a9d; W0 code shipped in identity-model/v4.17.0 and usermgmt/v4.20.0
+32. ~~`check-release-train --refresh-cache --strict-lag 0` — confirm the middleware-internal change creates no unpublished-API pressure.~~ done — run twice green — 01-34 VERIFIED list (0 unpublished / 0 lag / 946 requires) and 05-20 (951 requires, 0 unpublished); no unpublished-API pressure confirmed
+33. ~~Prove or retire §b1: `git log -p` the plan/status files for the "Human authority" table; if it ever existed in-tree, correct the historical record per the annotate mode.~~ done — retired — git log -S over full history finds the phrase only in the two reports own prose (a53f0909, 686e3cad); the table never existed in-tree, no record to correct
 34. Sweep `erraudit --max --disable generic_return` over usermgmt (the middleware gained a rejection path; the advisory sweep is the posture check).
 35. A36/A37 sweeps (raw-vs-prefixed subjects across projections; `RemoveAll*` grouping-only blind spots) — cheap greps, findings into the tracked row.
 36. A40 constant-time comparison review of the token resolution path, with a written note either way.
 37. Consider a `check-documented-setter` gate rule (the `SetTokenPepper` class is mechanically detectable — finding 27 of the 11:13 report).
 38. Consider documenting RequireBot's response-shape change in `docs/migrations/` if any consumer surfaces are known to parse the old body (CHANGELOG flags it; a migration note is the belt to that suspenders).
 39. Grep guides for machine-client claims that predate the SSE session-gating (finding 49 of the 11:13 report) — the W2 SSE work will invalidate more prose.
-40. The `BotTokenUsed` volume-policy decision note (feeds A7; belongs with D4).
+40. The `BotTokenUsed` volume-policy decision note (feeds A7; belongs with D4). **→ TODO_LIST.md "M2M owner decisions" row — belongs with D4, as the item itself states**
 
 ---
 
