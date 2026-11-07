@@ -17,6 +17,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -478,7 +479,11 @@ func asItems(result any) ([]item, error) {
 func main() {
 	handler := newHandler()
 
-	addr := ":8096"
+	// 8096 avoids clashing with unrelated services on well-known dev ports;
+	// the e2e battery overrides it (BASIC_DEMO_ADDR=:18932) the same way
+	// admin-demo and datastar-demo do, so the shipped example itself stays
+	// the artifact under test.
+	addr := envOr("BASIC_DEMO_ADDR", ":8096")
 	// Serve with real timeouts via httputil.NewServer (never bare http.ListenAndServe,
 	// which sets no Read/Write/Idle timeouts). See docs/guides/leveraging-httputil.md.
 	cfg := httputil.DefaultServerConfig()
@@ -491,6 +496,13 @@ func main() {
 	if err := <-srv.Start(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func indexPage(w http.ResponseWriter, _ *http.Request) {

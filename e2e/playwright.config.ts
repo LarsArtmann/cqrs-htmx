@@ -111,5 +111,23 @@ export default defineConfig({
         DATASTAR_DEMO_ADDR: ":18931",
       },
     },
+    {
+      // examples/basic for tests/root-htmx.spec.ts (root HTMX helpers gate:
+      // RenderPartialOrFull, OOBHTML, RenderIf, SSE-triggered refresh).
+      // The SHIPPED example is the artifact under test; BASIC_DEMO_ADDR pins
+      // the e2e port (admin-demo pattern).
+      command: "go run .",
+      cwd: "../examples/basic",
+      url: "http://localhost:18932/",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        GOEXPERIMENT: "jsonv2",
+        ...(GOTOOLCHAIN ? { GOTOOLCHAIN } : {}),
+        // See the GOWORK note at the top of this file.
+        GOWORK,
+        BASIC_DEMO_ADDR: ":18932",
+      },
+    },
   ],
 });
