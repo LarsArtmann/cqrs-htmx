@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.17.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.18.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0

@@ -6,7 +6,7 @@ go 1.27.3
 require (
 	github.com/a-h/templ v0.3.1100
 	github.com/dustin/go-humanize v1.1.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.18.0
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1

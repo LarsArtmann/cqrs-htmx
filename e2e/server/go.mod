@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.16.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.18.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
