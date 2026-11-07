@@ -2,7 +2,7 @@
 
 **Created:** 2026-11-07, 08:42 CET · **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`
 **Input:** `TODO_LIST.md` as of 2026-11-07 08:42 (all open P1/P2/P3 rows + the owner-decision table), the 08-27 QUERY status report, and the 2026-11-07_07-21 QUERY plan of record.
-**Status:** Plan only. Every task below is ranked; owner-gated items carry their gate. Stale TODO claims found during Step-0 verification are in §2 — fixed forward in the TODO row text, not silently absorbed.
+**Status:** EXECUTING (true-up 2026-11-07 evening, blanket-directive session). Done: C01 (root tagged — grew into **v4.18.1**, the pristine-asset patch; strict train 0/0, verify-remote-tags green), C03 (QUERY D1–D3 answered, D18 GO), C05–C11's QUERY core (openapi.Query + 3.2 auto-bump, ETagResults, ADR-0064, huma verdict, W2.3/W2.4), plus loginpage/v4.17.0 and huma/v4.0.0 tags, the e2e/server family-pin sweep (fixed its templ-poisoned typecheck), docs-gates 5/5 (audit-all ≤268 held), the M2M D1–D4 packet (C29 pre-staged, awaits owner tick), and C27 where trees allowed (browser-history, InboxClean, github-local-sync landed; Swetty unlocatable; webphone deferred-active; crm row stale — no admin surface exists). Open from the 1% layer: C02's cqrs-lint leg, C04 (erraudit receipt), C23–C26 tails, C27 leftovers, C28 (dispatch-gate waves), C31+ owner-gated filings. Every task below is ranked; owner-gated items carry their gate. Stale TODO claims found during Step-0 verification are in §2 — fixed forward in the TODO row text, not silently absorbed.
 
 ---
 
