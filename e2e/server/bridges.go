@@ -7,11 +7,10 @@ import (
 	cqrsauditlog "github.com/larsartmann/cqrs-htmx/auditlog/v4"
 	cqrshealth "github.com/larsartmann/cqrs-htmx/health/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	auditlog "github.com/larsartmann/samber-do-auditlog"
 	"github.com/larsartmann/samber-do-auditlog/live"
 	"github.com/samber/do/v2"
-
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // hostStatusProvider adapts *projectionhost.Host to the health module's
@@ -27,6 +26,7 @@ func (p hostStatusProvider) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntr
 	}
 
 	workers := p.host.Status()
+
 	entries := make([]cqrshtmx.ProjectionStatusEntry, len(workers))
 	for i, w := range workers {
 		entries[i] = cqrshtmx.ProjectionStatusEntry{
@@ -43,6 +43,10 @@ func (p hostStatusProvider) ProjectionStatuses() []cqrshtmx.ProjectionStatusEntr
 
 	return entries
 }
+
+// bridgesAuditMaxEvents caps the in-memory auditlog event ring so a long
+// e2e battery run cannot grow the viewer's memory without bound.
+const bridgesAuditMaxEvents = 1_000
 
 // bridgeProbeService is the single do-registered service behind
 // POST /api/debug/invoke: invoking it through the injector makes the audit
@@ -67,8 +71,22 @@ func mountBridges(mux *http.ServeMux, host *projectionhost.Host) {
 	mux.Handle("GET /bridges/health/ui", cqrshealth.NewDashboard(probe).Handler())
 
 	auditSetup, err := cqrsauditlog.WithAuditLog(
-		auditlog.Config{MaxEvents: 1_000},
-		live.Config{Prefix: "/bridges/auditlog"},
+		auditlog.Config{
+			Enabled:              true,
+			MaxEvents:            bridgesAuditMaxEvents,
+			ContainerID:          "e2e-bridges",
+			RunID:                "",
+			OnEvent:              nil,
+			InitialEventCapacity: 0,
+		},
+		live.Config{
+			Prefix:             "/bridges/auditlog",
+			Addr:               "",
+			ReadHeaderTimeout:  0,
+			HeartbeatInterval:  0,
+			CORSAllowedOrigins: "",
+			ReplayBufferSize:   0,
+		},
 	)
 	if err != nil {
 		log.Printf("bridges: auditlog setup failed, skipping viewer: %v", err)
