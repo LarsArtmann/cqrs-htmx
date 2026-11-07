@@ -1,5 +1,9 @@
 # Status: Both-Issues Follow-Through Session — Battery Closed, Gates Green Where Ownable, Wave Decision Is the Only Blocker
 
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md`](2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md), which round-24 thread settled; open items routed to TODO rows. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
+
 **Session window:** 2026-11-06 ~00:30 → 03:19 CET · **Author:** this session (Crush), the both-issues (#38 + #25) follow-through after the 23:57 report's "WAIT".
 **Mission (closed):** resume the 12-step next-list from the 23-57 report — fmt, lint, cqrs-lint, full battery, check-modules, coverage, ADR 0060, doc-count trues, baseline discipline, commit hygiene — then report and wait.
 **Verdict:** every leg this session OWNS is green. The remaining aggregate reds decompose into exactly two causes: (1) the family version-skew that ONLY the wave-tag decision closes, and (2) the CONCURRENT adminui-superbification sibling's in-flight work. One concurrent sibling session ran throughout (fleet-libs plan → execution waves; adminui + root httperr + setup territory), plus the auto-commit daemon sweeping both of us.

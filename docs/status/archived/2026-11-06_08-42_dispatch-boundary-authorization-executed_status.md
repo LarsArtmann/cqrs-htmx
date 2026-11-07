@@ -1,10 +1,14 @@
 # Status: dispatch-boundary authorization executed (plan M01–M15)
 
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_09-06_dispatch-gate-hot-path-lock-removal-and-verification_status.md`](../2026-11-06_09-06_dispatch-gate-hot-path-lock-removal-and-verification_status.md), which waves executed with receipts; remainder routed. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
+
 **Date:** 2026-11-06 08:42 CET · **Branch:** `master` · **HEAD at writing:** `bd7f37b4`
 plus the uncommitted tail named in §c.
 
 **Scope of this report.** I executed every milestone of
-[`docs/planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md`](../planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md).
+[`docs/planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md`](../../planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md).
 **Verified** here means: the file/symbol was read in this session, the claim has a
 receipt (test, gate run, or line citation), and I re-ran the receipt after the last
 edit. **Not verified** means: asserted from a single source, or the check needs a

@@ -486,7 +486,7 @@ history; `git log 4cf82c0b..HEAD` is the authoritative list (70 files, +6369/−
 
 The accounting behind every "landed" above — including the four milestones that are
 landed but not *complete* — is in
-[`docs/status/2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md`](../status/2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md)
+[`docs/status/2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md`](../status/archived/2026-11-06_08-42_dispatch-boundary-authorization-executed_status.md)
 §a/§b/§d.
 
 ### Deviations from the plan, and why

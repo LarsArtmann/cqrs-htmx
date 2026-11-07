@@ -1,5 +1,9 @@
 # Status: adminui superbification — 118-idea brainstorm, Pareto plan, waves 1–6 landed, wave 7 mid-flight
 
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md`](2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md), which round-24 thread settled; open items routed to TODO rows. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
+
 **Session window:** 2026-11-06 ~00:40 → 01:57 CET · **Author:** this session (Crush), adminui lane
 **Mission (open):** "How can we make adminui/ SUPERB — brainstorm 100+ ideas, break into steps, execute and verify one at a time, repeat until done."
 **Verdict:** the brainstorm and the plan are COMPLETE and delivered (118 ideas / 14 angles / Pareto-tiered, HTML report written and validity-checked); execution waves 1–6 are CODE-COMPLETE AND TEST-GREEN in the working tree (18 adminui files, +2,961/−150 lines, daemon-committed in 13 heuristic commits); **wave 7 is a RED BUILD** (`icons.ChartBar` undefined, one line) and the gate battery (lint / cqrs-lint / route-postures / css-bundles / coverage / check-modules) has NOT been run on the finished waves — that verification gap is the honest headline. Docs (README/CHANGELOG/demo) not yet updated.

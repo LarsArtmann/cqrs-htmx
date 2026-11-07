@@ -1,6 +1,6 @@
 # Dropdown anchor root cause, e2e 76/76, train sweep + baseline bumps — round-46 M12 closure session
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md`](../2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md), which the 03-19 follow-through re-ran the full battery and re-recorded gate state after 22-31's train sweep; the dropdown vendor fix and e2e 76/76 are durably recorded in AGENTS.md's popover two-layer-contract bullet and adminui/tailwind.css. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md`](2026-11-06_03-19_both-issues-follow-through-battery-closed-wave-blocked_status.md), which the 03-19 follow-through re-ran the full battery and re-recorded gate state after 22-31's train sweep; the dropdown vendor fix and e2e 76/76 are durably recorded in AGENTS.md's popover two-layer-contract bullet and adminui/tailwind.css. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
 
