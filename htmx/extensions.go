@@ -53,7 +53,7 @@ type htmxExtension struct {
 //nolint:gochecknoglobals // embedded assets + their metadata; immutable after init.
 var htmxExtensions = map[string]htmxExtension{
 	ExtSSE:       {js: extSSEJS, version: "2.2.4"},
-	ExtIdiomorph: {js: extIdiomorphJS, version: "0.7.4"},
+	ExtIdiomorph: {js: extIdiomorphJS, version: "0.8.0"},
 	ExtCQRSQuery: {js: extCQRSQueryJS, version: "1.0.0"},
 }
 

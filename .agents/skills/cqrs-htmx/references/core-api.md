@@ -290,7 +290,7 @@ htmx.Version()                  // "2.0.11"
 htmx.ExtensionHandler(name)     // serve embedded extension (sse/ws/idiomorph)
 htmx.ExtensionsHandler(names…)  // serve concatenated bundle of extensions
 htmx.ExtensionCDNScriptTag(name) // CDN <script> tag for one extension
-htmx.ExtensionVersion(name)     // "2.2.4" (sse), "2.0.4" (ws), "0.7.4" (idiomorph)
+htmx.ExtensionVersion(name)     // "2.2.4" (sse), "0.8.0" (idiomorph)
 htmx.ExtensionNames()           // ["idiomorph", "sse", "ws"]
 cqrshtmx.KeyExtractorFromRemoteAddr()   // default rate-limit key extractor
 cqrshtmx.DefaultRateLimiterConfig()     // sensible defaults: 100/min per-IP, burst=limit, 10min TTL

@@ -25,7 +25,7 @@ var _ = Describe("ExtensionHandler", func() {
 			Expect(w.Body.Len()).To(BeNumerically(">", 0))
 		},
 		Entry("sse", htmx.ExtSSE, "2.2.4"),
-		Entry("idiomorph", htmx.ExtIdiomorph, "0.7.4"),
+		Entry("idiomorph", htmx.ExtIdiomorph, "0.8.0"),
 		Entry("cqrs-query", htmx.ExtCQRSQuery, "1.0.0"),
 	)
 
@@ -74,19 +74,19 @@ var _ = Describe("ExtensionsHandler", func() {
 		Expect(w.Code).To(Equal(http.StatusOK))
 		Expect(w.Header().Get("Content-Type")).To(Equal("text/javascript; charset=utf-8"))
 		Expect(w.Header().Get("Cache-Control")).To(Equal("public, max-age=31536000, immutable"))
-		Expect(w.Header().Get("ETag")).To(Equal(`"htmx-ext-bundle-sse-2.2.4,idiomorph-0.7.4"`))
+		Expect(w.Header().Get("ETag")).To(Equal(`"htmx-ext-bundle-sse-2.2.4,idiomorph-0.8.0"`))
 		Expect(w.Body.Len()).To(BeNumerically(">", 0))
 
 		body := w.Body.String()
 		Expect(body).To(ContainSubstring("htmx-ext-sse 2.2.4"))
-		Expect(body).To(ContainSubstring("htmx-ext-idiomorph 0.7.4"))
+		Expect(body).To(ContainSubstring("htmx-ext-idiomorph 0.8.0"))
 	})
 
 	It("returns 304 for matching If-None-Match", func() {
 		handler := htmx.ExtensionsHandler(htmx.ExtSSE, htmx.ExtIdiomorph)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/ext/bundle.js", nil)
-		req.Header.Set("If-None-Match", `"htmx-ext-bundle-sse-2.2.4,idiomorph-0.7.4"`)
+		req.Header.Set("If-None-Match", `"htmx-ext-bundle-sse-2.2.4,idiomorph-0.8.0"`)
 		handler.ServeHTTP(w, req)
 
 		Expect(w.Code).To(Equal(http.StatusNotModified))
@@ -118,7 +118,7 @@ var _ = Describe("ExtensionVersion", func() {
 			Expect(htmx.ExtensionVersion(name)).To(Equal(want))
 		},
 		Entry("sse", htmx.ExtSSE, "2.2.4"),
-		Entry("idiomorph", htmx.ExtIdiomorph, "0.7.4"),
+		Entry("idiomorph", htmx.ExtIdiomorph, "0.8.0"),
 		Entry("cqrs-query", htmx.ExtCQRSQuery, "1.0.0"),
 	)
 
@@ -147,7 +147,7 @@ var _ = Describe("ExtensionCDNScriptTag", func() {
 			))
 		},
 		Entry("sse", htmx.ExtSSE, "https://unpkg.com/htmx-ext-sse@2.2.4/dist/sse.min.js"),
-		Entry("idiomorph", htmx.ExtIdiomorph, "https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"),
+		Entry("idiomorph", htmx.ExtIdiomorph, "https://unpkg.com/idiomorph@0.8.0/dist/idiomorph-ext.min.js"),
 	)
 
 	It("returns empty string for unknown extension", func() {

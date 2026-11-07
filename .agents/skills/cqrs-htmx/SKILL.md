@@ -698,7 +698,7 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 
 ### Embedded HTMX extensions
 
-The root module embeds 3 extensions that pair with cqrs-htmx's server-side building blocks: SSE (2.2.4), idiomorph (0.7.4), and cqrs-query (1.0.0, the library's own: `hx-query` upgrades an `hx-post` to native QUERY with automatic 405/501 downgrade to the override fallback — RFC 10008 on htmx 2). The WS extension (htmx-ext-ws 2.0.4) was removed in v5 alongside the WS transport — see ADR 0046.
+The root module embeds 3 extensions that pair with cqrs-htmx's server-side building blocks: SSE (2.2.4), idiomorph (0.8.0), and cqrs-query (1.0.0, the library's own: `hx-query` upgrades an `hx-post` to native QUERY with automatic 405/501 downgrade to the override fallback — RFC 10008 on htmx 2). The WS extension (htmx-ext-ws 2.0.4) was removed in v5 alongside the WS transport — see ADR 0046.
 
 ```go
 // Individual or bundled:

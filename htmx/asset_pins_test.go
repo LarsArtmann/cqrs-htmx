@@ -38,6 +38,18 @@ func TestEmbeddedBundles_MatchPinnedSHA256(t *testing.T) {
 			url:  "https://unpkg.com/htmx.org@" + htmx.HTMX4Version + "/dist/htmx.min.js",
 			sha:  "a0abb04f2f45a1f89d1d4844023245537e5e6014c87b144553e0607b4cc32130", // htmx.org@4.0.1 dist, 37448 B
 		},
+		{
+			name: "sse extension",
+			file: "extensions/sse.min.js",
+			url:  "https://unpkg.com/htmx-ext-sse@2.2.4/dist/sse.min.js",
+			sha:  "98a46496de0c3605fbffdce9167ba427bdd9553184f83f149c261891a92c0136", // htmx-ext-sse@2.2.4 dist, 2853 B
+		},
+		{
+			name: "idiomorph extension",
+			file: "extensions/idiomorph-ext.min.js",
+			url:  "https://unpkg.com/idiomorph@0.8.0/dist/idiomorph-ext.min.js",
+			sha:  "5811b9a7eda14878b7dab4378bf60432e1bb6f11fcfb970cc26540642650181e", // idiomorph@0.8.0 dist, 11037 B
+		},
 	}
 
 	for _, pin := range pins {
