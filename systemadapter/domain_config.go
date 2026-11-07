@@ -9,7 +9,7 @@
 // Example:
 //
 //	domain := systemadapter.DomainConfig()          // 4 deciders, 21 commands,
-//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 25 events, projections
+//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 27 events, projections
 //	sys, err := system.New(ctx, domain, deployment)
 //
 // Projection-side knobs ride the same call: WithCheckpointStore supplies the
@@ -34,7 +34,7 @@ import (
 
 // DomainConfig returns a system.DomainConfig pre-wired with all four identity-model
 // deciders (User, Membership, Tenant, Bot), all 21 commands, and a TypeDecoder
-// that maps all 25 event types to their payload structs.
+// that maps all 27 event types to their payload structs.
 //
 // The consumer passes this to system.New() alongside a DeploymentConfig that
 // specifies engines and buses. The system handles repository creation, event
@@ -94,7 +94,7 @@ func defaultProjectionHostOptions(dlqStore projectionhost.DeadLetterStore) []pro
 }
 
 // registerAllCommands is the Commands closure passed to system.DomainConfig.
-// It registers all four deciders and all 20 commands on the system.
+// It registers all four deciders and all 21 commands on the system.
 func registerAllCommands(sys *system.System) {
 	registerUserDecider(sys)
 	registerMembershipDecider(sys)
