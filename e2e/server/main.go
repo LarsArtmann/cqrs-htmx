@@ -117,6 +117,10 @@ func main() {
 	// demo's live-only feed). Same never-ship-this rule as rotate-backend.
 	mux.HandleFunc("POST /api/debug/emit", emitDebugHandler(dstore, dashBus))
 
+	// Bridge-module browser surfaces (health dashboard + auditlog live
+	// viewer) with their deterministic driver endpoints.
+	mountBridges(mux, host)
+
 	// --- HTML page --- ({$}: exact root only, else it conflicts with the
 	// /dashboard/ subtree's method-agnostic pattern)
 	mux.HandleFunc("GET /{$}", indexHandler)
