@@ -6,7 +6,7 @@
 
 Datastar is a hypermedia framework that uses Server-Sent Events for real-time updates, reactive **signals** for frontend state management, and DOM **morphing** by default. Its philosophy — backend as source of truth, SSE as default transport, no optimistic updates — is identical to cqrs-htmx's CQRS/event-sourcing architecture.
 
-Datastar replaces Alpine.js, HTMX extensions (idiomorph, SSE, WS), and hand-rolled JavaScript with one 11.76 KiB file.
+Datastar replaces Alpine.js, HTMX extensions (idiomorph, SSE, WS), and hand-rolled JavaScript with one ~13 KiB-gzipped file (33.5 kB raw, v1.0.3; measured 2026-11-07).
 
 ## Installation
 

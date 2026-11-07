@@ -2,14 +2,16 @@ package cqrshtmx
 
 import "net/http"
 
-// MethodOverrideHeader is the canonical header carrying the intended HTTP
-// method when the wire method is a fallback (RFC 10008 QUERY deployments
-// behind proxies or WAFs that reject unknown methods).
-const MethodOverrideHeader = "X-HTTP-Method-Override"
+// MethodOverrideHeader is the header carrying the intended HTTP method when
+// the wire method is a fallback (RFC 10008 QUERY deployments behind proxies
+// or WAFs that reject unknown methods). On the wire the conventional spelling
+// is "X-HTTP-Method-Override"; HTTP header names are case-insensitive, and
+// the constant uses net/http's canonical form.
+const MethodOverrideHeader = "X-Http-Method-Override"
 
 // legacyMethodOverrideHeader is the older spelling still sent by some stacks;
 // honored when the canonical header is absent.
-const legacyMethodOverrideHeader = "X-HTTP-Method"
+const legacyMethodOverrideHeader = "X-Http-Method"
 
 // MethodQuery is the HTTP QUERY method (RFC 10008): safe, idempotent, and
 // request-body-carrying — the read-side twin of POST. net/http has no
@@ -42,6 +44,9 @@ const MethodQuery = "QUERY"
 //	    cqrshtmx.HTMXMiddleware,
 //	    app.Middleware(),
 //	)(cqrshtmx.MethodOverrideMiddleware(mux))
+//
+// Clients send the fallback as a POST with an "X-HTTP-Method-Override: QUERY"
+// header and the same JSON body the native QUERY request would carry.
 func MethodOverrideMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost && overrideTargetsQuery(r) {
