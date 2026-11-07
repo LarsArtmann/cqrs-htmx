@@ -133,7 +133,7 @@
 41. ~~**S54** v5 migration plan + auto-upgrade workstream.~~ done — docs/migrations/v4-to-v5.md Rollout section + ROADMAP V007 link (round-33 W08 verified)
 42. ~~**S55** owner-decision packet (D1–D17).~~ done at `e084d518`
 43. ~~**S56** housekeeping watches.~~ done at `e084d518`
-44. ~~**S57** loginpage Playwright WebAuthn E2E + render golden.~~ done — resolved — routed: TODO_LIST "loginpage test-depth debt" row — the Playwright WebAuthn E2E + render golden remain its open tail
+44. ~~**S57** loginpage Playwright WebAuthn E2E + render golden.~~ done — round-33 W10: e2e/tests/loginpage-webauthn.spec.ts (virtual-authenticator register+login, caught the real publicKey-envelope bug) + loginpage-golden.spec.ts full-page render golden, both verified in tree 2026-11-07
 45. ~~**S58** health train rider + `WithSchemaVersion(1)` stamping.~~ done — S58 WithSchemaVersion(1) stamped on all 31 construction sites (round-32 report; S58 + health-train-rider TODO rows deleted — all three halves true)
 46. ~~**Add the new gates to FEATURES.md** (honest inventory).~~ done — resolved — routed: TODO_LIST plan-of-record row ("the two missing FEATURES.md rows" debt) — FEATURES.md still lacks the docs-gates rows
 47. ~~**README gate documentation** for the three new commands.~~ done — gate documentation landed in AGENTS.md quick-ref rows (TODO hygiene, Corpus ratchet, Archive pass) instead of README — verified in tree

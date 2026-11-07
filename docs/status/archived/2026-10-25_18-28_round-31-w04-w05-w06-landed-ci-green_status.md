@@ -62,56 +62,56 @@ W08 (verify sibling's S45/S52/S53/S54 receipts), W09 (sibling lane), W10 (loginp
 
 ## f) NEXT UP TO 50 (ordered; plan-of-record numbering)
 
-1. Watch/confirm CI stays green on this report's push.
-2. W07.1: stamp `event.WithSchemaVersion(1)` on the 21 identity-model payload constructors.
-3. W07.2: stamp the 8 e2e/demo event sites (build-gated).
-4. W07.3: delete `statusLive/statusStopped/statusFailed` mirrors in health/probe.go; consume `cqrshtmx.ProjectionStatus*`; bump health's root require.
-5. W07.4: integration_test half — ALREADY DONE in W06 (RecorderChain proof); close the rider row with a note.
-6. W07.5: idm + health CHANGELOG receipts; hermetic suites + lint.
-7. W08.1: verify sibling's S45 (EventHandler section + idm README) exists and matches code.
-8. W08.2: verify S52 mandate row, S53 credential memo, S54 v5 skeleton.
-9. W08.3: docs gates (links/freshness/corpus/tail) rc=0 + AGENTS quick-ref truth-pass on sibling rows.
-10. W09 (sibling lane — skip if sibling active): check-upstream-treadmill.sh + wave-tag.sh + self-tests + flake wiring.
-11. W10.1: Playwright virtual-authenticator harness for loginpage.
-12. W10.2: register+login E2E through the rendered page.
-13. W10.3: nonce-insensitive full-page render golden (stable IDs).
-14. W11.1: split setup/config.go (1186 lines) by concern.
-15. W11.2: split systemadapter/declarations.go (query/fold files).
-16. W11.3: split usermgmt/service_core.go (576).
-17. W11.4: dashboardui/layout.go assets refile + e2e/server/main.go split.
-18. W11 gate: build + `check-large-files` + per-module suites + goldens.
-19. W12: full battery `.#test` rc=0.
-20. W12: `.#lint` rc=0.
-21. W12: `.#coverage-gate` rc=0.
-22. W12: `.#check-modules -- --report` rc=0 (≤2 attempts).
-23. W12: push + `gh run watch` + `.#verify-remote-tags` + ahead-0.
-24. W12: `git log --stat` book reconciliation vs sibling's 15-16 receipt.
-25. W13: owner packet D1–D17 answered-or-recommended.
-26. W13: upstream asks — ADD the S49 SQL StateShape column ask (evidence: the verdict test).
+1. ~~Watch/confirm CI stays green on this report's push.~~ done — CI stayed green through every push — round-36 "W12 wrap closed: CI green through every push; verify-remote-tags 179/179"
+2. ~~W07.1: stamp `event.WithSchemaVersion(1)` on the 21 identity-model payload constructors.~~ done — W07.1 stamped — S58 WithSchemaVersion(1) on all 31 construction sites incl. the 21 idm payload constructors (round-32 report)
+3. ~~W07.2: stamp the 8 e2e/demo event sites (build-gated).~~ done — W07.2 stamped — the e2e/demo sites included in the 31 (round-32 report)
+4. ~~W07.3: delete `statusLive/statusStopped/statusFailed` mirrors in health/probe.go; consume `cqrshtmx.ProjectionStatus*`; bump health's root require.~~ done — W07.3 done — mirrors consumed from root + root require bump; health-train rider row deleted, all three halves true (round-32 §a5)
+5. ~~W07.4: integration_test half — ALREADY DONE in W06 (RecorderChain proof); close the rider row with a note.~~ done — W07.4 done — RecorderChain proof landed in W06 (d4a65b0f); rider closed with the note (round-32)
+6. ~~W07.5: idm + health CHANGELOG receipts; hermetic suites + lint.~~ done — W07.5 done — idm + health CHANGELOG receipts written, gates closed (round-32)
+7. ~~W08.1: verify sibling's S45 (EventHandler section + idm README) exists and matches code.~~ done — W08.1 verified — S45 README section checked 1:1 against event/v4@v4.15.2 (round-33 W08)
+8. ~~W08.2: verify S52 mandate row, S53 credential memo, S54 v5 skeleton.~~ done — W08.2 verified — S52 mandate row, S53 memo, S54 skeleton all truthful (round-33 W08)
+9. ~~W08.3: docs gates (links/freshness/corpus/tail) rc=0 + AGENTS quick-ref truth-pass on sibling rows.~~ done — W08.3 done — docs gates links/tail/corpus/todo-hygiene all rc=0 at verify time (round-33 W08)
+10. ~~W09 (sibling lane — skip if sibling active): check-upstream-treadmill.sh + wave-tag.sh + self-tests + flake wiring.~~ done — W09 done by the sibling lane — check-upstream-treadmill.sh + wave-tag.sh + self-tests live (14-01 report; verified in tree 2026-11-07)
+11. ~~W10.1: Playwright virtual-authenticator harness for loginpage.~~ done — W10.1 done — Playwright virtual-authenticator harness (round-33 W10; e2e/tests/loginpage-webauthn.spec.ts in tree)
+12. ~~W10.2: register+login E2E through the rendered page.~~ done — W10.2 done — register+login E2E through the rendered page; caught the real publicKey-envelope bug (round-33 W10)
+13. ~~W10.3: nonce-insensitive full-page render golden (stable IDs).~~ done — W10.3 done — nonce-insensitive full-page render golden (e2e/tests/loginpage-golden.spec.ts in tree)
+14. ~~W11.1: split setup/config.go (1186 lines) by concern.~~ done — W11.1 done — setup/config.go 1186 → config.go + config_validate.go + config_paths.go (round-33 W11, 408c0356)
+15. ~~W11.2: split systemadapter/declarations.go (query/fold files).~~ done — W11.2 done — declarations.go → declarations_identity/user/authz (round-33 W11)
+16. ~~W11.3: split usermgmt/service_core.go (576).~~ done — W11.3 done — service_core.go → core/factory/lifecycle (round-33 W11)
+17. ~~W11.4: dashboardui/layout.go assets refile + e2e/server/main.go split.~~ done — W11.4 done — dashboardui/layout.go assets refile + e2e/server/main.go split (round-33 W11)
+18. ~~W11 gate: build + `check-large-files` + per-module suites + goldens.~~ done — W11 gate green — build + check-large-files + suites + goldens, e2e lint bonus fixed (round-33 W11)
+19. ~~W12: full battery `.#test` rc=0.~~ done — W12 gate 1 — .#test rc=0 after one flake rerun (round-33)
+20. ~~W12: `.#lint` rc=0.~~ done — W12 gate 2 — .#lint rc=0 (round-33)
+21. ~~W12: `.#coverage-gate` rc=0.~~ done — W12 gate 3 — .#coverage-gate rc=0 (round-33; thresholds single-sourced round-35)
+22. ~~W12: `.#check-modules -- --report` rc=0 (≤2 attempts).~~ done — W12 gate 4 — check-modules green once round-34 healed the split-shifted streamid-identity pin (round-36 wrap)
+23. ~~W12: push + `gh run watch` + `.#verify-remote-tags` + ahead-0.~~ done — W12 push leg — pushed through strict gates, CI watched green, verify-remote-tags 179/179 (round-36)
+24. ~~W12: `git log --stat` book reconciliation vs sibling's 15-16 receipt.~~ done — W12 book reconciliation — git log --stat f6dec11d..HEAD vs receipts consistent (round-36)
+25. ~~W13: owner packet D1–D17 answered-or-recommended.~~ done at `e084d518`
+26. ~~W13: upstream asks — ADD the S49 SQL StateShape column ask (evidence: the verdict test).~~ done — S49 ask added to the packet U-table + round-45 draft (storage-stateshape-stamp.md); FILED as go-cqrs-lite#117 on 2026-11-07
 27. W13: upstream asks — ADD the systemadapter `system.Execute` context/actor ask.
-28. W13: S56 watch table (buildcache, fleet asks, scorecard, catalog consumers).
-29. W14: loginpage AutoRedirect follow-through (NoWebAuthn asymmetry memo, AuthPrefix validation, guide, FEATURES rows).
-30. W14: dashboardui 09-48 tails (rune-safe truncate/initials, PathEscape, data-base-path, audit streaming, neighbour early-stop, snapshot 404/500, boost guard).
-31. W14: root declutter (biome.json prove-or-remove, allowlist sketch).
-32. W14: sweep-plan M18/M20/M21 + RequireSession export-or-document.
-33. W15: art-dupl r3 accept-baseline decision + 2 extractions.
-34. W15: check-skill-claims.sh skeleton.
-35. W15: snippet compile gate + README split-brain scan.
-36. W15: tooling canaries a–g.
-37. W15: upstream ask drafts batch (now incl. items 26–27).
-38. W16: BuildFlow nix-fmt loop source-verified + upstream filing per verify-before-filing.
-39. W16: bench-spike ONLY at load < 6 (honest refusal otherwise).
-40. W17: 8 parked-row verdicts (billing S00, DataStar Tier-4, ReadLastN, SidebarNav, BuildFlow BF1, cqrs-lint fleet swap, check-cqrs-lint CI, GCL).
-41. W17: TODO promote/unpark pass.
-42. W17: FINAL battery + push + CI watch.
-43. W17: final receipt superseding THIS file (archive ritual + both baselines; tail back to ≤2).
-44. W17: CURRENT_FOCUS rewrite.
-45. Standing: pull + `git log --stat` before each milestone (sibling interleave).
-46. Standing: hermetic per-module build+test+LINT before any "landed" claim.
-47. Standing: re-verify every file:line in-source before editing (plan guardrail 6).
-48. Standing: receipts land in the same push as published-module code.
-49. Standing: unpiped rc only for verdicts; PIPESTATUS for piped.
-50. Standing: no gate weakened, ever — CI-parity pre-push is the backstop.
+28. ~~W13: S56 watch table (buildcache, fleet asks, scorecard, catalog consumers).~~ done at `e084d518`
+29. ~~W14: loginpage AutoRedirect follow-through (NoWebAuthn asymmetry memo, AuthPrefix validation, guide, FEATURES rows).~~ done — W14 loginpage AutoRedirect DONE this session (round-34 §f25)
+30. ~~W14: dashboardui 09-48 tails (rune-safe truncate/initials, PathEscape, data-base-path, audit streaming, neighbour early-stop, snapshot 404/500, boost guard).~~ done — W14 dashboardui 09-48 tails DONE 2026-10-26 w14.2–w14.4 — rune-safety, PathEscape, data-base-path, audit streaming, neighbour early-stop, snapshot 404/500, boost guard (TODO row receipt)
+31. ~~W14: root declutter (biome.json prove-or-remove, allowlist sketch).~~ done — W14.5 landed — biome.json REMOVED (nothing consumed it) + check-root-files gate (round-35)
+32. ~~W14: sweep-plan M18/M20/M21 + RequireSession export-or-document.~~ done — W14.6 landed — sweep-plan M18/M20/M21 rows completed + RequireSession gated via setup.RequireSessionRedirect (round-34/35; TODO rows removed)
+33. ~~W15: art-dupl r3 accept-baseline decision + 2 extractions.~~ done — resolved — routed: TODO_LIST "art-dupl round-3 tails" row — accept-baseline ratchet + extractions HELD owner-gated, not re-pinned 2026-11-06 for ownership reasons
+34. ~~W15: check-skill-claims.sh skeleton.~~ done — W15.2 done — check-skill-claims.sh drift gate landed 2026-10-26, caught real drift (TODO "Skill-maintenance gates" row)
+35. ~~W15: snippet compile gate + README split-brain scan.~~ done — W15.3 done — snippet parse gate + module-README split-brain scan landed 2026-10-26 (same row)
+36. ~~W15: tooling canaries a–g.~~ done — W15.4/W15.5 canaries a–g landed (round-35: tidy-sweep, verify-tag poison, skip_steps, coverage fail-loud, toolchain runbook, codespell, single-source thresholds)
+37. ~~W15: upstream ask drafts batch (now incl. items 26–27).~~ done — resolved — routed: TODO_LIST "Upstream ask drafts batch" row — 5 drafts exist under docs/proposals/upstream/ (round-45 pack); filing owner-gated
+38. ~~W16: BuildFlow nix-fmt loop source-verified + upstream filing per verify-before-filing.~~ done — W16 nix-fmt closed as fixed-upstream — BuildFlow 58115f7 (2026-10-25) added root-marker copies; fresh run passes (S55 packet correction)
+39. ~~W16: bench-spike ONLY at load < 6 (honest refusal otherwise).~~ done — resolved — routed: TODO_LIST "Post-change verification battery" row — bench-spike re-pin remains its only leg (twice refused under load; re-pin needed post-train)
+40. ~~W17: 8 parked-row verdicts (billing S00, DataStar Tier-4, ReadLastN, SidebarNav, BuildFlow BF1, cqrs-lint fleet swap, check-cqrs-lint CI, GCL).~~ done — W17 verdicts — all 8 parked rows carry verdicts (7 pre-recorded 2026-10-25 + check-cqrs-lint-CI added; round-35)
+41. ~~W17: TODO promote/unpark pass.~~ done — W17 TODO sweep — 4 completed rows removed, 3 updated, hygiene green at 58 rows (round-35)
+42. ~~W17: FINAL battery + push + CI watch.~~ done — W17 final battery — the push CI run is the battery of record, green (round-35; local legs honestly refused at load 107–164)
+43. ~~W17: final receipt superseding THIS file (archive ritual + both baselines; tail back to ≤2).~~ done — this file carries the SUPERSEDED blockquote naming round-32 as successor (ANNOTATED + ARCHIVED 2026-10-25)
+44. ~~W17: CURRENT_FOCUS rewrite.~~ done — CURRENT_FOCUS rewritten — round-35 receipt trail names "TODO/CURRENT_FOCUS/receipt docs" in its commit set
+45. ~~Standing: pull + `git log --stat` before each milestone (sibling interleave).~~ done — superseded — standing discipline carried by the 10-42 Wave-D plan guardrails §2 + the round-32→36 successor series; report superseded by round-32
+46. ~~Standing: hermetic per-module build+test+LINT before any "landed" claim.~~ done — superseded — same: the hermetic-before-landed rule lived on as the successor rounds' working discipline (round-33 §d lessons)
+47. ~~Standing: re-verify every file:line in-source before editing (plan guardrail 6).~~ done — superseded — the re-verify-in-source rule IS plan guardrail 6 of the 10-42 plan, which the successor rounds executed under
+48. ~~Standing: receipts land in the same push as published-module code.~~ done — superseded — receipts-with-code norm enforced by the successor rounds and the published-module rule in later CHANGELOGs
+49. ~~Standing: unpiped rc only for verdicts; PIPESTATUS for piped.~~ done — superseded — rc/PIPESTATUS discipline carried by the successor rounds (round-33 battery verdicts used it)
+50. ~~Standing: no gate weakened, ever — CI-parity pre-push is the backstop.~~ done — superseded — no-gate-weakened backstop lived on as the strict pre-push gates + CI-parity checks through round-36
 
 ## g) QUESTIONS FOR THE OWNER (cannot be resolved from the repo)
 
