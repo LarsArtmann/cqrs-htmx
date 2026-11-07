@@ -282,11 +282,11 @@ cqrshtmx.WriteJSON(w, status, v)
 cqrshtmx.RenderTemplComponent(w, r, partial, full) // standalone partial-vs-full (non-CQRS routes)
 cqrshtmx.OOBHTML(id, html, swapStrategy...)        // wrap HTML with hx-swap-oob (HTTP + WS)
 cqrshtmx.KeyExtractorFromClientIP()     // proxy-aware rate-limit key extractor (uses httputil.ClientIP)
-htmx.ScriptHandler()            // embedded htmx 2.0.10 (GET/HEAD, ETag, 1y cache)
+htmx.ScriptHandler()            // embedded htmx 2.0.11 (GET/HEAD, ETag, 1y cache)
 htmx.ScriptHandlerWith(js, ver) // serve a custom build
 htmx.ScriptTag(path)            // <script src="path"></script> for templates
 htmx.CDNScriptTag(version)      // CDN script tag; "" = embedded version
-htmx.Version()                  // "2.0.10"
+htmx.Version()                  // "2.0.11"
 htmx.ExtensionHandler(name)     // serve embedded extension (sse/ws/idiomorph)
 htmx.ExtensionsHandler(names…)  // serve concatenated bundle of extensions
 htmx.ExtensionCDNScriptTag(name) // CDN <script> tag for one extension

@@ -7,7 +7,7 @@ import "net/http"
 // long-lived cache headers as [ScriptHandler]. Mount it wherever your htmx-4
 // pages load their script — the two versions can coexist in one binary:
 //
-//	mux.Handle("/static/htmx.js", htmx.ScriptHandler())   // 2.0.10 default
+//	mux.Handle("/static/htmx.js", htmx.ScriptHandler())   // 2.0.11 default
 //	mux.Handle("/static/htmx4.js", htmx.ScriptHandler4()) // hx-query native
 //
 // htmx 4 issues native QUERY requests via `hx-query`; htmx 2 consumers keep

@@ -33,8 +33,8 @@ func newCase() htmxCaseBuilder {
 		name:             "",
 		method:           "",
 		js:               nil,
-		version:          "2.0.10",
-		etag:             `"htmx-2.0.10"`,
+		version:          "2.0.11",
+		etag:             `"htmx-2.0.11"`,
 		ifNoneMatch:      "",
 		wantStatus:       0,
 		wantBodyNonEmpty: false,
@@ -96,7 +96,7 @@ func htmxScriptTestCases() []htmxScriptTestCase {
 		newCase().
 			withName("embedded GET returns 304 for matching If-None-Match").
 			withMethod(http.MethodGet).
-			withIfNoneMatch(`"htmx-2.0.10"`).
+			withIfNoneMatch(`"htmx-2.0.11"`).
 			withWantStatus(http.StatusNotModified).
 			build(),
 		custom.
@@ -113,7 +113,7 @@ func htmxScriptTestCases() []htmxScriptTestCase {
 		custom.
 			withName("custom GET does not return 304 for non-matching If-None-Match").
 			withMethod(http.MethodGet).
-			withIfNoneMatch(`"htmx-2.0.10"`).
+			withIfNoneMatch(`"htmx-2.0.11"`).
 			withWantStatus(http.StatusOK).
 			build(),
 		newCase().
@@ -188,7 +188,7 @@ var _ = Describe("ScriptHandler", func() {
 
 var _ = Describe("Version", func() {
 	It("returns the version string", func() {
-		Expect(htmx.Version()).To(Equal("2.0.10"))
+		Expect(htmx.Version()).To(Equal("2.0.11"))
 	})
 })
 
@@ -215,7 +215,7 @@ var _ = Describe("CDNScriptTag", func() {
 
 	It("uses the embedded version when version is empty", func() {
 		Expect(htmx.CDNScriptTag("")).To(Equal(
-			`<script src="https://unpkg.com/htmx.org@2.0.10"></script>`,
+			`<script src="https://unpkg.com/htmx.org@2.0.11"></script>`,
 		))
 	})
 

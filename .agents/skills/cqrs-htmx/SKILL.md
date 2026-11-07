@@ -270,7 +270,7 @@ srv := cqrshtmx.Chain(app.Middleware())(cqrshtmx.MethodOverrideMiddleware(mux))
   gives htmx 2 the upgrade automatically: `hx-query` on an `hx-ext` element
   sends native QUERY first and downgrades to the override POST on the first
   405/501, remembering the origin for an hour. htmx 4.0.1 is embedded
-  alongside the 2.0.10 default (`htmx.ScriptHandler4()`).
+  alongside the 2.0.11 default (`htmx.ScriptHandler4()`).
 - Spec-truth + caching: `openapi.Query(opID)` renders the operation and
   auto-bumps the document to OpenAPI 3.2.0 (a query op on any other version
   fails `Spec.Validate`); `ETagResults()` after any renderer option answers
@@ -480,7 +480,7 @@ err = gate.Validate()                 // boot check: no declarations / no reason
 ### Middleware + serving htmx.js
 
 ```go
-mux.Handle("GET /htmx.js", htmx.ScriptHandler()) // embedded htmx 2.0.10, ETag + 1yr cache
+mux.Handle("GET /htmx.js", htmx.ScriptHandler()) // embedded htmx 2.0.11, ETag + 1yr cache
 // htmx 4 (native hx-query) rides alongside: mux.Handle("GET /htmx4.js", htmx.ScriptHandler4())
 
 http.ListenAndServe(":8080", cqrshtmx.Chain(

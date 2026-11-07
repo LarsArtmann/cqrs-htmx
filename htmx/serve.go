@@ -8,7 +8,7 @@ import (
 )
 
 // ScriptHandler returns an http.Handler that serves the embedded HTMX
-// JavaScript (v2.0.10, minified) with appropriate Content-Type and long-lived
+// JavaScript (v2.0.11, minified) with appropriate Content-Type and long-lived
 // cache headers. Mount it at any path, e.g.:
 //
 //	mux.Handle("/static/htmx.js", cqrshtmx.ScriptHandler())
@@ -45,7 +45,7 @@ const CDNBaseURL = "https://unpkg.com/htmx.org"
 // CDNScriptTag returns an HTML <script> tag that loads HTMX from the unpkg
 // CDN. Pass an empty version string to use the embedded library version.
 //
-//	cqrshtmx.CDNScriptTag("")       // uses embedded version (2.0.10)
+//	cqrshtmx.CDNScriptTag("")       // uses embedded version (2.0.11)
 //	cqrshtmx.CDNScriptTag("4.0.0")  // loads htmx 4.0.0
 func CDNScriptTag(version string) string {
 	if version == "" {

@@ -85,7 +85,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 - **templ integration** — duck-typed `TemplComponent` renders templ components without importing templ
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()`
 - **HTTP QUERY method (RFC 10008)** — complex reads without the URL-length lie or the unsafe-POST lie: `App.Query` is method-agnostic, so one `QUERY /contacts` pattern serves the native method and every fallback from a single handler — `MethodOverrideMiddleware` rewrites POST + `X-HTTP-Method-Override: QUERY` before routing (mounted inside the security stack so CSRF sees the wire method), the JSON decoders advertise `Accept-Query: application/json` themselves, `RequireAnyMethod`/`RequireContentType` guard multi-method mounts (405 + `Allow`, 400/415 media-type ladder), and `openapi.Query()` renders the operation with an automatic OpenAPI 3.2.0 version bump ([guide](docs/guides/http-query-method.md))
-- **Embedded HTMX assets** — htmx v2.0.10 plus the SSE and idiomorph extensions, served from your binary with ETag + 1-year immutable caching; zero CDN dependency. htmx v4.0.1 rides alongside (`htmx.ScriptHandler4()`) for native `hx-query` — the default flips to 4.x only in v5
+- **Embedded HTMX assets** — htmx v2.0.11 plus the SSE and idiomorph extensions, served from your binary with ETag + 1-year immutable caching; zero CDN dependency. htmx v4.0.1 rides alongside (`htmx.ScriptHandler4()`) for native `hx-query` — the default flips to 4.x only in v5
 
 **Identity & access**
 

@@ -115,7 +115,7 @@ func ExampleSyncVersion() {
 func ExampleHTMXCDNScriptTag() {
 	fmt.Println(htmx.CDNScriptTag(""))
 	fmt.Println(htmx.CDNScriptTag("4.0.0"))
-	// Output: <script src="https://unpkg.com/htmx.org@2.0.10"></script>
+	// Output: <script src="https://unpkg.com/htmx.org@2.0.11"></script>
 	// <script src="https://unpkg.com/htmx.org@4.0.0"></script>
 }
 

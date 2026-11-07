@@ -129,7 +129,7 @@ attempt for every later request on that origin.
 
 ### htmx 4
 
-Native `hx-query`: `<button hx-query="/contacts/search">`. The library embeds htmx 4.0.1 alongside the 2.0.10 default — serve it with `htmx.ScriptHandler4()` (ETag + immutable caching, same contract as the default handler); the default flips to 4.x only in v5.
+Native `hx-query`: `<button hx-query="/contacts/search">`. The library embeds htmx 4.0.1 alongside the 2.0.11 default — serve it with `htmx.ScriptHandler4()` (ETag + immutable caching, same contract as the default handler); the default flips to 4.x only in v5.
 
 ### DataStar
 

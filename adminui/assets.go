@@ -29,7 +29,7 @@ func newAssetHandler(fsys fs.FS, name, contentType string) (http.Handler, error)
 	return cqrshtmx.ServeAsset(name, contentType, data), nil
 }
 
-// htmxScriptHandler serves the embedded HTMX script (v2.0.10) from the root
+// htmxScriptHandler serves the embedded HTMX script (v2.0.11) from the root
 // cqrs-htmx module, so the panel is fully self-contained.
 func htmxScriptHandler() http.Handler { return htmx.ScriptHandler() }
 

@@ -17,7 +17,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+
+	"github.com/larsartmann/httputil"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -142,9 +145,17 @@ func run() error {
 	// GET /ds-demo is a minimal DataStar client page: it loads the SDK from
 	// the bundle's script mount and renders the live "broadcasts" signal
 	// that POST /broadcast patches.
-	mux.HandleFunc("GET /ds-demo", func(w http.ResponseWriter, _ *http.Request) {
+	//
+	// CSP note: the bundle's security middleware enforces a nonce CSP with
+	// NO unsafe-eval, and DataStar compiles data-* expressions with the
+	// Function constructor — under that CSP the SDK needs the nonce declared
+	// on <html data-nonce> (client v1.0.3+) to attach nonces to generated
+	// functions. Without it every expression dies at page load (found by
+	// the e2e battery 2026-11-07).
+	mux.HandleFunc("GET /ds-demo", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write([]byte(dsDemoPage))
+		nonce := httputil.NonceFromRequest(r)
+		_, _ = w.Write([]byte(strings.Replace(dsDemoPage, "{{NONCE}}", nonce, 1)))
 	})
 
 	fmt.Printf(
@@ -165,7 +176,7 @@ func run() error {
 // expression form — the form the shipped datastar-demo is verified with in
 // the e2e battery.
 const dsDemoPage = `<!doctype html>
-<html lang="en">
+<html lang="en" data-nonce="{{NONCE}}">
 <head>
   <meta charset="utf-8">
   <title>setup-demo — DataStar feed</title>

@@ -10,7 +10,7 @@ import (
 )
 
 // The embedded htmx 4 surface (QUERY plan W2.3): ScriptHandler4 serves the
-// 4.0.1 bundle with the same caching contract as the 2.0.10 default, and the
+// 4.0.1 bundle with the same caching contract as the 2.0.11 default, and the
 // bundle genuinely carries native QUERY support (the reason it exists).
 func TestScriptHandler4_ServesBundleWithQuerySupport(t *testing.T) {
 	t.Parallel()
