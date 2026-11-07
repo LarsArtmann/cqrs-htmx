@@ -48,7 +48,7 @@ require (
 	github.com/jackc/pgx/v5 v5.12.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.20.3 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
@@ -86,7 +86,6 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.1 // indirect
 	github.com/philhofer/fwd v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect

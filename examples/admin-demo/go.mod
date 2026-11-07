@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.16.0
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.15.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
@@ -59,7 +59,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
@@ -82,7 +81,6 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pquerna/otp v1.5.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
