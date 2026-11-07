@@ -26,8 +26,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	"github.com/larsartmann/go-sse"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
 )
 

@@ -78,8 +78,9 @@ func TestMethodOverride_LegacyHeaderSpellingHonored(t *testing.T) {
 	handler := cqrshtmx.MethodOverrideMiddleware(newOverrideMux())
 
 	req := httptest.NewRequest(http.MethodPost, "/contacts", strings.NewReader(`{}`))
-	req.Header.Set("X-HTTP-Method", cqrshtmx.MethodQuery)
+	req.Header.Set("X-Http-Method", cqrshtmx.MethodQuery)
 	req.Header.Set("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 

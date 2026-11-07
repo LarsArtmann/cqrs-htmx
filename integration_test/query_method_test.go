@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -51,9 +52,12 @@ var contactsFixture = []contact{
 }
 
 // searchContacts is the single registered query handler, so the dispatcher
-// only ever passes *searchContactsQuery here.
+// only ever passes *searchContactsQuery here; anything else is a wiring bug.
 func searchContacts(_ context.Context, qry query.Query) (any, error) {
-	sq := qry.(*searchContactsQuery) //nolint:errcheck // single registered type
+	sq, ok := qry.(*searchContactsQuery)
+	if !ok {
+		return nil, errors.New("unexpected query type registered for SearchContacts")
+	}
 
 	if sq.Filter == "" {
 		return contactsFixture, nil
@@ -71,7 +75,7 @@ func newQueryMethodServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
 	qryDisp := query.NewDispatcher()
-	qryDisp.Register("SearchContacts", searchContacts)
+	_ = qryDisp.Register("SearchContacts", searchContacts)
 
 	app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: qryDisp})
 
