@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/a-h/templ v0.3.1100
-	github.com/larsartmann/cqrs-htmx/v4 v4.18.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.18.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
