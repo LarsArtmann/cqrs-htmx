@@ -21,6 +21,7 @@ middleware + context	csrf_handler.go
 middleware + context	idempotency.go
 middleware + context	logging.go
 middleware + context	middleware.go
+middleware + context	method_override.go
 middleware + context	notify.go
 middleware + context	recommended_middleware.go
 middleware + context	recovery.go
