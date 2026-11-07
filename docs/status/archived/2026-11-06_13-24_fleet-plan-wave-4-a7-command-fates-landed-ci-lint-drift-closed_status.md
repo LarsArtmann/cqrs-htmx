@@ -1,6 +1,6 @@
 # Status: Fleet-plan wave 4 — A7 command fates LANDED end to end, dashboardui's CI-lint drift window closed, owner directive unparked the adminui leg
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-42_fleet-plan-wave-5-completion-a22-a23-a24-sa1019-sweep-changelog-debt-a2-mid-flight_status.md`](../2026-11-06_22-42_fleet-plan-wave-5-completion-a22-a23-a24-sa1019-sweep-changelog-debt-a2-mid-flight_status.md), which wave-4 closeout state fully superseded by the 22-42 completion report (A7 receipted, fleet plan closed). Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-42_fleet-plan-wave-5-completion-a22-a23-a24-sa1019-sweep-changelog-debt-a2-mid-flight_status.md`](2026-11-06_22-42_fleet-plan-wave-5-completion-a22-a23-a24-sa1019-sweep-changelog-debt-a2-mid-flight_status.md), which wave-4 closeout state fully superseded by the 22-42 completion report (A7 receipted, fleet plan closed). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 

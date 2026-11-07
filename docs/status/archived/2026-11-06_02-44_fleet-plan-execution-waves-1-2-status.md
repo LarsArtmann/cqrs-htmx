@@ -1,6 +1,6 @@
 # Fleet-Plan Execution — Waves 1–2 Partial Landing, Concurrent-Session Discovery
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md`](../2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md), which waves-1-2 execution state carried forward by the wave-5 report. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md`](2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md), which waves-1-2 execution state carried forward by the wave-5 report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-23 (2026-11-06)).**
 

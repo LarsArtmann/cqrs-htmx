@@ -1,5 +1,9 @@
 # Fleet-Plan Wave 5 Status — A8/A13/A16/A18/A19/A20/A21 landed; usermgmt SA1019 sweep done; A22 mid-flight
 
+> **ANNOTATED 2026-11-07** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-07 (train-execution).**
+> The next session in the same arc is [`2026-11-06_22-42_fleet-plan-wave-5-completion-a22-a23-a24-sa1019-sweep-changelog-debt-a2-mid-flight_status.md`](2026-11-06_22-42_fleet-plan-wave-5-completion-a22-a23-a24-sa1019-sweep-changelog-debt-a2-mid-flight_status.md), which Superseded by the wave-5 completion report (A22 mid-flight there is landed).
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Date:** 2026-11-06 22:03 CET
 **Session:** fleet-plan wave 5 (resumption 3), plan of record `docs/planning/2026-11-06_00-37_SUPERB-fleet-libs-audit-follow-through-pareto-plan.md`
 **Directive:** "NOW GET SHIT DONE! The WHOLE TODO LIST!" — executed A8 onward; report demanded mid-A22.

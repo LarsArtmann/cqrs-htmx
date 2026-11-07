@@ -1,6 +1,6 @@
 # Status: Fleet Library Utilization Audit — Delivery + Self-Review
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md`](../2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md), which the 22-03 report carries the fleet-plan execution state the 00-27 audit delivery kicked off; the audit artifact itself lives in docs/review/libs/ and AGENTS.md's fleet-wide utilization bullet. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md`](2026-11-06_22-03_fleet-plan-wave-5-partial-render-presets-charts-landed-a22-mid-flight_status.md), which the 22-03 report carries the fleet-plan execution state the 00-27 audit delivery kicked off; the audit artifact itself lives in docs/review/libs/ and AGENTS.md's fleet-wide utilization bullet. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
 

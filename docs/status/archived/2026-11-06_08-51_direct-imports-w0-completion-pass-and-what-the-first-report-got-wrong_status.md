@@ -1,6 +1,6 @@
 # Direct Imports Only (W0) — completion pass, and what the first report got wrong
 
-> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_21-31_root-package-gates-conflict-hook-and-a-tree-that-deleted-work_status.md`](../2026-11-06_21-31_root-package-gates-conflict-hook-and-a-tree-that-deleted-work_status.md), which the 21-31 report lands the root-size ratchet and cluster manifest that mechanize the W0 re-export eviction's numbers, replacing the hand-measured root totals 08-51 recorded. Strike depth:
+> **ANNOTATED 2026-11-06** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_21-31_root-package-gates-conflict-hook-and-a-tree-that-deleted-work_status.md`](2026-11-06_21-31_root-package-gates-conflict-hook-and-a-tree-that-deleted-work_status.md), which the 21-31 report lands the root-size ratchet and cluster manifest that mechanize the W0 re-export eviction's numbers, replacing the hand-measured root totals 08-51 recorded. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-06 (round-24 (2026-11-06)).**
 

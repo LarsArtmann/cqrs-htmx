@@ -1,5 +1,9 @@
 # Status: Receipt Battery Complete — Dependency Sweep to Zero Lag, Coverage Recovered, Split Brain Fixed, Train Still Owner-Gated
 
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md`](../2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md), which Its §g1 (train) and §g3 (push) were answered by execution (the v4.17.0 train + the 60-commit push); §g2 audit-all rides TODO row 21 canonically; §g3 cqrs-lint posture stays owner-gated. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-07 (train-execution).**
+
 **Written:** 2026-11-06 23:52 CET · **Author:** Crush (receipt-battery session, continuation of the 21-31 root-package-gates session)
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master` · **HEAD at write time:** `409ce0df` · **53+ commits ahead of origin, unpushed**
 **Session window:** 22:00 → 23:52 CET (single session, one sibling lane active throughout — its sweep landed as real commits at the end, `409ce0df` closing the last 5 train-lag pins)
