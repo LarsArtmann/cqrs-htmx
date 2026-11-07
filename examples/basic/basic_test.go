@@ -44,7 +44,8 @@ func TestSmoke_CommandAndQueryRoundTrip(t *testing.T) {
 	srv := httptest.NewServer(newHandler())
 	defer srv.Close()
 
-	resp, err := http.Post(srv.URL+"/api/items", "application/json", strings.NewReader(`{"name":"smoke-item"}`))
+	// The page's form is the contract: urlencoded, like native htmx submits.
+	resp, err := http.Post(srv.URL+"/api/items", "application/x-www-form-urlencoded", strings.NewReader("name=smoke-item"))
 	if err != nil {
 		t.Fatalf("POST /api/items: %v", err)
 	}
@@ -132,7 +133,7 @@ func TestSmoke_PartialRenderShowcase(t *testing.T) {
 
 	// Seed one item so the list/count assertions are deterministic — db is
 	// package-level shared state and parallel tests race on its contents.
-	seed, err := http.Post(srv.URL+"/api/items", "application/json", strings.NewReader(`{"name":"partial-demo-item"}`))
+	seed, err := http.Post(srv.URL+"/api/items", "application/x-www-form-urlencoded", strings.NewReader("name=partial-demo-item"))
 	if err != nil {
 		t.Fatalf("seed item: %v", err)
 	}

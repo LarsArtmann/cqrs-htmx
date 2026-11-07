@@ -67,10 +67,12 @@ test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", asyn
   // Fresh server state (serial: this is the first creator) — badge at 0.
   await expect(page.locator("#item-count")).toHaveText(/0 items/);
 
-  // Create one item node-side; the page does not know yet.
+  // Create one item node-side; the page does not know yet. Form-encoded —
+  // the endpoint's contract since the browser fix (DecodeForm; JSON bodies
+  // silently decode as empty forms via ParseForm).
   const created = await request.post(`${DEMO}/api/items`, {
-    headers: { "Content-Type": "application/json" },
-    data: { name: "oob-probe" },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    data: "name=oob-probe",
   });
   expect(created.ok()).toBeTruthy();
 

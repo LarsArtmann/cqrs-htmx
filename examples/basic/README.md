@@ -5,7 +5,7 @@ A minimal onboarding example showing the core cqrs-htmx library usage.
 ## What it demonstrates
 
 - **App builder** — `cqrshtmx.Config{Commands: disp, Queries: disp}`
-- **Command handler** — POST with JSON decode via mapper function
+- **Command handler** — POST the page's form with form decode via mapper function (`cqrshtmx.DecodeForm`; JSON decode stays for API-shaped endpoints like `/api/audit` and the search twin)
 - **Query handler** — GET with JSON result rendering
 - **HTTP QUERY method** — `QUERY /api/items/search` (RFC 10008: safe, idempotent, body-carrying read) with a `POST /api/items/search` fallback twin — one handler, both transports
 - **Actor metadata** — POST `/api/audit` propagates the acting user from the request context into command metadata (`cqrshtmx.CommandOptionsFromContext`) and reads it back — the audit-trail pattern
@@ -34,7 +34,7 @@ type createItemCmd struct {
 }
 
 app.Command("CreateItem",
-    cqrshtmx.DecodeJSON(func(req createItemRequest) (command.Command, error) {
+    cqrshtmx.DecodeForm(func(req createItemRequest) (command.Command, error) {
         return &createItemCmd{typ: "CreateItem", aggID: id.NewAggregateID(), Name: req.Name}, nil
     }),
     cqrshtmx.WithSuccessStatus(201),
