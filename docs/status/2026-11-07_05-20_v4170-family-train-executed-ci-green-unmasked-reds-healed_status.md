@@ -54,7 +54,7 @@
 3. Then: the 00-15 §f tooling queue (gotcha entry, daemon guard, coherence gate, bump-dep mode, collision probe) — each small, each independently landable.
 4. Re-run `check-cqrs-lint` on the final tree with the custody answer in hand (expect 14/14 now that tags exist).
 5. The docs-gates battery on the final tree; drain-or-re-pin decision executes §g1.
-6. samber-do-demo + loginpage hermetic suites (§c4); the upstream asks (§c2) after §g answers.
+6. Run the two inherited module suites hermetically: examples/samber-do-demo after the otter v2.4.0 transitive bump and loginpage after the commandlifecycle v4.3.1 addition (§c4 — harvested into TODO with those tokens); the upstream asks (§c2) after §g answers.
 7. Bench re-pin on a genuinely idle machine; the parallel/allocation ratchets.
 
 ## g) Owner questions (carried, unchanged in substance)
