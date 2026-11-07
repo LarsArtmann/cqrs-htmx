@@ -1,12 +1,14 @@
 package cqrshtmx_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	. "github.com/onsi/gomega"
 )
 
@@ -15,8 +17,14 @@ import (
 // routing, so one "QUERY /path" pattern serves both transports.
 // Plan: docs/planning/2026-11-07_07-21_SUPERB-http-query-method-pareto-plan.md §4.2.
 
+// newOverrideMux is self-contained (no global-Expect helpers) so these plain
+// tests run green under any -run filter, independent of the Ginkgo suite.
 func newOverrideMux() *http.ServeMux {
-	app := newQueryAppWithResult(testResultQueryHandler())
+	disp := query.NewDispatcher()
+	_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
+		return testQueryResult, nil
+	})
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: disp})
 
 	mux := http.NewServeMux()
 	mux.Handle(cqrshtmx.MethodQuery+" /contacts", app.Query("GetUser",

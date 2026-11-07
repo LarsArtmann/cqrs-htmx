@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>DataStar client-side deep dive — how the reactive hypermedia client can improve cqrs-htmx · 2026-11-07</title>
     <style>
       /* =========================================================================
          BAUHAUS LIGHT — Editorial template
@@ -848,23 +848,25 @@
     </style>
   </head>
   <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <!-- Full-bleed top bar -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>RESEARCH &middot; DEEP DIVE</span>
+      <span>2026-11-07</span>
+      <span>cqrs-htmx &middot; docs/research</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
+      <!-- Sidebar TOC (hidden below 1024px) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
           <a href="#scorecard">Scorecard</a>
-          <a href="#strengths">Strengths</a>
+          <a href="#client">The client, studied</a>
+          <a href="#standards">Where cqrs-htmx stands</a>
+          <a href="#currency">Version currency</a>
           <a href="#findings">Findings</a>
-          <a href="#proposal">Proposal</a>
+          <a href="#opportunities">Opportunities</a>
           <a href="#appendix">Appendix</a>
         </nav>
       </aside>
@@ -873,43 +875,46 @@
       <main class="main">
         <!-- Hero -->
         <header class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="bar"></div>
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="eyebrow">REPORT TYPE &middot; YYYY-MM-DD</div>
-          <h1>Report Title</h1>
+          <div class="eyebrow">RESEARCH REPORT &middot; 2026-11-07</div>
+          <h1>DataStar client-side deep dive</h1>
           <p class="subtitle">
-            One or two sentences that set the frame: who this is for, what was
-            reviewed, and what the reader will take away.
+            What starfederation&rsquo;s reactive hypermedia client can &mdash; and cannot &mdash;
+            improve in cqrs-htmx. Upstream studied at v1.0.4, the shipped adapter at
+            go-datastar v0.6.3, the embedded client at v1.0.3, every capability claim
+            verified against source, and one shipped defect verified empirically in a
+            headless browser.
           </p>
           <div class="meta">
-            <span class="tag amber">Scope: example</span>
-            <span class="tag">Version: 1.0.0</span>
-            <span class="tag teal">Status: draft</span>
+            <span class="tag amber">Scope: client-side DataStar</span>
+            <span class="tag">Upstream: v1.0.4 (2026-09-21)</span>
+            <span class="tag">Embedded: v1.0.3</span>
+            <span class="tag teal">Series: research deep dives</span>
           </div>
         </header>
 
         <!-- Scorecard -->
         <section id="scorecard" class="scorecard">
           <div class="score-card score-good">
-            <div class="score">8</div>
-            <div class="label">Items passing</div>
+            <div class="score">1.0.4</div>
+            <div class="label">Upstream client, stable since 2026-04</div>
           </div>
-          <div class="score-card score-warn">
-            <div class="score">3</div>
-            <div class="label">Warnings</div>
+          <div class="score-card score-good">
+            <div class="score">v0.6.3</div>
+            <div class="label">go-datastar pin = latest tag</div>
           </div>
           <div class="score-card score-bad">
             <div class="score">1</div>
-            <div class="label">Blockers</div>
+            <div class="label">Verified defect: demo never boots its UI</div>
           </div>
-          <div class="score-card">
-            <div class="score">12</div>
-            <div class="label">Total reviewed</div>
+          <div class="score-card score-warn">
+            <div class="score">0</div>
+            <div class="label">Browser-level tests on any DataStar surface</div>
           </div>
         </section>
 
@@ -917,154 +922,773 @@
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            Replace this with the bottom-line verdict. A good summary tells the
-            reader whether the subject is ready, what the biggest risk is, and
-            what one action would unlock the most value.
+            DataStar&rsquo;s client has matured exactly into what ADR-0045 bet on in August:
+            a stable (v1.0.0, April 2026; now v1.0.4), zero-dependency, ES2021 hypermedia
+            runtime whose defaults &mdash; SSE-first transport, backend as source of truth,
+            server-morphed DOM, no optimistic updates &mdash; mirror this library&rsquo;s
+            CQRS/event-sourcing posture. The server-side story here is already excellent
+            and current: the <code>datastar/v4</code> adapter, the upstream
+            <code>go-datastar</code> patches-as-values SDK (pinned at its latest tag), the
+            shared-hub dual transport, and the one-flag <code>setup.DataStarPath</code>
+            mount. The client-side story is where the gap is: the repo ships
+            <strong>~1,975 lines of hand-rolled client JS</strong> across four surfaces
+            (sync-client, sync-worker, dashboardJS, admin.js) doing work DataStar&rsquo;s
+            signal and fetch machinery now does declaratively &mdash; and the one shipped
+            DataStar example is <strong>broken in a real browser</strong> (verified below),
+            silently, because nothing exercises the client at all.
+          </p>
+          <p>
+            The highest-value improvements are small and ungated: fix the demo&rsquo;s dead
+            <code>data-on:load</code> attributes (an RC.6 rename trap), add one
+            browser-level Playwright spec to the e2e battery, and ride the bundle to
+            v1.0.4. The larger moves stay correctly parked behind ADR-0050&rsquo;s demand
+            gate &mdash; this report supplies the client-side fact base those parked
+            milestones (M11&ndash;M16) were waiting on, without reopening the gate.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
-            State the verdict plainly. If the report is blocking, say so. If
-            it's mostly positive, lead with that.
+            Adopt-by-fixing, not adopt-by-building: repair the demo, browser-test the one
+            real DataStar surface we ship, keep the bundle current, and let the parked
+            panel variants stay parked. DataStar complements the sync assets &mdash; it
+            cannot replace IndexedDB persistence, and ADR-0050&rsquo;s route-split Model A
+            remains the right strategy.
           </div>
         </section>
 
         <!-- Strengths -->
         <section id="strengths">
-          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <h2><span class="num">&#9670;</span>What already fits</h2>
           <p>
-            Before the criticism: acknowledge what works. This builds trust and
-            keeps the report from reading like a pure complaint list.
+            Before the gap analysis: the alignment between DataStar&rsquo;s client design
+            and this library&rsquo;s architecture is real, documented upstream, and shipped
+            here in the right shape.
           </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength one</strong>
-                <span>Explain why it matters and what it enables.</span>
+                <strong>Philosophy is a mirror of the CQRS posture</strong>
+                <span
+                  >The Tao of Datastar names backend-as-source-of-truth, SSE as default
+                  transport, and no optimistic updates as first principles &mdash; the same
+                  three laws ADR-0056 wrote for frontend sync (&ldquo;clients sync intent,
+                  never facts&rdquo;). Nothing in the client fights the decider-owns-truth
+                  model.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength two</strong>
+                <strong>SSE is native, not an extension</strong>
                 <span
-                  >Reference files, metrics, or patterns where possible.</span
+                  >Any <code>@get/@post/&hellip;</code> action whose response is
+                  <code>text/event-stream</code> becomes a long-lived stream with built-in
+                  exponential-backoff retry, <code>last-event-id</code> replay header, and
+                  visibility-aware reconnects. That is precisely the reconnect/replay
+                  contract <code>broadcast.Broadcaster</code> serves &mdash; the two halves
+                  were built for each other (ADR-0049&rsquo;s shared hub proves it).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The server-side adapter is current and correct</strong>
+                <span
+                  ><code>go-datastar</code> v0.6.3 is the latest tag (repo pushed
+                  2026-11-07); the embedded v1.0.3 bundle carries the wire-format goldens;
+                  the adapter&rsquo;s EventBridge, Response builder, and deprecated-alias
+                  discipline match the repo&rsquo;s v5 posture.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Self-hosting posture is right</strong>
+                <span
+                  >The SDK embeds the client bundle verbatim from the upstream release tag
+                  and serves it with ETag + 1-year immutable caching. Upstream&rsquo;s npm
+                  package is frozen at <code>1.0.0-beta.11</code> and never published a
+                  stable &mdash; the CDN-or-self-host choice this repo already made is the
+                  only reliable one.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The strategic frame already exists</strong>
+                <span
+                  >ADR-0045 (optional module), ADR-0049 (layer split), ADR-0050
+                  (route-split Model A; dual-mode rejected; panel variants demand-gated).
+                  This report changes none of those decisions &mdash; it feeds them.</span
                 >
               </div>
             </div>
           </div>
         </section>
 
-        <!-- Findings -->
-        <section id="findings">
-          <h2><span class="num">01</span>Findings</h2>
-          <p>These are the issues that need attention, ordered by impact.</p>
-
-          <!-- Issue 1 -->
-          <div class="issue issue-critical" id="issue-1">
-            <span class="severity severity-critical"
-              >Blocking &middot; High impact</span
-            >
-            <h3>Critical issue title</h3>
-            <div class="where">
-              path/to/file.go:42-58 &middot; short context
-            </div>
-            <p>
-              Describe the problem, cite the code or behavior, and explain why
-              it matters to the reader's goals.
-            </p>
-            <pre><code>// Example of the problematic pattern
-func BadExample() {}</code></pre>
-            <div class="callout callout-teal">
-              <strong>Fix: recommended action</strong>
-              State the concrete fix, including file names, function names, or
-              configuration changes.
-            </div>
-          </div>
-
-          <!-- Issue 2 -->
-          <div class="issue issue-important" id="issue-2">
-            <span class="severity severity-important"
-              >Important &middot; Medium impact</span
-            >
-            <h3>Important issue title</h3>
-            <div class="where">path/to/another.go:12-19</div>
-            <p>
-              Explain the risk. Important issues are not blockers but would make
-              a careful reviewer hesitate before shipping.
-            </p>
-          </div>
-
-          <!-- Issue 3 -->
-          <div class="issue issue-nice" id="issue-3">
-            <span class="severity severity-nice"
-              >Nice to have &middot; Low impact</span
-            >
-            <h3>Nice-to-have improvement</h3>
-            <div class="where">docs/ or config</div>
-            <p>
-              Minor polish, documentation gaps, or future-proofing suggestions
-              go here.
-            </p>
-          </div>
-        </section>
-
-        <!-- Proposal -->
-        <section id="proposal">
-          <h2><span class="num">02</span>What the solution could look like</h2>
+        <!-- The client, studied -->
+        <section id="client">
+          <h2><span class="num">01</span>The client, studied</h2>
           <p>
-            If the findings were fixed, what would the new state be? Show the
-            target API, structure, or workflow.
+            Everything in this section is verified against the v1.0.4 source tree and the
+            data-star.dev reference unless marked otherwise. Sizes for the embedded v1.0.3
+            bundle were measured locally (<code>gzip -c | wc -c</code>).
           </p>
-          <pre><code>// Target state after the recommended changes
-type BetterAPI struct {
-    Field string
-}</code></pre>
-          <div class="callout callout-teal">
-            <strong>This is the target</strong>
-            Summarize why this state is better and what it unlocks.
-          </div>
-        </section>
 
-        <!-- Appendix -->
-        <section id="appendix">
-          <h2><span class="num">03</span>Appendix</h2>
+          <h3>Release status</h3>
           <p>
-            Methodology, links to related files, or a priority matrix can live
-            here.
+            v1.0.0 stable shipped 2026-04-16 after a beta/RC year; v1.0.4 (2026-09-21) is
+            current. Browser floor: ES2021 (Chrome/Edge 93+, Firefox 91+, Safari 15.4+).
+            Five bundles ship per release: <code>datastar.js</code> (33,553&nbsp;B,
+            ~13.1&nbsp;KiB gzipped), <code>datastar-core.js</code> (signals-only,
+            10,480&nbsp;B), <code>datastar-rocket.js</code> (web components), and
+            <code>*-aliased</code> variants using the legacy
+            <code>data-star-*</code> prefix. Zero dependencies; TypeScript; the morph
+            engine is purpose-built (Idiomorph was dropped during the RCs).
           </p>
-          <table class="compare">
+
+          <h3>Signals &mdash; the client state model</h3>
+          <p>
+            One global signal tree addressed by dot paths. <code>data-signals</code>
+            declares or patches it (<code>data-signals:foo.bar="1"</code>, object syntax
+            allowed); setting <code>null</code> <em>removes</em> a signal;
+            <code>__ifmissing</code> sets defaults only. Signals starting with
+            <code>_</code> are local and never sent to the backend.
+            <code>data-bind</code> is two-way binding with <em>type preservation</em>
+            (predefine <code>0</code> and a select yields numbers; file inputs encode to
+            base64 <code>{name, contents, mime}</code> signals).
+            <code>data-computed</code> derives memoized read-only signals;
+            <code>data-effect</code> runs side effects on change. Reactivity is
+            alien-signals-derived and fine-grained: only dependents of a changed signal
+            re-run &mdash; there is no vdom.
+          </p>
+          <p>
+            Crucially for this repo: <strong>all signals ride every backend request</strong>
+            (JSON body, or the <code>datastar</code> query param on GET/DELETE, plus a
+            <code>Datastar-Request: true</code> header) &mdash; the client ships its whole
+            state to the decider each time &mdash; and server patches flow back with
+            <strong>RFC 7396 JSON Merge Patch</strong> semantics. That is the
+            ADR-0056 &ldquo;sync intent, never facts&rdquo; law expressed as a wire
+            default.
+          </p>
+
+          <h3>Expressions and CSP</h3>
+          <p>
+            Attribute values are JavaScript with DataStar namespacing: <code>$foo</code>
+            reads a signal, <code>@post(...)</code> calls an action; <code>el</code> and
+            <code>evt</code> are in scope. The default evaluator compiles expressions via
+            the <code>Function()</code> constructor &mdash; strict CSP therefore requires
+            the <strong>opt-in CSP mode added in v1.0.3</strong>: a
+            <code>data-nonce</code> attribute on <code>&lt;html&gt;</code> makes DataStar
+            compile expressions into nonce&rsquo;d script tags, with Trusted Types support
+            (policy name <code>datastar</code>). The embedded v1.0.3 already has this mode.
+            This matters here: the repo&rsquo;s <code>RecommendedSecurityMiddleware</code>
+            is nonce-per-request CSP, and dashboardui spent a whole migration purging
+            inline JS &mdash; any panel adoption <em>must</em> document the
+            <code>data-nonce</code> contract or it will look broken under the default
+            security posture.
+          </p>
+
+          <h3>The attribute vocabulary (free tier)</h3>
+          <table>
             <thead>
               <tr>
-                <th>Issue</th>
-                <th>Severity</th>
-                <th>Effort</th>
-                <th>Status</th>
+                <th>Attribute</th>
+                <th>What it does</th>
+                <th>Why it matters here</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Issue one</td>
-                <td class="no">Critical</td>
-                <td>Low</td>
-                <td class="no">Open</td>
+                <td><code>data-init</code></td>
+                <td>Runs an expression when the element enters the DOM</td>
+                <td>The on-load hook. Renamed from <code>data-on-load</code> in RC.6 &mdash; the exact trap finding&nbsp;1 springs</td>
               </tr>
               <tr>
-                <td>Issue two</td>
-                <td class="no">Important</td>
-                <td>Medium</td>
-                <td class="yes">In progress</td>
+                <td><code>data-on:&lt;event&gt;</code></td>
+                <td>Event binding with <code>__debounce/__throttle/__delay/__once/__outside/__window/__document</code> modifiers; <code>submit</code> auto-prevents default</td>
+                <td>Replaces hand-rolled listeners in admin.js/dashboardJS</td>
+              </tr>
+              <tr>
+                <td><code>data-indicator</code></td>
+                <td>Sets a signal <code>true</code> while the element&rsquo;s fetch is in flight</td>
+                <td>Replaces hand-rolled in-flight flags (the sync indicator, button spinners)</td>
+              </tr>
+              <tr>
+                <td><code>data-on-intersect</code>, <code>data-on-interval</code></td>
+                <td>IntersectionObserver / interval driven expressions</td>
+                <td>Polling regions without HTMX&rsquo;s <code>hx-trigger</code></td>
+              </tr>
+              <tr>
+                <td><code>data-on-signal-patch</code> (+ <code>-filter</code>)</td>
+                <td>React to specific signal patches from the server, with include/exclude regexes</td>
+                <td>Declarative reaction to server pushes &mdash; toasts on sync-state transitions, no custom event plumbing</td>
+              </tr>
+              <tr>
+                <td><code>data-text / data-show / data-attr / data-class / data-style</code></td>
+                <td>Reactive bindings from expressions to the DOM</td>
+                <td>The indicator/status DOM mutation loops in dashboardJS and sync-client</td>
+              </tr>
+              <tr>
+                <td><code>data-ref</code>, <code>data-json-signals</code>, <code>data-ignore</code>, <code>data-preserve-attr</code>, <code>data-ignore-morph</code></td>
+                <td>Element references, live signal debug view, subtree exclusion, morph opt-outs</td>
+                <td>Debugging and third-party-DOM coexistence (the popover-CSS class of problem)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Backend actions and the SSE contract</h3>
+          <p>
+            There is <strong>no <code>@sse()</code> any more</strong> (removed in
+            2025&rsquo;s beta.1). Every backend action &mdash;
+            <code>@get @post @put @patch @delete</code>, plus v1.0.4&rsquo;s
+            <code>@query()</code> (HTTP QUERY) &mdash; is SSE-capable: if the response is
+            <code>text/event-stream</code>, the fetch becomes a stream. Options:
+            <code>contentType json|form</code> (form validates and uses the closest form),
+            <code>headers</code>, <code>filterSignals</code>, <code>retry</code>
+            (auto/error/always/never) with 1&nbsp;s interval &times;2 scaler, 30&nbsp;s cap,
+            10 attempts, <code>requestCancellation auto|cleanup|disabled</code> (same
+            method+URL aborts the prior in-flight request), and
+            <code>openWhenHidden</code> (GET streams close on tab-hide and reopen on
+            visibility, resending full state). Reconnects resend current signals and carry
+            the last SSE <code>id:</code> as a <code>last-event-id</code> header &mdash;
+            exactly what <code>broadcast.NewBroadcasterWithReplay</code> and
+            <code>transport.NewJournalSSEStore</code> answer server-side.
+          </p>
+          <p>
+            Every action also emits <code>datastar-fetch</code> DOM events
+            (<code>started/finished/error/retrying/retries-failed</code>) &mdash;
+            retry observability without writing a line of JS.
+          </p>
+
+          <h3>The wire protocol (what the Go side emits)</h3>
+          <pre><code><span class="tok-comment"># element patch — event names, data lines, key-value with repeated-key joining</span>
+<span class="tok-attr">event:</span> datastar-patch-elements
+<span class="tok-attr">data:</span> selector <span class="tok-string">#todo-list</span>
+<span class="tok-attr">data:</span> mode inner          <span class="tok-comment"># default outer = morph; also replace/prepend/append/before/after/remove</span>
+<span class="tok-attr">data:</span> elements &lt;li class="empty-state"&gt;No todos yet&lt;/li&gt;
+
+<span class="tok-comment"># signal patch — RFC 7396 JSON Merge Patch; null removes; onlyIfMissing for defaults</span>
+<span class="tok-attr">event:</span> datastar-patch-signals
+<span class="tok-attr">data:</span> signals <span class="tok-string">{"notification":{"level":"err","message":"conflict"}}</span>
+
+<span class="tok-comment"># non-SSE responses are dispatched by content type:</span>
+<span class="tok-comment"># text/html → patch elements (datastar-selector/-mode response headers)</span>
+<span class="tok-comment"># application/json → patch signals · text/javascript → execute · 204 → no-op</span></code></pre>
+          <p>
+            The client processes only SSE events whose name starts with
+            <code>datastar</code>; default element targeting matches top-level elements
+            <strong>by ID</strong> (put IDs on elements whose state should survive a
+            morph). Script execution over SSE is an elements patch with
+            <code>mode append, selector body</code> &mdash; the old
+            <code>datastar-execute-script</code> event is gone (the Go helpers still emit
+            the equivalent patch).
+          </p>
+
+          <h3>Plugins, Rocket, Pro</h3>
+          <p>
+            Everything except signals is a plugin (attributes, actions, watchers;
+            <code>apply/load/setAlias</code> exports, ~250-line core engine). Rocket
+            (web components, scoped signals) went <strong>free in v1.0.4</strong>, still
+            beta. <strong>DataStar Pro is commercial</strong> ($349 solo / $1,299 team,
+            lifetime): <code>data-persist</code> (the only signal-persistence story),
+            <code>data-query-string</code>, <code>data-animate</code>,
+            <code>data-custom-validity</code>, <code>@clipboard()</code> and friends live
+            behind it. <em>Every recommendation in this report is deliberately
+            free-tier-only.</em>
+          </p>
+
+          <h3>The three rename generations (why old blog posts lie)</h3>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Generation</th>
+                <th>Event names</th>
+                <th>Notes that bite migrators</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>v0.21.x (&le;2024)</td>
+                <td><code>datastar-merge-fragments</code> / <code>-signals</code></td>
+                <td class="no"><code>morph</code> mode, <code>settle</code> concept, space-separated signal lines</td>
+              </tr>
+              <tr>
+                <td>RC.1 (2025-07)</td>
+                <td><code>datastar-patch-elements</code> / <code>-signals</code></td>
+                <td class="no"><code>morph</code>&rarr;<code>outer</code>, <code>outer</code>&rarr;<code>replace</code>, +<code>remove</code>, RFC&nbsp;7396</td>
+              </tr>
+              <tr>
+                <td>RC.6 (2025-10) &rarr; v1.0.x</td>
+                <td>unchanged</td>
+                <td class="yes">Key delimiter <code>-</code>&rarr;<code>:</code>; <code>data-on-load</code>&rarr;<code>data-init</code>; ES2021 floor</td>
               </tr>
             </tbody>
           </table>
         </section>
 
+        <!-- Where cqrs-htmx stands -->
+        <section id="standards">
+          <h2><span class="num">02</span>Where cqrs-htmx stands</h2>
+
+          <h3>The shipped server surface (current)</h3>
+          <p>
+            The <code>datastar/v4</code> adapter is thin by design (ADR-0045):
+            <code>ScriptHandler</code>/<code>ScriptTag</code> (embedded bundle, ETag),
+            <code>ReadSignals</code>, the patch constructors
+            (<code>ElementsPatch/SignalsPatch/RemovePatch/ScriptPatch/RedirectPatch</code>
+            &hellip;), the fluent <code>Response</code> builder, and the domain-coupled
+            <code>EventBridge</code> (go-cqrs-lite events &rarr; patches, with
+            <code>OnError</code>). Fan-out/replay/hub-sharing live upstream in
+            <code>go-datastar/broadcast</code> (ADR-0049). <code>setup.DataStarPath</code>
+            mounts a session-gated feed on the same hub as <code>/sse</code> plus the
+            script, in one flag (ADR-0050). All verified green in this tree.
+          </p>
+
+          <h3>The shipped client surface (thin &mdash; and one defect)</h3>
+          <p>
+            Exactly one HTML surface speaks DataStar today:
+            <code>examples/datastar-demo</code> (signals, two-way bind, computed
+            notification state, indicator flags, SSE patch feeds, a 10-bot multi-user
+            simulation). Its Go handlers are correct &mdash; but see finding&nbsp;1: its
+            bootstrap attributes never fire in a real browser.
+          </p>
+
+          <h3>The hand-rolled JS inventory (the real client-side surface)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>LOC</th>
+                <th>Does</th>
+                <th>DataStar could absorb</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>sync/sync-client.js</code></td>
+                <td>819</td>
+                <td>SSE connect + reconnect, sync-status indicators, command enqueue on submit, pull/push orchestration, ULID client IDs, toast announce</td>
+                <td class="yes">Indicator/status DOM mutation, announce toasts, in-flight flags &mdash; via <code>data-signals</code>/<code>data-bind</code>/<code>data-indicator</code>/<code>data-on-signal-patch</code></td>
+              </tr>
+              <tr>
+                <td><code>sync/sync-worker.js</code></td>
+                <td>806</td>
+                <td>SharedWorker: IndexedDB v2 (commands/events/meta), cursor monotonicity, retry/TTL eviction, cross-tab broadcast</td>
+                <td class="no"><strong>No.</strong> Signals are in-memory; persistence is Pro-only (<code>data-persist</code>). This worker is the ADR-0056 asset.</td>
+              </tr>
+              <tr>
+                <td><code>dashboardui/layout_assets.go</code> dashboardJS</td>
+                <td>~250</td>
+                <td>EventSource client with backoff, live/reconnecting status text, event counter, safe createElement row building, htmx refresh triggers, hamburger/download/slider/confirm companions</td>
+                <td class="yes">The SSE-client half (~85 lines) maps to <code>data-init="@get(stream)"</code> + signal patches + templ-rendered rows (the M11 spike question)</td>
+              </tr>
+              <tr>
+                <td><code>adminui/assets/admin.js</code></td>
+                <td>100</td>
+                <td>CSRF header hook, sidebar, toast bridge, confirm dialog</td>
+                <td class="no">Small, CSP-safe, HTMX-integrated &mdash; not worth a rewrite</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            For scale: the HTMX live stack this repo embeds (htmx&nbsp;2.0.10 + SSE ext +
+            idiomorph ext) is 90,908&nbsp;B raw / <strong>24.1&nbsp;KiB gzipped</strong>;
+            the DataStar bundle is 33,538&nbsp;B / <strong>13.1&nbsp;KiB gzipped</strong>
+            with signals, SSE, and morphing included.
+          </p>
+        </section>
+
+        <!-- Version currency -->
+        <section id="currency">
+          <h2><span class="num">03</span>Version currency</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Pinned here</th>
+                <th>Upstream truth</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DataStar client (embedded)</td>
+                <td>v1.0.3 (via <code>go-datastar/static</code> v0.6.1)</td>
+                <td>v1.0.4 (2026-09-21): <code>@query()</code>, Rocket freed, fixes</td>
+                <td class="no">1 patch behind &mdash; go-datastar master already embeds v1.0.4, untagged</td>
+              </tr>
+              <tr>
+                <td>go-datastar SDK</td>
+                <td>v0.6.3 (+broadcast v0.6.2, static v0.6.1)</td>
+                <td>v0.6.3 is the latest tag; repo active (pushed 2026-11-07)</td>
+                <td class="yes">Current</td>
+              </tr>
+              <tr>
+                <td>Official Go SDK</td>
+                <td>not used (ADR-0045 said &ldquo;wraps datastar-go&rdquo; &mdash; historical)</td>
+                <td>Moved: <code>starfederation/datastar/sdk/go</code> is a dead stub; <code>starfederation/datastar-go</code> v1.2.2 (2026-06-02)</td>
+                <td class="yes">go-datastar reimplements the protocol and is a better fit (patches as values); no action</td>
+              </tr>
+              <tr>
+                <td>npm package</td>
+                <td>&mdash;</td>
+                <td><code>@starfederation/datastar</code> frozen at 1.0.0-beta.11; no stable ever published</td>
+                <td class="yes">Self-hosting (our posture) is the only reliable distribution</td>
+              </tr>
+              <tr>
+                <td>Bundle-size claims in guides</td>
+                <td>&ldquo;11.76 KiB&rdquo; (2 guides)</td>
+                <td>v1.0.3 measures 13.07 KiB gzipped; upstream markets 11.89 KiB for v1.0.4 (basis unstated)</td>
+                <td class="no">Stale erratum &mdash; see finding&nbsp;4</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Findings -->
+        <section id="findings">
+          <h2><span class="num">04</span>Findings</h2>
+          <p>Ordered by impact. Finding 1 is verified empirically, not inferred.</p>
+
+          <!-- Finding 1 -->
+          <div class="issue issue-critical" id="issue-1">
+            <span class="severity severity-critical">Blocking &middot; Verified empirically</span>
+            <h3>The DataStar demo never boots its UI in a real browser</h3>
+            <div class="where">
+              examples/datastar-demo/main.go:291,322 &middot; the RC.6 rename trap
+            </div>
+            <p>
+              The demo drives its initial load and its SSE subscription with
+              <code>data-on:load</code> on a <code>&lt;ul&gt;</code> and a
+              <code>&lt;div&gt;</code>. Under the embedded DataStar v1.0.3 that attribute
+              binds the DOM <code>load</code> event &mdash; which never fires on those
+              elements. The correct post-RC.6 attribute is <code>data-init</code>
+              (<code>data-on-load</code> was renamed in RC.6, and the colon form
+              <code>data-on:load</code> is the event-binding attribute, not the init
+              hook). Result: no initial todo list, no live event stream &mdash; the demo
+              looks alive only because its Go handlers are exercised by an HTTP-level
+              smoke test that never runs the client.
+            </p>
+            <p>
+              <strong>Verification (headless Chromium, 2026-11-07):</strong> dumping the
+              live demo&rsquo;s DOM after an 8&nbsp;s virtual-time budget leaves
+              <code>#todo-list</code> and <code>#stats</code> empty; the identical page
+              with <code>data-on:load</code> &rarr; <code>data-init</code> swapped (served
+              same-origin through a proxy) populates both &mdash; the empty-state
+              <code>&lt;li&gt;</code> lands in <code>#todo-list</code> and
+              <code>Total: 0</code> renders in <code>#stats</code>. The server&rsquo;s
+              patch stream is byte-identical in both runs; only the trigger differs.
+            </p>
+            <pre><code><span class="tok-comment">&lt;!-- shipped: load event on a ul — never fires --&gt;</span>
+&lt;<span class="tok-keyword">ul</span> id=<span class="tok-string">"todo-list"</span> <span class="tok-attr">data-on:load</span>=<span class="tok-string">"@get('/api/todos')"</span>&gt;&lt;/<span class="tok-keyword">ul</span>&gt;
+
+<span class="tok-comment">&lt;!-- correct since RC.6: expression runs when the element enters the DOM --&gt;</span>
+&lt;<span class="tok-keyword">ul</span> id=<span class="tok-string">"todo-list"</span> <span class="tok-attr">data-init</span>=<span class="tok-string">"@get('/api/todos')"</span>&gt;&lt;/<span class="tok-keyword">ul</span>&gt;</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Two attribute swaps in <code>examples/datastar-demo/main.go</code> (plus the
+              HTML comment), then add the guard that was missing: one Playwright spec in
+              the e2e battery that opens the demo and asserts the list populates &mdash;
+              the repo already runs Playwright; this is the first spec with a DataStar
+              page in it (finding&nbsp;2).
+            </div>
+          </div>
+
+          <!-- Finding 2 -->
+          <div class="issue issue-important" id="issue-2">
+            <span class="severity severity-important">Important &middot; Structural</span>
+            <h3>Zero browser-level coverage on every DataStar surface</h3>
+            <div class="where">
+              e2e/tests/*.spec.ts &middot; datastar module, examples/datastar-demo
+            </div>
+            <p>
+              The e2e battery covers admin, dashboard, loginpage, and the sync worker
+              (deeply &mdash; IndexedDB inspected from Playwright). Nothing executes
+              DataStar client behavior; <code>datastar_demo_test.go</code> is HTTP-smoke
+              only, and <code>go-datastar/datastartest</code> (correctly used here) is
+              wire-format assertions, not a browser. Finding&nbsp;1 survived every gate
+              for exactly this reason &mdash; and will recur on any future adoption
+              (signals wiring, CSP-mode interactions, morph edge cases are all
+              browser-only behaviors). Upstream has the same blind spot (headless E2E is
+              on go-datastar&rsquo;s ROADMAP, not shipped).
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              One <code>datastar.spec.ts</code> asserting three behaviors: list
+              populates on load, a POST round-trips a patch, and the SSE feed updates a
+              second tab. The F1 verification spec for this report is 90% of the work
+              already.
+            </div>
+          </div>
+
+          <!-- Finding 3 -->
+          <div class="issue issue-important" id="issue-3">
+            <span class="severity severity-important">Important &middot; Chore</span>
+            <h3>Embedded client is one patch release behind</h3>
+            <div class="where">
+              go-datastar/static v0.6.1 &middot; upstream v1.0.4</div>
+            <p>
+              v1.0.4 (2026-09-21) adds <code>@query()</code> and frees Rocket, and the
+              go-datastar repo already carries the v1.0.4 bundle on master &mdash; it is
+              waiting on a static-module tag. The upgrade ritual is documented upstream
+              (replace the file, bump <code>static.Version</code>, run the wire-format
+              goldens) and the treadmill gate will surface the tag. Nothing in this repo
+              depends on v1.0.4 behavior; this is currency hygiene, not urgency.
+            </p>
+          </div>
+
+          <!-- Finding 4 -->
+          <div class="issue issue-nice" id="issue-4">
+            <span class="severity severity-nice">Nice to have &middot; Docs</span>
+            <h3>Stale size claims and a historical SDK attribution</h3>
+            <div class="where">
+              docs/guides/datastar-integration.md, docs/guides/sse-and-datastar.md, docs/adr/0045
+            </div>
+            <p>
+              Both guides say &ldquo;11.76 KiB&rdquo;; the embedded v1.0.3 measures
+              13.07&nbsp;KiB gzipped (33,538&nbsp;B raw). ADR-0045 says the adapter
+              &ldquo;wraps the datastar-go SDK&rdquo; &mdash; doubly historical now:
+              go-datastar is a from-scratch reimplementation, and the official SDK it
+              referenced has itself moved repos (<code>starfederation/datastar-go</code>).
+              Two-line truthing on the next docs pass.
+            </p>
+          </div>
+
+          <!-- Finding 5 -->
+          <div class="issue issue-nice" id="issue-5">
+            <span class="severity severity-nice">Nice to have &middot; Latent</span>
+            <h3>CSP contract is undocumented for adopters</h3>
+            <div class="where">future guide section &middot; datastar-integration.md</div>
+            <p>
+              DataStar&rsquo;s default expression evaluator needs <code>unsafe-eval</code>;
+              the nonce-mode alternative (v1.0.3+, <code>data-nonce</code> on
+              <code>&lt;html&gt;</code>) is the only posture compatible with
+              <code>RecommendedSecurityMiddleware</code>&rsquo;s per-request nonce CSP. Any
+              consumer who mounts the adapter under the default security middleware
+              without that contract gets a silently dead page &mdash; the finding-1 class
+              again, but self-inflicted by configuration. A short &ldquo;CSP&rdquo;
+              section in the integration guide (mirroring the sync guide&rsquo;s CSP
+              section) closes it.
+            </p>
+          </div>
+        </section>
+
+        <!-- Opportunities -->
+        <section id="opportunities">
+          <h2><span class="num">05</span>What DataStar can improve client-side &mdash; ranked</h2>
+          <p>
+            Each item states what changes, what it costs, and which gate applies. Items
+            1&ndash;3 are ungated (defect/chore/docs); items 4&ndash;6 feed the parked
+            ADR-0050 Tier-4 milestones (M11&ndash;M16, demand-gated; W17 verdict
+            2026-10-25: stays parked) without reopening them.
+          </p>
+
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Fix the demo + browser-guard it <span class="tag amber">ungated &middot; defect</span></h4>
+              <p>
+                The two <code>data-init</code> swaps and one e2e spec (findings 1&ndash;2).
+                ~1&nbsp;h, and the only DataStar page we ship becomes actually
+                demonstrable. This is the single highest-value action in the report.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Ride the bundle to v1.0.4 <span class="tag amber">ungated &middot; chore</span></h4>
+              <p>
+                When go-datastar tags <code>static</code> past v0.6.1: bump, run wire
+                goldens, done. The treadmill gate tracks it; no repo code changes.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>True the docs + write the CSP contract <span class="tag amber">ungated &middot; docs</span></h4>
+              <p>
+                Fix the KiB claims, annotate ADR-0045&rsquo;s SDK attribution, add the
+                <code>data-nonce</code> CSP section (findings 4&ndash;5). ~30&nbsp;min.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Signals as an <em>optional</em> status/indicator layer over the sync assets <span class="tag">feeds M14 evidence</span></h4>
+              <p>
+                The sync worker stays (it is the ADR-0056 asset; DataStar has no free
+                persistence). But the <em>presentation</em> layer around it &mdash;
+                <code>data-sync-status</code> DOM mutation, <code>announce()</code>
+                toasts, per-command row states &mdash; maps one-to-one onto
+                <code>data-signals-sync.status</code> + <code>data-bind</code> +
+                <code>data-on-signal-patch</code> with a filter. Ship it as a documented
+                <em>variant recipe</em> in the sync guide (the worker already broadcasts
+                plain DOM events; a 20-line shim translating them into signal patches is
+                the whole bridge), not as a second blessed asset. That is exactly the
+                M14 evaluation&rsquo;s missing half, answered without replacing anything.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>dashboardui signal-patch spike (M11) <span class="tag">demand-gated</span></h4>
+              <p>
+                The parked spike &mdash; projection health as <code>SignalsPatch</code>,
+                payload comparison vs HTMX polling &mdash; is now cheap to run: the client
+                facts are in section&nbsp;01 (JSON signal patches vs HTML fragment
+                patches; ID-based morph preservation; view-transition support), and
+                dashboardJS&rsquo;s ~85-line SSE client is the concrete deletion target.
+                Honest trade-off to measure: signals shrink payloads but move formatting
+                to the client; elements patches keep templ&rsquo;s XSS-safe server
+                rendering. The spike&rsquo;s go/no-go question is unchanged &mdash; this
+                report is its evidence pack, and the demand gate still decides.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">6</div>
+            <div class="migration-content">
+              <h4>loginpage signal forms (M13) <span class="tag">demand-gated</span></h4>
+              <p>
+                Client-side validation via <code>data-bind</code> +
+                <code>data-computed</code> (free tier) with server round-trip on submit
+                &mdash; but loginpage&rsquo;s zero-datastar-dependency posture and CSP
+                hooks (finding&nbsp;5) make this a real variant module, not a patch.
+                Stays parked with the rest of Tier 4.
+              </p>
+            </div>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>What DataStar deliberately cannot improve here</strong>
+            The sync worker&rsquo;s IndexedDB queue, cursor monotonicity, and conflict
+            outcomes (ADR-0056&rsquo;s laws have no DataStar equivalent &mdash; signal
+            persistence is Pro-only and there is no SharedWorker story). Dual-mode
+            handlers stay rejected (ADR-0050 Model B: the two render functions are not
+            derivable from each other). And adminui&rsquo;s 100-line companion JS is not
+            worth a rewrite at any gate.
+          </div>
+        </section>
+
+        <!-- Appendix -->
+        <section id="appendix">
+          <h2><span class="num">06</span>Appendix</h2>
+
+          <h3>Priority matrix</h3>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Severity</th>
+                <th>Effort</th>
+                <th>Gate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>F1 demo <code>data-init</code> fix</td>
+                <td class="no">Critical</td>
+                <td>~15 min</td>
+                <td>none (defect)</td>
+              </tr>
+              <tr>
+                <td>F2 datastar e2e spec</td>
+                <td class="no">Important</td>
+                <td>~1 h</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td>F3 bundle v1.0.4</td>
+                <td class="no">Important</td>
+                <td>chore</td>
+                <td>upstream tag</td>
+              </tr>
+              <tr>
+                <td>F4/F5 docs truthing + CSP section</td>
+                <td>Low</td>
+                <td>~30 min</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td>O4 sync indicator signal recipe</td>
+                <td>Opportunity</td>
+                <td>~3 h</td>
+                <td>guide-only, no new asset</td>
+              </tr>
+              <tr>
+                <td>O5/O6 M11/M13 spikes</td>
+                <td>Opportunity</td>
+                <td>parked ~9.2 h</td>
+                <td class="no">ADR-0050 demand gate</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Bundle economics (measured 2026-11-07)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Bundle</th>
+                <th>Raw</th>
+                <th>Gzipped</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>htmx.min.js 2.0.10</td><td>72,513 B</td><td>19,316 B</td></tr>
+              <tr><td>+ htmx-ext-sse 2.2.4</td><td>3,886 B</td><td>1,258 B</td></tr>
+              <tr><td>+ idiomorph-ext 0.7.4</td><td>14,509 B</td><td>4,078 B</td></tr>
+              <tr><td><strong>HTMX live stack total</strong></td><td><strong>90,908 B</strong></td><td><strong>24,652 B (24.1 KiB)</strong></td></tr>
+              <tr><td><strong>datastar.js v1.0.3 (embedded)</strong></td><td><strong>33,538 B</strong></td><td><strong>13,381 B (13.1 KiB)</strong></td></tr>
+              <tr><td>datastar-core.js v1.0.4 (signals only)</td><td>10,480 B</td><td>&mdash;</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Series &amp; decision cross-links</h3>
+          <p>
+            Companion reports: <em>go-cqrs-lite adoption audit</em> (2026-11-03, this
+            directory), <em>fleet-wide library utilization audit</em>
+            (../review/libs/index.html, 2026-11-05 &mdash; go-datastar row: used,
+            correctly-adopted). Decisions: ADR-0045 (optional module), ADR-0049 (layer
+            split), ADR-0050 (dual-frontend strategy), ADR-0056 (frontend sync).
+            Plan: docs/planning/2026-09-07_17-18_datastar-dual-frontend-rollout.html
+            (Tier&nbsp;4, M11&ndash;M16). Guides: datastar-integration.md,
+            sse-and-datastar.md, frontend-sync.md.
+          </p>
+
+          <h3>Upstream sources read (2026-11-07)</h3>
+          <p>
+            data-star.dev: guide (getting started, reactive signals, expressions, backend
+            requests, Tao), reference (attributes, actions, SSE events, SDKs, security),
+            how-tos, essays (v1 and beyond; the road to v1), /pro. GitHub:
+            starfederation/datastar README + bundles at tags v1.0.4 and v0.21.4, source
+            (fetch.ts, patchElements.ts, datastar.d.ts), releases; starfederation/datastar-go
+            v1.2.2 (go doc over the module zip; the old sdk/go stub); LarsArtmann/go-datastar
+            (README comparison vs datastar-go v1.2.2, tags, static/static.go, master&rsquo;s
+            v1.0.4 bump). Registry: npm (@starfederation/datastar &mdash; stale at beta.11;
+            @srfnstack/datastar &mdash; 404). CDN probes: jsdelivr gh @v1.0.4 (200).
+            Local: go-datastar checkout, wire_golden_test.go, embedded bundle, repo
+            inventory; empirical browser verification via nixpkgs Chromium headless
+            (original vs <code>data-init</code> control, same-origin proxy).
+          </p>
+        </section>
+
         <!-- Footer -->
         <footer class="footer">
           <p>
-            Generated YYYY-MM-DD &middot; Reviewed against version X.Y.Z
-            &middot; All claims verified against source code where noted
+            Generated 2026-11-07 &middot; Studied against DataStar v1.0.4 / embedded v1.0.3
+            / go-datastar v0.6.3 &middot; All capability claims verified against upstream
+            source; the finding-1 defect verified empirically in headless Chromium with a
+            control run
           </p>
         </footer>
       </main>

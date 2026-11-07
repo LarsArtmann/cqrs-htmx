@@ -288,7 +288,7 @@ const indexHTML = `<!DOCTYPE html>
                     Todo list: server patches items via SSE PatchElements.
                     On page load, @get fetches the initial list.
                 -->
-                <ul id="todo-list" data-on:load="@get('/api/todos')"></ul>
+                <ul id="todo-list" data-init="@get('/api/todos')"></ul>
             </div>
 
             <!-- Right: Live Event Stream -->
@@ -315,11 +315,11 @@ const indexHTML = `<!DOCTYPE html>
                 </div>
 
                 <!--
-                    data-on:load subscribes to the SSE event stream.
+                    data-init subscribes to the SSE event stream.
                     The connection stays open — server pushes new events as they happen.
                 -->
                 <div style="margin-top: 1rem;">
-                    <div id="event-log" data-on:load="@get('/api/events')"></div>
+                    <div id="event-log" data-init="@get('/api/events')"></div>
                 </div>
             </div>
         </div>
