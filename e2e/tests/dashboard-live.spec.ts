@@ -16,7 +16,7 @@ test.describe.configure({ mode: "serial" });
 const DEBUG_TYPE = "E2e.debugEmitted";
 
 test("live append: an emitted event lands a row at the top of the events table", async ({ page, request }) => {
-  await page.goto("/dashboard/events/");
+  await page.goto("/dashboard/events");
   await expect(page.locator("#events-tbody tr").first()).toBeVisible();
   const before = await page.locator("#events-tbody tr").count();
 
@@ -36,15 +36,15 @@ test("live append: an emitted event lands a row at the top of the events table",
 test("journal replay: a fresh page load still lists the emitted event", async ({ page }) => {
   // The counterpoint to the datastar demo's live-only feed: the dashboard
   // journal persists, so a cold client sees past events on first render.
-  await page.goto("/dashboard/events/");
+  await page.goto("/dashboard/events");
   await expect(page.locator("#events-tbody tr").first()).toBeVisible();
   await expect(page.locator("#events-tbody")).toContainText(DEBUG_TYPE);
 });
 
 test("multi-tab live feed: a second connected dashboard gains the row too", async ({ page, context, request }) => {
-  await page.goto("/dashboard/events/");
+  await page.goto("/dashboard/events");
   const tab2 = await context.newPage();
-  await tab2.goto("/dashboard/events/");
+  await tab2.goto("/dashboard/events");
   await expect(page.locator("#events-tbody tr").first()).toBeVisible();
   await expect(tab2.locator("#events-tbody tr").first()).toBeVisible();
 
@@ -65,7 +65,7 @@ test("multi-tab live feed: a second connected dashboard gains the row too", asyn
 });
 
 test("time travel: the slider updates the display while dragging and navigates on release", async ({ page }) => {
-  await page.goto("/dashboard/time-travel/");
+  await page.goto("/dashboard/time-travel");
 
   // A seeded User stream has exactly 2 versions.
   const userRow = page.locator("table tbody tr", { hasText: "User" }).first();
@@ -81,7 +81,7 @@ test("time travel: the slider updates the display while dragging and navigates o
   await expect(page.locator("#slider-version-display")).toHaveText("1");
 
   // Release (change event) navigates to ?v=1 — the server-rendered state.
-  await expect(page).toHaveURL(/\/time-travel\/User\/.+ \?v=1$|\/time-travel\/User\/.+\?v=1$/);
+  await expect(page).toHaveURL(/\/time-travel\/User\/[^\s]+\?v=1$/);
   await expect(page.getByText("Viewing version 1 of 2")).toBeVisible();
   await expect(page.locator("#version-slider")).toHaveValue("1");
 });
@@ -93,13 +93,13 @@ test("console guard: no console or page errors during live feed and time travel"
   });
   page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
 
-  await page.goto("/dashboard/events/");
+  await page.goto("/dashboard/events");
   await expect(page.locator("#events-tbody tr").first()).toBeVisible();
   const resp = await request.post("/api/debug/emit", { form: { name: "console-guard-probe" } });
   expect(resp.status()).toBe(202);
   await expect(page.locator("#events-tbody tr").first()).toContainText(DEBUG_TYPE, { timeout: 15_000 });
 
-  await page.goto("/dashboard/time-travel/");
+  await page.goto("/dashboard/time-travel");
   await expect(page.locator("table tbody tr").first()).toBeVisible();
 
   expect(errors, errors.join("\n")).toEqual([]);
