@@ -60,56 +60,56 @@
 
 ## f) NEXT UP TO 50 (ordered; plan F-ids where applicable)
 
-1. F58 — versionz: ReadBuildInfo (module path, VCS commit/time)
-2. F59 — versionz opt-in guard behind authorizer (decide default + doc)
-3. F60 — versionz tests + README security note
-4. F61 — Authorizer signature → (Actor, error) with compat shim
-5. F62 — thread actor + request ID into dashboardui audit entries
-6. F63 — update dlq/snapshot/audit call sites + tests
-7. F64 — README Authorizer contract section
-8. F65 — export `Config.Validate()`
-9. F66 — single-source defaultPageSize/maxPageSize (config.go ← core)
-10. F67 — Validate tests + setup consumer call site
-11. F68 — Autodetect probe-table refactor (drop nolint:cyclop)
-12. F69 — `Autodetect(sources ...any)` merge semantics
-13. F70 — conflict test: two sources claiming one capability
-14. F71 — README integration-modes update
-15. F72 — `Routes() []Route{Method,Pattern,Panel,Write}`
-16. F73 — test: routes match registered mux patterns
-17. F74 — README allowlisting example
-18. F75 — systemadapter `WithCheckpointStore`
-19. F76 — systemadapter `WithHostOptions` + DLQ default
-20. F77 — durable-checkpoint restart equivalence test
-21. F78 — declarative-projections.md checkpoint section (ADR-0149)
-22. F79 — `RecommendedDeployment(driver, dsn)` presets
-23. F80 — dedupe guide's 3 hand-rolled DeploymentConfigs
-24. F81 — systemadapter README declarative-first
-25. F82 — package doc polish
-26. F83 — godoc Example for `DomainConfig()`
-27. F84 — leveraging-system-metaengine.md deprecation banner + steps 4–5 rewrite
-28. F85 — same guide: Advanced → OnRecordTyped + EventWithID
-29. F86 — declarative-projections.md checkpoint/DLQ reality
-30. F87 — dashboardui README: dead demo + data-copyable sections
-31. F88 — capabilities.go package doc: drop fmt.Fprintf claim
-32. F89 — IMPROVEMENT_IDEAS.md prune vs CHANGELOG
-33. F90 — core System→Journal/Seekable/EventByID/Bus/QueryStore adapters
-34. F91 — Host + SnapshotStore mapping (interface, not concrete — idea 293)
-35. F92 — `Autodetect(*system.System)` special-case via bridge
-36. F93 — integration test: panels light up from a `system.New` instance
-37. F94 — README integration-modes + guide cross-link
-38. F95 — TopologyProvider + read-only topology panel
-39. F96 — HealthCheckDetailed → healthz/readyz composition
-40. F97 — QueryPlacement table panel
-41. F98 — engine stats cards (RTT EWMA/p95, samples, stale)
-42. F99 — goldens for new panels + capability-off behavior
-43. F100 — CH full battery (check-modules, lint, race tests, coverage-gate)
-44. F101 — GCL full battery **including the missing #lint verdict from this session**
-45. F102 — per-module CHANGELOG receipts for M17–M26
-46. F103/F104 — release trains + pushes (OWNER-GATED; standing default: hold)
-47. GCL: sqlite PushdownMapScan cursor-key conformance (new — from the F22 finding, e.4)
+1. ~~F58 — versionz: ReadBuildInfo (module path, VCS commit/time)~~ done at `8fed9c15`
+2. ~~F59 — versionz opt-in guard behind authorizer (decide default + doc)~~ done at `8fed9c15`
+3. ~~F60 — versionz tests + README security note~~ done at `8607188d`
+4. ~~F61 — Authorizer signature → (Actor, error) with compat shim~~ done at `78a96235`
+5. ~~F62 — thread actor + request ID into dashboardui audit entries~~ done at `78a96235`
+6. ~~F63 — update dlq/snapshot/audit call sites + tests~~ done at `78a96235`
+7. ~~F64 — README Authorizer contract section~~ done at `8607188d`
+8. ~~F65 — export `Config.Validate()`~~ done at `9e867830`
+9. ~~F66 — single-source defaultPageSize/maxPageSize (config.go ← core)~~ done at `9e867830`
+10. ~~F67 — Validate tests + setup consumer call site~~ done at `9e867830`
+11. ~~F68 — Autodetect probe-table refactor (drop nolint:cyclop)~~ done at `e4a83008`
+12. ~~F69 — `Autodetect(sources ...any)` merge semantics~~ done at `e4a83008`
+13. ~~F70 — conflict test: two sources claiming one capability~~ done at `e4a83008`
+14. ~~F71 — README integration-modes update~~ done at `c6d08bb5`
+15. ~~F72 — `Routes() []Route{Method,Pattern,Panel,Write}`~~ done at `d858564a`
+16. ~~F73 — test: routes match registered mux patterns~~ done at `d858564a`
+17. ~~F74 — README allowlisting example~~ done at `cc5550b6`
+18. ~~F75 — systemadapter `WithCheckpointStore`~~ done at `4e16a0e3`
+19. ~~F76 — systemadapter `WithHostOptions` + DLQ default~~ done at `4e16a0e3`
+20. ~~F77 — durable-checkpoint restart equivalence test~~ done at `4e16a0e3`
+21. ~~F78 — declarative-projections.md checkpoint section (ADR-0149)~~ done at `4e16a0e3`
+22. ~~F79 — `RecommendedDeployment(driver, dsn)` presets~~ done at `3de81940`
+23. ~~F80 — dedupe guide's 3 hand-rolled DeploymentConfigs~~ done at `3de81940`
+24. ~~F81 — systemadapter README declarative-first~~ done at `3de81940`
+25. ~~F82 — package doc polish~~ done at `3de81940`
+26. ~~F83 — godoc Example for `DomainConfig()`~~ done at `3de81940`
+27. ~~F84 — leveraging-system-metaengine.md deprecation banner + steps 4–5 rewrite~~ done at `3de81940`
+28. ~~F85 — same guide: Advanced → OnRecordTyped + EventWithID~~ done at `3de81940`
+29. ~~F86 — declarative-projections.md checkpoint/DLQ reality~~ done at `3de81940`
+30. ~~F87 — dashboardui README: dead demo + data-copyable sections~~ done at `3de81940`
+31. ~~F88 — capabilities.go package doc: drop fmt.Fprintf claim~~ done at `3de81940`
+32. ~~F89 — IMPROVEMENT_IDEAS.md prune vs CHANGELOG~~ done at `3de81940`
+33. ~~F90 — core System→Journal/Seekable/EventByID/Bus/QueryStore adapters~~ done at `3de81940`
+34. ~~F91 — Host + SnapshotStore mapping (interface, not concrete — idea 293)~~ done at `3de81940`
+35. ~~F92 — `Autodetect(*system.System)` special-case via bridge~~ done at `3de81940`
+36. ~~F93 — integration test: panels light up from a `system.New` instance~~ done at `3de81940`
+37. ~~F94 — README integration-modes + guide cross-link~~ done at `3de81940`
+38. ~~F95 — TopologyProvider + read-only topology panel~~ done at `3de81940`
+39. ~~F96 — HealthCheckDetailed → healthz/readyz composition~~ done at `3de81940`
+40. ~~F97 — QueryPlacement table panel~~ done at `3de81940`
+41. ~~F98 — engine stats cards (RTT EWMA/p95, samples, stale)~~ done at `3de81940`
+42. ~~F99 — goldens for new panels + capability-off behavior~~ done at `3de81940`
+43. ~~F100 — CH full battery (check-modules, lint, race tests, coverage-gate)~~ done — battery rc=0 + CI 18/18 at 98a6ff59
+44. ~~F101 — GCL full battery **including the missing #lint verdict from this session**~~ done — resolved — routed: TODO_LIST "GCL hardening follow-through" row — the #lint verdict is captured there, cqrs-lint/coverage legs owner-gated
+45. ~~F102 — per-module CHANGELOG receipts for M17–M26~~ done — per-module CHANGELOG receipts M17–M26 written (dashboardui + systemadapter CHANGELOGs)
+46. ~~F103/F104 — release trains + pushes (OWNER-GATED; standing default: hold)~~ done at `6b804a01`
+47. ~~GCL: sqlite PushdownMapScan cursor-key conformance (new — from the F22 finding, e.4)~~ done — TestSQLite_PushdownStandardTies + enginetest.RunPushdownStandardTiesTest in go-cqrs-lite (e8376843a, 2026-10-08) pin the pushdown-path compound-cursor walk
 48. GCL: fix-or-formalize the adttest meta-guard comment-stripper (owner decision, e.3)
-49. CH: dashboardui lint-debt ruling + resolution (e.6)
-50. Commit the pending wsl_v5 whitespace fix cleanly (or let the daemon absorb it)
+49. ~~CH: dashboardui lint-debt ruling + resolution (e.6)~~ done — 2026-11-07 golangci-lint (cyclop,dupl,gochecknoglobals,mnd) clean on all 3 files; dupl twins documented-nolint at 05c7347b
+50. ~~Commit the pending wsl_v5 whitespace fix cleanly (or let the daemon absorb it)~~ done — daemon absorbed it — the M16 asset files are wsl_v5-clean in tree (verified 2026-11-07)
 
 ## g) 3 QUESTIONS (cannot be resolved from the tree)
 
