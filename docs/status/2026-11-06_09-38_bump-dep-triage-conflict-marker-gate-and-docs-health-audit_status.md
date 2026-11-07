@@ -135,56 +135,56 @@
 
 ## f) Up to 50 things to get done next
 
-1. Decide the `audit-all` pin: drain 393 → ≤322, or get the owner tick to re-pin (`TODO_LIST.md:39`).
-2. Drain the highest-value unharvested items first (19/16/14/14/13 from the archived 2026-10-06/07, 10-24/25 reports) by annotating each with its own evidence.
-3. Add the two missing `FEATURES.md` rows (dispatch gate ADR-0063, direct-imports policy ADR-0062).
-4. Run `nix run .#check-modules` end to end once the sibling releases the tree. Routed to plan task C12. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
-5. Run `nix run .#check-cqrs-lint` to re-derive the two plans' red lists (dashboardui, systemadapter expected).
-6. Run `nix run .#coverage-gate` (not run this session). Routed to plan task C13. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
-7. Run `nix run .#check-erraudit-strict` advisory and compare against the TOTAL=303 baseline.
-8. Run `nix run .#train-preflight` in a quiet window (mandatory before any train).
-9. Tag `identity-model` first, then **root**, then `usermgmt`, `adminui`, `dashboardui`, `setup`. Routed to plan task C03. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
-10. After the root tag, sweep `setup`, `dashboardui`, `integration_test`, `examples/*` requires to the new tags. Routed to plan task C05. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
-11. Re-run `check-route-postures` post-train; it should go green by itself (gotcha 30).
-12. Fix `streamid-identity` at `dashboardui/core/command_fates.go:198` (display form in an identity slot, gotcha 25).
-13. Re-run `verify-remote-tags` after the train (peeled-ref audit).
-14. File the upstream go-cqrs-lite ask for the dispatch middleware (owner-gated). Routed to plan task C24. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
-15. Watch go-cqrs-lite for the catalog release that regenerates `docserver` against templ v0.3.1100.
-16. Bump `examples/catalog-demo` and `integration_test` once that catalog release ships.
-17. Wire `check-conflict-markers` into `.githooks/pre-commit` and `scripts/hooks/pre-commit.template` for fail-early.
-18. Add a `--staged` mode to the conflict gate so a hook can inspect the index rather than the worktree.
-19. Confirm whether the auto-commit daemon bypasses the pre-commit hook; the answer decides the shape of item 17.
+~~1. Decide the `audit-all` pin: drain 393 → ≤322, or get the owner tick to re-pin (`TODO_LIST.md:39`).~~ routed — TODO_LIST.md:46 audit-all row owns the drain-or-re-pin decision (re-measured 419, owner-gated)
+~~2. Drain the highest-value unharvested items first (19/16/14/14/13 from the archived 2026-10-06/07, 10-24/25 reports) by annotating each with its own evidence.~~ routed — TODO_LIST.md:46 audit-all row: the drain annotates items inside archived files, each with its own evidence
+~~3. Add the two missing `FEATURES.md` rows (dispatch gate ADR-0063, direct-imports policy ADR-0062).~~ done at `03d8e8d1` — both FEATURES.md rows landed (Dispatch-Boundary Gate ADR-0063, Direct-Imports-Only Gate ADR-0062)
+~~4. Run `nix run .#check-modules` end to end once the sibling releases the tree. Routed to plan task C12. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ routed — TODO_LIST.md:21 plan-of-record row, coarse task C12
+~~5. Run `nix run .#check-cqrs-lint` to re-derive the two plans' red lists (dashboardui, systemadapter expected).~~ verified — run 2026-11-06 22:47 receipt (TODO_LIST row 21): cqrs-lint 10/14, the four reds were API-vs-tag hermetic loads, healed by the 2026-11-07 train
+~~6. Run `nix run .#coverage-gate` (not run this session). Routed to plan task C13. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ routed — TODO_LIST.md:21 plan-of-record row, coarse task C13
+~~7. Run `nix run .#check-erraudit-strict` advisory and compare against the TOTAL=303 baseline.~~ verified — re-run 2026-11-06 22:47: erraudit strict TOTAL=319 advisory, compared against the 303 baseline with growth attributed (TODO_LIST row 21 receipt)
+~~8. Run `nix run .#train-preflight` in a quiet window (mandatory before any train).~~ verified — ran at the 2026-11-07 train per the S52 mandate: quiescence and surprise green, lint red recorded as the tag-gap class (05-20 train report a4)
+~~9. Tag `identity-model` first, then **root**, then `usermgmt`, `adminui`, `dashboardui`, `setup`. Routed to plan task C03. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ verified — train executed 2026-11-07 in order (identity-model v4.17.0, root v4.17.0 then v4.18.0, usermgmt v4.20.0, adminui/dashboardui/setup v4.17.0, systemadapter v4.13.0; tags verified on origin)
+~~10. After the root tag, sweep `setup`, `dashboardui`, `integration_test`, `examples/*` requires to the new tags. Routed to plan task C05. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ verified — requires swept: huma pins root v4.18.0 (2c077269), examples and integration_test pin catalog v4.14.0; TODO_LIST header records the healing sweep
+~~11. Re-run `check-route-postures` post-train; it should go green by itself (gotcha 30).~~ verified — green: re-run this session, all four module manifests (adminui, dashboardui, loginpage, setup) pinned and green
+~~12. Fix `streamid-identity` at `dashboardui/core/command_fates.go:198` (display form in an identity slot, gotcha 25).~~ done at `0f3eeb20` — newCommandFateRow reads StreamID().Get(), the bare identity form; the comment cites gotcha 25
+~~13. Re-run `verify-remote-tags` after the train (peeled-ref audit).~~ verified — all train tags present on origin with peeled refs (ls-remote this session; root v4.18.0 peels to 6b804a01)
+~~14. File the upstream go-cqrs-lite ask for the dispatch middleware (owner-gated). Routed to plan task C24. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ routed — TODO_LIST.md:27 dispatch-boundary row item a (owner-gated upstream ask)
+~~15. Watch go-cqrs-lite for the catalog release that regenerates `docserver` against templ v0.3.1100.~~ verified — catalog v4.14.0 shipped and swept: TODO_LIST header 2026-11-07 records the upstream catalog v4.14.0 healing sweep with hermetic reds healed
+~~16. Bump `examples/catalog-demo` and `integration_test` once that catalog release ships.~~ done at `8c359092` — both modules bumped to catalog v4.14.0 (go.mod pins)
+~~17. Wire `check-conflict-markers` into `.githooks/pre-commit` and `scripts/hooks/pre-commit.template` for fail-early.~~ done at `be5dbb6f` — wired as the 4th MANUAL EDIT block in the hook and template, both calling check-conflict-markers.sh with --staged
+~~18. Add a `--staged` mode to the conflict gate so a hook can inspect the index rather than the worktree.~~ done at `be5dbb6f` — the --staged index mode shipped in check-conflict-markers.sh and is what the hook invokes
+~~19. Confirm whether the auto-commit daemon bypasses the pre-commit hook; the answer decides the shape of item 17.~~ verified — answered by evidence: the daemon bypasses the hook — it committed raw stash-pop conflict markers past the wired gate on 2026-11-07, caught and resolved in 28a5d23d
 20. Consider a repo-level `git config core.hooksPath` check as part of `check-modules`.
-21. Re-pin the bench baseline on an idle machine (`.#bench-spike --save-baseline`).
-22. Add a `b.RunParallel` sub-bench so a reintroduced lock shows as throughput collapse.
-23. Add an allocation ratchet gate for the dispatch gate (bare ≤1, admitting ≤6, deny ≤16 allocs/op).
-24. Promote `check-policy-rows` from self-test-only to blocking once any consumer commits a policy CSV.
-25. Consumer wave 1: browser-history — delete `reconcileSuperAdmins`, switch to `GrantRoles`.
-26. Consumer wave 2: Swetty — idempotent `bootstrapAdmin`.
-27. Consumer wave 3: crm — seed an admin or set `DisableAdmin`.
-28. Consumer wave 4: InboxClean — drop `sseDeadlineFree`, use the library deadline fix.
-29. Consumer wave 5: github-local-sync and webphone — declare postures and run `authztest.CommandSuite`.
-30. True `TODO_LIST.md:21` to the same measured root counts I corrected in the plan (53 / 7,594 is wrong in both places). Routed to plan task C17. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->.
-31. Add a gate that recomputes root production file and LOC counts into the docs, so the number stops being hand-maintained.
-32. Replace the re-export plan's per-cluster LOC estimates with a script-generated table.
-33. Archive the 12 live status reports after annotating them (tail budget is 3).
+~~21. Re-pin the bench baseline on an idle machine (`.#bench-spike --save-baseline`).~~ routed — TODO_LIST.md:21 plan-of-record row (bench re-pin on an idle machine)
+~~22. Add a `b.RunParallel` sub-bench so a reintroduced lock shows as throughput collapse.~~ routed — TODO_LIST.md:21 plan-of-record row (the parallel bench)
+~~23. Add an allocation ratchet gate for the dispatch gate (bare ≤1, admitting ≤6, deny ≤16 allocs/op).~~ routed — TODO_LIST.md:21 plan-of-record row (the allocation ratchet)
+~~24. Promote `check-policy-rows` from self-test-only to blocking once any consumer commits a policy CSV.~~ routed — TODO_LIST.md:27 dispatch-boundary row item d
+~~25. Consumer wave 1: browser-history — delete `reconcileSuperAdmins`, switch to `GrantRoles`.~~ routed — TODO_LIST.md:25 authz workstream row item 4 (browser-history wave)
+~~26. Consumer wave 2: Swetty — idempotent `bootstrapAdmin`.~~ routed — TODO_LIST.md:25 authz workstream row item 4 (Swetty wave)
+~~27. Consumer wave 3: crm — seed an admin or set `DisableAdmin`.~~ routed — TODO_LIST.md:25 authz workstream row item 4 (crm wave)
+~~28. Consumer wave 4: InboxClean — drop `sseDeadlineFree`, use the library deadline fix.~~ routed — TODO_LIST.md:25 authz workstream row item 4 (InboxClean wave)
+~~29. Consumer wave 5: github-local-sync and webphone — declare postures and run `authztest.CommandSuite`.~~ routed — TODO_LIST.md:25 authz workstream row item 4 (github-local-sync and webphone)
+~~30. True `TODO_LIST.md:21` to the same measured root counts I corrected in the plan (53 / 7,594 is wrong in both places). Routed to plan task C17. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->.~~ done at `d66af0c5` — check-root-size is the single source (54 production files / 8,547 LOC); TODO rows now carry the measured counts
+~~31. Add a gate that recomputes root production file and LOC counts into the docs, so the number stops being hand-maintained.~~ done at `d66af0c5` — scripts/checks/check-root-size.sh plus root-size.baseline recompute the counts (2026-11-06 11:26)
+~~32. Replace the re-export plan's per-cluster LOC estimates with a script-generated table.~~ verified — the plan 1.2 cluster table is script-generated as of 2026-11-06 11:35; check-root-size.sh --print is the recorded command
+~~33. Archive the 12 live status reports after annotating them (tail budget is 3).~~ routed — TODO_LIST.md:21 plan-of-record row (archive pass; rounds 24 and 25 archived ten reports, tail 15, the tail-of-3 goal stands)
 34. Rework the `docs/status/README.md` corpus ledger from one giant paragraph into a table (it is now unreadable by grep alone).
 35. Run treefmt on `AGENTS.md` once the sibling is done, and confirm my docs-gates row survives dprint.
-36. Publish the docs-gates matrix in CI (`docs-gates run . --json`) so a red gate is visible without a session.
-37. Decide whether docs-gates joins `check-modules` (today it is local-advisory only).
-38. Sweep inline done-narratives out of open TODO rows into CHANGELOG (15 rows exceed 1,500 chars).
-39. Split those 15 rows into a short row plus a linked report or plan anchor. Routed to plan task C19. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
-40. Re-run `check-skill-snippets` and `check-skill-claims` after the sibling's skill edits land.
+~~36. Publish the docs-gates matrix in CI (`docs-gates run . --json`) so a red gate is visible without a session.~~ done at `048f041b` — docs-gates-battery wrapper, 9/9 self-test, flake apps, check-modules stage and advisory CI step
+~~37. Decide whether docs-gates joins `check-modules` (today it is local-advisory only).~~ verified — decided and executed: docs-gates-battery is a check-modules stage and an advisory CI step (flake.nix, 2026-11-06 22:15)
+~~38. Sweep inline done-narratives out of open TODO rows into CHANGELOG (15 rows exceed 1,500 chars).~~ routed — TODO_LIST.md:21 plan-of-record row, coarse task C19
+~~39. Split those 15 rows into a short row plus a linked report or plan anchor. Routed to plan task C19. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ routed — TODO_LIST.md:21 plan-of-record row, coarse task C19
+~~40. Re-run `check-skill-snippets` and `check-skill-claims` after the sibling's skill edits land.~~ verified — re-run this session: skill-claims 221 of 221 green, skill-snippets 45 of 45 green
 41. Explain the 248 → 218 skill-symbol delta and record which examples were removed.
-42. Re-attribute the `docs/guides/actor-and-audit-trail.md` growth once the sibling lands its own ledger row.
+~~42. Re-attribute the `docs/guides/actor-and-audit-trail.md` growth once the sibling lands its own ledger row.~~ verified — attributed: the docs/status/README.md corpus ledger Both-issues sentence now carries the actor-and-audit-trail session-lifecycle growth
 43. Give `bump-dep.sh` a family-aware failure hint that quotes the new runbook row automatically.
 44. Add a `bump-dep --explain` mode that names the tag-gap class instead of dumping raw compiler errors.
-45. Re-run the go-appkit sweep after the train and expect 4/4 PASS. Routed to plan task C08. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->
-46. Confirm `examples/async-startup-demo` (the one module that passed today) still passes post-train.
+~~45. Re-run the go-appkit sweep after the train and expect 4/4 PASS. Routed to plan task C08. <!-- fresh:skip: routed to the 09-48 plan; every token is generic, so no living-doc wording can bind it (proven with --pre-flight) -->~~ routed — TODO_LIST.md:21 plan-of-record row, coarse task C08 (go-appkit bumped to v0.12.0 at 5661c288; the 4/4 sweep receipt rides the row)
+~~46. Confirm `examples/async-startup-demo` (the one module that passed today) still passes post-train.~~ verified — checked this session: go build green in examples/async-startup-demo and go test rc 0 (the module ships no test files; build is the leg)
 47. Consider a wider baseline file format (count plus attribution plus date) to end the one-number corruption class.
-48. Add a collision probe to the session-start runbook: check for other live sessions before a multi-file pass.
+~~48. Add a collision probe to the session-start runbook: check for other live sessions before a multi-file pass.~~ routed — TODO_LIST.md:104 shared-tree branch-guard row (sibling-session warning plus session-start wiring)
 49. Record the quiet-window policy evidence (load 32–42 on 32 cores today) in `docs/runbooks/release-next-train-prep.md`.
-50. Track the `huma/` module that appeared mid-session: it is a sibling's new surface and will need its own gates wired.
+~~50. Track the `huma/` module that appeared mid-session: it is a sibling's new surface and will need its own gates wired.~~ verified — huma is wired into the fleet gates: dep-budgets row, isolation output, cqrs-lint huma green (TODO_LIST row 21 receipt); the nine files the huma session touched
 
 ---
 
