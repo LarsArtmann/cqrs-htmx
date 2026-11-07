@@ -1,6 +1,6 @@
 # Status: dispatch-boundary authorization executed (plan M01–M15)
 
-> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_09-06_dispatch-gate-hot-path-lock-removal-and-verification_status.md`](../2026-11-06_09-06_dispatch-gate-hot-path-lock-removal-and-verification_status.md), which waves executed with receipts; remainder routed. Strike depth:
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_09-06_dispatch-gate-hot-path-lock-removal-and-verification_status.md`](2026-11-06_09-06_dispatch-gate-hot-path-lock-removal-and-verification_status.md), which waves executed with receipts; remainder routed. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
 

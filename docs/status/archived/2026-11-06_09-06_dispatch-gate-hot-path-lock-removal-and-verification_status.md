@@ -1,11 +1,15 @@
 # Status: dispatch gate verification pass, plus the hot-path lock nobody had noticed
 
+> **ANNOTATED 2026-11-07** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
+> The next session in the same arc is [`2026-11-06_10-32_huma-adapter-shipped-issue-41_status.md`](../2026-11-06_10-32_huma-adapter-shipped-issue-41_status.md), which waves landed with receipts; remainder routed.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Date:** 2026-11-06 09:06 CET · **Branch:** `master` · **HEAD at writing:** `c46d9e72`
 (plus the two uncommitted baseline/ledger files named in §c).
 
 **Scope of this report.** Two things happened. First I re-verified the fifteen
 milestones of
-[`docs/planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md`](../planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md)
+[`docs/planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md`](../../planning/2026-11-06_07-30_SUPERB-command-permission-gate-dispatch-boundary-pareto-plan.md)
 rather than trusting the previous session's receipt — it had fabricated a
 citation earlier in the day, so its "verified" claim earned no credit. Second,
 that verification left two experiments open in §d of the previous report, and I
