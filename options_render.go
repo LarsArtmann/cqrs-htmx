@@ -138,8 +138,8 @@ func ETagResults() HandlerOption {
 		inner := config.render
 
 		if inner == nil {
-			slog.Warn("cqrshtmx: ETagResults applied before a renderer — it has nothing to wrap",
-				slog.String("hint", "apply ETagResults after the renderer option, e.g. RenderJSON[...](), ETagResults()"))
+			slog.Warn("cqrshtmx: ETagResults applied before a renderer — nothing to wrap",
+				slog.String("hint", "place ETagResults after RenderJSON/RenderTempl/Render"))
 
 			return
 		}
@@ -182,16 +182,17 @@ type etagBufferedResponse struct {
 	body   bytes.Buffer
 }
 
-func (b *etagBufferedResponse) Header() http.Header { return b.header }
+func (b *etagBufferedResponse) Header() http.Header {
+	return b.header
+}
 
 func (b *etagBufferedResponse) Write(p []byte) (int, error) {
-	n, err := b.body.Write(p)
-
+	written, err := b.body.Write(p)
 	if err != nil {
-		return n, errorfamily.WrapInfrastructure(err, "etag_buffer_write", "buffering rendered response bytes")
+		return written, errorfamily.WrapInfrastructure(err, "etag_buffer_write", "buffering rendered response bytes")
 	}
 
-	return n, nil
+	return written, nil
 }
 
 func (b *etagBufferedResponse) WriteHeader(int) {}

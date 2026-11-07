@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`openapi.Query()`: RFC 10008 QUERY operations with an automatic OpenAPI 3.2.0 version bump (plan W4.1, 2026-11-07).** `openapi.Query(operationID)` builds the operation like every other method constructor; registering it via `Spec.Path`/`Spec.PathOp` sets the document's `openapi` field to `3.2.0` — the only version where the `query` operation type exists — so a builder-constructed spec can never claim 3.1 while carrying a 3.2 field. `Spec.Validate` enforces the same invariant for hand-built documents (a query operation on a non-3.2.0 spec fails with a message naming the fix), and the double-registration guard, clone surface, and required-responses validation all cover the new method. Pinned by `openapi/query_test.go` (key rendering + version bump, PathOp bump, 3.1 stays without query, hand-built rejection + fix, double-registration panic, responses validation).
+
+- **`ETagResults()`: conditional query results — strong ETag over the rendered bytes, 304 on If-None-Match revalidation (plan W4.2, 2026-11-07).** Applied after any renderer option (`RenderJSON`, `RenderTempl`, `Render`, ...), it buffers the render pass, hashes the complete response with the same FNV-1a family the immutable-JSON handlers use, sets a strong `ETag`, and answers `If-None-Match` revalidation with `304 Not Modified` and no body (wildcard `*` included, via go-etag). Because the tag hashes the RENDERED bytes, it is correct across renderers and changes exactly when the result set does. Applied before a renderer it is a logged no-op (ordering contract documented on the option). Pinned by `options_etag_test.go` (304 round-trip, changed-result tag change, wildcard, stale-tag body replay with buffered Content-Type, misorder no-op).
+
 ## [v4.18.0] - 2026-11-07
 
 ### Added
