@@ -22,8 +22,9 @@ test.describe.configure({ mode: "serial" });
 const DEMO = "http://localhost:18931";
 
 // data-* attribute names carry colons (DataStar RC.6+ syntax); CSS attribute
-// selectors must escape them.
-const TITLE_INPUT = 'input[data-bind\\:title]';
+// selectors must escape them. Scoped to the create form: todo rows carry an
+// inline edit input bound to the SAME signal name.
+const TITLE_INPUT = 'form.input-group input[data-bind\\:title]';
 const TODO_LIST = "#todo-list";
 const STATS = "#stats";
 const EVENT_LOG = "#event-log .event-entry";
@@ -32,6 +33,19 @@ const EVENT_LOG = "#event-log .event-entry";
 async function createTodo(page: Page, title: string) {
   await page.locator(TITLE_INPUT).fill(title);
   await page.getByRole("button", { name: "Add", exact: true }).click();
+}
+
+/**
+ * Deterministic "the SSE stream is open" signal: register the wait BEFORE
+ * navigation, resolve when /api/events response HEADERS arrive (a streaming
+ * response's headers mean the stream is live; the body never ends). Without
+ * this, a probe POST can race the page's data-init fetch.
+ */
+function sseConnected(page: Page): Promise<unknown> {
+  return page.waitForResponse(
+    (res) => res.url().includes("/api/events") && res.status() === 200,
+    { timeout: 15_000 },
+  );
 }
 
 test("boot: initial @get patch populates list and stats (the data-on:load regression)", async ({ page }) => {
@@ -70,7 +84,9 @@ test("create round-trip: bound signal posts, list+stats+notification patch back"
 });
 
 test("live feed: an event fired after page load lands in the event log", async ({ page, request }) => {
+  const sse = sseConnected(page);
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
+  await sse;
 
   // Prove the SSE connection is live before firing the event: the feed is
   // live-only (no replay for fresh clients), so the probe event below only
@@ -88,7 +104,9 @@ test("live feed: an event fired after page load lands in the event log", async (
 });
 
 test("live-only honesty: an event fired while offline stays missed; post-reconnect events arrive", async ({ page, request }) => {
+  const sse = sseConnected(page);
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
+  await sse;
 
   // Connect proof (same as above): one delivered event means the stream is up.
   await request.post(`${DEMO}/api/todos`, {
@@ -130,9 +148,13 @@ test("live-only honesty: an event fired while offline stays missed; post-reconne
 });
 
 test("multi-tab: a second tab on the same origin receives the same live feed", async ({ page, context }) => {
+  const sse1 = sseConnected(page);
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
   const tab2 = await context.newPage();
+  const sse2 = sseConnected(tab2);
   await tab2.goto(`${DEMO}/`, { waitUntil: "load" });
+  await sse1;
+  await sse2;
 
   // Both tabs boot.
   await expect
@@ -165,8 +187,11 @@ test("console guard: no console errors or uncaught page errors during the whole 
   await expect
     .poll(async () => page.locator(`${TODO_LIST} > *`).count(), { timeout: 10_000 })
     .toBeGreaterThan(0);
+
+  const before = await page.locator(`${TODO_LIST} li.todo-item`).count();
+
   await createTodo(page, "console-guard-probe");
-  await expect(page.locator(`${TODO_LIST} li.todo-item`)).toHaveCount(1, { timeout: 10_000 });
+  await expect(page.locator(`${TODO_LIST} li.todo-item`)).toHaveCount(before + 1, { timeout: 10_000 });
 
   expect(errors, errors.join("\n")).toEqual([]);
 });
