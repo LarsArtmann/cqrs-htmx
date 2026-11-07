@@ -54,6 +54,10 @@ type PathItem struct {
 	Parameters  []Parameter `json:"parameters,omitempty"`
 }
 
+// methodQuery is the lowercase OpenAPI operation key for the RFC 10008 HTTP
+// QUERY method — the only method key that is version-gated (3.2.0+).
+const methodQuery = "query"
+
 // hasMethod reports whether the PathItem already carries an operation for the
 // lowercase HTTP method ("get", "post", "query", ...). Used by the builder's
 // double-registration guard.
@@ -73,7 +77,7 @@ func (p *PathItem) hasMethod(method string) bool {
 		return p.Head != nil
 	case "options":
 		return p.Options != nil
-	case "query":
+	case methodQuery:
 		return p.Query != nil
 	}
 
@@ -84,14 +88,14 @@ func (p *PathItem) hasMethod(method string) bool {
 // Used by Spec.Validate.
 func (p *PathItem) operations() map[string]*Operation {
 	return map[string]*Operation{
-		"get":     p.Get,
-		"post":    p.Post,
-		"put":     p.Put,
-		"patch":   p.Patch,
-		"delete":  p.Delete,
-		"head":    p.Head,
-		"options": p.Options,
-		"query":   p.Query,
+		"get":       p.Get,
+		"post":      p.Post,
+		"put":       p.Put,
+		"patch":     p.Patch,
+		"delete":    p.Delete,
+		"head":      p.Head,
+		"options":   p.Options,
+		methodQuery: p.Query,
 	}
 }
 

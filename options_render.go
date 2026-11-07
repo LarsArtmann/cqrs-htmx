@@ -6,12 +6,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	etag "github.com/larsartmann/go-etag/server"
-
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 	"github.com/larsartmann/cqrs-htmx/v4/httperr"
 	"github.com/larsartmann/cqrs-htmx/v4/internal/hx"
 	errorfamily "github.com/larsartmann/go-error-family"
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 // Render sets a custom render function for query results.
@@ -146,7 +145,7 @@ func ETagResults() HandlerOption {
 		}
 
 		config.render = func(w http.ResponseWriter, r *http.Request, result any) error {
-			buffered := &etagBufferedResponse{header: http.Header{}}
+			buffered := &etagBufferedResponse{header: http.Header{}, body: bytes.Buffer{}}
 			if err := inner(buffered, r, result); err != nil {
 				return err
 			}
@@ -184,8 +183,18 @@ type etagBufferedResponse struct {
 }
 
 func (b *etagBufferedResponse) Header() http.Header { return b.header }
-func (b *etagBufferedResponse) Write(p []byte) (int, error) { return b.body.Write(p) }
-func (b *etagBufferedResponse) WriteHeader(int)                   {}
+
+func (b *etagBufferedResponse) Write(p []byte) (int, error) {
+	n, err := b.body.Write(p)
+
+	if err != nil {
+		return n, errorfamily.WrapInfrastructure(err, "etag_buffer_write", "buffering rendered response bytes")
+	}
+
+	return n, nil
+}
+
+func (b *etagBufferedResponse) WriteHeader(int) {}
 
 // RenderIf selects between two render functions based on a request predicate.
 // When check returns true, match is used; otherwise noMatch is used.

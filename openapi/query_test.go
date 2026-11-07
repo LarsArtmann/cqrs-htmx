@@ -42,8 +42,11 @@ func TestQueryOp_RendersKeyAndBumpsVersion(t *testing.T) {
 	}
 
 	paths, _ := doc["paths"].(map[string]any)
+
 	item, _ := paths["/contacts/search"].(map[string]any)
+
 	query, ok := item["query"].(map[string]any)
+
 	if !ok {
 		t.Fatalf("paths[\"/contacts/search\"][\"query\"] missing or not an object: %v", item)
 	}

@@ -17,6 +17,15 @@ import (
 // Plan: docs/planning/2026-11-07_07-21_SUPERB-http-query-method-pareto-plan.md §W4.2.
 
 func newETagApp() *cqrshtmx.App {
+	disp := query.NewDispatcher()
+	_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
+		return "ok", nil
+	})
+
+	return cqrshtmx.MustNew(cqrshtmx.Config{Queries: disp})
+}
+
+func newMutableETagApp() *cqrshtmx.App {
 	counter := &atomic.Int64{}
 	disp := query.NewDispatcher()
 	_ = disp.Register("GetUser", func(_ context.Context, _ query.Query) (any, error) {
@@ -27,6 +36,14 @@ func newETagApp() *cqrshtmx.App {
 }
 
 func etagQueryHandler(app *cqrshtmx.App) http.HandlerFunc {
+	return app.Query("GetUser",
+		decodeGetUserJSONQuery(),
+		cqrshtmx.RenderJSON[string](),
+		cqrshtmx.ETagResults(),
+	)
+}
+
+func mutableETagQueryHandler(app *cqrshtmx.App) http.HandlerFunc {
 	return app.Query("GetUser",
 		decodeGetUserJSONQuery(),
 		cqrshtmx.RenderJSON[int64](),
@@ -55,6 +72,7 @@ func TestETagResults_304OnRevalidation(t *testing.T) {
 
 	second := httptest.NewRequest(http.MethodGet, "/contacts", nil)
 	second.Header.Set("If-None-Match", tag)
+
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, second)
 
@@ -70,10 +88,11 @@ func TestETagResults_304OnRevalidation(t *testing.T) {
 func TestETagResults_ChangedResultChangesTag(t *testing.T) {
 	t.Parallel()
 
-	app := newETagApp()
-	handler := etagQueryHandler(app)
+	app := newMutableETagApp()
+	handler := mutableETagQueryHandler(app)
 
 	tags := make([]string, 2)
+
 	for i := range tags {
 		req := httptest.NewRequest(http.MethodGet, "/contacts", nil)
 		w := httptest.NewRecorder()
@@ -94,6 +113,7 @@ func TestETagResults_WildcardMatches(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/contacts", nil)
 	req.Header.Set("If-None-Match", "*")
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -110,6 +130,7 @@ func TestETagResults_StaleTagReplaysBody(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/contacts", nil)
 	req.Header.Set("If-None-Match", `"stale-tag"`)
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -117,7 +138,7 @@ func TestETagResults_StaleTagReplaysBody(t *testing.T) {
 		t.Fatalf("a stale tag must get a full 200 response, got %d", w.Code)
 	}
 
-	if !strings.Contains(w.Body.String(), "1") {
+	if !strings.Contains(w.Body.String(), "ok") {
 		t.Fatalf("200 response must replay the body, got %q", w.Body.String())
 	}
 
@@ -130,10 +151,10 @@ func TestETagResults_BeforeRendererIsNoOp(t *testing.T) {
 	t.Parallel()
 
 	app := newETagApp()
-	handler := app.Query("Count",
+	handler := app.Query("GetUser",
 		decodeGetUserJSONQuery(),
 		cqrshtmx.ETagResults(),
-		cqrshtmx.RenderJSON[int64](),
+		cqrshtmx.RenderJSON[string](),
 	)
 
 	req := httptest.NewRequest(http.MethodGet, "/contacts", nil)

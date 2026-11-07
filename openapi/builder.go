@@ -76,7 +76,7 @@ func (s *Spec) PathOp(path string, operation Operation) *Spec {
 // `query` operation type (RFC 10008's HTTP QUERY method) exists only in
 // OpenAPI 3.2.0; a spec that carries one must not claim 3.1.0.
 func (s *Spec) noteMethod(method string) {
-	if method == "query" {
+	if method == methodQuery {
 		s.OpenAPI = "3.2.0"
 	}
 }
@@ -128,7 +128,7 @@ func (b *opBuilder) apply(item *PathItem) {
 		item.Head = b.op
 	case "options":
 		item.Options = b.op
-	case "query":
+	case methodQuery:
 		item.Query = b.op
 	}
 }
@@ -158,7 +158,7 @@ func Options(operationID string) *opBuilder { return newOp("options", operationI
 // safe, idempotent, request-body-carrying read method). Registering one
 // auto-bumps the spec to OpenAPI 3.2.0 — the `query` operation type does not
 // exist in 3.1.
-func Query(operationID string) *opBuilder { return newOp("query", operationID) }
+func Query(operationID string) *opBuilder { return newOp(methodQuery, operationID) }
 
 func newOp(method, operationID string) *opBuilder {
 	return &opBuilder{

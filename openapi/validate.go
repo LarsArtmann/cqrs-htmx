@@ -13,7 +13,9 @@ var (
 	errNilSpec              = errors.New("openapi: spec is nil")
 	errNoOperationID        = errors.New("openapi: operation has no operationId")
 	errDuplicateOperationID = errors.New("openapi: duplicate operationId")
-	errQueryNeeds32         = errors.New("openapi: query operation requires OpenAPI 3.2.0 (set OpenAPI to \"3.2.0\", or register it with openapi.Query via Spec.Path/PathOp which auto-bumps)")
+	errQueryNeeds32         = errors.New(
+		"openapi: query operation requires OpenAPI 3.2.0 " +
+			"(set OpenAPI to \"3.2.0\", or register it with openapi.Query via Spec.Path/PathOp which auto-bumps)")
 )
 
 // errNoResponses names the fix in its message: per the OpenAPI Specification
@@ -57,7 +59,7 @@ func (s *Spec) Validate() error {
 				continue
 			}
 
-			if method == "query" && s.OpenAPI != "3.2.0" {
+			if method == methodQuery && s.OpenAPI != "3.2.0" {
 				errs = append(errs, fmt.Errorf("%w: %s", errQueryNeeds32, path))
 			}
 
