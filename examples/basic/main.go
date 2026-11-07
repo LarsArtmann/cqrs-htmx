@@ -2,7 +2,9 @@
 //
 // It demonstrates:
 //   - Creating an App with command and query dispatchers
-//   - HTMX handlers with JSON decoding via mapper functions
+//   - HTMX handlers with decode via mapper functions — DecodeForm for the
+//     page's forms (htmx posts urlencoded) and DecodeJSON for API-shaped
+//     endpoints (/api/audit, /api/items/search)
 //   - Typed command/query handlers (no manual type assertions)
 //   - Partial-render helpers: RenderPartialOrFull, OOBHTML, RenderIf (/demo/items)
 //   - SSE live updates via Broadcaster
@@ -287,10 +289,12 @@ func newHandler() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /htmx.js", htmx.ScriptHandler())
 
-	// POST /api/items — command handler
+	// POST /api/items — command handler. The index page's form posts
+	// urlencoded (native htmx), so this uses the form decoder; the same
+	// mapper shape as the JSON variant.
 	mux.Handle("POST /api/items", app.Command(
 		"CreateItem",
-		cqrshtmx.DecodeJSON(func(req createItemRequest) (command.Command, error) {
+		cqrshtmx.DecodeForm(func(req createItemRequest) (command.Command, error) {
 			core, err := command.New("CreateItem", id.NewStreamID())
 			if err != nil {
 				return nil, err
@@ -344,17 +348,19 @@ func newHandler() http.Handler {
 		cqrshtmx.RenderJSON[[]item](),
 	))
 
-	// POST /api/greet — typed command handler (no mapper, no type assertion)
+	// POST /api/greet — typed command handler (no mapper, no type assertion).
+	// Form-decoded: the page form is its only caller.
 	mux.Handle("POST /api/greet", cqrshtmx.CommandTyped[*greetCmd](
 		app, "Greet",
-		cqrshtmx.DecodeJSONTyped[*greetCmd](),
+		cqrshtmx.DecodeFormTyped[*greetCmd](),
 		cqrshtmx.WithSuccessStatus(201),
 	))
 
-	// POST /api/sum — typed query handler (returns int, no mapper)
+	// POST /api/sum — typed query handler (returns int, no mapper).
+	// Form-decoded: the page form posts a=3&b=4.
 	mux.Handle("POST /api/sum", cqrshtmx.QueryTyped[*sumQuery, int](
 		app, "Sum",
-		cqrshtmx.DecodeJSONQueryTyped[*sumQuery](),
+		cqrshtmx.DecodeFormQueryTyped[*sumQuery](),
 		cqrshtmx.RenderJSON[int](),
 	))
 
