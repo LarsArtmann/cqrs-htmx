@@ -10,22 +10,29 @@
 
 Without `Layout`, the dashboard renders its own page shell (sidebar, theme
 toggle, document). With it, YOUR function renders the document and the
-dashboard hands you everything it knows about the page:
+dashboard hands you the page metadata plus the ready-rendered content:
 
 ```go
-type LayoutFunc func(w io.Writer, meta PageMeta) error
+type LayoutFunc func(meta PageMeta, content templ.Component) templ.Component
 
-dash, err := dashboardui.New(dashboardui.Config{
-    EventSource: store,
-    BasePath:    "/cqrs",
-    Layout:      myShell.RenderDashboard, // your document, its panels
-})
+cfg.Layout = func(meta dashboardui.PageMeta, content templ.Component) templ.Component {
+    return myShell(myPage{Title: meta.FullTitle, User: currentUser}, content)
+}
 ```
 
-`PageMeta` carries the per-page facts a shell needs: `Title`, the page's
-`PanelHTML` (render it where the content belongs), and `Nav` — the navigation
-model the built-in sidebar would have rendered, capability items first,
-consumer extras last.
+The shell owns the ENTIRE document (html/head/body) and must:
+
+- link `meta.CSSURLs` (or vendor equivalents) or the panels render unstyled;
+- load `meta.ScriptURLs` (htmx.js, dashboard.js) — skip htmx.js if your shell
+  already loads its own (never load htmx twice);
+- emit `meta.Nonce` on any script tags when a nonce CSP is in play;
+- include a `feedback.ToastContainer` — write actions surface toasts via the
+  `dashboardui:toast` HX-Trigger event.
+
+`PageMeta` additionally carries `Title`/`FullTitle`/`Brand`, `BasePath`,
+`AccentColor`, `ReadOnly`, `Capabilities`, and `Nav` — the navigation model
+the built-in sidebar would have rendered, capability items first, consumer
+extras last.
 
 ## `NavLink` and the `Verbatim` contract
 
