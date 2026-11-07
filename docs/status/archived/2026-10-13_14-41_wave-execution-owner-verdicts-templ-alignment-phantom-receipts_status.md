@@ -66,48 +66,49 @@
 
 ## f) Up to 50 things to get done next (ranked; HARVEST input)
 
+<!-- check-rows:ledger -->
 | # | Task | Impact | Effort | Category |
 |---|------|--------|--------|----------|
-| 1 | Push the 7-commit pile (gate-green 0/0/0) — closes the two lag reds | **Critical** | S | Release |
-| 2 | `gh run watch` the post-push run to terminal — restore the e2 discipline | **Critical** | S | Process |
-| 3 | Run the **e2e sync battery (73/73)** — the wave's declared gate, overdue | High | M | Quality |
-| 4 | Cut the remaining 8 wave tags in dependency order (datastar v4.12.2 → auditlog v4.12.2 → health v4.13.0 → loginpage v4.12.3 → adminui v4.12.4 → dashboardui v4.13.3 → **setup v4.14.3 with T5** → systemadapter v4.12.4), sweep consumers after each | **Critical** | M/L | Release |
-| 5 | Wave-completion: CHANGELOG blob flip to 14/14 CUT + refresh-cache + final push + CI watch | High | S | Release |
-| 6 | Verify sync-demo hermetic build (AddSyncOpenAPI resolves from published v4.14.1 — closes gotcha 30/38d) | High | S | Release |
-| 7 | go-appkit lane (Q3 mine): their catalog v4.8.0 alignment + their gates + A8 docs pointer | High | M/L | Cross-repo |
-| 8 | Paranoia pass: ls-remote all 6 cut tags resolve to the intended commits | Medium | S | Release |
-| 9 | Hermetic `go mod tidy -diff` across the swept modules (union-graph residue class, gotcha 27d) | Medium | S | Quality |
+| ~~1~~ | ~~Push the 7-commit pile (gate-green 0/0/0) — closes the two lag reds~~ done — 14/14 tags CUT + pushed; the wave closed green (CHANGELOG family-wave-train receipt) | ~~**Critical**~~ | ~~S~~ | ~~Release~~ |
+| ~~2~~ | ~~`gh run watch` the post-push run to terminal — restore the e2 discipline~~ done — post-push CI green at the wave; the discipline is now mechanized (scripts/tools/push-and-watch.sh) | ~~**Critical**~~ | ~~S~~ | ~~Process~~ |
+| ~~3~~ | ~~Run the **e2e sync battery (73/73)** — the wave's declared gate, overdue~~ done — e2e sync battery 73/73 gated the wave (CHANGELOG receipt) | ~~High~~ | ~~M~~ | ~~Quality~~ |
+| ~~4~~ | ~~Cut the remaining 8 wave tags in dependency order (datastar v4.12.2 → auditlog v4.12.2 → health v4.13.0 → loginpage v4.12.3 → adminui v4.12.4 → dashboardui v4.13.3 → **setup v4.14.3 with T5** → systemadapter v4.12.4), sweep consumers after each~~ done — 14 of 14 tags CUT incl. datastar v4.12.2 ... setup v4.14.3 + adminui v4.12.4 (CHANGELOG receipt) | ~~**Critical**~~ | ~~M/L~~ | ~~Release~~ |
+| ~~5~~ | ~~Wave-completion: CHANGELOG blob flip to 14/14 CUT + refresh-cache + final push + CI watch~~ done — wave-completion - CHANGELOG blob records 14/14 CUT + pushed (2026-10-13 receipt) | ~~High~~ | ~~S~~ | ~~Release~~ |
+| ~~6~~ | ~~Verify sync-demo hermetic build (AddSyncOpenAPI resolves from published v4.14.1 — closes gotcha 30/38d)~~ done — root v4.14.1 CUT with the sync-asset fixes; sync-demo executable guide landed (CHANGELOG receipts) | ~~High~~ | ~~S~~ | ~~Release~~ |
+| ~~7~~ | ~~go-appkit lane (Q3 mine): their catalog v4.8.0 alignment + their gates + A8 docs pointer~~ resolved — routed: TODO_LIST Plan-of-record 09-48 row - go-appkit bump-dep re-run expecting 4/4 PASS rides the first wave | ~~High~~ | ~~M/L~~ | ~~Cross-repo~~ |
+| ~~8~~ | ~~Paranoia pass: ls-remote all 6 cut tags resolve to the intended commits~~ done — verify-tag --push + wave-tag.sh mechanize the ls-remote paranoia (CHANGELOG 2026-10-25 tooling receipt) | ~~Medium~~ | ~~S~~ | ~~Release~~ |
+| ~~9~~ | ~~Hermetic `go mod tidy -diff` across the swept modules (union-graph residue class, gotcha 27d)~~ done — hermetic tidy across the swept modules - 26-consumer tidy receipts (TODO_LIST 09-48 row, 2026-11-06) | ~~Medium~~ | ~~S~~ | ~~Quality~~ |
 | 10 | Amend the remaining HEAD-amendable heuristic messages (bounded; no mid-pile rewrites) | Low | S | Hygiene |
-| 11 | TODO_LIST stamp refresh + P1 row 19 progress note (wave PRECEDES condition satisfied by the cut) | Medium | S | Docs |
+| ~~11~~ | ~~TODO_LIST stamp refresh + P1 row 19 progress note (wave PRECEDES condition satisfied by the cut)~~ done — TODO_LIST re-stamped through 2026-11-07 (header: v4.17.0 family train EXECUTED) | ~~Medium~~ | ~~S~~ | ~~Docs~~ |
 | 12 | Annotate the 20-01 status report §f rows done today (append-only) | Medium | S | Docs |
 | 13 | Annotate the 18-20 plan: A7 done (G20/G21), A9 executed (shape B), A8 pending | Medium | S | Docs |
-| 14 | ROADMAP DocsPath packet: verdict slot → "DECIDED shape B, shipped in setup v4.14.3" once tagged | Medium | S | Docs |
+| ~~14~~ | ~~ROADMAP DocsPath packet: verdict slot → "DECIDED shape B, shipped in setup v4.14.3" once tagged~~ done — ROADMAP DocsPath verdict recorded - DECIDED shape B, shipped as setup v4.14.3 (ROADMAP.md:104) | ~~Medium~~ | ~~S~~ | ~~Docs~~ |
 | 15 | Report the phantom-receipt finding as its own record-integrity note (§a3) to the owner | Medium | S | Docs |
-| 16 | `wave-tag.sh` runner (e2 of this report) + bump-dep header doc for the `github.com/` prefix | Medium | M | Tooling |
-| 17 | `push-and-watch.sh` (the harvested f11 row) — implement before the next push cycle | High | S | Process |
+| ~~16~~ | ~~`wave-tag.sh` runner (e2 of this report) + bump-dep header doc for the `github.com/` prefix~~ done — wave-tag.sh shipped (CHANGELOG 2026-10-25 release-operational tooling receipt) | ~~Medium~~ | ~~M~~ | ~~Tooling~~ |
+| ~~17~~ | ~~`push-and-watch.sh` (the harvested f11 row) — implement before the next push cycle~~ done — push-and-watch.sh exists (scripts/tools/push-and-watch.sh) | ~~High~~ | ~~S~~ | ~~Process~~ |
 | 18 | Daemon-doctrine decision (e1): propose accept-amend doctrine + daemon-hold feature to owner | Medium | S | Process |
-| 19 | bump-dep lint leg (harvested f10 row) — implement | High | M | Tooling |
-| 20 | templ formatter→regen guard (f12) | High | M | Tooling |
-| 21 | StateShape persistence round-trip audit (f13) | High | S | Bug-hunt |
-| 22 | `check-upstream-treadmill.sh` (f17) | Medium | M | Tooling |
-| 23 | Post-wave battery: `.#test` + `.#check-modules` + coverage-gate re-run | High | M | Quality |
+| ~~19~~ | ~~bump-dep lint leg (harvested f10 row) — implement~~ done — bump-dep lint leg - FIX RECIPE prints --commit --lint (CHANGELOG 2026-10-27 sweep-collision receipt) | ~~High~~ | ~~M~~ | ~~Tooling~~ |
+| ~~20~~ | ~~templ formatter→regen guard (f12)~~ resolved — routed: TODO_LIST Close the formatter-to-derived-artifact chain for templ row | ~~High~~ | ~~M~~ | ~~Tooling~~ |
+| ~~21~~ | ~~StateShape persistence round-trip audit (f13)~~ resolved — routed: TODO_LIST Audit the StateShape persistence round-trip row | ~~High~~ | ~~S~~ | ~~Bug-hunt~~ |
+| ~~22~~ | ~~`check-upstream-treadmill.sh` (f17)~~ done — check-upstream-treadmill.sh shipped (CHANGELOG 2026-10-25 receipt) | ~~Medium~~ | ~~M~~ | ~~Tooling~~ |
+| ~~23~~ | ~~Post-wave battery: `.#test` + `.#check-modules` + coverage-gate re-run~~ done — battery receipts 2026-11-06 22:47 (TODO_LIST 09-48 row) | ~~High~~ | ~~M~~ | ~~Quality~~ |
 | 24 | Fleet lint sweep (last full 2026-10-01) | Medium | M | Quality |
-| 25 | Bench-spike at a quiet window (refused twice at load) | Medium | M | Quality |
+| ~~25~~ | ~~Bench-spike at a quiet window (refused twice at load)~~ resolved — routed: TODO_LIST Post-change verification battery row - bench-spike re-pin on an idle machine | ~~Medium~~ | ~~M~~ | ~~Quality~~ |
 | 26 | Large-file cleanup: `git rm --cached` the two binaries (P1 19a, still open) | High | S | Cleanup |
 | 27 | Root coverage gate for the sync/openapi surface (P1 19b, still open) | High | M | Quality |
-| 28 | E2E/Playwright suite re-run post templ-components v1.22.0 (render-affecting release) | Medium | M | Quality |
-| 29 | integration_test: DocsHandler consumer-level seam test (rides next train) | Medium | S | Quality |
-| 30 | setup/README integration-modes: DocsHandler wiring example | Low | S | Docs |
-| 31 | Gotcha line: go.work replace-bridges (safe class) vs go.mod filesystem replaces (gotcha 36 trap) | Medium | S | Docs |
-| 32 | oauth2 "receipts in its module CHANGELOG" claim — oauth2 has NO CHANGELOG file (pre-existing doc gap; fix claim or add file) | Low | S | Docs |
-| 33 | Investigate whether `1e1077a2`'s templ-components replace-bridge blocks CI's hermetic templ jobs (CI templ runs GOWORK=off? — the bridge is go.work-only, should be invisible, VERIFY) | Medium | S | CI |
-| 34 | Re-pin `check-branching-flow` baseline if the wave's diffs added findings (last pin 10-12) | Low | S | Quality |
-| 35 | `docs-freshness` watch: the uniform-at-v1.22.0 claim must survive CI (hit live 10-08) | Low | S | Docs |
-| 36 | Post-wave: reconcile TODO_LIST P2 rows 34/35 done-strikes (already struck) — no action, verify only | Low | S | Docs |
+| ~~28~~ | ~~E2E/Playwright suite re-run post templ-components v1.22.0 (render-affecting release)~~ done — e2e battery green at the templ-components v1.23.0 wave (73/73; bundles rebuilt in the same change) | ~~Medium~~ | ~~M~~ | ~~Quality~~ |
+| ~~29~~ | ~~integration_test: DocsHandler consumer-level seam test (rides next train)~~ done at `b79e2b50` | ~~Medium~~ | ~~S~~ | ~~Quality~~ |
+| ~~30~~ | ~~setup/README integration-modes: DocsHandler wiring example~~ done — setup/README DocsPath + DocsHandler config table (setup/README.md:174) | ~~Low~~ | ~~S~~ | ~~Docs~~ |
+| ~~31~~ | ~~Gotcha line: go.work replace-bridges (safe class) vs go.mod filesystem replaces (gotcha 36 trap)~~ done — gotcha 36 SAFE-sibling-class paragraph - go.work replace-bridges vs go.mod replaces | ~~Medium~~ | ~~S~~ | ~~Docs~~ |
+| ~~32~~ | ~~oauth2 "receipts in its module CHANGELOG" claim — oauth2 has NO CHANGELOG file (pre-existing doc gap; fix claim or add file)~~ done — claim fixed - CHANGELOG now states oauth2 ships no module CHANGELOG per repo practice (line 145) | ~~Low~~ | ~~S~~ | ~~Docs~~ |
+| ~~33~~ | ~~Investigate whether `1e1077a2`'s templ-components replace-bridge blocks CI's hermetic templ jobs (CI templ runs GOWORK=off? — the bridge is go.work-only, should be invisible, VERIFY)~~ done — bridge question settled - v1.23.0 published, bridge removed, adminui tagged (CHANGELOG + gotcha 36) | ~~Medium~~ | ~~S~~ | ~~CI~~ |
+| ~~34~~ | ~~Re-pin `check-branching-flow` baseline if the wave's diffs added findings (last pin 10-12)~~ done — branching-flow re-pinned 203 to 210 on 2026-11-06 (TODO_LIST 09-48 row) | ~~Low~~ | ~~S~~ | ~~Quality~~ |
+| ~~35~~ | ~~`docs-freshness` watch: the uniform-at-v1.22.0 claim must survive CI (hit live 10-08)~~ done — docs-freshness runs in CI (round-12 receipt) + battery green 2026-11-06 | ~~Low~~ | ~~S~~ | ~~Docs~~ |
+| ~~36~~ | ~~Post-wave: reconcile TODO_LIST P2 rows 34/35 done-strikes (already struck) — no action, verify only~~ done — no action needed - the P2 rows are superseded by later TODO rewrites (verified: rows gone) | ~~Low~~ | ~~S~~ | ~~Docs~~ |
 | 37 | Consider `train-preflight` adoption as the wave's standard gate (the tool exists) | Medium | S | Process |
 | 38 | Sweep attribution audit: confirm `b1b8bbe5`'s oauth2 sweep was the foreign session's completion vs mine (attribution honesty) | Low | S | Hygiene |
 | 39 | Commit-first-fmt-amend ordering experiment (e1a) on the next docs batch | Low | S | Process |
-| 40 | Next family train candidate list: save the gate's "next alignment list" output (it prints it) | Low | S | Planning |
+| ~~40~~ | ~~Next family train candidate list: save the gate's "next alignment list" output (it prints it)~~ done — treadmill flattened to worst-lag 0 (CHANGELOG 2026-11-04 receipt); the alignment list is empty | ~~Low~~ | ~~S~~ | ~~Planning~~ |
 
 ## g) Questions for the owner (cannot figure out myself)
 

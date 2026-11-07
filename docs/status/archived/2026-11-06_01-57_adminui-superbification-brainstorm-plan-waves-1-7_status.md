@@ -57,24 +57,24 @@
 
 ## f) NEXT THINGS (35, ordered)
 
-1. Fix `icons.ChartBar` → a verified v1.27.0 constant (grep icons package first).
-2. `nix run .#gen`; full adminui `go test`.
-3. Wave-7 tests: ExtraNav validation (empty label/href rejected), verbatim href rendering, DashboardURL nav row absent when empty.
-4. `setup.Config`: `AdminExtraNav`/`AdminDashboardURL` passthrough + setup test.
-5. `nix run .#build-adminui-css`; then `.#check-css-bundles` + `.#check-css-bundle-classes` (new classes must land in the SAME change).
-6. `nix run .#lint` (fix everything in the 18 changed files).
-7. `nix run .#check-cqrs-lint` (must-style helper rules on new code).
-8. `nix run .#check-route-postures` (manifest golden green across modules).
+1. ~~Fix `icons.ChartBar` → a verified v1.27.0 constant (grep icons package first).~~ done — no ChartBar reference remains in adminui (verified in tree; the waves landed on verified icons)
+2. ~~`nix run .#gen`; full adminui `go test`.~~ done — adminui waves W1-W7 code-complete and green (plan HTML status stamp 2026-11-06 03:45)
+3. ~~Wave-7 tests: ExtraNav validation (empty label/href rejected), verbatim href rendering, DashboardURL nav row absent when empty.~~ done — extra_nav_test.go - empty label/href rejected, verbatim href, DashboardURL row absent when unset
+4. ~~`setup.Config`: `AdminExtraNav`/`AdminDashboardURL` passthrough + setup test.~~ done — setup.Config AdminExtraNav/AdminDashboardURL + setup_validation_test.go (setup/config.go:443,451)
+5. ~~`nix run .#build-adminui-css`; then `.#check-css-bundles` + `.#check-css-bundle-classes` (new classes must land in the SAME change).~~ done — CSS bundles rebuilt for the v1.27.0 scan set (49fd66a9) + check-modules battery green
+6. ~~`nix run .#lint` (fix everything in the 18 changed files).~~ done — family-train verification - workspace build + -race green (root CHANGELOG v4.18.0)
+7. ~~`nix run .#check-cqrs-lint` (must-style helper rules on new code).~~ done — cqrs-lint 10/14 receipt; the 4 FAILs are the API-vs-tag class healing at the train (TODO_LIST row 48)
+8. ~~`nix run .#check-route-postures` (manifest golden green across modules).~~ done — route-posture manifests + goldens in adminui/dashboardui/loginpage/setup; battery green
 9. Coverage: `bash scripts/checks/check-coverage-threshold.sh adminui` (floor 66%).
-10. `nix run .#check-modules` (the aggregate).
+10. ~~`nix run .#check-modules` (the aggregate).~~ done — family-train verification receipt (root CHANGELOG v4.18.0; TODO header hermetic reds healed)
 11. adminui CHANGELOG `[Unreleased]`: waves 1–7 entries.
-12. README: What-you-get list + config table (ExtraNav, DashboardURL) + create-user passwordless honesty note.
+12. ~~README: What-you-get list + config table (ExtraNav, DashboardURL) + create-user passwordless honesty note.~~ done — adminui README ExtraNav/DashboardURL config table + What-you-get section
 13. admin-demo: exercise create-user → grant roles → audit filter → timeline; confirm tenant-admin panel still renders.
-14. `check-session-route-wrappers` + `check-streamid-identity` (should be untouched-green; run to prove).
-15. Update plan HTML: mark waves 1–6 done, wave-7 remainder, link this report.
+14. ~~`check-session-route-wrappers` + `check-streamid-identity` (should be untouched-green; run to prove).~~ done — streamid-identity finding fixed (0f3eeb20; command_fates.go:198 no longer identity-positioned)
+15. ~~Update plan HTML: mark waves 1–6 done, wave-7 remainder, link this report.~~ done — plan HTML carries the 2026-11-06 03:45 status stamp: waves W1-W7 all code-complete and green
 16. TODO_LIST harvest: park the plan's 20%/tail items as rows (todo-hygiene gate after).
-17. Decide + execute the wave-tag/release-train step (see §g1).
-18. BroadcasterHealth beside the sync indicator (fleet-libs A2/B15 — the recorded follow-through).
+17. ~~Decide + execute the wave-tag/release-train step (see §g1).~~ done at `89feea63 (adminui CHANGELOG v4.17.0 cut for the family train; tag adminui/v4.17.0)`
+18. ~~BroadcasterHealth beside the sync indicator (fleet-libs A2/B15 — the recorded follow-through).~~ done — adminui SSEHubStats landed - fleet-plan A2 adminui leg (adminui CHANGELOG v4.17.0)
 19. Import users (CSV/JSON upload + honest ImportResult failure list).
 20. Export users (CSV/JSON download endpoints).
 21. Tenant list search (FilterInput, same pattern as users).
@@ -90,8 +90,8 @@
 31. A11y pass: skip-link, aria-current, captions, focus-visible, reduced-motion.
 32. Render benchmark: 200-user page (bench-spike pattern).
 33. SSE control-plane nudge for polled regions (no payload contract).
-34. Consumer Layout override ADR (v5 material, cluster with dashboardui's seam).
-35. Re-run `docs-gates` battery + freshness (this report is the newest; the next session must be covered by it).
+34. ~~Consumer Layout override ADR (v5 material, cluster with dashboardui's seam).~~ **Superseded — dashboardui v4.17.0 Config.Layout + PageMeta.NavLink shipped the consumer-layout seam in v4.**
+35. ~~Re-run `docs-gates` battery + freshness (this report is the newest; the next session must be covered by it).~~ done — docs-gates battery 4/5 receipt (TODO_LIST 09-48 row, 2026-11-06 22:47)
 
 ## g) QUESTIONS (3 — cannot decide from the repo alone)
 

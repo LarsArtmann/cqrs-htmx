@@ -391,7 +391,7 @@ failures (consumers not inspected, plan not read, test not run), not coding fail
 ### Tier 6 — docs and consumer fleet
 
 39. ~~`docs/guides/authorization-system.md`: add the dispatch-boundary section.~~ done — guide 5 dispatch-boundary section (TODO_LIST dispatch row)
-40. `docs/PERMISSIONS.md`: fill the remaining `?` rows (`TODO_LIST.md:25` item 5).
+40. ~~`docs/PERMISSIONS.md`: fill the remaining `?` rows (`TODO_LIST.md:25` item 5).~~ resolved — routed: TODO_LIST authorization workstream row remaining (5) - the ? rows in docs/PERMISSIONS.md
 41. ~~Skill update: `.agents/skills/cqrs-htmx/SKILL.md` §Authorization gains the~~ done — skill Authorization section + README updated (TODO_LIST dispatch row: skill/README)
     ~~dispatch gate (with a `//doc:api-tour` fence so `check-skill-snippets` parses it).~~
 42. ~~Root README: one paragraph, no renewal of the "full CQRS" overclaim.~~ done — root README dispatch-boundary paragraph (README.md:95)

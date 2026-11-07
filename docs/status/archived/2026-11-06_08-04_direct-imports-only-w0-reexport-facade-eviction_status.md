@@ -304,13 +304,13 @@ would have produced silent `exempt:` sprawl.
 
 ### Tier 1 — verification residue from this session (cheap, closes the honesty gap)
 
-1. Run `nix run .#check-modules` on the current tree and record the aggregate result (§b1).
-2. Run `nix run .#test` with `-race` for the root module and the three façade packages.
-3. Run `nix run .#coverage-gate` and confirm the root module's threshold still holds after the
+1. ~~Run `nix run .#check-modules` on the current tree and record the aggregate result (§b1).~~ done — W0 battery green - policy gate + 13 fixtures, build/vet, root 9 pkgs, lint 0 new (TODO_LIST W0 row)
+2. ~~Run `nix run .#test` with `-race` for the root module and the three façade packages.~~ done — root -race + split packages green (root CHANGELOG v4.18.0; W0 receipts)
+3. ~~Run `nix run .#coverage-gate` and confirm the root module's threshold still holds after the~~ resolved — routed: TODO_LIST Plan-of-record 09-48 row - first wave carries the coverage-gate run
    15-file repoint.
-4. Run `nix run .#check-cqrs-lint` (workspace-mode is unsafe; use the flake app) and
-   `.#check-erraudit-strict` and `.#check-branching-flow` on this tree.
-5. Repoint root's `_test.go` files off the façade aliases (§b3), then re-run the root suite.
+4. ~~Run `nix run .#check-cqrs-lint` (workspace-mode is unsafe; use the flake app) and~~ done — cqrs-lint / erraudit / branching-flow receipts 2026-11-06 (TODO_LIST 09-48 row battery)
+   ~~`.#check-erraudit-strict` and `.#check-branching-flow` on this tree.~~
+5. ~~Repoint root's `_test.go` files off the façade aliases (§b3), then re-run the root suite.~~ done at `4380de92 - root tests repointed by dogfooding the codemod (TODO_LIST W0 row)`
 6. Decide whether `exempt:pending` should become a fourth *rule* (a count ceiling per pending file)
    instead of relying on rule 1's per-file ratchet.
 7. Add a fixture case proving rule 2 accepts the full-import-path spelling of a deprecation.
@@ -324,58 +324,58 @@ would have produced silent `exempt:` sprawl.
 
 11. Add the four façade names to `docs/gotchas.md`? (No — this is not a trap; do not pad the list.)
     Instead: add a gotcha for the empty-qualifier codemod class (§a10) if a second instance appears.
-12. Update `.agents/skills/cqrs-htmx/SKILL.md` §"Subpackages inside the root module": its point 1
-    ("`cqrshtmx` is still the supported surface … not deprecated") is now FALSE and must say the
-    subpackage is the surface and the aliases are deprecated.
-13. Same file, Path 0 and Path A code fences still call `cqrshtmx.HTMXScriptHandler`,
-    `cqrshtmx.MapError`, `cqrshtmx.NewEventCatalog`. Decide: keep them (they still compile) with a
-    note, or switch them to direct imports (better teaching). Then re-run `check-skill-claims` and
-    `check-skill-snippets`.
-14. `references/core-api.md` and `references/gotchas.md` in the same skill: sweep for façade usage.
-15. README: check whether any quick-start fence uses a façade alias; if so, switch it to a direct
-    import and re-run `.#check-readme-quickstart` (it compiles the fence in a throwaway module).
-16. `docs/guides/leveraging-httputil.md`, `event-catalog-guide.md`, `authorization-system.md`:
-    same sweep for `cqrshtmx.EventCatalog*` / `cqrshtmx.MapError` / `cqrshtmx.HTMX*` teaching.
+12. ~~Update `.agents/skills/cqrs-htmx/SKILL.md` §"Subpackages inside the root module": its point 1~~ done — skill Subpackages point corrected - SKILL.md:79 teaches the direct spelling
+    ~~("`cqrshtmx` is still the supported surface … not deprecated") is now FALSE and must say the~~
+    ~~subpackage is the surface and the aliases are deprecated.~~
+13. ~~Same file, Path 0 and Path A code fences still call `cqrshtmx.HTMXScriptHandler`,~~ done — skill Path 0/A fences switched (SKILL.md:79; completion-pass receipts)
+    ~~`cqrshtmx.MapError`, `cqrshtmx.NewEventCatalog`. Decide: keep them (they still compile) with a~~
+    ~~note, or switch them to direct imports (better teaching). Then re-run `check-skill-claims` and~~
+    ~~`check-skill-snippets`.~~
+14. ~~`references/core-api.md` and `references/gotchas.md` in the same skill: sweep for façade usage.~~ done — skill references swept (completion pass; deliberate contrasts only)
+15. ~~README: check whether any quick-start fence uses a façade alias; if so, switch it to a direct~~ done — README quick-start switched to direct imports (README.md:364-365)
+    ~~import and re-run `.#check-readme-quickstart` (it compiles the fence in a throwaway module).~~
+16. ~~`docs/guides/leveraging-httputil.md`, `event-catalog-guide.md`, `authorization-system.md`:~~ done — guides swept - 10 deliberate old-vs-new contrasts remain (TODO_LIST W0 row)
+    ~~same sweep for `cqrshtmx.EventCatalog*` / `cqrshtmx.MapError` / `cqrshtmx.HTMX*` teaching.~~
 17. Consider a `check-reexport-teaching` gate: docs fences must not teach a deprecated alias.
     (Only if item 13-16 shows drift; do not build a gate for a hypothetical.)
-18. Record in ADR-0062 that `exempt:pending` exists and why (it currently lists only four classes).
+18. ~~Record in ADR-0062 that `exempt:pending` exists and why (it currently lists only four classes).~~ done — ADR-0062 documents exempt:pending (five classes; ADR line 63)
 
 ### Tier 3 — open the v5 window correctly (W1)
 
-19. Write the single-window checklist (W1.1) and link it from `VERSIONING.md`.
-20. `grep -rn` every `/v4` consumer path outside go.work and record the answer (plan W1.1.2).
-21. Run the codemod `-apply` on `examples/`, then `e2e/`, then `setup/`, then `dashboardui/` — one
+19. ~~Write the single-window checklist (W1.1) and link it from `VERSIONING.md`.~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+20. ~~`grep -rn` every `/v4` consumer path outside go.work and record the answer (plan W1.1.2).~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+21. ~~Run the codemod `-apply` on `examples/`, then `e2e/`, then `setup/`, then `dashboardui/` — one~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     module per commit, suite green each time (W1.2/W1.6).
-22. Re-run the codemod dry run afterwards and prove 0 remaining R11/R12/R13 edits.
-23. Delete `htmx_reexport.go`, `httperr_reexport.go`, `eventcatalog_reexport.go`; re-baseline
+22. ~~Re-run the codemod dry run afterwards and prove 0 remaining R11/R12/R13 edits.~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+23. ~~Delete `htmx_reexport.go`, `httperr_reexport.go`, `eventcatalog_reexport.go`; re-baseline~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     `reexport-baseline.tsv` down by those three rows (the gate prints the shrink note).
-24. Retire the alias half of `api_surface_compat_test.go`; keep the genuine-root-API half and prove
+24. ~~Retire the alias half of `api_surface_compat_test.go`; keep the genuine-root-API half and prove~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     it still compiles.
-25. Delete the six deprecated root httputil/go-sse alias files and their now-unused requires.
-26. Delete the 176 `usermgmt` → `identity-model` aliases across 26 files; keep the constructor
+25. ~~Delete the six deprecated root httputil/go-sse alias files and their now-unused requires.~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+26. ~~Delete the 176 `usermgmt` → `identity-model` aliases across 26 files; keep the constructor~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     wrappers.
-27. Re-baseline `scripts/checks/root-files.baseline` (9 files leave root) and the coverage
+27. ~~Re-baseline `scripts/checks/root-files.baseline` (9 files leave root) and the coverage~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     thresholds.
-28. Decide the five `exempt:pending` files, one decision each, with a written reason (W1).
-29. `datastar/patch.go` (63 aliases) is the largest single pending decision — treat it as its own
+28. ~~Decide the five `exempt:pending` files, one decision each, with a written reason (W1).~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+29. ~~`datastar/patch.go` (63 aliases) is the largest single pending decision — treat it as its own~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     ADR rather than a wave side-effect.
-30. `dashboardui/core_bridge.go` (17) is the second: the `core/` package exists precisely so the
+30. ~~`dashboardui/core_bridge.go` (17) is the second: the `core/` package exists precisely so the~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     consumer can import it; deprecating the bridge is the honest end state.
 
 ### Tier 4 — the extractions (W2/W3)
 
-31. Measure `authz_contract.go`'s real dependency set before moving it (§d2) and record it in
+31. ~~Measure `authz_contract.go`'s real dependency set before moving it (§d2) and record it in~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     ADR-0062 §decision.
-32. Decide whether the denial vocabulary (`CodeForbidden`, `ErrForbidden`, …) moves to `authz/`,
+32. ~~Decide whether the denial vocabulary (`CodeForbidden`, `ErrForbidden`, …) moves to `authz/`,~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
     stays in `httperr`, or is duplicated — this is the open decision that gates the `authz` move.
-33. Extract `authz/` and repoint `authz.go`, `authztest`, `adminui`, `dashboardui`, `setup`.
-34. Add the `authz` layer-gate row + one planted-violation fixture.
-35. Decide the readiness home (root subpackage vs `projections/v4` module) — plan W2.2.
+33. ~~Extract `authz/` and repoint `authz.go`, `authztest`, `adminui`, `dashboardui`, `setup`.~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+34. ~~Add the `authz` layer-gate row + one planted-violation fixture.~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
+35. ~~Decide the readiness home (root subpackage vs `projections/v4` module) — plan W2.2.~~ resolved — routed: TODO_LIST direct-imports row - W1-W3 ride the single v5 window
 36. Extract `readiness/`, then delete `health`'s root→ edge for `ProjectionStatus*`.
 37. Extract `sync/` with `App.SyncPushHandler` reduced to a delegating method.
 38. Extract `realtime/` and settle the `AfterDispatchHook` seam ownership.
 39. Update ADR-0038 with the concrete `internal/handler` type map before any file moves (W3.1).
-40. Move the handler core and verify zero root→root alias uses and zero internal cycles.
+40. ~~Move the handler core and verify zero root→root alias uses and zero internal cycles.~~ done — the two gopls tidy warnings fixed (TODO_LIST dispatch row, Landed list)
 
 ### Tier 5 — process debts this session exposed
 
@@ -387,8 +387,8 @@ would have produced silent `exempt:` sprawl.
     sessions' file sets — the sibling-mixing class in §d1.
 44. Document the "one session per working tree" rule more loudly in `docs/runbooks/session-start.md`
     — this session hit it hard (gotcha 47 knows it, but the runbook does not lead with it).
-45. Fix the two `gopls go mod tidy` warnings surfaced all session (`dashboardui` commandlifecycle,
-    `usermgmt` catalog) — neither is mine, both were ignored.
+45. ~~Fix the two `gopls go mod tidy` warnings surfaced all session (`dashboardui` commandlifecycle,~~ done — the two gopls tidy warnings fixed with the dispatch wave (TODO_LIST dispatch row)
+    ~~`usermgmt` catalog) — neither is mine, both were ignored.~~
 46. Fix the 33 pre-existing root lint findings (`wsl_v5` 27, `nlreturn` 3, `tagliatelle` 2,
     `exhaustruct_v5` 1) — they mask new findings in `--new-from-rev`-less runs.
 47. Consider raising the `golangci-lint` version pin in the flake to 2.15.x so local and CI agree
@@ -397,5 +397,5 @@ would have produced silent `exempt:` sprawl.
     be greener than CI on this gate either.
 49. Record the corpus-ledger split imprecision (§b5) as a convention note: name the session's own
     delta, describe the rest as "sibling growth", never claim a to-the-line split.
-50. Write the W0 retrospective row into `TODO_LIST.md` as CLOSED (move it to `CHANGELOG.md`) once
+50. ~~Write the W0 retrospective row into `TODO_LIST.md` as CLOSED (move it to `CHANGELOG.md`) once~~ resolved — routed: TODO_LIST direct-imports row - W0 retrospective closure rides the v5 window
     W1 opens the v5 window — the row should not sit in P1 through an entire release.
