@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.16.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
@@ -65,7 +65,6 @@ require (
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/moby/sys/user v0.5.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.1 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.10 // indirect

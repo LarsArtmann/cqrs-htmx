@@ -6,7 +6,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.3
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.17.0
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1

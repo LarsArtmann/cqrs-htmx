@@ -216,8 +216,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0 h1:NLOvA3bUmM4iJkwDgNKtm5GS
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0/go.mod h1:6aEz/bxinPzfVJjVotYqp7+X68gWHVxKdcaX9gaaICw=
 github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0 h1:l/ZL4GmWl/wvj3cCpe+eC2CsAdRaLJIsNgyPEmNfTOc=
 github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0/go.mod h1:onl1VTxg+6wHrnxtzOUzzbgr5GSnGSvDJ8/jVbxAQyk=
-github.com/larsartmann/cqrs-htmx/v4 v4.16.0 h1:6yYxsuivXKrH4JKEjoDZ53iWY0yAkb2wiwluNzG5+ZU=
-github.com/larsartmann/cqrs-htmx/v4 v4.16.0/go.mod h1:aLuQb3JUCK7Jp6boFqRl4qi+C3IXWyn24/DG342mqdw=
+github.com/larsartmann/cqrs-htmx/v4 v4.17.0 h1:egq0XfRh7rPgRaveHYp3++NucOTAaFa44f6LleQOfBE=
+github.com/larsartmann/cqrs-htmx/v4 v4.17.0/go.mod h1:05k5akZNlZkCrvR70/LAafAFOwaToCw7w42PpEto2WI=
 github.com/larsartmann/go-appkit v0.10.0 h1:wQoz4qC9/2WX2HG4t0Pn0WR4GI5KtKtlAcVvKlAMFlU=
 github.com/larsartmann/go-appkit v0.10.0/go.mod h1:CyBJSsIFW+g8n6A4Vah/JSJ0McKraDnghcSJYHAeVSo=
 github.com/larsartmann/go-atomic-write v0.6.2 h1:lUHfOGTd+27+8pZxz+htSkbKSFVwwrQGS0tPoZ36B9U=

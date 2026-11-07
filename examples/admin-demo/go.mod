@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.16.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.17.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-idempotency v0.3.2
 	github.com/larsartmann/go-sse v0.7.0

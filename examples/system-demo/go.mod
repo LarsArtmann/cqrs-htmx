@@ -35,7 +35,7 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.4.1 // indirect
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.19.0 // indirect
-	github.com/larsartmann/cqrs-htmx/v4 v4.16.0 // indirect
+	github.com/larsartmann/cqrs-htmx/v4 v4.17.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
