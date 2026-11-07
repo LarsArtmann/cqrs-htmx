@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.16.0
 	github.com/larsartmann/cqrs-htmx/setup/v4 v4.17.0
-	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.4
+	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
@@ -113,7 +113,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/systemcatalog/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-datastar v0.6.3 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
