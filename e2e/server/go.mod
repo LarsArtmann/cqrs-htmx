@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/e2e/server
 go 1.27.2
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.16.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.16.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0
