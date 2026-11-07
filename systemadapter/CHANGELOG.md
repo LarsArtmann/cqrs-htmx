@@ -4,6 +4,8 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ## [Unreleased]
 
+## [v4.13.0] - 2026-11-07
+
 ### Added
 
 - **Engine-breadth presets: every metaengine engine is now one preset call (2026-11-06; fleet-plan A16, closing the 2026-11-03 deep-dive's "presets stop at memory/sqlite/split" finding).** `RecommendedPebbleDeployment(dir)`, `RecommendedBBoltDeployment(path)`, `RecommendedPostgresDeployment(dsn)`, `RecommendedDuckDBDeployment(path)`, and `RecommendedTursoDeployment(dsn)` each build the one-engine-holding-every-role `DeploymentConfig` (the correct topology for embedded engines and single-server deployments), sharing a `singleEngineDeployment` core with the existing presets. Dependency discipline is deliberate: the four heavy engines (pebble ~30-module tree, postgres/pgx, duckdb prebuilt bindings, turso/purego) are CONFIG-ONLY here — their drivers self-register in the consumer's binary via a one-line blank import (documented per preset and in the README table), so this module's graph grows by exactly one leaf: bboltengine (pure Go, dependency-light), linked as the family's construction proof. `TestRecommendedBBoltDeployment_EndToEnd` drives `system.New` → dispatch `RegisterUser` → drain → `FindByEmail` on a real bbolt file; `TestRecommendedBreadthPresets_Shape` pins driver/DSN/role shape for all five (incl. no SQLite pragmas leaking into non-SQLite engines). `examples/system-demo` gains `-engine memory|sqlite|bbolt` + `-dsn` flags selecting presets (README updated); dep budget 17 → 18 same-change. Also fixed in passing: `ArchitectureCatalog`'s unwrapped passthrough return (wrapcheck nolint with the passthrough verdict) — a pre-existing finding that would have reddened CI's lint matrix.
