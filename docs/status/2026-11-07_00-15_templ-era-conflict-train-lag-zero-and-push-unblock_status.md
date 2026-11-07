@@ -124,6 +124,7 @@ preserved, this report covers this session's lens: what landed, what was wasted,
 
 ~~1. Triage CI on bb407b60 (push-and-watch); confirm the red set is exactly the documented residuals.~~ DONE — CI triage receipt executed (05-20 §a2 / 09-00 §a2): the red set on f90cae63 was EXACTLY the documented residuals; CI green at 578c8a9d
 2. Run check-modules end to end on the final tree; capture the leg verdicts.
+
 ~~3. Run coverage-gate; confirm the 90 percent floor holds after tonight's dependency shifts.~~ DONE — coverage gate PASSED 15/15 post-train (09-00 §a9), incl. the four newly-measured modules
 ~~4. Run the race battery (`nix run .#test`) on the final tree.~~ DONE — full race battery (nix run .#test) green across all 30 modules post-train (09-00 §a9)
 ~~5. Execute the re-tag train: wave-tag identity-model, then root, then usermgmt, adminui,~~ DONE — v4.17.0 family train executed: seven tags cut and pushed via wave-tag --execute (root v4.17.0 = 32dbc009; 05-20 §a5)
@@ -150,6 +151,7 @@ preserved, this report covers this session's lens: what landed, what was wasted,
 21. Verify check-skill-claims / check-readme-splitbrain against the final AGENTS.md wording.
 22. Re-run cqrs-lint on the final tree; confirm the documented 10/14 (4 API-vs-tag loads, row 49).
 23. Re-run check-branching-flow on the final tree (baseline re-pinned at 210 tonight by the sibling).
+
 ~~24. Run the docs-gates battery on the final tree; confirm the audit-all pin decision is still pending~~ DONE — battery ran 4/5 PASS with audit-all confirmed owner-gated pending §g1 only (09-00 §a14) — exactly the confirmation this item asked for
     owner input only (drain 419 to 322 or re-pin).
 ~~25. Run the archive pass when the tail budget allows; this report and the sibling's three reports~~ DONE — Round-25 archive pass executed (65c72286): four settled reports archived with successors; TAIL_BASELINE 16→13 (05-20 §a12)
@@ -164,6 +166,7 @@ preserved, this report covers this session's lens: what landed, what was wasted,
     leave as-is (owner call; see question 2).
 31. Record the cross-project lesson in the crush-config lessons file: before running a gate-printed
     recipe on a shared tree, probe for a sibling running the same recipe.
+
 ~~32. Consider a workspace-membership guard for examples/catalog-demo while it is upstream-blocked~~ SUPERSEDED — upstream catalog/v4.14.0 healed catalog-demo (05-20 §a7); the upstream-blocked condition that motivated the guard ended
     (skip in workspace builds with a named reason, or accept the red — owner call).
 ~~33. Add a skip-until-upstream marker to the affected integration_test templ-era tests so the red is~~ SUPERSEDED — templ-era legs green after catalog v4.14.0 (05-20 §a8: integration_test hermetic lint 0 issues, suite green); no red left that a marker would explain
@@ -173,6 +176,7 @@ preserved, this report covers this session's lens: what landed, what was wasted,
 36. Confirm the e2e battery's route-posture and permission-maturity gates post-train (hermetic pins
     were red on tag-lag; should heal).
 37. Re-run erraudit strict on the final tree (advisory; TOTAL was 319 mid-session).
+
 ~~38. Reconcile the two same-night session reports (this one and the 23-52 receipt) — annotate the~~ DONE — relation annotated: 23-52 archived by Round-25 with the 05-20 header's successor note; the 09-00 header extends the two-lenses pattern to 05-20
     relation so the next audit-all sweep treats them as one session's two lenses, not two sessions.
 39. Update the templates/CSS rebuild procedure doc with the two-regeneration-nights warning: when two
@@ -181,6 +185,7 @@ preserved, this report covers this session's lens: what landed, what was wasted,
 41. Clean the stale /tmp/bump-dep-* forensics logs (trivial hygiene).
 42. Consider annotating c9fc2609's content in the next docs touch (a one-line pointer from the train
     narrative to the heuristic commit that carries the catalog pins).
+
 ~~43. Verify go.work's committed state matches the disk state one final time post-sibling (the~~ DONE — go.work tracked and clean: git status --porcelain go.work empty against HEAD (verified 2026-11-07)
     snapshot-restore suspect was active all night).
 44. Add the conflict-marker gate's scratch-clone proof to the runbooks (the sibling's row mentions

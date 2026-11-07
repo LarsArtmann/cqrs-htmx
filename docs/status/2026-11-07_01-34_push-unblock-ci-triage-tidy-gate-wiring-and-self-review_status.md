@@ -135,6 +135,7 @@ docs-freshness/readme-badges advisory classes beyond what the battery printed.
 4. `lint-sweep.sh` local parity gate (see e1) wired into check-modules + CI.
 5. Pre-push hook: add a root test-compile leg (see e2).
 6. css-bundle-classes: stop mutating the shared tree mid-battery (see e4).
+
 ~~7. Verify `e2e/server/server` tracked-binary suspicion (`git ls-files`) —~~ DONE — git ls-files e2e/server/server: NOT tracked (verified 2026-11-07) — local build artifact only, nothing to untrack or ignore
    noticed a fresh mtime, never followed up; untrack + ignore if real.
 ~~8. Post-train: setup RoutePostures manifest pins update (route-postures gate~~ DONE — route-postures gate GREEN on all five modules hermetically post-train (09-00 §a9); the setup manifest healed same-change with the tags
@@ -143,11 +144,13 @@ docs-freshness/readme-badges advisory classes beyond what the battery printed.
 10. Post-train: re-pin bench baseline (idle machine only, same-change rule).
 11. Post-train: erraudit-strict advisory TOTAL re-baseline (319 at last count).
 12. Post-train: branching-flow baseline re-verify (211).
+
 ~~13. Post-train: hook-red window closure proof (pre-commit buildflow green).~~ DONE — 578c8a9d shipped the missing check-conflict-markers.sh into the hook fixture (self-test 17/17); BuildFlow golangci step green post-train (08-27 receipts)
 14. Upstream watch row 51b: when go-cqrs-lite ships a templ-era docserver
     release, drop the daemon-added go.work catalog replace (22:39) and verify
     catalog-demo + integration_test heal.
 15. Harvest this report's §f into TODO_LIST per docs-health (skill mandate).
+
 ~~16. Archive pass: tail is 16 reports vs budget 3 (baseline 17) — the P2~~ DONE — Round-25 pass executed (65c72286): 21-31/22-03/22-42/23-52 archived with successor mapping; TAIL_BASELINE 16→13 (05-20 §a12)
     archive item; archive 00-03/22-03-class reports with successor mapping.
 17. History erratum ledger: map content-bearing daemon heuristic commits
@@ -156,6 +159,7 @@ docs-freshness/readme-badges advisory classes beyond what the battery printed.
 18. erraudit-name nolint warning (transport/serve.go, golangci "unknown
     linter"): find the canonical dual-tool suppression pattern or config
     allowlist.
+
 ~~19. docs-freshness pre-existing reds: deprecated-API mentions in gotchas.md /~~ DONE — bash scripts/checks/check-docs-freshness.sh PASSED on a fresh run (2026-11-07); the gate also runs green in CI
     leveraging-go-cqrs-lite.md examples.
 ~~20. go-etag v0.7.0 chore bump (fleet audit's 1 lag).~~ SUPERSEDED — closed as artifact (TODO fleet-libs row): root-tag v0.7.0 is the deprecated alias-shim; entitytag/server v0.6.1 ARE latest; audit files corrected 2026-11-06
@@ -166,6 +170,7 @@ docs-freshness/readme-badges advisory classes beyond what the battery printed.
 23. e2e dropdown test on Chromium 156 against the live v1.27.0 popover CSS
    layer (the 2026-11-05 vendored-layer class) — the narrative now says the
    layer is live again; prove it.
+
 ~~24. R2 systemcatalog-derived event catalog (F032 remove-when trigger,~~ DONE — usermgmt.ArchitectureCatalog() derives the catalog from the one spec table (usermgmt/es_architecture_catalog.go); F032 disables removed (TODO leverage/fleet rows; usermgmt CHANGELOG)
    systemcatalog v4.0.0 published) — replaces hand-maintained
    DefaultEventCatalog.
@@ -173,6 +178,7 @@ docs-freshness/readme-badges advisory classes beyond what the battery printed.
    usermgmt view_cache adapter.
 26. Huma module first tag rides the train; then README badges + docs-gates
     freshness for module README claims.
+
 ~~27. dashboardui/core/command_fates.go gocognit 27>25 (pre-existing) — extract.~~ DONE — scoped run 2026-11-07: gocognit (min-complexity 25 per dashboardui/.golangci.yml) over ./core/... = 0 issues; dashboardui lint green in CI post-train
 ~~28. dashboardui core exhaustruct_v5 literals (CommandFate/EventThroughput) —~~ DONE — scoped run 2026-11-07: exhaustruct_v5 over dashboardui ./core/... = 0 issues (no exclusion needed); dashboardui lint green in CI post-train
    verify against real lint post-train, fix if real.
@@ -186,9 +192,11 @@ docs-freshness/readme-badges advisory classes beyond what the battery printed.
 34. Templ-codegen-staged self-test: harden to refuse-on-dirty-tree instead of
     false-FAIL case 4.
 35. check-modules `--sequential` as default under >2 live peer sessions?
+
 ~~36. corpus ledger row for this report (done same-change) + verify TAIL_BASELINE~~ DONE — report growth ledgered (05-20 session ledger sentence in docs/status/README.md); Round-25 took TAIL_BASELINE 16→13, monotone (05-20 §a12)
     monotone after the next archive pass.
 37. ADR-0063 dispatch gate: confirm an ADR file link exists from FEATURES row.
+
 ~~38. The 3 root façade re-export files (v5 class 1b): prep codemods R11-R13 per~~ DONE — codemods R11/R12/R13 landed in re-export W0 with derivation + golden tests (scripts/checks/reexport_scanner.go, reexport-baseline.tsv, policy gate + 13 fixtures; TODO re-export row)
     SUPERB plan.
 ~~39. sqlite DLQ default for SQL setups (open R-item from the 11-03 audit).~~ DONE — durableDeadLetterStore in the SQL setups (usermgmt/es_projection_setup.go; dlq_durability_test.go) — receipts in the TODO leverage/fleet rows
@@ -203,6 +211,7 @@ docs-freshness/readme-badges advisory classes beyond what the battery printed.
     (tonight peaked at 31 processes; races were the evening's tax).
 46. Verify the 00-15 peer report's §c "owed" items landed (their session's
     debts, cross-check before archiving it).
+
 ~~47. Move Q2/Q3 owner decisions into TODO as explicit owner-gated rows (they~~ DONE — Q2 (A17) carried in the TODO fleet-libs row; Q3 (audit-all) carried in the TODO docs-gates audit-all row
     currently live only in reports).
 ~~48. Post-train hermetic re-verify of the 4 formerly-lagging modules' consumer~~ DONE — hermetic examples leg green post-train: all modules build and vet standalone GOWORK=off (09-00 §a9)
