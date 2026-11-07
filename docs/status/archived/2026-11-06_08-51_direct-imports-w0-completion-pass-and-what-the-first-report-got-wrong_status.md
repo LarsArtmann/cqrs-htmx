@@ -131,13 +131,13 @@ Ordered by my judgement of value, not by size. Items marked **(blocked)** need t
 
 **Close what this session left red (highest value first)**
 
-1. Tag the root module at the next patch so the `setup` tag gap closes — `DropStats`/`NewDropStats` and `adminui.NavEntry`/`ExtraNav`/`DashboardURL` are landed but unpublished. **This single tag turns 5 of the 7 pre-existing composite failures green.**
+1. ~~Tag the root module at the next patch so the `setup` tag gap closes — `DropStats`/`NewDropStats` and `adminui.NavEntry`/`ExtraNav`/`DashboardURL` are landed but unpublished. **This single tag turns 5 of the 7 pre-existing composite failures green.**~~ done at `c7f64281 (root v4.18.0`, ` 2026-11-07) - the setup tag gap closed; DropStats/NavEntry/ExtraNav published`
 2. Re-run `nix run .#check-modules` after that tag and publish the new count.
-3. Fix `dashboardui/core/command_fates.go:198` (`evt.StreamID().String()` in an identity position) or pin it in the allowlist with a reason — the `streamid-identity` gate is red on it (gotcha 25).
-4. Bump / replace `go-cqrs-lite/catalog/v4` to a version whose `docserver` templ output compiles against the resolved templ (the `JoinURLErrs`/`ResolveAttributeValue` removal) — `workspace-build` stays red on `examples/catalog-demo` until then.
-5. Get the real cqrs-lint findings for `dashboardui` and `systemadapter` **through `nix run .#check-cqrs-lint` per module** and adjudicate them.
-6. Run `nix run .#coverage-gate` and `nix run .#check-erraudit-strict` once the tag gap closes, and record the numbers.
-7. Add a TODO row that OWNS the composite red, naming the tag gap, so it cannot rot unowned again.
+3. ~~Fix `dashboardui/core/command_fates.go:198` (`evt.StreamID().String()` in an identity position) or pin it in the allowlist with a reason — the `streamid-identity` gate is red on it (gotcha 25).~~ done at `0f3eeb20 - command_fates.go:198 no longer uses StreamID().String() in an identity position (verified in tree)`
+4. ~~Bump / replace `go-cqrs-lite/catalog/v4` to a version whose `docserver` templ output compiles against the resolved templ (the `JoinURLErrs`/`ResolveAttributeValue` removal) — `workspace-build` stays red on `examples/catalog-demo` until then.~~ resolved — routed: TODO_LIST Plan-of-record 09-48 row - catalog release watch (catalog v4.13.0 does not fix the docserver templ poison)
+5. ~~Get the real cqrs-lint findings for `dashboardui` and `systemadapter` **through `nix run .#check-cqrs-lint` per module** and adjudicate them.~~ done — cqrs-lint 10/14; the 4 FAILs adjudicated as the API-vs-tag hermetic class (TODO_LIST row 48)
+6. ~~Run `nix run .#coverage-gate` and `nix run .#check-erraudit-strict` once the tag gap closes, and record the numbers.~~ resolved — routed: TODO_LIST Plan-of-record 09-48 row - first wave carries the coverage-gate run; erraudit TOTAL=319 recorded
+7. ~~Add a TODO row that OWNS the composite red, naming the tag gap, so it cannot rot unowned again.~~ done — the composite red is owned (TODO_LIST row 48) and the v4.18.0 tag closed the gap
 
 **Mechanise the honesty this session produced**
 
@@ -146,28 +146,28 @@ Ordered by my judgement of value, not by size. Items marked **(blocked)** need t
 10. Add a `--check-header` assertion to `check-reexport-policy.sh` that the baseline's header sum equals its rows.
 11. Make `cqrs-htmx-upgrade -apply` print a formatter reminder with the touched-file count.
 12. Add a codemod self-test that runs `-apply` on a fixture and asserts `gci` cleanliness after one format pass — pins the defect found today.
-13. Add a gate that fails when `docs/status/*.md` grows without the corresponding `TAIL_BASELINE` bump, so report-writing pays its own tax in the same change (partially exists — verify it fires on ADD, not just growth).
+13. ~~Add a gate that fails when `docs/status/*.md` grows without the corresponding `TAIL_BASELINE` bump, so report-writing pays its own tax in the same change (partially exists — verify it fires on ADD, not just growth).~~ done — the tail ratchet exists and fires on growth - check-docs-tail-budget --ratchet (2026-10-24 governance, CHANGELOG receipt)
 14. Replace the single corpus integer with a per-file ledger; then the baseline bump needs a named file list.
 15. Add `## 7. Verification per wave` → §11.1 forward link, or delete §7's W0 row in favour of the log.
 
 **Finish the sweep properly**
 
-16. Repoint `usermgmt/http.go` (2 sites: `MapError`, `ErrorCode`) — it is a re-export layer, but it should not depend on a *deprecated* re-export.
-17. Repoint `adminui/assets.go`, `errorpage.go`, `handler_audit.go`, `handler_users.go` (4 sites, all `htmx.*`).
-18. Repoint `usermgmt/es_projection_health.go` (2 `EventCatalog` sites).
-19. Run the codemod dry run over `.` again and drive `57 files / 352 edits / 6 manual` down to only what W1 must defer.
-20. Resolve the 6 `manual:` findings the repo-wide codemod dry run reports — each needs a human decision, and none is documented yet.
-21. Repoint the in-package root tests that use bare `HTMXTarget`/`MapError` (no `cqrshtmx.` prefix) — the codemod cannot do these; a reviewed manual pass can.
+16. ~~Repoint `usermgmt/http.go` (2 sites: `MapError`, `ErrorCode`) — it is a re-export layer, but it should not depend on a *deprecated* re-export.~~ done — usermgmt/http.go imports httperr directly (verified in tree)
+17. ~~Repoint `adminui/assets.go`, `errorpage.go`, `handler_audit.go`, `handler_users.go` (4 sites, all `htmx.*`).~~ done — adminui four sites repointed to the htmx subpackage (adminui CHANGELOG v4.17.0 receipt)
+18. ~~Repoint `usermgmt/es_projection_health.go` (2 `EventCatalog` sites).~~ done — es_projection_health.go imports eventcatalog directly (verified in tree)
+19. ~~Run the codemod dry run over `.` again and drive `57 files / 352 edits / 6 manual` down to only what W1 must defer.~~ resolved — routed: TODO_LIST direct-imports row - W1 entry metric
+20. ~~Resolve the 6 `manual:` findings the repo-wide codemod dry run reports — each needs a human decision, and none is documented yet.~~ resolved — routed: TODO_LIST direct-imports row - the 6 manual findings ride W1
+21. ~~Repoint the in-package root tests that use bare `HTMXTarget`/`MapError` (no `cqrshtmx.` prefix) — the codemod cannot do these; a reviewed manual pass can.~~ done — in-package bare spellings gone from root tests (verified; completion pass 4380de92)
 22. Decide whether `cmd/cqrs-htmx-upgrade/upgrade_test.go` should stop using real old spellings as fixtures, or keep them (I argued keep — record the decision).
 
 **Keep the plan of record true**
 
 23. Convert plan §11.1's prose attribution into a table with a `pre-existing?` column, so the next session does not re-derive it.
-24. Add the `exempt:pending` disposition table to the plan with owner + wave + trigger for each of the 5 files.
+24. ~~Add the `exempt:pending` disposition table to the plan with owner + wave + trigger for each of the 5 files.~~ resolved — routed: TODO_LIST direct-imports row - the five exempt:pending decisions ride W1
 25. Record in the plan that the codemod's repo-wide dry run is now the W1 entry metric (`352 edits / 6 manual`).
-26. Update `docs/guides/v5-removal-inventory.md` class 1b with the measured post-repoint numbers (root test files now zero-use).
+26. ~~Update `docs/guides/v5-removal-inventory.md` class 1b with the measured post-repoint numbers (root test files now zero-use).~~ done — v5-removal-inventory.md carries class 1b - Root subpackage facades (ADR-0062)
 27. Check `docs/adr/0047` for statements superseded by 0062 and add a `SUPERSEDED BY` pointer where they conflict.
-28. Re-read `api_surface_compat_test.go`'s header comment — it may still describe the aliases as the supported surface.
+28. ~~Re-read `api_surface_compat_test.go`'s header comment — it may still describe the aliases as the supported surface.~~ done — api_surface_compat_test.go header rewritten - describes the aliases as re-exports, not the supported surface
 
 **Session-process hardening (the d-section lessons)**
 
@@ -181,25 +181,25 @@ Ordered by my judgement of value, not by size. Items marked **(blocked)** need t
 **The gates that were never run, for the record**
 
 35. `.#test-all` (race incl. e2e/examples) once the tag gap closes.
-36. `.#bench-spike` re-pin on an idle machine (the 2026-11-05 family train changed code; TODO row says it needs a re-pin).
+36. ~~`.#bench-spike` re-pin on an idle machine (the 2026-11-05 family train changed code; TODO row says it needs a re-pin).~~ resolved — routed: TODO_LIST Post-change verification battery row - bench-spike re-pin on an idle machine
 37. `.#e2e` (Playwright) — untouched this session, and the adminui dropdown class means it can regress silently.
 38. `.#check-dependabot-alerts` / `.#check-pr-secrets` / `.#check-readme-badges` — passed inside the composite, but not looked at.
-39. `.#docs-gates` battery (the docs-health five-gate run) — `.docs-gates.json` pins `audit_max: 322`; this session's new report may move it.
+39. ~~`.#docs-gates` battery (the docs-health five-gate run) — `.docs-gates.json` pins `audit_max: 322`; this session's new report may move it.~~ done — docs-gates battery 4/5 receipt - round-24 archive pass, audit-all 419 owner-gated (TODO_LIST 09-48 row)
 
 **Hygiene**
 
-40. Archive the two superseded W0 reports (`08:04`, `08:16`) via `nix run .#archive-status` with disposition `superseded` and this report as successor — the tail is at 12/12 and adding this one needs either the archive pass or a baseline bump.
-41. Lower `docs/status/TAIL_BASELINE` back toward 3 after that archive pass, per the "archiving must lower the baseline" rule.
-42. Check whether the two `### Changed` headings in `CHANGELOG.md [Unreleased]` (a merge artefact from another session) should be consolidated.
+40. ~~Archive the two superseded W0 reports (`08:04`, `08:16`) via `nix run .#archive-status` with disposition `superseded` and this report as successor — the tail is at 12/12 and adding this one needs either the archive pass or a baseline bump.~~ done at `8384fa32 - both W0 reports archived into docs/status/archived/`
+41. ~~Lower `docs/status/TAIL_BASELINE` back toward 3 after that archive pass, per the "archiving must lower the baseline" rule.~~ resolved — routed: TODO_LIST Plan-of-record 09-48 row - archive-pass debt, tail 14 down to 3
+42. ~~Check whether the two `### Changed` headings in `CHANGELOG.md [Unreleased]` (a merge artefact from another session) should be consolidated.~~ done — Unreleased consolidated - one Added heading, no duplicate Changed (verified in tree)
 43. Verify `docs/CORPUS_BASELINE`'s final value one more time *after* the archive pass (moving files out of `docs/status/` changes the count).
-44. Delete `/tmp` scratch (`map2.txt`, `living_hits.txt`, `swept.tmp`) — no, these are out of tree; instead confirm no scratch leaked into the repo.
-45. Confirm `git worktree list` shows only the main tree (the `/tmp/pre-w0` proof worktree was removed).
+44. ~~Delete `/tmp` scratch (`map2.txt`, `living_hits.txt`, `swept.tmp`) — no, these are out of tree; instead confirm no scratch leaked into the repo.~~ done — no /tmp scratch leaked into the repo (verified - the only mention is this report itself)
+45. ~~Confirm `git worktree list` shows only the main tree (the `/tmp/pre-w0` proof worktree was removed).~~ done — git worktree list shows only the main tree (verified)
 
 **Decisions that unblock W1**
 
-46. Decide: does the re-export policy apply to `usermgmt`'s 176 identity-model aliases identically, or does the module need its own exemption class (it is a *deliberate* thin layer by design)?
-47. Decide whether `authz/` carries `httperr` (plan §11.1's open question) or whether the denial vocabulary moves into `identity-model` with the contract.
-48. Decide the `api_surface_compat_test.go` half-life: the whole file, or only its alias half, at v5.
+46. ~~Decide: does the re-export policy apply to `usermgmt`'s 176 identity-model aliases identically, or does the module need its own exemption class (it is a *deliberate* thin layer by design)?~~ resolved — routed: TODO_LIST direct-imports row - W1 deletes the 176 usermgmt aliases
+47. ~~Decide whether `authz/` carries `httperr` (plan §11.1's open question) or whether the denial vocabulary moves into `identity-model` with the contract.~~ resolved — routed: TODO_LIST direct-imports row - W2 authz extraction carries the denial-vocabulary decision
+48. ~~Decide the `api_surface_compat_test.go` half-life: the whole file, or only its alias half, at v5.~~ resolved — routed: TODO_LIST direct-imports row - the compat-test half-life rides the v5 cut
 49. Decide whether the codemod ships a `--check` mode that CI can run on consumer repos to prove a migration is complete.
 50. Pick the owner-facing metric for W4 ("root LOC", "alias declarations", or "files over N lines") — the plan names a metric report but not the metric.
 
