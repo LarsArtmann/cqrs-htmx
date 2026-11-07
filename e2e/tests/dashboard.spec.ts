@@ -4,15 +4,19 @@ import { test, expect } from "@playwright/test";
  * Browser-truth specs for the dashboardui templ-components adoption (Run-3
  * N6-N8). These assert BEHAVIOR in real Chromium against the seeded e2e
  * server: stat-card ValueIDs, badge rendering, toast bridging, error-page
- * shapes, and table sorting. SSE live-row injection is intentionally not
- * covered here: it needs a real event.Bus wired into Config.EventBus, and
+ * shapes, and table sorting. SSE live-row injection lives in
+ * dashboard-live.spec.ts (it drives the feed through POST /api/debug/emit);
  * the SSE envelope itself is golden-pinned by the transport package.
  */
 
 test.describe("dashboard badges + stat cards (N6)", () => {
   test("overview stat cards expose stable ValueIDs with real values", async ({ page }) => {
     await page.goto("/dashboard/");
-    await expect(page.locator("#stat-total-events")).toHaveText("4");
+    // Lower-bounded, not exact: the journal is shared server state and
+    // dashboard-live.spec emits events into it (alphabetically it runs first);
+    // the seed alone is 4, and any later count still proves the stat is live.
+    await expect(page.locator("#stat-total-events")).toHaveText(/\d+/);
+    expect(Number(await page.locator("#stat-total-events").textContent())).toBeGreaterThanOrEqual(4);
 
     const health = page.locator("#stat-system-health");
     await expect(health).toBeVisible();
@@ -21,7 +25,8 @@ test.describe("dashboard badges + stat cards (N6)", () => {
 
   test("events table renders mapped type badges and seeded rows", async ({ page }) => {
     await page.goto("/dashboard/events");
-    await expect(page.locator("#events-tbody tr")).toHaveCount(4);
+    // Same journal tolerance as above: >= the 4 seeded rows.
+    expect(await page.locator("#events-tbody tr").count()).toBeGreaterThanOrEqual(4);
     await expect(page.locator("#events-tbody").getByText("User.registered").first()).toBeVisible();
     await expect(
       page.locator("#events-tbody").getByText("Tenant.registered").first(),
