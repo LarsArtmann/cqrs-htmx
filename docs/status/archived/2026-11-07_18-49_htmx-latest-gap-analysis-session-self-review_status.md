@@ -1,6 +1,6 @@
 # Status — htmx "latest version" gap analysis + session self-review
 
-> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_20-10_blanket-directive-htmx-family-bump-gates-trains-staged_status.md`](../2026-11-07_20-10_blanket-directive-htmx-family-bump-gates-trains-staged_status.md), which the htmx 2.0.11 thread this report opened completed in the 20-10 blanket-directive session (root v4.18.1 tagged, pristine assets, sha pins, docs-gates 5/5); every §f item struck with evidence. Strike depth:
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_20-10_blanket-directive-htmx-family-bump-gates-trains-staged_status.md`](2026-11-07_20-10_blanket-directive-htmx-family-bump-gates-trains-staged_status.md), which the htmx 2.0.11 thread this report opened completed in the 20-10 blanket-directive session (root v4.18.1 tagged, pristine assets, sha pins, docs-gates 5/5); every §f item struck with evidence. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
 

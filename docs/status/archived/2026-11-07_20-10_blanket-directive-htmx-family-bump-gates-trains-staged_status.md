@@ -1,5 +1,9 @@
 # Status — blanket-directive execution: htmx family bump, gates, trains staged, docs heal
 
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_21-45_blanket-directive-tags-waves-receipts_status.md`](../2026-11-07_21-45_blanket-directive-tags-waves-receipts_status.md), which its §f items 1-10 executed by the 21-45 continuation session (tags, receipts, waves, true-ups); items 11-30 routed to named rows/packets (M2M packet, C28 pre-stage, sibling lane, watches) — every item struck or routed by the 21-45 report and the TODO harvest row. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
+
 **2026-11-07 20:10 CET · session scope: execute the full backlog under the owner's blanket directive ("NOW GET SHIT DONE! The WHOLE TODO LIST!"), continuing from the 09:00–18:35 execution session + the 18:49 htmx-gap session.**
 
 **Scope line.** This session executed in `docs/CORPUS`-tracked paths, `htmx/`, `systemadapter/`, `loginpage/`, `huma/`, `adminui/CHANGELOG.md`, `ROADMAP.md`, the runbook, and the branching-flow baseline. Everything claimed below was verified with live commands in THIS session unless marked otherwise. NOT done by this session (and explicitly not re-litigated): the tag wave's final push (blocked on a sibling's in-flight file, see §d), the browser-e2e/NV4 lane, M2M W1/W2, consumer-repo waves, bench.
