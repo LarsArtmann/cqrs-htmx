@@ -158,6 +158,14 @@ does not relabel it.
 - **Run `BeforeDispatch`/`AfterDispatch`.** Those hooks take an `*http.Request`
   that a Huma handler never receives. Use Huma middleware for tracing and
   metrics instead.
+- **QUERY (RFC 10008) operations.** huma v2 (verified at v2.40.0, the latest)
+  panics with `unknown method QUERY` at registration — its OpenAPI Path Item
+  builder knows the eight standard methods only. Until upstream adds a `query`
+  case, serve QUERY routes through the route builder next to the Huma API
+  (`app.Query(...)` + `MethodOverrideMiddleware`; guide:
+  `docs/guides/http-query-method.md`). The verdict is pinned by
+  `TestQueryMethod_HumaRegistrationPanicsUntilUpstreamSupportsIt`, which turns
+  red the day upstream ships support.
 
 ## Wiring with setup/v4
 

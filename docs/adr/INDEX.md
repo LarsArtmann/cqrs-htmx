@@ -67,3 +67,4 @@
 | [0061](0061-audience-aware-error-detail.md)                | Audience-Aware Error Detail — Reader-Policy Redaction for 5xx Bodies (SafeDetailFor)               | Accepted                                                             |
 | [0062](0062-direct-imports-only.md)                        | Direct Imports Only — No Permanent Cross-Package Alias, One Breaking Window Per Major              | Accepted                                                             |
 | [0063](0063-authorization-at-the-dispatch-boundary.md)     | Authorization at the Dispatch Boundary — Postures Declared at Registration                         | Accepted                                                             |
+| [0064](0064-http-query-fallback-ladder.md)                    | The HTTP QUERY Fallback Ladder as a Library Contract — One Handler, Decoder-Driven Accept-Query, QUERY-Only Override          | Accepted                                                             |
