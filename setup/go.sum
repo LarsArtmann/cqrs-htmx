@@ -160,8 +160,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0 h1:iQs47Vx2rRi3elhC0RFf1S+y
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0/go.mod h1:HHVEsEEqQGV7MWW+IZAILriol5mN9IPzvEPHOP7SJ0Q=
 github.com/larsartmann/cqrs-htmx/v4 v4.17.0 h1:egq0XfRh7rPgRaveHYp3++NucOTAaFa44f6LleQOfBE=
 github.com/larsartmann/cqrs-htmx/v4 v4.17.0/go.mod h1:05k5akZNlZkCrvR70/LAafAFOwaToCw7w42PpEto2WI=
-github.com/larsartmann/go-appkit v0.10.0 h1:wQoz4qC9/2WX2HG4t0Pn0WR4GI5KtKtlAcVvKlAMFlU=
-github.com/larsartmann/go-appkit v0.10.0/go.mod h1:CyBJSsIFW+g8n6A4Vah/JSJ0McKraDnghcSJYHAeVSo=
+github.com/larsartmann/go-appkit v0.11.0 h1:IPvWlcP07ZuUGbPL4EkdpHgmeiVnGlLTAyeqpNMdS1g=
+github.com/larsartmann/go-appkit v0.11.0/go.mod h1:LqQ0b7aHcZSIns0lnkuz27ZQiLbI9ywnc8x/eyCAsPQ=
 github.com/larsartmann/go-branded-id v0.7.1 h1:w68pg/t74AM8PsTVVw7VkL3vq2C70zLH1jFxJCJwLPk=
 github.com/larsartmann/go-branded-id v0.7.1/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-codec v0.3.3 h1:aKwY9YaUnawfcUxNNgfEb/6xQa8HJsrS7QHSOmnQUpU=
