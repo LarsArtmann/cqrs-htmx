@@ -238,7 +238,7 @@ I did **not** touch any of those files, per the "never revert changes you did no
 25. Wire a markdown prettier check into CI (or exclude the files it cannot currently agree on) — the tree is not prettier-canonical today and nothing says so.
 26. Consider a `check-new-module.sh` scaffold gate: a new `go.work` member must appear in coverage-thresholds, dep-budgets, cqrs-lint list, CI build/test/lint/coverage, errorfamily scan. This session touched nine files for that reason; the gate would have listed them.
 27. Add the created module to `docs/README`-style indexes automatically (or state there is none).
-~~28. Re-run `nix run .#check-modules` after the sibling train and note which of the 7 reds closed.~~ verified — the sibling train landed 2026-11-07 with hermetic reds healed and CI green (docs/status/2026-11-07_05-20 report; TODO_LIST header)
+28. ~~Re-run `nix run .#check-modules` after the sibling train and note which of the 7 reds closed.~~ verified — the sibling train landed 2026-11-07 with hermetic reds healed and CI green (docs/status/2026-11-07_05-20 report; TODO_LIST header)
 
 **Docs truth**
 

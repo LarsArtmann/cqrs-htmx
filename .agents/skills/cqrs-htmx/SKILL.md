@@ -266,6 +266,16 @@ srv := cqrshtmx.Chain(app.Middleware())(cqrshtmx.MethodOverrideMiddleware(mux))
   → 415 via `httperr.ErrUnsupportedMediaType`).
 - Client recipes (htmx 2.x `hx-post` + override header, htmx 4 `hx-query`,
   DataStar, CSRF/CORS posture): `docs/guides/http-query-method.md`.
+- The `cqrs-query` extension (`htmx.ExtensionHandler(htmx.ExtCQRSQuery)`)
+  gives htmx 2 the upgrade automatically: `hx-query` on an `hx-ext` element
+  sends native QUERY first and downgrades to the override POST on the first
+  405/501, remembering the origin for an hour. htmx 4.0.1 is embedded
+  alongside the 2.0.10 default (`htmx.ScriptHandler4()`).
+- Spec-truth + caching: `openapi.Query(opID)` renders the operation and
+  auto-bumps the document to OpenAPI 3.2.0 (a query op on any other version
+  fails `Spec.Validate`); `ETagResults()` after any renderer option answers
+  `If-None-Match` revalidation with 304 (strong FNV tag over the rendered
+  bytes).
 
 ### Form-based (SSR / HTMX): POST form -> dispatch -> redirect
 
