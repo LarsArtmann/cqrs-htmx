@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.17.0] - 2026-11-07
+
 ### Added
 
 - **`Config.SSEHubStats`: the dashboard now shows live SSE hub health (fleet-plan A2 adminui leg, 2026-11-06).** The A2 drop-observability wave reached dashboardui's overview card but not the admin panel — the operator most likely to act on "the hub is dropping events" saw nothing. `SSEHubStatsSource` (`SubscriberCount() int`, `DroppedEvents() int64`) is a structural interface; when wired via `Config.SSEHubStats`, the dashboard stats region (and its 30s polled partial) gains two cards: "SSE live" (green) and "Dropped events" (yellow attention tone when nonzero — slow-consumer drops are silent data loss). Nil (default) adds nothing; `setup` wires its adapter automatically when the shared SSE/DataStar hub is enabled. Pinned by `hubstats_test.go` (cards + values + yellow tone on both the page and the polled partial, nil-absent by default, zero-drops stays green) and setup-side by `setup/sse_hub_stats_test.go` (live counts through a real flooded hub + hubless zero-safety). Also in this change: the module's four remaining deprecated root re-export call sites were repointed to the `htmx` subpackage (`ScriptHandler`, `IsRequest`, `RenderPartial` ×2) — ADR-0062 direct-imports, SA1019 clean.
