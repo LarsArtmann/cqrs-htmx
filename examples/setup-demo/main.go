@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	addr         = ":8099"
 	cookieName   = "session"
 	adminEmail   = "admin@demo.dev"
 	adminUserID  = "01JXSETUPDEMO01"
@@ -48,6 +47,12 @@ func main() {
 }
 
 func run() error {
+	// 8099 avoids clashing with unrelated services on well-known dev ports;
+	// the e2e battery overrides it (SETUP_DEMO_ADDR=:18933) the same way
+	// admin-demo, datastar-demo, and basic do, so the shipped example itself
+	// stays the artifact under test.
+	addr := envOr("SETUP_DEMO_ADDR", ":8099")
+
 	// Cancel the context on SIGINT/SIGTERM for a graceful drain.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -171,6 +176,13 @@ const dsDemoPage = `<!doctype html>
 </body>
 </html>
 `
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
 
 // seed registers the demo admin and returns their session token.
 func seed(ctx context.Context, bundle *setup.Bundle) string {

@@ -129,5 +129,23 @@ export default defineConfig({
         BASIC_DEMO_ADDR: ":18932",
       },
     },
+    {
+      // examples/setup-demo for tests/setup-bundle.spec.ts (the one-call
+      // composition root's gate: session 401s, /health readiness, panels,
+      // dual-transport broadcast hub). SETUP_DEMO_ADDR pins the e2e port
+      // (admin-demo pattern).
+      command: "go run .",
+      cwd: "../examples/setup-demo",
+      url: "http://localhost:18933/health",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        GOEXPERIMENT: "jsonv2",
+        ...(GOTOOLCHAIN ? { GOTOOLCHAIN } : {}),
+        // See the GOWORK note at the top of this file.
+        GOWORK,
+        SETUP_DEMO_ADDR: ":18933",
+      },
+    },
   ],
 });

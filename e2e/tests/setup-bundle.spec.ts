@@ -1,0 +1,87 @@
+import { test, expect } from "@playwright/test";
+
+/**
+ * Setup bundle gate (2026-11-07): asserts the one-call composition root's
+ * mounted reality against the SHIPPED examples/setup-demo on :18933 —
+ * session gates on the privileged panels (401 without a session — the
+ * enrich-only session middleware never blocks, the explicit gates do),
+ * the /health readiness endpoint, the dev-login round-trip (cookie ->
+ * 303 -> panel), both panels answering under a session, and the
+ * dual-transport broadcast hub (POST /broadcast -> DataStar signal patch
+ * lands on /ds-demo — ADR-0050's one-hub-two-transports contract).
+ */
+test.describe.configure({ mode: "serial" });
+
+const DEMO = "http://localhost:18933";
+
+test("session gates: privileged panels refuse anonymous visitors with 401", async ({ request }) => {
+  const admin = await request.get(`${DEMO}/admin/`);
+  expect(admin.status()).toBe(401);
+  const dash = await request.get(`${DEMO}/dashboard/`);
+  expect(dash.status()).toBe(401);
+});
+
+test("readiness: /health answers 200 with projections and sse-hub ok", async ({ request }) => {
+  const resp = await request.get(`${DEMO}/health`);
+  expect(resp.ok()).toBeTruthy();
+  const body = await resp.json();
+  expect(body.status).toBe("ok");
+  expect(body.checks.projections.status).toBe("ok");
+  expect(body.checks["sse-hub"].status).toBe("ok");
+});
+
+test("dev-login round-trip: cookie issued, redirect lands on the admin panel", async ({ page }) => {
+  // The login page at / renders (title proves the bundle's loginpage mount).
+  await page.goto(`${DEMO}/`, { waitUntil: "load" });
+  await expect(page).toHaveTitle(/Setup Demo/);
+
+  // dev-login sets the session cookie and 303s to /admin/ — the page
+  // context carries the cookie, so the final panel renders signed in.
+  await page.goto(`${DEMO}/dev-login`, { waitUntil: "load" });
+  await expect(page).toHaveURL(/\/admin\/?$/);
+  await expect(page).toHaveTitle(/Setup Demo/);
+});
+
+test("panels answer under a session: admin and CQRS dashboard both render", async ({ page }) => {
+  await page.goto(`${DEMO}/dev-login`, { waitUntil: "load" });
+
+  await page.goto(`${DEMO}/dashboard/`, { waitUntil: "load" });
+  await expect(page).toHaveTitle(/CQRS Dashboard/);
+
+  await page.goto(`${DEMO}/admin/`, { waitUntil: "load" });
+  await expect(page).toHaveTitle(/Setup Demo/);
+});
+
+test("dual-transport hub: /broadcast patches the DataStar signal on /ds-demo", async ({ page, request }) => {
+  await page.goto(`${DEMO}/ds-demo`, { waitUntil: "load" });
+  const counter = page.locator("[data-text='$broadcasts']");
+
+  // Fresh page: the seeded signal value.
+  await expect(counter).toHaveText("0", { timeout: 10_000 });
+
+  // Two broadcasts node-side; each must patch the live signal (the SDK
+  // stream on /ds/events and the SSE event share one hub).
+  for (let i = 0; i < 2; i++) {
+    const resp = await request.post(`${DEMO}/broadcast`);
+    expect(resp.status()).toBe(202);
+  }
+  await expect(counter).toHaveText("2", { timeout: 15_000 });
+});
+
+test("console guard: no console or page errors across login, panels, and ds-demo", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);
+  });
+  page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
+
+  await page.goto(`${DEMO}/`, { waitUntil: "load" });
+  await page.goto(`${DEMO}/dev-login`, { waitUntil: "load" });
+  await expect(page).toHaveTitle(/Setup Demo/);
+  await page.goto(`${DEMO}/dashboard/`, { waitUntil: "load" });
+  await expect(page).toHaveTitle(/CQRS Dashboard/);
+  await page.goto(`${DEMO}/ds-demo`, { waitUntil: "load" });
+  await expect(page.locator("[data-text='$broadcasts']")).toHaveText(/0|1|2/, { timeout: 10_000 });
+
+  expect(errors, errors.join("\n")).toEqual([]);
+});

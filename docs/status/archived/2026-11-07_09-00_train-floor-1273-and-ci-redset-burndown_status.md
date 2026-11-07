@@ -1,7 +1,11 @@
 # Status — v4.17.0 train executed, fleet Go floor completed to 1.27.3, CI red-set burned down
 
+> **ANNOTATED 2026-11-07** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
+> The next session in the same arc is [`2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md`](../2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md), which waves executed with receipts; the 2 open remainders route to the TODO audit-all/custody rows and the 18-35 report §f.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Written:** 2026-11-07 09:0x CET · **Session window:** 00:45 → 09:00 CET (one session, two arcs: the release train arc and the sibling-wave-completion arc) · **HEAD at writing:** the docs commit carrying this report
-**Predecessor:** [00-15 templ-era conflict + push unblock](archived/2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md) (live — its §g2 go-work policy and §c/f queue carried) · the [05-20 morning report](2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md) is this same session's mid-arc report and is superseded by this one (relation noted for the next audit-all sweep, per the two-lenses-one-session lesson)
+**Predecessor:** [00-15 templ-era conflict + push unblock](2026-11-07_00-15_templ-era-conflict-train-lag-zero-and-push-unblock_status.md) (live — its §g2 go-work policy and §c/f queue carried) · the [05-20 morning report](../2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md) is this same session's mid-arc report and is superseded by this one (relation noted for the next audit-all sweep, per the two-lenses-one-session lesson)
 **Operator directive:** the owner cancelled the predecessor's §g questionnaire and re-sent "keep going until done" — the recorded precedent treats that as the standing GO. The train, the battery, and safe hygiene executed under it; posture-only calls were NOT self-answered (§g).
 
 ## a) Fully done (verified in-tree this session)
