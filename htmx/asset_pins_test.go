@@ -63,6 +63,7 @@ func TestEmbeddedBundles_MatchPinnedSHA256(t *testing.T) {
 
 			sum := sha256.Sum256(raw)
 			got := hex.EncodeToString(sum[:])
+
 			if got != pin.sha {
 				t.Fatalf("embedded %s drifted:\n  got sha256 %s (%d bytes)\n  pin sha256 %s\n"+
 					"  expected source: %s\n"+
