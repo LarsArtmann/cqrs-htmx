@@ -76,13 +76,28 @@ test("time travel: the slider updates the display while dragging and navigates o
   const slider = page.locator("#version-slider");
   await expect(slider).toHaveValue("2", { timeout: 10_000 });
 
-  // Arrow to v1 (the page's documented interaction): the live display
-  // updates on the input event, BEFORE any navigation.
-  await slider.focus();
-  await page.keyboard.press("ArrowLeft");
+  // The delegated input wiring updates the live display WITHOUT navigating
+  // (drag feedback). Proven with a bubbling input event — the wiring is
+  // document-delegated, so this also fails if anyone re-binds it to the
+  // element and breaks boosted navigation again.
+  await page.evaluate(() => {
+    const s = document.getElementById("version-slider");
+    if (!s) throw new Error("slider missing");
+    s.value = "1";
+    s.dispatchEvent(new Event("input", { bubbles: true }));
+  });
   await expect(page.locator("#slider-version-display")).toHaveText("1");
 
-  // Release (change event) navigates to ?v=1 — the server-rendered state.
+  // Arrow key (the page's documented interaction): the keydown handler sets
+  // the value and dispatches change -> delegated listener navigates to ?v=1
+  // (the server-rendered state). Pinned end-to-end. (Reset to v2 first: the
+  // probe above left the slider at 1, and ArrowLeft from 1 clamps at min.)
+  await page.evaluate(() => {
+    const s = document.getElementById("version-slider");
+    if (s) s.value = "2";
+  });
+  await slider.focus();
+  await page.keyboard.press("ArrowLeft");
   await expect(page).toHaveURL(/\/time-travel\/User\/[^\s]+\?v=1$/);
   await expect(page.locator(".page-subtitle", { hasText: "Viewing version 1 of 2" })).toBeVisible();
   await expect(page.locator("#version-slider")).toHaveValue("1");

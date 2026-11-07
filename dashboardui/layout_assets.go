@@ -444,7 +444,9 @@ document.addEventListener("keydown", function(e) {
   var max = parseInt(slider.max, 10);
   if (newVal < min || newVal > max) return;
   slider.value = newVal;
-  slider.dispatchEvent(new Event("change"));
+  // bubbles:true is load-bearing: the change wiring below is delegated at
+  // the document level, and a non-bubbling synthetic event never reaches it.
+  slider.dispatchEvent(new Event("change", { bubbles: true }));
 });
 
 // Toast bridge: HTMX write responses carry a "dashboardui:toast" HX-Trigger
