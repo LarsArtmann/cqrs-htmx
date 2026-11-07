@@ -124,6 +124,7 @@ cqrshtmx.RenderHTML(htmlString)                         // static HTML response 
 cqrshtmx.RenderPartialOrFull[T](partial, full)          // HTMX partial vs full page (templ, generic typed)
 cqrshtmx.RenderPartialOrFullFunc(partial, full)          // HTMX partial vs full page (non-generic RenderFunc)
 cqrshtmx.RenderIf(check, match, noMatch)                 // custom predicate render selector
+cqrshtmx.ETagResults()                                   // AFTER a renderer: strong FNV ETag over rendered bytes, 304 on If-None-Match
 cqrshtmx.Redirect(url)                                 // HTMX-aware (HX-Redirect for HTMX reqs)
 cqrshtmx.PushURL(url)                                  // HTMX address-bar update
 cqrshtmx.Trigger(event) / cqrshtmx.TriggerWithDetail(event, detail)  // HX-Trigger
