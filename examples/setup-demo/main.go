@@ -182,7 +182,7 @@ const dsDemoPage = `<!doctype html>
   <title>setup-demo — DataStar feed</title>
   <script type="module" src="/datastar.js"></script>
 </head>
-<body data-signals="{broadcasts: 0}">
+<body data-signals="{broadcasts: 0}" data-init="@get('/ds/events')">
   <h1>Live broadcasts (DataStar)</h1>
   <p>POST /broadcast to bump the counter — the patch arrives on /ds/events.</p>
   <p>Broadcasts so far: <span data-text="$broadcasts"></span></p>
