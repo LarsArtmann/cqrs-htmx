@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.17.0] - 2026-11-07
+
 ### Added
 
 - **`setup` wires its shared SSE hub's health into the admin dashboard automatically (fleet-plan A2 setup leg, 2026-11-06).** When `SSEPath` or `DataStarPath` is set, the bundle now passes a live adapter (`setup/sse_hub_stats.go`) as `adminui.Config.SSEHubStats` — the admin dashboard's polled stats region gains "SSE live" (real `Broadcaster.Health().SubscriberCount`) and "Dropped events" (`SSEDrops.Total()`, yellow when nonzero). Zero new `setup.Config` surface (the wiring is behavior, not configuration): hub-less bundles render exactly as before. The adapter reads the hub lazily because `attachAdmin` runs before `attachSSE`; nil-safety pinned by `setup/sse_hub_stats_test.go` alongside a real end-to-end drop count through a flooded hub.
