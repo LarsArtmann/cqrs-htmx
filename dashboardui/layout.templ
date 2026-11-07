@@ -28,6 +28,15 @@ templ layout(p pageData, content templ.Component) {
 				<meta name="viewport" content="width=device-width, initial-scale=1"/>
 				<meta name="color-scheme" content="light dark"/>
 				<meta name="robots" content="noindex"/>
+				// htmx injects its default indicator stylesheet at
+				// DOMContentLoaded unless includeIndicatorStyles is false; the
+				// injected <style> carries no nonce, so under a nonce CSP
+				// (e.g. the setup bundle's) the browser blocks it with a
+				// console error per page load. The dashboard ships its own
+				// indicator CSS (layout_assets.go), so the default is redundant
+				// — turn it off. htmx reads this meta at DOMContentLoaded, so
+				// head placement is early enough.
+				<meta name="htmx-config" content='{"includeIndicatorStyles":false}'/>
 				<title>{ p.Title } · { p.Brand }</title>
 				@accentStyle(p)
 				// Pre-paint theme resolution (adminui pattern, see the

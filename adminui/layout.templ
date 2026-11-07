@@ -39,6 +39,14 @@ templ headExtras(p pageData) {
 	if p.CSRFMeta != "" {
 		@templ.Raw(p.CSRFMeta)
 	}
+	// htmx injects its default indicator stylesheet at DOMContentLoaded
+	// unless includeIndicatorStyles is false; the injected <style> carries
+	// no nonce, so under a nonce CSP (e.g. the setup bundle's) the browser
+	// blocks it with a console error per page load. The admin panel ships
+	// its own indicator CSS (admin-tw.css), so the default is redundant —
+	// turn it off. htmx reads this meta at DOMContentLoaded, so this
+	// placement (after the script tag, still in head) is early enough.
+	<meta name="htmx-config" content='{"includeIndicatorStyles":false}'/>
 	// Pre-paint theme resolution (see the @custom-variant dark note in
 	// tailwind.css): reads localStorage 'theme', falls back to the system
 	// preference, and applies .dark + color-scheme before first paint.
