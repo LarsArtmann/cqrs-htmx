@@ -1,0 +1,26 @@
+name: 'Clone go-cqrs-lite sibling (cached by rev)'
+description: >-
+  Restores the depth-1 go-cqrs-lite sibling clone from the actions cache,
+  keyed on the upstream HEAD rev, and clones only on a cache miss. Feeds the
+  ../../go-cqrs-lite replace targets (systemadapter + examples/system-demo
+  carry the unpublished-v4.5.0 projectionadapter replace; REMOVE this action
+  and its call sites when the replace strips).
+runs:
+  using: 'composite'
+  steps:
+    - name: Resolve go-cqrs-lite sibling rev
+      id: rev
+      shell: bash
+      run: echo "rev=$(git ls-remote https://github.com/LarsArtmann/go-cqrs-lite.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore go-cqrs-lite sibling clone
+      id: cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ github.workspace }}/../go-cqrs-lite
+        key: gcl-sibling-v1-${{ steps.rev.outputs.rev }}
+
+    - name: Clone go-cqrs-lite sibling (replace target)
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"

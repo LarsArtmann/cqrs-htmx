@@ -28,9 +28,8 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this step when the projectionadapter replace strips.
-      - name: Clone go-cqrs-lite sibling (replace target)
-        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+      # REMOVE this call when the projectionadapter replace strips.
+      - uses: ./.github/actions/gcl-sibling-clone
 
       - name: Build root module
         run: go build ./...
@@ -211,9 +210,8 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this step when the projectionadapter replace strips.
-      - name: Clone go-cqrs-lite sibling (replace target)
-        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+      # REMOVE this call when the projectionadapter replace strips.
+      - uses: ./.github/actions/gcl-sibling-clone
 
       - name: Test root module
         run: go test ./... -count=1 -race -coverprofile=coverage.out
@@ -405,9 +403,8 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this step when the projectionadapter replace strips.
-      - name: Clone go-cqrs-lite sibling (replace target)
-        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+      # REMOVE this call when the projectionadapter replace strips.
+      - uses: ./.github/actions/gcl-sibling-clone
 
       - name: golangci-lint (${{ matrix.module }})
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
@@ -526,9 +523,8 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this step when the projectionadapter replace strips.
-      - name: Clone go-cqrs-lite sibling (replace target)
-        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+      # REMOVE this call when the projectionadapter replace strips.
+      - uses: ./.github/actions/gcl-sibling-clone
 
       - name: Verify go mod tidy (all modules)
         run: |
@@ -570,9 +566,8 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this step when the projectionadapter replace strips.
-      - name: Clone go-cqrs-lite sibling (replace target)
-        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+      # REMOVE this call when the projectionadapter replace strips.
+      - uses: ./.github/actions/gcl-sibling-clone
 
       - name: Module isolation check (GOWORK=off build+vet)
         run: bash scripts/checks/check-module-isolation.sh
@@ -1192,8 +1187,7 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Clone go-cqrs-lite sibling (replace target)
-        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+      - uses: ./.github/actions/gcl-sibling-clone
 
       - name: Clone the eventcatalog-hub gate
         run: git clone --depth 1 ssh://git@github.com/LarsArtmann/eventcatalog-hub.git /tmp/ec-hub
