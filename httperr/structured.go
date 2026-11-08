@@ -71,6 +71,14 @@ type StructuredError struct {
 	// application/problem+json. Empty when the error has no Code() method.
 	Code string `json:"code,omitempty"`
 
+	// Retryable reports whether the caller may legitimately retry the
+	// operation (RFC 7807 extension; derived from the error family —
+	// Transient and Infrastructure are retryable, client faults are not).
+	// API clients get an explicit machine-readable signal instead of
+	// re-deriving it from the status code. Omitted from the wire when
+	// false, so non-retryable documents are byte-identical to before.
+	Retryable bool `json:"retryable,omitempty"`
+
 	// Context carries the error's machine-readable context entries (RFC 7807
 	// extension) — go-error-family's ErrorContext() map (form_key,
 	// max_body_size, ...). Machine context lets API clients REACT (re-render
@@ -164,17 +172,18 @@ func newStructuredErrorFromContext(err error, ctx context.Context, audience Audi
 	}
 
 	return StructuredError{
-		Type:     familyType(family),
-		Title:    statusTitle(status),
-		Status:   status,
-		Detail:   SafeDetailFor(err, status, audience),
-		Message:  family.DefaultMessage(),
-		Why:      family.DefaultWhy(),
-		Fix:      family.DefaultFix(),
-		Instance: instance,
-		Code:     ErrorCode(err),
-		Context:  errContext,
-		cause:    err,
+		Type:      familyType(family),
+		Title:     statusTitle(status),
+		Status:    status,
+		Detail:    SafeDetailFor(err, status, audience),
+		Message:   family.DefaultMessage(),
+		Why:       family.DefaultWhy(),
+		Fix:       family.DefaultFix(),
+		Instance:  instance,
+		Code:      ErrorCode(err),
+		Retryable: family.IsRetryable(),
+		Context:   errContext,
+		cause:     err,
 	}
 }
 

@@ -41,6 +41,28 @@ var _ = Describe("StructuredError", func() {
 			Expect(se.Fix).NotTo(BeEmpty())
 		})
 
+		Describe("Retryable (the shared retryability signal, 2026-11-08)", func() {
+			It("marks family-retryable errors on the wire", func() {
+				se := httperr.NewStructuredError(errors.New("db unreachable"), nil)
+
+				Expect(se.Retryable).To(BeTrue())
+
+				payload, err := json.Marshal(se)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(payload)).To(ContainSubstring(`"retryable":true`))
+			})
+
+			It("omits the field for non-retryable faults (byte-identical documents)", func() {
+				se := httperr.NewStructuredError(httperr.ErrValidationFailed, nil)
+
+				Expect(se.Retryable).To(BeFalse())
+
+				payload, err := json.Marshal(se)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(payload)).NotTo(ContainSubstring("retryable"))
+			})
+		})
+
 		It("extracts request ID from the request context", func() {
 			rid := hx.NewRequestID()
 
