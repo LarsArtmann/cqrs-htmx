@@ -240,7 +240,10 @@ func TestMigrationProbe_W12_PresetRestartsDoNotStarve(t *testing.T) {
 		boot := func() (*system.System, error) {
 			return system.New(ctx, systemadapter.DomainConfig(
 				systemadapter.WithCheckpointStore(durable),
-			), systemadapter.RecommendedSplitSQLiteDeployment(eventsDSN, projectionsDSN))
+			), systemadapter.RecommendedSplitSQLiteDeployment(systemadapter.SplitSQLiteDSNs{
+				Events:      eventsDSN,
+				Projections: projectionsDSN,
+			}))
 		}
 
 		sys1, err := boot()

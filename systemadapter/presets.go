@@ -69,16 +69,29 @@ func RecommendedSQLiteDeployment(dsn string) system.DeploymentConfig {
 // projections file (or their own) for restart-safe positions.
 //
 //	deployment := systemadapter.RecommendedSplitSQLiteDeployment(
-//		"file:events.db", "file:projections.db",
+//		systemadapter.SplitSQLiteDSNs{
+//			Events:      "file:events.db",
+//			Projections: "file:projections.db",
+//		},
 //	)
 //	sys, err := system.New(ctx, systemadapter.DomainConfig(
 //		systemadapter.WithCheckpointStore(durableCheckpoints),
 //	), deployment)
-func RecommendedSplitSQLiteDeployment(eventsDSN, projectionsDSN string) system.DeploymentConfig {
+
+// SplitSQLiteDSNs carries the two file DSNs a split deployment needs as
+// NAMED fields: two bare string parameters shared one type, so transposing
+// them compiled silently and wired the projections engine onto the journal's
+// file (the PHANTOM-PLUMBING swap-hazard class).
+type SplitSQLiteDSNs struct {
+	Events      string
+	Projections string
+}
+
+func RecommendedSplitSQLiteDeployment(dsns SplitSQLiteDSNs) system.DeploymentConfig {
 	return system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
-			engineEvents:      {Driver: driverSQLite, DSN: eventsDSN, Pragmas: sqlitePragmas()},
-			engineProjections: {Driver: driverSQLite, DSN: projectionsDSN, Pragmas: sqlitePragmas()},
+			engineEvents:      {Driver: driverSQLite, DSN: dsns.Events, Pragmas: sqlitePragmas()},
+			engineProjections: {Driver: driverSQLite, DSN: dsns.Projections, Pragmas: sqlitePragmas()},
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{engineEvents}},
