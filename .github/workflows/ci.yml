@@ -28,8 +28,21 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this call when the projectionadapter replace strips.
-      - uses: ./.github/actions/gcl-sibling-clone
+      # REMOVE these steps when the projectionadapter replace strips.
+      - name: Resolve go-cqrs-lite sibling rev
+        id: gcl-rev
+        run: echo "rev=$(git ls-remote https://github.com/LarsArtmann/go-cqrs-lite.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore go-cqrs-lite sibling clone (rev-keyed cache)
+        id: gcl-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/../go-cqrs-lite
+          key: gcl-sibling-v1-${{ steps.gcl-rev.outputs.rev }}
+
+      - name: Clone go-cqrs-lite sibling (replace target, cache miss only)
+        if: steps.gcl-cache.outputs.cache-hit != 'true'
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Build root module
         run: go build ./...
@@ -210,8 +223,21 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this call when the projectionadapter replace strips.
-      - uses: ./.github/actions/gcl-sibling-clone
+      # REMOVE these steps when the projectionadapter replace strips.
+      - name: Resolve go-cqrs-lite sibling rev
+        id: gcl-rev
+        run: echo "rev=$(git ls-remote https://github.com/LarsArtmann/go-cqrs-lite.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore go-cqrs-lite sibling clone (rev-keyed cache)
+        id: gcl-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/../go-cqrs-lite
+          key: gcl-sibling-v1-${{ steps.gcl-rev.outputs.rev }}
+
+      - name: Clone go-cqrs-lite sibling (replace target, cache miss only)
+        if: steps.gcl-cache.outputs.cache-hit != 'true'
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Test root module
         run: go test ./... -count=1 -race -coverprofile=coverage.out
@@ -403,8 +429,21 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this call when the projectionadapter replace strips.
-      - uses: ./.github/actions/gcl-sibling-clone
+      # REMOVE these steps when the projectionadapter replace strips.
+      - name: Resolve go-cqrs-lite sibling rev
+        id: gcl-rev
+        run: echo "rev=$(git ls-remote https://github.com/LarsArtmann/go-cqrs-lite.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore go-cqrs-lite sibling clone (rev-keyed cache)
+        id: gcl-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/../go-cqrs-lite
+          key: gcl-sibling-v1-${{ steps.gcl-rev.outputs.rev }}
+
+      - name: Clone go-cqrs-lite sibling (replace target, cache miss only)
+        if: steps.gcl-cache.outputs.cache-hit != 'true'
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: golangci-lint (${{ matrix.module }})
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
@@ -523,8 +562,21 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this call when the projectionadapter replace strips.
-      - uses: ./.github/actions/gcl-sibling-clone
+      # REMOVE these steps when the projectionadapter replace strips.
+      - name: Resolve go-cqrs-lite sibling rev
+        id: gcl-rev
+        run: echo "rev=$(git ls-remote https://github.com/LarsArtmann/go-cqrs-lite.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore go-cqrs-lite sibling clone (rev-keyed cache)
+        id: gcl-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/../go-cqrs-lite
+          key: gcl-sibling-v1-${{ steps.gcl-rev.outputs.rev }}
+
+      - name: Clone go-cqrs-lite sibling (replace target, cache miss only)
+        if: steps.gcl-cache.outputs.cache-hit != 'true'
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Verify go mod tidy (all modules)
         run: |
@@ -566,8 +618,21 @@ jobs:
       # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
       # targets ../../go-cqrs-lite, which exists on dev machines only — clone
       # it so this job builds the same content the local gates verify.
-      # REMOVE this call when the projectionadapter replace strips.
-      - uses: ./.github/actions/gcl-sibling-clone
+      # REMOVE these steps when the projectionadapter replace strips.
+      - name: Resolve go-cqrs-lite sibling rev
+        id: gcl-rev
+        run: echo "rev=$(git ls-remote https://github.com/LarsArtmann/go-cqrs-lite.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore go-cqrs-lite sibling clone (rev-keyed cache)
+        id: gcl-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/../go-cqrs-lite
+          key: gcl-sibling-v1-${{ steps.gcl-rev.outputs.rev }}
+
+      - name: Clone go-cqrs-lite sibling (replace target, cache miss only)
+        if: steps.gcl-cache.outputs.cache-hit != 'true'
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Module isolation check (GOWORK=off build+vet)
         run: bash scripts/checks/check-module-isolation.sh
@@ -1187,7 +1252,20 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - uses: ./.github/actions/gcl-sibling-clone
+      - name: Resolve go-cqrs-lite sibling rev
+        id: gcl-rev
+        run: echo "rev=$(git ls-remote https://github.com/LarsArtmann/go-cqrs-lite.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore go-cqrs-lite sibling clone (rev-keyed cache)
+        id: gcl-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ github.workspace }}/../go-cqrs-lite
+          key: gcl-sibling-v1-${{ steps.gcl-rev.outputs.rev }}
+
+      - name: Clone go-cqrs-lite sibling (replace target, cache miss only)
+        if: steps.gcl-cache.outputs.cache-hit != 'true'
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Clone the eventcatalog-hub gate
         run: git clone --depth 1 ssh://git@github.com/LarsArtmann/eventcatalog-hub.git /tmp/ec-hub
