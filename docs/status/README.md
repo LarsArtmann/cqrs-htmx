@@ -220,7 +220,7 @@ All 3 files: classification **ARCHIVE** (dated `> ANNOTATED 2026-11-05` blockquo
 
 Divergence-resolution session (this pass, 2026-11-08): 58,072 → 58,088 (+16: gotcha 59 (~5 net lines, the four firefox divergences root-caused — three test-design artifacts, one headless-firefox property), the e2e/README engine-scope section (~+14), the 06-26 plan's divergence-resolution log section (~+12), minus in-place edits elsewhere; the spec fixes, flake fix, and probe-script removals are outside the corpus); tail unchanged at 12 (no new status report — the receipts live in the TODO_LIST row and the plan log); CORPUS_BASELINE re-trued to the measured 58,088 same-change (+2 sibling drift re-trued to 58,090 in the same window); this sentence appends inline, zero net new lines.
 
-Divergence-resolution status report (13-11, 2026-11-08): 58,090 → 58,218 (+128: this 13-11 status report at ~150 lines — §a9/§b3/§c3/§d6/§e7/§f50/§g3/§h receipts; the gotcha-59/README/plan/TODO docs of this session were already ledgered at 58,088/58,090); tail 12 → 13 same-change (this report, thirteenth live); CORPUS_BASELINE re-trued to the measured 58,218 same-change; this sentence appends inline, zero net new lines.
+Divergence-resolution status report (13-11, 2026-11-08): 58,090 → 58,218 (+128: this 13-11 status report at ~150 lines — §a9/§b3/§c3/§d6/§e7/§f50/§g3/§h receipts; the gotcha-59/README/plan/TODO docs of this session were already ledgered at 58,088/58,090); tail 12 → 13 same-change (this report, thirteenth live); CORPUS_BASELINE re-trued to the measured 58,218 same-change (+2 sibling drift re-trued to 58,220 in the same window); this sentence appends inline, zero net new lines.
 
 ## Why not "update them all" ad hoc?
 
