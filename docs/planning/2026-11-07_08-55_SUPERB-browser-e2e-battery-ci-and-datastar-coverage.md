@@ -125,4 +125,18 @@ graph TD
 
 ## Execution log
 
-- [ ] M1 … M6 appended here as they land (date + receipt per medium task).
+- [x] **M1** (2026-11-07, prior session): `DATASTAR_DEMO_ADDR` env + third webServer (:18931) + `datastar.spec.ts` — caught the shipped dead-in-browser demo (bug #1).
+- [x] **M7** (2026-11-07): `BASIC_DEMO_ADDR` + fourth webServer (:18932) + `root-htmx.spec.ts` (5 tests) — caught bug #2 (`DecodeJSON` forms dead in browser; fixed via `DecodeForm*` family).
+- [x] **M8** (2026-11-07): `SETUP_DEMO_ADDR` + fifth webServer (:18933) + `setup-bundle.spec.ts` (6 tests) — caught bug #3 (ds-demo nonce + missing subscribe + per-key signals form) and bug #4 (htmx injected indicator stylesheet CSP error; fixed with the `htmx-config` meta in both UI layouts).
+- [x] **M9** (2026-11-07): `/api/debug/emit` + EventBus + StreamReader in e2e/server + `dashboard-live.spec.ts` (5 tests) — caught bug #5 (slider dead under boosted navigation; document-delegated listeners fix).
+- [x] **M10** (2026-11-08, this session): `bridges.go` health dashboard + auditlog viewer + `POST /api/debug/invoke` + `bridges.spec.ts` (5 tests) — caught bug #6 (page-only health mount: the SSE route and pusher were never wired, connection pill stuck on "Reconnecting" forever; fixed with `RegisterRoutes` + `Start`, plus `WithEmbeddedDatastarSDK` dropping the jsdelivr CDN dependency). Upstream finding (not ours): go-health-dashboard v0.13.2 renders all three connection pills at once — Tailwind display classes defeat the `[hidden]` UA rule; spec asserts the attribute state machine with a citation, filing candidate.
+- [x] **M11** (2026-11-08): `loginpage-posture.spec.ts` (3 tests) — `/auth/me` 401/200/401 lifecycle + register-issues-session + logout revokes; all request-space assertions ride the page context (cookie path proven in-browser).
+- [x] **M2** (2026-11-08): CI `e2e` job — siblings cloned (go-cqrs-lite, go-idempotency, httputil) + `go.work` prefix rewrite, warm Go build of all five servers, bun SHA-pinned (`oven-sh/setup-bun@0c5077e` # v2.2.0, resolved via `gh api`), `bunx playwright install --with-deps chromium firefox`, suite with both engines. actionlint green; verification = the M6 push (`.#push-and-watch`).
+- [x] **M4** (2026-11-08): firefox project — env-gated (`E2E_FIREFOX_PATH` explicit executable / `E2E_FIREFOX=1` registry), `loginpage-webauthn.spec.ts` excluded (CDP-only), LD_LIBRARY_PATH forest scoped to firefox launches (a runner-wide value poisons chromium's nspr resolution — hit live), `nix run .#e2e-firefox` app builds the forest + locates the cached build, `/favicon.ico` served (firefox's internal favicon CSP noise). Full battery BOTH engines: 150 passed / 0 failed / 5.7 min. CI promoted per the kill-point rule (green inside budget).
+- [x] **M5** (2026-11-08): e2e/README rewritten (coverage matrix spec × surface × port, stale-server kill ritual, firefox entry, CI section); this receipt; corpus/tail baselines re-trued in the same change.
+- [x] **M6** (2026-11-08): logical commits + push + `.#push-and-watch` — receipt appended after CI verdict.
+
+### Flake receipts (2026-11-08)
+
+- Screenshot under-load skips (18 → 0 observed): single-shot `goto` non-200 now retried 3× before skipping — the availability-probe class was transient server hiccups under machine load, not real unavailability.
+- Sync-tail specs (`getEvents`, `sync:reset`): poll ceilings 15s → 30s + `test.setTimeout(120_000)` — the 2026-09-13 flake class (SharedWorker boot catch-up racing machine load). Chromium-only full battery after the change: 88 passed / 0 failed / 2.4 min.
