@@ -433,7 +433,7 @@ func header(p pageData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if p.Caps.EventBus {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"live-indicator\" data-live-indicator aria-label=\"Live updates status\"></span> <span class=\"sse-status\" data-sse-status aria-live=\"polite\">Connecting</span> <span class=\"sse-count\" data-sse-count aria-live=\"polite\"></span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"live-indicator\" data-live-indicator role=\"img\" aria-label=\"Live updates status\"></span> <span class=\"sse-status\" data-sse-status aria-live=\"polite\">Connecting</span> <span class=\"sse-count\" data-sse-count aria-live=\"polite\"></span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

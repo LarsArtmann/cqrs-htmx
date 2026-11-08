@@ -132,7 +132,7 @@ templ header(p pageData) {
 			<div class="header-title">
 				{ p.Title }
 				if p.Caps.EventBus {
-					<span class="live-indicator" data-live-indicator aria-label="Live updates status"></span>
+					<span class="live-indicator" data-live-indicator role="img" aria-label="Live updates status"></span>
 					<span class="sse-status" data-sse-status aria-live="polite">Connecting</span>
 					<span class="sse-count" data-sse-count aria-live="polite"></span>
 				}
