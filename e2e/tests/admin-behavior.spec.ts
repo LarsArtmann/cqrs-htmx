@@ -88,9 +88,15 @@ test("confirm modal: open, fill, Esc/Cancel/backdrop close, Confirm deletes", as
   // page). The seeded filler is shared across both playwright projects, and
   // deleting a filler row used to shrink the total out from under the next
   // run's pagination assertions. Self-seeding makes the test idempotent.
+  // The admin-demo mounts httputil CSRF (cookie csrf_token + X-Csrf-Token
+  // header — the nosurf pair), so the token rides from the session cookie.
+  const csrfToken = (await page.context().cookies(ADMIN)).find((c) => c.name === "csrf_token")?.value;
   const victimEmail = `e2e-modal-${Date.now()}@acme.dev`;
   const created = await page.request.post(`${ADMIN}/admin/users`, {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      ...(csrfToken ? { "X-Csrf-Token": csrfToken } : {}),
+    },
     data: `email=${encodeURIComponent(victimEmail)}&display_name=E2E Modal Victim`,
   });
   expect(created.ok(), `create victim: ${created.status()}`).toBeTruthy();

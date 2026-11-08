@@ -144,14 +144,15 @@ test("multi-tab: a second tab on the same origin receives the same live feed", a
 
   // Fan-out: a create on tab 1 lands on tab 2's live feed (tab 2 is front —
   // the one visibility window a focused user has). Tab 1 is background
-  // during the create; its own list still updates through the POST
-  // response patch (the create round-trip path), which is visibility-safe.
+  // during the create, and firefox suspends its WHOLE tab processing —
+  // response patches included (probed 2026-11-08) — so tab 1's own list
+  // render is NOT asserted here: that path is the create-round-trip test's
+  // contract. This test owns the second-tab fan-out.
   const before2 = await eventCount(tab2);
   await createTodo(page, "multi-tab-probe");
   await expect
     .poll(async () => eventCount(tab2), { timeout: 15_000 })
     .toBeGreaterThan(before2);
-  await expect(page.locator(`${TODO_LIST} li.todo-item`, { hasText: "multi-tab-probe" })).toHaveCount(1);
 });
 
 test("console guard: no console errors or uncaught page errors during the whole flow", async ({ page }) => {

@@ -76,12 +76,12 @@ test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", asyn
   const baseline = Number((await badge.textContent())?.match(/\d+/)?.[0]);
   const listBefore = await page.locator("#item-list li").count();
 
-  // Create one item node-side; the page does not know yet. Form-encoded —
-  // the endpoint's contract since the browser fix (DecodeForm; JSON bodies
-  // silently decode as empty forms via ParseForm).
+  // Unique per run: the store is shared across projects, so a fixed name
+  // substring-matches a previous engine's leftover row.
+  const itemName = `oob-probe-${Date.now()}`;
   const created = await request.post(`${DEMO}/api/items`, {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    data: "name=oob-probe",
+    data: `name=${itemName}`,
   });
   expect(created.ok()).toBeTruthy();
 
@@ -98,7 +98,7 @@ test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", asyn
 
   await expect(badge).toHaveText(`${baseline + 1} items`, { timeout: 10_000 });
   await expect(page.locator("#item-list li")).toHaveCount(listBefore + 1);
-  await expect(page.locator("#item-list li", { hasText: "oob-probe" })).toHaveCount(1);
+  await expect(page.locator("#item-list li", { hasText: itemName })).toHaveCount(1);
   // The OOB element was consumed by the swap machinery, not rendered into
   // the target container.
   expect(await page.locator('#item-list [hx-swap-oob]').count()).toBe(0);
