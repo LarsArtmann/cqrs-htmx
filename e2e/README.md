@@ -4,21 +4,21 @@ Playwright-based browser tests for every client-facing cqrs-htmx surface: the of
 
 ## Coverage matrix
 
-| Spec | Surface under test | Server (port) | Notes |
-| --- | --- | --- | --- |
-| `sync.spec.ts` | offline-sync SharedWorker + pull/push handlers | e2e/server (:18923) | offline/online toggles, IndexedDB queue, dedup, backendId reset |
-| `axe.spec.ts` / `axe-probe.spec.ts` | dashboardui accessibility | e2e/server (:18923) | axe sweeps, light + dark |
-| `screenshots.spec.ts` | dashboardui visual capture | e2e/server (:18923) | light/dark/mobile → `docs/screenshots/` |
-| `admin-behavior.spec.ts` | adminui | examples/admin-demo (:18930) | |
-| `datastar.spec.ts` | DataStar adapter demo | examples/datastar-demo (:18931) | the demo that shipped dead-in-browser through every gate (2026-11-07) |
-| `root-htmx.spec.ts` | root HTMX helpers (RenderPartialOrFull, OOB, SSE refresh) | examples/basic (:18932) | |
-| `setup-bundle.spec.ts` | setup composition root | examples/setup-demo (:18933) | session gates, /health, dual-transport hub |
-| `loginpage-webauthn.spec.ts` | loginpage + usermgmt WebAuthn | e2e/server (:18923) | CDP virtual authenticator — **Chromium-only** |
-| `loginpage-golden.spec.ts` | loginpage render DOM | e2e/server (:18923) | regenerate with `WRITE_GOLDEN=1` |
-| `loginpage-posture.spec.ts` | /auth/me + logout session contract | e2e/server (:18923) | 401 anonymous / 200 with session / revoked after logout |
-| `dashboard.spec.ts` | dashboardui static views | e2e/server (:18923) | |
-| `dashboard-live.spec.ts` | dashboardui live SSE views | e2e/server (:18923) | journal replay, multi-tab, time-travel, `/api/debug/emit` driver |
-| `bridges.spec.ts` | health dashboard + auditlog live viewer | e2e/server (:18923) | `/api/debug/invoke` driver |
+| Spec                                | Surface under test                                        | Server (port)                   | Notes                                                                 |
+| ----------------------------------- | --------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------- |
+| `sync.spec.ts`                      | offline-sync SharedWorker + pull/push handlers            | e2e/server (:18923)             | offline/online toggles, IndexedDB queue, dedup, backendId reset       |
+| `axe.spec.ts` / `axe-probe.spec.ts` | dashboardui accessibility                                 | e2e/server (:18923)             | axe sweeps, light + dark                                              |
+| `screenshots.spec.ts`               | dashboardui visual capture                                | e2e/server (:18923)             | light/dark/mobile → `docs/screenshots/`                               |
+| `admin-behavior.spec.ts`            | adminui                                                   | examples/admin-demo (:18930)    |                                                                       |
+| `datastar.spec.ts`                  | DataStar adapter demo                                     | examples/datastar-demo (:18931) | the demo that shipped dead-in-browser through every gate (2026-11-07) |
+| `root-htmx.spec.ts`                 | root HTMX helpers (RenderPartialOrFull, OOB, SSE refresh) | examples/basic (:18932)         |                                                                       |
+| `setup-bundle.spec.ts`              | setup composition root                                    | examples/setup-demo (:18933)    | session gates, /health, dual-transport hub                            |
+| `loginpage-webauthn.spec.ts`        | loginpage + usermgmt WebAuthn                             | e2e/server (:18923)             | CDP virtual authenticator — **Chromium-only**                         |
+| `loginpage-golden.spec.ts`          | loginpage render DOM                                      | e2e/server (:18923)             | regenerate with `WRITE_GOLDEN=1`                                      |
+| `loginpage-posture.spec.ts`         | /auth/me + logout session contract                        | e2e/server (:18923)             | 401 anonymous / 200 with session / revoked after logout               |
+| `dashboard.spec.ts`                 | dashboardui static views                                  | e2e/server (:18923)             |                                                                       |
+| `dashboard-live.spec.ts`            | dashboardui live SSE views                                | e2e/server (:18923)             | journal replay, multi-tab, time-travel, `/api/debug/emit` driver      |
+| `bridges.spec.ts`                   | health dashboard + auditlog live viewer                   | e2e/server (:18923)             | `/api/debug/invoke` driver                                            |
 
 ## How to run
 
