@@ -1,6 +1,6 @@
 # Status — Blanket-directive execution II: three tags, consumer waves, every receipt green, two packets one tick from GO
 
-> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_00-21_brutal-self-review-tags-waves-receipts-honest-accounting_status.md`](../2026-11-08_00-21_brutal-self-review-tags-waves-receipts-honest-accounting_status.md), which superseded by the 00-21 self-review; its open item 5 (CI verdict) resolved SUCCESS on ee48dafe at 00:21; all other items routed to owner questions or TODO rows. Strike depth:
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_00-21_brutal-self-review-tags-waves-receipts-honest-accounting_status.md`](2026-11-08_00-21_brutal-self-review-tags-waves-receipts-honest-accounting_status.md), which superseded by the 00-21 self-review; its open item 5 (CI verdict) resolved SUCCESS on ee48dafe at 00:21; all other items routed to owner questions or TODO rows. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
 

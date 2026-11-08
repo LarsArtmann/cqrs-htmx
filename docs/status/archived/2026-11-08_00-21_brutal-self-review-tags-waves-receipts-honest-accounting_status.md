@@ -1,5 +1,9 @@
 # Status — Brutal self-review of the blanket-directive execution II: what shipped, what I forgot, what I fumbled
 
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_03-48_closeout-false-alarm-a25-nv1-auditlog-sweep_status.md`](../2026-11-08_03-48_closeout-false-alarm-a25-nv1-auditlog-sweep_status.md), which superseded by the 03-48 close-out; its f1/f4/f5/f7/f12 items resolved by that session, all others routed to owner questions or TODO rows. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+
 **Scope of this session:** the owner's renewed blanket directive ("NOW GET SHIT DONE! The WHOLE TODO LIST!") over the 20-10 plan's §f list — tags, sweeps, receipts, consumer waves, docs true-ups — plus this demanded self-accounting pass.
 
 **One-sentence verdict:** everything executable shipped green (three tags on a strict 0/0 train, C27 in three consumer repos, every runnable receipt passing, CI SUCCESS on the final tree `ee48dafe`), but the session leaves one behavior-affecting edit inside the sibling's code that I flagged too quietly, three corpus bumps where one would do, a local-only half-fix in github-local-sync, and a deferred item (webphone) I never revisited though the directive said keep going.
