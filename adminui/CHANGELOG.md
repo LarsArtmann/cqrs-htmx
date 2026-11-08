@@ -66,7 +66,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Asset ETags are content-derived and cache headers immutable (dashboardui M16 sweep):** `/-/admin-tw.css` and `/-/admin.js` now carry ETags computed from their own bytes (FNV-1a, `"adminui-<name>-<hash>"`) instead of the hand-bumped `adminui-v3.4.0` constant — the class where the compiled bundle changes but the version const does not, silently diverging every consumer's cached copy. `Cache-Control` moves from `public, max-age=86400` to `public, max-age=31536000, immutable` (the root module's `HTMXScriptHandler` posture). Pinned by a round-trip 304 test and the content-hash assertion in `assets_test.go`; mirrors dashboardui's `assets.go` so both UI modules follow one rule.
 
-# [v4.11.0] - 2026-09-19
+## [v4.12.1] – [v4.12.3] — 2026-10-01 → 2026-10-07
+
+- Dependency-train riders only (root v4.13.0, usermgmt v4.13.x → v4.14.1, identity-model v4.12.1, go-cqrs-lite storage v4.10.2, and the workspace-wide sweep to current published versions), plus the canonical treefmt rewrap absorbed. No adminui-specific feature entries were recorded for these tags; the v4.12.4 section above carries the retroactive receipts for the v4.12.3 asset-dedup and content-ETag work, and the historical detail lives in the root CHANGELOG sections for the same versions.
+
+## [v4.12.0] - 2026-09-22
+
+### Changed
+
+- **Rode the v4.12.0 family train** (release commit `90514c5a`, alongside loginpage + systemadapter), and the compiled Tailwind bundles moved to the flake CSS builders' canonical output — minified, committed as produced (`b0f265b6`), the shape `check-css-bundles` enforces today.
+
+## [v4.11.0] - 2026-09-19
 
 ### Added
 
@@ -77,6 +87,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - **Sidebar transparency + dark-mode gray inversion (browser-evidence verification):** (1) SidebarNav's `bg-[var(--tc-sidebar-bg)]` needs the variable defined — adminui's compiled bundle has no library `:root` defaults, so `.admin-shell` sets it alongside the CSP-safe `--tc-sidebar-w` (AppShell's inline style attribute is dropped under the CSP nonce posture); (2) adminui's `@theme` maps gray-800/900 to `--text`, which flips light in dark mode, so the library's `dark:` dark surfaces (e.g. `thead dark:bg-gray-800`) painted as light bands — the dark-mode media block pins those two tokens to the literal dark palette (safe: all 115 library `text-gray-800/900` occurrences carry a `dark:` override). `build-adminui-css` now also scans the errorpage module dir including its `styles.go`.
+
+## [v4.3.0] – [v4.6.1] — 2026-07-12 → 2026-07-27
+
+- Coordinated lockstep bumps riding the monorepo release trains of the era (root/identity-model dependency updates, replace-directive release-prep strips, repo-wide chores). No adminui-specific feature entries were recorded in this file for those tags; the historical detail lives in the root `CHANGELOG.md` sections for the same versions. (Reconstructed 2026-11-08, M15/F66 — the tags predate per-module CHANGELOG discipline.)
 
 ## [v4.8.0] – [v4.10.0] — 2026-08-14 → 2026-09-07
 
