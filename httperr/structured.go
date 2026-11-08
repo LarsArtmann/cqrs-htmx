@@ -76,8 +76,10 @@ type StructuredError struct {
 	// Transient and Infrastructure are retryable, client faults are not).
 	// API clients get an explicit machine-readable signal instead of
 	// re-deriving it from the status code. Omitted from the wire when
-	// false, so non-retryable documents are byte-identical to before.
-	Retryable bool `json:"retryable,omitempty"`
+	// false, so non-retryable documents are byte-identical to before (the
+	// omitempty tag would NOT do this under encoding/json/v2, which does not
+	// treat false as empty — omitzero does, on both v1 1.24+ and v2).
+	Retryable bool `json:"retryable,omitzero"`
 
 	// Context carries the error's machine-readable context entries (RFC 7807
 	// extension) — go-error-family's ErrorContext() map (form_key,

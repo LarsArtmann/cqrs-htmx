@@ -390,6 +390,49 @@ func TestAuthorizeRequest_ResolvesPerRequest(t *testing.T) {
 	}
 }
 
+// TestAuthorizeRequest_AnonymousIs401NeverTheZeroULID pins gotcha 56: a
+// zero UserID must NOT become the 26-character zero-ULID subject string —
+// an anonymous caller is not-authenticated (401) and the engine is never
+// consulted, not a policy denial (403) about subject "000…0".
+func TestAuthorizeRequest_AnonymousIs401NeverTheZeroULID(t *testing.T) {
+	t.Parallel()
+
+	disp := query.NewDispatcher()
+
+	if err := disp.Register("GetPage", func(context.Context, query.Query) (any, error) {
+		return nil, nil
+	}); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	enforcer := &fourArgEnforcer{allowed: true}
+
+	app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp, Enforcer: enforcer})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	handler := app.Query("GetPage",
+		cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) { return &getPageQuery{}, nil }),
+		cqrshtmx.AuthorizeRequest(func(*http.Request) (cqrshtmx.Request, error) {
+			return cqrshtmx.Request{
+				Resource: cqrshtmx.Resource{Type: "orders"},
+				Action:   "read",
+			}, nil
+		}),
+	)
+
+	// No WithUserID: the caller is anonymous.
+	w := serve(handler, newPostJSONRequest(`{}`))
+	if w.code() != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401 for anonymous (body %s)", w.code(), w.Body.String())
+	}
+
+	if enforcer.last != nil {
+		t.Fatalf("engine was consulted about the zero subject (%v) — anonymous must never reach the engine", enforcer.last)
+	}
+}
+
 // TestAuthorizeRequest_EngineErrorIs503 proves an engine failure is not masked
 // as a denial.
 func TestAuthorizeRequest_EngineErrorIs503(t *testing.T) {

@@ -270,8 +270,15 @@ func (a *App) authorizeWithRequest(r *http.Request, config *handlerConfig) error
 		)
 	}
 
+	// A ZERO UserID is not an empty subject: .String() on the zero value is
+	// the 26-character zero ULID, which would walk into the engine as
+	// "somebody" and turn anonymous into a policy denial (403) instead of
+	// not-authenticated (401) — gotcha 56. Leaving Subject empty makes
+	// Decide answer ReasonNotAuthenticated without consulting the engine.
 	if req.Subject == "" {
-		req.Subject = UserIDFromContext(r.Context()).String()
+		if userID := UserIDFromContext(r.Context()); !userID.IsZero() {
+			req.Subject = userID.String()
+		}
 	}
 
 	decision, err := Decide(enforcerChecker{enforcer: a.enforcer}, req)
