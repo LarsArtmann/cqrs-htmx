@@ -222,7 +222,7 @@ Divergence-resolution session (this pass, 2026-11-08): 58,072 → 58,088 (+16: g
 
 Divergence-resolution status report (13-11, 2026-11-08): 58,090 → 58,218 (+128: this 13-11 status report at ~150 lines — §a9/§b3/§c3/§d6/§e7/§f50/§g3/§h receipts; the gotcha-59/README/plan/TODO docs of this session were already ledgered at 58,088/58,090); tail 12 → 13 same-change (this report, thirteenth live); CORPUS_BASELINE re-trued to the measured 58,218 same-change (+2 sibling drift re-trued to 58,220 in the same window); this sentence appends inline, zero net new lines.
 
-Archive pass (13-2x, 2026-11-08, same session): 58,220 → 58,225 (+5: the 06-14 browser-e2e report archived to the 13-11 successor — SUPERSEDED blockquote + archived/README manifest row; archived lines still count) with TAIL_BASELINE held at 12 via the tool --update-baseline (13 − 1 archived); CORPUS_BASELINE re-trued to the measured 58,225 same-change; this sentence appends inline, zero net new lines.
+Archive pass (13-2x, 2026-11-08, same session): 58,220 → 58,225 (+5: the 06-14 browser-e2e report archived to the 13-11 successor — SUPERSEDED blockquote + archived/README manifest row; archived lines still count) with TAIL_BASELINE held at 12 via the tool --update-baseline (13 − 1 archived); CORPUS_BASELINE re-trued to the measured 58,225 same-change (+2 sibling drift re-trued to 58,227 in the same window); this sentence appends inline, zero net new lines.
 
 ## Why not "update them all" ad hoc?
 
