@@ -19,17 +19,42 @@
 # are exempt when that go.mod carries a local `replace` for it (the replace
 # satisfies the build locally; the require version is then not proxy-resolved).
 #
-# Usage: ./scripts/checks/check-version-drift.sh [--strict]
-# Exit: 0 = no drift + all tags exist, 1 = drift or missing tag (strict), 0 + warning otherwise
-# Requires: network access to github.com (git ls-remote).
+# Usage: ./scripts/checks/check-version-drift.sh [--strict] [--refresh-cache] [--no-cache]
+# Exit: 0 = no drift + all tags verified, 1 = drift or missing tag (strict),
+#       4 = tags UNVERIFIABLE (ls-remote starved/offline, outside CI) — not a verdict
+# Requires: network access to github.com (git ls-remote) on cache miss.
+#
+# Starvation defense (2026-11-08, the multi-session 403 incident): the ~25-repo
+# tag burst rode GitHub's anonymous smart-HTTP quota, which 403s under
+# concurrent gate runs — and git only attempts credentials on 401, so the
+# configured libsecret/gh credentials never engaged. Three layers:
+#   (1) pre-auth: when `git credential fill` resolves github.com credentials,
+#       ls-remote uses https://larsartmann@github.com/... so the burst rides
+#       the authenticated quota (GIT_TERMINAL_PROMPT=0 keeps credential-less
+#       hosts on the anonymous path — never a prompt hang);
+#   (2) shared tag cache: reads/writes the release-train gate's 900s cache
+#       (TRAIN_TAG_CACHE_DIR) — a push-hook run makes O(new-repos) requests,
+#       not O(all); a cached MISS is re-verified LIVE before a tag is declared
+#       missing (the just-pushed-tag race, gotcha 27's class);
+#   (3) starvation exit: unfetchable tags are UNVERIFIED, never MISSING —
+#       exit 4 outside CI (the pre-push hook warns and proceeds; CI backstops),
+#       downgraded to a warning under CI=true (the train gate's shape).
 
 set -euo pipefail
 
 # --strict: exit 1 on drift/missing tags (for blocking CI). Default: warn only.
+# --refresh-cache: bypass cache READS, re-fetch every repo, rewrite the cache.
+# --no-cache: bypass the tag cache entirely (reads and writes).
 STRICT=false
-if [[ ${1:-} == "--strict" ]]; then
-  STRICT=true
-fi
+REFRESH=0
+NO_CACHE=0
+for arg in "${@:-}"; do
+  case "$arg" in
+    --strict) STRICT=true ;;
+    --refresh-cache) REFRESH=1 ;;
+    --no-cache) NO_CACHE=1 ;;
+  esac
+done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # TEST HOOK: self-tests override the scanned root with a fixture tree.
@@ -38,6 +63,27 @@ cd "$REPO_ROOT"
 
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/replace-exemption.sh"
+
+# Shared tag cache with check-release-train.sh (same env names, same files).
+CACHE_DIR="${TRAIN_TAG_CACHE_DIR:-/tmp/cqrs-htmx-tag-cache}"
+CACHE_TTL="${TRAIN_TAG_CACHE_TTL:-900}"
+
+# Credential probe (once per run): if a helper can fill github.com credentials,
+# ls-remote rides the authenticated quota instead of the starvation-prone
+# anonymous one. Prompt-disabled so credential-less hosts fail fast, not hang.
+CRED_OK=false
+if printf 'protocol=https\nhost=github.com\n\n' | GIT_TERMINAL_PROMPT=0 git credential fill >/dev/null 2>&1; then
+  CRED_OK=true
+fi
+
+ls_remote_tags() { # <repo> -> sorted unique tags on stdout
+  local repo="$1" url="https://github.com/larsartmann/${1}.git"
+  if [[ $CRED_OK == "true" ]]; then
+    url="https://larsartmann@github.com/larsartmann/${repo}.git"
+  fi
+  GIT_TERMINAL_PROMPT=0 git ls-remote --tags "$url" 2>/dev/null |
+    sed -e 's|.*refs/tags/||' -e 's/\^{}$//' | sort -u
+}
 
 # Collect all internal module paths (from go.mod module declarations)
 declare -A MODULE_VERSIONS
@@ -122,23 +168,63 @@ echo "=== Published Tag Existence Check ==="
 
 declare -A REPO_TAGS_OK
 declare -A REPO_TAGS_LIST
+declare -A REPO_TAGS_FROM_CACHE
 
-# Fetch the tag list of a larsartmann repo once per run.
-# Sets REPO_TAGS_LIST[repo]; on failure leaves REPO_TAGS_OK[repo]=false.
+cache_fresh() { # <cache_file>
+  [ "$NO_CACHE" = 0 ] && [ "$REFRESH" = 0 ] && [ -f "$1" ] &&
+    [ -z "$(find "$1" -mmin "+$((CACHE_TTL / 60))" 2>/dev/null)" ]
+}
+
+write_cache() { # <repo> <tags>
+  if [[ $NO_CACHE -eq 0 ]]; then
+    mkdir -p "$CACHE_DIR"
+    printf '%s\n' "$2" >"$CACHE_DIR/$1.tags" 2>/dev/null || true
+  fi
+}
+
+# Fetch the tag list of a larsartmann repo once per run (cache-first).
+# Sets REPO_TAGS_LIST[repo] + REPO_TAGS_FROM_CACHE[repo]; on failure leaves
+# REPO_TAGS_OK[repo]=false (the caller counts it UNVERIFIED, never MISSING).
 fetch_repo_tags() {
   local repo="$1"
   if [[ -v "REPO_TAGS_OK[$repo]" ]]; then
     return 0
   fi
+  local cache_file="$CACHE_DIR/$repo.tags"
+  if cache_fresh "$cache_file"; then
+    REPO_TAGS_LIST[$repo]="$(cat "$cache_file")"
+    REPO_TAGS_FROM_CACHE[$repo]=true
+    REPO_TAGS_OK[$repo]=true
+    return 0
+  fi
   local tags
-  if ! tags=$(git ls-remote --tags "https://github.com/larsartmann/${repo}.git" 2>/dev/null |
-    sed -e 's|.*refs/tags/||' -e 's/\^{}$//' | sort -u); then
+  if ! tags=$(ls_remote_tags "$repo"); then
+    sleep 2 # starvation/403 class: one retry with backoff before giving up
+    if ! tags=$(ls_remote_tags "$repo"); then
+      REPO_TAGS_OK[$repo]=false
+      REPO_TAGS_LIST[$repo]=""
+      return 0
+    fi
+  fi
+  REPO_TAGS_OK[$repo]=true
+  REPO_TAGS_LIST[$repo]="$tags"
+  REPO_TAGS_FROM_CACHE[$repo]=false
+  write_cache "$repo" "$tags"
+}
+
+# Live refetch (bypasses the cache read, rewrites it) — the stale-cache guard
+# calls this before any tag is declared MISSING.
+refresh_repo_tags() {
+  local repo="$1" tags
+  if ! tags=$(ls_remote_tags "$repo"); then
     REPO_TAGS_OK[$repo]=false
     REPO_TAGS_LIST[$repo]=""
     return 0
   fi
   REPO_TAGS_OK[$repo]=true
   REPO_TAGS_LIST[$repo]="$tags"
+  REPO_TAGS_FROM_CACHE[$repo]=false
+  write_cache "$repo" "$tags"
 }
 
 # Map a module path + version to the expected git tag in its repo.
@@ -171,6 +257,7 @@ expected_tag_for() {
 missing=0
 checked=0
 skipped=0
+unverified=0
 while IFS='|' read -r origin_dir mod_path version; do
   [[ -z $origin_dir ]] && continue
 
@@ -190,28 +277,53 @@ while IFS='|' read -r origin_dir mod_path version; do
   repo="${rest%%/*}"
   fetch_repo_tags "$repo"
   if [[ ${REPO_TAGS_OK[$repo]} != "true" ]]; then
-    echo "  ERROR: cannot list tags of github.com/larsartmann/$repo (ls-remote failed)"
-    missing=$((missing + 1))
+    echo "  WARN: cannot list tags of github.com/larsartmann/$repo (ls-remote failed — UNVERIFIED, not missing)"
+    unverified=$((unverified + 1))
     continue
   fi
 
   expected=$(expected_tag_for "$mod_path" "$version")
   checked=$((checked + 1))
   if ! grep -qxF "$expected" <<<"${REPO_TAGS_LIST[$repo]}"; then
-    echo "  MISSING TAG: $mod_path@$version needs tag '$expected' in larsartmann/$repo"
-    echo "               (required by $origin_dir)"
-    missing=$((missing + 1))
+    # Stale-cache guard: a tag pushed after this repo's cache entry was
+    # written would read as missing. Refetch LIVE before declaring it.
+    if [[ ${REPO_TAGS_FROM_CACHE[$repo]:-false} == "true" ]]; then
+      refresh_repo_tags "$repo"
+      if [[ ${REPO_TAGS_OK[$repo]} != "true" ]]; then
+        echo "  WARN: cannot verify $mod_path@$version — $repo unfetchable on refetch (ls-remote failed — UNVERIFIED)"
+        unverified=$((unverified + 1))
+        continue
+      fi
+    fi
+    if ! grep -qxF "$expected" <<<"${REPO_TAGS_LIST[$repo]}"; then
+      echo "  MISSING TAG: $mod_path@$version needs tag '$expected' in larsartmann/$repo"
+      echo "               (required by $origin_dir)"
+      missing=$((missing + 1))
+    else
+      echo "  NOTE: '$expected' absent from stale cache — live refetch confirmed it (cache rewritten)"
+    fi
   fi
 done <<<"$ALL_PAIRS"
 
-if [[ $missing -eq 0 ]]; then
+if [[ $missing -eq 0 && $unverified -eq 0 ]]; then
   echo "✓ All $checked larsartmann requires resolve to published tags ($skipped skipped: pseudo-version or locally replaced)"
 else
-  echo ""
-  echo "✗ $missing larsartmann require(s) reference tags that do not exist upstream"
-  echo "  (or their repo was unreachable). Cut+push the tag, or pin back to a"
-  echo "  published version. $skipped skipped (pseudo-version or locally replaced)."
-  if [[ $STRICT == "true" ]]; then
-    exit 1
+  if [[ $missing -gt 0 ]]; then
+    echo ""
+    echo "✗ $missing larsartmann require(s) reference tags that do not exist upstream"
+    echo "  Cut+push the tag, or pin back to a published version."
+    echo "  $skipped skipped (pseudo-version or locally replaced)."
+    if [[ $STRICT == "true" ]]; then
+      exit 1
+    fi
+  fi
+  if [[ $unverified -gt 0 ]]; then
+    echo ""
+    echo "⚠ $unverified repo(s) UNVERIFIED (ls-remote starved or offline) — not a verdict."
+    echo "  Retry shortly; the shared tag cache may already be warm on the next run."
+    if [[ ${CI:-false} != "true" ]]; then
+      exit 4
+    fi
+    echo "  (CI: downgraded to warning — the train gate's advisory shape.)"
   fi
 fi

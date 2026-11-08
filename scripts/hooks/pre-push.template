@@ -19,9 +19,10 @@
 #
 # Offline policy: release-train exit 4 (cannot reach github.com) only
 # warns — do not brick offline pushes; the 15-min tag cache makes even
-# that rare. check-version-drift has no offline exit, so its failures are
-# disambiguated by an explicit ls-remote probe: unreachable network warns
-# and proceeds, a reachable network with drift/missing tags BLOCKS.
+# that rare. check-version-drift.sh carries the same exit-4 semantics
+# (2026-11-08): tags UNVERIFIABLE from ls-remote starvation/offline are
+# exit 4 — warn and proceed (a genuine MISSING TAG is exit 1 and BLOCKS;
+# the gate itself re-verifies cached misses live before declaring one).
 #
 # Escape hatch: git push --no-verify (mid-train bump commits etc. —
 # document the justification, same policy as the pre-commit fallback).
@@ -42,13 +43,11 @@ fi
 
 drift_rc=0
 bash "$ROOT/scripts/checks/check-version-drift.sh" --strict || drift_rc=$?
-if [ "$drift_rc" -ne 0 ]; then
-  if ! git ls-remote https://github.com/larsartmann/cqrs-htmx.git HEAD >/dev/null 2>&1; then
-    echo "pre-push: WARNING version-drift gate could not reach github.com — push proceeds, re-check when online" >&2
-  else
-    echo "pre-push: version-drift gate FAILED (rc=$drift_rc) — CI runs this exact check blocking; push blocked." >&2
-    exit "$drift_rc"
-  fi
+if [ "$drift_rc" -eq 4 ]; then
+  echo "pre-push: WARNING version-drift gate could not VERIFY tags (ls-remote starved/offline) — push proceeds; re-run when calm" >&2
+elif [ "$drift_rc" -ne 0 ]; then
+  echo "pre-push: version-drift gate FAILED (rc=$drift_rc) — CI runs this exact check blocking; push blocked." >&2
+  exit "$drift_rc"
 fi
 
 echo "pre-push: CI-parity gates green (release-train strict + version-drift --strict)."
