@@ -1,5 +1,9 @@
 # Browser E2E train: M10–M11 landed, CI job added, firefox promoted then flaked — 7 bugs total this wave
 
+> **ANNOTATED 2026-11-08** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+> The next session in the same arc is [`2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md`](../2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md), which resolved.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 **Date:** 2026-11-08 06:14 CET
 **Plan of record:** `docs/planning/2026-11-07_08-55_SUPERB-browser-e2e-battery-ci-and-datastar-coverage.md` (§Execution log now carries per-milestone receipts)
 **Session scope:** M10 finish → M11 → M2 (CI) → M4 (firefox) → flake-stabilization → M5 (docs) → M6 (commits+push) — interrupted mid-M6 by this report request.
