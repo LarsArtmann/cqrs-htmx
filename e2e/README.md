@@ -76,6 +76,24 @@ Firefox: the `e2e-firefox` app builds a symlink forest of nixpkgs libs
 runner-wide `LD_LIBRARY_PATH` poisons the chromium children (their bundled
 nspr resolution breaks; hit live 2026-11-08).
 
+### Engine scope and shared-state discipline (2026-11-08)
+
+- One `webServer` set backs EVERY project in the invocation: both engines
+  replay the suite against the SAME demo servers. Never assert absolutes on
+  server-side state (item stores, global counters, seeded rows) — assert
+  deltas against what the page reports, and tests that delete fixtures must
+  seed their own victims. Gotcha 59 owns the full story (the four 2026-11-08
+  "firefox divergences" were this class, not engine bugs).
+- `sync.spec.ts` is scoped OFF the firefox project (`testIgnore` in the
+  config, cited): the SharedWorker's backendId cache reset does not wipe
+  under firefox and the interception-based offline tests fail per-build —
+  one open investigation row in `TODO_LIST.md`.
+- Firefox suspends a BACKGROUND tab's stream processing (probed: zero
+  deliveries until the tab is fronted, and a stalled background connection
+  does not resume — reload under visibility instead). Specs prove each tab's
+  feed with `bringToFront` (+ reload) rather than assuming background
+  delivery. Headless chromium never throttles.
+
 ## Test server
 
 `e2e/server/` mounts the loginpage/usermgmt stack, the dashboard, the bridge
