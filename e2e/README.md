@@ -42,6 +42,13 @@ nix run .#e2e-firefox
 > runner skews against the locally installed `@playwright/test` and fails
 > with "Playwright Test did not expect test() to be called here" (2026-10-13).
 
+> **Serial mode does not share browser contexts.**
+> `test.describe.configure({ mode: "serial" })` runs tests in order and stops
+> after a failure, but every test still gets a FRESH context - cookies and
+> pages do not carry over, and the remaining tests after a failure show as
+> "did not run". Establish per-test state explicitly (the posture spec's
+> self-contained register-then-logout is the pattern).
+
 ### Sanctioned runs and the stale-server trap
 
 `reuseExistingServer` is ON locally: a leaked server from an earlier run is

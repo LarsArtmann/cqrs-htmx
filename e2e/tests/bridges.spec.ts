@@ -44,7 +44,7 @@ test("health dashboard renders live: page, operational status, SSE patch applied
   // visibility: upstream go-health-dashboard v0.13.2 renders all three
   // pills with Tailwind display classes (inline-flex), which defeat the UA
   // [hidden] stylesheet rule — every pill is visually shown at once
-  // (verified empirically 2026-11-08; upstream filing candidate).
+  // (verified empirically 2026-11-08; filed upstream as LarsArtmann/go-health-dashboard#31).
   await expect
     .poll(
       async () =>

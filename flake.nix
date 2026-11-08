@@ -3055,8 +3055,8 @@
                       # another revision usually still launches, but engine
                       # differences (protocol, name computation) make silent
                       # skew a trap — say it loudly instead.
-                      WANT_REV="$(sed -n 's/.*"name": "firefox",[^}]*"revision": "\([0-9]*\)".*/\1/p' \
-                        node_modules/playwright-core/browsers.json | head -1)"
+                      WANT_REV="$(grep -A3 '"name": "firefox"' node_modules/playwright-core/browsers.json \
+                        | grep -o '"revision": "[0-9]*"' | grep -o '[0-9]*' | head -1)"
                       HAVE_REV="$(echo "$FF_BIN" | sed -n 's/.*firefox-\([0-9]*\)\/.*/\1/p')"
                       if [ -n "$WANT_REV" ] && [ -n "$HAVE_REV" ] && [ "$WANT_REV" != "$HAVE_REV" ]; then
                         echo "WARN: firefox revision drift: runner wants $WANT_REV, using cached $HAVE_REV" >&2
@@ -3068,6 +3068,12 @@
                       # it to LD_LIBRARY_PATH before any browser child spawns.
                       export E2E_FIREFOX_PATH="$FF_BIN"
                       export E2E_FIREFOX_LIBS="${playwrightFirefoxLibs}/lib"
+
+                      # The stale-server ritual as one command: never test
+                      # yesterday's binary through reuseExistingServer.
+                      if [ -x "$PWD/scripts/tools/e2e-kill-strays.sh" ]; then
+                        "$PWD/scripts/tools/e2e-kill-strays.sh" || exit 1
+                      fi
 
                       cd "''${BUILD_ROOT:-$(pwd)}/e2e"
                       if command -v bun >/dev/null 2>&1; then
