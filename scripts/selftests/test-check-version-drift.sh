@@ -108,7 +108,7 @@ make_module "$R_UNIFORM" mod_a github.com/larsartmann/templ-components v1.16.0
 make_module "$R_UNIFORM" mod_b github.com/larsartmann/templ-components v1.16.0
 
 run_drift() { # <root> <extra args...>
-  DRIFT_ROOT="$1" bash "$DRIFT" "${@:2}" 2>&1
+  env -u CI DRIFT_ROOT="$1" bash "$DRIFT" "${@:2}" 2>&1
 }
 
 # Stub `git` for the hermetic starvation cases: ls-remote/credential are
@@ -146,7 +146,7 @@ STUB
 chmod +x "$STUB_BIN/git"
 
 run_drift_stub() { # <root> <cache_dir> <extra args...>
-  DRIFT_ROOT="$1" STUB_DIR="$STUB_DIR" TRAIN_TAG_CACHE_DIR="$2" \
+  env -u CI DRIFT_ROOT="$1" STUB_DIR="$STUB_DIR" TRAIN_TAG_CACHE_DIR="$2" \
     PATH="$STUB_BIN:$PATH" bash "$DRIFT" "${@:3}" 2>&1
 }
 
@@ -181,7 +181,10 @@ if [ "${RC:-0}" -eq 4 ] && grep -q "UNVERIFIED" <<<"$OUT"; then report 0 "starve
 unset RC
 
 rm -rf "$SCRATCH/cache7"
-OUT="$(CI=true run_drift_stub "$R_STUB" "$SCRATCH/cache7" --strict)" || RC=$?
+# CI passed EXPLICITLY (the helpers strip the ambient variable, so the
+# downgrade branch is exercised on every runner, not just locally).
+OUT="$(env CI=true DRIFT_ROOT="$R_STUB" STUB_DIR="$STUB_DIR" TRAIN_TAG_CACHE_DIR="$SCRATCH/cache7" \
+  PATH="$STUB_BIN:$PATH" bash "$DRIFT" --strict)" || RC=$?
 if [ "${RC:-0}" -eq 0 ] && grep -q "UNVERIFIED" <<<"$OUT"; then report 0 "starved + CI=true exits 0 (downgraded warning)"; else report 1 "starved CI run should warn-and-pass (rc=${RC:-0}): $OUT"; fi
 unset RC
 
