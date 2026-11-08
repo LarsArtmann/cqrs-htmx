@@ -3050,18 +3050,9 @@
                       fi
                       echo "==> firefox: $FF_BIN"
 
-                      # Revision-drift warning: the runner's playwright-core
-                      # pins an exact firefox revision; a cached build from
-                      # another revision usually still launches, but engine
-                      # differences (protocol, name computation) make silent
-                      # skew a trap — say it loudly instead.
-                      WANT_REV="$(grep -A3 '"name": "firefox"' node_modules/playwright-core/browsers.json \
-                        | grep -o '"revision": "[0-9]*"' | grep -o '[0-9]*' | head -1)"
-                      HAVE_REV="$(echo "$FF_BIN" | sed -n 's/.*firefox-\([0-9]*\)\/.*/\1/p')"
-                      if [ -n "$WANT_REV" ] && [ -n "$HAVE_REV" ] && [ "$WANT_REV" != "$HAVE_REV" ]; then
-                        echo "WARN: firefox revision drift: runner wants $WANT_REV, using cached $HAVE_REV" >&2
-                        echo "      (re-provision: PLAYWRIGHT_BROWSERS_PATH=$FF_HOME ./node_modules/.bin/playwright install firefox)" >&2
-                      fi
+                      # Resolve the repo root BEFORE any cd: the caller's CWD
+                      # is arbitrary (repo root, e2e/, elsewhere).
+                      REPO_ROOT="''${BUILD_ROOT:-$(pwd)}"
 
                       # The prebuilt firefox resolves its FHS libs through this
                       # forest; the playwright config (E2E_FIREFOX_LIBS) prepends
@@ -3071,11 +3062,29 @@
 
                       # The stale-server ritual as one command: never test
                       # yesterday's binary through reuseExistingServer.
-                      if [ -x "$PWD/scripts/tools/e2e-kill-strays.sh" ]; then
-                        "$PWD/scripts/tools/e2e-kill-strays.sh" || exit 1
+                      if [ -x "$REPO_ROOT/scripts/tools/e2e-kill-strays.sh" ]; then
+                        "$REPO_ROOT/scripts/tools/e2e-kill-strays.sh" || exit 1
                       fi
 
-                      cd "''${BUILD_ROOT:-$(pwd)}/e2e"
+                      cd "$REPO_ROOT/e2e"
+
+                      # Revision-drift warning: the runner's playwright-core
+                      # pins an exact firefox revision; a cached build from
+                      # another revision usually still launches, but engine
+                      # differences (protocol, name computation) make silent
+                      # skew a trap — say it loudly instead. Advisory ONLY:
+                      # a missing browsers.json (or a grep miss) must warn,
+                      # never kill the run (set -e aborts on a failing
+                      # command substitution otherwise — the 2026-11-08
+                      # silent-death bug where repo-root invocation died
+                      # before playwright started).
+                      WANT_REV="$(grep -A3 '"name": "firefox"' node_modules/playwright-core/browsers.json \
+                        | grep -o '"revision": "[0-9]*"' | grep -o '[0-9]*' | head -1 || true)"
+                      HAVE_REV="$(echo "$FF_BIN" | sed -n 's/.*firefox-\([0-9]*\)\/.*/\1/p' || true)"
+                      if [ -n "$WANT_REV" ] && [ -n "$HAVE_REV" ] && [ "$WANT_REV" != "$HAVE_REV" ]; then
+                        echo "WARN: firefox revision drift: runner wants $WANT_REV, using cached $HAVE_REV" >&2
+                        echo "      (re-provision: PLAYWRIGHT_BROWSERS_PATH=$FF_HOME ./node_modules/.bin/playwright install firefox)" >&2
+                      fi
                       if command -v bun >/dev/null 2>&1; then
                         bun install --frozen-lockfile 2>/dev/null || bun install
                         ./node_modules/.bin/playwright test "$@"
