@@ -475,15 +475,29 @@ jobs:
         run: bun install --frozen-lockfile
         working-directory: e2e
 
-      - name: Install Playwright Chromium
-        run: bunx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium firefox
         working-directory: e2e
 
-      - name: Run browser E2E battery
-        run: bunx playwright test --reporter=line
+      - name: Run browser E2E battery (chromium, blocking)
+        run: bunx playwright test --project=chromium --reporter=line
         working-directory: e2e
         env:
           GOEXPERIMENT: jsonv2
+
+      # Cross-engine lane (plan 2026-11-08): advisory until firefox shows a
+      # stable rate — the first full both-engine run was green (150/0) and
+      # the second flaked 11 (sync interception protocol errors; cached
+      # firefox-1543 vs runner-registry 1555 skew suspected locally, but the
+      # CI registry build is revision-correct so this measures the real
+      # engine rate). Promote to blocking after 3 consecutive clean runs.
+      - name: Run browser E2E battery (firefox, advisory)
+        run: bunx playwright test --project=firefox --reporter=line
+        working-directory: e2e
+        continue-on-error: true
+        env:
+          GOEXPERIMENT: jsonv2
+          E2E_FIREFOX: "1"
 
   mod-tidy:
     runs-on: ubuntu-latest
