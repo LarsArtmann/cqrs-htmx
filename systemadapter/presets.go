@@ -27,46 +27,41 @@ func sqlitePragmas() []string {
 
 // RecommendedMemoryDeployment returns the recommended dev/test deployment:
 // ONE memory engine holding every role. Everything lives in-process and dies
-// with it — zero setup, zero persistence.
+// with it — zero setup, zero persistence. The instance triple is filled by
+// system.Standard (ADR-0165): source-of-truth + queries on the engine,
+// projections pooled over it.
 //
 //	deployment := systemadapter.RecommendedMemoryDeployment()
 //	sys, err := system.New(ctx, systemadapter.DomainConfig(), deployment)
 func RecommendedMemoryDeployment() system.DeploymentConfig {
-	return system.DeploymentConfig{
+	return system.Standard(system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
 			enginePrimary: {Driver: driverMemory},
 		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engines: []string{enginePrimary}},
-			{Role: system.RoleProjections, Engines: []string{enginePrimary}},
-		},
-	}
+	})
 }
 
 // RecommendedSQLiteDeployment returns the recommended single-file persistent
 // deployment: one SQLite engine (WAL) holding every role. The DSN is the
 // database file, e.g. "file:app.db" — back it up and the whole system state
-// travels with it.
+// travels with it. The instance triple is filled by system.Standard
+// (ADR-0165).
 //
 //	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db")
 //	sys, err := system.New(ctx, systemadapter.DomainConfig(), deployment)
 func RecommendedSQLiteDeployment(dsn string) system.DeploymentConfig {
-	return system.DeploymentConfig{
+	return system.Standard(system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
 			enginePrimary: {Driver: driverSQLite, DSN: dsn, Pragmas: sqlitePragmas()},
 		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engines: []string{enginePrimary}},
-			{Role: system.RoleProjections, Engines: []string{enginePrimary}},
-		},
-	}
+	})
 }
 
-// RecommendedSplitSQLiteDeployment returns the recommended production shape:
-// the event journal and the projection engines live on SEPARATE SQLite files,
-// so projection reads and replays never contend with the write path. Pair it
-// with [WithCheckpointStore] + [WithDeadLetterStore] on stores backed by the
-// projections file (or their own) for restart-safe positions.
+// RecommendedSplitSQLiteDeployment keeps its EXPLICIT instances on purpose:
+// the split topology isolates the journal and projection files, while
+// system.Standard pools projections over EVERY declared engine — pooling here
+// would write projections into the journal's file. Standard is a passthrough
+// over explicit instances (ADR-0165), so this preset stays hand-written.
 //
 //	deployment := systemadapter.RecommendedSplitSQLiteDeployment(
 //		systemadapter.SplitSQLiteDSNs{
@@ -172,21 +167,17 @@ func RecommendedTursoDeployment(dsn string) system.DeploymentConfig {
 }
 
 // singleEngineDeployment is the shared shape of the one-engine presets: a
-// single named engine holds every role (source of truth AND projections),
-// which is the correct topology for embedded engines and single-server
-// deployments. The explicit RoleProjections instance is load-bearing: without
-// one, the system wires projection state into an IMPLICIT in-memory engine,
-// so a persistent single-file deployment loses every view on restart while
-// its engine-backed checkpoints say nothing is left to replay — the exact
-// starvation the W1.2 migration probe caught (2026-11-08).
+// single named engine holds every role (source-of-truth, the query audit
+// log, AND projections), which is the correct topology for embedded engines
+// and single-server deployments. system.Standard fills the canonical triple
+// (ADR-0165) — including the explicit projections instance that keeps views
+// off the implicit volatile fallback the W1.2 migration probe caught
+// (2026-11-08) and a named queries instance the audit log can later move to
+// its own engine from.
 func singleEngineDeployment(driver, dsn string) system.DeploymentConfig {
-	return system.DeploymentConfig{
+	return system.Standard(system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
 			enginePrimary: {Driver: driver, DSN: dsn},
 		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engines: []string{enginePrimary}},
-			{Role: system.RoleProjections, Engines: []string{enginePrimary}},
-		},
-	}
+	})
 }
