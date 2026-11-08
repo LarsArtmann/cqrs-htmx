@@ -89,10 +89,12 @@ nspr resolution breaks; hit live 2026-11-08).
   under firefox and the interception-based offline tests fail per-build —
   one open investigation row in `TODO_LIST.md`.
 - Firefox suspends a BACKGROUND tab's stream processing (probed: zero
-  deliveries until the tab is fronted, and a stalled background connection
-  does not resume — reload under visibility instead). Specs prove each tab's
-  feed with `bringToFront` (+ reload) rather than assuming background
-  delivery. Headless chromium never throttles.
+  deliveries until the tab is fronted) AND cannot hold two CONCURRENT SSE
+  streams in headless mode (the second tab's `@get` dies
+  `NS_BINDING_ABORTED`, its replacement hangs; sequential tabs — close the
+  first, open the second — connect instantly). The multi-tab spec proves
+  its feeds SEQUENTIALLY, identical choreography on both engines.
+  Headless chromium never throttles.
 
 ## Test server
 
