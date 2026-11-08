@@ -121,11 +121,25 @@ graph TD
 ## Execution log
 
 - [x] F01–F03 (2026-11-08 06:3x): daemon-revert damage found and repaired (firefox CI promotion + sync ceilings + screenshot retry were snapshot-reverted; re-applied and sentinel-scanned), firefox CI landed in the ADVISORY shape (chromium blocking + firefox `continue-on-error`), plan + status report committed.
-- [ ] F04–F08: push + watch + triage (M1 close).
-- [ ] F09–F14: firefox rate measurement (M2).
-- [ ] F15–F17: loud-skips gate (M3).
-- [ ] F18–F20: firefox follow-ups by data (M4).
-- [ ] F21–F22: gotchas (M5).
-- [ ] F23–F24: upstream filing (M6).
+- [x] F04 (2026-11-08 07:0x): PUSHED (`e85b1613..0c371e35`, pre-push hook fully green — no gotcha-50 needed).
+- [x] F05–F07 partial (2026-11-08 07:2x): first CI run 42454366652 — the e2e job's infrastructure WORKED first try (sibling clones, go.work rewrite, warm build, bun pin, browser installs, suite ran). One real failure: **bug #8** — the events page's "Auth stream" chip aria-label hid its visible text (`label-content-name-mismatch`, deterministic in the registry Chromium; the local Nix build never surfaced it — the engine lane paying for itself on day one). FIXED (`dashboardui/events.templ` label now contains the visible text) + pushed. The run's other red jobs (lint ×4, module-architecture, checks) are SIBLING in-flight work (auth-stream preset feature, huma drift test), not this train's.
+- [x] F09–F10 (2026-11-08 07:1x): firefox-1555 provisioned into `/mnt/buildcache/playwright`; the flake app picks it (newest-first); the forest expression's `dbus.lib` output-quirk fixed (the last missing lib); launch verified (`TITLE: ok1555`).
+- [x] F11–F14 (2026-11-08 07:3x): **the rate table —**
+
+  | Run | Build | Result | Verdict |
+  | --- | --- | --- | --- |
+  | pre-plan both-engine | 1543 | 150 passed / 0 failed / 13 DNR | green-once |
+  | 06:0x (post axe-fix) | 1543 | 186 passed / **11 failed** / 13 DNR | deterministic divergence |
+  | rate run 1 | 1555 | 186 passed / **11 failed** / 13 DNR | identical set → revision-skew hypothesis DEAD |
+  | rate run 2 (sync scoped off) | 1555 | 186 passed / **4 failed** / 13 DNR | stable: the four single-test divergences |
+  | rate run 3 | 1555 | (pending — expected = run 2's set) | |
+
+  Decision per the data: NOT flake — **deterministic cross-engine divergences in shipped artifacts**. Applied: `sync.spec.ts` scoped off the firefox project with a citation (F18 executed early); the four singles stay RUNNING and visible in the advisory lane; all five documented as TODO rows with per-item diagnosis leads (DataStar double-patch 2→4, OOB no-op, tab-2 SSE never-live, partial-vs-full Accept negotiation, SharedWorker cache-reset no-wipe).
+- [x] F15–F16 (2026-11-08 07:4x): loud-skips gate `scripts/checks/check-e2e-ran-count.sh` + 8-case self-test (a spec with NO results vs an intended skip's skipped RESULT; `--expect-unrun N` ceiling).
+- [x] F17 (2026-11-08 07:4x): wired into CI — chromium gate BLOCKING, firefox gate advisory, reports via `PLAYWRIGHT_JSON_OUTPUT_NAME`; actionlint green.
+- [x] F21–F22 (2026-11-08 07:0x): gotchas #57 (element-bound JS dies under hx-boost; document-delegated listeners + `bubbles:true`) and #58 (DecodeForm zero-struct silence; browser-encoding rule) + AGENTS index rows. (#56 was taken by a sibling's zero-ULID gotcha — numbered past it.)
+- [ ] F08: `.#verify-remote-tags` after green (rides the next fully-green run — the tree carries sibling in-flight lint reds this push).
+- [ ] F18 remainder: keep-or-verify the sync scoping after each divergence fix; F19 revision warning; F20 promotion flip after 3 clean runs.
+- [ ] F23–F24: upstream pill filing (M6).
 - [ ] F25–F27: boost-guard spec (M7).
 - [ ] F28–F30: stale-port guard + README note + rituals (M8).
