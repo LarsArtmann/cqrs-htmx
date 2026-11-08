@@ -529,24 +529,29 @@ jobs:
       - name: Assert the battery ran everything it listed (chromium)
         run: bash scripts/checks/check-e2e-ran-count.sh e2e/pw-chromium-report.json
 
-      # Cross-engine lane (plan 2026-11-08): advisory until firefox shows a
-      # stable rate — the first full both-engine run was green (150/0) and
-      # the second flaked 11 (sync interception protocol errors; cached
-      # firefox-1543 vs runner-registry 1555 skew suspected locally, but the
-      # CI registry build is revision-correct so this measures the real
-      # engine rate). Promote to blocking after 3 consecutive clean runs.
-      - name: Run browser E2E battery (firefox, advisory)
+      # Cross-engine lane PROMOTED TO BLOCKING (2026-11-08, F20 of plan
+      # 2026-11-08_06-26): three consecutive clean CI firefox observations
+      # (42456536460, 42457053291, 42477578702 — the intermediate b86fd0cb
+      # run skipped the lane when the chromium step red on a mid-flight spec
+      # state, no firefox observation either way) plus the local
+      # divergence-resolution wave that root-caused the four "firefox
+      # divergences" (three test-design artifacts + one headless-firefox
+      # property; final local both-engine battery 207/207 — gotcha 59, the
+      # TODO_LIST row). The lanes stay SEPARATE invocations deliberately:
+      # one webServer set backs every project in an invocation, and shared
+      # server state across engines is exactly the cross-project race class
+      # the spec fixes addressed — separate invocations give each engine a
+      # fresh server set and its own ran-count gate.
+      - name: Run browser E2E battery (firefox, blocking)
         run: bunx playwright test --project=firefox --reporter=line,json
         working-directory: e2e
-        continue-on-error: true
         env:
           GOEXPERIMENT: jsonv2
           E2E_FIREFOX: "1"
           PLAYWRIGHT_JSON_OUTPUT_NAME: pw-firefox-report.json
 
-      - name: Assert the battery ran everything it listed (firefox, advisory)
+      - name: Assert the battery ran everything it listed (firefox)
         run: bash scripts/checks/check-e2e-ran-count.sh e2e/pw-firefox-report.json
-        continue-on-error: true
 
   mod-tidy:
     runs-on: ubuntu-latest

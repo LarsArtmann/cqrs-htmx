@@ -114,7 +114,10 @@ The battery runs in CI (`.github/workflows/ci.yml`, `e2e` job): sibling repos
 cloned + `go.work` paths rewritten, servers pre-built, browsers installed
 via `bunx playwright install --with-deps chromium firefox`, both engines.
 Firefox is opt-in via `E2E_FIREFOX=1` / `E2E_FIREFOX_PATH` — without either
-env the project is absent and the run is chromium-only.
+env the project is absent and the run is chromium-only. In CI BOTH lanes
+are blocking since 2026-11-08 (F20 promotion: three clean firefox
+observations + the divergence-resolution wave); locally keep using
+`nix run .#e2e-firefox` for the both-engine pass.
 
 ## See also
 
