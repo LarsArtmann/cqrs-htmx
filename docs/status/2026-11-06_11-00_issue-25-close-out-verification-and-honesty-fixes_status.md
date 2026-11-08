@@ -193,7 +193,7 @@ Verified honestly rather than hand-waved:
 32. Consider a `SessionEndCause` for "admin revoked one session" (today it journals `revoked` only for the whole-user sweep; a single admin-initiated kill has no distinct class).
 33. Document the `payload_encoding = 'json'` guard's scope: CBOR-payload events (ADR-0059) will not be readable by the doc's SQL without a decoder — say so or add a `json_valid(payload)` variant.
 34. Check whether `AuditLog`'s 10k window can evict a session event before a compliance query runs; if yes, the guide should say "journal, not AuditLog" more loudly (it does, once).
-35. Add a `dashboardui` filter preset for the auth stream so the events panel can show only session lifecycle (today: manual type filter).
+35. ~~Add a `dashboardui` filter preset for the auth stream so the events panel can show only session lifecycle (today: manual type filter).~~ done 2026-11-08 (M14-F61): the auth-stream preset shipped — typed type-set const, comma-set matching, preset links rendered on the unfiltered events page, pinned end-to-end by a handler test. Receipts in TODO row 46 item 5.
 36. Re-verify the issue body's remaining unchecked box reads as "demand gate", not "open work" for the next reader (it does now, but a future scan will read it as a TODO).
 37. Keep `docs/drafts/2026-11-06_issue-25-closing-comment.md` as frozen history or delete it after the issue closes — pick a convention (the drafts dir has both shapes).
 38. Capture this session's "read the status report before the code" lesson in `docs/runbooks/session-start.md` (one bullet, with the `rg -n "#<issue>" docs/` command).

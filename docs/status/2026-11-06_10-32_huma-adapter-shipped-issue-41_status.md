@@ -219,7 +219,7 @@ I did **not** touch any of those files, per the "never revert changes you did no
 12. Consider `RequireAuthIn(domain)` / a `Subject` override option for bot/service callers.
 13. A `huma.UseMiddleware`-shaped helper (`Adapter.Middleware()`) for hand-registered operations.
 14. Split `MapError`'s status derivation from the body building, so a consumer can reuse the status alone.
-15. Decide whether the module should expose `ProblemError.Retryable` (go-error-family carries it; the route JSON handler does not emit it today).
+15. ~~Decide whether the module should expose `ProblemError.Retryable` (go-error-family carries it; the route JSON handler does not emit it today).~~ done 2026-11-08 (M13): retryability is a SHARED-document concern, not a huma-only field — the root StructuredError now carries a family-derived retryable flag (omitzero so false stays off the wire); the adapter inherits it at the next pin bump via embedding. Receipts in TODO row 46 item 1.
 
 **Proof and coverage**
 
@@ -233,7 +233,7 @@ I did **not** touch any of those files, per the "never revert changes you did no
 
 **Gates and tooling**
 
-23. Derive the CI `go mod tidy` module list from `go.work` (remove the hand list).
+23. ~~Derive the CI `go mod tidy` module list from `go.work` (remove the hand list).~~ done 2026-11-08 (M13): the mod-tidy job derives the module list from the go.work use-block via awk, verified set-equal to the hand list 30=30. Receipts in TODO row 46 item 3.
 24. Extend `check-module-isolation` to print a per-module summary line (the current tail hides which modules ran).
 25. Wire a markdown prettier check into CI (or exclude the files it cannot currently agree on) — the tree is not prettier-canonical today and nothing says so.
 26. Consider a `check-new-module.sh` scaffold gate: a new `go.work` member must appear in coverage-thresholds, dep-budgets, cqrs-lint list, CI build/test/lint/coverage, errorfamily scan. This session touched nine files for that reason; the gate would have listed them.
@@ -247,7 +247,7 @@ I did **not** touch any of those files, per the "never revert changes you did no
 31. Truth-pass `FEATURES.md`'s metrics table (its footnote still says "All 15 gates PASSED on 2026-09-20" and lint "0 issues across all 15 modules (golangci 2.13.2)" — now 16 gates and 2.15.0).
 32. Add the `huma` row to `docs/runbooks/release-*` playbooks (see #2).
 33. AGENTS gotcha candidate: "a new module can only pin published API" — the adapter-vs-root-export decision that shaped this issue.
-34. Record the zero-ULID-subject trap in `docs/gotchas.md` (it is a library-wide authz trap, not a Huma one).
+34. ~~Record the zero-ULID-subject trap in `docs/gotchas.md` (it is a library-wide authz trap, not a Huma one).~~ done 2026-11-08 (M13): gotcha 56 written and indexed — and upgraded from doc-item to a live fix, the root authorize path answered 403 to anonymous callers before the IsZero guard landed. Receipts in TODO row 46 item 4.
 35. Record the `WrapRejection`-shadows-context trap next to the existing gotcha 24 family (root's helper exists; adapters must mirror it).
 
 **Repo hygiene this session surfaced**
