@@ -131,15 +131,18 @@ test("multi-tab: a second tab on the same origin receives the same live feed", a
   await tab2.goto(`${DEMO}/`, { waitUntil: "load" });
 
   // Tab 1 is front (its goto) — prove its stream first. Then FRONT tab 2
-  // before proving its feed: firefox SUSPENDS a background tab's stream
-  // processing (probed 2026-11-08 — a background second tab delivered
-  // nothing across 3 probes; the same tab fronted delivered; headless
-  // chromium never throttles, which is what made this a "firefox-only
-  // divergence"). Visibility is part of the browser contract; the spec
-  // brings each tab front for its own proof instead of assuming
-  // background delivery.
+  // and RELOAD before proving its feed: firefox SUSPENDS a background
+  // tab's stream processing (probed 2026-11-08 — a background second tab
+  // delivered nothing across 3 probes; the same tab fronted delivered),
+  // and a connection that stalled in the background for the seconds tab 1
+  // was being probed does not resume delivering — a fresh load under
+  // visibility reconnects cleanly (headless chromium never throttles,
+  // which is what made this a "firefox-only divergence"). Visibility is
+  // part of the browser contract; the spec proves each feed under
+  // visibility instead of assuming background delivery.
   await connectStream(page, request, "tab1-probe");
   await tab2.bringToFront();
+  await tab2.reload({ waitUntil: "load" });
   await connectStream(tab2, request, "tab2-probe");
 
   // Fan-out: a create on tab 1 lands on tab 2's live feed (tab 2 is front —

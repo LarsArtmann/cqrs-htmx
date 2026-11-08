@@ -88,14 +88,21 @@ test("confirm modal: open, fill, Esc/Cancel/backdrop close, Confirm deletes", as
   // page). The seeded filler is shared across both playwright projects, and
   // deleting a filler row used to shrink the total out from under the next
   // run's pagination assertions. Self-seeding makes the test idempotent.
-  // The admin-demo mounts httputil CSRF (cookie csrf_token + X-Csrf-Token
-  // header — the nosurf pair), so the token rides from the session cookie.
-  const csrfToken = (await page.context().cookies(ADMIN)).find((c) => c.name === "csrf_token")?.value;
+  // The admin-demo mounts httputil CSRF (nosurf): the request token comes
+  // from the page's <meta name="csrf-token"> — the cookie holds the MASKED
+  // value and is rejected as a header token (probed 2026-11-08: cookie
+  // value 403, meta token 303).
+  await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
+  await page.waitForTimeout(400);
+  const csrfToken = await page.evaluate(() =>
+    document.querySelector('meta[name="csrf-token"]')?.getAttribute("content"),
+  );
+  expect(csrfToken, "panel layout should render the csrf meta").toBeTruthy();
   const victimEmail = `e2e-modal-${Date.now()}@acme.dev`;
   const created = await page.request.post(`${ADMIN}/admin/users`, {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      ...(csrfToken ? { "X-Csrf-Token": csrfToken } : {}),
+      "X-Csrf-Token": csrfToken ?? "",
     },
     data: `email=${encodeURIComponent(victimEmail)}&display_name=E2E Modal Victim`,
   });
