@@ -484,6 +484,14 @@ jobs:
         working-directory: e2e
         env:
           GOEXPERIMENT: jsonv2
+          PLAYWRIGHT_JSON_OUTPUT_NAME: pw-chromium-report.json
+
+      # The bug-#7 lesson as a gate: a battery that silently runs fewer tests
+      # than it lists is not a gate (axe's 18 hidden tests masked a shipped
+      # a11y violation for weeks). Fail when any listed spec produced no
+      # result. Self-test: scripts/selftests/test-check-e2e-ran-count.sh.
+      - name: Assert the battery ran everything it listed (chromium)
+        run: bash scripts/checks/check-e2e-ran-count.sh e2e/pw-chromium-report.json
 
       # Cross-engine lane (plan 2026-11-08): advisory until firefox shows a
       # stable rate — the first full both-engine run was green (150/0) and
@@ -498,6 +506,11 @@ jobs:
         env:
           GOEXPERIMENT: jsonv2
           E2E_FIREFOX: "1"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: pw-firefox-report.json
+
+      - name: Assert the battery ran everything it listed (firefox, advisory)
+        run: bash scripts/checks/check-e2e-ran-count.sh e2e/pw-firefox-report.json
+        continue-on-error: true
 
   mod-tidy:
     runs-on: ubuntu-latest
