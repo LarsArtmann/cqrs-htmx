@@ -111,11 +111,11 @@ order_ok=$(awk '
   /verify-tag usermgmt\/totp v4\.99\.0 --dry-run/ {if (!seen) {order = order " G"; seen=1}}
   /^git push$/ {order = order " P"}
   /verify-tag usermgmt\/totp v4\.99\.0 --push/ {order = order " T"}
-  /train --refresh-cache --strict-lag 0/ {order = order " R"}
   /bump-dep github\.com\/larsartmann\/cqrs-htmx\/usermgmt\/totp\/v4\$ v4\.99\.0 --commit --lint/ {order = order " S"}
-  END {print (order ~ /G.*P.*T.*R.*S/) ? "OK" : "BAD:" order}
+  /train --refresh-cache --strict-lag 0/ {order = order " R"}
+  END {print (order ~ /G.*P.*T.*S.*R/) ? "OK" : "BAD:" order}
 ' "$LOG")
-report "$([ "$order_ok" = "OK" ] && echo 0 || echo 1)" "WT3 strict leg order guards→push→tag→train→sweep ($order_ok)"
+report "$([ "$order_ok" = "OK" ] && echo 0 || echo 1)" "WT3 strict leg order guards→push→tag→sweep→train ($order_ok)"
 report "$(grep -q 'bump-dep github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4\$' "$LOG" && echo 0 || echo 1)" 'WT3 sweep anchors the exact module path ($ suffix)'
 
 # --- WT4: execute, push refuses ---------------------------------------------------
@@ -135,7 +135,10 @@ report "$(
   [ "$(awk '/---RUN---/{n++} n==4' "$LOG" | grep -c -- 'verify-tag usermgmt/totp v4.99.0 --push')" = "0" ] && echo 0 || echo 1
 )" "WT4 tag leg NOT attempted after push refusal"
 
-# --- WT5: execute, train red stops the sweep ---------------------------------------
+# --- WT5: execute, train red stops the rhythm BEFORE carriers -----------------------
+# (sweep-then-train reorder, M24: the sweep runs FIRST — the strict train
+# validates the post-sweep world — so a red train means the sweep commit and
+# the tag are already on origin, and the carriers stage is what gets skipped)
 cat >"$work/git" <<'EOF'
 #!/usr/bin/env bash
 echo "git $*" >>"$LOG"
@@ -149,7 +152,7 @@ chmod +x "$work/git"
 make_stub train 3
 run_tool "$MOD" v4.99.0 --execute
 report "$([ "$RC" -eq 1 ] && echo 0 || echo 1)" "WT5 train red exits 1 (got $RC)"
-report "$([ "$(awk '/---RUN---/{n++} n==5' "$LOG" | grep -c '^bump-dep')" = "0" ] && echo 0 || echo 1)" "WT5 sweep NOT attempted after train red"
+report "$([ "$(awk '/---RUN---/{n++} n==5' "$LOG" | grep -c '^bump-dep')" = "1" ] && echo 0 || echo 1)" "WT5 sweep ran BEFORE the strict train (post-sweep world validated)"
 make_stub train
 
 # --- WT6: execute, sweep refuses ----------------------------------------------------
@@ -190,6 +193,11 @@ run_tool
 report "$([ "$RC" -eq 2 ] && echo 0 || echo 1)" "WT8 no args exits 2 (got $RC)"
 run_tool no/such/module v1.0.0
 report "$([ "$RC" -eq 2 ] && echo 0 || echo 1)" "WT8 unknown module dir exits 2 (got $RC)"
+
+# --- WT9: wave-row existence check (M24) — dir exists but has no go.mod ---------------
+run_tool scripts v1.0.0
+report "$([ "$RC" -eq 2 ] && echo 0 || echo 1)" "WT9 dir-without-go.mod exits 2 (got $RC)"
+report "$(echo "$OUT" | grep -q 'not a module directory' && echo 0 || echo 1)" "WT9 names the missing go.mod (check the wave row)"
 
 echo ""
 echo "Results: $pass passed, $fail failed"

@@ -13,12 +13,18 @@
 #   leg 2  tag      verify-tag <dir> <version> --push
 #                    — signed annotated tag at HEAD + pushed + ls-remote
 #                      verified (the poisoned-tag protocol)
-#   leg 3  train    check-release-train --refresh-cache --strict-lag 0
-#                    — gotcha 27 mechanized: the fresh-tag cache race is
-#                      impossible to skip, and 866 requires must resolve
-#   leg 4  sweep    bump-dep '<module-path>$' <version> --commit --lint
+#   leg 3  sweep    bump-dep '<module-path>$' <version> --commit --lint
 #                    — consumers align in ONE commit (daemon-proof), with
-#                      the hermetic lint leg (S47)
+#                      the hermetic lint leg (S47). Runs BEFORE the strict
+#                      train check: immediately after the tag, this module's
+#                      consumers lag by definition, so the strict check that
+#                      runs first would refuse the very sweep that fixes it
+#                      (the 2026-11-08 sweep-then-train reorder, M24/F92).
+#   leg 4  train    check-release-train --refresh-cache --strict-lag 0
+#                    — gotcha 27 mechanized: the fresh-tag cache race is
+#                      impossible to skip, and ~900 requires must resolve
+#                      in the POST-sweep world (the world the next wave
+#                      inherits)
 #   leg 5  carriers report + optionally cascade
 #                    — every go.mod the sweep changed that belongs to a
 #                      PUBLISHED module needs its own re-tag; each carrier
@@ -121,6 +127,14 @@ leg() { # <leg-name> <cmd...> — run (or print in dry-run); refuse on red
 
 echo "=== wave-tag: $MOD_DIR $VER (${MOD_PATH}) ==="
 
+# leg -1 — wave-row existence checks (M24/F92): a plan wave row that names a
+# directory with no go.mod (or a non-directory) must refuse BEFORE any leg
+# runs, not surface as a confusing verify-tag failure mid-rhythm.
+if [ ! -f "$REPO_ROOT/$MOD_DIR/go.mod" ]; then
+  echo "✗ wave-tag: REFUSED — $REPO_ROOT/$MOD_DIR/go.mod does not exist; '$MOD_DIR' is not a module directory (check the wave row for a typo)" >&2
+  exit 2
+fi
+
 # leg 0 — guards (always real, even in dry-run: verify-tag --dry-run touches nothing)
 if ! "${VERIFY_TAG_CMD[@]}" "$MOD_DIR" "$VER" --dry-run; then
   echo "✗ wave-tag: leg 'guards' REFUSED — verify-tag --dry-run failed. Nothing was pushed or tagged." >&2
@@ -134,15 +148,17 @@ leg push "${GIT_CMD[@]}" push
 # leg 2 — tag + push the tag (the poisoned-tag protocol)
 leg tag "${VERIFY_TAG_CMD[@]}" "$MOD_DIR" "$VER" --push
 
-# leg 3 — fresh-tag cache refresh + full train strictness (gotcha 27)
-leg train "${TRAIN_CMD[@]}" --refresh-cache --strict-lag 0
-
-# leg 4 — consumer sweep in one commit with the lint leg
+# leg 3 — consumer sweep FIRST: the strict train check below must see the
+# post-sweep world (consumers at the new tag), not the lag rows this very
+# wave is about to fix. A red sweep still stops the rhythm.
 if [ "$SKIP_SWEEP" = 1 ]; then
   echo "  [skip] sweep (--skip-sweep: leaf module, no consumers)"
 else
   leg sweep "${BUMP_DEP_CMD[@]}" "${MOD_PATH}$" "$VER" --commit --lint --message "$MSG"
 fi
+
+# leg 4 — fresh-tag cache refresh + full train strictness (gotcha 27)
+leg train "${TRAIN_CMD[@]}" --refresh-cache --strict-lag 0
 
 # leg 5 — carriers: changed go.mods belonging to PUBLISHED modules need re-tags
 detect_carriers() { # echoes "<dir> <latest-tag-version>" per carrier
