@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`AuthorizeRequest` answers 401 to anonymous callers instead of 403 (gotcha 56).** The request-resolver path filled an empty subject with `UserIDFromContext(ctx).String()` unconditionally — a zero (anonymous) UserID became the 26-character zero-ULID string, walked into the engine as a subject, and produced a policy denial. A zero ID now leaves the subject empty so `Decide` answers `not_authenticated` without consulting the engine (the same guard `Authorize` and the dispatch gate already had). Pinned by `TestAuthorizeRequest_AnonymousIs401NeverTheZeroULID`, which asserts both the 401 and that the engine was never asked.
+
+### Added
+
+- **`httperr.StructuredError.Retryable`** — a shared, machine-readable retryability signal (RFC 7807 extension, derived from the error family: Transient/Infrastructure true, client faults false). Emitted as `"retryable":true` only when true (`omitzero`, so non-retryable documents stay byte-identical); huma's `ProblemError` inherits it via embedding at the next pin bump. The decision record: retryability belongs to the SHARED document, not a huma-only field — one vocabulary on both transports.
+
+
 ## [v4.18.1] - 2026-11-07
 
 ### Added
