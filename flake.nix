@@ -3050,6 +3050,19 @@
                       fi
                       echo "==> firefox: $FF_BIN"
 
+                      # Revision-drift warning: the runner's playwright-core
+                      # pins an exact firefox revision; a cached build from
+                      # another revision usually still launches, but engine
+                      # differences (protocol, name computation) make silent
+                      # skew a trap — say it loudly instead.
+                      WANT_REV="$(sed -n 's/.*"name": "firefox",[^}]*"revision": "\([0-9]*\)".*/\1/p' \
+                        node_modules/playwright-core/browsers.json | head -1)"
+                      HAVE_REV="$(echo "$FF_BIN" | sed -n 's/.*firefox-\([0-9]*\)\/.*/\1/p')"
+                      if [ -n "$WANT_REV" ] && [ -n "$HAVE_REV" ] && [ "$WANT_REV" != "$HAVE_REV" ]; then
+                        echo "WARN: firefox revision drift: runner wants $WANT_REV, using cached $HAVE_REV" >&2
+                        echo "      (re-provision: PLAYWRIGHT_BROWSERS_PATH=$FF_HOME ./node_modules/.bin/playwright install firefox)" >&2
+                      fi
+
                       # The prebuilt firefox resolves its FHS libs through this
                       # forest; the playwright config (E2E_FIREFOX_LIBS) prepends
                       # it to LD_LIBRARY_PATH before any browser child spawns.
