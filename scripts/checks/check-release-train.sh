@@ -21,6 +21,7 @@
 #
 # Usage: ./scripts/checks/check-release-train.sh [--json] [--strict-lag N]
 #                                         [--advisory] [--no-cache] [--refresh-cache]
+#                                         [--consumers]
 #   --json           machine-readable summary (stable shape, for tooling)
 #   --strict-lag N   exit 3 when train lag exceeds N (default: 0 — CI parity;
 #                    see "SPLIT-BRAIN FIX" below)
@@ -28,6 +29,11 @@
 #                    hook uses this — lag is enforced at PUSH time instead)
 #   --no-cache       bypass the persistent ls-remote tag cache entirely
 #   --refresh-cache  force re-fetch every repo's tags, then rewrite cache
+#   --consumers      after the tag check, hermetically (GOWORK=off) build
+#                    every go.work member — workspace masking cannot hide an
+#                    unresolvable pin (opt-in: a full-hermetic ~30-module
+#                    build costs minutes; TRAIN_CONSUMERS_CMD overrides the
+#                    build command for the fixture self-test)
 #
 # Tag cache: git ls-remote costs ~30s across the family repos on a cold
 # run, which made the check unusable as a pre-commit gate. Tag lists are
@@ -41,6 +47,7 @@
 #       2 = usage error
 #       3 = lag exceeds --strict-lag N
 #       4 = ls-remote failure outside CI (cannot check, not a verdict)
+#       5 = a --consumers hermetic build failed
 # Requires: network access to github.com (git ls-remote) on cache miss.
 # CI=true downgrades ls-remote failures to warnings (advisory mode there).
 #
@@ -67,6 +74,7 @@ JSON=0
 STRICT_LAG=0
 NO_CACHE=0
 REFRESH=0
+CONSUMERS=0
 while [ $# -gt 0 ]; do
   case "$1" in
   --json) JSON=1 ;;
@@ -81,6 +89,7 @@ while [ $# -gt 0 ]; do
   --no-cache) NO_CACHE=1 ;;
   --refresh-cache) REFRESH=1 ;;
   --advisory) STRICT_LAG=-1 ;;
+  --consumers) CONSUMERS=1 ;;
   *)
     echo "check-release-train: unknown option '$1'" >&2
     exit 2
@@ -310,4 +319,34 @@ if [ "$STRICT_LAG" -ge 0 ] && [ "$lags" -gt "$STRICT_LAG" ]; then
 fi
 
 [ "$JSON" = 0 ] && echo "✓ No unpublished requires. Train-lag entries above are the next family train's alignment list."
+
+# --consumers leg (M24/F92): prove every workspace member BUILDS hermetically
+# against published tags — the workspace's replace directives and go.work
+# masking cannot hide an unresolvable pin here. Opt-in (a full-hermetic build
+# of ~30 modules costs minutes), so wave-tag does not run it by default; the
+# release playbook runs it once per train. TRAIN_CONSUMERS_CMD overrides the
+# build command for the fixture self-test.
+if [ "$CONSUMERS" = 1 ]; then
+  build_cmd=(env GOWORK=off GOEXPERIMENT=jsonv2 go build ./...)
+  [ -n "${TRAIN_CONSUMERS_CMD:-}" ] && read -r -a build_cmd <<<"$TRAIN_CONSUMERS_CMD"
+  failed_consumers=""
+  while IFS= read -r use_dir; do
+    use_dir="${use_dir#./}"
+    [ -f "$use_dir/go.mod" ] || continue
+    if ! (cd "$use_dir" && "${build_cmd[@]}" >/dev/null 2>&1); then
+      emit "  CONSUMER BUILD FAILED (hermetic): $use_dir"
+      failed_consumers+="$use_dir\n"
+    fi
+  done < <(awk '/^use \(/,/^\)/' go.work | grep -vE '^use \(|^\)' | awk '{print $1}')
+  if [ -n "$failed_consumers" ]; then
+    [ "$JSON" = 0 ] && {
+      echo "✗ hermetic consumer builds failed:"
+      printf '%b' "$failed_consumers" | sed 's/^/    /'
+      echo "  (workspace mode masks these — fix the pins or the module's own graph)"
+    }
+    exit 5
+  fi
+  [ "$JSON" = 0 ] && echo "✓ hermetic consumer builds: every go.work member resolves published tags."
+fi
+
 exit 0

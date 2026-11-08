@@ -189,15 +189,15 @@ report "$(echo "$OUT" | grep -q 'setup (latest v4.14.4 → next v4.14.5)' && ech
 report "$(echo "$OUT" | grep -q 'wave-tag.sh setup v4.14.5 --execute' && echo 0 || echo 1)" "WT7 prints the exact next invocation"
 
 # --- WT8: usage errors -----------------------------------------------------------------
+# (the arg-validation block's go.mod-not-found check IS the wave-row existence
+# check — M24 verified it already exists; unknown dirs and dir-without-go.mod
+# both exit 2 here)
 run_tool
 report "$([ "$RC" -eq 2 ] && echo 0 || echo 1)" "WT8 no args exits 2 (got $RC)"
 run_tool no/such/module v1.0.0
 report "$([ "$RC" -eq 2 ] && echo 0 || echo 1)" "WT8 unknown module dir exits 2 (got $RC)"
-
-# --- WT9: wave-row existence check (M24) — dir exists but has no go.mod ---------------
 run_tool scripts v1.0.0
-report "$([ "$RC" -eq 2 ] && echo 0 || echo 1)" "WT9 dir-without-go.mod exits 2 (got $RC)"
-report "$(echo "$OUT" | grep -q 'not a module directory' && echo 0 || echo 1)" "WT9 names the missing go.mod (check the wave row)"
+report "$([ "$RC" -eq 2 ] && echo 0 || echo 1)" "WT8 dir-without-go.mod exits 2 (got $RC)"
 
 echo ""
 echo "Results: $pass passed, $fail failed"

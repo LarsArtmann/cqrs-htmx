@@ -2805,7 +2805,17 @@
                         exit 1
                       fi
                     done
-                    echo "Codegen drift check PASSED"
+                    for mod in adminui loginpage dashboardui; do
+                      (cd "$mod" && templ fmt ./*.templ)
+                      if ! git diff --exit-code -- "$mod"/*.templ; then
+                        echo ""
+                        echo "FAIL: templ fmt changes $mod's committed .templ sources — the codegen chain must start from canonical .templ bytes or every regeneration disagrees."
+                        echo "Run 'templ fmt' on $mod and commit the reformatted sources, then regenerate."
+                        git restore "$mod"/*.templ 2>/dev/null || true
+                        exit 1
+                      fi
+                    done
+                    echo "Codegen drift check PASSED (generate + formatter chain)"
                   '';
                 }
               );

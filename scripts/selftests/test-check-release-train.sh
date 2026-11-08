@@ -97,5 +97,42 @@ grep -q "FIX RECIPE" "$tree/out.txt" && ok=1
 report $ok "F3 aligned exits 0 with no recipe (got $gate_rc)"
 rm -rf "$tree"
 
+# F4 --consumers hermetic build leg: go.work member enumerated, stub command
+# invoked per member; ok-stub exits 0, failing stub exits 5 and names the module.
+build_tree 'github.com/larsartmann/go-fixture-fake/v9 v0.2.0'
+seed_tags go-fixture-fake v0.1.0 v0.2.0
+printf 'use (\n\t./fixture\n)\n' >"$tree/go.work"
+printf '#!/usr/bin/env bash\necho "build-cmd $*" >>"%s/calls.log"\nexit 0\n' "$tree" >"$tree/build-ok"
+printf '#!/usr/bin/env bash\necho "build-cmd $*" >>"%s/calls.log"\nexit 1\n' "$tree" >"$tree/build-fail"
+chmod +x "$tree/build-ok" "$tree/build-fail"
+
+: >"$tree/calls.log"
+(
+  cd "$tree" &&
+    env -u CI TRAIN_TAG_CACHE_DIR="$tree/cache" \
+      TRAIN_CONSUMERS_CMD="$tree/build-ok" \
+      bash scripts/checks/check-release-train.sh --strict-lag 0 --consumers
+) >"$tree/out.txt" 2>&1
+cons_rc=$?
+ok=0
+[ "$cons_rc" -eq 0 ] || ok=1
+grep -q "hermetic consumer builds" "$tree/out.txt" || ok=1
+grep -qF "build-cmd" "$tree/calls.log" || ok=1
+report $ok "F4 --consumers ok-stub exits 0 and builds each go.work member (got $cons_rc)"
+
+: >"$tree/calls.log"
+(
+  cd "$tree" &&
+    env -u CI TRAIN_TAG_CACHE_DIR="$tree/cache" \
+      TRAIN_CONSUMERS_CMD="$tree/build-fail" \
+      bash scripts/checks/check-release-train.sh --strict-lag 0 --consumers
+) >"$tree/out.txt" 2>&1
+cons_rc=$?
+ok=0
+[ "$cons_rc" -eq 5 ] || ok=1
+grep -q "CONSUMER BUILD FAILED (hermetic): fixture" "$tree/out.txt" || ok=1
+report $ok "F4 --consumers failing build exits 5 and names the module (got $cons_rc)"
+rm -rf "$tree"
+
 echo "== $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

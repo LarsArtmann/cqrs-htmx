@@ -127,14 +127,6 @@ leg() { # <leg-name> <cmd...> — run (or print in dry-run); refuse on red
 
 echo "=== wave-tag: $MOD_DIR $VER (${MOD_PATH}) ==="
 
-# leg -1 — wave-row existence checks (M24/F92): a plan wave row that names a
-# directory with no go.mod (or a non-directory) must refuse BEFORE any leg
-# runs, not surface as a confusing verify-tag failure mid-rhythm.
-if [ ! -f "$REPO_ROOT/$MOD_DIR/go.mod" ]; then
-  echo "✗ wave-tag: REFUSED — $REPO_ROOT/$MOD_DIR/go.mod does not exist; '$MOD_DIR' is not a module directory (check the wave row for a typo)" >&2
-  exit 2
-fi
-
 # leg 0 — guards (always real, even in dry-run: verify-tag --dry-run touches nothing)
 if ! "${VERIFY_TAG_CMD[@]}" "$MOD_DIR" "$VER" --dry-run; then
   echo "✗ wave-tag: leg 'guards' REFUSED — verify-tag --dry-run failed. Nothing was pushed or tagged." >&2
