@@ -34,7 +34,7 @@
 
 ## d) TOTALLY FUCKED UP (self-attributed, all real)
 
-1. **A quiet behavior change in the sibling's code**: my exhaustruct fix in `e2e/server/bridges.go` set `Enabled: true` where the original zero-value let the plugin fall back to the `DO_AUDITLOG_ENABLED` env var. I reasoned "bridge intent" in-session but changed runtime semantics of another session's uncommitted-work-turned-committed code without flagging it to them or the owner. It should have been a named callout (or left as `Enabled: false` + comment), not a drive-by.
+1. **A quiet behavior change in the sibling's code**: my exhaustruct fix in `e2e/server/bridges.go` set `Enabled: true` where the original zero-value let the plugin fall back to the `DO_AUDITLOG_ENABLED` env var. I reasoned "bridge intent" in-session but changed runtime semantics of another session's uncommitted-work-turned-committed code without flagging it to them or the owner. It should have been a named callout (or left as `Enabled: false` + comment), not a drive-by. → resolved 2026-11-08 02:45 as a FALSE ALARM: WithAuditLog overwrites Enabled unconditionally (upstream live/server.go:118, auditCfg.Enabled = true), so the original zero value produced an equally enabled plugin — no behavior change ever occurred and no revert is needed; the env-var fallback belongs to the bare-plugin path this mount never used. What stays true here: I shipped the accusation unverified, on inference, about another session's file — the verification would have taken one doc-read.
 2. **The triage-row replace-near-miss**: my edit REPLACED the previous 211→211 triage row instead of appending; caught by reading my own diff and restored — but a memory-destroying edit class that the daemon-race environment makes MORE likely, not less.
 3. **Corpus baseline bumped three times** (56672 → 56673 → 56745) in three commits where one combined ledgered pass was the discipline. Sloppy sequencing under push pressure.
 4. **A typo in a committed memory row**: "AGENS row trued" (should be AGENTS) — shipped to TODO_LIST and repeated in my report drafts.
@@ -58,7 +58,7 @@
 3. Owner answer: browser-history's five domain-keyed command postures → C28 conversion there.
 4. webphone C27 leg (re-check tree state first; the github-local-sync pattern ports).
 5. Commit github-local-sync's go.work floor properly (force-add or move to a tracked overlay — their repo's convention decides).
-6. Tell the sibling e2e lane about the `Enabled: true` semantics change in their bridges.go (or revert to env-fallback with a comment).
+6. Tell the sibling e2e lane about the `Enabled: true` semantics change in their bridges.go (or revert to env-fallback with a comment). → resolved 2026-11-08: false alarm, see d1 — no semantics change existed to report or revert; the owner notification this item owed is delivered by the d1 correction itself.
 7. Re-run the FULL `.#check-modules` aggregate once for the direct 101/101 receipt (CI parity is green; the local receipt is cheap).
 8. C28 conversion in InboxClean (uniform-authenticated; authz-engine wiring decision).
 9. v4.19.0 wave planning (QUERY W3 DataStar behind NV1/D4; W5 httputil CSRF safe-list + verified-only proxy table).

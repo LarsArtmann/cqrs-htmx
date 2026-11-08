@@ -1,6 +1,6 @@
 # Status — blanket-directive execution: htmx family bump, gates, trains staged, docs heal
 
-> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_21-45_blanket-directive-tags-waves-receipts_status.md`](../2026-11-07_21-45_blanket-directive-tags-waves-receipts_status.md), which its §f items 1-10 executed by the 21-45 continuation session (tags, receipts, waves, true-ups); items 11-30 routed to named rows/packets (M2M packet, C28 pre-stage, sibling lane, watches) — every item struck or routed by the 21-45 report and the TODO harvest row. Strike depth:
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_21-45_blanket-directive-tags-waves-receipts_status.md`](2026-11-07_21-45_blanket-directive-tags-waves-receipts_status.md), which its §f items 1-10 executed by the 21-45 continuation session (tags, receipts, waves, true-ups); items 11-30 routed to named rows/packets (M2M packet, C28 pre-stage, sibling lane, watches) — every item struck or routed by the 21-45 report and the TODO harvest row. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
 

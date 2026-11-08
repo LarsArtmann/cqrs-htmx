@@ -1,5 +1,9 @@
 # Status — Blanket-directive execution II: three tags, consumer waves, every receipt green, two packets one tick from GO
 
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_00-21_brutal-self-review-tags-waves-receipts-honest-accounting_status.md`](../2026-11-08_00-21_brutal-self-review-tags-waves-receipts-honest-accounting_status.md), which superseded by the 00-21 self-review; its open item 5 (CI verdict) resolved SUCCESS on ee48dafe at 00:21; all other items routed to owner questions or TODO rows. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+
 **Scope of this session:** continue the 20-10 blanket-directive execution under the owner's renewed directive ("NOW GET SHIT DONE! The WHOLE TODO LIST!") — the §g defaults adopted: wait-out-then-normal for the sibling tree, no bench re-pin under load, direct consumer-repo entry after per-repo state checks.
 
 **One-sentence verdict:** root v4.18.1 + loginpage v4.17.0 + huma/v4.0.0 are tagged, pushed, strict-train-0/0 and remote-verified; C27 landed in three consumer repos (with two stale rows and one unlocatable repo dispositioned at source level); every runnable receipt is green; and the two genuinely owner-held decisions (M2M D1–D4, the browser-history domain-command postures) are pre-staged as one-tick packets instead of guesses.
