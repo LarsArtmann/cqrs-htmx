@@ -79,6 +79,24 @@ export default defineConfig({
               ...devices["Desktop Firefox"],
               launchOptions: {
                 executablePath: process.env.E2E_FIREFOX_PATH,
+                // The prebuilt firefox needs a nixpkgs lib forest on NixOS
+                // (FHS expectations). Scoped to THIS engine's launches: a
+                // runner-wide LD_LIBRARY_PATH poisons the chromium children
+                // (their bundled nspr/nss resolution changes — hit live
+                // 2026-11-08, chromium launch died on libnspr4.so).
+                ...(process.env.E2E_FIREFOX_LIBS
+                  ? {
+                      env: {
+                        ...process.env,
+                        LD_LIBRARY_PATH: [
+                          process.env.E2E_FIREFOX_LIBS,
+                          process.env.LD_LIBRARY_PATH,
+                        ]
+                          .filter(Boolean)
+                          .join(":"),
+                      },
+                    }
+                  : {}),
               },
             },
           },
