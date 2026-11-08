@@ -2983,7 +2983,7 @@
                       [
                         gtk3
                         alsa-lib
-                        dbus
+                        dbus.lib
                         dbus-glib
                         atk
                         at-spi2-atk
