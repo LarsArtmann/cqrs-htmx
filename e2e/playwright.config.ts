@@ -83,7 +83,7 @@ export default defineConfig({
             // cross-engine divergence, not flake: tracked as its own
             // investigation row; re-include when the sync worker's firefox
             // semantics are understood and fixed.
-            testIgnore: /loginpage-webauthn\.spec\.ts|sync\.spec\.ts/,
+            testIgnore: /loginpage-webauthn\.spec\.ts/,
             use: {
               ...devices["Desktop Firefox"],
               launchOptions: {
