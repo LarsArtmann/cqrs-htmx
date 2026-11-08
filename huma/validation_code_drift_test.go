@@ -30,13 +30,21 @@ func TestValidationCode_NeverDriftsFromRootPipeline(t *testing.T) {
 	adapterCode := httperr.ErrorCode(adapterErr)
 
 	if adapterCode != validationCode {
-		t.Fatalf("adapter leg: validateCommandValue emitted code %q, want the validationCode const %q", adapterCode, validationCode)
+		t.Fatalf(
+			"adapter leg: validateCommandValue emitted code %q, want the validationCode const %q",
+			adapterCode,
+			validationCode,
+		)
 	}
 
 	rootCode := rootPipelineValidationCode(t)
 
 	if rootCode != adapterCode {
-		t.Fatalf("VALIDATION CODE DRIFT: root's pipeline emits %q while the huma adapter emits %q — one side renamed the code without the other", rootCode, adapterCode)
+		t.Fatalf(
+			"VALIDATION CODE DRIFT: root's pipeline emits %q while the huma adapter emits %q — one side renamed the code without the other",
+			rootCode,
+			adapterCode,
+		)
 	}
 
 	t.Logf("both transports emit the same validation code %q", adapterCode)
@@ -45,11 +53,11 @@ func TestValidationCode_NeverDriftsFromRootPipeline(t *testing.T) {
 // errDriftValidation is the deliberately-unclassified validator error both
 // legs fail with — unclassified on purpose, so the test proves the WRAPPING
 // (not the error's own code) is what names the failure.
-var errDriftValidation = errorString("drift probe: invalid input")
+var errDriftValidation = driftError("drift probe: invalid input")
 
-type errorString string
+type driftError string
 
-func (e errorString) Error() string { return string(e) }
+func (e driftError) Error() string { return string(e) }
 
 func mustDriftCommand(t *testing.T) command.Command {
 	t.Helper()

@@ -81,14 +81,20 @@ func TestRecommendedBreadthPresets_Shape(t *testing.T) {
 			}
 
 			if len(dep.Instances) != 2 {
-				t.Fatalf("Instances = %d, want 2 (one engine holds every role: source-of-truth + the explicit projections instance that keeps views off the implicit volatile fallback)",
-					len(dep.Instances))
+				t.Fatalf(
+					"Instances = %d, want 2 (one engine holds every role: source-of-truth + the explicit projections instance that keeps views off the implicit volatile fallback)",
+					len(dep.Instances),
+				)
 			}
 			if dep.Instances[0].Role != system.RoleSourceOfTruth {
 				t.Errorf("Role = %q, want %q", dep.Instances[0].Role, system.RoleSourceOfTruth)
 			}
 			if dep.Instances[1].Role != system.RoleProjections {
-				t.Errorf("Role = %q, want %q (explicit projections placement)", dep.Instances[1].Role, system.RoleProjections)
+				t.Errorf(
+					"Role = %q, want %q (explicit projections placement)",
+					dep.Instances[1].Role,
+					system.RoleProjections,
+				)
 			}
 		})
 	}

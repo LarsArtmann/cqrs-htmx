@@ -429,7 +429,10 @@ func TestAuthorizeRequest_AnonymousIs401NeverTheZeroULID(t *testing.T) {
 	}
 
 	if enforcer.last != nil {
-		t.Fatalf("engine was consulted about the zero subject (%v) — anonymous must never reach the engine", enforcer.last)
+		t.Fatalf(
+			"engine was consulted about the zero subject (%v) — anonymous must never reach the engine",
+			enforcer.last,
+		)
 	}
 }
 

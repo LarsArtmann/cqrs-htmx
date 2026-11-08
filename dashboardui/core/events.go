@@ -63,7 +63,7 @@ func (f EventFilter) Matches(evt event.Event) bool {
 // typeListMatches reports whether eventType is one of the comma-separated
 // segments of filterValue. An empty segment never matches.
 func typeListMatches(filterValue, eventType string) bool {
-	for _, part := range strings.Split(filterValue, ",") {
+	for part := range strings.SplitSeq(filterValue, ",") {
 		if part = strings.TrimSpace(part); part != "" && part == eventType {
 			return true
 		}

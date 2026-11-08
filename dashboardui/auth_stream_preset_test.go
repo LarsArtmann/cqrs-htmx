@@ -25,7 +25,13 @@ func TestDashboard_AuthStreamPreset(t *testing.T) {
 	events := make([]event.Event, 0, 3)
 
 	for i, evtType := range []string{"LoginSucceeded", "SessionEnded", "user.created"} {
-		evt, err := event.New(event.Type(evtType), aggID, "User", event.Version(i+1), struct{ Name string }{Name: "Alice"})
+		evt, err := event.New(
+			event.Type(evtType),
+			aggID,
+			"User",
+			event.Version(i+1),
+			struct{ Name string }{Name: "Alice"},
+		)
 		if err != nil {
 			t.Fatalf("event.New(%s): %v", evtType, err)
 		}
@@ -44,7 +50,7 @@ func TestDashboard_AuthStreamPreset(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	body := rec.Body.String()
-	for _, want := range strings.Split(core.AuthStreamTypes, ",") {
+	for want := range strings.SplitSeq(core.AuthStreamTypes, ",") {
 		if !strings.Contains(body, want) {
 			t.Fatalf("unfiltered page should carry the Auth stream preset naming %q (preset href missing?)", want)
 		}
