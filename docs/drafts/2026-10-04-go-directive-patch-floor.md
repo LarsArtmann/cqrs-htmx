@@ -2,6 +2,20 @@
 
 submodules + the v4.13.0 tag pin `go 1.27.1` — every consumer inherits a patch floor no code needs
 
+> **CLOSED WITHOUT FILING — 2026-11-08 (U1 per-module verification, TODO_LIST timesheets #59).**
+> The premise is resolved upstream: **v4.16.0's 24 real module directives all
+> carry `go 1.27.2`** (verified against the tag: root, adminui, dashboardui,
+> datastar, e2e/server, health, identity-model, integration_test, loginpage,
+> setup, auditlog@`go 1.27`, and 12 examples — the `go 1.26.7`/`go 1.27`
+> stragglers are `scripts/testdata/` fixtures, not published modules). The
+> v4.13.0-era mismatch (floor exceeds code needs, master unreleased) no longer
+> exists: the 1.27.2 floor is the deliberate 2026-10-12 family-floor alignment
+> (timesheets `f91c896` records the same move), and v4.16.0 shipped it. The
+> "file upstream, then tag the normalization release" plan is moot — the
+> normalization release (v4.16.0) already exists. The remaining behavior —
+> consumers below 1.27.2 are forced to ratchet — is fleet versioning policy,
+> not a defect. Evidence: `git grep -h "^go 1" v4.16.0 -- "**/go.mod"`.
+
 ## Problem
 
 `go 1.27.1` is declared in 20 module directives across the repo, while the
