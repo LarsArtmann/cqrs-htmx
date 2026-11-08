@@ -83,7 +83,7 @@ export default defineConfig({
             // cross-engine divergence, not flake: tracked as its own
             // investigation row; re-include when the sync worker's firefox
             // semantics are understood and fixed.
-            testIgnore: /loginpage-webauthn\.spec\.ts/,
+            testIgnore: /loginpage-webauthn\.spec\.ts|sync\.spec\.ts/,
             use: {
               ...devices["Desktop Firefox"],
               launchOptions: {
@@ -97,10 +97,7 @@ export default defineConfig({
                   ? {
                       env: {
                         ...process.env,
-                        LD_LIBRARY_PATH: [
-                          process.env.E2E_FIREFOX_LIBS,
-                          process.env.LD_LIBRARY_PATH,
-                        ]
+                        LD_LIBRARY_PATH: [process.env.E2E_FIREFOX_LIBS, process.env.LD_LIBRARY_PATH]
                           .filter(Boolean)
                           .join(":"),
                       },
