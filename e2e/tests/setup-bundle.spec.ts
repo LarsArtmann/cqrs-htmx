@@ -59,16 +59,37 @@ test("dual-transport hub: /broadcast patches the DataStar signal on /ds-demo", a
   await page.goto(`${DEMO}/ds-demo`, { waitUntil: "load" });
   const counter = page.locator("[data-text='$broadcasts']");
 
-  // Fresh page: the seeded signal value.
-  await expect(counter).toHaveText("0", { timeout: 10_000 });
+  // Rendered baseline (the SDK fills the span from the initial signal).
+  await expect(counter).toHaveText(/^\d+$/, { timeout: 10_000 });
 
-  // Two broadcasts node-side; each must patch the live signal (the SDK
-  // stream on /ds/events and the SSE event share one hub).
+  // The server-side counter is GLOBAL and one webServer backs BOTH playwright
+  // projects — an absolute 0->2 assertion races the other project's posts.
+  // That race WAS the 2026-11-08 "firefox divergence" (firefox's posts landed
+  // at 3/4 after chromium ran first; the client was probe-proven faithful —
+  // it renders exactly the patch values the server sends). Prove stream
+  // liveness with a probe post against the current rendered value, then
+  // assert the DELTA for the real pair.
+  let live = false;
+  let baseline = 0;
+  for (let attempt = 0; attempt < 3 && !live; attempt++) {
+    baseline = Number(await counter.textContent());
+    const resp = await request.post(`${DEMO}/broadcast`);
+    expect(resp.status()).toBe(202);
+    try {
+      await expect(counter).toHaveText(String(baseline + 1), { timeout: 4_000 });
+      live = true;
+    } catch {
+      // stream not live yet — retry with a fresh probe
+    }
+  }
+  expect(live, "DataStar stream never went live on /ds-demo").toBe(true);
+
+  baseline = Number(await counter.textContent());
   for (let i = 0; i < 2; i++) {
     const resp = await request.post(`${DEMO}/broadcast`);
     expect(resp.status()).toBe(202);
   }
-  await expect(counter).toHaveText("2", { timeout: 15_000 });
+  await expect(counter).toHaveText(String(baseline + 2), { timeout: 15_000 });
 });
 
 test("console guard: no console or page errors across login page, dashboard, and ds-demo", async ({ page, context }) => {

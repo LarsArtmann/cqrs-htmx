@@ -64,8 +64,17 @@ test("RenderIf: an HX-Request aimed at #item-count answers the bare count", asyn
 
 test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", async ({ page, request }) => {
   await page.goto(`${DEMO}/demo/items`, { waitUntil: "load" });
-  // Fresh server state (serial: this is the first creator) — badge at 0.
-  await expect(page.locator("#item-count")).toHaveText(/0 items/);
+
+  // The in-memory item store is SHARED by both playwright projects (one
+  // webServer): chromium's serial run leaves items behind, so a fresh badge
+  // is NOT always "0 items" — that assumption WAS the 2026-11-08 "firefox
+  // divergence" (firefox reran the file against chromium's leftovers). This
+  // test owns the OOB swap mechanics, not the store total: baseline whatever
+  // the badge shows and assert the DELTA.
+  const badge = page.locator("#item-count");
+  await expect(badge).toHaveText(/^\d+ items$/, { timeout: 10_000 });
+  const baseline = Number((await badge.textContent())?.match(/\d+/)?.[0]);
+  const listBefore = await page.locator("#item-list li").count();
 
   // Create one item node-side; the page does not know yet. Form-encoded —
   // the endpoint's contract since the browser fix (DecodeForm; JSON bodies
@@ -87,9 +96,9 @@ test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", asyn
     ),
   );
 
-  await expect(page.locator("#item-count")).toHaveText("1 items", { timeout: 10_000 });
-  await expect(page.locator("#item-list li")).toHaveCount(1);
-  await expect(page.locator("#item-list li").first()).toContainText("oob-probe");
+  await expect(badge).toHaveText(`${baseline + 1} items`, { timeout: 10_000 });
+  await expect(page.locator("#item-list li")).toHaveCount(listBefore + 1);
+  await expect(page.locator("#item-list li", { hasText: "oob-probe" })).toHaveCount(1);
   // The OOB element was consumed by the swap machinery, not rendered into
   // the target container.
   expect(await page.locator('#item-list [hx-swap-oob]').count()).toBe(0);

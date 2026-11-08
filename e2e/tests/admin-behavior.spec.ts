@@ -5,8 +5,11 @@ import { test, expect } from "@playwright/test";
  * 2026-09-20). Asserts DOM facts against the admin-demo on :18930 — the
  * screenshot/visual-diff half of the gate stays a session-time activity
  * (adjudicated pixel diffs; see docs/status/2026-09-20_*). Tests are SERIAL:
- * the confirm-modal test deletes a seeded filler user, so every count-based
- * assertion runs first.
+ * they share one in-memory seed. Count-based assertions are RELATIVE to the
+ * total the page itself reports, and the modal test seeds its own victim —
+ * one webServer backs BOTH playwright projects, so absolute totals race the
+ * other engine's run (the 2026-11-08 "firefox divergences" were exactly
+ * this class).
  *
  * Coverage: pagination (row counts, aria-current, clamping, search compose),
  * the htmx partial-swap contract, search spinner, the shared confirm modal
@@ -23,24 +26,34 @@ test.beforeEach(async ({ page }) => {
   await page.waitForTimeout(500);
 });
 
-test("users pagination: page 1 has 50 of 65 rows with pager", async ({ page }) => {
+test("users pagination: page 1 carries the page size with pager", async ({ page }) => {
   await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
   await page.waitForTimeout(400);
-  await expect(page.locator("#users-table tbody tr")).toHaveCount(50);
   const html = await page.content();
-  expect(html).toContain("Showing 50 of 65");
+  // The seeded filler total is SHARED across both playwright projects (one
+  // webServer per invocation): any earlier run's modal delete shrinks it
+  // (the 2026-11-08 "firefox divergence" saw 50 of 64 after chromium's run
+  // deleted its victim). Assert the count facts against the total the page
+  // itself reports, not a pinned seed size.
+  const total = Number(html.match(/Showing \d+ of (\d+)/)?.[1]);
+  expect(total, "seeded users should exceed one page").toBeGreaterThan(50);
+  await expect(page.locator("#users-table tbody tr")).toHaveCount(50);
+  expect(html).toContain(`Showing 50 of ${total}`);
   expect(html).toContain("/admin/users?page=2");
 });
 
 test("users pagination: page 2 carries aria-current and clamping holds", async ({ page }) => {
   await page.goto(`${ADMIN}/admin/users?page=2`, { waitUntil: "load" });
   await page.waitForTimeout(400);
-  await expect(page.locator("#users-table tbody tr")).toHaveCount(15);
-  expect(await page.content()).toContain('aria-current="page"');
+  const html = await page.content();
+  const total = Number(html.match(/Showing \d+ of (\d+)/)?.[1]);
+  expect(total, "seeded users should exceed one page").toBeGreaterThan(50);
+  await expect(page.locator("#users-table tbody tr")).toHaveCount(total - 50);
+  expect(html).toContain('aria-current="page"');
 
   await page.goto(`${ADMIN}/admin/users?page=99`, { waitUntil: "load" });
   await page.waitForTimeout(400);
-  await expect(page.locator("#users-table tbody tr")).toHaveCount(15);
+  await expect(page.locator("#users-table tbody tr")).toHaveCount(total - 50);
 });
 
 test("users search composes with pagination and scopes to the table", async ({ page }) => {
@@ -70,14 +83,18 @@ test("search spinner wired via hx-indicator", async ({ page }) => {
 });
 
 test("confirm modal: open, fill, Esc/Cancel/backdrop close, Confirm deletes", async ({ page }) => {
-  await page.goto(`${ADMIN}/admin/users?q=team60`, { waitUntil: "load" });
-  await page.waitForTimeout(400);
-  const href = await page
-    .locator('#users-table a[href*="/admin/users/"]')
-    .first()
-    .getAttribute("href");
-  expect(href).toBeTruthy();
-  await page.goto(`${ADMIN}${href}`, { waitUntil: "load" });
+  // Seed THIS test's own victim through the panel's create endpoint
+  // (POST /users form-encodes email + display_name and 303s to the detail
+  // page). The seeded filler is shared across both playwright projects, and
+  // deleting a filler row used to shrink the total out from under the next
+  // run's pagination assertions. Self-seeding makes the test idempotent.
+  const victimEmail = `e2e-modal-${Date.now()}@acme.dev`;
+  const created = await page.request.post(`${ADMIN}/admin/users`, {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    data: `email=${encodeURIComponent(victimEmail)}&display_name=E2E Modal Victim`,
+  });
+  expect(created.ok(), `create victim: ${created.status()}`).toBeTruthy();
+  await page.goto(created.url(), { waitUntil: "load" });
   await page.waitForTimeout(400);
 
   const posts: string[] = [];
@@ -118,7 +135,7 @@ test("confirm modal: open, fill, Esc/Cancel/backdrop close, Confirm deletes", as
   await page.waitForTimeout(900);
   expect(posts.some((u) => u.includes("/delete"))).toBe(true);
 
-  await page.goto(`${ADMIN}/admin/users?q=team60`, { waitUntil: "load" });
+  await page.goto(`${ADMIN}/admin/users?q=${encodeURIComponent(victimEmail)}`, { waitUntil: "load" });
   await page.waitForTimeout(400);
   await expect(page.locator("#users-table tbody tr")).toHaveCount(0);
 });

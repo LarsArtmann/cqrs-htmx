@@ -130,20 +130,28 @@ test("multi-tab: a second tab on the same origin receives the same live feed", a
   const tab2 = await context.newPage();
   await tab2.goto(`${DEMO}/`, { waitUntil: "load" });
 
-  // Both tabs' streams proven live.
+  // Tab 1 is front (its goto) — prove its stream first. Then FRONT tab 2
+  // before proving its feed: firefox SUSPENDS a background tab's stream
+  // processing (probed 2026-11-08 — a background second tab delivered
+  // nothing across 3 probes; the same tab fronted delivered; headless
+  // chromium never throttles, which is what made this a "firefox-only
+  // divergence"). Visibility is part of the browser contract; the spec
+  // brings each tab front for its own proof instead of assuming
+  // background delivery.
   await connectStream(page, request, "tab1-probe");
+  await tab2.bringToFront();
   await connectStream(tab2, request, "tab2-probe");
 
-  // A create on tab 1 lands on BOTH tabs' live feeds (fan-out).
-  const [before1, before2] = await Promise.all([eventCount(page), eventCount(tab2)]);
+  // Fan-out: a create on tab 1 lands on tab 2's live feed (tab 2 is front —
+  // the one visibility window a focused user has). Tab 1 is background
+  // during the create; its own list still updates through the POST
+  // response patch (the create round-trip path), which is visibility-safe.
+  const before2 = await eventCount(tab2);
   await createTodo(page, "multi-tab-probe");
-
-  await expect
-    .poll(async () => eventCount(page), { timeout: 15_000 })
-    .toBeGreaterThan(before1);
   await expect
     .poll(async () => eventCount(tab2), { timeout: 15_000 })
     .toBeGreaterThan(before2);
+  await expect(page.locator(`${TODO_LIST} li.todo-item`, { hasText: "multi-tab-probe" })).toHaveCount(1);
 });
 
 test("console guard: no console errors or uncaught page errors during the whole flow", async ({ page }) => {
