@@ -1,5 +1,9 @@
 # Status — issue #41 closed in code: the `huma/v4` adapter, its gates, and what I got wrong
 
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md`](../2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md), which resolved. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+
 **Date:** 2026-11-06, 09:27–10:32 CET
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`. The auto-commit daemon committed this session's work incrementally (heuristic commits), so the narrative below cites files and measurements rather than one commit hash.
 **Scope of this session:** read and execute [cqrs-htmx#41](https://github.com/LarsArtmann/cqrs-htmx/issues/41) ("Huma-typed consumers cannot reach the App dispatch pipeline"): design and ship the `huma/v4` adapter module, wire it into every gate, document it, verify it, and report honestly on the residue.

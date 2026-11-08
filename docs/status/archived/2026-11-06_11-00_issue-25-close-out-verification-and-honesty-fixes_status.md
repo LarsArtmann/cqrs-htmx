@@ -1,5 +1,9 @@
 # Status — Issue #25 close-out: the work was already there, so I verified it, fixed two lies, and shipped the missing docs
 
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md`](../2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md), which resolved. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+
 **Date:** 2026-11-06, 10:20–11:05 CET
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`, shared working tree (a sibling docs-health/huma session was committing alongside this one).
 **Scope of this session:** [cqrs-htmx#25](https://github.com/LarsArtmann/cqrs-htmx/issues/25) — "Event-sourced session lifecycle (demand-gated) — impersonation forensics gap". I was asked to read it, break it down, execute and verify until done.

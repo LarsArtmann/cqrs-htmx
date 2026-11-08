@@ -1,7 +1,7 @@
 # Status: dispatch gate verification pass, plus the hot-path lock nobody had noticed
 
 > **ANNOTATED 2026-11-07** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-07 (round-23 (2026-11-07)).**
-> The next session in the same arc is [`2026-11-06_10-32_huma-adapter-shipped-issue-41_status.md`](../2026-11-06_10-32_huma-adapter-shipped-issue-41_status.md), which waves landed with receipts; remainder routed.
+> The next session in the same arc is [`2026-11-06_10-32_huma-adapter-shipped-issue-41_status.md`](2026-11-06_10-32_huma-adapter-shipped-issue-41_status.md), which waves landed with receipts; remainder routed.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Date:** 2026-11-06 09:06 CET · **Branch:** `master` · **HEAD at writing:** `c46d9e72`

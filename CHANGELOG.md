@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **`httperr.StructuredError.Retryable`** — a shared, machine-readable retryability signal (RFC 7807 extension, derived from the error family: Transient/Infrastructure true, client faults false). Emitted as `"retryable":true` only when true (`omitzero`, so non-retryable documents stay byte-identical); huma's `ProblemError` inherits it via embedding at the next pin bump. The decision record: retryability belongs to the SHARED document, not a huma-only field — one vocabulary on both transports.
 
+### Housekeeping
+
+- **TODO backlog retirement (2026-11-08, the 06-35 owner-unlock plan M20).** Four fully-resolved rows removed from TODO_LIST so the open surface stops feeding stale context: the huma/v4.0.0 tag row (tagged 2026-11-07 via wave-tag, strict train 0/0); the cqrs-lint 4.16-to-4.20 binary-drift row (triaged at the rebuilt tag build, recipe in AGENTS; the later re-red was the API-vs-tag hermetic-load class and healed at the v4.17.0/v4.18.x trains); the gotcha write-up candidates row (gotchas 51-53 landed 2026-11-05, AGENTS index verified); and the tooling micro-batch row (bump-dep --commit + self-test, cqrs-lint rules diff ritual, run.go audit pins, lychee real-404 fixes, ExtraMiddleware pin, BuildFlow noise policy — receipts in the archived 2026-09/10 reports). History for all four lives in this CHANGELOG and `docs/status/archived/`.
+
 
 ## [v4.18.1] - 2026-11-07
 

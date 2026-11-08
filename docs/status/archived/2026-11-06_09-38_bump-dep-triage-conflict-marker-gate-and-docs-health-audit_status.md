@@ -1,5 +1,9 @@
 # Status — go-appkit sweep triage, a committed merge conflict, a new gate, and a docs-health audit
 
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_10-57_full-backlog-pareto-execution-v4180-query-waves-docs-drain_status.md`](../2026-11-07_10-57_full-backlog-pareto-execution-v4180-query-waves-docs-drain_status.md), which superseded. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+
 **Date:** 2026-11-06, 09:00–09:40 CET (times below are commit-derived, not estimated: `git log --date=format:%H:%M`)
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`. HEAD at report time: `743699a5` plus this session's uncommitted report.
 **Scope of this session:** triage a failed `bump-dep` sweep (go-appkit v0.10.0), repair a committed merge conflict that had broken the corpus ratchet, add the missing conflict-marker gate, true three stale living-doc claims, and run a docs-health AUDIT over the two 2026-11-06 plans.

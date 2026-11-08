@@ -1,5 +1,9 @@
 # Status — issue #38 closed in code: `ExtraNav` made usable by real consumers, and the three holes the first pass left
 
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md`](../2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md), which resolved. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+
 **Date:** 2026-11-06, 09:15–11:05 CET
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`. The auto-commit daemon committed this session's work incrementally (heuristic commits, 09:3x–10:5x), so the narrative below cites files and measurements rather than one commit hash.
 **Scope of this session:** read and execute [cqrs-htmx#38](https://github.com/LarsArtmann/cqrs-htmx/issues/38) ("Config knob to append consumer nav entries (ExtraNav) — nav is capability-internal today"). The core knob had already landed in `b3ce8c52` (2026-11-05 22:38) but was **unreleased and unusable from two real consumer seats**; this session closed those holes, proved them, and closed the issue.
