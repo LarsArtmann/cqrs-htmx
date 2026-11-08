@@ -245,7 +245,7 @@ use in C12, so the next session will rediscover it.
 | ~~10~~ | ~~Run `check-branching-flow` against the SARIF baseline~~ done at 22:2x — re-pinned 203 → 210 under existing verdicts (+17 drift-sync), amendment in `docs/analysis/triage-decisions.md` | ~~C13~~ |
 | ~~11~~ | ~~Run `check-upstream-treadmill --strict-lag 0`~~ done at 22:4x — worst lag 0 after sweeping the six lagged pins via `go get`+tidy (bump-dep is a no-op on indirect MVS floors); workspace build+vet+targeted tests green | ~~C13~~ |
 | 12 | Re-run the go-appkit `bump-dep` sweep and expect 4/4 PASS after the train | proves the tag-lag diagnosis |
-| 13 | Execute the train (identity-model → root → usermgmt → UI → setup) with sweeps between steps | C03–C09 |
+| 13 | ~~Execute the train (identity-model → root → usermgmt → UI → setup) with sweeps between steps~~ done — the v4.17.0 family train executed 2026-11-07 (identity-model v4.17.0, root v4.17.0, usermgmt v4.20.0, adminui/dashboardui/setup v4.17.0, systemadapter v4.13.0, consumer sweeps between steps) and the v4.18.0/v4.18.1 QUERY-wave trains followed same day (05-20 report; TODO header) | C03–C09 |
 | 14 | Re-run the 8 tag-gap legs and record before/after | C10 |
 | 15 | Decide `audit-all`: drain 409 → 322 or owner-approved re-pin | Q2 |
 | 16 | Harvest the newest report's 4 freshness items (`BotScopesChanged`, `ListBots`, Huma subject parity, `coverage-gate`) | freshness is red right now |

@@ -57,15 +57,15 @@
 ## f) Up to 50 things next (ordered)
 
 1. Run the setup sweep: `bash scripts/tools/bump-dep.sh 'larsartmann/cqrs-htmx/setup/v4$' v4.16.0` (lint ON), commit — the train-lag gate already names the 3 consumers.
-2. `nix run .#check-modules` — the ~74-stage aggregate that was skipped twice now.
-3. `nix run .#lint` — full workspace battery.
-4. `nix run .#test` — workspace battery end-to-end.
+2. ~~`nix run .#check-modules` — the ~74-stage aggregate that was skipped twice now.~~ done — the aggregate runs green on every receipt battery since (27 stages, 2026-11-07 TODO row; the hermetic lint-sweep stage joined it 2026-11-08); nothing has skipped it since.
+3. ~~`nix run .#lint` — full workspace battery.~~ done — the fleet lint jobs are green in CI on every push since the 2026-11-07 heals, and the hermetic per-module parity sweep (16/16 clean) landed 2026-11-08.
+4. ~~`nix run .#test` — workspace battery end-to-end.~~ done — the race suite ran rc=0 across all modules in the 2026-11-07 receipt battery and CI's test job is green on every push since.
 5. `nix run .#push-and-watch` — land the commits and watch CI go green; never push blind.
 6. `nix run .#verify-remote-tags 'v4.15.0' 'identity-model/*' 'usermgmt/*' 'dashboardui/*' 'adminui/*' 'setup/*'`.
-7. M06: adminui route table as the single registration source (posture per route, fail-closed).
+7. ~~M06: adminui route table as the single registration source (posture per route, fail-closed).~~ done 2026-11-03 (L4 route postures): adminui's mux AND manifest generate from ONE routeSpec table (Handler.Routes(), mode-scoped rows absent in the other mode, forgotten mode = served by no mode; Config.AuthorizerPosture validated at New) — the check-route-postures gate pins it.
 8. M06: dashboardui route table, same treatment.
 9. loginpage: declare its single-page posture (cheap; closes the UI set).
-10. setup: expose the mounted routes' postures so consumers inherit declarations.
+10. ~~setup: expose the mounted routes' postures so consumers inherit declarations.~~ done 2026-11-03 (L4): setup's Bundle.RoutePostures() aggregates one row per mounted layer so consumers inherit the declarations; authztest refuses ungated in the matrix.
 11. Update `docs/PERMISSIONS.md`: cqrs-htmx's own row L3 → L4 once 7–10 land.
 12. Fix the skill's `command.Command` snippet (`StreamID()`, not `AggregateID()`).
 13. Consumer wave: browser-history `reconcileSuperAdmins` → `GrantRoles`.
