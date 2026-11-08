@@ -11,10 +11,10 @@ const ctx = await browser.newContext();
 
 const instrument = (page, tag) => {
   page.on("console", (m) => {
-    const t = m.text();
-    if (t.includes("[probe]") || (m.type() === "error" && t.includes("api/events"))) console.log(`[${tag}] ${t}`);
+    console.log(`[${tag}:${m.type()}] ${m.text().slice(0, 160)}`);
   });
   page.on("pageerror", (e) => console.log(`[${tag}] pageerror: ${e.message}`));
+  page.on("requestfailed", (r) => console.log(`[${tag}] REQ-FAIL ${r.method()} ${r.url()} :: ${r.failure()?.errorText}`));
 };
 
 const withFetchLog = (page, tag) =>
