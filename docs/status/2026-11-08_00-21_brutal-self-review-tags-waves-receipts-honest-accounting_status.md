@@ -56,15 +56,15 @@
 1. ~~Verify nothing (CI SUCCESS on `ee48dafe` — done 00:21; the loop is closed).~~ **done** — the item is its own receipt.
 2. Owner tick: M2M D1–D4 packet rows → W1/W2 GO.
 3. Owner answer: browser-history's five domain-keyed command postures → C28 conversion there.
-4. webphone C27 leg (re-check tree state first; the github-local-sync pattern ports).
-5. Commit github-local-sync's go.work floor properly (force-add or move to a tracked overlay — their repo's convention decides).
+4. webphone C27 leg (re-check tree state first; the github-local-sync pattern ports). → re-checked 2026-11-08 02:43: tree ACTIVE again (internal/web/views/crm.go mid-edit by a live session — do not touch); read-only scan found NO AddGroupPolicy/GrantRoles surface to migrate, so the leg reduces to a family-pin sweep (identity-model v4.15.0 / usermgmt v4.19.0 / loginpage v4.16.0 lag the v4.18.1/v4.17.0 trains) — execute when quiet.
+5. Commit github-local-sync's go.work floor properly (force-add or move to a tracked overlay — their repo's convention decides). → resolved 2026-11-08 by convention: their ADR-0001 keeps go.work deliberately untracked (per-machine workspace over sibling HEADs); the local 1.27.3 floor IS the correct per-machine state (must cover cqrs-htmx HEAD's 1.27.3) and their tracked go.mod floor 1.27.2 matches their pinned train (root v4.16.0 / usermgmt v4.19.0 both require 1.27.2) — force-adding would violate the ADR; nothing to commit.
 6. Tell the sibling e2e lane about the `Enabled: true` semantics change in their bridges.go (or revert to env-fallback with a comment). → resolved 2026-11-08: false alarm, see d1 — no semantics change existed to report or revert; the owner notification this item owed is delivered by the d1 correction itself.
 7. Re-run the FULL `.#check-modules` aggregate once for the direct 101/101 receipt (CI parity is green; the local receipt is cheap).
 8. C28 conversion in InboxClean (uniform-authenticated; authz-engine wiring decision).
 9. v4.19.0 wave planning (QUERY W3 DataStar behind NV1/D4; W5 httputil CSRF safe-list + verified-only proxy table).
 10. Confirm the sibling lane owns the `examples/basic` dogfood + W2.4 proof; fold their receipts into the QUERY row when they land.
 11. erraudit 332: name the blocking-promotion month window start in row 78 (baseline 10-31).
-12. kv #113 / catalog A25 watches (NOT re-checked this session — only #117/#48 were).
+12. kv #113 / catalog A25 watches (NOT re-checked this session — only #117/#48 were). → re-checked 2026-11-08 02:45: catalog A25 RESOLVED — catalog/v4.14.0 published (ls-remote) and verified 1100-era at tree level (docserver generated files use templruntime.NewAttributeExpression, zero ResolveAttributeValue); already swept to all 13 pinning modules; catalog-demo hermetic build green and integration_test hermetic vet green the same morning. kv #113: no movement (latest kv/v4.4.0).
 13. The e-section items above (wave-tag order, fleet hermetic leg, existence checks) as small gate tickets.
 14. Next docs-health round: this report's successor chain (this pass already archived 21-45). <!-- fresh:skip: standing cadence — the docs-gates cadence gate owns the archive rhythm, not a TODO row -->
 15. Swetty: resolve existence/name with the owner (see §g) or strike the row.

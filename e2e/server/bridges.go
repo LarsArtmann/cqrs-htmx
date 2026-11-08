@@ -55,18 +55,14 @@ const bridgesAuditMaxEvents = 1_000
 // connected browsers — the deterministic driver for the bridges smoke spec.
 type bridgeProbeService struct{}
 
-// mountBridges mounts the two bridge modules' browser surfaces onto the e2e
-// server: the health module's go-health dashboard (per-projection checks
-// over the projection host) and the auditlog module's live viewer (do
-// lifecycle events over SSE). A mount failure logs and skips that surface
-// only — the battery's other specs must never be hostage to a bridge mount
-// (the compile stays the real API contract).
-// RegisterRoutes (not the bare Handler) is load-bearing: Handler() serves
-// only the page, and the page's live updates need the /sse route beside it —
-// a page-only mount renders a dashboard whose connection pill is stuck on
-// "Reconnecting" forever (caught by the bridges spec, 2026-11-08).
-// WithEmbeddedDatastarSDK swaps the CDN script tag for a same-origin one so
-// the battery stays hermetic (no jsdelivr dependency in CI or offline runs).
+// mountHealthDashboard mounts the go-health dashboard with the FULL route
+// set under /bridges/health/*. RegisterRoutes (not the bare Handler) is
+// load-bearing: Handler() serves only the page, and the page's live updates
+// need the /sse route beside it — a page-only mount renders a dashboard whose
+// connection pill is stuck on "Reconnecting" forever (caught by the bridges
+// spec, 2026-11-08). WithEmbeddedDatastarSDK swaps the CDN script tag for a
+// same-origin one so the battery stays hermetic (no jsdelivr dependency in
+// CI or offline runs).
 func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 	probe, err := cqrshealth.NewProbe(hostStatusProvider{host: host})
 	if err != nil {
@@ -88,10 +84,6 @@ func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 	)
 	dash.RegisterRoutes(mux)
 
-	dash.RegisterRoutes(mux)
-
-	dash.RegisterRoutes(mux)
-
 	return nil
 }
 
@@ -107,23 +99,22 @@ func mountBridges(mux *http.ServeMux, host *projectionhost.Host) {
 	}
 
 	auditSetup, err := cqrsauditlog.WithAuditLog(
-			auditlog.Config{
+		auditlog.Config{
 			Enabled:              true,
 			MaxEvents:            bridgesAuditMaxEvents,
 			ContainerID:          "e2e-bridges",
 			RunID:                "",
 			OnEvent:              nil,
 			InitialEventCapacity: 0,
-			},
-			live.Config{
+		},
+		live.Config{
 			Prefix:             "/bridges/auditlog",
 			Addr:               "",
 			ReadHeaderTimeout:  0,
 			HeartbeatInterval:  0,
 			CORSAllowedOrigins: "",
 			ReplayBufferSize:   0,
-			},
-		)
+		},
 	)
 	if err != nil {
 		log.Printf("bridges: auditlog setup failed, skipping viewer: %v", err)
