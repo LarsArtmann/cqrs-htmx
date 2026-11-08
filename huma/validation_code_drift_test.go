@@ -53,7 +53,7 @@ func TestValidationCode_NeverDriftsFromRootPipeline(t *testing.T) {
 // errDriftValidation is the deliberately-unclassified validator error both
 // legs fail with — unclassified on purpose, so the test proves the WRAPPING
 // (not the error's own code) is what names the failure.
-var errDriftValidation = driftError("drift probe: invalid input")
+var errDriftValidation error = driftError("drift probe: invalid input")
 
 type driftError string
 

@@ -906,9 +906,9 @@ func TestMapError_DocumentsMapToProblemDetails(t *testing.T) {
 		t.Fatalf("MapError(nil) = %v, want nil", err)
 	}
 
-	var problem *cqrsadapter.ProblemError
-	if !errors.As(cqrsadapter.MapError(context.Background(),
-		errorfamily.NewConflict("visit.exists", "visit already recorded")), &problem) {
+	problem, ok := errors.AsType[*cqrsadapter.ProblemError](cqrsadapter.MapError(context.Background(),
+		errorfamily.NewConflict("visit.exists", "visit already recorded")))
+	if !ok {
 		t.Fatalf("MapError did not return a *ProblemError")
 	}
 
@@ -925,9 +925,9 @@ func TestMapError_DocumentsMapToProblemDetails(t *testing.T) {
 	}
 
 	// Server faults must not leak internal detail to a public client.
-	var corruption *cqrsadapter.ProblemError
-	if !errors.As(cqrsadapter.MapError(context.Background(),
-		errorfamily.NewCorruption("state_corrupt", "stream 01HZZ internal detail")), &corruption) {
+	corruption, ok := errors.AsType[*cqrsadapter.ProblemError](cqrsadapter.MapError(context.Background(),
+		errorfamily.NewCorruption("state_corrupt", "stream 01HZZ internal detail")))
+	if !ok {
 		t.Fatalf("MapError did not return a *ProblemError")
 	}
 

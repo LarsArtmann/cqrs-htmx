@@ -3,7 +3,7 @@ package cqrshtmx
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -200,4 +200,4 @@ func TestHandleErr_PlainErrorsStillClassify(t *testing.T) {
 	}
 }
 
-var errTestPlain = errorfamily.New(errorfamily.Rejection, "test.plain_inner", "inner")
+var errTestPlain error = errorfamily.New(errorfamily.Rejection, "test.plain_inner", "inner")

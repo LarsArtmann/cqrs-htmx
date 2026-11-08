@@ -333,9 +333,9 @@ func TestWithTimeout_BoundsTheDispatch(t *testing.T) {
 func TestProblem_ContentTypes(t *testing.T) {
 	t.Parallel()
 
-	var problem *cqrsadapter.ProblemError
-	if !errors.As(cqrsadapter.MapError(context.Background(),
-		errorfamily.NewRejection("visit.invalid", "invalid")), &problem) {
+	problem, ok := errors.AsType[*cqrsadapter.ProblemError](cqrsadapter.MapError(context.Background(),
+		errorfamily.NewRejection("visit.invalid", "invalid")))
+	if !ok {
 		t.Fatalf("MapError did not return a *ProblemError")
 	}
 

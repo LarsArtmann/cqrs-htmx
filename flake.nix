@@ -54,7 +54,7 @@
             version = "1.27.3";
             src = pkgs.fetchurl {
               url = "https://go.dev/dl/go${version}.src.tar.gz";
-              hash = "sha256-bndJA1zzYPBrJXXRYup535/ajvZxiJ5cN1+OUHd/Jrs=";
+              hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
             };
           });
 
