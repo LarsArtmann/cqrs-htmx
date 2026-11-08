@@ -83,6 +83,7 @@ templ eventFilterBar(basePath string, filter eventFilter) {
 		@filterInput("filter-stream-id", "Stream ID", "streamID", filter.StreamID, "01H...")
 		@buttonSubmit("Filter", "", display.ButtonOutlineInfo, nil)
 		@buttonLink("Clear", basePath+"/events", "", display.ButtonSecondary, false)
+		@buttonLink("Auth stream", authStreamPresetURL(basePath), "Show only session lifecycle and login events", display.ButtonSecondary, false)
 	</form>
 }
 

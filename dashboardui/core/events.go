@@ -20,8 +20,16 @@ const FilterScanLimit = 500
 // neighbor lookup, event-by-ID journal scan).
 const tailScanBatch = 5000
 
+// AuthStreamTypes is the events panel's "Auth stream" preset: every
+// human auth-audit event type (login/logout/session lifecycle), as a
+// comma-separated type filter value. One click where an operator
+// previously filtered each type by hand.
+const AuthStreamTypes = "LoginSucceeded,LoginFailed,RegistrationClosed,SessionStarted,SessionEnded"
+
 // EventFilter holds in-memory filter criteria for the event browser.
 type EventFilter struct {
+	// Type matches one event type exactly, or a comma-separated list of
+	// event types by membership (the AuthStream preset rides this).
 	Type       string
 	StreamType string
 	StreamID   string
@@ -33,8 +41,11 @@ func (f EventFilter) Active() bool {
 }
 
 // Matches returns true if the event matches all active filter criteria.
+// Type accepts a comma-separated list: each segment is trimmed and matched
+// exactly, so "SessionStarted,SessionEnded" shows both session-lifecycle
+// events while a single value keeps its exact-match semantics.
 func (f EventFilter) Matches(evt event.Event) bool {
-	if f.Type != "" && string(evt.Type()) != f.Type {
+	if f.Type != "" && !typeListMatches(f.Type, string(evt.Type())) {
 		return false
 	}
 
@@ -47,6 +58,18 @@ func (f EventFilter) Matches(evt event.Event) bool {
 	}
 
 	return true
+}
+
+// typeListMatches reports whether eventType is one of the comma-separated
+// segments of filterValue. An empty segment never matches.
+func typeListMatches(filterValue, eventType string) bool {
+	for _, part := range strings.Split(filterValue, ",") {
+		if part = strings.TrimSpace(part); part != "" && part == eventType {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ExtraParams builds a query-string fragment preserving active filters

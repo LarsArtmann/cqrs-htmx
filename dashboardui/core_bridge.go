@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
@@ -64,6 +65,14 @@ const filterScanLimit = core.FilterScanLimit
 const overviewCountLimit = core.OverviewCountLimit
 
 // ===== Thin wrappers (delegate to core, preserve main package API) =====
+
+// authStreamPresetURL builds the events-panel link for the Auth stream
+// preset (session lifecycle + login events only) — the one-click form of
+// core.AuthStreamTypes.
+func authStreamPresetURL(basePath string) string {
+	return basePath + "/events?type=" + url.QueryEscape(core.AuthStreamTypes)
+}
+
 
 func buildProjectionStats(host *projectionhost.Host) []projectionStat {
 	return core.ProjectionStats(host)
