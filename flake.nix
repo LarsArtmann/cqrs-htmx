@@ -1157,6 +1157,7 @@
                     goPkg
                     pkgs.python3
                     pkgs.shellcheck
+                    pkgs.golangci-lint
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
@@ -1170,6 +1171,8 @@
                       bash bash scripts/selftests/test-check-workspace-build.sh
                       bash bash scripts/checks/check-version-drift.sh --strict
                     bash bash scripts/selftests/test-check-version-drift.sh
+                    bash bash scripts/checks/check-lint-sweep.sh
+                    bash bash scripts/selftests/test-check-lint-sweep.sh
                       bash bash scripts/tools/tidy-sweep.sh
                       bash bash scripts/checks/check-release-train.sh
                       bash bash scripts/checks/check-upstream-treadmill.sh
@@ -1238,6 +1241,8 @@
                         "workspace-build-self-test:bash scripts/selftests/test-check-workspace-build.sh"
                         "version-drift:bash scripts/checks/check-version-drift.sh --strict"
                         "version-drift-self-test:bash scripts/selftests/test-check-version-drift.sh"
+                        "lint-sweep:bash scripts/checks/check-lint-sweep.sh"
+                        "lint-sweep-self-test:bash scripts/selftests/test-check-lint-sweep.sh"
                         "tidy-sweep:bash scripts/tools/tidy-sweep.sh"
                         "release-train:bash scripts/checks/check-release-train.sh"
                         "release-train-self-test:bash scripts/selftests/test-check-release-train.sh"
@@ -1834,6 +1839,16 @@
                   '';
                 }
               );
+            };
+
+            check-lint-sweep = goApp {
+              name = "check-lint-sweep";
+              description = "Per-module HERMETIC golangci-lint parity sweep (CI's lint matrix, run locally before the push — the gotcha-50 class workspace-mode lint cannot see)";
+              runtimeInputs = [ pkgs.golangci-lint ];
+              text = ''
+                cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                bash scripts/checks/check-lint-sweep.sh "''${@:-}"
+              '';
             };
 
             check-conflict-markers = {

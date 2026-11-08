@@ -73,7 +73,6 @@ func authStreamPresetURL(basePath string) string {
 	return basePath + "/events?type=" + url.QueryEscape(core.AuthStreamTypes)
 }
 
-
 func buildProjectionStats(host *projectionhost.Host) []projectionStat {
 	return core.ProjectionStats(host)
 }
