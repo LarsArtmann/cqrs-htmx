@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -83,6 +84,14 @@ func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 		healthdashboard.WithEmbeddedDatastarSDK(),
 	)
 	dash.RegisterRoutes(mux)
+
+	// Start launches the SSE pusher goroutine — without it the /sse route
+	// answers 503 "push is not active" and the page can never go live (the
+	// second half of the page-only-mount trap; the server is disposable per
+	// run, so no Shutdown wiring is needed).
+	if err := dash.Start(context.Background()); err != nil {
+		return err
+	}
 
 	return nil
 }

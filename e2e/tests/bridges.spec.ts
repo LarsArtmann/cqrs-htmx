@@ -10,16 +10,21 @@ import { test, expect } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
-test("health dashboard renders: title, overall healthy status, live indicator", async ({ page }) => {
+test("health dashboard renders live: page, operational status, connected pill", async ({ page }) => {
   await page.goto("/bridges/health/ui", { waitUntil: "load" });
   await expect(page).toHaveTitle(/Health Dashboard/);
   await expect(page.getByRole("heading", { name: "Health Dashboard" })).toBeVisible();
 
-  // The probe with zero registered projections still reports the overall
-  // status — server-rendered, no wait needed (verified against the raw HTML).
-  await expect(page.locator("main")).toContainText("healthy", { timeout: 20_000 });
-  // The dashboard's own live-connection indicator is present from first paint.
-  await expect(page.locator("#conn-state-live")).toBeAttached();
+  // The probe with zero registered projections reports the overall pass
+  // verdict (upstream wording: "All Systems Operational").
+  await expect(page.locator("#health-region, main").first()).toContainText("All Systems Operational", { timeout: 20_000 });
+
+  // The connection pill is driven by DataStar fetch events off the /sse
+  // route: "Live" visible + "Reconnecting" hidden proves the SSE feed is
+  // actually wired in the browser (a page-only mount sticks on Reconnecting).
+  await expect(page.locator("#conn-state-live")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("#conn-state-reconnecting")).toBeHidden();
+  await expect(page.locator("#conn-state-offline")).toBeHidden();
 });
 
 test("auditlog viewer renders and its SSE stream connects", async ({ page }) => {
@@ -67,6 +72,7 @@ test("console guard: no console or page errors across both bridge surfaces", asy
 
   await page.goto("/bridges/health/ui", { waitUntil: "load" });
   await expect(page.getByRole("heading", { name: "Health Dashboard" })).toBeVisible();
+  await expect(page.locator("#conn-state-live")).toBeVisible({ timeout: 20_000 });
   await page.goto("/bridges/auditlog/", { waitUntil: "load" });
   await expect(page.locator("#connection-status")).toHaveText(/connected/, { timeout: 20_000 });
 
