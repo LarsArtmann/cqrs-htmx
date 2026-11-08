@@ -22,7 +22,7 @@ test("overview PolledRegion pins its own target/select and survives a live event
   // swap; hx-select="unset" neutralizes inheritance).
   await expect(region).toHaveAttribute("hx-target", "this");
   await expect(region).toHaveAttribute("hx-select", "unset");
-  await expect(region).toHaveAttribute(/hx-trigger/, /every 10s, refresh/);
+  await expect(region).toHaveAttribute("hx-trigger", /every 10s, refresh/);
 
   // Drive a REAL event through the journal: the SSE feed fires the
   // dashboard's refresh triggers, which swap boosted/partial content.
@@ -33,8 +33,11 @@ test("overview PolledRegion pins its own target/select and survives a live event
   // The events counter on the overview must move (the emit reached the
   // live feed and the page re-rendered boosted content).
   await expect
-    .poll(() => page.locator("#stat-total-events").textContent(), { timeout: 20_000 })
-    .toContain(/\d+/);
+    .poll(async () => {
+      const t = (await page.locator("#stat-total-events").textContent()) ?? "";
+      return /^\d+/.test(t.trim());
+    }, { timeout: 20_000 })
+    .toBeTruthy();
 
   // After the live re-render: the boost wrapper still exists (the page did
   // not blank) and the PolledRegion STILL carries its pins — the
@@ -56,13 +59,13 @@ test("events filter form pins its own target/select/swap and survives a live eve
   await expect(form).toHaveAttribute("hx-target", "#main-content");
   await expect(form).toHaveAttribute("hx-select", "#main-content");
 
-  const resp = await request.post("/api/debug/emit", { form: { name: "boost-guard-events" } });
-  expect(resp.status()).toBe(202);
-
-  // The events table grows live (dashboard-live.spec owns the deep
-  // assertions; here the growth proves the swap actually happened).
+  // Snapshot BEFORE the emit: a fast SSE append can land between the emit
+  // and a post-emit count, which would strand the growth poll forever.
   const rows = page.locator("table tbody tr");
   const before = await rows.count();
+
+  const resp = await request.post("/api/debug/emit", { form: { name: "boost-guard-events" } });
+  expect(resp.status()).toBe(202);
   await expect
     .poll(async () => page.locator("table tbody tr").count(), { timeout: 20_000 })
     .toBeGreaterThan(before);
