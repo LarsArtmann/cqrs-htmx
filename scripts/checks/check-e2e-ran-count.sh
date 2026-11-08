@@ -4,7 +4,7 @@
 # WHY (2026-11-08, the bug-#7 lesson): the browser battery's axe tests
 # silently "did not run" for weeks (serial-cascade skips + a load-sensitive
 # availability probe), which masked a real shipped a11y violation until the
- # skip class was fixed by accident. A battery that quietly runs fewer tests
+# skip class was fixed by accident. A battery that quietly runs fewer tests
 # than it lists is not a gate. This script compares the LISTED test count
 # against a JSON run report and fails on any spec that produced NO result.
 #
@@ -18,31 +18,27 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../../lib/shell-lib.sh
-[ -f "$SCRIPT_DIR/../lib/shell-lib.sh" ] && . "$SCRIPT_DIR/../lib/shell-lib.sh" || true
-
 REPORT=""
 EXPECT_UNRUN=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --expect-unrun)
-      EXPECT_UNRUN="${2:?--expect-unrun needs a value}"
-      shift 2
-      ;;
-    -h|--help)
-      sed -n '2,16p' "$0"
-      exit 0
-      ;;
-    *)
-      if [ -n "$REPORT" ]; then
-        echo "check-e2e-ran-count: unexpected extra argument '$1'" >&2
-        exit 2
-      fi
-      REPORT="$1"
-      shift
-      ;;
+  --expect-unrun)
+    EXPECT_UNRUN="${2:?--expect-unrun needs a value}"
+    shift 2
+    ;;
+  -h | --help)
+    sed -n '2,16p' "$0"
+    exit 0
+    ;;
+  *)
+    if [ -n "$REPORT" ]; then
+      echo "check-e2e-ran-count: unexpected extra argument '$1'" >&2
+      exit 2
+    fi
+    REPORT="$1"
+    shift
+    ;;
   esac
 done
 

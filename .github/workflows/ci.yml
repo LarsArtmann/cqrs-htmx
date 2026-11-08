@@ -480,7 +480,7 @@ jobs:
         working-directory: e2e
 
       - name: Run browser E2E battery (chromium, blocking)
-        run: bunx playwright test --project=chromium --reporter=line
+        run: bunx playwright test --project=chromium --reporter=line,json
         working-directory: e2e
         env:
           GOEXPERIMENT: jsonv2
@@ -500,7 +500,7 @@ jobs:
       # CI registry build is revision-correct so this measures the real
       # engine rate). Promote to blocking after 3 consecutive clean runs.
       - name: Run browser E2E battery (firefox, advisory)
-        run: bunx playwright test --project=firefox --reporter=line
+        run: bunx playwright test --project=firefox --reporter=line,json
         working-directory: e2e
         continue-on-error: true
         env:

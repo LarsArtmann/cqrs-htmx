@@ -138,8 +138,13 @@ graph TD
 - [x] F15–F16 (2026-11-08 07:4x): loud-skips gate `scripts/checks/check-e2e-ran-count.sh` + 8-case self-test (a spec with NO results vs an intended skip's skipped RESULT; `--expect-unrun N` ceiling).
 - [x] F17 (2026-11-08 07:4x): wired into CI — chromium gate BLOCKING, firefox gate advisory, reports via `PLAYWRIGHT_JSON_OUTPUT_NAME`; actionlint green.
 - [x] F21–F22 (2026-11-08 07:0x): gotchas #57 (element-bound JS dies under hx-boost; document-delegated listeners + `bubbles:true`) and #58 (DecodeForm zero-struct silence; browser-encoding rule) + AGENTS index rows. (#56 was taken by a sibling's zero-ULID gotcha — numbered past it.)
+- [x] Rate run 3 (2026-11-08 07:4x): **4F/13DNR/186P — identical to run 2**; the divergence set is fully deterministic; the table above is final for this train.
+- [x] F19 (2026-11-08 07:5x): revision-drift warning in the `e2e-firefox` app (cached build's revision vs `playwright-core/browsers.json`, with the re-provision command).
+- [x] F23–F24 (2026-11-08 07:4x): upstream pill bug VERIFIED at source (master still affected, no `[hidden]` override CSS anywhere) and FILED: [LarsArtmann/go-health-dashboard#31](https://github.com/LarsArtmann/go-health-dashboard/issues/31); the bridges spec cites the issue number.
+- [x] F25–F27 (2026-11-08 07:5x): `boost-guard.spec.ts` (2 tests) — the PolledRegion and the events filter form pin their own hx-target/hx-select, and the pins SURVIVE a live `/api/debug/emit`-driven swap (the bug-#5 class tripwire). Full chromium battery with it: **108/108, 1.4 min**.
+- [x] F28 (2026-11-08 07:4x): `scripts/tools/e2e-kill-strays.sh` (the README kill ritual as one command, ports 18923–18941, fails loud when a port stays occupied; self-verified on an occupied port) + wired into the `e2e-firefox` app.
+- [x] F29 (2026-11-08 07:4x): e2e/README serial-context note (fresh context per test even in serial describes).
+- [x] CI follow-up fix (2026-11-08 07:5x, from run 42455839640's triage): the ran-count steps failed because `--reporter=line` REPLACES the config's reporters so the json report was never written → both steps now `--reporter=line,json` (verified end-to-end locally: file written, gate green); the unused conditional shell-lib source in check-e2e-ran-count.sh removed (the checks job's shellcheck leg flagged SC1091) — local `check-shellcheck` 144 scripts clean.
 - [ ] F08: `.#verify-remote-tags` after green (rides the next fully-green run — the tree carries sibling in-flight lint reds this push).
-- [ ] F18 remainder: keep-or-verify the sync scoping after each divergence fix; F19 revision warning; F20 promotion flip after 3 clean runs.
-- [ ] F23–F24: upstream pill filing (M6).
-- [ ] F25–F27: boost-guard spec (M7).
-- [ ] F28–F30: stale-port guard + README note + rituals (M8).
+- [ ] F18 remainder: keep-or-verify the sync scoping after each divergence fix.
+- [ ] F20: promotion flip after 3 consecutive clean CI firefox runs.
