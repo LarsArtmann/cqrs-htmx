@@ -4,6 +4,14 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Presets now declare the projections instance — single-engine presets no longer lose every view on restart (found by the W1.2 migration starvation probe, 2026-11-08).** `RecommendedSQLiteDeployment`, `RecommendedMemoryDeployment`, and the shared `singleEngineDeployment` core (pebble/bbolt/postgres/duckdb/turso breadth presets) declared only the source-of-truth role, so `system.New` wired projection state into its IMPLICIT in-memory fallback: a persistent single-file deployment kept its journal and engine-backed checkpoints across a restart, but every declarative view came back empty — nothing signalled a replay was needed because the checkpoints said nothing remained. Each preset now declares `{Role: RoleProjections}` on its engine (state engine-resident, restart-safe); `presets_test.go` pins the two-instance shape. Hand-rolled `DeploymentConfig`s without a projections instance keep the previous behavior, with the existing plan-diagnostic WARN in `ProjectionExplain()`.
+
+### Added
+
+- **Migration probes (W1.1/W1.2, the 2026-11-07 migration plan §7):** `migration_probe_test.go` compile-pins the façade seam surface (every system accessor a future `NewServiceFromSystem` consumes, as method-value type pins), proves the composed wiring end-to-end on a preset boot, proves both persistent presets re-serve views after a full restart, and asserts the starvation-prone mismatch deployment (volatile projections engine + surviving checkpoint store) is NEVER silent — data or a surfaced volatility diagnostic. The §6 migration gate's condition (a) is met with this fix.
+
 ## [v4.13.0] - 2026-11-07
 
 ### Added

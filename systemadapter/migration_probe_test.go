@@ -49,20 +49,39 @@ import (
 // the NewService façade consumes (migration plan §4). Method values bound
 // to a nil *System: taking the value never calls the method, but any
 // upstream signature change stops this file from compiling.
-func TestMigrationProbe_W11_FacadeSeamSurface(t *testing.T) {
-	var (
-		_ func() *metaengine.Store      = (*system.System)(nil).MetaEngine
-		_ func() *command.Dispatcher    = (*system.System)(nil).CommandDispatcher
-		_ func() *query.Dispatcher      = (*system.System)(nil).QueryDispatcher
-		_ func() event.Publisher        = (*system.System)(nil).Publisher
-		_ func() *projectionhost.Host   = (*system.System)(nil).ProjectionHost
-		_ func() event.Bus              = (*system.System)(nil).Bus
-		_ func() event.Store            = (*system.System)(nil).EventStore
-		_ func() snapshot.SnapshotStore = (*system.System)(nil).SnapshotStore
-		_ func(...command.Middleware)   = (*system.System)(nil).UseCommandMiddleware
-		_ func() string                 = (*system.System)(nil).ProjectionExplain
-	)
+// The alias types ARE the pin: each blank-var assignment compiles only
+// while the accessor keeps exactly the aliased signature (an upstream
+// rename/arity change breaks this file first, not the façade spike).
+type (
+	facadeMetaEngine        = func() *metaengine.Store
+	facadeCommandDispatcher = func() *command.Dispatcher
+	facadeQueryDispatcher   = func() *query.Dispatcher
+	facadePublisher         = func() event.Publisher
+	facadeProjectionHost    = func() *projectionhost.Host
+	facadeBus               = func() event.Bus
+	facadeEventStore        = func() event.Store
+	facadeSnapshotStore     = func() snapshot.SnapshotStore
+	facadeUseCmdMiddleware  = func(...command.Middleware)
+	facadeProjectionExplain = func() string
+)
 
+var (
+	_ facadeMetaEngine        = (*system.System)(nil).MetaEngine
+	_ facadeCommandDispatcher = (*system.System)(nil).CommandDispatcher
+	_ facadeQueryDispatcher   = (*system.System)(nil).QueryDispatcher
+	_ facadePublisher         = (*system.System)(nil).Publisher
+	_ facadeProjectionHost    = (*system.System)(nil).ProjectionHost
+	_ facadeBus               = (*system.System)(nil).Bus
+	_ facadeEventStore        = (*system.System)(nil).EventStore
+	_ facadeSnapshotStore     = (*system.System)(nil).SnapshotStore
+	_ facadeUseCmdMiddleware  = (*system.System)(nil).UseCommandMiddleware
+	_ facadeProjectionExplain = (*system.System)(nil).ProjectionExplain
+)
+
+// TestMigrationProbe_W11_FacadeSeamSurface proves the pinned seams are live:
+// a preset boot reaches ready with every accessor non-nil, and one command
+// through the system dispatcher lands in the declarative view.
+func TestMigrationProbe_W11_FacadeSeamSurface(t *testing.T) {
 	sys, err := system.New(context.Background(),
 		systemadapter.DomainConfig(),
 		systemadapter.RecommendedMemoryDeployment())
