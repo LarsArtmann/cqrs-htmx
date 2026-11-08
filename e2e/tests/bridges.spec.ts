@@ -10,7 +10,22 @@ import { test, expect } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
-test("health dashboard renders live: page, operational status, connected pill", async ({ page }) => {
+test("health dashboard renders live: page, operational status, SSE patch applied", async ({ page }) => {
+  // In-page marker for the first DataStar patch: the definitive proof the
+  // /sse feed is wired in the browser (a page-only mount never gets one).
+  await page.addInitScript(
+    () =>
+      new Promise<void>((resolve) => {
+        document.addEventListener("datastar-fetch", (e: Event) => {
+          const type = (e as CustomEvent).detail?.type;
+          if (typeof type === "string" && type.startsWith("datastar-patch-")) {
+            (window as any).__sawPatch = true;
+          }
+        });
+        resolve();
+      }),
+  );
+
   await page.goto("/bridges/health/ui", { waitUntil: "load" });
   await expect(page).toHaveTitle(/Health Dashboard/);
   await expect(page.getByRole("heading", { name: "Health Dashboard" })).toBeVisible();
@@ -19,12 +34,28 @@ test("health dashboard renders live: page, operational status, connected pill", 
   // verdict (upstream wording: "All Systems Operational").
   await expect(page.locator("#health-region, main").first()).toContainText("All Systems Operational", { timeout: 20_000 });
 
-  // The connection pill is driven by DataStar fetch events off the /sse
-  // route: "Live" visible + "Reconnecting" hidden proves the SSE feed is
-  // actually wired in the browser (a page-only mount sticks on Reconnecting).
-  await expect(page.locator("#conn-state-live")).toBeVisible({ timeout: 20_000 });
-  await expect(page.locator("#conn-state-reconnecting")).toBeHidden();
-  await expect(page.locator("#conn-state-offline")).toBeHidden();
+  // The SSE feed delivered at least one DataStar patch into the page.
+  await expect
+    .poll(() => page.evaluate(() => (window as any).__sawPatch === true), { timeout: 20_000 })
+    .toBeTruthy();
+
+  // The connection pill's JS state machine reached "live" (live un-hidden,
+  // reconnecting/offline hidden). Asserted via the hidden ATTRIBUTE, not
+  // visibility: upstream go-health-dashboard v0.13.2 renders all three
+  // pills with Tailwind display classes (inline-flex), which defeat the UA
+  // [hidden] stylesheet rule — every pill is visually shown at once
+  // (verified empirically 2026-11-08; upstream filing candidate).
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => ({
+          live: !document.getElementById("conn-state-live")!.hidden,
+          reconnecting: document.getElementById("conn-state-reconnecting")!.hidden,
+          offline: document.getElementById("conn-state-offline")!.hidden,
+        })),
+      { timeout: 20_000 },
+    )
+    .toEqual({ live: true, reconnecting: true, offline: true });
 });
 
 test("auditlog viewer renders and its SSE stream connects", async ({ page }) => {
@@ -72,7 +103,7 @@ test("console guard: no console or page errors across both bridge surfaces", asy
 
   await page.goto("/bridges/health/ui", { waitUntil: "load" });
   await expect(page.getByRole("heading", { name: "Health Dashboard" })).toBeVisible();
-  await expect(page.locator("#conn-state-live")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("#health-region, main").first()).toContainText("All Systems Operational", { timeout: 20_000 });
   await page.goto("/bridges/auditlog/", { waitUntil: "load" });
   await expect(page.locator("#connection-status")).toHaveText(/connected/, { timeout: 20_000 });
 

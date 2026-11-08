@@ -9,6 +9,7 @@ import (
 	cqrshealth "github.com/larsartmann/cqrs-htmx/health/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	healthdashboard "github.com/larsartmann/go-health-dashboard"
 	auditlog "github.com/larsartmann/samber-do-auditlog"
 	"github.com/larsartmann/samber-do-auditlog/live"
@@ -67,7 +68,7 @@ type bridgeProbeService struct{}
 func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 	probe, err := cqrshealth.NewProbe(hostStatusProvider{host: host})
 	if err != nil {
-		return err
+		return errorfamily.WrapInfrastructure(err, "e2e.bridges.health_probe_failed", "build the health probe over the projection host")
 	}
 
 	dash := cqrshealth.NewDashboard(
@@ -80,6 +81,11 @@ func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 			Liveness:   "/bridges/health/livez",
 			Readiness:  "/bridges/health/readyz",
 			Startup:    "/bridges/health/startupz",
+			Healthz:    "",
+			Metrics:    "",
+			Trend:      "",
+			Export:     "",
+			Introspect: "",
 		}),
 		healthdashboard.WithEmbeddedDatastarSDK(),
 	)
@@ -90,7 +96,7 @@ func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 	// second half of the page-only-mount trap; the server is disposable per
 	// run, so no Shutdown wiring is needed).
 	if err := dash.Start(context.Background()); err != nil {
-		return err
+		return errorfamily.WrapInfrastructure(err, "e2e.bridges.dashboard_start_failed", "start the health dashboard SSE pusher")
 	}
 
 	return nil
