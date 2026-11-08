@@ -53,7 +53,7 @@
 
 ## f) Next things to get done (ranked)
 
-1. Verify nothing (CI SUCCESS on `ee48dafe` — done 00:21; the loop is closed).
+1. ~~Verify nothing (CI SUCCESS on `ee48dafe` — done 00:21; the loop is closed).~~ **done** — the item is its own receipt.
 2. Owner tick: M2M D1–D4 packet rows → W1/W2 GO.
 3. Owner answer: browser-history's five domain-keyed command postures → C28 conversion there.
 4. webphone C27 leg (re-check tree state first; the github-local-sync pattern ports).
@@ -66,7 +66,7 @@
 11. erraudit 332: name the blocking-promotion month window start in row 78 (baseline 10-31).
 12. kv #113 / catalog A25 watches (NOT re-checked this session — only #117/#48 were).
 13. The e-section items above (wave-tag order, fleet hermetic leg, existence checks) as small gate tickets.
-14. Next docs-health round: this report's successor chain (this pass already archived 21-45).
+14. Next docs-health round: this report's successor chain (this pass already archived 21-45). <!-- fresh:skip: standing cadence — the docs-gates cadence gate owns the archive rhythm, not a TODO row -->
 15. Swetty: resolve existence/name with the owner (see §g) or strike the row.
 
 ## g) Questions I cannot figure out myself
