@@ -38,6 +38,7 @@ func RecommendedMemoryDeployment() system.DeploymentConfig {
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{enginePrimary}},
+			{Role: system.RoleProjections, Engines: []string{enginePrimary}},
 		},
 	}
 }
@@ -56,6 +57,7 @@ func RecommendedSQLiteDeployment(dsn string) system.DeploymentConfig {
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{enginePrimary}},
+			{Role: system.RoleProjections, Engines: []string{enginePrimary}},
 		},
 	}
 }
@@ -159,7 +161,11 @@ func RecommendedTursoDeployment(dsn string) system.DeploymentConfig {
 // singleEngineDeployment is the shared shape of the one-engine presets: a
 // single named engine holds every role (source of truth AND projections),
 // which is the correct topology for embedded engines and single-server
-// deployments.
+// deployments. The explicit RoleProjections instance is load-bearing: without
+// one, the system wires projection state into an IMPLICIT in-memory engine,
+// so a persistent single-file deployment loses every view on restart while
+// its engine-backed checkpoints say nothing is left to replay — the exact
+// starvation the W1.2 migration probe caught (2026-11-08).
 func singleEngineDeployment(driver, dsn string) system.DeploymentConfig {
 	return system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
@@ -167,6 +173,7 @@ func singleEngineDeployment(driver, dsn string) system.DeploymentConfig {
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{enginePrimary}},
+			{Role: system.RoleProjections, Engines: []string{enginePrimary}},
 		},
 	}
 }
