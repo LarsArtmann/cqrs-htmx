@@ -1,5 +1,9 @@
 # Status — Close-out pass: the false alarm, two upstream resolutions, an auditlog sweep under fire, and what I fumbled racing the daemon
 
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_08-32_get-shit-done-spine-m00-m14-ci-reds-owned_status.md`](../2026-11-08_08-32_get-shit-done-spine-m00-m14-ci-reds-owned_status.md), which executed by the GET-SHIT-DONE spine session (M00/M01/M03/M13 landed, M14 half, CI reds owned in the successor §d); open tails carried in TODO rows + the 06-35 plan. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
+
 **Scope of this session:** execute the 00-21 report's own unfinished close-out ritual (archive 21-45, corpus re-true, battery, commit, push), then the follow-up list — typo fix, `Enabled: true` disposition, webphone, github-local-sync go.work, check-modules receipt, watches, v4.19 planning read.
 
 **One-sentence verdict:** the ritual landed clean on a tree that had moved twice under the inherited summary (the sibling's 00-19 e2e report + their baseline re-true), the session's headline "fuckup" from 00-21 §d1 turned out to be a FALSE ALARM verified at upstream source, two upstream blockers resolved (catalog A25, DataStar NV1), an upstream patch release pushed a strict-train sweep through mid-session — and I lost two commit ref-lock races to the daemon, shipped a wrong import order on a first "mechanical" fix, and pushed three times where the batched-push discipline I myself preached says one.

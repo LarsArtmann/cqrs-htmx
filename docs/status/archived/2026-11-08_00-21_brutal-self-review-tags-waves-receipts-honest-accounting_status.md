@@ -1,6 +1,6 @@
 # Status — Brutal self-review of the blanket-directive execution II: what shipped, what I forgot, what I fumbled
 
-> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_03-48_closeout-false-alarm-a25-nv1-auditlog-sweep_status.md`](../2026-11-08_03-48_closeout-false-alarm-a25-nv1-auditlog-sweep_status.md), which superseded by the 03-48 close-out; its f1/f4/f5/f7/f12 items resolved by that session, all others routed to owner questions or TODO rows. Strike depth:
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_03-48_closeout-false-alarm-a25-nv1-auditlog-sweep_status.md`](2026-11-08_03-48_closeout-false-alarm-a25-nv1-auditlog-sweep_status.md), which superseded by the 03-48 close-out; its f1/f4/f5/f7/f12 items resolved by that session, all others routed to owner questions or TODO rows. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
 
