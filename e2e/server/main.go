@@ -121,6 +121,14 @@ func main() {
 	// viewer) with their deterministic driver endpoints.
 	mountBridges(mux, host)
 
+	// Browsers request /favicon.ico on every page; a 404 here is logged as
+	// a console error by Firefox's internal favicon loader under some pages'
+	// CSP settings (hit live in the firefox engine runs, 2026-11-08). Answer
+	// with the health dashboard's SVG instead of noise.
+	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/bridges/health/favicon.svg", http.StatusFound)
+	})
+
 	// --- HTML page --- ({$}: exact root only, else it conflicts with the
 	// /dashboard/ subtree's method-agnostic pattern)
 	mux.HandleFunc("GET /{$}", indexHandler)
