@@ -55,6 +55,7 @@ EOF
 version: "2"
 linters:
   default: none
+formatters:
   enable:
     - gofmt
 YAML

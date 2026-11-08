@@ -353,18 +353,22 @@ test("offline reads serve cached events via window.cqrsSync.getEvents()", async 
   page,
   context,
 }) => {
+  test.setTimeout(120_000);
   await page.goto("/");
   await expect(page.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
-    { timeout: 15000 },
+    { timeout: 30_000 },
   );
 
   // First pull populates the cache from the seeded journal. The status
   // indicator does NOT gate the boot-time catch-up pull (it reflects the
   // push/SSE connection), so poll the cache until the pull lands.
+  // 30s ceiling: the SharedWorker's boot catch-up races machine load (the
+  // 2026-09-13 flake class — 15s red under sibling-session load, green at
+  // rest).
   await expect
     .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, {
-      timeout: 15000,
+      timeout: 30_000,
     })
     .toBeGreaterThanOrEqual(2);
   const online = await page.evaluate<SyncSnapshot>(GET_EVENTS);
@@ -389,15 +393,16 @@ test("sync:reset on backendId change clears the cache but keeps the queue", asyn
   page,
   context,
 }) => {
+  test.setTimeout(120_000);
   await page.goto("/");
   await expect(page.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
-    { timeout: 15000 },
+    { timeout: 30_000 },
   );
 
   await expect
     .poll(async () => (await page.evaluate<SyncSnapshot>(GET_EVENTS)).events.length, {
-      timeout: 15000,
+      timeout: 30_000,
     })
     .toBeGreaterThanOrEqual(2);
 

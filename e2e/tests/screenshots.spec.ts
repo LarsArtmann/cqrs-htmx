@@ -34,7 +34,16 @@ for (const mode of MODES) {
     for (const pageName of PAGES) {
       test(`captures ${pageName}`, async ({ page }) => {
         const url = pageName === "overview" ? "/dashboard/" : `/dashboard/${pageName}`;
-        const resp = await page.goto(url);
+
+        // A single non-200 under machine load (sibling sessions compiling)
+        // is transient — retry a few times before skipping so the harness
+        // only skips when the page is REALLY unavailable. The old
+        // single-shot skip masked the axe findings for weeks (2026-11-08).
+        let resp = await page.goto(url);
+        for (let attempt = 0; attempt < 3 && resp?.status() !== 200; attempt++) {
+          await page.waitForTimeout(1_000);
+          resp = await page.goto(url);
+        }
         if (resp?.status() !== 200) {
           test.skip(true, `${url} unavailable (${resp?.status()})`);
           return;
