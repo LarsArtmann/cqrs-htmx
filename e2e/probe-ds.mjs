@@ -10,67 +10,52 @@ const browser = await firefox.launch({
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
 
-page.on("console", (m) => console.log(`[console:${m.type()}] ${m.text()}`));
+page.on("console", (m) => {
+  const t = m.text();
+  if (t.includes("[probe]") || m.type() === "error") console.log(`[${m.type()}] ${t}`);
+});
 page.on("pageerror", (e) => console.log(`[pageerror] ${e.message}`));
 
 await page.goto(`${DEMO}/dev-login`, { waitUntil: "load" });
 
 await page.addInitScript(() => {
-  window.__probe = { fetches: [], chunks: [], errors: [] };
+  window.__probe = { fetches: [], span: [] };
   const orig = window.fetch;
   window.fetch = async (...args) => {
     const url = String(args[0]?.url ?? args[0]);
-    if (url.includes("/ds/events")) {
-      window.__probe.fetches.push({ t: performance.now(), url, headers: args[1]?.headers ?? null });
-      console.log(`[probe] FETCH /ds/events #${window.__probe.fetches.length} @${performance.now() | 0}`);
-    }
     const res = await orig(...args);
-    if (url.includes("/ds/events") && res.body) {
-      const reader = res.body.getReader().getReader ? res.body.getReader() : res.body.getReader();
-      const stream = new ReadableStream({
-        start(ctrl) {
-          const pump = async () => {
-            try {
-              for (;;) {
-                const { done, value } = await reader.read();
-                if (done) { ctrl.close(); return; }
-                const text = new TextDecoder().decode(value);
-                window.__probe.chunks.push({ t: performance.now() | 0, text });
-                console.log(`[probe] CHUNK @${performance.now() | 0} ${JSON.stringify(text)}`);
-                ctrl.enqueue(value);
-              }
-            } catch (e) {
-              window.__probe.errors.push(String(e));
-              console.log(`[probe] READ-ERR ${e}`);
-            }
-          };
-          pump();
-        },
-      });
-      return new Response(stream, { headers: res.headers, status: res.status });
+    if (url.includes("/ds/events")) {
+      window.__probe.fetches.push({ t: performance.now() | 0, status: res.status, ct: res.headers.get("content-type") });
+      console.log(`[probe] FETCH /ds/events -> ${res.status} (${res.headers.get("content-type")}) @${performance.now() | 0}`);
     }
     return res;
   };
+  setInterval(() => {
+    const el = document.querySelector("[data-text='$broadcasts']");
+    if (el) window.__probe.span.push({ t: performance.now() | 0, v: el.textContent });
+  }, 500);
 });
 
 await page.goto(`${DEMO}/ds-demo`, { waitUntil: "load" });
-const counter = page.locator("[data-text='$broadcasts']");
 await page.waitForTimeout(3000);
-console.log(`[probe] initial span text: ${await counter.textContent()}`);
+console.log(`[probe] initial: ${await page.locator("[data-text='$broadcasts']").textContent()}`);
 
-// One broadcast at a time, sampling the span between posts.
-await fetch(DEMO + "/broadcast", { method: "POST" }).catch(() => {});
+const post = () =>
+  page.evaluate(async () => {
+    const r = await fetch("/broadcast", { method: "POST" });
+    return r.status;
+  });
+console.log(`[probe] post1 status: ${await post()}`);
 await page.waitForTimeout(2500);
-console.log(`[probe] after post1: ${await counter.textContent()}`);
-await fetch(DEMO + "/broadcast", { method: "POST" }).catch(() => {});
+console.log(`[probe] after post1: ${await page.locator("[data-text='$broadcasts']").textContent()}`);
+console.log(`[probe] post2 status: ${await post()}`);
 await page.waitForTimeout(2500);
-console.log(`[probe] after post2: ${await counter.textContent()}`);
-await page.waitForTimeout(3000);
-console.log(`[probe] final: ${await counter.textContent()}`);
+console.log(`[probe] after post2: ${await page.locator("[data-text='$broadcasts']").textContent()}`);
+await page.waitForTimeout(4000);
+console.log(`[probe] final: ${await page.locator("[data-text='$broadcasts']").textContent()}`);
 
 const probe = await page.evaluate(() => window.__probe);
-console.log(`[probe] total /ds/events fetches: ${probe.fetches.length}`);
-for (const f of probe.fetches) console.log(`  fetch @${f.t | 0}`);
-console.log(`[probe] errors: ${JSON.stringify(probe.errors)}`);
+console.log(`[probe] /ds/events connections: ${probe.fetches.length}`);
+probe.span.forEach((s) => console.log(`  span @${s.t}ms = "${s.v}"`));
 
 await browser.close();
