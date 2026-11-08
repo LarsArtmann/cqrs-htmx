@@ -1169,6 +1169,7 @@
                       bash bash scripts/checks/check-workspace-build.sh
                       bash bash scripts/selftests/test-check-workspace-build.sh
                       bash bash scripts/checks/check-version-drift.sh --strict
+                    bash bash scripts/selftests/test-check-version-drift.sh
                       bash bash scripts/tools/tidy-sweep.sh
                       bash bash scripts/checks/check-release-train.sh
                       bash bash scripts/checks/check-upstream-treadmill.sh
@@ -1236,6 +1237,7 @@
                         "workspace-build:bash scripts/checks/check-workspace-build.sh"
                         "workspace-build-self-test:bash scripts/selftests/test-check-workspace-build.sh"
                         "version-drift:bash scripts/checks/check-version-drift.sh --strict"
+                        "version-drift-self-test:bash scripts/selftests/test-check-version-drift.sh"
                         "tidy-sweep:bash scripts/tools/tidy-sweep.sh"
                         "release-train:bash scripts/checks/check-release-train.sh"
                         "release-train-self-test:bash scripts/selftests/test-check-release-train.sh"
