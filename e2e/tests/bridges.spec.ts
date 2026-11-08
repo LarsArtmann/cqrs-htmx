@@ -80,10 +80,14 @@ test("auditlog viewer streams injector events: invoke grows the events table liv
 
   // Invoking the do-registered probe service makes the audit plugin record
   // the invocation; the SSE patch must re-render the table in the browser.
+  // One invoke records TWO events (phase before + after rows), so the
+  // contract is growth, not an exact row delta.
   const resp = await request.post("/api/debug/invoke");
   expect(resp.status()).toBe(202);
 
-  await expect(rows).toHaveCount(before + 1, { timeout: 20_000 });
+  await expect(async () => {
+    expect(await rows.count()).toBeGreaterThan(before);
+  }).toPass({ timeout: 20_000 });
 });
 
 test("auditlog services tab shows the do-registered probe service", async ({ page }) => {

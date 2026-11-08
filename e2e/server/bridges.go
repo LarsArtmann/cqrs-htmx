@@ -68,7 +68,9 @@ type bridgeProbeService struct{}
 func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 	probe, err := cqrshealth.NewProbe(hostStatusProvider{host: host})
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "e2e.bridges.health_probe_failed", "build the health probe over the projection host")
+		return errorfamily.WrapInfrastructure(err,
+			"e2e.bridges.health_probe_failed",
+			"build the health probe over the projection host")
 	}
 
 	dash := cqrshealth.NewDashboard(
@@ -96,7 +98,9 @@ func mountHealthDashboard(mux *http.ServeMux, host *projectionhost.Host) error {
 	// second half of the page-only-mount trap; the server is disposable per
 	// run, so no Shutdown wiring is needed).
 	if err := dash.Start(context.Background()); err != nil {
-		return errorfamily.WrapInfrastructure(err, "e2e.bridges.dashboard_start_failed", "start the health dashboard SSE pusher")
+		return errorfamily.WrapInfrastructure(err,
+			"e2e.bridges.dashboard_start_failed",
+			"start the health dashboard SSE pusher")
 	}
 
 	return nil
