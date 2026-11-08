@@ -2,6 +2,7 @@ package adminui
 
 import (
 	"net/url"
+	"slices"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -165,12 +166,7 @@ func toMemberRows(memberships []*identitymodel.Membership) []memberRow {
 
 // hasRole reports whether roles contains role.
 func hasRole(roles []identitymodel.Role, role identitymodel.Role) bool {
-	for _, r := range roles {
-		if r == role {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(roles, role)
 }
 
 // removeCredentialConfirm builds the passkey-removal confirm text: removing

@@ -186,8 +186,8 @@ func TestFlow_RemoveCredential(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := svc.AddCredential(ctx, target.User.ID, identitymodel.WebAuthnCredential{
-		CredentialCore: identitymodel.CredentialCore{ID: []byte{0x01, 0x02}, Name: "YubiKey"},
-		CreatedAt:      time.Now(),
+		ID: []byte{0x01, 0x02}, Name: "YubiKey",
+		CreatedAt: time.Now(),
 	}); err != nil {
 		t.Fatal(err)
 	}
