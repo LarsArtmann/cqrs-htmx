@@ -44,10 +44,9 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:18923",
     // On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
-    // Use the system/Nix Chromium via E2E_BROWSER_PATH when set.
-    launchOptions: {
-      executablePath: process.env.E2E_BROWSER_PATH || undefined,
-    },
+    // Use the system/Nix Chromium via E2E_BROWSER_PATH when set — scoped to
+    // the chromium project below (a firefox executable would be ignored in
+    // any case; keeping it here misled the 2026-11-08 M4 split).
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -56,8 +55,35 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          executablePath: process.env.E2E_BROWSER_PATH || undefined,
+        },
+      },
     },
+    // Cross-engine project (plan M4, 2026-11-08): present ONLY when a
+    // firefox executable is provided (E2E_FIREFOX_PATH — the `nix run
+    // .#e2e-firefox` wrapper supplies the Playwright build from the browser
+    // cache plus its LD_LIBRARY_PATH forest; CI supplies the
+    // registry-installed build). Absent env → absent project, so the
+    // chromium-only entry points stay unchanged.
+    ...(process.env.E2E_FIREFOX_PATH
+      ? [
+          {
+            name: "firefox",
+            // Playwright WebAuthn needs the Chromium CDP virtual
+            // authenticator — there is no Firefox equivalent.
+            testIgnore: /loginpage-webauthn\.spec\.ts/,
+            use: {
+              ...devices["Desktop Firefox"],
+              launchOptions: {
+                executablePath: process.env.E2E_FIREFOX_PATH,
+              },
+            },
+          },
+        ]
+      : []),
   ],
 
   webServer: [

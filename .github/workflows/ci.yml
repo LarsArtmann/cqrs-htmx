@@ -426,6 +426,65 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+  # Browser E2E battery (plan 2026-11-07): the Playwright suite in e2e/ is
+  # the ONLY gate that exercises the client-facing surfaces in a real
+  # browser. The suite needs workspace mode (GOWORK carries local replaces
+  # to sibling checkouts), so this job clones the three siblings the tracked
+  # go.work replaces reference and rewrites the absolute dev paths — the
+  # same content the local gates verify.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.work
+
+      # The tracked go.work replaces 40 larsartmann module paths with
+      # /home/lars/projects/<sibling> checkouts that exist on dev machines
+      # only. Clone the three sibling repos and rewrite the prefix so the
+      # workspace resolves in CI (the build/test jobs avoid this by running
+      # GOWORK=off; this job cannot — the e2e servers must build against
+      # the workspace's local cqrs-htmx modules, not published tags).
+      - name: Clone sibling repos (go.work replace targets)
+        run: |
+          git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+          git clone --depth 1 https://github.com/LarsArtmann/go-idempotency.git "${GITHUB_WORKSPACE}/../go-idempotency"
+          git clone --depth 1 https://github.com/LarsArtmann/httputil.git "${GITHUB_WORKSPACE}/../httputil"
+          sed -i "s|/home/lars/projects/|${GITHUB_WORKSPACE}/../|g" go.work
+
+      # Pre-compile the five servers the Playwright webServers launch (`go
+      # run .`) so the per-server 120s webServer timeout is not spent on a
+      # cold toolchain compile of the full cqrs-htmx dep tree.
+      - name: Warm Go build cache (e2e servers)
+        run: |
+          go build ./... && \
+          cd ../../examples/admin-demo && go build ./... && \
+          cd ../datastar-demo && go build ./... && \
+          cd ../basic && go build ./... && \
+          cd ../setup-demo && go build ./...
+        working-directory: e2e/server
+        env:
+          GOEXPERIMENT: jsonv2
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+        working-directory: e2e
+
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+        working-directory: e2e
+
+      - name: Run browser E2E battery
+        run: bunx playwright test --reporter=line
+        working-directory: e2e
+        env:
+          GOEXPERIMENT: jsonv2
+
   mod-tidy:
     runs-on: ubuntu-latest
     steps:
