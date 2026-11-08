@@ -5,8 +5,8 @@
 
 ## Verdict
 
-| Direct usage | Transitive | Latest | Verdict |
-| --- | --- | --- | --- |
+| Direct usage       | Transitive                                                                                                               | Latest                        | Verdict                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------- | ------------------------- |
 | **0 import sites** | yes — 14 submodules pinned indirect in `auditlog/go.mod` via `samber-do-auditlog` (its viewer renders through go-output) | v0.38.7 (verified 2026-11-05) | **Correctly not adopted** |
 
 ## What it is

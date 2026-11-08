@@ -10,11 +10,11 @@ This guide shows how cqrs-htmx serves the same query handler over three transpor
 
 One handler, three transports. The CLIENT chooses the rung; the SERVER answers identically from a single handler registration.
 
-| Rung | Transport | Use when | Trade-off |
-| --- | --- | --- | --- |
-| 1 | `QUERY` + JSON body | green path: Go stdlib, same-origin fetch/XHR, htmx 4 `hx-query`, DataStar `@query()` | old proxies/WAFs may answer 405/501 to unknown methods |
-| 2 | `POST` + `X-HTTP-Method-Override: QUERY` header + same JSON body | rung 1 blocked anywhere on the path | is a POST at the security layers: carries the CSRF token, no safe-method cache treatment |
-| 3 | `GET` + URL params | small, bookmarkable queries | length/encoding limits, filters land in logs and history |
+| Rung | Transport                                                        | Use when                                                                             | Trade-off                                                                                |
+| ---- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| 1    | `QUERY` + JSON body                                              | green path: Go stdlib, same-origin fetch/XHR, htmx 4 `hx-query`, DataStar `@query()` | old proxies/WAFs may answer 405/501 to unknown methods                                   |
+| 2    | `POST` + `X-HTTP-Method-Override: QUERY` header + same JSON body | rung 1 blocked anywhere on the path                                                  | is a POST at the security layers: carries the CSRF token, no safe-method cache treatment |
+| 3    | `GET` + URL params                                               | small, bookmarkable queries                                                          | length/encoding limits, filters land in logs and history                                 |
 
 `App.Query` never inspects the request method and neither do the decoders, so the method truth lives in your mux pattern — one handler serves every rung.
 
@@ -94,11 +94,13 @@ curl -X POST localhost:8096/api/items/search \
 No native `hx-query` — use rung 2; the override header rides `hx-headers`:
 
 ```html
-<button hx-post="/contacts/search"
-        hx-headers='{"X-HTTP-Method-Override": "QUERY"}'
-        hx-ext="json-enc"
-        hx-target="#results">
-  Search
+<button
+	hx-post="/contacts/search"
+	hx-headers='{"X-HTTP-Method-Override": "QUERY"}'
+	hx-ext="json-enc"
+	hx-target="#results"
+>
+	Search
 </button>
 ```
 
@@ -114,10 +116,7 @@ serve it with `htmx.ExtensionHandler(htmx.ExtCQRSQuery)`:
 <script src="/htmx.js"></script>
 <script src="/ext/cqrs-query.js"></script>
 
-<button hx-post="/contacts/search" hx-query hx-ext="cqrs-query, json-enc"
-        hx-target="#results">
-  Search
-</button>
+<button hx-post="/contacts/search" hx-query hx-ext="cqrs-query, json-enc" hx-target="#results">Search</button>
 ```
 
 `hx-post` stays the trigger and the fallback transport; `hx-query` (empty
@@ -136,9 +135,13 @@ Native `hx-query`: `<button hx-query="/contacts/search">`. The library embeds ht
 Current upstream DataStar documents `@query()` (signals in the request body). The bundle embedded by the `datastar` module predates it, so today use rung 2 — `@post` sends signals as a JSON body, which `ds.ReadSignals` decodes regardless of method:
 
 ```html
-<button data-on-click="@post('/contacts/search', {
+<button
+	data-on-click="@post('/contacts/search', {
   headers: {'X-HTTP-Method-Override': 'QUERY'}
-})">Search</button>
+})"
+>
+	Search
+</button>
 ```
 
 `ds.ReadSignals` handles a native QUERY request correctly by construction (the fork routes GET/DELETE to URL-query signals and every other method to the JSON body).
@@ -147,9 +150,9 @@ Current upstream DataStar documents `@query()` (signals in the request body). Th
 
 ```js
 const res = await fetch("/contacts/search", {
-  method: "QUERY",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ filter: "widget" }),
+	method: "QUERY",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({ filter: "widget" }),
 });
 ```
 
@@ -159,13 +162,13 @@ Retrieved 2026-11-07 against official docs/changelogs; every YES row cites its
 source, every blank is UNVERIFIED — the fallback ladder exists precisely for
 the unverified middle.
 
-| Proxy / CDN | Forwards QUERY? | Evidence (official) | Caveats |
-| --- | --- | --- | --- |
+| Proxy / CDN  | Forwards QUERY?                                                   | Evidence (official)                                                                                                                                                                                                                | Caveats                                                                                                                                                           |
+| ------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Envoy v1.40+ | **YES** (explicit RFC 10008 changelog entry; HTTP/2+3 always did) | [v1.40 release notes](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.40/v1.40.0): "The QUERY request method, registered by RFC 10008, is now recognized by the HTTP/1 codec and is forwarded rather than rejected" | ≤ v1.39 over HTTP/1 rejected QUERY with 400; v1.40 requires `Content-Type` on QUERY (400 `query_missing_content_type` otherwise — pair with `RequireContentType`) |
-| Caddy | **YES** (method-agnostic by doc) | [reverse_proxy docs](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy): upstream request uses "the same HTTP method and URI as the incoming request" | Never rewrite QUERY to GET/HEAD — Caddy drops the body on that rewrite |
-| nginx | **YES** (client method forwarded; no default allowlist) | [proxy_module docs](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_method): method override is opt-in only | `limit_except` blocks QUERY if you wrote one; no RFC 10008 mention through nginx 1.31.8 |
-| Cloudflare | UNVERIFIED (edge forwarding) | Workers Cache API rejects QUERY today ([workerd#6849](https://github.com/cloudflare/workerd/issues/6849), open PR #6857) | WAF/edge method handling undocumented for QUERY — test your zone or ride the override fallback |
-| AWS ALB | UNVERIFIED | [rule conditions](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html) officially match custom methods incl. QUERY | Default forwarding of unknown methods to targets not documented — test or ride the fallback |
+| Caddy        | **YES** (method-agnostic by doc)                                  | [reverse_proxy docs](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy): upstream request uses "the same HTTP method and URI as the incoming request"                                                                | Never rewrite QUERY to GET/HEAD — Caddy drops the body on that rewrite                                                                                            |
+| nginx        | **YES** (client method forwarded; no default allowlist)           | [proxy_module docs](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_method): method override is opt-in only                                                                                                        | `limit_except` blocks QUERY if you wrote one; no RFC 10008 mention through nginx 1.31.8                                                                           |
+| Cloudflare   | UNVERIFIED (edge forwarding)                                      | Workers Cache API rejects QUERY today ([workerd#6849](https://github.com/cloudflare/workerd/issues/6849), open PR #6857)                                                                                                           | WAF/edge method handling undocumented for QUERY — test your zone or ride the override fallback                                                                    |
+| AWS ALB      | UNVERIFIED                                                        | [rule conditions](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html) officially match custom methods incl. QUERY                                                                       | Default forwarding of unknown methods to targets not documented — test or ride the fallback                                                                       |
 
 ## Posture notes
 

@@ -54,7 +54,7 @@ An app typically composes some subset of these. They are **independent Go module
 | **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering.                                                                                                                                                                                                                          |
 | **datastar**          | `github.com/larsartmann/cqrs-htmx/datastar/v4`           | Optional DataStar adapter: script serving, signal decoding, SSE response builder, EventBridge. Depends only on go-datastar + go-sse (no root dep).                                                                                                                                                                                                                       |
 
-| **huma**              | `github.com/larsartmann/cqrs-htmx/huma/v4`                | Optional [Huma v2](https://huma.rocks/) adapter: `RegisterCommand`/`RegisterQuery` run the same authorize → validate → guard → dispatch stages inside typed OpenAPI operations and emit the same RFC 9457 error document. Huma keeps decode, status codes and the generated schema. Pins root v4.16.0, zero root change.                                                                                                                                                                                    |
+| **huma** | `github.com/larsartmann/cqrs-htmx/huma/v4` | Optional [Huma v2](https://huma.rocks/) adapter: `RegisterCommand`/`RegisterQuery` run the same authorize → validate → guard → dispatch stages inside typed OpenAPI operations and emit the same RFC 9457 error document. Huma keeps decode, status codes and the generated schema. Pins root v4.16.0, zero root change. |
 
 Optional bridges also exist: **health** (go-health projection probes), **auditlog** (samber-do-auditlog), **systemadapter** (go-cqrs-lite `system.New` + metaengine), **huma** (typed OpenAPI operations). See `docs/guides/fullstack-wiring.md`.
 
@@ -258,7 +258,7 @@ srv := cqrshtmx.Chain(app.Middleware())(cqrshtmx.MethodOverrideMiddleware(mux))
   (legacy `X-Http-Method` honored) into QUERY before routing; QUERY is the
   only override target — an override to DELETE is ignored by design.
 - `DecodeJSONQuery`/`DecodeJSONQueryTyped` advertise `Accept-Query:
-  application/json` themselves (error responses too); form decoders advertise
+application/json` themselves (error responses too); form decoders advertise
   nothing. `AcceptQuery(...)` appends consumer types.
 - `RequireAnyMethod("QUERY", http.MethodPost)` guards multi-method mounts
   (405 + `Allow` header); `RequireContentType("application/json")` opts a

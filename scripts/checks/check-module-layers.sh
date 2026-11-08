@@ -93,7 +93,7 @@ while IFS='|' read -r pkg imports; do
     [ "$imp" = "$pkg" ] && continue
 
     count=$((count + 1))
-    if [[ "$allowed" != *" $imp "* ]]; then
+    if [[ $allowed != *" $imp "* ]]; then
       echo "FAIL: $pkg imports $imp"
       echo "      allowed from $pkg:${allowed% }"
       fail=1

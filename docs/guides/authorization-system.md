@@ -212,11 +212,11 @@ that, because all four levels measure routes.
 
 The dispatch gate closes it. Three layers, each answering a different question:
 
-| Layer | Question | Where |
-| --- | --- | --- |
-| Route option | may this caller make this request, at all? | `Authorize` / `AuthorizeIn` / `AuthorizeRequest` |
-| Dispatch gate | may this actor run this command, from anywhere? | `DispatchGate` middleware on the dispatcher |
-| Decider | may this command touch *this* aggregate? | domain invariants |
+| Layer         | Question                                        | Where                                            |
+| ------------- | ----------------------------------------------- | ------------------------------------------------ |
+| Route option  | may this caller make this request, at all?      | `Authorize` / `AuthorizeIn` / `AuthorizeRequest` |
+| Dispatch gate | may this actor run this command, from anywhere? | `DispatchGate` middleware on the dispatcher      |
+| Decider       | may this command touch _this_ aggregate?        | domain invariants                                |
 
 Replay does not re-run deciders, which is why the middle layer cannot be skipped:
 a rebuild would otherwise be the only thing between an actor and history.

@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Adoption | Score |
-| --- | --- | --- | --- | --- |
-| `go-etag/server` v0.6.1 (entitytag v0.6.1 indirect) | **v0.6.1 = latest for the consumed submodules** (see § Version currency — the v0.7.0 root tag is a deprecated shim, corrected 2026-11-06) | 4 files | **Used — conditional requests for immutable JSON** | **83/100 · at latest** |
+| Pin                                                 | Latest (verified 2026-11-05)                                                                                                              | Prod import sites | Adoption                                           | Score                  |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------- | ---------------------- |
+| `go-etag/server` v0.6.1 (entitytag v0.6.1 indirect) | **v0.6.1 = latest for the consumed submodules** (see § Version currency — the v0.7.0 root tag is a deprecated shim, corrected 2026-11-06) | 4 files           | **Used — conditional requests for immutable JSON** | **83/100 · at latest** |
 
 ## What the library is
 
@@ -22,12 +22,12 @@ Entity-tag plumbing: `entitytag` (ETag values/computation) and `server` (conditi
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | Conditional-request primitives (`ParseETag`, `MatchesIfNoneMatch`) | 🟢 Fully leveraged | the internal/hx immutable cache path |
-| 2 | Immutable-asset serving pattern (ETag + long cache + 304) | 🟢 Fully leveraged | event catalog, OpenAPI, projection status, sync pull |
-| 3 | Middleware form (`server` middleware) | 🟡 Partially used | examples only — correct for a library (never force response caching semantics on consumer routes); the hx layer composes primitives where the contract demands them |
-| 4 | `entitytag` direct use | ⚪ N/A | arrives as a transitive pin of `server`; no direct need has surfaced (hashes are FNV-1a over canonical bytes by design) |
+| #   | Capability                                                         | Status             | Evidence / reason                                                                                                                                                   |
+| --- | ------------------------------------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Conditional-request primitives (`ParseETag`, `MatchesIfNoneMatch`) | 🟢 Fully leveraged | the internal/hx immutable cache path                                                                                                                                |
+| 2   | Immutable-asset serving pattern (ETag + long cache + 304)          | 🟢 Fully leveraged | event catalog, OpenAPI, projection status, sync pull                                                                                                                |
+| 3   | Middleware form (`server` middleware)                              | 🟡 Partially used  | examples only — correct for a library (never force response caching semantics on consumer routes); the hx layer composes primitives where the contract demands them |
+| 4   | `entitytag` direct use                                             | ⚪ N/A             | arrives as a transitive pin of `server`; no direct need has surfaced (hashes are FNV-1a over canonical bytes by design)                                             |
 
 ## Score derivation
 

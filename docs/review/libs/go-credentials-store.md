@@ -5,9 +5,9 @@
 
 ## Verdict
 
-| Direct usage | Transitive | Latest | Verdict |
-| --- | --- | --- | --- |
-| **0 import sites** | no | v0.3.1 (verified 2026-11-05) | **Correctly not adopted — category error, not a gap** |
+| Direct usage       | Transitive | Latest                       | Verdict                                               |
+| ------------------ | ---------- | ---------------------------- | ----------------------------------------------------- |
+| **0 import sites** | no         | v0.3.1 (verified 2026-11-05) | **Correctly not adopted — category error, not a gap** |
 
 ## What it is
 

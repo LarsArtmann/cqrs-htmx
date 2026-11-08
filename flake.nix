@@ -2957,69 +2957,100 @@
               # The Playwright firefox build expects FHS system libraries that
               # NixOS does not provide globally — symlink a forest of nixpkgs
               # libs into one directory the wrapper exports as LD_LIBRARY_PATH.
-              let playwrightFirefoxLibs = pkgs.runCommand "playwright-firefox-libs" {} ''
-                mkdir -p $out/lib
-                for p in ${toString (with pkgs; [
-                  gtk3 alsa-lib dbus dbus-glib atk at-spi2-atk cairo pango.out
-                  gdk-pixbuf glib.out freetype fontconfig.lib libxkbcommon libdrm
-                  mesa libX11 libXcomposite libXdamage libXext libXfixes libXrandr
-                  libXt libxcb libXi libXcursor libXrender stdenv.cc.cc.lib
-                ])}; do
-                  if [ -d "$p/lib" ]; then
-                    for f in "$p"/lib/*.so*; do
-                      ln -sfn "$f" $out/lib/ 2>/dev/null || true
-                    done
-                  fi
-                done
-              ''; in {
-              type = "app";
-              meta.description = "Run the Playwright battery on BOTH engines: nix Chromium + the cached Playwright firefox build (with its nixpkgs lib forest)";
-              program = pkgs.lib.getExe (
-                pkgs.writeShellApplication {
-                  name = "e2e-firefox";
-                  runtimeInputs = [
-                    goPkg
-                    pkgs.nodejs
-                    pkgs.findutils
-                  ]
-                  ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
-                  text = ''
-                    export GOEXPERIMENT=jsonv2
-
-                    # Chromium side (the e2e app's NixOS fallback).
-                    if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
-                      E2E_BROWSER_PATH="$(command -v chromium)"
-                      export E2E_BROWSER_PATH
+              let
+                playwrightFirefoxLibs = pkgs.runCommand "playwright-firefox-libs" { } ''
+                  mkdir -p $out/lib
+                  for p in ${
+                    toString (
+                      with pkgs;
+                      [
+                        gtk3
+                        alsa-lib
+                        dbus
+                        dbus-glib
+                        atk
+                        at-spi2-atk
+                        cairo
+                        pango.out
+                        gdk-pixbuf
+                        glib.out
+                        freetype
+                        fontconfig.lib
+                        libxkbcommon
+                        libdrm
+                        mesa
+                        libX11
+                        libXcomposite
+                        libXdamage
+                        libXext
+                        libXfixes
+                        libXrandr
+                        libXt
+                        libxcb
+                        libXi
+                        libXcursor
+                        libXrender
+                        stdenv.cc.cc.lib
+                      ]
+                    )
+                  }; do
+                    if [ -d "$p/lib" ]; then
+                      for f in "$p"/lib/*.so*; do
+                        ln -sfn "$f" $out/lib/ 2>/dev/null || true
+                      done
                     fi
+                  done
+                '';
+              in
+              {
+                type = "app";
+                meta.description = "Run the Playwright battery on BOTH engines: nix Chromium + the cached Playwright firefox build (with its nixpkgs lib forest)";
+                program = pkgs.lib.getExe (
+                  pkgs.writeShellApplication {
+                    name = "e2e-firefox";
+                    runtimeInputs = [
+                      goPkg
+                      pkgs.nodejs
+                      pkgs.findutils
+                    ]
+                    ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
+                    text = ''
+                      export GOEXPERIMENT=jsonv2
 
-                    # Locate the cached Playwright firefox build (newest first).
-                    FF_HOME="''${PLAYWRIGHT_BROWSERS_PATH:-/mnt/buildcache/playwright}"
-                    FF_BIN="$(find "$FF_HOME" "$HOME/.cache/ms-playwright" -maxdepth 4 -path '*/firefox/firefox' -type f 2>/dev/null | sort -V | tail -1 || true)"
-                    if [ -z "$FF_BIN" ]; then
-                      echo "FAIL: no Playwright firefox build found (looked in $FF_HOME and ~/.cache/ms-playwright)" >&2
-                      echo "      provision one with: ./node_modules/.bin/playwright install firefox" >&2
-                      exit 1
-                    fi
-                    echo "==> firefox: $FF_BIN"
+                      # Chromium side (the e2e app's NixOS fallback).
+                      if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
+                        E2E_BROWSER_PATH="$(command -v chromium)"
+                        export E2E_BROWSER_PATH
+                      fi
 
-                    # The prebuilt firefox resolves its FHS libs through this
-                    # forest; the playwright config (E2E_FIREFOX_LIBS) prepends
-                    # it to LD_LIBRARY_PATH before any browser child spawns.
-                    export E2E_FIREFOX_PATH="$FF_BIN"
-                    export E2E_FIREFOX_LIBS="${playwrightFirefoxLibs}/lib"
+                      # Locate the cached Playwright firefox build (newest first).
+                      FF_HOME="''${PLAYWRIGHT_BROWSERS_PATH:-/mnt/buildcache/playwright}"
+                      FF_BIN="$(find "$FF_HOME" "$HOME/.cache/ms-playwright" -maxdepth 4 -path '*/firefox/firefox' -type f 2>/dev/null | sort -V | tail -1 || true)"
+                      if [ -z "$FF_BIN" ]; then
+                        echo "FAIL: no Playwright firefox build found (looked in $FF_HOME and ~/.cache/ms-playwright)" >&2
+                        echo "      provision one with: ./node_modules/.bin/playwright install firefox" >&2
+                        exit 1
+                      fi
+                      echo "==> firefox: $FF_BIN"
 
-                    cd "''${BUILD_ROOT:-$(pwd)}/e2e"
-                    if command -v bun >/dev/null 2>&1; then
-                      bun install --frozen-lockfile 2>/dev/null || bun install
-                      ./node_modules/.bin/playwright test "$@"
-                    else
-                      echo "FAIL: bun not found (the battery runner)." >&2
-                      exit 1
-                    fi
-                  '';
-                }
-              );
-            };
+                      # The prebuilt firefox resolves its FHS libs through this
+                      # forest; the playwright config (E2E_FIREFOX_LIBS) prepends
+                      # it to LD_LIBRARY_PATH before any browser child spawns.
+                      export E2E_FIREFOX_PATH="$FF_BIN"
+                      export E2E_FIREFOX_LIBS="${playwrightFirefoxLibs}/lib"
+
+                      cd "''${BUILD_ROOT:-$(pwd)}/e2e"
+                      if command -v bun >/dev/null 2>&1; then
+                        bun install --frozen-lockfile 2>/dev/null || bun install
+                        ./node_modules/.bin/playwright test "$@"
+                      else
+                        echo "FAIL: bun not found (the battery runner)." >&2
+                        exit 1
+                      fi
+                    '';
+                  }
+                );
+              };
 
             check-require-tags = {
               type = "app";

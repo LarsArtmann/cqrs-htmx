@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin(s) | Latest (verified 2026-11-05 via `git ls-remote`) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| 15 trains (see below) | **all 15 = latest, lag 0** | 159 files | 204 files | **Used — the foundation** | **73/100 audited → ~80 derived standing** |
+| Pin(s)                | Latest (verified 2026-11-05 via `git ls-remote`) | Prod import sites | Test import sites | Adoption                  | Score                                     |
+| --------------------- | ------------------------------------------------ | ----------------- | ----------------- | ------------------------- | ----------------------------------------- |
+| 15 trains (see below) | **all 15 = latest, lag 0**                       | 159 files         | 204 files         | **Used — the foundation** | **73/100 audited → ~80 derived standing** |
 
 ## What the library is
 
@@ -25,12 +25,12 @@ The [2026-11-03 deep dive](../../research/2026-11-03_go-cqrs-lite-deep-dive.html
 
 Waves landed **after** the audit (2026-11-04, plan of record [docs/planning/2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md](../../planning/2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md)) resolved four graded rows:
 
-| Row (audit grade) | Resolution |
-| --- | --- |
-| CBOR for binary payloads (missed) | **ADR-0059 accepted 2026-11-03** — five payloads (`CredentialAdded`, `CredentialRemoved`, `CredentialUsed`, `TOTPEnabled`, `BotRegistered`) now `codec.CBORCodec` |
-| Replay-seam dedup: raw map (partial) | `dedup.Ring` at `transport/serve.go` (R3, commit `823fcd7e`) |
-| `kv.Cache` FindByID write-through (partial) | Opt-in view cache over `maypok86/otter` v2 on the `kv.ViewStore` interface (R9; upstream ask go-cqrs-lite#113) |
-| `WithSnapshotStateVersion` (partial) | Snapshot shape guard wired in `repositoryOptions` (R10) |
+| Row (audit grade)                           | Resolution                                                                                                                                                        |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CBOR for binary payloads (missed)           | **ADR-0059 accepted 2026-11-03** — five payloads (`CredentialAdded`, `CredentialRemoved`, `CredentialUsed`, `TOTPEnabled`, `BotRegistered`) now `codec.CBORCodec` |
+| Replay-seam dedup: raw map (partial)        | `dedup.Ring` at `transport/serve.go` (R3, commit `823fcd7e`)                                                                                                      |
+| `kv.Cache` FindByID write-through (partial) | Opt-in view cache over `maypok86/otter` v2 on the `kv.ViewStore` interface (R9; upstream ask go-cqrs-lite#113)                                                    |
+| `WithSnapshotStateVersion` (partial)        | Snapshot shape guard wired in `repositoryOptions` (R10)                                                                                                           |
 
 **Derived standing: 26 full ×1 + 7 partial ×0.5 = 29.5 / 37 ≈ 80/100** — derived from the audited table plus the four resolutions above, not a full re-audit.
 

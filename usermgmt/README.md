@@ -94,14 +94,14 @@ constructor error by design — startup drain failures surface through
 The identity domain's events (`identity-model` constants; `DefaultEventCatalog()`
 serves every schema — see `docs/guides/event-catalog-guide.md`):
 
-| Aggregate       | Events                                                                                                                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| User            | `UserRegistered`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted`, `EmailVerified`, `TOTPEnabled`, `TOTPDisabled`, `ExternalAccountLinked`, `ExternalAccountUnlinked`              |
-| User credential | `CredentialAdded`, `CredentialRemoved`, **`CredentialUsed`** (assertion state after each login: signature counter + UP/UV/backup flags — the clone-detection high-water mark, identity-model v4.14.0+) |
+| Aggregate       | Events                                                                                                                                                                                                   |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User            | `UserRegistered`, `RolesUpdated`, `EmailChanged`, `DisplayNameChanged`, `UserDeleted`, `EmailVerified`, `TOTPEnabled`, `TOTPDisabled`, `ExternalAccountLinked`, `ExternalAccountUnlinked`                |
+| User credential | `CredentialAdded`, `CredentialRemoved`, **`CredentialUsed`** (assertion state after each login: signature counter + UP/UV/backup flags — the clone-detection high-water mark, identity-model v4.14.0+)   |
 | Auth audit      | `LoginSucceeded`, `LoginFailed`, `RegistrationClosed`, `SessionStarted`, `SessionEnded` (own Auth-typed streams, best-effort append — the session pair closes the impersonation-forensics gap, ADR 0060) |
-| Membership      | `MemberAdded`, `MemberRolesChanged`, `MemberRemoved`                                                                                                                                                   |
-| Tenant          | `TenantCreated`, `TenantSuspended`, `TenantReactivated`, `TenantDeleted`                                                                                                                               |
-| Bot             | `BotRegistered`, `BotDeleted`                                                                                                                                                                          |
+| Membership      | `MemberAdded`, `MemberRolesChanged`, `MemberRemoved`                                                                                                                                                     |
+| Tenant          | `TenantCreated`, `TenantSuspended`, `TenantReactivated`, `TenantDeleted`                                                                                                                                 |
+| Bot             | `BotRegistered`, `BotDeleted`                                                                                                                                                                            |
 
 Commands (21): `RegisterUser`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`,
 `AddCredential`, `RemoveCredential`, `RecordCredentialUse`, `VerifyEmail`,

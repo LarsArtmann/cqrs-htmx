@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| v0.3.2 (root direct) | v0.3.2 (= latest) | 3 files (root alias layer, examples/admin-demo) | 2 files | **Used — fully delegated, winding down by design** | **88/100** |
+| Pin                  | Latest (verified 2026-11-05) | Prod import sites                               | Test import sites | Adoption                                           | Score      |
+| -------------------- | ---------------------------- | ----------------------------------------------- | ----------------- | -------------------------------------------------- | ---------- |
+| v0.3.2 (root direct) | v0.3.2 (= latest)            | 3 files (root alias layer, examples/admin-demo) | 2 files           | **Used — fully delegated, winding down by design** | **88/100** |
 
 ## What the library is
 
@@ -17,17 +17,17 @@ A deliberately tiny command-idempotency kit: the `Store` interface, `MemoryStore
 
 - Root `idempotency.go` re-exports the entire surface as **deprecated aliases** (`IdempotencyStore`, `MemoryIdempotencyStore`, `NewMemoryIdempotencyStore`, `ErrDuplicateCommand`) — v5 removes them; every alias delegates 1:1 to the upstream module.
 - `examples/admin-demo/main.go` demonstrates direct upstream usage (memory store + `idempotency.ErrDuplicate` → 409 via `MapError`).
-- `usermgmt/command_idempotency_test.go` proves the dispatch-level seam. The *production* idempotency story for commands routes through go-cqrs-lite's `middleware` idempotency factory on `ServiceConfig.CommandMiddleware` (documented in [docs/guides/leveraging-go-cqrs-lite.md](../../guides/leveraging-go-cqrs-lite.md) §1) — the right layer, since dedup belongs at dispatch, not HTTP decode.
+- `usermgmt/command_idempotency_test.go` proves the dispatch-level seam. The _production_ idempotency story for commands routes through go-cqrs-lite's `middleware` idempotency factory on `ServiceConfig.CommandMiddleware` (documented in [docs/guides/leveraging-go-cqrs-lite.md](../../guides/leveraging-go-cqrs-lite.md) §1) — the right layer, since dedup belongs at dispatch, not HTTP decode.
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | `Store` contract | 🟢 Fully leveraged | aliased at root; consumers + middleware path consume the upstream type |
-| 2 | `MemoryStore` + sweeper | 🟢 Fully leveraged | documented default (`NewMemoryIdempotencyStore` delegates; library principle: never force persistence) |
-| 3 | `ErrDuplicate` classification | 🟢 Fully leveraged | maps to 409 Conflict through `MapError`; aliased as `ErrDuplicateCommand` |
-| 4 | Durable store variants | ⚪ N/A | the library offers none (v0.3.x is memory-only) — durability arrives via go-cqrs-lite middleware idempotency over its own stores |
-| 5 | Direct-adoption posture | 🟡 Partially used | integration is a deprecated alias layer scheduled for v5 removal — deliberate exit, not neglect; the example + guide keep the upstream-first story alive |
+| #   | Capability                    | Status             | Evidence / reason                                                                                                                                        |
+| --- | ----------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `Store` contract              | 🟢 Fully leveraged | aliased at root; consumers + middleware path consume the upstream type                                                                                   |
+| 2   | `MemoryStore` + sweeper       | 🟢 Fully leveraged | documented default (`NewMemoryIdempotencyStore` delegates; library principle: never force persistence)                                                   |
+| 3   | `ErrDuplicate` classification | 🟢 Fully leveraged | maps to 409 Conflict through `MapError`; aliased as `ErrDuplicateCommand`                                                                                |
+| 4   | Durable store variants        | ⚪ N/A             | the library offers none (v0.3.x is memory-only) — durability arrives via go-cqrs-lite middleware idempotency over its own stores                         |
+| 5   | Direct-adoption posture       | 🟡 Partially used  | integration is a deprecated alias layer scheduled for v5 removal — deliberate exit, not neglect; the example + guide keep the upstream-first story alive |
 
 ## Score derivation
 

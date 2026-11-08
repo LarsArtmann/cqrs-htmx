@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| v0.9.0 (setup direct) | v0.9.0 (= latest) | 2 files (`setup/run_appkit.go`, +1) | 2 files (incl. `setup/run_appkit_test.go` bench) | **Used — the `RunWithAppkit` runtime seam** | **80/100** |
+| Pin                   | Latest (verified 2026-11-05) | Prod import sites                   | Test import sites                                | Adoption                                    | Score      |
+| --------------------- | ---------------------------- | ----------------------------------- | ------------------------------------------------ | ------------------------------------------- | ---------- |
+| v0.9.0 (setup direct) | v0.9.0 (= latest)            | 2 files (`setup/run_appkit.go`, +1) | 2 files (incl. `setup/run_appkit_test.go` bench) | **Used — the `RunWithAppkit` runtime seam** | **80/100** |
 
 ## What the library is
 
@@ -19,17 +19,17 @@ Production-ready HTTP service lifecycle: composes httputil (server, middleware),
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | Service composition (`NewService`, `Service`, `ServiceConfig`) | 🟢 Fully leveraged | the whole point of `RunWithAppkit` |
-| 2 | Timeout policy | 🟢 Fully leveraged | `NoTimeout` ×3 — deliberately SSE-safe, documented in the file header |
-| 3 | Log level control | 🟢 Fully leveraged | config forwarding + `LogLevelError` bench suppression |
-| 4 | Metrics forwarding | 🟢 Fully leveraged | `ServiceConfig.Metrics` ← `setup.Config` (indirectly adopts httputil metrics — see the [httputil report](httputil.md)) |
-| 5 | Lifecycle hooks (`Hook`, drain/shutdown hooks, `ShutdownConfig`) | 🔴 Missed (low) | setup manages its own lifecycle (projection drain, broadcaster close); forwarding consumer drain hooks through appkit's hook contract would unify the two shutdown stories |
-| 6 | Logger init (`InitLogger`, `LogFormat`, `LoggerConfig`) | ⚪ N/A | owned by `NewService` defaults; consumers who want charmbracelet config import appkit directly |
-| 7 | Health/readiness (`RegisterHealth`, `ReadyHandlerWithProbe`) | ⚪ N/A | deliberate divergence: readiness is the go-health bridge + `ProjectionReadinessCheck`; appkit's variant would duplicate |
-| 8 | Signal handling (`WaitForSignal`) | ⚪ N/A | exercised inside `Run` |
-| 9 | Error mapping (`HTTPStatus`, `RegisterClassifications`) | ⚪ N/A | `httperr` owns mapping; classifications already registered via root's `sync.Once` |
+| #   | Capability                                                       | Status             | Evidence / reason                                                                                                                                                          |
+| --- | ---------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Service composition (`NewService`, `Service`, `ServiceConfig`)   | 🟢 Fully leveraged | the whole point of `RunWithAppkit`                                                                                                                                         |
+| 2   | Timeout policy                                                   | 🟢 Fully leveraged | `NoTimeout` ×3 — deliberately SSE-safe, documented in the file header                                                                                                      |
+| 3   | Log level control                                                | 🟢 Fully leveraged | config forwarding + `LogLevelError` bench suppression                                                                                                                      |
+| 4   | Metrics forwarding                                               | 🟢 Fully leveraged | `ServiceConfig.Metrics` ← `setup.Config` (indirectly adopts httputil metrics — see the [httputil report](httputil.md))                                                     |
+| 5   | Lifecycle hooks (`Hook`, drain/shutdown hooks, `ShutdownConfig`) | 🔴 Missed (low)    | setup manages its own lifecycle (projection drain, broadcaster close); forwarding consumer drain hooks through appkit's hook contract would unify the two shutdown stories |
+| 6   | Logger init (`InitLogger`, `LogFormat`, `LoggerConfig`)          | ⚪ N/A             | owned by `NewService` defaults; consumers who want charmbracelet config import appkit directly                                                                             |
+| 7   | Health/readiness (`RegisterHealth`, `ReadyHandlerWithProbe`)     | ⚪ N/A             | deliberate divergence: readiness is the go-health bridge + `ProjectionReadinessCheck`; appkit's variant would duplicate                                                    |
+| 8   | Signal handling (`WaitForSignal`)                                | ⚪ N/A             | exercised inside `Run`                                                                                                                                                     |
+| 9   | Error mapping (`HTTPStatus`, `RegisterClassifications`)          | ⚪ N/A             | `httperr` owns mapping; classifications already registered via root's `sync.Once`                                                                                          |
 
 ## Score derivation
 

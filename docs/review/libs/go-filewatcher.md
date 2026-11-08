@@ -5,9 +5,9 @@
 
 ## Verdict
 
-| Direct usage | Transitive | Latest | Verdict |
-| --- | --- | --- | --- |
-| **0 import sites** | no | v2.4.3 (verified 2026-11-05) | **Correctly not adopted** |
+| Direct usage       | Transitive | Latest                       | Verdict                   |
+| ------------------ | ---------- | ---------------------------- | ------------------------- |
+| **0 import sites** | no         | v2.4.3 (verified 2026-11-05) | **Correctly not adopted** |
 
 ## What it is
 

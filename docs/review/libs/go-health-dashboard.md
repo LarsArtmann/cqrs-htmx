@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Adoption | Score |
-| --- | --- | --- | --- | --- |
-| v0.13.2 (health bridge direct) | v0.13.2 (= latest) | 2 files (`health/dashboard.go`, examples) | **Used — one-call mount, by design** | **67/100 · high for the bridge's intent; one real gap (nonce/CSP)** |
+| Pin                            | Latest (verified 2026-11-05) | Prod import sites                         | Adoption                             | Score                                                               |
+| ------------------------------ | ---------------------------- | ----------------------------------------- | ------------------------------------ | ------------------------------------------------------------------- |
+| v0.13.2 (health bridge direct) | v0.13.2 (= latest)           | 2 files (`health/dashboard.go`, examples) | **Used — one-call mount, by design** | **67/100 · high for the bridge's intent; one real gap (nonce/CSP)** |
 
 ## What the library is
 
@@ -17,17 +17,17 @@ Real-time health dashboard over go-health, DataStar-SSE powered: status banners,
 
 `health.NewDashboard(probe, healthdashboard.WithTitle("My App"))` — `New` ×1, `Dashboard` ×5 (type refs), `Option` ×1, `WithTitle` ×2. The bridge deliberately exposes exactly the one-call mount and hands anything deeper to direct consumers (bridge README's consumer map).
 
-## Capability inventory (graded against what a bridge *should* surface)
+## Capability inventory (graded against what a bridge _should_ surface)
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | One-call mount (`New`, `Dashboard`, routes) | 🟢 Fully leveraged | `health/dashboard.go` + README map |
-| 2 | Branding (`WithTitle`) | 🟢 Fully leveraged | exposed through the bridge signature |
-| 3 | CSP-safe serving (`WithNonce`) | 🔴 Missed | 0 uses — the dashboard's inline scripts under a nonce-CSP consumer need the nonce option threaded through the bridge; the repo's own CSP posture (nonce-first, `RecommendedSecurityMiddleware`) makes this the one genuine gap |
-| 4 | Rate limiting (`WithRateLimit`) | ⚪ N/A | consumers wrap the mux; a library bridge should not double-rate-limit |
-| 5 | Metrics (`WithMetrics`) | ⚪ N/A | probe-level metrics belong to the go-health layer |
-| 6 | Push modes / trend / timeline / grouping config | ⚪ N/A | presentation depth beyond bridge intent — direct consumers import the module |
-| 7 | Webhooks / introspection | ⚪ N/A | operational features of the standalone hub pattern |
+| #   | Capability                                      | Status             | Evidence / reason                                                                                                                                                                                                              |
+| --- | ----------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | One-call mount (`New`, `Dashboard`, routes)     | 🟢 Fully leveraged | `health/dashboard.go` + README map                                                                                                                                                                                             |
+| 2   | Branding (`WithTitle`)                          | 🟢 Fully leveraged | exposed through the bridge signature                                                                                                                                                                                           |
+| 3   | CSP-safe serving (`WithNonce`)                  | 🔴 Missed          | 0 uses — the dashboard's inline scripts under a nonce-CSP consumer need the nonce option threaded through the bridge; the repo's own CSP posture (nonce-first, `RecommendedSecurityMiddleware`) makes this the one genuine gap |
+| 4   | Rate limiting (`WithRateLimit`)                 | ⚪ N/A             | consumers wrap the mux; a library bridge should not double-rate-limit                                                                                                                                                          |
+| 5   | Metrics (`WithMetrics`)                         | ⚪ N/A             | probe-level metrics belong to the go-health layer                                                                                                                                                                              |
+| 6   | Push modes / trend / timeline / grouping config | ⚪ N/A             | presentation depth beyond bridge intent — direct consumers import the module                                                                                                                                                   |
+| 7   | Webhooks / introspection                        | ⚪ N/A             | operational features of the standalone hub pattern                                                                                                                                                                             |
 
 ## Score derivation
 

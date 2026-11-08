@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| v0.10.0 (health bridge direct) | v0.10.0 (= latest) | 4 files (`health/`, examples, integration_test) | 4 files | **Used — via the `health` bridge module** | **65/100 count · 9/10 bridge quality (round-2 review)** |
+| Pin                            | Latest (verified 2026-11-05) | Prod import sites                               | Test import sites | Adoption                                  | Score                                                   |
+| ------------------------------ | ---------------------------- | ----------------------------------------------- | ----------------- | ----------------------------------------- | ------------------------------------------------------- |
+| v0.10.0 (health bridge direct) | v0.10.0 (= latest)           | 4 files (`health/`, examples, integration_test) | 4 files           | **Used — via the `health` bridge module** | **65/100 count · 9/10 bridge quality (round-2 review)** |
 
 ## What the library is
 
@@ -19,20 +19,20 @@ The `cqrs-htmx/health` bridge consumes (symbol census): `Probe` ×10, `WithHealt
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | Probe construction & options (`New`, `WithCriticalServices`, `WithVersion`, `WithRefreshInterval`) | 🟢 Fully leveraged | bridge + examples + integration tests |
-| 2 | Detailed checks (`NewWithDetailedCheck`, `CheckDetail`, `duration_ns` on the wire) | 🟢 Fully leveraged | per-projection checks with timing |
-| 3 | Recorder composition (`WithHealthRecorder`, `ChainRecorders`, `DetailedHealthRecorder`) | 🟢 Fully leveraged | merge with samber/do injector checks (auditlog "one probe" pattern) |
-| 4 | Route wiring (`DefaultRoutes`, `RegisterRoutes`) | 🟢 Fully leveraged | kubelet JSON probes |
-| 5 | Status vocabulary (`StatusPass/Warn/Fail`) | 🟢 Fully leveraged | projection states map through it |
-| 6 | Shutdown awareness (probe lifecycle with service Close) | 🟢 Fully leveraged | bridge stops with the service |
-| 7 | Batteries (`NewChecks` common checks) | 🔴 Missed (low) | all bridge checks are projection-specific; batteries (HTTP-ping etc.) could serve consumer dependency checks — thin fit |
-| 8 | Metrics integration | 🟡 Partially used | go-health metrics section unexplored; observability demos use go-cqrs-lite middleware metrics instead |
-| 9 | Probe tuning depth (`WithTimeout`, `WithLiveThrottle`, `WithShutdownGracePeriod`, `WithEvaluationHook`) | 🔴 Missed (low) | defaults proven adequate; hooks could power audit trails |
-| 10 | `VersionHandler` | 🔴 Missed (low) | `/version` endpoint trivially derivable from `WithVersion` metadata |
-| 11 | `SanitizeResponse` | ⚪ N/A | responses are constructed by our recorders, not reflected |
-| 12 | Federation (remote probes hub) | ⚪ N/A | that is the standalone `health-hub` deployment pattern, not a library bridge concern |
+| #   | Capability                                                                                              | Status             | Evidence / reason                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | Probe construction & options (`New`, `WithCriticalServices`, `WithVersion`, `WithRefreshInterval`)      | 🟢 Fully leveraged | bridge + examples + integration tests                                                                                   |
+| 2   | Detailed checks (`NewWithDetailedCheck`, `CheckDetail`, `duration_ns` on the wire)                      | 🟢 Fully leveraged | per-projection checks with timing                                                                                       |
+| 3   | Recorder composition (`WithHealthRecorder`, `ChainRecorders`, `DetailedHealthRecorder`)                 | 🟢 Fully leveraged | merge with samber/do injector checks (auditlog "one probe" pattern)                                                     |
+| 4   | Route wiring (`DefaultRoutes`, `RegisterRoutes`)                                                        | 🟢 Fully leveraged | kubelet JSON probes                                                                                                     |
+| 5   | Status vocabulary (`StatusPass/Warn/Fail`)                                                              | 🟢 Fully leveraged | projection states map through it                                                                                        |
+| 6   | Shutdown awareness (probe lifecycle with service Close)                                                 | 🟢 Fully leveraged | bridge stops with the service                                                                                           |
+| 7   | Batteries (`NewChecks` common checks)                                                                   | 🔴 Missed (low)    | all bridge checks are projection-specific; batteries (HTTP-ping etc.) could serve consumer dependency checks — thin fit |
+| 8   | Metrics integration                                                                                     | 🟡 Partially used  | go-health metrics section unexplored; observability demos use go-cqrs-lite middleware metrics instead                   |
+| 9   | Probe tuning depth (`WithTimeout`, `WithLiveThrottle`, `WithShutdownGracePeriod`, `WithEvaluationHook`) | 🔴 Missed (low)    | defaults proven adequate; hooks could power audit trails                                                                |
+| 10  | `VersionHandler`                                                                                        | 🔴 Missed (low)    | `/version` endpoint trivially derivable from `WithVersion` metadata                                                     |
+| 11  | `SanitizeResponse`                                                                                      | ⚪ N/A             | responses are constructed by our recorders, not reflected                                                               |
+| 12  | Federation (remote probes hub)                                                                          | ⚪ N/A             | that is the standalone `health-hub` deployment pattern, not a library bridge concern                                    |
 
 ## Score derivation
 

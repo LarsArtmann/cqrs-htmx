@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| v0.7.0 (+ssetest v0.5.0) | v0.7.0 / ssetest v0.5.0 (= latest) | 18 files | 28 files | **Used — the realtime substrate** | **72/100 count · ~85 impact-weighted** |
+| Pin                      | Latest (verified 2026-11-05)       | Prod import sites | Test import sites | Adoption                          | Score                                  |
+| ------------------------ | ---------------------------------- | ----------------- | ----------------- | --------------------------------- | -------------------------------------- |
+| v0.7.0 (+ssetest v0.5.0) | v0.7.0 / ssetest v0.5.0 (= latest) | 18 files          | 28 files          | **Used — the realtime substrate** | **72/100 count · ~85 impact-weighted** |
 
 ## What the library is
 
@@ -19,18 +19,18 @@ Symbol census: `sse.Event` ×242, `NewEventID` ×75, `NewStream` ×38, `NewBroad
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | Event construction & IDs (`Event`, `NewEventID`, `EventID`, parse) | 🟢 Fully leveraged | 350+ refs; `MustParseSSEEventID` alias rides `sse.MustParseEventID` |
-| 2 | Stream serving (`NewStream`, `WriteEvent`, `SetHeaders`, `WriteRetry`) | 🟢 Fully leveraged | root SSE handlers + transport |
-| 3 | Heartbeats | 🟢 Fully leveraged | `startHeartbeat` → `stream.Heartbeat` (`transport/serve.go:490`) |
-| 4 | Fan-out (`NewBroadcaster`, `Broadcaster`) | 🟢 Fully leveraged | 56 refs; lifecycle contract (Subscribe/Unsubscribe/Close/SubscriberCount) documented in the skill + guides |
-| 5 | Reconnect & replay (`LastEventIDFromRequest`, `Replay`, `ReplayFiltered`, `FilteredEventStore`) | 🟢 Fully leveraged | golden-pinned envelope; fail-closed replay cap + `dedup.Ring` seam (2026-11-04) |
-| 6 | `ssetest` contract kit | 🟢 Fully leveraged | `sse_reconnect_integration_test.go`, `command_sync_integration_test.go` |
-| 7 | `WithBufferSize` subscriber tuning | 🟡 Partially used | default buffers everywhere; the datastar module only keeps a deprecated alias (upstream `broadcast` variant) |
-| 8 | `WithOnDrop` drop observability | 🔴 Missed | 0 prod uses — slow-consumer drops are **silent by design**; a drop hook (log/metric) is the single highest-value unadopted feature |
-| 9 | `BroadcasterHealth` | 🔴 Missed | 0 uses; subscriber counts/health would feed adminui's honest sync indicator + dashboardui |
-| 10 | Keyed line framing (`KeyedLines`, `WriteKeyedLines`, `JoinLines`) | ⚪ N/A | wire-format assembly helper; payloads are composed as single data fields here |
+| #   | Capability                                                                                      | Status             | Evidence / reason                                                                                                                  |
+| --- | ----------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Event construction & IDs (`Event`, `NewEventID`, `EventID`, parse)                              | 🟢 Fully leveraged | 350+ refs; `MustParseSSEEventID` alias rides `sse.MustParseEventID`                                                                |
+| 2   | Stream serving (`NewStream`, `WriteEvent`, `SetHeaders`, `WriteRetry`)                          | 🟢 Fully leveraged | root SSE handlers + transport                                                                                                      |
+| 3   | Heartbeats                                                                                      | 🟢 Fully leveraged | `startHeartbeat` → `stream.Heartbeat` (`transport/serve.go:490`)                                                                   |
+| 4   | Fan-out (`NewBroadcaster`, `Broadcaster`)                                                       | 🟢 Fully leveraged | 56 refs; lifecycle contract (Subscribe/Unsubscribe/Close/SubscriberCount) documented in the skill + guides                         |
+| 5   | Reconnect & replay (`LastEventIDFromRequest`, `Replay`, `ReplayFiltered`, `FilteredEventStore`) | 🟢 Fully leveraged | golden-pinned envelope; fail-closed replay cap + `dedup.Ring` seam (2026-11-04)                                                    |
+| 6   | `ssetest` contract kit                                                                          | 🟢 Fully leveraged | `sse_reconnect_integration_test.go`, `command_sync_integration_test.go`                                                            |
+| 7   | `WithBufferSize` subscriber tuning                                                              | 🟡 Partially used  | default buffers everywhere; the datastar module only keeps a deprecated alias (upstream `broadcast` variant)                       |
+| 8   | `WithOnDrop` drop observability                                                                 | 🔴 Missed          | 0 prod uses — slow-consumer drops are **silent by design**; a drop hook (log/metric) is the single highest-value unadopted feature |
+| 9   | `BroadcasterHealth`                                                                             | 🔴 Missed          | 0 uses; subscriber counts/health would feed adminui's honest sync indicator + dashboardui                                          |
+| 10  | Keyed line framing (`KeyedLines`, `WriteKeyedLines`, `JoinLines`)                               | ⚪ N/A             | wire-format assembly helper; payloads are composed as single data fields here                                                      |
 
 ## Score derivation
 

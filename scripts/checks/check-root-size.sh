@@ -46,8 +46,8 @@ fi
 files_tmp="$(mktemp /tmp/cqrs-htmx-root-size-XXXXXX)"
 trap 'rm -f "$files_tmp"' EXIT
 
-find "$ROOT" -maxdepth 1 -type f -name '*.go' ! -name '*_test.go' ! -name '*_templ.go' \
-  | LC_ALL=C sort >"$files_tmp"
+find "$ROOT" -maxdepth 1 -type f -name '*.go' ! -name '*_test.go' ! -name '*_templ.go' |
+  LC_ALL=C sort >"$files_tmp"
 
 files="$(wc -l <"$files_tmp" | tr -d ' ')"
 if [ "$files" -eq 0 ]; then

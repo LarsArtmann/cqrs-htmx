@@ -5,8 +5,8 @@
 
 ## Verdict
 
-| Direct usage | Transitive | Latest | Verdict |
-| --- | --- | --- | --- |
+| Direct usage       | Transitive                                                                    | Latest                       | Verdict                   |
+| ------------------ | ----------------------------------------------------------------------------- | ---------------------------- | ------------------------- |
 | **0 import sites** | yes — indirect via `samber-do-auditlog` → go-output chain (`auditlog/go.mod`) | v0.6.2 (verified 2026-11-05) | **Correctly not adopted** |
 
 ## What it is

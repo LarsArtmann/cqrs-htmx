@@ -49,8 +49,8 @@ trap 'rm -rf "$work"' EXIT
 
 files="$work/files"
 mapped="$work/mapped"
-find "$ROOT" -maxdepth 1 -type f -name '*.go' ! -name '*_test.go' ! -name '*_templ.go' \
-  | sed "s|^$ROOT/||" | LC_ALL=C sort >"$files"
+find "$ROOT" -maxdepth 1 -type f -name '*.go' ! -name '*_test.go' ! -name '*_templ.go' |
+  sed "s|^$ROOT/||" | LC_ALL=C sort >"$files"
 count="$(wc -l <"$files" | tr -d ' ')"
 if [ "$count" -eq 0 ]; then
   echo "✗ root-clusters: 0 production .go files under $ROOT — the measurement lost its target (rc=2)" >&2

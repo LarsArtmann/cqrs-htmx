@@ -5,8 +5,8 @@
 
 ## Verdict
 
-| Direct usage | Transitive | Latest | Verdict |
-| --- | --- | --- | --- |
+| Direct usage       | Transitive                                                                        | Latest                       | Verdict                            |
+| ------------------ | --------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------- |
 | **0 import sites** | yes — via `go-cqrs-lite/middleware` (`CommandRetry`/`DefaultRetryConfig` recipes) | v0.9.0 (verified 2026-11-05) | **Correctly not adopted directly** |
 
 ## What it is

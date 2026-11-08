@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Adoption | Score |
-| --- | --- | --- | --- | --- |
-| v1.0.3 (root direct; admin-demo direct) | v1.0.3 (= latest) | 2 files (re-export + example) | **Used — deprecated re-export on the v5 glide path** | **n/a — wind-down, correctly managed** |
+| Pin                                     | Latest (verified 2026-11-05) | Prod import sites             | Adoption                                             | Score                                  |
+| --------------------------------------- | ---------------------------- | ----------------------------- | ---------------------------------------------------- | -------------------------------------- |
+| v1.0.3 (root direct; admin-demo direct) | v1.0.3 (= latest)            | 2 files (re-export + example) | **Used — deprecated re-export on the v5 glide path** | **n/a — wind-down, correctly managed** |
 
 ## What the library is
 
@@ -20,10 +20,10 @@ The Server-Timing middleware suite (W3C Server Timing API: middleware + `Measure
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | Server-Timing middleware + measurement spans | 🟢 Fully leveraged (as re-export) | alias delegates 1:1 upstream; example demonstrates direct use |
-| 2 | Direct upstream adoption inside library modules | ⚪ N/A (by design) | library code doesn't emit Server-Timing by default (never enforce headers consumers might not want); consumers opt in via httputil |
+| #   | Capability                                      | Status                            | Evidence / reason                                                                                                                  |
+| --- | ----------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Server-Timing middleware + measurement spans    | 🟢 Fully leveraged (as re-export) | alias delegates 1:1 upstream; example demonstrates direct use                                                                      |
+| 2   | Direct upstream adoption inside library modules | ⚪ N/A (by design)                | library code doesn't emit Server-Timing by default (never enforce headers consumers might not want); consumers opt in via httputil |
 
 ## Score derivation
 

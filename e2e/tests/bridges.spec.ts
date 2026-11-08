@@ -101,7 +101,15 @@ test("auditlog services tab shows the do-registered probe service", async ({ pag
 test("console guard: no console or page errors across both bridge surfaces", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (msg) => {
-    if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);
+    if (msg.type() !== "error") return;
+    // Firefox's internal favicon loader (resource:///modules/FaviconLoader.sys.mjs)
+    // logs a console error when a page's CSP has no img-src and the browser's
+    // automatic /favicon.ico request is blocked — the auditlog viewer's
+    // upstream CSP is deliberately strict (default-src 'none', samber-do-auditlog
+    // v0.12.2). Browser noise, not an artifact regression (chromium stays
+    // silent for the same blocked request).
+    if (msg.text().includes("FaviconLoader.sys.mjs") && msg.text().includes("favicon.ico")) return;
+    errors.push(`console.error: ${msg.text()}`);
   });
   page.on("pageerror", (err) => errors.push(`pageerror: ${err.message}`));
 

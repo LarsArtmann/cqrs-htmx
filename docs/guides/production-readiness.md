@@ -132,7 +132,6 @@ bundle := setup.MustNew(setup.Config{
 - [ ] **Ordering guarantee (pinned by test)** — start hooks run before the first accepted request, drain hooks before the listener closes, shutdown hooks before `Bundle.Close()`
 - [ ] **See** `setup/README.md` § Drain posture and the `appkit.ServiceConfig` hook contracts
 
-
 ## Quick-Start Template
 
 ```go

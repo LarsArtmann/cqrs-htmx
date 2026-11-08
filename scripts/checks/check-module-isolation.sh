@@ -14,9 +14,9 @@
 set -euo pipefail
 
 INCLUDE_EXAMPLES=0
-if [[ "${1:-}" == "--examples" ]]; then
+if [[ ${1:-} == "--examples" ]]; then
   INCLUDE_EXAMPLES=1
-elif [[ -n "${1:-}" ]]; then
+elif [[ -n ${1:-} ]]; then
   echo "usage: $0 [--examples]" >&2
   exit 2
 fi

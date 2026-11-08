@@ -91,7 +91,9 @@ func main() {
 	// Idempotency store: prevents duplicate command execution when a client
 	// retries after losing the ACK. The X-Command-Id header ties each mutation
 	// to a unique ID; a retry with the same ID gets 409 instead of re-executing.
-	idemStore := idempotency.NewMemoryStore(5 * time.Minute) //nolint:staticcheck // demo: in-memory idempotency is exactly the dev/test use the deprecation sanctions
+	idemStore := idempotency.NewMemoryStore(
+		5 * time.Minute,
+	) //nolint:staticcheck // demo: in-memory idempotency is exactly the dev/test use the deprecation sanctions
 	defer idemStore.Close()
 	panel, err := adminui.New(adminui.Config{ //nolint:exhaustruct // demo uses sensible defaults
 		Service:     svc,

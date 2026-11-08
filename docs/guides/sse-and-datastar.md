@@ -135,7 +135,7 @@ The deprecated symbols remain functional through v4; staticcheck flags call site
 | Criterion          | HTMX                                                                 | Datastar                                                    |
 | ------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- |
 | **Philosophy**     | Server renders HTML fragments                                        | Server sends signals, client morphs DOM                     |
-| **Bundle size**    | 0 JS (uses HTMX, loaded separately)                                  | ~13 KiB gzipped, 33.5 kB raw (`datastar.js` v1.0.3)          |
+| **Bundle size**    | 0 JS (uses HTMX, loaded separately)                                  | ~13 KiB gzipped, 33.5 kB raw (`datastar.js` v1.0.3)         |
 | **Reactive state** | None (server is source of truth)                                     | Signals (client-side reactive state)                        |
 | **Use when**       | CRUD forms, tables, navigation                                       | Live dashboards, interactive widgets, optimistic-feeling UI |
 | **Coexistence**    | Both can run in the same app — different routes, different endpoints | Same                                                        |

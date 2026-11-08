@@ -155,10 +155,10 @@ suite.Run(t)
 The matrix per case:
 
 | Posture declared | anonymous | unprivileged | privileged |
-| --- | --- | --- | --- |
-| `Public` | admitted | — | admitted |
-| `Authenticated` | 401 class | — | admitted |
-| `RoleGated` | 401 class | 403 class | admitted |
+| ---------------- | --------- | ------------ | ---------- |
+| `Public`         | admitted  | —            | admitted   |
+| `Authenticated`  | 401 class | —            | admitted   |
+| `RoleGated`      | 401 class | 403 class    | admitted   |
 
 Assertions use `cqrshtmx.IsUnauthorized` / `IsForbidden`, not strings, so a
 re-coded denial fails the case. `Verify` refuses a set it cannot prove — no

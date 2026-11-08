@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| v0.3.3 | v0.3.3 (= latest) | 14 files | 11 files | **Used — event/sync payload encoding** | **44/100 count · high impact-weighted (core codecs at max)** |
+| Pin    | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption                               | Score                                                        |
+| ------ | ---------------------------- | ----------------- | ----------------- | -------------------------------------- | ------------------------------------------------------------ |
+| v0.3.3 | v0.3.3 (= latest)            | 14 files          | 11 files          | **Used — event/sync payload encoding** | **44/100 count · high impact-weighted (core codecs at max)** |
 
 ## What the library is
 
@@ -19,23 +19,23 @@ The encoding toolkit behind the fleet's payloads: `JSONCodec`/`CBORCodec` (plus 
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | JSON codec | 🟢 Fully leveraged | ×32; the default `event.WithCodec(codec.JSONCodec{})` call sites |
-| 2 | CBOR codec | 🟢 Fully leveraged | ×11 post-ADR-0059; −33% bytes on binary-dominated payloads |
-| 3 | Encoding negotiation (`Encoding`, `ForEncoding`, `Codec` interface) | 🟢 Fully leveraged | stamps ride event metadata + sync-pull payloads |
-| 4 | Raw passthrough (`EncodingRaw`) | 🟢 Fully leveraged | sync protocol raw payload path (ADR-0056) |
-| 5 | Format autodetection (`AutoDetect`) | 🔴 Missed | sync pull stamps `"opaque"` when a JSON stamp's bytes are invalid (gotcha 24 class); `AutoDetect` could classify honestly (json vs cbor) — needs an ADR-0056 contract check first |
-| 6 | Transcoding (`TranscodeToJSON`) | 🔴 Missed (low) | read models decode to structs; only a future "serve CBOR events as JSON to legacy clients" path needs it |
-| 7 | Buffer pooling (`EncodePooled`, `Get/PutBuffer`) | 🔴 Missed (low) | hot-path allocation trim; measurable only via the bench-spike gate |
-| 8 | Codec observability (`ObservableCodec`, `WithMetrics`) | 🔴 Missed (low) | codec-level metrics would extend the observability demos |
-| 9 | `Diagnose` (CBOR diagnostic notation) | 🔴 Missed (low) | dashboardui event inspector could render CBOR payloads human-readable |
-| 10 | `CBORCompactCodec` / `DeterministicCodec` | ⚪ N/A | compact rejects unknown fields (wrong for event evolution); determinism unneeded — immutable JSON hashes via `HashTag` are already canonical |
-| 11 | COSE (Sign1/Encrypt0) | ⚪ N/A | event signing/encryption is owned by go-cqrs-lite's storage layer, not the app codec choice |
+| #   | Capability                                                          | Status             | Evidence / reason                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | JSON codec                                                          | 🟢 Fully leveraged | ×32; the default `event.WithCodec(codec.JSONCodec{})` call sites                                                                                                                  |
+| 2   | CBOR codec                                                          | 🟢 Fully leveraged | ×11 post-ADR-0059; −33% bytes on binary-dominated payloads                                                                                                                        |
+| 3   | Encoding negotiation (`Encoding`, `ForEncoding`, `Codec` interface) | 🟢 Fully leveraged | stamps ride event metadata + sync-pull payloads                                                                                                                                   |
+| 4   | Raw passthrough (`EncodingRaw`)                                     | 🟢 Fully leveraged | sync protocol raw payload path (ADR-0056)                                                                                                                                         |
+| 5   | Format autodetection (`AutoDetect`)                                 | 🔴 Missed          | sync pull stamps `"opaque"` when a JSON stamp's bytes are invalid (gotcha 24 class); `AutoDetect` could classify honestly (json vs cbor) — needs an ADR-0056 contract check first |
+| 6   | Transcoding (`TranscodeToJSON`)                                     | 🔴 Missed (low)    | read models decode to structs; only a future "serve CBOR events as JSON to legacy clients" path needs it                                                                          |
+| 7   | Buffer pooling (`EncodePooled`, `Get/PutBuffer`)                    | 🔴 Missed (low)    | hot-path allocation trim; measurable only via the bench-spike gate                                                                                                                |
+| 8   | Codec observability (`ObservableCodec`, `WithMetrics`)              | 🔴 Missed (low)    | codec-level metrics would extend the observability demos                                                                                                                          |
+| 9   | `Diagnose` (CBOR diagnostic notation)                               | 🔴 Missed (low)    | dashboardui event inspector could render CBOR payloads human-readable                                                                                                             |
+| 10  | `CBORCompactCodec` / `DeterministicCodec`                           | ⚪ N/A             | compact rejects unknown fields (wrong for event evolution); determinism unneeded — immutable JSON hashes via `HashTag` are already canonical                                      |
+| 11  | COSE (Sign1/Encrypt0)                                               | ⚪ N/A             | event signing/encryption is owned by go-cqrs-lite's storage layer, not the app codec choice                                                                                       |
 
 ## Score derivation
 
-11 rows − 2 N/A = **9 applicable**; 4 full ×1 = **4 → 44/100** (band: low by count) — but the four full rows are the entire load-bearing codec surface; the five misses are adjunct tooling. Counting capability-impact instead of rows: **core at max, adjuncts unexplored → effective ~high (75-80)**. Honest headline: *used exactly where it matters, under-explored at the edges*.
+11 rows − 2 N/A = **9 applicable**; 4 full ×1 = **4 → 44/100** (band: low by count) — but the four full rows are the entire load-bearing codec surface; the five misses are adjunct tooling. Counting capability-impact instead of rows: **core at max, adjuncts unexplored → effective ~high (75-80)**. Honest headline: _used exactly where it matters, under-explored at the edges_.
 
 ## Version currency
 

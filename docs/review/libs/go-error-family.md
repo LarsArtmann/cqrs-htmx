@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| v0.12.0 | v0.12.0 (= latest) | 131 files | 54 files | **Used — the error substrate of the whole fleet** | **65/100 count · ~82 impact-weighted** |
+| Pin     | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption                                          | Score                                  |
+| ------- | ---------------------------- | ----------------- | ----------------- | ------------------------------------------------- | -------------------------------------- |
+| v0.12.0 | v0.12.0 (= latest)           | 131 files         | 54 files          | **Used — the error substrate of the whole fleet** | **65/100 count · ~82 impact-weighted** |
 
 ## What the library is
 
@@ -19,20 +19,20 @@ Symbol census (prod references): `NewRejection` ×200, `WrapInfrastructure` ×11
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | Family constructors (`New{Rejection,Transient,Conflict,Infrastructure,Corruption}` + `Newf`) | 🟢 Fully leveraged | 400+ ctor refs fleet-wide |
-| 2 | Wrap constructors (`Wrap*`/`Wrapf` variants) | 🟢 Fully leveraged | 382 refs across wrap variants |
-| 3 | Classification (`Classify`, `RegisterClassification` via event re-export) | 🟢 Fully leveraged | `Classify` ×77; root registers httputil classifications via `sync.Once` |
-| 4 | Error type, codes, context (`Error`, `Code`, `Summary`) | 🟢 Fully leveraged | `code` field rides JSON/ProblemDetails error payloads |
-| 5 | Family predicates (`Family`, `IsRetryable`) | 🟢 Fully leveraged | retry predicates drive middleware policy |
-| 6 | Orchestration family (multi-step composition errors) | 🟢 Fully leveraged | auditlog/adminui/usermgmt sites |
-| 7 | `WrapOnce` idempotent wrapping | 🔴 Missed | 0 prod uses; double-wrap through middleware chains re-wraps causes — low-stakes dedup nicety |
-| 8 | Audience-aware errors (`Audience`, `ParseAudience`) | 🔴 Missed | 0 uses; `httperr.SafeDetail` could split user-facing vs operator detail — candidate, needs design |
-| 9 | Structured classified logging (`LogError`, `LogErrorContext`) | 🔴 Missed | 0 uses; repo logs via its own slog wiring — family-aware log levels would follow severity |
-| 10 | CLI handling (`HandleError*`, `ExitCode`, `ExitCoder`) | ⚪ N/A | Library, not a CLI; consumer apps (and `go-appkit` examples) own exit codes |
-| 11 | HTTP mapping (`HTTPStatus`, `HTTPHandler`) | ⚪ N/A | Deliberate: `httperr` owns the error→HTTP surface; a second mapping layer would conflict |
-| 12 | Registries & message templates (`NewRegistry`, `RegisterClassifier(s)`, `RegisterTemplate`, `TemplateForCode`) | 🟡 Partially used | Only the global classification registry (via event re-export) is used; per-`Registry` isolation and code→message templates unexplored (templates could power consistent SafeDetail strings) |
+| #   | Capability                                                                                                     | Status             | Evidence / reason                                                                                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Family constructors (`New{Rejection,Transient,Conflict,Infrastructure,Corruption}` + `Newf`)                   | 🟢 Fully leveraged | 400+ ctor refs fleet-wide                                                                                                                                                                   |
+| 2   | Wrap constructors (`Wrap*`/`Wrapf` variants)                                                                   | 🟢 Fully leveraged | 382 refs across wrap variants                                                                                                                                                               |
+| 3   | Classification (`Classify`, `RegisterClassification` via event re-export)                                      | 🟢 Fully leveraged | `Classify` ×77; root registers httputil classifications via `sync.Once`                                                                                                                     |
+| 4   | Error type, codes, context (`Error`, `Code`, `Summary`)                                                        | 🟢 Fully leveraged | `code` field rides JSON/ProblemDetails error payloads                                                                                                                                       |
+| 5   | Family predicates (`Family`, `IsRetryable`)                                                                    | 🟢 Fully leveraged | retry predicates drive middleware policy                                                                                                                                                    |
+| 6   | Orchestration family (multi-step composition errors)                                                           | 🟢 Fully leveraged | auditlog/adminui/usermgmt sites                                                                                                                                                             |
+| 7   | `WrapOnce` idempotent wrapping                                                                                 | 🔴 Missed          | 0 prod uses; double-wrap through middleware chains re-wraps causes — low-stakes dedup nicety                                                                                                |
+| 8   | Audience-aware errors (`Audience`, `ParseAudience`)                                                            | 🔴 Missed          | 0 uses; `httperr.SafeDetail` could split user-facing vs operator detail — candidate, needs design                                                                                           |
+| 9   | Structured classified logging (`LogError`, `LogErrorContext`)                                                  | 🔴 Missed          | 0 uses; repo logs via its own slog wiring — family-aware log levels would follow severity                                                                                                   |
+| 10  | CLI handling (`HandleError*`, `ExitCode`, `ExitCoder`)                                                         | ⚪ N/A             | Library, not a CLI; consumer apps (and `go-appkit` examples) own exit codes                                                                                                                 |
+| 11  | HTTP mapping (`HTTPStatus`, `HTTPHandler`)                                                                     | ⚪ N/A             | Deliberate: `httperr` owns the error→HTTP surface; a second mapping layer would conflict                                                                                                    |
+| 12  | Registries & message templates (`NewRegistry`, `RegisterClassifier(s)`, `RegisterTemplate`, `TemplateForCode`) | 🟡 Partially used  | Only the global classification registry (via event re-export) is used; per-`Registry` isolation and code→message templates unexplored (templates could power consistent SafeDetail strings) |
 
 ## Score derivation
 

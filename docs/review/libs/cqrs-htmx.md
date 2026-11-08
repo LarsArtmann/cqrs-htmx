@@ -5,10 +5,10 @@
 
 ## Verdict at a glance
 
-| Question | Answer |
-| --- | --- |
+| Question                      | Answer                                                                                                                                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Does the fleet use cqrs-htmx? | It **is** cqrs-htmx — the question becomes: do the repo's own consumers (adminui, dashboardui, loginpage, setup, systemadapter, examples, e2e) dogfood the published surface to the max? |
-| Verdict | **Yes, 92/100 — exemplary dogfooding with two honest thin spots** |
+| Verdict                       | **Yes, 92/100 — exemplary dogfooding with two honest thin spots**                                                                                                                        |
 
 ## How the repo exercises its own surface
 
@@ -24,20 +24,20 @@
 
 ## Capability inventory
 
-| # | Surface | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | Handler builder + HandlerOption pipeline | 🟢 Fully leveraged | every module; ordering rules tested |
-| 2 | Authorization contract (`Decide`, postures, authztest) | 🟢 Fully leveraged | 8 modules + proof kit |
-| 3 | SSE `transport/` surface | 🟢 Fully leveraged | golden-pinned; 3 consumers |
-| 4 | Frontend sync (ADR-0056) | 🟢 Fully leveraged | sync-demo + e2e + assets tests |
-| 5 | Event catalog | 🟢 Fully leveraged | 2 modules; drift risk tracked (systemcatalog ask) |
-| 6 | Projection health/readiness | 🟢 Fully leveraged | 2 modules + health bridge |
-| 7 | Typed endpoints (`CommandTyped`/`QueryTyped`) | 🟡 Partially dogfooded | examples only — internal UIs mount direct handlers (legitimate); typed path still example-proven |
-| 8 | Partial/full rendering (`RenderPartialOrFull`, `RenderIf`, `OOBHTML`) | 🔴 Thin dogfooding | 0 internal-module prod uses; covered by root tests + docs, but the repo's own HTMX UIs hand-roll their fragment contracts (table-fragment + polled-region patterns) |
-| 9 | OpenAPI builder (`WithOpenAPI`, `OpenAPISpecHandler`) | 🟡 Partially dogfooded | 1 example; internal UIs publish no specs |
-| 10 | Deprecated re-export hygiene | 🟢 Fully leveraged | 0 internal uses; v5 removal mechanized |
-| 11 | setup composition root | 🟢 Fully leveraged | the product itself |
-| 12 | Examples breadth | 🟢 Fully leveraged | 13 demos incl. middleware/observability/sync/datastar/system proofs |
+| #   | Surface                                                               | Status                 | Evidence / reason                                                                                                                                                   |
+| --- | --------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Handler builder + HandlerOption pipeline                              | 🟢 Fully leveraged     | every module; ordering rules tested                                                                                                                                 |
+| 2   | Authorization contract (`Decide`, postures, authztest)                | 🟢 Fully leveraged     | 8 modules + proof kit                                                                                                                                               |
+| 3   | SSE `transport/` surface                                              | 🟢 Fully leveraged     | golden-pinned; 3 consumers                                                                                                                                          |
+| 4   | Frontend sync (ADR-0056)                                              | 🟢 Fully leveraged     | sync-demo + e2e + assets tests                                                                                                                                      |
+| 5   | Event catalog                                                         | 🟢 Fully leveraged     | 2 modules; drift risk tracked (systemcatalog ask)                                                                                                                   |
+| 6   | Projection health/readiness                                           | 🟢 Fully leveraged     | 2 modules + health bridge                                                                                                                                           |
+| 7   | Typed endpoints (`CommandTyped`/`QueryTyped`)                         | 🟡 Partially dogfooded | examples only — internal UIs mount direct handlers (legitimate); typed path still example-proven                                                                    |
+| 8   | Partial/full rendering (`RenderPartialOrFull`, `RenderIf`, `OOBHTML`) | 🔴 Thin dogfooding     | 0 internal-module prod uses; covered by root tests + docs, but the repo's own HTMX UIs hand-roll their fragment contracts (table-fragment + polled-region patterns) |
+| 9   | OpenAPI builder (`WithOpenAPI`, `OpenAPISpecHandler`)                 | 🟡 Partially dogfooded | 1 example; internal UIs publish no specs                                                                                                                            |
+| 10  | Deprecated re-export hygiene                                          | 🟢 Fully leveraged     | 0 internal uses; v5 removal mechanized                                                                                                                              |
+| 11  | setup composition root                                                | 🟢 Fully leveraged     | the product itself                                                                                                                                                  |
+| 12  | Examples breadth                                                      | 🟢 Fully leveraged     | 13 demos incl. middleware/observability/sync/datastar/system proofs                                                                                                 |
 
 ## Score derivation
 

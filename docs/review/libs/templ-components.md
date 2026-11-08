@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption | Score |
-| --- | --- | --- | --- | --- | --- |
-| v1.27.0 (all submodules) | v1.27.0 (= latest) | 39 files (adminui, dashboardui, loginpage) | 10 files | **Used — the UI component substrate** | **89/100 count · series-graded 97/94/95 per module** |
+| Pin                      | Latest (verified 2026-11-05) | Prod import sites                          | Test import sites | Adoption                              | Score                                                |
+| ------------------------ | ---------------------------- | ------------------------------------------ | ----------------- | ------------------------------------- | ---------------------------------------------------- |
+| v1.27.0 (all submodules) | v1.27.0 (= latest)           | 39 files (adminui, dashboardui, loginpage) | 10 files          | **Used — the UI component substrate** | **89/100 count · series-graded 97/94/95 per module** |
 
 ## What the library is
 
@@ -19,19 +19,19 @@ Distinct adopted symbols per package: **display 70** (Button family ×100+, Badg
 
 ## Capability inventory
 
-| # | Capability | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| 1 | `display` primitives (badges, buttons, cards, tables, lists, states) | 🟢 Fully leveraged | 70 distinct symbols; golden-pinned rendering |
-| 2 | `forms` (Input, Select, CSRFToken) | 🟢 Fully leveraged | filter bars, page-size selects, DLQ/snapshot forms |
-| 3 | `feedback` (Alert, ToastContainer) | 🟢 Fully leveraged | loginpage + dashboardui layout |
-| 4 | `layout` (Base, ThemeScript/ThemeToggle) | 🟢 Fully leveraged | loginpage composes `layout.Base`; class-driven dark mode in adminui+dashboardui |
-| 5 | `htmx` helpers (GlobalErrorHandling, PolledRegion) | 🟢 Fully leveraged | PolledRegion with self-pinned `hx-target="this" hx-select="unset"` (the 2026-10-18 boost-inheritance defense) |
-| 6 | `icons` | 🟢 Fully leveraged | 13 symbols; nav + page icons |
-| 7 | `errorpage` module | 🟢 Fully leveraged | built-in shells for error/404 pages |
-| 8 | `utils` | 🟢 Fully leveraged | Class/Ternary composition |
-| 9 | `navigation` (Pagination, SidebarNav) / `layout.AppShell` | ⚪ N/A (documented divergence) | cursor pagination + custom shells — [ADR-0053](../../adr/); the grep-able adoption table in [dashboardui/README.md § Styling](../../../dashboardui/README.md) records every row with rationale |
-| 10 | `charts` | 🔴 Missed (low) | no charting surface today; candidate: dashboardui event-throughput/timeline panels |
-| 11 | `datastar` package | ⚪ N/A | the HTMX UIs; the repo's DataStar adapter module is server-side only |
+| #   | Capability                                                           | Status                         | Evidence / reason                                                                                                                                                                              |
+| --- | -------------------------------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `display` primitives (badges, buttons, cards, tables, lists, states) | 🟢 Fully leveraged             | 70 distinct symbols; golden-pinned rendering                                                                                                                                                   |
+| 2   | `forms` (Input, Select, CSRFToken)                                   | 🟢 Fully leveraged             | filter bars, page-size selects, DLQ/snapshot forms                                                                                                                                             |
+| 3   | `feedback` (Alert, ToastContainer)                                   | 🟢 Fully leveraged             | loginpage + dashboardui layout                                                                                                                                                                 |
+| 4   | `layout` (Base, ThemeScript/ThemeToggle)                             | 🟢 Fully leveraged             | loginpage composes `layout.Base`; class-driven dark mode in adminui+dashboardui                                                                                                                |
+| 5   | `htmx` helpers (GlobalErrorHandling, PolledRegion)                   | 🟢 Fully leveraged             | PolledRegion with self-pinned `hx-target="this" hx-select="unset"` (the 2026-10-18 boost-inheritance defense)                                                                                  |
+| 6   | `icons`                                                              | 🟢 Fully leveraged             | 13 symbols; nav + page icons                                                                                                                                                                   |
+| 7   | `errorpage` module                                                   | 🟢 Fully leveraged             | built-in shells for error/404 pages                                                                                                                                                            |
+| 8   | `utils`                                                              | 🟢 Fully leveraged             | Class/Ternary composition                                                                                                                                                                      |
+| 9   | `navigation` (Pagination, SidebarNav) / `layout.AppShell`            | ⚪ N/A (documented divergence) | cursor pagination + custom shells — [ADR-0053](../../adr/); the grep-able adoption table in [dashboardui/README.md § Styling](../../../dashboardui/README.md) records every row with rationale |
+| 10  | `charts`                                                             | 🔴 Missed (low)                | no charting surface today; candidate: dashboardui event-throughput/timeline panels                                                                                                             |
+| 11  | `datastar` package                                                   | ⚪ N/A                         | the HTMX UIs; the repo's DataStar adapter module is server-side only                                                                                                                           |
 
 ## Score derivation
 
