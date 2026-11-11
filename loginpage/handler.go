@@ -129,10 +129,10 @@ func New(config Config) (*Handler, error) {
 	// The setup notice fires only when NO sign-in method exists at all —
 	// the consumer's own ExtraSection counts as one (and Service may be
 	// nil behind it, so every service read is guarded).
-	pageHasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn
-	pageHasOAuth2 := !config.NoOAuth2 &&
+	pageHasWebAuthn := config.Service != nil && config.Service.HasWebAuthn() && !config.NoWebAuthn
+	pageHasOAuth2 := !config.NoOAuth2 && config.Service != nil &&
 		(len(config.OAuth2Buttons) > 0 || len(config.Service.ConfiguredOAuth2Providers()) > 0)
-	if pageHas := pageHasWebAuthn || pageHasOAuth2 || config.ExtraSection != nil; !pageHas {
+	if !pageHasWebAuthn && !pageHasOAuth2 && config.ExtraSection == nil {
 		slog.Warn(
 			"loginpage: no authentication method is configured; visitors will see a setup notice instead of a login form",
 			"fix",

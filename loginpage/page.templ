@@ -91,6 +91,16 @@ templ Page(p PageData) {
 								}
 							</div>
 						}
+						if p.Extra != nil {
+							if p.WebAuthn || len(p.OAuth2Buttons) > 0 {
+								<div class="lp-divider my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">
+									<span class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
+									or
+									<span class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
+								</div>
+							}
+							@p.Extra
+						}
 						if p.ShowReg {
 							<section id="lp-register-section" class={ utils.Class("lp-section", utils.Ternary(p.RegisterFirst, "", "hidden")) }>
 								<form id="lp-register-form" class="space-y-4">

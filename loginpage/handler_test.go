@@ -2,12 +2,14 @@ package loginpage
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/a-h/templ"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/httputil"
 )
@@ -1022,6 +1024,7 @@ func TestSoleOAuthBeginURL(t *testing.T) {
 			"/auth/oauth/google/begin",
 		},
 		{"webauthn present", PageData{WebAuthn: true, OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, ""},
+		{"extra section present", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}}, Extra: extraSectionComponent()}, ""},
 		{"two providers", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}, {Provider: "github"}}}, ""},
 		{"no providers", PageData{}, ""},
 		{
@@ -1151,4 +1154,88 @@ func TestNew_AuthPrefix_RejectsNonRootedValues(t *testing.T) {
 			t.Errorf("AuthPrefix %q must be rejected: it feeds link targets and the AutoRedirect 302 Location", prefix)
 		}
 	}
+}
+
+// --- ExtraSection (the consumer's own sign-in section) ----------------------
+
+// extraSectionComponent stands in for a consumer sign-in section the library
+// knows nothing about (an extension+password form, a company SSO link).
+func extraSectionComponent() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		_, err := io.WriteString(w, `<section id="extra-section-test">extension sign-in</section>`)
+		return err
+	})
+}
+
+func TestNew_NilServiceWithExtraSection(t *testing.T) {
+	// The ExtraSection IS the sign-in method: a consumer with no usermgmt
+	// service at all gets a complete page.
+	if _, err := New(Config{ExtraSection: extraSectionComponent()}); err != nil {
+		t.Fatalf("New with nil Service + ExtraSection: %v", err)
+	}
+}
+
+func TestServeHTTP_ExtraSectionOnlyRenders(t *testing.T) {
+	h, err := New(Config{ExtraSection: extraSectionComponent()})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+	body := w.Body.String()
+	assertContains(t, body, `id="extra-section-test"`, "the consumer section must render inside the page card")
+	assertNotContains(t, body, "No authentication method is configured", "an ExtraSection counts as a sign-in method — no setup notice")
+	assertNotContains(t, body, `id="lp-login-form"`, "no passkey form without a WebAuthn service")
+	assertNotContains(t, body, `id="loginpage-config"`, "no ceremony config without WebAuthn")
+}
+
+func TestPage_ExtraSectionDividerFollowsOtherSections(t *testing.T) {
+	data := PageData{
+		WebAuthn:   true,
+		inlineJS:   "/* test */",
+		configJSON: "{}",
+		Extra:      extraSectionComponent(),
+	}
+	w := httptest.NewRecorder()
+	if err := Page(data).Render(context.Background(), w); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	body := w.Body.String()
+	assertContains(t, body, `id="extra-section-test"`, "the consumer section renders below the passkey form")
+	assertContains(t, body, "lp-divider", "a divider separates the consumer section from the library sections")
+}
+
+func TestPage_ExtraSectionAloneHasNoDivider(t *testing.T) {
+	data := PageData{Extra: extraSectionComponent()}
+	w := httptest.NewRecorder()
+	if err := Page(data).Render(context.Background(), w); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	assertNotContains(t, w.Body.String(), "lp-divider", "no divider when the consumer section is the only sign-in method")
+}
+
+func TestServeHTTP_ExtraSectionBlocksAutoRedirect(t *testing.T) {
+	// OAuth2 is no longer the ONLY door while the consumer hosts its own
+	// section: the page must render instead of 302-ing straight at the
+	// provider (a visitor wanting the extra method would never see it).
+	h, err := New(Config{
+		Service:      newOAuthOnlyService(t, "google"),
+		AutoRedirect: true,
+		ExtraSection: extraSectionComponent(),
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d (the ExtraSection is a second sign-in method)", w.Code, http.StatusOK)
+	}
+	if loc := w.Header().Get("Location"); loc != "" {
+		t.Errorf("Location = %q, want none", loc)
+	}
+	assertContains(t, w.Body.String(), `id="extra-section-test"`, "the page renders the consumer section")
 }
