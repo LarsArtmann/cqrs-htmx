@@ -23,7 +23,7 @@ import (
 // "identity-model is the domain source of truth".
 
 // TOTPProvider provides TOTP secret generation and code validation.
-// Implemented by github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4.Provider.
+// Implemented by github.com/larsartmann/cqrs-htmx/usermgmt/totp/v5.Provider.
 // The interface uses only primitive types so the implementation module does
 // not need to import core usermgmt.
 //
