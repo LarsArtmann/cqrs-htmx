@@ -15,7 +15,8 @@ require (
 
 require (
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
-	github.com/go-playground/form/v4 v4.5.0 // indirect
+	github.com/go-playground/form/v4 v4.5.1 // indirect
+	github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
@@ -29,6 +30,7 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.2 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.34.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )
