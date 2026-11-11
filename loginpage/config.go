@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -176,11 +177,33 @@ type Config struct {
 	// section on load (e.g. when /register is a distinct route). The JS
 	// toggle links still switch between sections.
 	RegisterFirst bool
+
+	// ExtraSection renders a consumer-provided sign-in section inside the
+	// card, below the WebAuthn form and OAuth2 buttons (a divider separates
+	// it when another section is visible). It COUNTS as a sign-in method:
+	// a page with only an ExtraSection loses the "no authentication method"
+	// alert, the [New] warning, and the [Config.AutoRedirect] shortcut —
+	// OAuth2 is no longer the only door while it is set.
+	//
+	// This is the escape hatch for auth lanes the library does not know:
+	// an extension+password fallback, a company SSO link, an OTP form. The
+	// component owns its own markup, styles, and scripts; per-request values
+	// (a CSP nonce, a CSRF token) ride the render context, which is the
+	// request's context.
+	//
+	// A non-nil ExtraSection also makes [Config.Service] optional: a consumer
+	// with no usermgmt service at all can still mount the page and host its
+	// own sign-in section inside the library's shell.
+	ExtraSection templ.Component
 }
 
 func (config Config) withDefaults() (Config, error) {
-	if config.Service == nil {
-		return config, errConfig("Config.Service is required")
+	// Service is optional ONLY when the consumer hosts its own sign-in
+	// section: an ExtraSection-only page (a plain extension+password lane,
+	// say) has no usermgmt service to detect methods from, and that is a
+	// complete configuration, not a misconfiguration.
+	if config.Service == nil && config.ExtraSection == nil {
+		return config, errConfig("Config.Service is required (or provide Config.ExtraSection)")
 	}
 	if config.Title == "" {
 		config.Title = "Sign in"

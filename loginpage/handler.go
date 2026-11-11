@@ -37,6 +37,9 @@ type PageData struct {
 	// RegisterFirst renders the registration section instead of the login
 	// section on load (the JS toggle links still switch between them).
 	RegisterFirst bool
+	// Extra is the consumer-provided sign-in section ([Config.ExtraSection]),
+	// rendered inside the card below the other sections. Nil renders nothing.
+	Extra templ.Component
 
 	// --- Security & theming (per-request) ---
 	CSRFMeta  string
@@ -65,10 +68,10 @@ func (p PageData) oauthBeginURL(provider string) string {
 }
 
 // soleOAuthBeginURL returns the begin-login URL when exactly one OAuth2
-// provider is the page's ONLY sign-in method (no WebAuthn); "" otherwise.
-// Drives [Config.AutoRedirect].
+// provider is the page's ONLY sign-in method (no WebAuthn, no ExtraSection);
+// "" otherwise. Drives [Config.AutoRedirect].
 func (p PageData) soleOAuthBeginURL() string {
-	if p.WebAuthn || len(p.OAuth2Buttons) != 1 {
+	if p.WebAuthn || p.Extra != nil || len(p.OAuth2Buttons) != 1 {
 		return ""
 	}
 	return p.oauthBeginURL(p.OAuth2Buttons[0].Provider)
@@ -117,20 +120,23 @@ type Handler struct {
 }
 
 // New creates a login page handler from the given Config.
-// Returns an error if Config.Service is nil.
+// Returns an error if Config.Service is nil without Config.ExtraSection.
 func New(config Config) (*Handler, error) {
 	config, err := config.withDefaults()
 	if err != nil {
 		return nil, err
 	}
-	if pageHasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn; !pageHasWebAuthn &&
-		!config.NoOAuth2 &&
-		len(config.OAuth2Buttons) == 0 &&
-		len(config.Service.ConfiguredOAuth2Providers()) == 0 {
+	// The setup notice fires only when NO sign-in method exists at all —
+	// the consumer's own ExtraSection counts as one (and Service may be
+	// nil behind it, so every service read is guarded).
+	pageHasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn
+	pageHasOAuth2 := !config.NoOAuth2 &&
+		(len(config.OAuth2Buttons) > 0 || len(config.Service.ConfiguredOAuth2Providers()) > 0)
+	if pageHas := pageHasWebAuthn || pageHasOAuth2 || config.ExtraSection != nil; !pageHas {
 		slog.Warn(
 			"loginpage: no authentication method is configured; visitors will see a setup notice instead of a login form",
 			"fix",
-			"configure WebAuthn or OAuth2 providers in the usermgmt ServiceConfig",
+			"configure WebAuthn or OAuth2 providers in the usermgmt ServiceConfig, or provide Config.ExtraSection",
 		)
 	}
 	data := buildPageData(config, nil)
@@ -260,12 +266,14 @@ func buildPageData(config Config, r *http.Request) PageData {
 	configJSON = []byte(scriptSafeJSON(string(configJSON)))
 
 	// NoWebAuthn hides the passkey form on THIS page only; the service-level
-	// provider stays configured for other surfaces.
-	hasWebAuthn := config.Service.HasWebAuthn() && !config.NoWebAuthn
+	// provider stays configured for other surfaces. Service may be nil when
+	// the consumer hosts an ExtraSection-only page, so both service reads
+	// are guarded.
+	hasWebAuthn := config.Service != nil && config.Service.HasWebAuthn() && !config.NoWebAuthn
 
 	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
 	oauth2Buttons := config.OAuth2Buttons
-	if len(oauth2Buttons) == 0 {
+	if len(oauth2Buttons) == 0 && config.Service != nil {
 		for _, name := range config.Service.ConfiguredOAuth2Providers() {
 			oauth2Buttons = append(oauth2Buttons, OAuth2ButtonFromProvider(name))
 		}
@@ -277,7 +285,7 @@ func buildPageData(config Config, r *http.Request) PageData {
 	showReg := !config.NoRegistration && hasWebAuthn
 
 	subtitle := "Sign in to your account"
-	if !hasWebAuthn && !hasOAuth2 {
+	if !hasWebAuthn && !hasOAuth2 && config.ExtraSection == nil {
 		subtitle = "No authentication method is configured."
 	}
 
@@ -289,6 +297,7 @@ func buildPageData(config Config, r *http.Request) PageData {
 		CSSPath:       config.CSSPath,
 		WebAuthn:      hasWebAuthn,
 		OAuth2Buttons: oauth2Buttons,
+		Extra:         config.ExtraSection,
 		ShowReg:       showReg,
 		RegisterFirst: config.RegisterFirst,
 		authPrefix:    config.AuthPrefix,
