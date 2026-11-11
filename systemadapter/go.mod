@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2
 	//cqrs-lint:ignore(V003) v4.0.1 IS the latest published tag; detector compares against the core module version — false positive
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1
