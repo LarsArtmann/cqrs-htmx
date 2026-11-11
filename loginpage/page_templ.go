@@ -143,7 +143,7 @@ func Page(p PageData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if !p.WebAuthn && len(p.OAuth2Buttons) == 0 {
+			if !p.WebAuthn && len(p.OAuth2Buttons) == 0 && p.Extra == nil {
 				templ_7745c5c3_Err = feedback.Alert(feedback.AlertProps{
 					Type:    feedback.FeedbackError,
 					Title:   "No authentication method is configured.",

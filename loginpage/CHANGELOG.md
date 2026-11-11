@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.18.0] - 2026-11-11
+
+### Added
+
+- **`Config.ExtraSection` — a consumer-provided sign-in section inside the library's card.** The page was passwordless by construction (WebAuthn + OAuth2), so consumers with another sign-in lane (an extension+password fallback, a company SSO link) had to hand-roll a second page or fork the shell. The section renders below the WebAuthn form and OAuth2 buttons, separated by the page divider, and COUNTS as a sign-in method everywhere the page counts methods: the "No authentication method is configured" alert and the `New` warning stay silent, and `AutoRedirect` is suppressed (OAuth2 is no longer the only door while it is set — pinned by `TestServeHTTP_ExtraSectionBlocksAutoRedirect`). The component owns its markup, styles, and scripts; per-request values ride the render context.
+- **`Config.Service` is now optional when `ExtraSection` is set** (nil `Service` with no `ExtraSection` still rejected at `New`): a consumer with no usermgmt service at all can mount the page and host its own sign-in section inside the library's shell. Every service read (`HasWebAuthn`, `ConfiguredOAuth2Providers`) is nil-guarded; pinned by `TestNew_NilServiceWithExtraSection` + `TestServeHTTP_ExtraSectionOnlyRenders`.
+- README: new § Consumer sign-in sections (`ExtraSection`) + a `Configuration` table row.
+
 ## [v4.17.0] - 2026-11-07
 
 Maintenance release riding the 2026-11-06/07 family trains — no loginpage API or behavior change.

@@ -87,6 +87,7 @@ mux.Use(httputil.CSRFMiddleware(httputil.CSRFConfig{}))
 | `NoOAuth2`         | `bool`                       | `false`      | Force-hide every OAuth2 button, including auto-detected ones; mutually exclusive with `OAuth2Buttons` (rejected at `New`)                                                                           |
 | `NoWebAuthn`       | `bool`                       | `false`      | Force-hide the passkey form and registration section on THIS page while the service keeps WebAuthn for other surfaces; mutually exclusive with `NoOAuth2` (rejected at `New`)                       |
 | `AutoRedirect`     | `bool`                       | `false`      | When OAuth2 is the ONLY sign-in method (no WebAuthn, exactly one provider), redirect straight to the provider instead of rendering a button; mutually exclusive with `NoOAuth2` (rejected at `New`) |
+| `ExtraSection`     | `templ.Component`            | `nil`        | Consumer-provided sign-in section rendered inside the card (an extension+password form, a company SSO link). Counts as a sign-in method: silences the setup notice/warning and blocks `AutoRedirect`. A non-nil value also makes `Service` optional |
 | `CredentialName`   | `string`                     | `"Passkey"`  | Label for newly registered credentials                                                                                                                                                              |
 
 ## OAuth2 buttons
@@ -148,6 +149,32 @@ endpoints stay mounted wherever you registered them. Combined with
 with multiple providers it renders the provider chooser without the passkey
 form. `NoWebAuthn` + `NoOAuth2` is rejected at `New` (a page with no sign-in
 method at all is a misconfiguration).
+
+## Consumer sign-in sections (`ExtraSection`)
+
+The page is passwordless by default (WebAuthn + OAuth2). `Config.ExtraSection`
+hosts a sign-in lane the library knows nothing about — an extension+password
+fallback, a company SSO link, an OTP form — inside the library's card, below
+the other sections (a divider separates it when another section is visible).
+
+```go
+page, err := loginpage.New(loginpage.Config{
+    Service: svc, // optional when ExtraSection is set
+    ExtraSection: myLoginForm, // any templ.Component
+})
+```
+
+The section counts as a sign-in method everywhere the page counts methods:
+no "No authentication method is configured" alert, no `New` warning, and
+`AutoRedirect` stays off (OAuth2 is no longer the only door while it is set).
+The component owns its markup, styles, and scripts; per-request values (a CSP
+nonce, a CSRF token) ride the render context, which is the request's context.
+The page renders `<meta name="csrf-token">` and the hidden CSRF field for it
+either way.
+
+A non-nil `ExtraSection` also makes `Config.Service` optional: a consumer with
+no usermgmt service at all can mount the page and host its own sign-in section
+inside the library's shell.
 
 ## Option B: Embed in your own layout
 
