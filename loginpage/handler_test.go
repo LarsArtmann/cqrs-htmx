@@ -1024,7 +1024,11 @@ func TestSoleOAuthBeginURL(t *testing.T) {
 			"/auth/oauth/google/begin",
 		},
 		{"webauthn present", PageData{WebAuthn: true, OAuth2Buttons: []OAuth2Button{{Provider: "google"}}}, ""},
-		{"extra section present", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}}, Extra: extraSectionComponent()}, ""},
+		{
+			"extra section present",
+			PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}}, Extra: extraSectionComponent()},
+			"",
+		},
 		{"two providers", PageData{OAuth2Buttons: []OAuth2Button{{Provider: "google"}, {Provider: "github"}}}, ""},
 		{"no providers", PageData{}, ""},
 		{
@@ -1187,7 +1191,12 @@ func TestServeHTTP_ExtraSectionOnlyRenders(t *testing.T) {
 	}
 	body := w.Body.String()
 	assertContains(t, body, `id="extra-section-test"`, "the consumer section must render inside the page card")
-	assertNotContains(t, body, "No authentication method is configured", "an ExtraSection counts as a sign-in method — no setup notice")
+	assertNotContains(
+		t,
+		body,
+		"No authentication method is configured",
+		"an ExtraSection counts as a sign-in method — no setup notice",
+	)
 	assertNotContains(t, body, `id="lp-login-form"`, "no passkey form without a WebAuthn service")
 	assertNotContains(t, body, `id="loginpage-config"`, "no ceremony config without WebAuthn")
 }
@@ -1214,7 +1223,12 @@ func TestPage_ExtraSectionAloneHasNoDivider(t *testing.T) {
 	if err := Page(data).Render(context.Background(), w); err != nil {
 		t.Fatalf("render: %v", err)
 	}
-	assertNotContains(t, w.Body.String(), "lp-divider", "no divider when the consumer section is the only sign-in method")
+	assertNotContains(
+		t,
+		w.Body.String(),
+		"lp-divider",
+		"no divider when the consumer section is the only sign-in method",
+	)
 }
 
 func TestServeHTTP_ExtraSectionBlocksAutoRedirect(t *testing.T) {
