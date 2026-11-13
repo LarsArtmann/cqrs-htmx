@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.18.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-health v0.10.0
-	github.com/larsartmann/go-health-dashboard v0.13.2
+	github.com/larsartmann/go-health-dashboard v0.13.3
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
 )

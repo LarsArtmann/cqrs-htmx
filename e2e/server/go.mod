@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/go-health-dashboard v0.13.2
+	github.com/larsartmann/go-health-dashboard v0.13.3
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.8.0
 	github.com/larsartmann/samber-do-auditlog v0.12.3

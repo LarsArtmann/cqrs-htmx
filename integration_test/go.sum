@@ -132,6 +132,7 @@ github.com/go-ole/go-ole v1.3.0/go.mod h1:5LS6F96DhAwUc7C+1HLexzMXY1xGRSryjyPPKW
 github.com/go-playground/assert/v2 v2.2.0 h1:JvknZsQTYeFEAhQwI4qEt9cyV5ONwRHC+lYKSsYSR8s=
 github.com/go-playground/assert/v2 v2.2.0/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
 github.com/go-playground/form/v4 v4.5.1 h1:b+rich49d6Cj0dlRKunTmMD/pteoElnD+gpk1TzlU5E=
+github.com/go-playground/form/v4 v4.5.1/go.mod h1:YbN7U9uNnXsOA1Ac050LOZ2AY6yScYl26mhrhoLpmlM=
 github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9QL6ME=
 github.com/go-sql-driver/mysql v1.10.1/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
 github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1vB6EwHI=
@@ -157,6 +158,7 @@ github.com/google/go-tpm v0.9.8/go.mod h1:h9jEsEECg7gtLis0upRBQU+GhYVH6jMjrFxI8u
 github.com/google/go-tpm-tools v0.3.13-0.20230620182252-4639ecce2aba h1:qJEJcuLzH5KDR0gKc0zcktin6KSAwL7+jWKBYceddTc=
 github.com/google/go-tpm-tools v0.3.13-0.20230620182252-4639ecce2aba/go.mod h1:EFYHy8/1y2KfgTAsx7Luu7NGhoxtuVHnNo8jE7FikKc=
 github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b h1:5NKFt6kcAJNVt3XBOf8jwp8TnWZVOZFmmGkK0XextI4=
+github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b/go.mod h1:yUo1AMMpsPIDFGuwDK8nLcf8+vvAd5l2O6JDZ6hpwrM=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -259,6 +261,7 @@ github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3/go.mod h1:n
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2 h1:71gH8/W/Ov0puUCTovsKhAbBfoy02NHd6gmsQKPfPRY=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2/go.mod h1:B4ch2X6azeMtNZGLd721Nke3eT5sB2INLPM49GBq5Bk=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0 h1:fXFwFiQkgL0eb9Zt34J5LalEydPMT1qJBhcnHzXRgus=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0/go.mod h1:ttAdAszMm4ZBT2prMC+dxAiqFlM2+ecvXrxJi4iF//w=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0 h1:3yuP6X3Wd2HssAGgSDOlZ131lg/jS9oV85sjvtg9L1g=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0/go.mod h1:EUxMDH50UjJIw94FBvqMcHDZi4GzY6+R2R4fZPy4DH8=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 h1:Vzel6eXmS9dum1Pi7tdViiOlSzcH02ajCUXYK6LL5HQ=
@@ -319,8 +322,8 @@ github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8q
 github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
 github.com/larsartmann/go-health v0.10.0 h1:67Smot3Mc48pMLFx7V43xn55JjqdbiQCYVOjseKtP4Y=
 github.com/larsartmann/go-health v0.10.0/go.mod h1:oaTith1RwwDMaq0Qy2+ga3PoefmAfud1SsFqy8jeI08=
-github.com/larsartmann/go-health-dashboard v0.13.2 h1:HgQqt6AD9vfBMTKLMr6S/t10RQHSs2ERPnpv3QxI4G8=
-github.com/larsartmann/go-health-dashboard v0.13.2/go.mod h1:AiARf5vrY3ngYh53fV5koQ3EkfiMUtEZ5P6thSc/ED0=
+github.com/larsartmann/go-health-dashboard v0.13.3 h1:igZnuoLTTOw6NU0s0Xa7PWtpflQDKeXG90ogxYR+F/M=
+github.com/larsartmann/go-health-dashboard v0.13.3/go.mod h1:AiARf5vrY3ngYh53fV5koQ3EkfiMUtEZ5P6thSc/ED0=
 github.com/larsartmann/go-idempotency v0.3.2 h1:K72np15S/nYJC4twpeyeQKvWqLi9a5iFxBYXPKahxxg=
 github.com/larsartmann/go-idempotency v0.3.2/go.mod h1:NdfAPx6bvxolNgNeb+yjqBoqbazupNIl3eCLbUqJOh0=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
@@ -438,6 +441,7 @@ github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn
 github.com/oklog/ulid/v2 v2.1.2 h1:IEclFb9JNvzYA6MW2SCxbLzcHTVsfqm3PrqGQJH5zec=
 github.com/oklog/ulid/v2 v2.1.2/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
 github.com/onsi/ginkgo/v2 v2.34.0 h1:aN3Us823mHHTSWMIi8WIQTdYuSPhl2lWY46E/w3SiAk=
+github.com/onsi/ginkgo/v2 v2.34.0/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.44.0 h1:eAiGl3Pw5jz5GQdDff0BcxYpAX1JxW8xD7mFUuwNfZQ=
 github.com/onsi/gomega v1.44.0/go.mod h1:e/C2HwaZ1DhvjzXXuFhcR7hY7Sh9pl7MmoWKEjzwcdA=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=

@@ -262,8 +262,8 @@ github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8q
 github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
 github.com/larsartmann/go-health v0.10.0 h1:67Smot3Mc48pMLFx7V43xn55JjqdbiQCYVOjseKtP4Y=
 github.com/larsartmann/go-health v0.10.0/go.mod h1:oaTith1RwwDMaq0Qy2+ga3PoefmAfud1SsFqy8jeI08=
-github.com/larsartmann/go-health-dashboard v0.13.2 h1:HgQqt6AD9vfBMTKLMr6S/t10RQHSs2ERPnpv3QxI4G8=
-github.com/larsartmann/go-health-dashboard v0.13.2/go.mod h1:AiARf5vrY3ngYh53fV5koQ3EkfiMUtEZ5P6thSc/ED0=
+github.com/larsartmann/go-health-dashboard v0.13.3 h1:igZnuoLTTOw6NU0s0Xa7PWtpflQDKeXG90ogxYR+F/M=
+github.com/larsartmann/go-health-dashboard v0.13.3/go.mod h1:AiARf5vrY3ngYh53fV5koQ3EkfiMUtEZ5P6thSc/ED0=
 github.com/larsartmann/go-idempotency v0.3.2 h1:K72np15S/nYJC4twpeyeQKvWqLi9a5iFxBYXPKahxxg=
 github.com/larsartmann/go-idempotency v0.3.2/go.mod h1:NdfAPx6bvxolNgNeb+yjqBoqbazupNIl3eCLbUqJOh0=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
