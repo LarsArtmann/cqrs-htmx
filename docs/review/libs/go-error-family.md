@@ -1,59 +1,63 @@
 # go-error-family Utilization Report
 
-> Audit date: 2026-11-05 · Method: library-deep-dive (fleet series, [index](index.html))
+> Audit date: 2026-11-14 (prior: 2026-11-05) · Method: library-deep-dive (fleet series, [index](index.html))
 > Library: `github.com/larsartmann/go-error-family` · Checkout: `/home/lars/projects/go-error-family`
 
 ## Verdict at a glance
 
-| Pin     | Latest (verified 2026-11-05) | Prod import sites | Test import sites | Adoption                                          | Score                                  |
+| Pin     | Latest (verified 2026-11-14) | Prod import sites | Test import sites | Adoption                                          | Score                                  |
 | ------- | ---------------------------- | ----------------- | ----------------- | ------------------------------------------------- | -------------------------------------- |
-| v0.12.0 | v0.12.0 (= latest)           | 131 files         | 54 files          | **Used — the error substrate of the whole fleet** | **65/100 count · ~82 impact-weighted** |
+| v0.12.0 | v0.12.0 (= latest)           | 136 files         | 61 files          | **Used — the error substrate of the whole fleet** | **80/100 count · ~90 impact-weighted** |
 
 ## What the library is
 
-Typed error families (Rejection / Conflict / Transient / Corruption / Infrastructure / Orchestration) with machine-readable codes, context, classification/registry, retryability predicates, audience-aware messages, CLI exit-code handling, and HTTP status mapping. In this repo `errors.New`/`fmt.Errorf` are **banned in non-test code** (branching-flow enforced); every error flows through this library or its `go-cqrs-lite/event` re-exports.
+Typed error families (Rejection / Conflict / Transient / Corruption / Infrastructure / Orchestration) with machine-readable codes, context, classification/registry, retryability predicates, audience-aware default messages, classified logging, CLI exit-code handling, and HTTP status mapping. In this repo `errors.New`/`fmt.Errorf`/`errors.Join` are **banned in non-test code** (AST scanner `scripts/checks/errorfamily_scanner.go`, wired into flake.nix:1136 + ci.yml:1182); every error flows through this library or its `go-cqrs-lite/event` re-exports. Posture re-derived 2026-11-14: the only 9 remaining stdlib constructors in tree are all in `openapi/validate.go` — the scanner-exempt, stdlib-only-by-design `openapi` package (scanner skips `openapi`/`cmd`, errorfamily_scanner.go:84; gotcha 44). Commit 290d3a25 (2026-11-07) even purged a banned `fmt.Errorf` from the sibling `reexport_scanner.go` itself.
 
 ## How cqrs-htmx uses it today
 
-Symbol census (prod references): `NewRejection` ×200, `WrapInfrastructure` ×116, `Wrapf` ×109, `WrapTransient` ×97, `Classify` ×77, `NewTransient` ×70, `Newf` ×44, `WrapRejection` ×35, `NewInfrastructure` ×38, `NewConflict` ×29, `WrapCorruption` ×25, `Code` ×12, `IsRetryable` ×4, `Orchestration` ×5 (auditlog, adminui, usermgmt). Families map to HTTP status via `httperr.MapError` (Rejection→400, Conflict→409, Transient→503, Corruption→500, Infrastructure→503); denials share codes `forbidden`/`unauthorized` walked by `IsForbidden`/`IsUnauthorized`.
+Symbol census (prod refs, excl. tests/examples/scripts): `NewRejection` ×172, `WrapInfrastructure` ×113, `Wrapf` ×113, `WrapTransient` ×92, `NewTransient` ×52, `Classify` ×46, `Newf` ×44, `WrapRejection` ×37, `NewInfrastructure` ×37, `WrapCorruption` ×24, `NewConflict` ×12, `Code` ×12, `IsRetryable` ×4, `Orchestration` ×5, `LogErrorContext` ×2 (new since 2026-11-05). Families map to HTTP status via `httperr.MapError`, which delegates to `errorfamily.Classify(err).HTTPStatus()` (httperr/errors.go:96); the library's table (family.go:77-130) confirms Rejection→400, Conflict→409, Transient→503, Corruption→500, Infrastructure→503. Denials share codes `forbidden`/`unauthorized` (httperr/errors.go:33-34) walked by `IsForbidden`/`IsUnauthorized` (authz_contract.go:173,180 — M2M W0, 4 prod call sites). Since 2026-11-08 (e85b1613) the shared RFC 9457 document carries a family-derived `Retryable` field (httperr/structured.go:82,186 — `family.IsRetryable()`, `omitzero` so false stays off the wire), giving both transports one retryability vocabulary.
 
 ## Capability inventory
 
 | #   | Capability                                                                                                     | Status             | Evidence / reason                                                                                                                                                                           |
 | --- | -------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Family constructors (`New{Rejection,Transient,Conflict,Infrastructure,Corruption}` + `Newf`)                   | 🟢 Fully leveraged | 400+ ctor refs fleet-wide                                                                                                                                                                   |
-| 2   | Wrap constructors (`Wrap*`/`Wrapf` variants)                                                                   | 🟢 Fully leveraged | 382 refs across wrap variants                                                                                                                                                               |
-| 3   | Classification (`Classify`, `RegisterClassification` via event re-export)                                      | 🟢 Fully leveraged | `Classify` ×77; root registers httputil classifications via `sync.Once`                                                                                                                     |
+| 1   | Family constructors (`New{Rejection,Transient,Conflict,Infrastructure,Corruption}` + `Newf`)                   | 🟢 Fully leveraged | 326 ctor refs prod (445 incl. tests)                                                                                                                                                        |
+| 2   | Wrap constructors (`Wrap*`/`Wrapf` variants)                                                                   | 🟢 Fully leveraged | 380 refs prod across wrap variants (402 incl. tests)                                                                                                                                        |
+| 3   | Classification (`Classify`, `RegisterClassification` via event re-export)                                      | 🟢 Fully leveraged | `Classify` ×46; also `Family.DefaultMessage()` now in the prod render path (httperr/audience.go:51); root registers httputil classifications via `sync.Once`                                 |
 | 4   | Error type, codes, context (`Error`, `Code`, `Summary`)                                                        | 🟢 Fully leveraged | `code` field rides JSON/ProblemDetails error payloads                                                                                                                                       |
-| 5   | Family predicates (`Family`, `IsRetryable`)                                                                    | 🟢 Fully leveraged | retry predicates drive middleware policy                                                                                                                                                    |
+| 5   | Family predicates (`Family`, `IsRetryable`)                                                                    | 🟢 Fully leveraged | `IsRetryable` ×4 + `StructuredError.Retryable` derived from `family.IsRetryable()` (structured.go:186) — retry signal now on the wire                                                     |
 | 6   | Orchestration family (multi-step composition errors)                                                           | 🟢 Fully leveraged | auditlog/adminui/usermgmt sites                                                                                                                                                             |
 | 7   | `WrapOnce` idempotent wrapping                                                                                 | 🔴 Missed          | 0 prod uses; double-wrap through middleware chains re-wraps causes — low-stakes dedup nicety                                                                                                |
-| 8   | Audience-aware errors (`Audience`, `ParseAudience`)                                                            | 🔴 Missed          | 0 uses; `httperr.SafeDetail` could split user-facing vs operator detail — candidate, needs design                                                                                           |
-| 9   | Structured classified logging (`LogError`, `LogErrorContext`)                                                  | 🔴 Missed          | 0 uses; repo logs via its own slog wiring — family-aware log levels would follow severity                                                                                                   |
+| 8   | Audience-aware errors (`Audience`, `ParseAudience`)                                                            | 🟡 Partially used  | **2026-11-05 stretch landed 2026-11-06 (fdc62009):** `httperr/audience.go` defines `SafeDetailFor(err, status, Audience)` whose 5xx-public redaction calls `errorfamily.Classify(err).DefaultMessage()`; `SafeDetail` delegates to it (errors.go:305-308) and `ProblemDetailsAudienceErrorHandler` (errors.go:438) exists — but the handler has 0 prod call sites (resolver unwired) and the library's own notification-audience API (`Audience`/`ParseAudience`, family.go:279) has 0 direct uses |
+| 9   | Structured classified logging (`LogError`, `LogErrorContext`)                                                  | 🟢 Fully leveraged | **Landed since 2026-11-05:** `LogErrorContext` ×2 prod — `App.handleErr` (handler.go:77) and huma `Adapter.fail` (huma/register.go:196); level follows family (Transient→WARN, rest→ERROR); plain `LogError` unused |
 | 10  | CLI handling (`HandleError*`, `ExitCode`, `ExitCoder`)                                                         | ⚪ N/A             | Library, not a CLI; consumer apps (and `go-appkit` examples) own exit codes                                                                                                                 |
-| 11  | HTTP mapping (`HTTPStatus`, `HTTPHandler`)                                                                     | ⚪ N/A             | Deliberate: `httperr` owns the error→HTTP surface; a second mapping layer would conflict                                                                                                    |
+| 11  | HTTP mapping (`HTTPStatus`, `HTTPHandler`)                                                                     | ⚪ N/A             | Deliberate: `httperr` owns the error→HTTP surface; a second mapping layer would conflict                                                                    |
 | 12  | Registries & message templates (`NewRegistry`, `RegisterClassifier(s)`, `RegisterTemplate`, `TemplateForCode`) | 🟡 Partially used  | Only the global classification registry (via event re-export) is used; per-`Registry` isolation and code→message templates unexplored (templates could power consistent SafeDetail strings) |
 
 ## Score derivation
 
-12 rows − 2 N/A = **10 applicable**; 6 full ×1 + 1 partial ×0.5 = **6.5 → 65/100** (band: moderate). Impact-weighted reading: the missed rows are adjunct conveniences — the load-bearing surface (creation, wrapping, classification, predicates) is 100% adopted and enforced by gates, so the effective posture is **high (~82)**.
+12 rows − 2 N/A = **10 applicable**; 7 full ×1 + 2 partial ×0.5 = **8.0 → 80/100** (band: high). Both 2026-11-05 stretch items landed since (row 8 🔴→🟡 2026-11-06, row 9 🔴→🟢 — the census previously showed 0 `LogError*` refs): +1.5 count points over the prior 65. Impact-weighted: the remaining gaps (`WrapOnce` dedup nicety, per-`Registry` isolation/templates) are adjunct conveniences — creation, wrapping, classification, predicates, classified logging, and now audience redaction are all adopted and gate-enforced, so the effective posture is **~90**.
 
 ## Version currency
 
-v0.12.0 pinned = v0.12.0 latest (verified `git ls-remote --tags origin`). Local checkout at v0.12.0, 0 commits behind origin.
+v0.12.0 pinned = v0.12.0 latest (re-verified `git ls-remote --tags origin`, 2026-11-14). Local checkout sits 11 commits past the tag (`v0.12.0-11-g8fd4c4b`, master 2 ahead of origin — local auto-commits); no newer tag released, so nothing to bump.
 
 ## Should cqrs-htmx use it (more)?
 
-Yes — and maximally on the core. Two genuine stretch items worth a TODO each: (1) `Audience`-filtered `SafeDetail` in `httperr`, (2) `LogError`-style classified logging in the middleware seam. Neither is load-bearing.
+Core adoption is maximal and both prior stretch items are done. One open tail: wire `ProblemDetailsAudienceErrorHandler`'s per-request resolver (operator detection) into a route so operators get raw 5xx diagnostics in-band — today only the fail-safe public form renders by default. `WrapOnce` and message templates remain optional niceties, not TODOs.
 
 ## How to verify
 
 ```bash
-rg -oN 'errorfamily\.[A-Z][A-Za-z0-9]*' --type go -g '!scripts/**' . | sed 's/.*://' | sort | uniq -c | sort -rn | head -25
-for s in WrapOnce Audience LogError NewRegistry RegisterTemplate; do rg -c "errorfamily\.$s" --type go . | wc -l; done   # expect 0s
-git -C ~/projects/go-error-family ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1
+rg -oN 'errorfamily\.[A-Z][A-Za-z0-9]*' --type go -g '!scripts/**' . | sed 's/.*://' | sort | uniq -c | sort -rn | head -25   # incl. tests
+for s in WrapOnce Audience NewRegistry RegisterTemplate; do rg -c "errorfamily\.$s" --type go . | wc -l; done               # expect all 0 (httperr has its OWN Audience type)
+rg -n 'errorfamily\.LogErrorContext' --type go -g '!*_test.go' .                                                             # expect 4 lines: 2 doc comments + 2 calls (handler.go:77, huma/register.go:196)
+rg -n 'errors\.New\(|fmt\.Errorf\(' --type go -g '!*_test.go' -g '!examples/**' -g '!e2e/**' -g '!scripts/**' . | wc -l      # expect 9, all openapi/validate.go (scanner-exempt)
+bash scripts/checks/erraudit-inventory.sh --strict | tail -1                                                                 # TOTAL=332 (advisory baseline, unchanged since 2026-11-07)
+git -C ~/projects/go-error-family ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1                        # v0.12.0
 ```
 
 ## Prior reports
 
 - [docs/LIBRARY_INTEGRATIONS.md](../../LIBRARY_INTEGRATIONS.md) (2026-05-13) graded go-error-family "transitive, should consider" — superseded by direct, pervasive adoption (see its superseded banner).
+- 2026-11-05 audit (this series): score 65/~82; both stretch items it named have since shipped.
