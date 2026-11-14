@@ -128,3 +128,13 @@
 ---
 
 *Awaiting instructions. The in-flight background work (httputil sweep retry; admin-tenant-access e2e rerun) will be collected and recorded when it completes; nothing else is running.*
+
+---
+
+## Addendum (11:40, written immediately after the report — the two in-flight jobs completed)
+
+1. **The anchored httputil sweep (root module only) ran but FAILED its hermetic lint leg on at least one module**, leaving the tree in a MIXED state: train lag dropped 36 → 13 (the 23 httputil entries consumed), but go.mod/go.sum across ~57 files are modified and one module's lint leg is red. The daemon has already committed the partial sweep. **The tree is currently NOT push-clean.** Next session must: find the failing module in the sweep output, fix or --no-lint with justification per the runbook, then run the catalog sweep, then `--strict-lag 0`.
+2. **The final e2e rerun: 110 passed, 2 failed — both attributable to environment noise I created**: the battery ran CONCURRENTLY with the bump-dep sweep mutating examples' go.mod files, so the admin-demo server built against half-swept module state (the new failure is the id-search assertion finding 0 rows, and a sync.spec regression appeared that was green 20 minutes earlier). Do not trust these two reds as product regressions; rerun the full battery on the settled, post-sweep tree.
+3. **Lesson, recorded for (e): never run the e2e battery concurrently with a dependency sweep** — the server binary and the go.mod graph it builds from are the sweep's own mutation surface. This is item 51 for the next list.
+
+The session stops here per instruction; the three owner questions in §g stand.
