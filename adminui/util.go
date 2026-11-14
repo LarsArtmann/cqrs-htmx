@@ -198,5 +198,11 @@ func withoutTenantOptions(options []forms.SelectOption, access []tenantAccessRow
 		}
 		out = append(out, opt)
 	}
+	// Only the disabled prompt is left: every live tenant is joined, and a
+	// select with nothing selectable is a dead end — return nil so the card
+	// renders the member-of-every-tenant state instead of the form.
+	if len(out) == 1 && out[0].Value == "" {
+		return nil
+	}
 	return out
 }

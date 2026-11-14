@@ -28,7 +28,7 @@ templ membersCard(d tenantDetailData) {
 		if d.AddMemberError != "" {
 			<div class="mb-4">
 				@feedback.Alert(feedback.AlertProps{
-					Type:    feedback.FeedbackWarning,
+					Type:    feedback.FeedbackError,
 					Title:   "That account does not exist yet",
 					Message: d.AddMemberError,
 				})

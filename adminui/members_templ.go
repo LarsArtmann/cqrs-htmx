@@ -65,7 +65,7 @@ func membersCard(d tenantDetailData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = feedback.Alert(feedback.AlertProps{
-					Type:    feedback.FeedbackWarning,
+					Type:    feedback.FeedbackError,
 					Title:   "That account does not exist yet",
 					Message: d.AddMemberError,
 				}).Render(ctx, templ_7745c5c3_Buffer)
