@@ -115,9 +115,16 @@ Override with your own `Config.Authorizer`, or use the helpers
   accounts, resend verification, **manage tenant access from the user side**
   (grant a tenant + role, change a role, revoke), delete. Each write escalates
   its confirmation dialog to match its blast radius.
-- **Tenants** — searchable roster with per-tenant member counts; create,
-  suspend, reactivate, delete. The detail page leads with the tenant's identity
-  (id + copy, slug, display name, status, roster size) before its members.
+- **Tenants** — searchable roster with per-tenant member counts, lifecycle
+  filter chips (active / suspended / deleted, with live counts) and a
+  Name/Members ordering toggle; create, suspend, reactivate, delete — the
+  destructive confirms name the blast radius (how many memberships are
+  revoked or cut off). The detail page leads with the tenant's identity
+  (id + copy, slug, display name, status, roster size) before its members,
+  and super-admin mode carries a **header tenant switcher**: a dropdown of
+  live tenants that jumps between tenant dashboards and marks the one being
+  viewed (tenant-admin mode renders no switcher — that mode is scoped to one
+  tenant by construction).
 - **Members** — add a user by email + role, or remove a member, on any tenant
   (super-admin) or your scoped tenant (tenant-admin). Rows resolve the member's
   actor to a person (email + display name, linked to their user page in
@@ -125,6 +132,12 @@ Override with your own `Config.Authorizer`, or use the helpers
   the directory, offers only accounts that are not members yet, requires an
   explicit role choice, and explains an unknown email inline (preserving what
   was typed) instead of dropping it in a toast.
+- **Bulk user import/export** — `GET /users/import` renders the form,
+  `POST /users/import` accepts a CSV/JSON upload (size-capped, dispatched to
+  the published Service importer, exact imported/skipped counts with a
+  bounded per-row error list), and `GET /users/export.csv` /
+  `GET /users/export.json` stream the whole directory straight from the
+  Service. Super-admin mode only.
 - **Audit log** — searchable/filterable event trail with human-readable action
   labels and severity badges; the user detail page carries the per-user
   timeline.
