@@ -54,7 +54,12 @@
             version = "1.27.3";
             src = pkgs.fetchurl {
               url = "https://go.dev/dl/go${version}.src.tar.gz";
-              hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+              # Real hash for go1.27.3.src.tar.gz. The placeholder here broke
+              # every nix-backed gate app (check-modules, coverage-gate,
+              # cqrs-lint, build-adminui-css, e2e) AND the pre-commit hook's
+              # nix-fmt step; recorded from the build's own mismatch report
+              # (2026-11-14).
+              hash = "sha256-bndJA1zzYPBrJXXRYup535/ajvZxiJ5cN1+OUHd/Jrs=";
             };
           });
 
