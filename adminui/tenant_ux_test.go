@@ -128,7 +128,8 @@ func TestTenantsIndex_SearchAndMemberCounts(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/admin/tenants?q=acme", nil)
 	req.Header.Set("HX-Request", "true")
 	h.ServeHTTP(rec, req)
-	if got := rec.Body.String(); strings.Contains(got, "<!DOCTYPE html>") || strings.Contains(got, `id="tenants-table"`) {
+	got := rec.Body.String()
+	if strings.Contains(got, "<!DOCTYPE html>") || strings.Contains(got, `id="tenants-table"`) {
 		t.Errorf("HTMX partial must be the fragment only, got: %.120s", got)
 	}
 }

@@ -172,7 +172,10 @@ func tenantSelectOptions(tenants []*usermgmt.Tenant) []forms.SelectOption {
 			label = t.Name
 		}
 		opts = append(opts, forms.SelectOption{
-			Value: t.ID.Get(), Label: label + " · " + t.Name,
+			Value:    t.ID.Get(),
+			Label:    label + " · " + t.Name,
+			Selected: false,
+			Disabled: false,
 		})
 	}
 	return opts

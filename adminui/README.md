@@ -106,14 +106,25 @@ Override with your own `Config.Authorizer`, or use the helpers
 
 - **Dashboard** — user/tenant/audit counts, adoption ratios (verified email,
   MFA), a no-admin-grant warning banner, + recent activity.
-- **Users** — searchable, filterable list (verified / MFA / external provider
-  chips) + the full user lifecycle: create, edit display name and email,
-  grant/revoke platform roles (durable, event-sourced), manage passkeys and
-  external accounts, resend verification, delete. Each write escalates its
-  confirmation dialog to match its blast radius.
-- **Tenants** — list, create, suspend, reactivate, delete, and view members.
+- **Users** — searchable, filterable list (verified / MFA / external provider /
+  administrators chips) with an access column: each row names the platform
+  roles the user holds and how many tenants they belong to, so privileged
+  accounts are visible without opening every profile. The detail page covers
+  the full lifecycle: create, edit display name and email, grant/revoke
+  platform roles (durable, event-sourced), manage passkeys and external
+  accounts, resend verification, **manage tenant access from the user side**
+  (grant a tenant + role, change a role, revoke), delete. Each write escalates
+  its confirmation dialog to match its blast radius.
+- **Tenants** — searchable roster with per-tenant member counts; create,
+  suspend, reactivate, delete. The detail page leads with the tenant's identity
+  (id + copy, slug, display name, status, roster size) before its members.
 - **Members** — add a user by email + role, or remove a member, on any tenant
-  (super-admin) or your scoped tenant (tenant-admin).
+  (super-admin) or your scoped tenant (tenant-admin). Rows resolve the member's
+  actor to a person (email + display name, linked to their user page in
+  super-admin mode) and show when they joined; the add form autocompletes from
+  the directory, offers only accounts that are not members yet, requires an
+  explicit role choice, and explains an unknown email inline (preserving what
+  was typed) instead of dropping it in a toast.
 - **Audit log** — searchable/filterable event trail with human-readable action
   labels and severity badges; the user detail page carries the per-user
   timeline.

@@ -187,6 +187,7 @@ func (h *Handler) superAdminRoutes() []routeSpec {
 	return slices.Concat(
 		h.superAdminUserRoutes(),
 		h.superAdminUserAccountRoutes(),
+		h.superAdminUserTenantAccessRoutes(),
 		h.superAdminTenantRoutes(),
 		h.superAdminTenantMemberRoutes(),
 	)
@@ -288,6 +289,16 @@ func (h *Handler) superAdminUserAccountRoutes() []routeSpec {
 			write:   true,
 			why:     "sending mail as a user-visible action must be admin-gated",
 		},
+	}
+}
+
+// superAdminUserTenantAccessRoutes manage a user's TENANT memberships from the
+// user side — the mirror of the tenant roster's membership writes. Both paths
+// dispatch the same durable commands; the admin starts wherever they are.
+//
+//nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
+func (h *Handler) superAdminUserTenantAccessRoutes() []routeSpec {
+	return []routeSpec{
 		{
 			method:  http.MethodPost,
 			pattern: "/users/{id}/tenants",
