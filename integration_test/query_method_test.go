@@ -11,6 +11,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -182,4 +183,70 @@ func TestQueryMethod_MuxAdvertisesQueryInAllow(t *testing.T) {
 	// The stdlib mux already emits Allow on its 405 — pin that QUERY is in it.
 	require.Equal(t, http.StatusMethodNotAllowed, res.StatusCode)
 	require.Contains(t, res.Header.Get("Allow"), "QUERY")
+}
+
+// newQueryMethodCSRFServer is the QUERY ladder behind
+// httputil.CSRFMiddleware, the placement ADR-0064 point 4 mandates: the
+// security stack sees the WIRE method, so the rung-2 fallback POST is
+// token-checked as a POST. Native QUERY reachability therefore depends on
+// the CSRF layer's safe-method list — httputil v1.9.0 (its issue #48) added
+// RFC 10008 QUERY to that list; before it, every token-less native QUERY
+// died as a 403 challenge at this seam.
+func newQueryMethodCSRFServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	qryDisp := query.NewDispatcher()
+	_ = qryDisp.Register("SearchContacts", searchContacts)
+
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: qryDisp})
+
+	jsonDecoder := cqrshtmx.DecodeJSONQuery(func(req searchRequest) (query.Query, error) {
+		return &searchContactsQuery{Filter: req.Filter}, nil
+	})
+
+	mux := http.NewServeMux()
+	mux.Handle(httpMethodQuery+" /contacts", app.Query("SearchContacts", jsonDecoder, cqrshtmx.RenderJSON[[]contact]()))
+	mux.Handle(http.MethodPost+" /contacts", app.Query("SearchContacts", jsonDecoder, cqrshtmx.RenderJSON[[]contact]()))
+
+	srv := httptest.NewServer(httputil.CSRFMiddleware(httputil.CSRFConfig{})(mux))
+	t.Cleanup(srv.Close)
+
+	return srv
+}
+
+// TestQueryMethod_NativeQueryPassesCSRFAsSafeMethod proves the ADR-0064
+// follow-through end to end: a token-less native QUERY reaches the handler
+// (httputil v1.9.0 safe-lists RFC 10008 QUERY), while the token-less rung-2
+// fallback POST on the SAME registration is still challenged — the override
+// seam never smuggles a safe verb past the wire-method check.
+func TestQueryMethod_NativeQueryPassesCSRFAsSafeMethod(t *testing.T) {
+	t.Parallel()
+	srv := newQueryMethodCSRFServer(t)
+
+	queryReq, err := http.NewRequest(httpMethodQuery, srv.URL+"/contacts",
+		strings.NewReader(`{"filter":"turing"}`))
+	require.NoError(t, err)
+	queryReq.Header.Set("Content-Type", "application/json")
+
+	queryRes, err := srv.Client().Do(queryReq)
+	require.NoError(t, err)
+	defer queryRes.Body.Close() //nolint:errcheck
+
+	require.Equal(t, http.StatusOK, queryRes.StatusCode,
+		"token-less native QUERY must pass CSRFMiddleware (safe method, httputil issue #48)")
+	queryBody, err := io.ReadAll(queryRes.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(queryBody), "Alan Turing")
+
+	postReq, err := http.NewRequest(http.MethodPost, srv.URL+"/contacts",
+		strings.NewReader(`{"filter":"turing"}`))
+	require.NoError(t, err)
+	postReq.Header.Set("Content-Type", "application/json")
+
+	postRes, err := srv.Client().Do(postReq)
+	require.NoError(t, err)
+	defer postRes.Body.Close() //nolint:errcheck
+
+	require.Equal(t, http.StatusForbidden, postRes.StatusCode,
+		"token-less fallback POST must stay challenged: the wire method is what CSRF authorizes (ADR-0064 point 4)")
 }
