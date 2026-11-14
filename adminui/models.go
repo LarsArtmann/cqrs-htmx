@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // navItem is a single sidebar entry. Icon is a key resolved by the svgIcon
@@ -51,6 +52,42 @@ type pageData struct {
 	// Nonce is the CSP nonce for inline scripts (ToastContainer,
 	// GlobalErrorHandling). Empty when no CSP middleware is active.
 	Nonce string
+	// TenantSwitcher lists live tenants for the header jump control. Populated
+	// only in super-admin mode (ModeTenantAdmin is scoped to one tenant by
+	// construction, so a switcher there would be a lie); empty hides the
+	// control entirely.
+	TenantSwitcher []tenantSwitchOption
+	// CurrentTenantID marks the switcher entry matching the tenant being
+	// viewed. Empty (every page except tenant detail) marks nothing.
+	CurrentTenantID string
+}
+
+// tenantSwitchOption is one entry of the header tenant switcher: a LIVE
+// tenant (suspended/deleted ones are not navigable targets) with its detail
+// path and the current marker.
+type tenantSwitchOption struct {
+	ID          string
+	DisplayName string
+	Current     bool
+}
+
+// tenantSwitchItems renders the switcher's dropdown items: one link per live
+// tenant (display-name order), the tenant being viewed carrying the check
+// icon as its current marker.
+func tenantSwitchItems(p pageData) []display.DropdownItem {
+	items := make([]display.DropdownItem, 0, len(p.TenantSwitcher))
+	for _, opt := range p.TenantSwitcher {
+		item := display.DropdownItem{
+			Text: opt.DisplayName,
+			Href: "/tenants/" + opt.ID,
+			Kind: display.DropdownItemLink,
+		}
+		if opt.Current {
+			item.Icon = icons.Check
+		}
+		items = append(items, item)
+	}
+	return items
 }
 
 // statCard is one metric tile on the dashboard. Tone and Href are optional
