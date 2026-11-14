@@ -104,7 +104,8 @@ test("tenant access: grant from the user page renders the row, badges and filter
     .locator("select[name='tenant'] option")
     .evaluateAll((els) => els.map((el) => (el as HTMLOptionElement).value));
   expect(options).not.toContain(`e2e-grant-${stamp}`);
-  expect(options).toContain("Choose tenant…");
+  // The disabled prompt carries value="" (its label is Choose tenant…).
+  expect(options).toContain("");
 
   // The tenant detail roster also names the person (cross-surface view).
   await page.goto(`${ADMIN}${tenantPath}`, { waitUntil: "load" });
