@@ -78,19 +78,19 @@ func TestFilterAuditEntries_Omnibox(t *testing.T) {
 		t.Fatalf("seed produced %d entries, want >= 3", len(all))
 	}
 
-	if got := filterAuditEntries(all, ""); len(got) != len(all) {
+	if got := filterAuditEntries(all, "", nil); len(got) != len(all) {
 		t.Errorf("empty needle should keep all, got %d of %d", len(got), len(all))
 	}
-	if got := filterAuditEntries(all, "omni1@"); len(got) != 1 {
+	if got := filterAuditEntries(all, "omni1@", nil); len(got) != 1 {
 		t.Errorf("email filter: got %d entries, want 1", len(got))
 	}
-	if got := filterAuditEntries(all, "Display name"); len(got) != 1 || got[0].Action != "display_name_changed" {
+	if got := filterAuditEntries(all, "Display name", nil); len(got) != 1 || got[0].Action != "display_name_changed" {
 		t.Errorf("label-text filter: got %+v", got)
 	}
-	if got := filterAuditEntries(all, ada.User.ID.Get().String()); len(got) < 1 {
+	if got := filterAuditEntries(all, ada.User.ID.Get().String(), nil); len(got) < 1 {
 		t.Errorf("aggregate filter matched nothing for ada's id")
 	}
-	if got := filterAuditEntries(all, "nothing-matches-this"); len(got) != 0 {
+	if got := filterAuditEntries(all, "nothing-matches-this", nil); len(got) != 0 {
 		t.Errorf("no-match needle returned %d entries", len(got))
 	}
 }

@@ -61,9 +61,14 @@ func auditActionBadge(action string) display.BadgeType {
 }
 
 // filterAuditEntries narrows entries (latest-first) to those matching needle
-// across the action, the resolved actor email, and the aggregate id — one
-// omnibox instead of three inputs. Case-insensitive substring on all three.
-func filterAuditEntries(entries []usermgmt.AuditEntry, needle string) []usermgmt.AuditEntry {
+// across the action, the resolved actor email, the aggregate id, the action
+// label, and — via tenantNames — the NAME of a tenant whose aggregate stream
+// produced the entry (tenant lifecycle commands aggregate on the tenant
+// stream, whose id is the tenant slug). tenantNames is nil-safe: nil just
+// skips name matching. Membership rows aggregate on membership streams and
+// stay user-scoped — the audit entry carries no tenant field (extending
+// that is the usermgmt ask tracked in TODO_LIST item (h)).
+func filterAuditEntries(entries []usermgmt.AuditEntry, needle string, tenantNames map[string]string) []usermgmt.AuditEntry {
 	if needle == "" {
 		return entries
 	}
@@ -73,7 +78,8 @@ func filterAuditEntries(entries []usermgmt.AuditEntry, needle string) []usermgmt
 		if strings.Contains(strings.ToLower(e.Action), want) ||
 			strings.Contains(strings.ToLower(e.Email), want) ||
 			strings.Contains(strings.ToLower(e.AggregateID.Get()), want) ||
-			strings.Contains(strings.ToLower(auditLabel(e.Action)), want) {
+			strings.Contains(strings.ToLower(auditLabel(e.Action)), want) ||
+			strings.Contains(tenantNames[e.AggregateID.Get()], want) {
 			out = append(out, e)
 		}
 	}
