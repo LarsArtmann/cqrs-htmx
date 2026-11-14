@@ -106,7 +106,7 @@ templ usersTableContent(d usersListData) {
 		}
 	} else {
 		@display.Table(display.TableProps{
-			Headers:     []string{"User", "Status", "Created", ""},
+			Headers:     []string{"User", "Access", "Status", "Created", ""},
 			Hover:       true,
 			Body:        usersRows(d),
 			Striped:     true,
@@ -118,44 +118,72 @@ templ usersTableContent(d usersListData) {
 }
 
 templ usersRows(d usersListData) {
-	for _, u := range d.Users {
+	for _, row := range d.Users {
 		<tr>
 			<td class="px-4 py-2">
-				<a class="flex no-underline" href={ d.BasePath + "/users/" + u.ID.Get().String() }>
+				<a class="flex no-underline" href={ d.BasePath + "/users/" + row.User.ID.Get().String() }>
 					<div class="flex items-center gap-2.5">
-						@display.Avatar(display.AvatarProps{Initials: initials(u.Email), Size: display.AvatarSizeSM})
+						@display.Avatar(display.AvatarProps{Initials: initials(row.User.Email), Size: display.AvatarSizeSM})
 						<div>
-							<div class="font-medium text-gray-900">{ u.Email }</div>
-							if u.DisplayName != "" {
-								<div class="text-xs text-gray-400">{ u.DisplayName }</div>
+							<div class="font-medium text-gray-900">{ row.User.Email }</div>
+							if row.User.DisplayName != "" {
+								<div class="text-xs text-gray-400">{ row.User.DisplayName }</div>
 							}
 						</div>
 					</div>
 				</a>
 			</td>
 			<td class="px-4 py-2">
+				@userAccessCell(row)
+			</td>
+			<td class="px-4 py-2">
 				<div class="flex flex-wrap gap-1">
-					if u.EmailVerified {
+					if row.User.EmailVerified {
 						@statusBadge("verified", display.BadgeSuccess)
 					} else {
 						@statusBadge("unverified", display.BadgeNeutral)
 					}
-					if u.TOTPEnabled {
+					if row.User.TOTPEnabled {
 						@statusBadge("MFA", display.BadgeInfo)
 					}
-					for _, ea := range u.ExternalAccounts {
+					for _, ea := range row.User.ExternalAccounts {
 						@display.Badge(display.BadgeProps{Text: ea.Provider, Type: display.BadgeNeutral, Pill: true})
 					}
 				</div>
 			</td>
 			<td class="px-4 py-2 text-gray-500">
-				@display.RelativeTime(display.RelativeTimeProps{Time: u.CreatedAt})
+				@display.RelativeTime(display.RelativeTimeProps{Time: row.User.CreatedAt})
 			</td>
 			<td class="px-4 py-2 text-right">
-				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
+				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users/" + row.User.ID.Get().String() }>View</a>
 			</td>
 		</tr>
 	}
+}
+
+// userAccessCell answers the question the directory exists to answer: who can
+// reach what. Platform roles render as badges (wildcard domain), tenant
+// memberships as a count; a user with neither reads as a quiet dash rather
+// than an empty cell that could mean "not loaded".
+templ userAccessCell(row userRow) {
+	<div class="flex flex-wrap items-center gap-1">
+		for _, role := range row.PlatformRoles {
+			@roleBadge(string(role))
+		}
+		if row.TenantCount > 0 {
+			<a class="text-xs text-gray-500 no-underline hover:underline" href={ "/admin/users/" + row.User.ID.Get().String() }>
+				{ strconv.Itoa(row.TenantCount) }
+				if row.TenantCount == 1 {
+					<span> tenant</span>
+				} else {
+					<span> tenants</span>
+				}
+			</a>
+		}
+		if !row.isPlatformAdmin() && row.TenantCount == 0 {
+			<span class="text-sm text-gray-400">—</span>
+		}
+	</div>
 }
 
 // userNewPage is the create-user form. Register is the Service's public
@@ -240,7 +268,7 @@ templ userDetailContent(d userDetailData) {
 	}) {
 		@display.DefinitionList(display.DefinitionListProps{
 			Items: []display.DefinitionItem{
-				{Term: "User ID", DetailComponent: userIDDetail(d.User.ID.Get().String())},
+				{Term: "User ID", DetailComponent: copyableID(d.User.ID.Get().String())},
 				{Term: "Email", Detail: d.User.Email},
 				{Term: "Verified", DetailComponent: verifiedDetail(d)},
 				{Term: "TOTP MFA", DetailComponent: totpBadge(d.User.TOTPEnabled)},

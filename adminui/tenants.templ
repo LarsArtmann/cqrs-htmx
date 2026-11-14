@@ -1,10 +1,14 @@
 package adminui
 
 import (
+	"strconv"
+
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
+	"github.com/larsartmann/templ-components/utils/wire"
 )
 
 templ tenantsPage(p pageData, d tenantsListData) {
@@ -16,19 +20,55 @@ templ tenantsContent(d tenantsListData) {
 		Title:  "Tenants",
 		Action: newTenantAction(d),
 	})
+	<div class="mb-4 flex items-center gap-2">
+		@forms.FilterInput(forms.FilterInputProps{
+			Name:        "q",
+			Value:       d.Search,
+			Placeholder: "Search tenants…",
+			Action:      d.BasePath + "/tenants",
+			DebounceMS:  350,
+			Wire:        &wire.Action{URL: d.BasePath + "/tenants", Target: "#tenants-table"},
+			BaseProps: utils.BaseProps{
+				AriaLabel: "Search tenants",
+				Class:     "w-full max-w-xs",
+				Attrs: templ.Attributes{
+					"autocomplete": "off",
+					"hx-get":       d.BasePath + "/tenants",
+					"hx-trigger":   "submit",
+					"hx-target":    "#tenants-table",
+					"hx-swap":      "innerHTML",
+					"hx-push-url":  "true",
+					"hx-indicator": "#tenants-search-spinner",
+				},
+			},
+		})
+		<span id="tenants-search-spinner" class="htmx-indicator text-gray-400">
+			@spinnerSM()
+		</span>
+	</div>
+	<div id="tenants-table">
+		@tenantsTableContent(d)
+	</div>
+}
+
+templ tenantsTableContent(d tenantsListData) {
 	if len(d.Tenants) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
-			@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.", "New tenant", d.BasePath+"/tenants/new")
+			if d.Search != "" {
+				@empty("tenants", "No tenants match your search", "No tenant name or slug matches the search term.", "Clear search", d.BasePath+"/tenants")
+			} else {
+				@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.", "New tenant", d.BasePath+"/tenants/new")
+			}
 		}
 	} else {
 		@display.Table(display.TableProps{
-			Headers:     []string{"Name", "Status", ""},
+			Headers:     []string{"Tenant", "Members", "Status", ""},
 			Hover:       true,
 			Body:        tenantsRows(d),
 			CellPadding: display.TableCellPaddingCompact,
 		})
 		@listNote(len(d.Tenants), d.Total)
-		@listPager(d.BasePath+"/tenants", d.Page, d.TotalPages)
+		@listPager(listPageURL(d.BasePath+"/tenants", d.Search), d.Page, d.TotalPages)
 	}
 }
 
@@ -46,27 +86,44 @@ templ newTenantAction(d tenantsListData) {
 }
 
 templ tenantsRows(d tenantsListData) {
-	for _, t := range d.Tenants {
+	for _, row := range d.Tenants {
 		<tr>
 			<td class="px-4 py-2">
-				<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + t.ID.Get() }>
-					<span class="font-medium text-gray-900">{ t.DisplayName }</span>
-					<span class="font-mono text-xs text-gray-400">{ t.Name }</span>
+				<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + row.Tenant.ID.Get() }>
+					<span class="font-medium text-gray-900">{ row.Tenant.DisplayName }</span>
+					<span class="font-mono text-xs text-gray-400">{ row.Tenant.Name }</span>
+				</a>
+			</td>
+			<td class="px-4 py-2 text-gray-600">
+				<a class="no-underline hover:underline" href={ d.BasePath + "/tenants/" + row.Tenant.ID.Get() }>
+					{ strconv.Itoa(row.MemberCount) }
+					if row.MemberCount == 1 {
+						<span class="text-gray-400"> member</span>
+					} else {
+						<span class="text-gray-400"> members</span>
+					}
 				</a>
 			</td>
 			<td class="px-4 py-2">
-				if t.Suspended {
-					@statusBadge("suspended", display.BadgeWarning)
-				} else if t.Deleted {
-					@statusBadge("deleted", display.BadgeError)
-				} else {
-					@statusBadge("active", display.BadgeSuccess)
-				}
+				@tenantStatusBadge(row.Tenant)
 			</td>
 			<td class="px-4 py-2 text-right">
-				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants/" + t.ID.Get() }>Manage</a>
+				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants/" + row.Tenant.ID.Get() }>Manage</a>
 			</td>
 		</tr>
+	}
+}
+
+// tenantStatusBadge renders a tenant's lifecycle state as one dot-prefixed
+// status badge. Suspended is checked before deleted: a suspended-then-deleted
+// tenant still reads as deleted, matching the list's previous precedence.
+templ tenantStatusBadge(t *usermgmt.Tenant) {
+	if t.Suspended {
+		@statusBadge("suspended", display.BadgeWarning)
+	} else if t.Deleted {
+		@statusBadge("deleted", display.BadgeError)
+	} else {
+		@statusBadge("active", display.BadgeSuccess)
 	}
 }
 
@@ -89,16 +146,19 @@ templ tenantNewContent(basePath string) {
 					@forms.Input(forms.InputProps{
 						BaseProps:   utils.BaseProps{ID: "name"},
 						Name:        "name",
+						Label:       "Tenant slug",
 						Placeholder: "acme-corp",
 						Required:    true,
-						HelpText:    "A unique, URL-safe identifier.",
+						HelpText:    "A unique, URL-safe identifier. It cannot be changed later.",
 					})
 				</div>
 				<div class="mb-4">
 					@forms.Input(forms.InputProps{
 						BaseProps:   utils.BaseProps{ID: "display_name"},
 						Name:        "display_name",
+						Label:       "Display name",
 						Placeholder: "Acme Corporation",
+						HelpText:    "Optional. Shown in the panel instead of the slug.",
 					})
 				</div>
 				<div class="flex gap-2.5">
@@ -113,12 +173,8 @@ templ tenantNewContent(basePath string) {
 // tenantStatusAction is the PageHeader action slot on the tenant detail
 // page: the live tenant status rides on the title row.
 templ tenantStatusAction(d tenantDetailData) {
-	if d.Tenant.Suspended {
-		@statusBadge("suspended", display.BadgeWarning)
-	} else if d.Tenant.Deleted {
-		@statusBadge("deleted", display.BadgeError)
-	} else {
-		@statusBadge("active", display.BadgeSuccess)
+	if d.Tenant != nil {
+		@tenantStatusBadge(d.Tenant)
 	}
 }
 
@@ -136,6 +192,9 @@ templ tenantDetailContent(d tenantDetailData) {
 		Subtitle: d.Tenant.Name,
 		Action:   tenantStatusAction(d),
 	})
+	<div class="mb-4">
+		@tenantMetaCard(d)
+	</div>
 	<div class="mb-4">
 		@membersCard(d)
 	</div>
@@ -181,5 +240,23 @@ templ tenantDetailContent(d tenantDetailData) {
 				}},
 			})
 		</div>
+	}
+}
+
+// tenantMetaCard is the tenant's identity block: the id (copyable, for support
+// tickets and API calls), the immutable slug, the live lifecycle state, and
+// the current roster size. It answers "which tenant am I looking at" without
+// making the admin infer it from the members below.
+templ tenantMetaCard(d tenantDetailData) {
+	@display.Card(display.CardProps{Title: "Tenant"}) {
+		@display.DefinitionList(display.DefinitionListProps{
+			Items: []display.DefinitionItem{
+				{Term: "Tenant ID", DetailComponent: copyableID(d.Tenant.ID.Get())},
+				{Term: "Slug", Detail: d.Tenant.Name},
+				{Term: "Display name", Detail: d.Tenant.DisplayName},
+				{Term: "Status", DetailComponent: tenantStatusAction(d)},
+				{Term: "Members", Detail: strconv.Itoa(len(d.Members))},
+			},
+		})
 	}
 }

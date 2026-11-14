@@ -6,14 +6,32 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
 func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
-	all := h.config.Service.AllTenants()
-	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(all), listPageSize)
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	matched := make([]*usermgmt.Tenant, 0)
+	for _, t := range h.config.Service.AllTenants() {
+		if matchesTenantSearch(t, q) {
+			matched = append(matched, t)
+		}
+	}
+	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
+	rows := make([]tenantRow, 0, limit)
+	for _, t := range matched[offset : offset+limit] {
+		rows = append(rows, tenantRow{
+			Tenant:      t,
+			MemberCount: len(h.config.Service.TenantMembers(r.Context(), t.ID)),
+		})
+	}
 	d := tenantsListData{
-		Tenants: all[offset : offset+limit], Total: len(all), BasePath: h.config.BasePath,
+		Tenants: rows, Total: len(matched), Search: q, BasePath: h.config.BasePath,
 		Page: page, TotalPages: totalPages,
+	}
+	if htmx.RenderPartial(r) {
+		renderPartial(w, r, tenantsTableContent(d))
+		return
 	}
 	p := h.page("Tenants", "/tenants", user, r)
 	renderPage(w, r, tenantsPage(p, d))

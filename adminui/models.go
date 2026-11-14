@@ -109,13 +109,26 @@ type listPage struct {
 
 // usersListData drives the users index.
 type usersListData struct {
-	Users    []*identitymodel.User
+	Users    []userRow
 	Total    int // total matching the search + filter (may exceed len(Users) when paginated)
 	Search   string
-	Filter   userFilter // active status chip ("" = none)
+	Filter   userFilter // active chip ("" = none)
 	BasePath string
 	listPage
 }
+
+// userRow is one user list entry enriched with the access facts an admin
+// decides on: the platform roles they hold (wildcard domain) and how many
+// tenants they belong to. A directory that reports people but hides who has
+// power forces the admin to open every profile to find out.
+type userRow struct {
+	User          *identitymodel.User
+	PlatformRoles []identitymodel.Role
+	TenantCount   int
+}
+
+// isPlatformAdmin reports whether the row grants any platform (wildcard) role.
+func (r userRow) isPlatformAdmin() bool { return len(r.PlatformRoles) > 0 }
 
 // userDetailData drives a single user's page.
 type userDetailData struct {
@@ -300,6 +313,7 @@ func userFilterChipsList(d usersListData) []userFilterChip {
 		{userFilterUnverified, "Unverified"},
 		{userFilterMFA, "MFA on"},
 		{userFilterExternal, "Has provider"},
+		{userFilterAdmin, "Administrators"},
 	}
 	chips := make([]userFilterChip, 0, len(specs))
 	for _, s := range specs {

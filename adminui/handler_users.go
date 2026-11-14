@@ -15,9 +15,17 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	filter := parseUserFilter(r.URL.Query().Get("filter"))
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
+	if filter == userFilterAdmin {
+		matched = h.filterPlatformAdmins(matched)
+	}
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
+	visible := matched[offset : offset+limit]
+	rows := make([]userRow, 0, len(visible))
+	for _, u := range visible {
+		rows = append(rows, h.userRow(u))
+	}
 	d := usersListData{
-		Users: matched[offset : offset+limit], Total: len(matched), Search: q,
+		Users: rows, Total: len(matched), Search: q,
 		Filter: filter, BasePath: h.config.BasePath, Page: page, TotalPages: totalPages,
 	}
 
@@ -39,13 +47,14 @@ const (
 	userFilterUnverified userFilter = "unverified"
 	userFilterMFA        userFilter = "mfa"
 	userFilterExternal   userFilter = "external"
+	userFilterAdmin      userFilter = "admin"
 )
 
 // parseUserFilter maps the query param to a chip, refusing unknown values
 // so a typo cannot silently mean "no filter".
 func parseUserFilter(raw string) userFilter {
 	switch userFilter(raw) {
-	case userFilterVerified, userFilterUnverified, userFilterMFA, userFilterExternal:
+	case userFilterVerified, userFilterUnverified, userFilterMFA, userFilterExternal, userFilterAdmin:
 		return userFilter(raw)
 	case userFilterNone:
 		return userFilterNone
@@ -84,11 +93,52 @@ func userMatchesFilter(u *identitymodel.User, filter userFilter) bool {
 		return u.TOTPEnabled
 	case userFilterExternal:
 		return len(u.ExternalAccounts) > 0
+	case userFilterAdmin:
+		// Platform roles are resolved per row (they live in the policy engine,
+		// not the directory), so this chip narrows AFTER the directory scan —
+		// see filterPlatformAdmins.
+		return true
 	case userFilterNone:
 		return true
 	default:
 		return true
 	}
+}
+
+// userRow resolves the access facts for one directory entry: the platform
+// (wildcard-domain) roles they hold and how many tenants they belong to. A
+// policy-engine failure degrades the column to empty rather than failing the
+// page — the directory itself is still the truth about who exists.
+func (h *Handler) userRow(u *identitymodel.User) userRow {
+	row := userRow{User: u}
+	authz := h.config.Service.Authz()
+	if authz == nil {
+		return row
+	}
+	if roles, err := authz.RolesForUser(u.ID, identitymodel.NewTenantID(identitymodel.WildcardDomain)); err == nil {
+		row.PlatformRoles = roles
+	}
+	if domains, err := authz.DomainsForUser(u.ID); err == nil {
+		for _, dom := range domains {
+			if dom.Get() != identitymodel.WildcardDomain {
+				row.TenantCount++
+			}
+		}
+	}
+	return row
+}
+
+// filterPlatformAdmins narrows the directory to users holding a platform
+// (wildcard-domain) role. It runs after the directory scan because the roles
+// live in the policy engine, not the read model.
+func (h *Handler) filterPlatformAdmins(all []*identitymodel.User) []*identitymodel.User {
+	out := make([]*identitymodel.User, 0, len(all))
+	for _, u := range all {
+		if h.userRow(u).isPlatformAdmin() {
+			out = append(out, u)
+		}
+	}
+	return out
 }
 
 func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {

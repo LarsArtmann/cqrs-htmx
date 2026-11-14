@@ -71,7 +71,10 @@ templ spinnerSM() {
 	@feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})
 }
 
-templ userIDDetail(id string) {
+// copyableID renders a machine identifier with a one-click copy affordance.
+// Used wherever an admin may need to paste an id into an API call, support
+// ticket, or log search (tenant id, user id).
+templ copyableID(id string) {
 	<span class="flex items-center gap-2">
 		<span class="font-mono text-xs">{ id }</span>
 		@display.CopyButton(display.CopyButtonProps{Text: id})
