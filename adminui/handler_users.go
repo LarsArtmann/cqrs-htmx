@@ -147,7 +147,7 @@ func userMatchesFilter(u *identitymodel.User, filter userFilter) bool {
 // phantom "tenant" for every user; the tenant lookup is what makes the number
 // mean what it says.
 func (h *Handler) userRow(ctx context.Context, u *identitymodel.User) userRow {
-	row := userRow{User: u, PlatformRoles: nil, TenantCount: 0}
+	row := userRow{User: u, PlatformRoles: nil, TenantCount: 0, LastSeen: time.Time{}}
 	authz := h.config.Service.Authz()
 	if authz == nil {
 		return row

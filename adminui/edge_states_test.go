@@ -87,7 +87,14 @@ func TestUnknownEmailBanner_AlertSemantics(t *testing.T) {
 	mustCreateTenant(t, svc, "acme")
 
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/acme?member_error=unknown&member_email=nobody@nowhere.com", nil))
+	h.ServeHTTP(
+		rec,
+		httptest.NewRequest(
+			http.MethodGet,
+			"/admin/tenants/acme?member_error=unknown&member_email=nobody@nowhere.com",
+			nil,
+		),
+	)
 	body := rec.Body.String()
 	if !strings.Contains(body, "That account does not exist yet") {
 		t.Fatal("expected the unknown-email banner to render")

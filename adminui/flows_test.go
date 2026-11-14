@@ -207,7 +207,8 @@ func TestFlow_UpdateMemberRole(t *testing.T) {
 	if len(members) != 1 {
 		t.Fatalf("expected 1 member, got %d", len(members))
 	}
-	if len(members[0].Roles) != 2 || !members[0].HasRole(identitymodel.RoleAdmin) || !members[0].HasRole(identitymodel.RoleViewer) {
+	if len(members[0].Roles) != 2 || !members[0].HasRole(identitymodel.RoleAdmin) ||
+		!members[0].HasRole(identitymodel.RoleViewer) {
 		t.Errorf("roles = %v, want [viewer admin]", members[0].Roles)
 	}
 

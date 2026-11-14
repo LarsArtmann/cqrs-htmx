@@ -200,7 +200,8 @@ func TestPanel_TenantAdminUpdateMemberRole(t *testing.T) {
 		t.Fatalf("update role redirect = %q", rec.Header().Get("HX-Redirect"))
 	}
 	members := svc.TenantMembers(ctx, identitymodel.NewTenantID("acme"))
-	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleAdmin) || !members[0].HasRole(identitymodel.RoleViewer) {
+	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleAdmin) ||
+		!members[0].HasRole(identitymodel.RoleViewer) {
 		t.Errorf("expected viewer+admin roles, got %+v", members)
 	}
 }

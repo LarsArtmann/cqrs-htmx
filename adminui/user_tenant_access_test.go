@@ -124,7 +124,8 @@ func TestUserGrantTenantAccess(t *testing.T) {
 		t.Errorf("role update redirect = %q, want %q", got, userBase)
 	}
 	members = svc.TenantMembers(ctx, tenant.ID)
-	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) || !members[0].HasRole(identitymodel.RoleAdmin) {
+	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) ||
+		!members[0].HasRole(identitymodel.RoleAdmin) {
 		t.Fatalf("expected the role set to become viewer+admin, got %v (toast %q)",
 			members, rec.Header().Get("Hx-Trigger"))
 	}
@@ -138,7 +139,8 @@ func TestUserGrantTenantAccess(t *testing.T) {
 		t.Errorf("reduce redirect = %q, want %q", got, userBase)
 	}
 	members = svc.TenantMembers(ctx, tenant.ID)
-	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) || members[0].HasRole(identitymodel.RoleAdmin) {
+	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) ||
+		members[0].HasRole(identitymodel.RoleAdmin) {
 		t.Fatalf("expected the role set to reduce to viewer, got %v", members)
 	}
 

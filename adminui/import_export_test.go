@@ -269,12 +269,19 @@ func TestImport_TruncatedErrorListBounded(t *testing.T) {
 		errs[i] = "row error"
 	}
 	var b strings.Builder
-	if err := importResultPanel(usermgmt.ImportResult{Imported: 1, Skipped: 0, Errors: errs}, "/admin/users").Render(context.Background(), &b); err != nil {
+	if err := importResultPanel(
+		usermgmt.ImportResult{Imported: 1, Skipped: 0, Errors: errs},
+		"/admin/users",
+	).Render(context.Background(), &b); err != nil {
 		t.Fatalf("render: %v", err)
 	}
 	body := b.String()
 	if strings.Count(body, "row error") != maxRenderedImportErrors {
-		t.Errorf("expected exactly %d rendered errors, got %d", maxRenderedImportErrors, strings.Count(body, "row error"))
+		t.Errorf(
+			"expected exactly %d rendered errors, got %d",
+			maxRenderedImportErrors,
+			strings.Count(body, "row error"),
+		)
 	}
 	if !strings.Contains(body, "more") {
 		t.Error("expected the remainder line")

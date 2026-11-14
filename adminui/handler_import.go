@@ -38,10 +38,18 @@ func (h *Handler) userImportPage(w http.ResponseWriter, r *http.Request, user *i
 // unparseable upload is refused before anything is dispatched.
 func (h *Handler) userImport(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxImportUploadBytes)
+	//nolint:gosec // G120: body capped by MaxBytesReader above
 	if err := r.ParseMultipartForm(maxImportUploadBytes); err != nil {
-		h.writeErrorPage(w, r, http.StatusRequestEntityTooLarge,
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusRequestEntityTooLarge,
 			"Import file too large",
-			fmt.Sprintf("The uploaded file exceeds the %d MiB import limit. Split the file and import in batches.", maxImportUploadBytes>>(10*2)))
+			fmt.Sprintf(
+				"The uploaded file exceeds the %d MiB import limit. Split the file and import in batches.",
+				maxImportUploadBytes>>(10*2),
+			),
+		)
 		return
 	}
 	file, header, err := r.FormFile("file")
