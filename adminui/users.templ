@@ -160,13 +160,12 @@ templ userFilterChips(d usersListData) {
 				<a
 					class="rounded-full bg-gray-900 px-2.5 py-1 text-xs font-medium text-white no-underline dark:bg-white dark:text-gray-900"
 					href={ chip.Href }
-					aria-pressed="true"
+					aria-current="true"
 				>{ chip.Label }</a>
 			} else {
 				<a
 					class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 no-underline hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 					href={ chip.Href }
-					aria-pressed="false"
 				>{ chip.Label }</a>
 			}
 		}

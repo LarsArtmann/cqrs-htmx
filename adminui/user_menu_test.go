@@ -37,19 +37,19 @@ func TestUserMenuDropdownRendered(t *testing.T) {
 			t.Errorf("user menu dropdown missing %q", want)
 		}
 	}
-	// The trigger carries NO content-contradicting accessible name: WCAG 2.5.3
-	// Label in Name. A label naming only the email failed axe's
-	// label-content-name-mismatch because it does not contain the full
-	// visible text (avatar initials + email; first adminui a11y sweep,
-	// 2026-11-14). The library renders the label attribute EMPTY, so the
-	// accessible name falls back to the content — pin exactly that.
+	// The trigger's accessible name must be the FULL visible text: WCAG 2.5.3
+	// Label in Name. An email-only label failed axe's
+	// label-content-name-mismatch because it does not contain the avatar
+	// initials rendered next to it; an empty label fails too (nothing to
+	// match). The panel names the trigger initials + email — exactly what
+	// sighted users see (first adminui a11y sweep, 2026-11-14).
 	at := strings.Index(html, `id="admin-user-menu-button"`)
 	if at < 0 {
 		t.Fatal("user menu trigger missing")
 	}
 	trigger := html[at:]
-	if !strings.Contains(trigger[:400], `aria-label=""`) {
-		t.Error(`user menu trigger must keep aria-label="" so the accessible name derives from the visible content`)
+	if !strings.Contains(trigger[:400], `aria-label="AD admin@example.com"`) {
+		t.Error(`user menu trigger must be labelled with the full visible text (initials + email)`)
 	}
 	if strings.Contains(html, " onclick=") || strings.Contains(html, " onsubmit=") {
 		t.Error("user menu must not introduce inline handlers (CSP posture)")

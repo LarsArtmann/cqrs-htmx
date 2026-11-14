@@ -155,17 +155,20 @@ templ topBar(p pageData) {
 						})
 					<div class="hidden lg:block">
 						@display.Dropdown(display.DropdownProps{
-							// No aria-label: the trigger carries its own visible text
-							// (avatar initials + email), and WCAG 2.5.3 wants the
-							// accessible name derived from that content — a label
-							// naming only the email fails the name-contains-label
-							// rule axe pins (first adminui sweep, 2026-11-14).
-							Trigger:  userMenuTrigger(p.User.Email),
-							Position: display.DropdownPositionRight,
-								BaseProps: utils.BaseProps{
-									ID:    "admin-user-menu",
-									Nonce: p.Nonce,
-								},
+							// AriaLabel names the FULL visible trigger text (avatar
+							// initials + email): WCAG 2.5.3 Label in Name requires
+							// the accessible name to contain what is rendered, and
+							// an email-only label fails that (axe
+							// label-content-name-mismatch, first adminui sweep
+							// 2026-11-14); an empty label fails it too (the name
+							// cannot match nothing).
+							Trigger:   userMenuTrigger(p.User.Email),
+							Position:  display.DropdownPositionRight,
+							BaseProps: utils.BaseProps{
+								ID:        "admin-user-menu",
+								Nonce:     p.Nonce,
+								AriaLabel: initials(p.User.Email) + " " + p.User.Email,
+							},
 								Items: []display.DropdownItem{
 									{
 										Text: "Sign out",

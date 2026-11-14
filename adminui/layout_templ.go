@@ -436,16 +436,19 @@ func topBar(p pageData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = display.Dropdown(display.DropdownProps{
-					// No aria-label: the trigger carries its own visible text
-					// (avatar initials + email), and WCAG 2.5.3 wants the
-					// accessible name derived from that content — a label
-					// naming only the email fails the name-contains-label
-					// rule axe pins (first adminui sweep, 2026-11-14).
+					// AriaLabel names the FULL visible trigger text (avatar
+					// initials + email): WCAG 2.5.3 Label in Name requires
+					// the accessible name to contain what is rendered, and
+					// an email-only label fails that (axe
+					// label-content-name-mismatch, first adminui sweep
+					// 2026-11-14); an empty label fails it too (the name
+					// cannot match nothing).
 					Trigger:  userMenuTrigger(p.User.Email),
 					Position: display.DropdownPositionRight,
 					BaseProps: utils.BaseProps{
-						ID:    "admin-user-menu",
-						Nonce: p.Nonce,
+						ID:        "admin-user-menu",
+						Nonce:     p.Nonce,
+						AriaLabel: initials(p.User.Email) + " " + p.User.Email,
 					},
 					Items: []display.DropdownItem{
 						{
@@ -466,7 +469,7 @@ func topBar(p pageData) templ.Component {
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.LogoutURL).ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 181, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 184, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 				if templ_7745c5c3_Err != nil {
@@ -500,7 +503,7 @@ func topBar(p pageData) templ.Component {
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(p.User.Email)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 190, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 193, Col: 20}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -590,7 +593,7 @@ func pageFoot(p pageData) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.BasePath + "/-/sync-client.js").ResolveURL(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 215, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 218, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 			if templ_7745c5c3_Err != nil {
@@ -608,7 +611,7 @@ func pageFoot(p pageData) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.BasePath + "/-/admin.js").ResolveURL(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 217, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 220, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 		if templ_7745c5c3_Err != nil {
