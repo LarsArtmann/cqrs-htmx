@@ -87,23 +87,23 @@
 16. Firefox battery stack: fix the `setDownloadOptions` mismatch so the advisory engine produces real verdicts again; then the 3-clean-runs promotion clock.
 17. Adminui audit-log attribution wave (needs (h)(5)): surface tenant + membership actions in the audit trail.
 18. `aria-current` audit across OTHER chip/link toggles the sweep did not cover (loginpage, dashboardui).
-19. axe sweeps for the remaining adminui pages (audit, dashboard, import form) — the spec covers lists + details only.
+19. axe sweeps for the remaining adminui pages (audit, dashboard, import form) — the spec covers lists + details only. <!-- fresh:skip: routed — harvested as the "axe sweeps for the remaining adminui pages" sub-row of the M05–M17 §f-tails batch in TODO_LIST P2; every >=4-char token in this item (sweeps/remaining/adminui/pages/audit/dashboard/import/form/spec/covers/lists/details) is generic across TODO_LIST (DF >= 8) and "axe" is below the token floor, so the match cannot be proven mechanically -->
 20. Mobile-viewport admin screenshots (the harness is light/dark; the dashboard harness has mobile).
 21. Keyboard-path tests for the REMAINING forms (import upload, new-user, new-tenant, member add).
 22. The `reuseExistingServer` trap → candidate gotcha 61 (stale server masquerading as a fresh run; kill-strays is not enough if a manual server holds the port with old code).
 23. The stale-proxy-resolution class → candidate gotcha 62 (`go version -m` the binary; workspace source vs published tag divergence).
 24. `waitForLoadState("networkidle")` never settles on SSE pages → candidate gotcha 63 (use fixed settle waits on SSE-connected panels).
 25. Import/export depth (D2-adjacent): dry-run mode, per-row error export, larger batch guidance.
-26. Tenant rename UI (rides (h)(3)'s rename command).
+26. Tenant rename UI (rides (h)(3)'s rename command). <!-- fresh:skip: owner-gated — the panel surface of upstream-ask (h)(3), already routed by the D1–D3 decision row and the (h) upstream-asks row in TODO_LIST -->
 27. Bot management surface (rides (h)(1) + D3 ordering).
-28. Sessions admin surface ("sign out everywhere", rides (h)(4)).
+28. Sessions admin surface ("sign out everywhere", rides (h)(4)). <!-- fresh:skip: owner-gated — the panel surface of upstream-ask (h)(4), already routed by the D1–D3 decision row and the (h) upstream-asks row in TODO_LIST -->
 29. Impersonation forensics view (rides ADR-0060's journal, post-D1).
 30. Batched membership counts adoption (rides (h)(2)) — retires the N+1 in `tenantsIndex` AND `tenantSwitchOptions` (the switcher added a second per-tenant-count scan on detail pages).
 31. `tenantSwitchOptions` cost note: it runs `AllTenants()` on EVERY super-admin page render — fine at demo scale, worth the batched API at fleet scale.
 32. Route-posture manifest: verify the four import/export rows + switcher landed postures (golden covers them; spot-check the CI hermetic leg after push).
 33. erraudit +2 drift (330→332): triage the two new findings (loginpage `resolveOAuth2Buttons` extraction is the likely source) at the next advisory sweep.
 34. branching-flow ratchet: re-pin after the next code-settling commit if the extraction shifted anchors (211 baseline held at last check). **RESOLVED 16-4x same-session:** the rerun's +6 were the M09–M12 line-shift bill inside the frozen view-model mixin family (one pairing flip + five fix-snippet re-anchors); re-pinned 211 → 211 net-zero (commit ffb607d2), amendment row in docs/analysis/triage-decisions.md, gate re-run +0 added — leg of the final 104/104 aggregate.
-35. Coverage: adminui threshold held at 68.2% pre-wave; re-run `coverage-gate` post-M09–M12 (new files: attribution, import, switcher, polish paths).
+35. Coverage: adminui threshold held at 68.2% pre-wave; re-run `coverage-gate` post-M09–M12 (new files: attribution, import, switcher, polish paths). **RESOLVED 16-5x same-session:** gate PASSED, all 16 modules above threshold — adminui 69.7% vs 66% (UP from 68.2 with the new M09–M12 files), loginpage 81.1/79, usermgmt 83.0/74, root 90.6/90.
 36. `dashboard-live` slider: consider pinning the e2e server build to refuse stale-proxy resolution (a `go.work` presence assertion in the battery bootstrap).
 37. Document the anchored-pattern recipe (`'larsartmann/httputil$'`) + the server_timing publication check as a bump-dep pre-flight step in the runbook.
 38. Upstream ask: `httputil/server_timing` v1.9.0 tag (the family split that aborts unanchored sweeps).
