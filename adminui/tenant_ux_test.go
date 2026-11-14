@@ -115,11 +115,11 @@ func TestTenantsIndex_SearchAndMemberCounts(t *testing.T) {
 	// The "drop" assertion reads the TABLE ONLY (the HTMX partial): the full
 	// page legitimately repeats every tenant name in the header switcher,
 	// which is page chrome, not the search result.
-	partial := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/admin/tenants?q=globex+corp", nil)
-	req.Header.Set("HX-Request", "true")
-	h.ServeHTTP(partial, req)
-	if strings.Contains(partial.Body.String(), ">acme<") {
+	prec := httptest.NewRecorder()
+	preq := httptest.NewRequest(http.MethodGet, "/admin/tenants?q=globex+corp", nil)
+	preq.Header.Set("HX-Request", "true")
+	h.ServeHTTP(prec, preq)
+	if strings.Contains(prec.Body.String(), ">acme<") {
 		t.Error("search should drop the non-matching tenant from the table")
 	}
 
