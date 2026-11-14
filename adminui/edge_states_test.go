@@ -10,6 +10,7 @@ import (
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // TestTenantAccess_MemberOfEveryTenant pins the grant form's dead-end guard:
@@ -246,17 +247,20 @@ func TestLastSeenColumn(t *testing.T) {
 func TestAddedByAttribution(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
 	admin := mustUser(t, "admin@example.com")
 	h, svc := newTestPanel(t, admin)
 
 	tenant := mustCreateTenant(t, svc, "acme")
 	member := mustRegister(t, svc, "u-attr", "attr@acme.com")
-	if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(admin.ID), tenant.ID,
+	// The panel's real requests carry the session user in the context (the
+	// test middleware injects it the same way); the audit chain bridges it
+	// onto every dispatched event. Dispatch through THAT context so the
+	// MemberAdded metadata records the grantor.
+	ctx := usermgmt.WithUser(context.Background(), admin)
+	if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(member.User.ID), tenant.ID,
 		[]identitymodel.Role{identitymodel.RoleViewer}); err != nil {
 		t.Fatal(err)
 	}
-	_ = member
 
 	body := getBody(t, h, "/admin/tenants/acme")
 	if !strings.Contains(body, "by admin@example.com") {
