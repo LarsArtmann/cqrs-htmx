@@ -85,6 +85,10 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	}
 	memberships := h.config.Service.TenantMembers(r.Context(), tenantID)
 	members := toMemberRows(memberships, h.lookupUser)
+	addedBy := h.addedByIndex(r.Context(), tenantID, members)
+	for i := range members {
+		members[i].AddedBy = addedBy[members[i].Actor.PrefixedString()]
+	}
 	memberBase := h.config.BasePath + "/tenants/" + tenantID.Get() + "/members"
 	d := tenantDetailData{
 		Tenant:              tenant,

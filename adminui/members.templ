@@ -136,6 +136,9 @@ templ membersRows(d tenantDetailData) {
 				} else {
 					<span class="text-gray-400">—</span>
 				}
+				if m.AddedBy != "" {
+					<div class="text-xs text-gray-400" title="Whose grant created this membership">by { m.AddedBy }</div>
+				}
 			</td>
 			<td class="px-4 py-2 text-right">
 				@display.Button(display.ButtonProps{

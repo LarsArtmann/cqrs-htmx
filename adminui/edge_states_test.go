@@ -239,3 +239,30 @@ func TestLastSeenColumn(t *testing.T) {
 		t.Error("sanity: the quiet row should have rendered")
 	}
 }
+
+// TestAddedByAttribution pins the "added by" cell: the roster resolves the
+// MemberAdded event's metadata actor through the directory, so an admin can
+// see WHOSE grant created a membership without opening the audit page.
+func TestAddedByAttribution(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	admin := mustUser(t, "admin@example.com")
+	h, svc := newTestPanel(t, admin)
+
+	tenant := mustCreateTenant(t, svc, "acme")
+	member := mustRegister(t, svc, "u-attr", "attr@acme.com")
+	if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(admin.ID), tenant.ID,
+		[]identitymodel.Role{identitymodel.RoleViewer}); err != nil {
+		t.Fatal(err)
+	}
+	_ = member
+
+	body := getBody(t, h, "/admin/tenants/acme")
+	if !strings.Contains(body, "by admin@example.com") {
+		t.Error("the membership should be attributed to its grantor")
+	}
+	if !strings.Contains(body, "Whose grant created this membership") {
+		t.Error("the attribution should carry a title explanation")
+	}
+}

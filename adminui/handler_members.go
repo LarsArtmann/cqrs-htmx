@@ -89,6 +89,10 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 	}
 	memberships := h.config.Service.TenantMembers(r.Context(), h.config.TenantID)
 	members := toMemberRows(memberships, h.lookupUser)
+	addedBy := h.addedByIndex(r.Context(), h.config.TenantID, members)
+	for i := range members {
+		members[i].AddedBy = addedBy[members[i].Actor.PrefixedString()]
+	}
 	memberBase := h.config.BasePath + "/members"
 	// Tenant-admin mode serves NO user directory, so member rows carry no
 	// detail links and the unknown-email banner offers no create escape hatch.
