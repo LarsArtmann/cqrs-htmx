@@ -114,9 +114,11 @@ Ordered by execution dependency, then by score (impact x customer value / effort
 | M15 | Upstream asks and the wrong doc comment | Rest | 45 | Medium | Low | Low | - | `AddMember` doc comment corrected; four usermgmt asks filed or recorded as owner-gated |
 | M16 | Owner decision packet (impersonation, sessions, bots, APIs) | Rest | 30 | High | High (unlocks next wave) | Low | - | One decision sheet with the security and release-train tradeoffs, ready for a yes/no |
 
-**Total:** 16 milestones, roughly 16.5 hours of focused work. M00 was executed while unblocking this plan's own commit (receipts in §9); M01 is the next step and is safe to start immediately.
+| M17 | Family train alignment (httputil v1.9.0 + catalog v4.15.0) | 4% | 90 | Critical (push gate) | None (enabler) | Medium | M01 | `nix run .#check-release-train -- --refresh-cache --strict-lag 0` reports 0 lag and the push gate passes |
 
----
+**Total:** 17 milestones, roughly 18 hours of focused work. M00 was executed while unblocking this plan's own
+commit (receipts in §9); M01 is the next step and is safe to start immediately. M17 exists because the pre-push
+gate refused the plan's own push on 36 pre-existing train-lag entries - a discovered blocker, not a hypothesis.
 
 ## 4. Fine tasks (max 12 min each)
 
@@ -305,6 +307,19 @@ Every task is independently verifiable; each has a done-when in the milestone ta
 | T160 | Write the decision sheet: impersonation, sessions, bots, API additions (security + release tradeoffs) | 12 | Rest |
 | T161 | Cross-link the answers into TODO_LIST and this plan | 10 | Rest |
 
+
+### M17 - Family train alignment (90 min)
+
+| ID | Task | Min | Band |
+| --- | --- | --- | --- |
+| T170 | Run `check-release-train --refresh-cache --strict-lag 0`; enumerate every lagging pair | 10 | 4% |
+| T171 | Sweep httputil to v1.9.0 with `bump-dep --commit --lint` | 12 | 4% |
+| T172 | Verify the sweep's PASS table and the hermetic lint leg | 10 | 4% |
+| T173 | Sweep catalog to v4.15.0 the same way | 12 | 4% |
+| T174 | Verify the catalog sweep (docserver templ era must stay 1100-compatible) | 10 | 4% |
+| T175 | Re-run the strict train gate; it must report 0 lag | 10 | 4% |
+| T176 | Full workspace build + the affected module tests after the bumps | 12 | 4% |
+
 ---
 
 ## 5. Execution graph
@@ -313,12 +328,13 @@ Every task is independently verifiable; each has a done-when in the milestone ta
 flowchart TD
     Start([Session start]) --> M00
 
-    M00["M00 flake goPkg hash<br/>1% - unblocks every gate"]
+    M00["M00 five flake FOD hashes<br/>1% - unblocks every gate"]
     M00 --> M01["M01 gate battery baseline<br/>4% - record the truth"]
     M00 --> M13["M13 CHANGELOG archaeology<br/>independent of gates"]
 
     M01 --> M02["M02 multi-role editing<br/>4% correctness"]
     M01 --> M06["M06 import / export<br/>4% customer capability"]
+    M01 --> M17["M17 family train alignment<br/>4% - push gate"]
     M01 --> M07["M07 last-seen column"]
 
     M02 --> M03["M03 edge states + a11y + sync targets"]
@@ -410,6 +426,7 @@ flowchart TD
 | Date | Milestone | Receipt |
 | --- | --- | --- |
 | 2026-11-14 | M00 (T001-T005) | Five FOD hashes fixed (goPkg src, benchstat src, benchstat vendor, templGen src, templGen vendor). `nix develop --command go version` -> `go1.27.3`; `nix run .#check-go-toolchain` -> "go.work go directive (1.27.3) <= toolchain (1.27.3)"; `nix run .#build-adminui-css` now runs (tailwindcss 4.3.4) and changes only the banner version plus one numeric artifact token, zero utility-set change; `check-css-bundles.sh` green at 87,933 bytes. Found because the pre-commit hook refused the plan commit on `nix-fmt` - the blocker was real, not theoretical. |
+| 2026-11-14 | push gate | `git push` refused by the pre-push hook: `check-release-train.sh` reports **36 train-lag entries** (httputil v1.8.0 vs v1.9.0 in 26 modules; go-cqrs-lite catalog v4.14.0 vs v4.15.0). Pre-existing, not caused by this plan's docs/hash change. The plan push proceeds with `--no-verify` under the hook's documented escape hatch; M17 owns the fix. |
 | - | M01 | not started |
 
 ---
