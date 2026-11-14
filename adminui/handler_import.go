@@ -1,7 +1,9 @@
 package adminui
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -55,13 +57,28 @@ func (h *Handler) userImport(w http.ResponseWriter, r *http.Request, _ *identity
 		return
 	}
 
+	// The upload is already size-bounded by the MaxBytesReader, so reading
+	// it whole is safe and lets the CSV guard peek the header.
+	data, err := io.ReadAll(file)
+	if err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Unreadable file", "The uploaded file could not be read.")
+		return
+	}
+	if format == usermgmt.UserDataFormatCSV {
+		if line, _, found := strings.Cut(string(data), "\n"); found && !csvHeaderHasEmail(line) {
+			h.writeErrorPage(w, r, http.StatusBadRequest, "Missing email column",
+				"The CSV header must include an \"email\" column — the importer maps columns by name.")
+			return
+		}
+	}
+
 	var result *usermgmt.ImportResult
 	var ierr error
 	switch format {
 	case usermgmt.UserDataFormatJSON:
-		result, ierr = h.config.Service.ImportUsersFromJSON(r.Context(), file)
+		result, ierr = h.config.Service.ImportUsersFromJSON(r.Context(), bytes.NewReader(data))
 	case usermgmt.UserDataFormatCSV:
-		result, ierr = h.config.Service.ImportUsersFromCSV(r.Context(), file)
+		result, ierr = h.config.Service.ImportUsersFromCSV(r.Context(), bytes.NewReader(data))
 	}
 	if ierr != nil {
 		// A malformed file (bad JSON, wrong CSV header) is a client error:
@@ -79,17 +96,20 @@ func (h *Handler) userImport(w http.ResponseWriter, r *http.Request, _ *identity
 	redirect(w, r, back)
 }
 
-// userExport streams the directory as CSV or JSON. The Service writes
-// straight to the response writer — no whole-directory buffering — and the
-// Content-Disposition names the file a browser saves.
-func (h *Handler) userExport(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
-	ext := r.PathValue("ext")
-	format := usermgmt.UserDataFormat(strings.ToLower(ext))
-	if !format.Valid() {
-		h.writeErrorPage(w, r, http.StatusNotFound, "Unknown format", "Export as /users/export.csv or /users/export.json.")
-		return
-	}
+// userExportCSV / userExportJSON stream the directory in the declared
+// format. Literal routes (not a wildcard segment — ServeMux forbids partial
+// ones) so the URL is the format. The Service writes straight to the
+// response writer — no whole-directory buffering — and Content-Disposition
+// names the file a browser saves.
+func (h *Handler) userExportCSV(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	h.export(w, r, usermgmt.UserDataFormatCSV)
+}
 
+func (h *Handler) userExportJSON(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	h.export(w, r, usermgmt.UserDataFormatJSON)
+}
+
+func (h *Handler) export(w http.ResponseWriter, r *http.Request, format usermgmt.UserDataFormat) {
 	name := "users-export." + string(format)
 	w.Header().Set("Content-Type", exportContentType(format))
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", name))
@@ -106,6 +126,19 @@ func (h *Handler) userExport(w http.ResponseWriter, r *http.Request, _ *identity
 		// output is honest about failing rather than silently truncated.
 		triggerToast(w, "err", "Export failed: "+actionErrorMessage(err))
 	}
+}
+
+// csvHeaderHasEmail reports whether the first CSV line declares an email
+// column. The upstream importer maps columns BY NAME and silently yields an
+// empty result on a foreign header — the panel refuses that up front so the
+// admin hears why nothing landed.
+func csvHeaderHasEmail(header string) bool {
+	for _, field := range strings.Split(strings.ToLower(header), ",") {
+		if strings.TrimSpace(field) == "email" {
+			return true
+		}
+	}
+	return false
 }
 
 // importFormat decides JSON vs CSV from the uploaded file's name. The field

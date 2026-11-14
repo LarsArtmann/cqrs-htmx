@@ -221,7 +221,11 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, write: true, why: "bulk import creates accounts from the uploaded file",
 		},
 		{
-			method: http.MethodGet, pattern: "/users/export.{ext}", panel: panelUsers, guarded: h.userExport,
+			method: http.MethodGet, pattern: "/users/export.csv", panel: panelUsers, guarded: h.userExportCSV,
+			mode: routeModeSuperAdmin, why: "the export carries every user's public profile",
+		},
+		{
+			method: http.MethodGet, pattern: "/users/export.json", panel: panelUsers, guarded: h.userExportJSON,
 			mode: routeModeSuperAdmin, why: "the export carries every user's public profile",
 		},
 		{
