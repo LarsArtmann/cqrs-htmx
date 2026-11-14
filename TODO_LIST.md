@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-11-08 (the 06-35 owner-unlock plan is the active thread; v4.18.0 + v4.18.1 trains shipped 2026-11-07 — QUERY-wave waves + the tagging tail; M20 docs-health executed same day) · 30 Go modules · open items only.
+**Updated:** 2026-11-14 (the adminui next-wave plan executed M00-M17 — tenant switcher, list polish, import/export, a11y sweep, M17 train alignment landed; D1-D3 owner decisions remain the gating row) · 30 Go modules · open items only.
 
 > Current thread: [CURRENT_FOCUS.md](CURRENT_FOCUS.md). History lives in [CHANGELOG.md](CHANGELOG.md); session reports in `docs/status/`.
 
