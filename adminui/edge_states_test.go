@@ -251,19 +251,23 @@ func TestAddedByAttribution(t *testing.T) {
 	h, svc := newTestPanel(t, admin)
 
 	tenant := mustCreateTenant(t, svc, "acme")
+	// The grantor must be a REGISTERED user so the directory can resolve the
+	// attribution (the session fixture is deliberately read-model-less).
+	grantor := mustRegister(t, svc, "u-root", "root@acme.com")
 	member := mustRegister(t, svc, "u-attr", "attr@acme.com")
-	// The panel's real requests carry the session user in the context (the
-	// test middleware injects it the same way); the audit chain bridges it
-	// onto every dispatched event. Dispatch through THAT context so the
-	// MemberAdded metadata records the grantor.
-	ctx := usermgmt.WithUser(context.Background(), admin)
+
+	// The panel's real requests carry the session user in the request
+	// context; the audit chain bridges it onto every dispatched event.
+	// Dispatch through a context carrying the GRANTOR so the MemberAdded
+	// metadata records them.
+	ctx := usermgmt.WithUser(context.Background(), grantor.User)
 	if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(member.User.ID), tenant.ID,
 		[]identitymodel.Role{identitymodel.RoleViewer}); err != nil {
 		t.Fatal(err)
 	}
 
 	body := getBody(t, h, "/admin/tenants/acme")
-	if !strings.Contains(body, "by admin@example.com") {
+	if !strings.Contains(body, "by root@acme.com") {
 		t.Error("the membership should be attributed to its grantor")
 	}
 	if !strings.Contains(body, "Whose grant created this membership") {

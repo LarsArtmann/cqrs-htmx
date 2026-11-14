@@ -257,10 +257,10 @@ type memberRow struct {
 	Actor   identitymodel.ActorID
 	Email   string
 	Name    string
-	IsUser  bool   // the actor is a human user that resolved in the directory
+	IsUser  bool // the actor is a human user that resolved in the directory
 	Roles   []identitymodel.Role
 	AddedAt time.Time // zero when the store did not record it
-	AddedBy string  // the directory-resolved initiator of the grant; empty when unattributed
+	AddedBy string    // the directory-resolved initiator of the grant; empty when unattributed
 }
 
 // displayName is what the members table leads with: the email for a resolved
