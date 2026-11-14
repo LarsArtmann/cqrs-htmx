@@ -11,23 +11,35 @@ import (
 
 func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	status := parseTenantStatusFilter(r.URL.Query().Get("status"))
+	sort := parseTenantSort(r.URL.Query().Get("sort"))
 	matched := make([]*usermgmt.Tenant, 0)
 	for _, t := range h.config.Service.AllTenants() {
-		if matchesTenantSearch(t, q) {
-			matched = append(matched, t)
+		if !matchesTenantSearch(t, q) || !matchesTenantStatus(t, status) {
+			continue
 		}
+		matched = append(matched, t)
 	}
+	// Member counts for every MATCHED tenant: the member sort needs them all,
+	// and the chip counts report the search-scoped state mix.
+	counts := make(map[identitymodel.TenantID]int, len(matched))
+	for _, t := range matched {
+		counts[t.ID] = len(h.config.Service.TenantMembers(r.Context(), t.ID))
+	}
+	sortTenants(matched, sort, counts)
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
 	rows := make([]tenantRow, 0, limit)
 	for _, t := range matched[offset : offset+limit] {
 		rows = append(rows, tenantRow{
 			Tenant:      t,
-			MemberCount: len(h.config.Service.TenantMembers(r.Context(), t.ID)),
+			MemberCount: counts[t.ID],
 		})
 	}
 	d := tenantsListData{
-		Tenants: rows, Total: len(matched), Search: q, BasePath: h.config.BasePath,
-		Page: page, TotalPages: totalPages,
+		Tenants: rows, Total: len(matched), Search: q,
+		Status: status, Sort: sort, StatusCounts: tenantStatusCounts(matched),
+		BasePath: h.config.BasePath,
+		Page:     page, TotalPages: totalPages,
 	}
 	if htmx.RenderPartial(r) {
 		renderPartial(w, r, tenantsTableContent(d))

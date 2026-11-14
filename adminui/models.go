@@ -247,7 +247,15 @@ type tenantsListData struct {
 	Tenants  []tenantRow
 	Total    int
 	Search   string
-	BasePath string
+	// Status is the active lifecycle filter ("", "active", "suspended",
+	// "deleted"); empty renders the All chip as current.
+	Status string
+	// Sort is the active ordering ("name" default, "members").
+	Sort string
+	// StatusCounts reports the matched tenants per lifecycle state so the
+	// filter chips carry live counts of the current search.
+	StatusCounts map[string]int
+	BasePath     string
 	listPage
 }
 
@@ -401,6 +409,20 @@ func tenantRevokeConfirm(d userDetailData, access tenantAccessRow) string {
 		msg += " They hold the only admin or owner role there — the tenant would be left without an admin."
 	}
 	return msg
+}
+
+// tenantSuspendConfirm builds the suspend confirm text with the impact
+// spelled out: the admin is about to cut access for a known number of
+// people, and "some members" would hide the blast radius.
+func tenantSuspendConfirm(d tenantDetailData) string {
+	return fmt.Sprintf("Suspend this tenant? Its %d member(s) lose access until it is reactivated.", len(d.Members))
+}
+
+// tenantDeleteConfirm builds the delete confirm text with the same impact
+// truth: deletion revokes every membership, and the admin should see how
+// many before confirming something irreversible.
+func tenantDeleteConfirm(d tenantDetailData) string {
+	return fmt.Sprintf("Delete this tenant and revoke its %d membership(s)? This cannot be undone.", len(d.Members))
 }
 
 // removeCredentialConfirm builds the passkey-removal confirm text: removing

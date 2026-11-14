@@ -46,9 +46,52 @@ templ tenantsContent(d tenantsListData) {
 			@spinnerSM()
 		</span>
 	</div>
+	// Lifecycle filter chips + sort control: plain links so the state is a
+	// shareable URL, preserving the current search. Counts are the
+	// search-scoped mix, so a chip never promises rows the search hides.
+	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+		@tenantStatusChip(d, "", "All", d.Total)
+		@tenantStatusChip(d, "active", "Active", d.StatusCounts["active"])
+		@tenantStatusChip(d, "suspended", "Suspended", d.StatusCounts["suspended"])
+		@tenantStatusChip(d, "deleted", "Deleted", d.StatusCounts["deleted"])
+		<span class="text-gray-300">|</span>
+		<span class="text-gray-400">Sort</span>
+		@tenantSortLink(d, "name", "Name")
+		<span class="text-gray-300">/</span>
+		@tenantSortLink(d, "members", "Members")
+	</div>
 	<div id="tenants-table">
 		@tenantsTableContent(d)
 	</div>
+}
+
+// tenantStatusChip is one lifecycle filter chip; current carries the active
+// styling. The count rides the label so the chip is honest about what it
+// shows.
+templ tenantStatusChip(d tenantsListData, status, label string, count int) {
+	if d.Status == status {
+		<span class="rounded-full bg-gray-900 px-2.5 py-0.5 font-medium text-white">
+			{ label } ({ strconv.Itoa(count) })
+		</span>
+	} else {
+		<a
+			class="rounded-full px-2.5 py-0.5 text-gray-500 no-underline hover:bg-gray-100 hover:text-gray-900"
+			href={ tenantListURL(d, status, d.Sort) }
+		>{ label } ({ strconv.Itoa(count) })</a>
+	}
+}
+
+// tenantSortLink is one half of the ordering toggle; current carries the
+// active styling.
+templ tenantSortLink(d tenantsListData, sort, label string) {
+	if d.Sort == sort {
+		<span class="font-medium text-gray-900">{ label }</span>
+	} else {
+		<a
+			class="text-gray-500 no-underline hover:text-gray-900"
+			href={ tenantListURL(d, d.Status, sort) }
+		>{ label }</a>
+	}
 }
 
 templ tenantsTableContent(d tenantsListData) {
@@ -201,6 +244,13 @@ templ tenantDetailContent(d tenantDetailData) {
 	@display.Card(display.CardProps{
 		Header: dangerZoneHeader(),
 	}) {
+		// T104: the audit shortcut. Tenant lifecycle entries (created,
+		// suspended, reactivated, deleted, renamed) carry the tenant's
+		// aggregate stream, and the audit search matches tenant names, so the
+		// query lands on those entries directly.
+		<div class="mb-3">
+			<a class="text-sm text-gray-500 no-underline hover:text-gray-900 hover:underline" href={ d.BasePath + "/audit?q=" + d.Tenant.Name }>Tenant audit trail →</a>
+		</div>
 		<div class="flex flex-wrap gap-2.5">
 			if d.Tenant.Suspended {
 				@display.Button(display.ButtonProps{
@@ -221,7 +271,7 @@ templ tenantDetailContent(d tenantDetailData) {
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
-						"data-confirm":       "Suspend this tenant? Members lose access until it is reactivated.",
+						"data-confirm":       tenantSuspendConfirm(d),
 						"data-confirm-title": "Suspend tenant",
 						"hx-disabled-elt":    "this",
 					}},
@@ -234,7 +284,7 @@ templ tenantDetailContent(d tenantDetailData) {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
-					"data-confirm":       "Delete this tenant and remove all memberships? This cannot be undone.",
+					"data-confirm":       tenantDeleteConfirm(d),
 					"data-confirm-title": "Delete tenant",
 					"hx-disabled-elt":    "this",
 				}},

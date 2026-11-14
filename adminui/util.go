@@ -206,3 +206,89 @@ func withoutTenantOptions(options []forms.SelectOption, access []tenantAccessRow
 	}
 	return out
 }
+
+// parseTenantStatusFilter normalizes the tenants list' lifecycle filter.
+// Unknown values degrade to the unfiltered list rather than an empty one — a
+// hand-edited URL must not read as "no tenants exist".
+func parseTenantStatusFilter(raw string) string {
+	switch raw {
+	case "active", "suspended", "deleted":
+		return raw
+	}
+	return ""
+}
+
+// matchesTenantStatus applies the lifecycle filter. The precedence mirrors
+// the status badge exactly (suspended wins over deleted), so a chip never
+// promises a row its badge would render differently.
+func matchesTenantStatus(t *usermgmt.Tenant, status string) bool {
+	switch status {
+	case "active":
+		return !t.Suspended && !t.Deleted
+	case "suspended":
+		return t.Suspended
+	case "deleted":
+		return t.Deleted && !t.Suspended
+	}
+	return true
+}
+
+// tenantStatusCounts counts the matched tenants per lifecycle state (badge
+// precedence), so the filter chips report the search-scoped mix.
+func tenantStatusCounts(tenants []*usermgmt.Tenant) map[string]int {
+	counts := map[string]int{"active": 0, "suspended": 0, "deleted": 0}
+	for _, t := range tenants {
+		switch {
+		case t.Suspended:
+			counts["suspended"]++
+		case t.Deleted:
+			counts["deleted"]++
+		default:
+			counts["active"]++
+		}
+	}
+	return counts
+}
+
+// parseTenantSort normalizes the tenants list ordering; "name" is the
+// default and any unknown value degrades to it.
+func parseTenantSort(raw string) string {
+	if raw == "members" {
+		return raw
+	}
+	return "name"
+}
+
+// sortTenants orders the matched tenants in place: by display name
+// (case-insensitive), or by member count descending with display name as the
+// tiebreak so the order is stable.
+func sortTenants(tenants []*usermgmt.Tenant, sort string, counts map[identitymodel.TenantID]int) {
+	slices.SortFunc(tenants, func(a, b *usermgmt.Tenant) int {
+		if sort == "members" {
+			if ca, cb := counts[a.ID], counts[b.ID]; ca != cb {
+				return cb - ca
+			}
+		}
+		return strings.Compare(strings.ToLower(a.DisplayName), strings.ToLower(b.DisplayName))
+	})
+}
+
+// tenantListURL builds a tenants-list URL carrying the current search plus
+// the requested lifecycle filter and ordering (defaults omitted, so the
+// plain /tenants URL stays canonical).
+func tenantListURL(d tenantsListData, status, sort string) string {
+	params := url.Values{}
+	if d.Search != "" {
+		params.Set("q", d.Search)
+	}
+	if status != "" {
+		params.Set("status", status)
+	}
+	if sort != "" && sort != "name" {
+		params.Set("sort", sort)
+	}
+	if len(params) == 0 {
+		return d.BasePath + "/tenants"
+	}
+	return d.BasePath + "/tenants?" + params.Encode()
+}
