@@ -66,7 +66,7 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		return
 	}
 	memberships := h.config.Service.TenantMembers(r.Context(), tenantID)
-	members := toMemberRows(memberships)
+	members := toMemberRows(memberships, h.lookupUser)
 	memberBase := h.config.BasePath + "/tenants/" + tenantID.Get() + "/members"
 	p := h.page(tenant.DisplayName, "/tenants", user, r)
 	renderPage(w, r, tenantDetailPage(p, tenantDetailData{

@@ -8,6 +8,12 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
+// lookupUser resolves a user id through the panel's service read model. It is
+// the directory seam member rows use so a membership renders as a person.
+func (h *Handler) lookupUser(id identitymodel.UserID) (*identitymodel.User, bool) {
+	return h.config.Service.ReadModel().FindByUserID(id)
+}
+
 // membersIndex is the tenant-scoped members page (ModeTenantAdmin).
 func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	var tenant *usermgmt.Tenant
@@ -15,7 +21,7 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 		tenant = t
 	}
 	memberships := h.config.Service.TenantMembers(r.Context(), h.config.TenantID)
-	members := toMemberRows(memberships)
+	members := toMemberRows(memberships, h.lookupUser)
 	memberBase := h.config.BasePath + "/members"
 	p := h.page("Members", "/members", user, r)
 	renderPage(w, r, membersPage(p, tenantDetailData{

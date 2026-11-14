@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
@@ -147,20 +148,71 @@ type tenantDetailData struct {
 	AddMemberURL     string
 	RemoveMemberBase string
 	UpdateRoleBase   string // append "/{actor}" for role-change POSTs
+
+	// UserDetailBase is the URL prefix for member detail links (the panel's
+	// ".../users/"). Empty hides the links: tenant-admin mode serves no user
+	// directory, and a link to a route that does not exist is a lie.
+	UserDetailBase string
+
+	// UserEmailOptions feeds the add-member autocomplete: the directory's
+	// email addresses, so an admin picks a person instead of typing one.
+	UserEmailOptions []string
+
+	// AddMemberError is the inline guidance shown when the last add attempt
+	// named no known account. AddMemberEmail preserves what was typed so the
+	// admin can correct it instead of retyping from scratch.
+	AddMemberError string
+	AddMemberEmail string
+
+	// AddMemberCreateHref is the "create this user first" escape hatch,
+	// rendered only when the panel serves user creation (super-admin mode).
+	AddMemberCreateHref string
 }
 
-// memberRow is a flattened membership for display.
+// memberRow is a flattened membership for display. User actors are resolved
+// to their directory identity: an admin reads a person (email + name), never
+// an opaque "user:01HZ…" token. Bot/system/service actors have no directory
+// entry and keep their prefixed id.
 type memberRow struct {
-	Actor identitymodel.ActorID
-	Roles []identitymodel.Role
+	Actor   identitymodel.ActorID
+	Email   string
+	Name    string
+	IsUser  bool      // the actor is a human user that resolved in the directory
+	Roles   []identitymodel.Role
+	AddedAt time.Time // zero when the store did not record it
 }
 
-// toMemberRows converts a membership slice to display rows.
-func toMemberRows(memberships []*identitymodel.Membership) []memberRow {
+// displayName is what the members table leads with: the email for a resolved
+// user, the self-describing actor id otherwise.
+func (m memberRow) displayName() string {
+	if m.Email != "" {
+		return m.Email
+	}
+
+	return m.Actor.PrefixedString()
+}
+
+// toMemberRows converts a membership slice to display rows, resolving user
+// actors through lookup (the user read model). A user that no longer resolves
+// falls back to its actor id instead of vanishing: a stale membership is a
+// fact an admin needs to see, not a row to hide.
+func toMemberRows(
+	memberships []*identitymodel.Membership,
+	lookup func(identitymodel.UserID) (*identitymodel.User, bool),
+) []memberRow {
 	members := make([]memberRow, 0, len(memberships))
 	for _, m := range memberships {
-		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})
+		row := memberRow{Actor: m.ActorID, Roles: m.Roles, AddedAt: m.AddedAt}
+		if userID, ok := identitymodel.ActorIDAsUserID(m.ActorID); ok {
+			if user, found := lookup(userID); found {
+				row.Email = user.Email
+				row.Name = user.DisplayName
+				row.IsUser = true
+			}
+		}
+		members = append(members, row)
 	}
+
 	return members
 }
 

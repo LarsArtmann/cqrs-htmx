@@ -8,19 +8,48 @@ import (
 	"github.com/larsartmann/templ-components/utils"
 )
 
+// memberEmailListID is the <datalist> id shared by the add-member input on
+// every page that renders membersCard. One card per page, so one id.
+const memberEmailListID = "admin-member-emails"
+
 // membersCard renders the members table with add/remove/edit-role controls.
 // Shared by the tenant detail page (super-admin) and the members page
 // (tenant-admin). Role options come from AssignableRoles (typed source of
 // truth), not hardcoded.
+//
+// Rows lead with the PERSON behind the membership (email + name, resolved
+// through the directory) rather than the raw "user:01HZ…" actor token: the
+// admin's job is deciding who has access, and an opaque id makes that a
+// lookup exercise.
 templ membersCard(d tenantDetailData) {
 	@display.Card(display.CardProps{
 		Title: "Members",
 	}) {
+		if d.AddMemberError != "" {
+			<div class="mb-4">
+				@feedback.Alert(feedback.AlertProps{
+					Type:    feedback.FeedbackWarning,
+					Title:   "That account does not exist yet",
+					Message: d.AddMemberError,
+				})
+				if d.AddMemberCreateHref != "" {
+					<div class="mt-2">
+						@display.Button(display.ButtonProps{
+							Text:      "Create the user",
+							Href:      d.AddMemberCreateHref,
+							Variant:   display.ButtonSecondary,
+							Size:      display.ButtonSizeSM,
+							BaseProps: utils.BaseProps{Class: classNoUnderline},
+						})
+					</div>
+				}
+			</div>
+		}
 		if len(d.Members) == 0 {
-			@empty("members", "No members", "Add a user below to grant tenant access.", "", "")
+			@empty("members", "No members", "Add a person below to grant tenant access.", "", "")
 		} else {
 			@display.Table(display.TableProps{
-				Headers:     []string{"Actor", "Role", ""},
+				Headers:     []string{"Member", "Roles", "Added", ""},
 				Hover:       true,
 				Body:        membersRows(d),
 				Flush:       true,
@@ -28,18 +57,29 @@ templ membersCard(d tenantDetailData) {
 			})
 		}
 		<div class="border-t border-gray-200 pt-4 mt-4">
-			<form class="flex items-center gap-2" hx-post={ d.AddMemberURL }>
+			<form class="flex flex-wrap items-center gap-2" hx-post={ d.AddMemberURL }>
 				@forms.Input(forms.InputProps{
 					Type:        forms.InputEmail,
 					Name:        "email",
+					Value:       d.AddMemberEmail,
 					Placeholder: "user@example.com",
 					Required:    true,
-					BaseProps:   utils.BaseProps{Class: "max-w-[240px]"},
+					HelpText:    "Type to pick a person from the directory.",
+					BaseProps: utils.BaseProps{Class: "max-w-[240px]", Attrs: templ.Attributes{
+						"list":        memberEmailListID,
+						"autocomplete": "off",
+					}},
 				})
+				<datalist id={ memberEmailListID }>
+					for _, email := range d.UserEmailOptions {
+						<option value={ email }></option>
+					}
+				</datalist>
 				@forms.Select(forms.SelectProps{
 					Name:      "role",
-					Options:   roleSelectOptions(d.AssignableRoles, nil),
-					BaseProps: utils.BaseProps{Class: "max-w-[150px]"},
+					Options:   roleSelectOptionsPrompt(d.AssignableRoles),
+					Required:  true,
+					BaseProps: utils.BaseProps{Class: "max-w-[150px]", AriaLabel: "Role"},
 				})
 				// display.Button with the Children slot (#405): LoadingButton content
 				// (label swap + spinner) inside the library's Primary+SM classes.
@@ -57,23 +97,55 @@ templ membersCard(d tenantDetailData) {
 templ membersRows(d tenantDetailData) {
 	for _, m := range d.Members {
 		<tr>
-			<td class="px-4 py-2 font-mono text-xs">{ m.Actor.PrefixedString() }</td>
 			<td class="px-4 py-2">
-				<form class="flex items-center gap-1.5" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
-					@forms.Select(forms.SelectProps{
-						Name:      "role",
-						Options:   roleSelectOptions(d.AssignableRoles, m.Roles),
-						BaseProps: utils.BaseProps{Class: "max-w-[120px]"},
-					})
-					// Same Children-slot pattern as the Add member submit (Secondary
-					// variant): LoadingButton shows "Saving…" while the POST runs.
-					@display.Button(display.ButtonProps{
-						Type:     display.ButtonHTMLSubmit,
-						Variant:  display.ButtonSecondary,
-						Size:     display.ButtonSizeSM,
-						Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
-					})
-				</form>
+				<div class="flex items-center gap-2.5">
+					@display.Avatar(display.AvatarProps{Initials: initials(m.displayName()), Size: display.AvatarSizeSM})
+					<div>
+						if m.IsUser && d.UserDetailBase != "" {
+							<a class="font-medium text-gray-900 no-underline hover:underline" href={ d.UserDetailBase + m.Actor.Raw() }>{ m.displayName() }</a>
+						} else {
+							<span class="font-medium text-gray-900">{ m.displayName() }</span>
+						}
+						if m.Name != "" {
+							<div class="text-xs text-gray-400">{ m.Name }</div>
+						}
+						if !m.IsUser {
+							<div class="font-mono text-[11px] text-gray-400">{ m.Actor.PrefixedString() }</div>
+						}
+					</div>
+				</div>
+			</td>
+			<td class="px-4 py-2">
+				<div class="flex flex-wrap items-center gap-1.5">
+					for _, r := range m.Roles {
+						@roleBadge(string(r))
+					}
+					<form class="flex items-center gap-1.5" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
+						@forms.Select(forms.SelectProps{
+							Name:      "role",
+							Options:   roleSelectOptions(d.AssignableRoles, m.Roles),
+							Required:  true,
+							BaseProps: utils.BaseProps{Class: "max-w-[120px]", AriaLabel: "Set role for " + m.displayName()},
+						})
+						// Same Children-slot pattern as the Add member submit (Secondary
+						// variant): LoadingButton shows "Saving…" while the POST runs.
+						@display.Button(display.ButtonProps{
+							Type:     display.ButtonHTMLSubmit,
+							Variant:  display.ButtonSecondary,
+							Size:     display.ButtonSizeSM,
+							Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
+						})
+					</form>
+				</div>
+			</td>
+			<td class="px-4 py-2 text-gray-500">
+				if !m.AddedAt.IsZero() {
+					<span title={ m.AddedAt.Format("Jan 2, 2006 15:04 MST") }>
+						@display.RelativeTime(display.RelativeTimeProps{Time: m.AddedAt})
+					</span>
+				} else {
+					<span class="text-gray-400">—</span>
+				}
 			</td>
 			<td class="px-4 py-2 text-right">
 				@display.Button(display.ButtonProps{
@@ -82,7 +154,7 @@ templ membersRows(d tenantDetailData) {
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
-						"data-confirm":       "Remove " + m.Actor.PrefixedString() + " from this tenant?",
+						"data-confirm":       "Remove " + m.displayName() + " from this tenant?",
 						"data-confirm-title": "Remove member",
 						"hx-disabled-elt":    "this",
 					}},
