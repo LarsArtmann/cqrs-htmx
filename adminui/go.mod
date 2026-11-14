@@ -7,8 +7,9 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.18.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/httputil v1.8.0
+	github.com/larsartmann/httputil v1.9.0
 	github.com/larsartmann/templ-components v1.27.0
 	github.com/larsartmann/templ-components/errorpage v1.27.0
 	github.com/larsartmann/templ-components/htmx v1.27.0
@@ -46,7 +47,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect

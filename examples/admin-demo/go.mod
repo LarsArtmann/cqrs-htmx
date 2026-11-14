@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-idempotency v0.3.2
 	github.com/larsartmann/go-sse v0.7.0
-	github.com/larsartmann/httputil v1.8.0
+	github.com/larsartmann/httputil v1.9.0
 	github.com/larsartmann/httputil/server_timing v1.0.3
 	github.com/larsartmann/templ-components/icons v1.27.0
 )
