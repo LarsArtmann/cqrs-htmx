@@ -230,7 +230,10 @@ test("users list: access column, Administrators chip, and id search", async ({ p
   const userId = userPath.split("/").pop() ?? "";
   await postForm(page, `${userPath}/tenants`, { tenant: tenantId, roles: ["admin"] });
 
-  await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
+  // The users list is paginated (seed pads 60 fillers past the 50-row page)
+  // and sorts oldest-first, so a freshly created user is on the LAST page.
+  // Assert through the search view, which is page-independent.
+  await page.goto(`${ADMIN}/admin/users?q=e2e-access-${stamp}@acme.dev`, { waitUntil: "load" });
   await page.waitForTimeout(400);
   const html = await page.content();
   expect(html).toContain(">Access<");
