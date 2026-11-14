@@ -24,7 +24,7 @@ func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *ident
 	if al := h.config.Service.AuditLog(); al != nil {
 		all := al.Recent(al.Count())
 		resolveAuditEmails(h.config.Service, all)
-		matched := filterAuditEntries(all, q, h.tenantAuditNames())
+		matched := filterAuditEntries(all, q)
 		total = len(matched)
 		offset, limit, totalPages, page := pageBounds(parsePageQuery(r), total, listPageSize)
 		entries = matched[offset : offset+limit]
@@ -41,18 +41,6 @@ func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *ident
 	}
 	p := h.page("Audit log", "/audit", user, r)
 	renderPage(w, r, auditPage(p, d))
-}
-
-// tenantAuditNames maps a tenant aggregate stream id (the tenant slug) to
-// its searchable names — slug + display name, lowercased — so a tenant-name
-// query lands on the tenant lifecycle entries the audit log records against
-// that stream.
-func (h *Handler) tenantAuditNames() map[string]string {
-	names := make(map[string]string)
-	for _, t := range h.config.Service.AllTenants() {
-		names[t.ID.Get()] = strings.ToLower(t.Name + " " + t.DisplayName)
-	}
-	return names
 }
 
 // resolveAuditEmails fills in the human email for audit entries recorded

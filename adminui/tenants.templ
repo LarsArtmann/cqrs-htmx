@@ -244,13 +244,6 @@ templ tenantDetailContent(d tenantDetailData) {
 	@display.Card(display.CardProps{
 		Header: dangerZoneHeader(),
 	}) {
-		// T104: the audit shortcut. Tenant lifecycle entries (created,
-		// suspended, reactivated, deleted, renamed) carry the tenant's
-		// aggregate stream, and the audit search matches tenant names, so the
-		// query lands on those entries directly.
-		<div class="mb-3">
-			<a class="text-sm text-gray-500 no-underline hover:text-gray-900 hover:underline" href={ d.BasePath + "/audit?q=" + d.Tenant.Name }>Tenant audit trail →</a>
-		</div>
 		<div class="flex flex-wrap gap-2.5">
 			if d.Tenant.Suspended {
 				@display.Button(display.ButtonProps{

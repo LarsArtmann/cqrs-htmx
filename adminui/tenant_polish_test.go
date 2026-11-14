@@ -74,8 +74,8 @@ func TestTenantsList_SortByMembers(t *testing.T) {
 	rec = httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants", nil))
 	body = rec.Body.String()
-	if strings.Index(body, "lonely") > strings.Index(body, "busy") {
-		t.Error("default sort must be display-name order")
+	if strings.Index(body, "busy") > strings.Index(body, "lonely") {
+		t.Error("default sort must be display-name order (busy before lonely)")
 	}
 }
 
@@ -110,32 +110,14 @@ func TestTenantDetail_ImpactConfirms(t *testing.T) {
 	}
 }
 
-// TestTenantDetail_AuditShortcut pins the per-tenant audit trail link: it
-// points at the audit page scoped to the tenant slug, and that query actually
-// lands on the tenant's lifecycle entries (the filter resolves tenant names).
+// TestTenantDetail_AuditShortcut documents the plan's T104 gap: the audit
+// log records NO tenant lifecycle entries (verified empirically — a
+// CreateTenant dispatch produces zero entries; commandAuditMiddleware covers
+// user/session commands only), so a per-tenant audit shortcut would land on
+// an empty search — a dead-end link this plan's philosophy forbids. The
+// audit-filter extension that would have made it land was built and
+// reverted in the same change. The link ships when the audit log gains
+// tenant attribution — the usermgmt ask in TODO_LIST item (h), D2-gated.
 func TestTenantDetail_AuditShortcut(t *testing.T) {
-	t.Parallel()
-
-	user := mustUser(t, "admin@example.com")
-	h, svc := newTestPanel(t, user)
-	mustCreateTenant(t, svc, "acme")
-
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/acme", nil))
-	body := rec.Body.String()
-	if !strings.Contains(body, `href="/admin/audit?q=acme"`) {
-		t.Error("tenant detail must link the audit trail scoped to the tenant slug")
-	}
-
-	// The query lands: the tenant-create lifecycle entry is recorded against
-	// the tenant's aggregate stream, and the name filter resolves it.
-	rec = httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/audit?q=acme", nil))
-	if rec.Code != http.StatusOK {
-		t.Fatalf("audit page: status %d", rec.Code)
-	}
-	if !strings.Contains(rec.Body.String(), "Tenant created") {
-		t.Error("the audit query by tenant name must surface the tenant lifecycle entries")
-	}
+	t.Skip("audit log has no tenant attribution yet — TODO_LIST item (h), D2-gated")
 }
-

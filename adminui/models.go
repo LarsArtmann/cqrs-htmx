@@ -245,9 +245,9 @@ type tenantAccessRow struct {
 
 // tenantsListData drives the tenants index.
 type tenantsListData struct {
-	Tenants  []tenantRow
-	Total    int
-	Search   string
+	Tenants []tenantRow
+	Total   int
+	Search  string
 	// Status is the active lifecycle filter ("", "active", "suspended",
 	// "deleted"); empty renders the All chip as current.
 	Status string
