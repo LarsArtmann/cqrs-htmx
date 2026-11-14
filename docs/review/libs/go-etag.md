@@ -1,13 +1,13 @@
 # go-etag Utilization Report
 
-> Audit date: 2026-11-05 · Method: library-deep-dive (fleet series, [index](index.html))
+> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html))
 > Library: `github.com/larsartmann/go-etag` (root + `server`/`entitytag` submodules, single tag stream) · Checkout: `/home/lars/projects/go-etag`
 
 ## Verdict at a glance
 
-| Pin                                                 | Latest (verified 2026-11-05)                                                                                                              | Prod import sites | Adoption                                           | Score                  |
+| Pin                                                 | Latest (verified 2026-11-14)                                                                                                              | Prod import sites | Adoption                                           | Score                  |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------- | ---------------------- |
-| `go-etag/server` v0.6.1 (entitytag v0.6.1 indirect) | **v0.6.1 = latest for the consumed submodules** (see § Version currency — the v0.7.0 root tag is a deprecated shim, corrected 2026-11-06) | 4 files           | **Used — conditional requests for immutable JSON** | **83/100 · at latest** |
+| `go-etag/server` v0.6.1 (entitytag v0.6.1 indirect) | **v0.6.1 = latest for the consumed submodules** (see § Version currency — the v0.7.0 root tag is a deprecated shim, corrected 2026-11-06) | 5 files           | **Used — conditional requests for immutable JSON** | **83/100 · at latest** |
 
 ## What the library is
 
@@ -16,6 +16,7 @@ Entity-tag plumbing: `entitytag` (ETag values/computation) and `server` (conditi
 ## How cqrs-htmx uses it today
 
 - `internal/hx/immutable.go:62,90` — immutable-JSON serving with FNV-1a `HashTag` + `etag.ParseETag`/`etag.MatchesIfNoneMatch` for `If-None-Match` → 304. This underpins `EventCatalogHandler` (1-year cache) and `OpenAPISpecHandler`.
+- `options_render.go:162-163` — per-render ETag on partial-render responses (`RenderPartialOrFull` honors `If-None-Match`; landed with the 2026-11-06 partial-render showcase).
 - `projection_status_handler.go:8` — per-request ETag on projection health JSON.
 - `sync_pull.go:16` — ETag on the ADR-0056 sync pull response.
 - `examples/middleware-showcase` — the ETag middleware demo (all-8-middleware stack).

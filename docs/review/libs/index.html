@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cqrs-htmx &times; LarsArtmann ecosystem — Library Utilization Audit (2026-11-05)</title>
+    <title>cqrs-htmx &times; LarsArtmann ecosystem — Library Utilization Audit (2026-11-14)</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -829,7 +829,7 @@
     <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
       <span>FLEET LIBRARY UTILIZATION AUDIT</span>
-      <span>2026-11-05</span>
+      <span>2026-11-14 (supersedes 2026-11-05)</span>
       <span>cqrs-htmx &middot; Crush / library-deep-dive</span>
     </div>
 
@@ -839,7 +839,7 @@
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#libraries">The 19 Libraries</a>
+          <a href="#libraries">The 22 Libraries</a>
           <a href="#findings">Fleet Findings</a>
           <a href="#posture">Dependency Posture</a>
           <a href="#plan">Action Plan</a>
@@ -859,58 +859,77 @@
           <div class="hero-badge">Fleet Library Utilization Audit</div>
           <h1>cqrs-htmx &times; the LarsArtmann ecosystem</h1>
           <p class="hero-subtitle">
-            19 sibling libraries audited: used-to-the-max verdicts, capability
+            22 sibling libraries audited: used-to-the-max verdicts, capability
             inventories, adoption recommendations. Every version claim verified
-            against <code>git ls-remote --tags</code> on 2026-11-05; every usage
-            claim re-derived by grep from the 29-module workspace.
+            against <code>git ls-remote</code> / <code>for-each-ref</code> on
+            2026-11-14; every usage claim re-derived by grep from the
+            30-module workspace. The 2026-11-05 round's entire action plan
+            landed &mdash; this refresh measures the aftermath and the nine
+            days of drift (549 commits) since.
           </p>
         </div>
 
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">19</div>
-            <div class="stat-label">Libraries audited</div>
+            <div class="stat-value">22</div>
+            <div class="stat-label">Libraries audited (was 19)</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">13</div>
-            <div class="stat-label">Used (incl. self-audit)</div>
+            <div class="stat-value">14</div>
+            <div class="stat-label">Used-class (incl. self-audit + 1 wind-down)</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">6</div>
+            <div class="stat-value">8</div>
             <div class="stat-label">Correctly NOT adopted</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">0</div>
-            <div class="stat-label">Version lag (go-etag &ldquo;lag&rdquo; corrected &mdash; artifact)</div>
+            <div class="stat-value">84.6</div>
+            <div class="stat-label">Used-fleet count-rubric avg (was 68.4)</div>
           </div>
         </div>
 
         <h2 id="findings"><span class="num">01</span>Fleet Findings</h2>
 
         <div class="card card-solution">
-          <h4>Zero misuse across the fleet</h4>
+          <h4>The 2026-11-05 action plan fully executed &mdash; fleet average 68.4 &rarr; 84.6</h4>
           <p>
-            No anti-patterns, no hand-rolled replacements for library
-            functionality, no stale majors. Every "partial" adoption is a
-            documented library-principle choice (opt-in, never
-            default-enforced). 11 of 12 pinned entities sit at their latest
-            tag.
+            All three flagged issues resolved and verified at source: SSE drop
+            observability landed (<code>DropStats</code> wired setup &rarr;
+            adminui cards + dashboardui <code>HubHealth</code> + readiness),
+            the health dashboard bridge now forwards CSP-nonce options
+            (against v0.13.2+, not sweep-dependent), and the dogfood items
+            landed (<code>RecommendedSecurityStack</code> builds through
+            <code>httputil.NewMiddlewareStack</code>; the
+            <code>RenderPartialOrFull</code>/<code>OOBHTML</code> showcase
+            lives in <code>examples/basic</code>). Twelve of thirteen
+            used-library scores rose or held; zero misuse found.
           </p>
         </div>
 
         <div class="card card-solution">
-          <h4>Zero real version lag &mdash; the go-etag &ldquo;lag&rdquo; was an artifact (corrected 2026-11-06)</h4>
+          <h4>Two consumer &rarr; library feedback loops CLOSED this cycle</h4>
           <p>
-            The audit read the go-etag repo's root <code>v0.7.0</code> tag as a
-            consumed-pin lag. Verified: that tag releases only the repo-root
-            module, which the upstream README declares a deprecated alias shim
-            removed in v1.0.0 &mdash; NOT the consumed submodules. No
-            <code>server/v0.7.0</code> or <code>entitytag/v0.7.0</code> tags
-            exist; <code>go-etag/server@v0.6.1</code> +
-            <code>go-etag/entitytag@v0.6.1</code> are the latest, and the
-            mechanical treadmill gate (20 repos &middot; 78 prefixes) reports
-            worst lag 0.
+            The CSRF QUERY safe-list this repo drafted (httputil#48) shipped in
+            <strong>httputil v1.9.0</strong> and was swept same-day; and
+            upstream ask go-cqrs-lite#113 resolved as
+            <code>kv.NewCacheForViewStore</code> (kv v4.4.0) &mdash; the
+            182-line otter adapter is deleted, otter now indirect. This is
+            the ecosystem working as designed: fix once upstream, delete
+            local code.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>go-cqrs-lite at 90.5/100 &mdash; the open tail shrank to one miss</h4>
+          <p>
+            Ten capability rows resolved since the 2026-11-03 deep-dive
+            (CBOR, dedup.Ring, kv write-through, snapshot state version,
+            systemcatalog R2, commandlifecycle, DLQ, checkpoint batching,
+            engine presets). R2 landed as drift-gated introspection: one
+            <code>eventCatalogSpecs</code> table feeds both wire formats with
+            parity tests, F032 disables removed. The last missed row:
+            flightrecorder.
           </p>
         </div>
 
@@ -918,48 +937,70 @@
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
-          <h3>Silent SSE drops are unobserved</h3>
-          <div class="where">go-sse: WithOnDrop / BroadcasterHealth &mdash; 0 prod uses</div>
+          <h3>go-cqrs-lite metaengine family lags 1 &mdash; and the bump is not mechanical</h3>
+          <div class="where">metaengine v4.23.0 &rarr; v4.24.0 &middot; metaengine/sqliteengine v4.8.0 &rarr; v4.9.0 (tagged after the M17 sweep)</div>
           <p>
-            Slow SSE consumers are dropped silently by design; the library
-            ships exactly the hooks (drop callback, subscriber health) that
-            would make drops visible. The adminui sync indicator and
-            dashboardui are the natural consumers.
+            The live treadmill gate reports worst lag 1 on both prefixes
+            (strict-lag-0 is RED). v4.24.0 restructures the module into a
+            nested <code>metaengine/v4/</code> directory (dual tags
+            <code>metaengine/v4.24.0</code> + <code>metaengine/v4/v4.24.0</code>),
+            so the sweep needs import-path verification, not just bump-dep.
+            Everything else across 20 repos &middot; 79 prefixes is aligned.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Wire <code>WithOnDrop</code> (log + optional metric) at the root
-            Broadcaster seam; surface <code>BroadcasterHealth</code> beside the
-            sync indicators.
+            Bump both pins in one wave (<code>usermgmt</code>,
+            <code>dashboardui</code>, <code>systemadapter</code>, root), verify
+            the nested-dir module path resolves, re-run
+            <code>nix run .#check-upstream-treadmill -- --strict-lag 0</code>.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
-          <h3>Health dashboard not CSP-nonce-safe through the bridge</h3>
-          <div class="where">health/dashboard.go &mdash; WithNonce unthreaded</div>
+          <h3>The M2M bot path mints no idempotency key</h3>
+          <div class="where">go-idempotency: api_token_middleware.go:45-73 &middot; setup/config.go:519-520</div>
           <p>
-            The repo's own recommended middleware stack is nonce-CSP-first,
-            but <code>health.NewDashboard</code> forwards only
-            <code>WithTitle</code>; the dashboard's inline scripts need the
-            nonce option under that same stack.
+            Bot token dispatch (W0, usermgmt v4.20.0) bridges the actor but
+            never extracts or mints an <code>Idempotency-Key</code>, and
+            <code>CommandIdempotency</code> is absent from the setup default
+            factory list. ADR-0056 sync push already stamps
+            <code>X-Command-Id</code> per envelope &mdash; the consumer-wired
+            posture &mdash; but direct bot callers get replays as duplicate
+            commands.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Accept and forward a nonce (or <code>WithNonceExtractor</code>) in
-            the bridge's <code>NewDashboard</code>.
+            Document the guide's <code>Idempotency-Key</code> keyExtractor
+            recipe for bot routes (or default it on for token-authenticated
+            dispatch); no library change required.
           </div>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Nice to have</span>
-          <h3>Dogfooding polish: partial-render helpers &amp; stack validation</h3>
-          <div class="where">RenderPartialOrFull / OOBHTML / httputil.NewMiddlewareStack</div>
+          <h3>datastar-demo serves the SDK unversioned behind a 24h cache</h3>
+          <div class="where">examples/datastar-demo/main.go:66 &middot; go-datastar ScriptTagVersioned/ETagFor (v0.7.0) unadopted</div>
           <p>
-            <code>RenderPartialOrFull</code> and <code>OOBHTML</code> have zero
-            internal-module uses (tests + docs only), and the recommended
-            security chains are built by hand instead of through httputil's
-            validated <code>MiddlewareStack</code>.
+            The demo hardcodes <code>&lt;script src="/datastar.js"&gt;</code>
+            while the handler serves 24h <code>max-age</code> &mdash; exactly
+            the old-client/new-server skew upstream built
+            <code>ScriptTagVersioned</code>/<code>ETagFor</code> for (upstream
+            fixed this same bug in its own example). The adapter does not
+            re-export either helper; the <code>datastartest</code> submodule
+            is also unused while adapter tests hand-roll SSE-body assertions.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice to have</span>
+          <h3>templ-components popover CSS still broken upstream</h3>
+          <div class="where">templ-components templates/custom.css:152-164 &mdash; 91 unreleased commits, none touch it</div>
+          <p>
+            The compound <code>position-area</code> values Chromium 156
+            rejects remain at v1.27.0; adminui keeps its corrected vendored
+            layer (single-keyword bands + explicit anchor-name pairs). The
+            upstream ask stays open; the local fix stays load-bearing.
           </p>
         </div>
 
@@ -969,19 +1010,31 @@
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Version discipline is mechanized</strong>
-              <span>Treadmill gate + release-train strict-lag 0: all 15
-              go-cqrs-lite trains and 11 of 12 other pins at latest, verified
-              live.</span>
+              <strong>The 2026-11-05 plan executed in full</strong>
+              <span>Every action item landed within nine days: SSE drops
+              observed, nonce forwarded, middleware stacks validated,
+              partial-render showcase shipped &mdash; and the fleet average
+              moved 68.4 &rarr; 84.6.</span>
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Deprecation glide path held</strong>
-              <span>Zero internal uses of deprecated root re-exports; internal
-              modules import httputil/go-idempotency directly; v5 removal is
-              on rails.</span>
+              <strong>Ecosystem loops close upstream, not locally</strong>
+              <span>httputil#48 (CSRF QUERY safe-list) shipped in v1.9.0 and
+              was swept same-day; go-cqrs-lite#113 shipped as
+              kv.NewCacheForViewStore and deleted our adapter. Zero
+              hand-rolled library replacements remain in the fleet.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Deprecation glide path held under pressure</strong>
+              <span>77 root façade aliases deprecated (ADR-0062, gate-kept,
+              zero growth); datastar's 6 shims carry Deprecated markers;
+              server_timing's 8 aliases have zero non-test internal uses
+              &mdash; v5 deletes stay file deletes.</span>
             </div>
           </div>
           <div class="strength">
@@ -989,30 +1042,35 @@
             <div class="text">
               <strong>Library principle consistently honored</strong>
               <span>Every un-adopted default (CORS, compression, timeouts,
-              metrics) is opt-in by documented design, never imposed on
-              consumers.</span>
+              metrics, CSP) is opt-in by documented design, never imposed on
+              consumers &mdash; verified again across the 8 correctly-not-adopted
+              verdicts.</span>
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Audit series incorporated, not duplicated</strong>
-              <span>go-cqrs-lite 73/100 (2026-11-03, updated to ~80 derived),
-              templ-components 97/94/95 (2026-10-04), health bridge 9/10
-              (2026-10-30) &mdash; this audit defers to and updates them.</span>
+              <span>go-cqrs-lite 73 (2026-11-03) re-derived to 90.5;
+              templ-components series 97/94/95 (2026-10-04) kept as the series
+              of record; health bridge 9/10 (2026-10-30) re-verified; DataStar
+              client-side deep-dive (2026-11-07) folded into the new
+              go-datastar report &mdash; whose JS-SDK gap (v1.0.3&rarr;v1.0.4)
+              closed with the v0.7.0 lockstep cut.</span>
             </div>
           </div>
         </div>
 
-        <!-- The 19 Libraries -->
-        <h2 id="libraries">The 19 Libraries</h2>
+        <!-- The 22 Libraries -->
+        <h2 id="libraries">The 22 Libraries</h2>
         <p>
           Ordered by count-rubric score (descending, ties alphabetical), then
           the wind-down entry, then correctly-not-adopted libraries
-          (alphabetical). "Score" is the count-rubric headline from each
-          report (see per-report derivations; impact-weighted readings noted
-          where they differ). Grades are <strong>repo-consumer level</strong>
-          &mdash; one consumer with 29 modules; the
+          (alphabetical). "&Delta;" shows movement since the 2026-11-05
+          round. "Score" is the count-rubric headline from each report (see
+          per-report derivations; impact-weighted readings noted where they
+          differ). Grades are <strong>repo-consumer level</strong> &mdash;
+          one consumer with 30 modules; the
           <a href="#matrix">per-module matrix</a> shows how adoption
           actually distributes.
         </p>
@@ -1023,117 +1081,133 @@
               <th>Library</th>
               <th>Pin &rarr; Latest</th>
               <th>Usage</th>
-              <th>Score / verdict</th>
+              <th>Score / verdict &middot; &Delta; since 11-05</th>
               <th>Report</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>1</td>
-              <td>templ-components</td>
-              <td>v1.27.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>89 (series 97/94/95)</td>
-              <td><a href="templ-components.md">md</a></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>go-idempotency</td>
-              <td>v0.3.2 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>88</td>
-              <td><a href="go-idempotency.md">md</a></td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>cqrs-htmx (self)</td>
-              <td>trains strict-lag 0</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>83 count / ~92 effective</td>
-              <td><a href="cqrs-htmx.md">md</a></td>
-            </tr>
-            <tr>
-              <td>4</td>
-              <td>go-etag</td>
-              <td>v0.6.1 = latest (submodules)</td>
-              <td><span class="badge badge-fixed">None</span></td>
-              <td>83 &middot; corrected 2026-11-06: the v0.7.0 tag releases only the deprecated repo-root shim; server/entitytag submodules have no v0.7.0 &mdash; treadmill worst-lag 0</td>
-              <td><a href="go-etag.md">md</a></td>
-            </tr>
-            <tr>
-              <td>5</td>
               <td>go-appkit</td>
-              <td>v0.9.0 = latest</td>
+              <td>v0.12.0 = latest</td>
               <td><span class="badge badge-fixed">Used</span></td>
-              <td>80</td>
+              <td>100 &middot; hooks + readiness landed &middot; &Delta;+20</td>
               <td><a href="go-appkit.md">md</a></td>
             </tr>
             <tr>
-              <td>6</td>
-              <td>go-cqrs-lite (15 trains)</td>
-              <td>all = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>73 audited / ~80 derived</td>
-              <td><a href="go-cqrs-lite.md">md</a></td>
-            </tr>
-            <tr>
-              <td>7</td>
-              <td>httputil</td>
-              <td>v1.8.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>73 count / ~85 effective</td>
-              <td><a href="httputil.md">md</a></td>
-            </tr>
-            <tr>
-              <td>8</td>
-              <td>go-sse</td>
-              <td>v0.7.0 = latest</td>
-              <td><span class="badge badge-fixed">Used</span></td>
-              <td>72 count / ~85 impact</td>
-              <td><a href="go-sse.md">md</a></td>
-            </tr>
-            <tr>
-              <td>9</td>
+              <td>2</td>
               <td>go-health-dashboard</td>
-              <td>v0.13.2 = latest</td>
+              <td>v0.13.3 = latest</td>
               <td><span class="badge badge-fixed">Used</span></td>
-              <td>67 &middot; nonce gap</td>
+              <td>100 &middot; nonce gap closed &middot; &Delta;+33</td>
               <td><a href="go-health-dashboard.md">md</a></td>
             </tr>
             <tr>
-              <td>10</td>
+              <td>3</td>
+              <td>templ-components</td>
+              <td>v1.27.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>95 (series 97/94/95) &middot; &Delta;+6</td>
+              <td><a href="templ-components.md">md</a></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>go-sse</td>
+              <td>v0.7.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>94 count / ~95 impact &middot; DropStats wired &middot; &Delta;+22</td>
+              <td><a href="go-sse.md">md</a></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>go-cqrs-lite (38 trains)</td>
+              <td>36/38 at latest &middot; metaengine family lag 1</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>90.5 &middot; 10 rows resolved, 1 miss left &middot; &Delta;+10.5 derived</td>
+              <td><a href="go-cqrs-lite.md">md</a></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>go-idempotency</td>
+              <td>v0.3.2 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>88 &middot; held; bot-path gap found &middot; &Delta;0</td>
+              <td><a href="go-idempotency.md">md</a></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>cqrs-htmx (self)</td>
+              <td>family trains strict-lag 0</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>83 count / ~92 effective &middot; inventory 12&rarr;15 rows &middot; &Delta;0</td>
+              <td><a href="cqrs-htmx.md">md</a></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>go-etag</td>
+              <td>v0.6.1 = latest (submodules)</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>83 &middot; 5 prod sites (partial-render ETag new) &middot; &Delta;0</td>
+              <td><a href="go-etag.md">md</a></td>
+            </tr>
+            <tr>
+              <td>9</td>
               <td>go-error-family</td>
               <td>v0.12.0 = latest</td>
               <td><span class="badge badge-fixed">Used</span></td>
-              <td>65 count / ~82 impact</td>
+              <td>80 count / ~90 impact &middot; Audience+Retryable landed &middot; &Delta;+15</td>
               <td><a href="go-error-family.md">md</a></td>
             </tr>
             <tr>
-              <td>11</td>
-              <td>go-health</td>
-              <td>v0.10.0 = latest</td>
+              <td>10</td>
+              <td>httputil</td>
+              <td>v1.9.0 = latest (same-day sweep)</td>
               <td><span class="badge badge-fixed">Used</span></td>
-              <td>65 count / bridge 9/10</td>
-              <td><a href="go-health.md">md</a></td>
+              <td>79 count / ~90 effective &middot; &Delta;+6</td>
+              <td><a href="httputil.md">md</a></td>
             </tr>
             <tr>
-              <td>12</td>
+              <td>11</td>
               <td>go-codec</td>
               <td>v0.3.3 = latest</td>
               <td><span class="badge badge-fixed">Used</span></td>
-              <td>44 count / core at max</td>
+              <td>71 &middot; CBOR (ADR-0059) + Diagnose landed &middot; &Delta;+27</td>
               <td><a href="go-codec.md">md</a></td>
             </tr>
             <tr>
+              <td>12</td>
+              <td>go-datastar</td>
+              <td>v0.7.0 lockstep = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>71 &middot; NEW report; JS SDK v1.0.4 embedded</td>
+              <td><a href="go-datastar.md">md</a></td>
+            </tr>
+            <tr>
               <td>13</td>
-              <td>httputil/server_timing</td>
-              <td>v1.0.3 = latest</td>
-              <td><span class="badge badge-low">Wind-down</span></td>
-              <td>v5 glide path</td>
-              <td><a href="httputil-server-timing.md">md</a></td>
+              <td>go-health</td>
+              <td>v0.10.0 = latest</td>
+              <td><span class="badge badge-fixed">Used</span></td>
+              <td>65 count / bridge 9/10 &middot; held</td>
+              <td><a href="go-health.md">md</a></td>
             </tr>
             <tr>
               <td>14</td>
+              <td>httputil/server_timing</td>
+              <td>v1.0.3 = latest</td>
+              <td><span class="badge badge-low">Wind-down</span></td>
+              <td>v5 glide path &middot; zero alias uses</td>
+              <td><a href="httputil-server-timing.md">md</a></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>cmdguard</td>
+              <td>&mdash; (latest v5.1.0)</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: library, no CLI; trigger = future scaffolding CLI</td>
+              <td><a href="cmdguard.md">md</a></td>
+            </tr>
+            <tr>
+              <td>16</td>
               <td>go-atomic-write</td>
               <td>&mdash; (transitive v0.6.2)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
@@ -1141,31 +1215,31 @@
               <td><a href="go-atomic-write.md">md</a></td>
             </tr>
             <tr>
-              <td>15</td>
+              <td>17</td>
               <td>go-credentials-store</td>
-              <td>&mdash;</td>
+              <td>&mdash; (latest v0.4.3)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
               <td>correct: sibling app, not a dep</td>
               <td><a href="go-credentials-store.md">md</a></td>
             </tr>
             <tr>
-              <td>16</td>
+              <td>18</td>
               <td>go-daemon</td>
-              <td>&mdash;</td>
+              <td>&mdash; (latest v0.4.0)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
-              <td>correct: deployment layer (+1 docs note)</td>
+              <td>correct: deployment layer; systemd notify delivered via appkit hooks</td>
               <td><a href="go-daemon.md">md</a></td>
             </tr>
             <tr>
-              <td>17</td>
+              <td>19</td>
               <td>go-filewatcher</td>
-              <td>&mdash;</td>
+              <td>&mdash; (latest v2.5.0)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
               <td>correct: no watching concern</td>
               <td><a href="go-filewatcher.md">md</a></td>
             </tr>
             <tr>
-              <td>18</td>
+              <td>20</td>
               <td>go-output</td>
               <td>&mdash; (transitive v0.38.7)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
@@ -1173,63 +1247,72 @@
               <td><a href="go-output.md">md</a></td>
             </tr>
             <tr>
-              <td>19</td>
+              <td>21</td>
               <td>go-retry</td>
               <td>&mdash; (transitive v0.9.0)</td>
               <td><span class="badge badge-low">Not adopted</span></td>
               <td>correct: middleware is the seam</td>
               <td><a href="go-retry.md">md</a></td>
             </tr>
+            <tr>
+              <td>22</td>
+              <td>httputil/endpoints</td>
+              <td>&mdash; (latest v0.1.0)</td>
+              <td><span class="badge badge-low">Not adopted</span></td>
+              <td>correct: RoutePostures() is the richer, gated answer</td>
+              <td><a href="httputil-endpoints.md">md</a></td>
+            </tr>
           </tbody>
         </table>
 
         <!-- ASCII Diagram -->
         <h2 id="posture">Dependency Posture</h2>
-        <div class="dep-tree"><span class="root">go-cqrs-lite</span> ── foundation (159 prod files, 15 trains, 0 anti-patterns)
-├── <span class="ok">cqrs-htmx root</span> ── HTTP/HTMX face (self 83/~92)
-│   ├── <span class="ok">httputil + server_timing</span> ── middleware substrate
-│   ├── <span class="ok">go-sse</span> ── realtime &middot; <span class="ok">go-etag</span> ── conditional requests (submodules at latest)
-│   ├── <span class="ok">go-error-family</span> ── errors &middot; <span class="ok">go-codec</span> ── payloads &middot; <span class="ok">go-idempotency</span> ── dedup
-│   ├── <span class="ok">templ-components</span> ── UI kit (adminui / dashboardui / loginpage)
-│   └── <span class="ok">go-health + dashboard</span> ── probes &middot; <span class="ok">go-appkit</span> ── setup runtime seam
+        <div class="dep-tree"><span class="root">go-cqrs-lite</span> ── foundation (170 prod files, 38 trains, 1 lag: metaengine family)
+├── <span class="ok">cqrs-htmx root</span> ── HTTP/HTMX face (self 83/~92, htmx 2.0.11 + 4.0.1 embedded)
+│   ├── <span class="ok">httputil v1.9.0</span> (CSRF safe-list ask closed) + <span class="ok">server_timing</span> (wind-down)
+│   ├── <span class="ok">go-sse</span> ── realtime + DropStats &middot; <span class="ok">go-etag</span> ── conditional requests
+│   ├── <span class="ok">go-error-family</span> ── errors &middot; <span class="ok">go-codec</span> ── JSON+CBOR &middot; <span class="ok">go-idempotency</span> ── dedup
+│   ├── <span class="ok">templ-components</span> ── UI kit (adminui / dashboardui / loginpage, charts landed)
+│   ├── <span class="ok">go-datastar v0.7.0</span> ── optional adapter (root+broadcast+static lockstep)
+│   └── <span class="ok">go-health + dashboard</span> ── probes &middot; <span class="ok">go-appkit v0.12.0</span> ── setup runtime seam
 └── correctly outside: go-retry &middot; go-atomic-write &middot; go-filewatcher
-    &middot; go-daemon &middot; go-output &middot; go-credentials-store</div>
+    &middot; go-daemon &middot; go-output &middot; go-credentials-store &middot; cmdguard &middot; httputil/endpoints</div>
 
         <!-- Numbered Steps -->
         <h2 id="plan"><span class="num">03</span>Action Plan</h2>
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
-            <h4>Bump go-etag v0.6.1 &rarr; v0.7.0</h4>
-            <p>Chore-only gap (verified 11 commits, zero functional delta). Next bump-dep sweep.</p>
+            <h4>Bump the metaengine family (lag 1 &times; 2 prefixes)</h4>
+            <p>metaengine v4.23.0 &rarr; v4.24.0 + metaengine/sqliteengine v4.8.0 &rarr; v4.9.0. v4.24.0 nests the module into <code>metaengine/v4/</code> (dual tags) &mdash; verify import paths resolve, then re-run the treadmill strict-lag 0.</p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
-            <h4>Observe SSE drops</h4>
-            <p>Wire <code>WithOnDrop</code> + surface <code>BroadcasterHealth</code> at the root Broadcaster seam.</p>
+            <h4>Close the M2M idempotency gap</h4>
+            <p>Document the <code>Idempotency-Key</code> keyExtractor recipe for bot routes (guide line 113), or default <code>CommandIdempotency</code> on for token-authenticated dispatch.</p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">3</div>
           <div class="migration-content">
-            <h4>Make the health dashboard CSP-safe</h4>
-            <p>Thread a nonce option through <code>health.NewDashboard</code>.</p>
+            <h4>Version the datastar-demo script tag</h4>
+            <p>Adopt <code>ScriptTagVersioned</code>/<code>ETagFor</code> in examples/datastar-demo (24h-cache skew class) and consider re-exporting them from the adapter; use <code>datastartest</code> for adapter SSE assertions.</p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">4</div>
           <div class="migration-content">
-            <h4>Dogfood polish</h4>
-            <p>A <code>RenderPartialOrFull</code> + <code>OOBHTML</code> showcase page in examples/basic; build recommended chains through <code>httputil.NewMiddlewareStack</code>.</p>
+            <h4>Upstream watch items</h4>
+            <p>templ-components popover CSS (vendored correction stays load-bearing until fixed); cqrs-lint rebuild at v4.21.0 (waiver adoption); wire <code>ExpectNotModifiedDynamic</code> as an ETag-handler spec (httputil v1.9.0).</p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">5</div>
           <div class="migration-content">
             <h4>Stretch items (wave planning)</h4>
-            <p>errorfamily <code>Audience</code>-filtered SafeDetail; codec <code>AutoDetect</code> honest sync stamps (ADR-0056-gated); dashboardui charts panel; go-cqrs-lite open tail (systemcatalog, commandlifecycle, DLQ, checkpoint batching).</p>
+            <p>Wire <code>ProblemDetailsAudienceErrorHandler</code> (errorfamily last partial); a QUERY-ladder internal panel + shipped OpenAPI spec consumer (self-audit rows 8/9); go-cqrs-lite flightrecorder (last miss); SSE drops &rarr; OTel metric (guide recipe).</p>
           </div>
         </div>
 
@@ -1246,54 +1329,61 @@
         <div class="card card-problem">
           <h4>Reading caveat &mdash; aggregation can hide asymmetry</h4>
           <p>
-            The fleet-level grades stay valid, but three readings need the
+            The fleet-level grades stay valid, but four readings need the
             per-module lens: (1) <strong>httputil</strong> adoption is
             root/consumer-app-led &mdash; adminui and loginpage import it in
             1 file each, deliberately: UI panels ride the consumer's
             middleware stack rather than mounting CSRF/rate-limiting
             themselves (library principle); (2) <strong>go-codec</strong> is
-            usermgmt-led (payloads live there) with dashboardui/identity-model
-            behind it and the UI modules at zero &mdash; correct architecture,
-            visible only here; (3) <strong>adminui's thin go-error-family
-            count (2 files)</strong> is delegation to root's
-            <code>httperr</code> mapping, not neglect.
+            usermgmt-led (the CBOR payloads live there) with dashboardui/
+            identity-model behind it and the UI modules at zero &mdash;
+            correct architecture, visible only here; (3) <strong>adminui's
+            thin go-error-family count (4 files)</strong> is delegation to
+            root's <code>httperr</code> mapping, not neglect; (4)
+            <strong>go-cqrs-lite's adminui count (1 file)</strong> is the
+            alias-free re-export layer &mdash; adminui consumes cqrs-htmx
+            surfaces, not raw trains.
           </p>
         </div>
         <table>
           <thead>
             <tr>
               <th>Library</th>
-              <th>Per-module prod import files</th>
+              <th>Per-module prod import files (2026-11-14 census)</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>go-cqrs-lite</td>
-              <td>usermgmt 62 &middot; dashboardui 29 &middot; root 24 &middot; examples 14 &middot; identity-model 11 &middot; setup 11 &middot; systemadapter 11 &middot; e2e 3 &middot; loginpage 4 &middot; datastar 1</td>
+              <td>usermgmt 64 &middot; dashboardui 30 &middot; root 30 &middot; systemadapter 12 &middot; identity-model 11 &middot; examples 14 &middot; setup 4 &middot; e2e 4 &middot; adminui 1 &middot; datastar 1</td>
             </tr>
             <tr>
               <td>go-error-family</td>
-              <td>usermgmt 55 &middot; root 29 &middot; identity-model 15 &middot; dashboardui 9 &middot; setup 8 &middot; examples 6 &middot; adminui 2 &middot; authztest 2 &middot; auditlog/health/loginpage/e2e/systemadapter 1 each</td>
+              <td>usermgmt 54 &middot; root 37 &middot; identity-model 15 &middot; dashboardui 11 &middot; setup 8 &middot; examples 7 &middot; adminui 4 &middot; authztest 3 &middot; e2e 2 &middot; loginpage/systemadapter/health/auditlog 1 each</td>
             </tr>
             <tr>
               <td>httputil</td>
-              <td>root 15 &middot; examples 9 &middot; setup 3 &middot; usermgmt 3 &middot; dashboardui 2 &middot; adminui 1 &middot; loginpage 1 &middot; e2e 1 &nbsp;(server_timing: root 2 &middot; examples 1)</td>
+              <td>root 10 (3 deprecated re-export files) &middot; examples 10 &middot; usermgmt 3 &middot; setup 3 &middot; dashboardui 2 &middot; adminui 1 &middot; loginpage 1 &middot; e2e 1 &nbsp;(server_timing: root 2 &middot; examples 1)</td>
             </tr>
             <tr>
               <td>go-sse</td>
-              <td>root 9 (incl. transport/) &middot; examples 3 &middot; datastar 2 &middot; setup 2 &middot; dashboardui 1 &middot; e2e 1</td>
+              <td>root 5 &middot; examples 3 &middot; datastar 2 &middot; setup 2 &middot; dashboardui 1 &middot; e2e 1</td>
             </tr>
             <tr>
               <td>templ-components</td>
-              <td>dashboardui 25 &middot; adminui 12 &middot; loginpage 2 &nbsp;(depth per module: 97 / 94 / 95)</td>
+              <td>dashboardui 27 &middot; adminui 15 &middot; loginpage 2 &middot; examples 1 &nbsp;(depth per module: 97 / 94 / 95)</td>
+            </tr>
+            <tr>
+              <td>go-datastar</td>
+              <td>setup 2 &middot; datastar 2 (adapter) &middot; examples 1 &nbsp;(broadcast + static in lockstep v0.7.0)</td>
             </tr>
             <tr>
               <td>go-codec</td>
-              <td>usermgmt 10 &middot; dashboardui 2 &middot; identity-model 1 &middot; root 1</td>
+              <td>usermgmt 10 &middot; dashboardui 3 &middot; root 2 &middot; identity-model 1</td>
             </tr>
             <tr>
               <td>go-etag</td>
-              <td>root 3 (internal/hx, sync pull, projection status) &middot; examples 1</td>
+              <td>root 4 (internal/hx, sync pull, partial render, projection status) &middot; examples 1</td>
             </tr>
             <tr>
               <td>go-idempotency</td>
@@ -1301,27 +1391,28 @@
             </tr>
             <tr>
               <td>go-health</td>
-              <td>health 2 &middot; examples 2</td>
+              <td>health 2 &middot; examples 2 &middot; e2e 1</td>
             </tr>
             <tr>
               <td>go-health-dashboard</td>
-              <td>health 1 &middot; examples 1</td>
+              <td>health 1 &middot; examples 1 &middot; e2e 1</td>
             </tr>
             <tr>
               <td>go-appkit</td>
               <td>setup 2</td>
             </tr>
             <tr>
-              <td>go-retry / go-atomic-write / go-filewatcher / go-daemon / go-output / go-credentials-store</td>
+              <td>go-retry / go-atomic-write / go-filewatcher / go-daemon / go-output / go-credentials-store / cmdguard / httputil-endpoints</td>
               <td>0 everywhere (transitive or not adopted &mdash; see their reports)</td>
             </tr>
           </tbody>
         </table>
 
         <footer class="footer">
-          Generated 2026-11-05 &middot; library-deep-dive methodology &middot; every
-          version claim verified via git ls-remote &middot; per-library reports
-          live in this directory &middot; supersedes docs/LIBRARY_INTEGRATIONS.md
+          Generated 2026-11-14 (supersedes 2026-11-05) &middot;
+          library-deep-dive methodology &middot; every version claim verified
+          via git ls-remote / for-each-ref &middot; per-library reports live in
+          this directory &middot; supersedes docs/LIBRARY_INTEGRATIONS.md
           (2026-05-13)
         </footer>
       </main>
