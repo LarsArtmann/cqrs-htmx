@@ -163,9 +163,11 @@ type userDetailData struct {
 	TenantOptions []forms.SelectOption
 	// AssignableRoles is the role vocabulary the grant form offers.
 	AssignableRoles []identitymodel.Role
-	// AddTenantAccessURL is the POST target for grants; RemoveTenantBase is a
-	// URL prefix for removals (append "/{tenant}/delete").
+	// AddTenantAccessURL is the POST target for grants. UpdateTenantBase and
+	// RemoveTenantBase are prefixes for per-tenant writes: append "/{tenant}"
+	// to change roles, "/{tenant}/delete" to revoke.
 	AddTenantAccessURL string
+	UpdateTenantBase   string
 	RemoveTenantBase   string
 }
 

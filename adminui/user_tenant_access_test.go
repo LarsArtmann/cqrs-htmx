@@ -2,8 +2,6 @@ package adminui
 
 import (
 	"context"
-	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -104,11 +102,22 @@ func TestUserGrantTenantAccess(t *testing.T) {
 		t.Errorf("expected owner role, got %v", members[0].Roles)
 	}
 
-	// Re-granting replaces the role set (the durable AddMember contract).
-	postForm(h, userBase+"/tenants", url.Values{"tenant": {"acme"}, "role": {"viewer"}})
+	// A membership is ADDED once: re-granting the same tenant is refused with
+	// guidance instead of silently dispatching a doomed command.
+	rec = postForm(h, userBase+"/tenants", url.Values{"tenant": {"acme"}, "role": {"viewer"}})
+	if !strings.Contains(rec.Header().Get("Hx-Trigger"), "already in this tenant") {
+		t.Errorf("re-grant should explain that the member exists, got %q", rec.Header().Get("Hx-Trigger"))
+	}
+
+	// Changing an existing membership is its own command and replaces the roles.
+	rec = postForm(h, userBase+"/tenants/acme", url.Values{"role": {"viewer"}})
+	if got := rec.Header().Get("HX-Redirect"); got != userBase {
+		t.Errorf("role update redirect = %q, want %q", got, userBase)
+	}
 	members = svc.TenantMembers(ctx, tenant.ID)
 	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) {
-		t.Errorf("expected the role set to be replaced with viewer, got %+v", members)
+		t.Fatalf("expected the role set to become viewer, got %v (toast %q)",
+			members, rec.Header().Get("Hx-Trigger"))
 	}
 }
 
@@ -163,16 +172,4 @@ func TestUserRevokeTenantAccess(t *testing.T) {
 	if got := svc.TenantMembers(ctx, tenant.ID); len(got) != 0 {
 		t.Fatalf("expected the membership to be gone, got %+v", got)
 	}
-}
-
-func renderUserDetail(t *testing.T, h http.Handler, userID string) string {
-	t.Helper()
-
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/"+userID, nil))
-	if rec.Code != http.StatusOK {
-		t.Fatalf("GET user detail: status %d; body=%s", rec.Code, rec.Body.String())
-	}
-
-	return rec.Body.String()
 }

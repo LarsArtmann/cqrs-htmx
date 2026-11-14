@@ -28,11 +28,19 @@ func (h *Handler) lookupUser(id identitymodel.UserID) (*identitymodel.User, bool
 // autocomplete. Sorted and bounded (MaxListRows) so a large directory cannot
 // balloon the page; the field stays a free-text email input, so typing an
 // address outside the list still works.
-func (h *Handler) memberEmailOptions() []string {
+func (h *Handler) memberEmailOptions(exclude []memberRow) []string {
+	alreadyMember := make(map[string]bool, len(exclude))
+	for _, m := range exclude {
+		if m.Email != "" {
+			alreadyMember[strings.ToLower(m.Email)] = true
+		}
+	}
 	all := h.config.Service.ReadModel().AllUsers()
 	emails := make([]string, 0, min(len(all), MaxListRows))
 	for _, u := range all {
-		if u.Email != "" {
+		// A duplicate add is refused by the decider, so offering an existing
+		// member in the autocomplete would only lead the admin into an error.
+		if u.Email != "" && !alreadyMember[strings.ToLower(u.Email)] {
 			emails = append(emails, u.Email)
 		}
 	}
@@ -92,7 +100,7 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
 		UpdateRoleBase:   memberBase,
-		UserEmailOptions: h.memberEmailOptions(),
+		UserEmailOptions: h.memberEmailOptions(members),
 	}
 	h.applyMemberError(r, &d)
 	p := h.page("Members", "/members", user, r)

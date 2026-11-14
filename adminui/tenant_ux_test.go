@@ -163,6 +163,33 @@ func TestMembersCard_AddMemberAutocomplete(t *testing.T) {
 	}
 }
 
+// TestMembersCard_ExistingMembersNotSuggested proves the add-member
+// autocomplete stops offering people who are already in the tenant: a duplicate
+// add is refused by the decider, so suggesting one is a dead end.
+func TestMembersCard_ExistingMembersNotSuggested(t *testing.T) {
+	t.Parallel()
+
+	user := mustUser(t, "admin@example.com")
+	h, svc := newTestPanel(t, user)
+
+	tenant := mustCreateTenant(t, svc, "acme")
+	member := mustRegister(t, svc, "u-in", "in@acme.com")
+	outsider := mustRegister(t, svc, "u-out", "out@acme.com")
+	_ = outsider
+	mustAddMember(t, svc, member.User.ID, tenant.ID, identitymodel.RoleUser)
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/acme", nil))
+	body := rec.Body.String()
+
+	if strings.Contains(body, `value="in@acme.com"`) {
+		t.Error("an existing member must not be suggested for a duplicate add")
+	}
+	if !strings.Contains(body, `value="out@acme.com"`) {
+		t.Error("a non-member must still be suggested")
+	}
+}
+
 // TestTenantAdminMembers_NoUserLinks proves the tenant-admin mode does not link
 // to a user directory it does not serve: the mode has no /users route, so a
 // detail link there would 404.

@@ -190,9 +190,10 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 		ConfiguredProviders: h.config.Service.ConfiguredOAuth2Providers(),
 		UnlinkExternalBase:  userBase + "/external",
 		TenantAccess:        tenantAccess,
-		TenantOptions:       tenantSelectOptions(h.config.Service.AllTenants()),
+		TenantOptions:       withoutTenantOptions(tenantSelectOptions(h.config.Service.AllTenants()), tenantAccess),
 		AssignableRoles:     identitymodel.AssignableRoles(),
 		AddTenantAccessURL:  userBase + "/tenants",
+		UpdateTenantBase:    userBase + "/tenants",
 		RemoveTenantBase:    userBase + "/tenants",
 	}))
 }
@@ -276,6 +277,41 @@ func (h *Handler) userGrantTenantAccess(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	triggerToast(w, "ok", "Tenant access granted")
+	redirect(w, r, back)
+}
+
+// userUpdateTenantRole replaces a user's roles in one tenant. It is the
+// counterpart of the grant: a membership is ADDED once (the decider refuses a
+// duplicate), so changing an existing membership is its own command.
+func (h *Handler) userUpdateTenantRole(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, back, ok := h.parseTargetUser(w, r)
+	if !ok {
+		return
+	}
+	tenantRaw := strings.TrimSpace(r.PathValue("tenant"))
+	if tenantRaw == "" {
+		triggerToast(w, "err", "Missing tenant")
+		redirect(w, r, back)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
+		return
+	}
+	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
+	if !slices.Contains(identitymodel.AssignableRoles(), role) {
+		triggerToast(w, "err", "Unknown role")
+		redirect(w, r, back)
+		return
+	}
+	if err := h.config.Service.UpdateMemberRoles(
+		r.Context(), identitymodel.ActorIDFromUser(target), identitymodel.NewTenantID(tenantRaw),
+		[]identitymodel.Role{role},
+	); err != nil {
+		h.writeActionError(w, r, "Update tenant role", err)
+		return
+	}
+	triggerToast(w, "ok", "Tenant role updated")
 	redirect(w, r, back)
 }
 

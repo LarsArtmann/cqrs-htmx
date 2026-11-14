@@ -255,6 +255,7 @@ templ userDetailContent(d userDetailData) {
 	}) {
 		@display.StatCard(display.StatCardProps{Label: "Credentials", Value: strconv.Itoa(len(d.User.Credentials))})
 		@display.StatCard(display.StatCardProps{Label: "External accounts", Value: strconv.Itoa(len(d.User.ExternalAccounts))})
+		@display.StatCard(display.StatCardProps{Label: "Tenants", Value: strconv.Itoa(len(d.TenantAccess))})
 		@display.StatCard(display.StatCardProps{Label: "Member since", Value: d.User.CreatedAt.Format("Jan 2, 2006")})
 	}
 	@display.Card(display.CardProps{
@@ -588,7 +589,8 @@ templ tenantAccessCard(d userDetailData) {
 				})
 			</form>
 			<div class="mt-2 text-xs text-gray-400">
-				Granting a tenant the user already belongs to replaces their roles there.
+				Only tenants the user does not belong to are offered. Change an existing
+				membership's role in its row above.
 			</div>
 		</div>
 	}
@@ -604,10 +606,24 @@ templ tenantAccessRows(d userDetailData) {
 				</a>
 			</td>
 			<td class="px-4 py-2">
-				<div class="flex flex-wrap items-center gap-1">
+				<div class="flex flex-wrap items-center gap-1.5">
 					for _, r := range access.Roles {
 						@roleBadge(string(r))
 					}
+					<form class="flex items-center gap-1.5" hx-post={ d.UpdateTenantBase + "/" + access.TenantID }>
+						@forms.Select(forms.SelectProps{
+							Name:      "role",
+							Options:   roleSelectOptions(d.AssignableRoles, access.Roles),
+							Required:  true,
+							BaseProps: utils.BaseProps{Class: "max-w-[120px]", AriaLabel: "Set role in " + access.Name},
+						})
+						@display.Button(display.ButtonProps{
+							Type:     display.ButtonHTMLSubmit,
+							Variant:  display.ButtonSecondary,
+							Size:     display.ButtonSizeSM,
+							Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
+						})
+					</form>
 				</div>
 			</td>
 			<td class="px-4 py-2 text-right">

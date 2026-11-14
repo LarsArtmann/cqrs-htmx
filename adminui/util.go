@@ -177,3 +177,22 @@ func tenantSelectOptions(tenants []*usermgmt.Tenant) []forms.SelectOption {
 	}
 	return opts
 }
+
+// withoutTenantOptions removes tenants the user already belongs to from the
+// grant select. A membership is added, not replaced (the decider refuses a
+// duplicate), so offering an existing tenant would only produce an error; the
+// row-level role control is the correct place to change it.
+func withoutTenantOptions(options []forms.SelectOption, access []tenantAccessRow) []forms.SelectOption {
+	member := make(map[string]bool, len(access))
+	for _, row := range access {
+		member[row.TenantID] = true
+	}
+	out := make([]forms.SelectOption, 0, len(options))
+	for _, opt := range options {
+		if member[opt.Value] {
+			continue
+		}
+		out = append(out, opt)
+	}
+	return out
+}

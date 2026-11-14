@@ -95,7 +95,7 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		RemoveMemberBase:    memberBase,
 		UpdateRoleBase:      memberBase,
 		UserDetailBase:      h.config.BasePath + "/users/",
-		UserEmailOptions:    h.memberEmailOptions(),
+		UserEmailOptions:    h.memberEmailOptions(members),
 		AddMemberCreateHref: h.config.BasePath + "/users/new",
 	}
 	h.applyMemberError(r, &d)

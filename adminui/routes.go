@@ -299,6 +299,15 @@ func (h *Handler) superAdminUserAccountRoutes() []routeSpec {
 		},
 		{
 			method:  http.MethodPost,
+			pattern: "/users/{id}/tenants/{tenant}",
+			panel:   panelUsers,
+			guarded: h.userUpdateTenantRole,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "changing a member's role re-shapes authority inside that tenant",
+		},
+		{
+			method:  http.MethodPost,
 			pattern: "/users/{id}/tenants/{tenant}/delete",
 			panel:   panelUsers,
 			guarded: h.userRevokeTenantAccess,
