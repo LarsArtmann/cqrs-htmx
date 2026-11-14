@@ -213,6 +213,18 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, write: true, why: "creating accounts is platform-admin territory",
 		},
 		{
+			method: http.MethodGet, pattern: "/users/import", panel: panelUsers, guarded: h.userImportPage,
+			mode: routeModeSuperAdmin, why: "the import form reveals nothing beyond the page it renders",
+		},
+		{
+			method: http.MethodPost, pattern: "/users/import", panel: panelUsers, guarded: h.userImport,
+			mode: routeModeSuperAdmin, write: true, why: "bulk import creates accounts from the uploaded file",
+		},
+		{
+			method: http.MethodGet, pattern: "/users/export.{ext}", panel: panelUsers, guarded: h.userExport,
+			mode: routeModeSuperAdmin, why: "the export carries every user's public profile",
+		},
+		{
 			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,
 			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
 		},

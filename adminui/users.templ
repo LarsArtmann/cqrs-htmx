@@ -2,8 +2,10 @@ package adminui
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strconv"
 
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/forms"
@@ -17,9 +19,99 @@ templ usersPage(p pageData, d usersListData) {
 	@Layout(p, usersContent(d))
 }
 
+// userImportPage is the bulk-import form (super-admin). The result panel
+// swaps in-place via htmx: a file POST renders the imported/skipped summary
+// plus a bounded per-row error list, without losing the form for a retry.
+templ userImportPage(p pageData, basePath string) {
+	@Layout(p, userImportContent(basePath))
+}
+
+templ userImportContent(basePath string) {
+	@display.PageHeader(display.PageHeaderProps{
+		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
+			{Text: "Users", Href: basePath + "/users"},
+			{Text: "Import"},
+		}}),
+		Title: "Import users",
+	})
+	<div class="max-w-[520px]">
+		@display.Card(display.CardProps{}) {
+			<form hx-post={ basePath + "/users/import" } hx-target="#import-result" hx-swap="innerHTML" enctype="multipart/form-data">
+				<div class="mb-4">
+					<label for="import-file" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">File</label>
+					<input
+						type="file"
+						id="import-file"
+						name="file"
+						required=""
+						accept=".csv,.json,text/csv,application/json"
+						class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-xs file:mr-3 file:rounded-md file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-500 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+					/>
+					<p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">A .csv or .json file of users (email + optional display_name).</p>
+				</div>
+				<div class="mb-4 rounded-md bg-gray-50 px-3.5 py-2.5 text-xs text-gray-500">
+					Each row creates a passwordless account: imported users enroll their
+					own passkey or sign in via a matching OAuth2 provider — the import
+					cannot set credentials. Emails that already exist are skipped, so a
+					re-run is safe. The result panel below reports exactly what landed.
+				</div>
+				<div class="flex gap-2.5">
+					@display.Button(display.ButtonProps{Text: "Import", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary, Children: htmx.LoadingButton("Import", "Importing…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"}))})
+					@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
+				</div>
+			</form>
+			<div id="import-result" class="mt-4"></div>
+		}
+	</div>
+}
+
+// importResultPanel is the honest outcome summary: exact counts, and per-row
+// errors bounded to a readable window (the counts stay exact either way).
+templ importResultPanel(result usermgmt.ImportResult, back string) {
+	if len(result.Errors) == 0 {
+		@feedback.Alert(feedback.AlertProps{
+			Type:    feedback.FeedbackSuccess,
+			Title:   "Import complete",
+			Message: fmt.Sprintf("%d imported, %d skipped.", result.Imported, result.Skipped),
+		})
+	} else {
+		@feedback.Alert(feedback.AlertProps{
+			Type:    feedback.FeedbackWarning,
+			Title:   "Import finished with errors",
+			Message: fmt.Sprintf("%d imported, %d skipped, %d rows with errors.", result.Imported, result.Skipped, len(result.Errors)),
+		})
+		<ul class="mt-2 list-inside list-disc text-xs text-gray-600 dark:text-gray-300">
+			for i, e := range result.Errors {
+				if i >= maxRenderedImportErrors {
+					<li>… and { strconv.Itoa(len(result.Errors) - maxRenderedImportErrors) } more</li>
+					break
+				}
+				<li>{ e }</li>
+			}
+		</ul>
+	}
+	<div class="mt-3">
+		@display.Button(display.ButtonProps{Text: "Back to users", Href: back, Variant: display.ButtonSecondary, Size: display.ButtonSizeSM, BaseProps: utils.BaseProps{Class: classNoUnderline}})
+	</div>
+}
+
 templ usersContent(d usersListData) {
 	@display.PageHeader(display.PageHeaderProps{Title: "Users", Action: newUserAction(d)})
 	<div class="mb-4 flex items-center gap-2">
+		@display.Button(display.ButtonProps{
+			Text:      "Import users",
+			Href:      d.BasePath + "/users/import",
+			Variant:   display.ButtonSecondary,
+			Size:      display.ButtonSizeSM,
+			BaseProps: utils.BaseProps{Class: classNoUnderline},
+		})
+		@display.Button(display.ButtonProps{
+			Text:      "Export CSV",
+			Href:      d.BasePath + "/users/export.csv",
+			Variant:   display.ButtonSecondary,
+			Size:      display.ButtonSizeSM,
+			BaseProps: utils.BaseProps{Class: classNoUnderline},
+		})
 		// FilterInput carries the search affordance without an icon (library
 		// look accepted: the component reserves no start padding, so an
 		// overlaid icon would collide with typed text). The form-level

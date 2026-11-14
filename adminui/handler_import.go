@@ -56,6 +56,7 @@ func (h *Handler) userImport(w http.ResponseWriter, r *http.Request, _ *identity
 	}
 
 	var result *usermgmt.ImportResult
+	var ierr error
 	switch format {
 	case usermgmt.UserDataFormatJSON:
 		result, ierr = h.config.Service.ImportUsersFromJSON(r.Context(), file)
