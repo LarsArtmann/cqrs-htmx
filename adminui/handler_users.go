@@ -65,16 +65,21 @@ func parseUserFilter(raw string) userFilter {
 	}
 }
 
-// filterUsers returns users whose email or display name contains q
+// filterUsers returns users whose email, display name, or user id contains q
 // (case-insensitive) and that satisfy the status chip. Empty q and no chip
 // return all users.
+//
+// The id is searchable because the ids admins actually hold are usually
+// pasted from a log line or a support ticket — making them unusable as a
+// search term forces a manual page-through.
 func filterUsers(all []*identitymodel.User, q string, filter userFilter) []*identitymodel.User {
 	needle := strings.ToLower(q)
 	out := make([]*identitymodel.User, 0, len(all))
 	for _, u := range all {
 		if needle != "" &&
 			!strings.Contains(strings.ToLower(u.Email), needle) &&
-			!strings.Contains(strings.ToLower(u.DisplayName), needle) {
+			!strings.Contains(strings.ToLower(u.DisplayName), needle) &&
+			!strings.Contains(strings.ToLower(u.ID.Get().String()), needle) {
 			continue
 		}
 		if !userMatchesFilter(u, filter) {

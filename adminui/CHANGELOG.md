@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Tenant access can be managed from the user side (user detail), not only from each tenant's roster.** The user page is where an admin usually starts ("who is this person?"), yet memberships were read-only there and the only way to grant one was to navigate to the tenant first. The new **Tenant access** card lists every membership resolved to tenant identity (display name + slug, linked to the tenant page) with the roles held there, and offers three durable writes through the SAME membership commands the tenant roster dispatches: grant a tenant + role (`POST /users/{id}/tenants`), change a role in place (`POST /users/{id}/tenants/{tenant}`), revoke (`POST /users/{id}/tenants/{tenant}/delete`). The grant select offers only tenants the user does NOT belong to — a membership is added once (the decider refuses a duplicate), so suggesting an existing one would be a dead end; changing it is the row's own control. Unknown roles and unknown tenants are refused before any command is dispatched, and a "Tenants" stat card joins the detail header. Pinned by `user_tenant_access_test.go` (render, empty state, grant, role replacement, bad-input refusal, revoke) and the route-manifest golden.
+
+- **The tenant roster names people, not actor tokens.** Member rows led with `user:01HZ…`, an identifier an admin cannot map to anybody; resolving it meant copying the id into the URL by hand. Rows now resolve the membership actor through the directory (`identitymodel.ActorIDAsUserID` → user read model) and render an avatar, the email (linked to the user page in super-admin mode), the display name, and when the membership started; the role cell shows the roles actually held as badges next to the role control. Bot/system/service actors keep their prefixed id (there is no directory entry to resolve). Tenant-admin mode renders no user links because that mode serves no user directory. Pinned by `tenant_ux_test.go`.
+
+- **Tenant detail leads with the tenant's identity.** A new **Tenant** card answers "which tenant is this" without inferring it from the members below: copyable tenant id, immutable slug, display name, live status, and roster size.
+
+- **Tenant roster search + per-tenant member counts.** The tenants list gained the same live HTMX search as the user list (slug or display name, 350 ms debounce, honest empty state, pagination that preserves `q`) and a Members column, so the overview answers "who is in what" before opening anything.
+
+- **User list access column + Administrators chip.** Each row now names the platform (wildcard-domain) roles a user holds and how many tenants they belong to. The count only includes domains that resolve to a real tenant — registration grants default roles in a domain named after the user's own stream, and a raw domain count would report a phantom tenant for every user. A fifth filter chip narrows the directory to platform-role holders, composable with search; the user id joins email and display name as a search term (ids are usually pasted from logs or tickets).
+
+### Changed
+
+- **Add-member UX: pick a person, choose a role, hear the miss inline.** The email field autocompletes from the directory (`<datalist>`, zero JS, CSP-safe) and no longer suggests existing members; the role select carries a disabled "Choose role…" prompt so a distracted Enter cannot grant the first role; and an unknown email no longer vanishes into a transient toast — the redirect carries the typed address back (`member_error=unknown&member_email=…`), the card explains it inline, preserves the input, and (super-admin) links straight to user creation.
+
+### Fixed
+
+- **The tenant creation form has real labels.** The name and display-name fields carried only placeholders, leaving both fields unlabeled to assistive tech and ambiguous to a first-time admin; they now carry labels and help text (the slug is immutable and URL-safe, the display name is optional).
+
 ## [v4.17.0] - 2026-11-07
 
 ### Added

@@ -124,3 +124,21 @@ func renderUsersIndex(t *testing.T, h http.Handler, target string) string {
 
 	return rec.Body.String()
 }
+
+// TestUsersIndex_SearchByUserID proves an id pasted from a log or ticket finds
+// its user. The directory is where an incident starts, and the id is the only
+// handle the operator has at that moment.
+func TestUsersIndex_SearchByUserID(t *testing.T) {
+	t.Parallel()
+
+	user := mustUser(t, "admin@example.com")
+	h, svc := newTestPanel(t, user)
+
+	target := mustRegister(t, svc, "u-findme", "findme@example.com")
+	id := target.User.ID.Get().String()
+
+	body := renderUsersIndex(t, h, "/admin/users?q="+id)
+	if !strings.Contains(body, "findme@example.com") {
+		t.Error("searching by user id should find the user")
+	}
+}
