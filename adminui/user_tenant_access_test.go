@@ -134,6 +134,9 @@ func TestUserGrantTenantAccess(t *testing.T) {
 
 	// Reducing to one role works the same way.
 	rec = postForm(h, userBase+"/tenants/acme", url.Values{"roles": {"viewer"}})
+	if got := rec.Header().Get("HX-Redirect"); got != userBase {
+		t.Errorf("reduce redirect = %q, want %q", got, userBase)
+	}
 	members = svc.TenantMembers(ctx, tenant.ID)
 	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) || members[0].HasRole(identitymodel.RoleAdmin) {
 		t.Fatalf("expected the role set to reduce to viewer, got %v", members)

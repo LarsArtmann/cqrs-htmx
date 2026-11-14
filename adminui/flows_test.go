@@ -223,6 +223,9 @@ func TestFlow_UpdateMemberRole(t *testing.T) {
 
 	// Reducing to one role.
 	rec = postForm(h, "/admin/tenants/delta/members/"+actor, url.Values{"roles": {"admin"}})
+	if !strings.Contains(rec.Header().Get("HX-Redirect"), "/admin/tenants/delta") {
+		t.Errorf("reduce redirect = %q", rec.Header().Get("HX-Redirect"))
+	}
 	members = svc.TenantMembers(ctx, tenant.ID)
 	if len(members) != 1 || len(members[0].Roles) != 1 || members[0].Roles[0] != identitymodel.RoleAdmin {
 		t.Errorf("roles = %v, want [admin]", members[0].Roles)
