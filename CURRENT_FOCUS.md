@@ -8,7 +8,7 @@
 
 ## The active thread
 
-**The adminui next-wave plan executed M00–M17 — receipts in the plan's §9; the tree waits on the owner packets and the exit report.**
+**The adminui next-wave plan executed M00–M17 with the final aggregate GREEN (104/104 checks) — receipts in the plan's §9; the tree waits on the owner packets.**
 The 2026-11-14 SUPERB adminui plan ([`docs/planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md`](docs/planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md))
 landed everything owner-independent: **M09** header tenant switcher (super-admin, live tenants,
 current marked), **M10** list polish (status filter + member sort + blast-radius confirms; the
@@ -35,5 +35,6 @@ Three decision packets now sit one tick from GO, all with recommendations pre-st
   defaults adopted; W1–W2 probes stay GO without further owner input.
 
 Known standing reds, all owner-tracked or self-healing: docs-gates audit-all (drain-or-re-pin, TODO P2
-top row), docs-gates freshness (greens when this session's exit report lands), firefox advisory engine.
-The 2026-11-08 blanket-directive receipts are fully drained; nothing from it remains actionable.
+top row), firefox advisory engine. Freshness greens with the session-true-up commit (the exit report
+now carries the resolved M01 aggregate verdict). The 2026-11-08 blanket-directive receipts are fully
+drained; nothing from it remains actionable.
