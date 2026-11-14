@@ -238,10 +238,12 @@ test("users list: access column, Administrators chip, and id search", async ({ p
   const html = await page.content();
   expect(html).toContain(">Access<");
 
-  // The user's row shows the tenant count and the platform-role area.
+  // The user's row summarizes access as a count link (names live on the
+  // detail page's Tenant access card — the grant spec covers those).
   const row = page.locator("#users-table tbody tr", { hasText: `e2e-access-${stamp}@acme.dev` });
   await expect(row).toHaveCount(1);
-  expect(await row.innerText()).toContain("E2E Access Co");
+  expect(await row.innerText()).toContain("1 tenant");
+  await expect(row.locator("a", { hasText: "1 tenant" })).toHaveCount(1);
 
   // Id search: pasting the user id finds exactly that person.
   await page.goto(`${ADMIN}/admin/users?q=${userId}`, { waitUntil: "load" });
