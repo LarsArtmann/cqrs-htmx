@@ -137,20 +137,25 @@ test("tenant access: change roles via the checkbox group, then revoke", async ({
   const badges = await row.innerText();
   expect(badges).toContain("viewer");
   expect(badges).toContain("admin");
+  await expect(row.locator("input[type=checkbox][value=viewer]")).toBeChecked();
+  await expect(row.locator("input[type=checkbox][value=admin]")).toBeChecked();
 
   // Reduce to one role: the posted set REPLACES, never merges.
   const reduce = await postForm(page, `${userPath}/tenants/${tenantId}`, { roles: ["owner"] });
   expect(reduce.ok, `reduce roles: ${reduce.status}`).toBeTruthy();
   await page.goto(`${ADMIN}${userPath}`, { waitUntil: "load" });
   await page.waitForTimeout(400);
-  const reduced = await page.locator("tr", { hasText: "E2E Role Co" }).innerText();
-  expect(reduced).toContain("owner");
-  expect(reduced).not.toContain("viewer");
-  expect(reduced).not.toContain("admin");
+  // The row carries the checkbox group too, so absence of a badge cannot be
+  // read from the row text — assert the SET through the checkbox states.
+  const roleRow = page.locator("tr", { hasText: "E2E Role Co" });
+  await expect(roleRow.locator("input[type=checkbox][value=owner]")).toBeChecked();
+  await expect(roleRow.locator("input[type=checkbox][value=viewer]")).not.toBeChecked();
+  await expect(roleRow.locator("input[type=checkbox][value=admin]")).not.toBeChecked();
 
-  // The last-admin escalation only fires while this user is the sole
-  // admin-tier holder; after this reduce the tenant has exactly one.
-  expect(reduced).toContain("only admin or owner");
+  // The last-admin escalation fires while this user is the sole admin-tier
+  // holder of the tenant: the confirm dialog carries the blast radius.
+  const confirm = await roleRow.locator("button[data-confirm]").getAttribute("data-confirm");
+  expect(confirm).toContain("only admin or owner");
 
   // Revoke removes the row entirely.
   const revoke = await postForm(page, `${userPath}/tenants/${tenantId}/delete`, {});

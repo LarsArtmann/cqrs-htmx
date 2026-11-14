@@ -197,7 +197,7 @@ templ usersTableContent(d usersListData) {
 		}
 	} else {
 		@display.Table(display.TableProps{
-			Headers:     []string{"User", "Access", "Status", "Created", ""},
+			Headers:     []string{"User", "Access", "Status", "Last seen", "Created", ""},
 			Hover:       true,
 			Body:        usersRows(d),
 			Striped:     true,
@@ -241,6 +241,18 @@ templ usersRows(d usersListData) {
 						@display.Badge(display.BadgeProps{Text: ea.Provider, Type: display.BadgeNeutral, Pill: true})
 					}
 				</div>
+			</td>
+			<td class="px-4 py-2 text-gray-500">
+				// Last seen is the audit window's latest entry about this user's
+				// stream: a convenience view, honestly dashed when the window
+				// records nothing (fresh user or evicted history).
+				if !row.LastSeen.IsZero() {
+					<span title={ row.LastSeen.Format("Jan 2, 2006 15:04 MST") }>
+						@display.RelativeTime(display.RelativeTimeProps{Time: row.LastSeen})
+					</span>
+				} else {
+					<span class="text-gray-400" title="No recorded activity in the audit window">—</span>
+				}
 			</td>
 			<td class="px-4 py-2 text-gray-500">
 				@display.RelativeTime(display.RelativeTimeProps{Time: row.User.CreatedAt})
