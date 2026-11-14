@@ -87,7 +87,7 @@ func TestPanel_UsersIndexEmptyAndSearch(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d", rec.Code)
 	}
-	if !strings.Contains(rec.Body.String(), "No users found") {
+	if !strings.Contains(rec.Body.String(), "No users yet") {
 		t.Error("expected empty state")
 	}
 

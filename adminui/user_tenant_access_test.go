@@ -27,6 +27,14 @@ func TestUserDetail_TenantAccessCard(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// A second tenant keeps the grant form meaningful: ada already belongs to
+	// the only tenant in the panel-with-one-tenant world, and the card would
+	// honestly render the member-of-every-tenant state instead of the form.
+	if _, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
+		ID: identitymodel.NewTenantID("beta"), Name: "beta", DisplayName: "Beta",
+	}); err != nil {
+		t.Fatal(err)
+	}
 	member := mustRegister(t, svc, "u-ada", "ada@acme.com")
 	mustAddMember(t, svc, member.User.ID, tenant.ID, identitymodel.RoleOwner)
 
