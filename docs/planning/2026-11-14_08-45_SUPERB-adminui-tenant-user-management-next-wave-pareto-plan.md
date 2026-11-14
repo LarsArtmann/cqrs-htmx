@@ -83,7 +83,7 @@ feature is built on a surface we know is incomplete.
 
 | Band | Items | Why it pays disproportionately |
 | --- | --- | --- |
-| **1%** | T001-T007 (flake `goPkg` hash) | Unblocks 7 gate entry points and the browser battery with a one-line change; without it every later claim is unverifiable |
+| **1%** | T001-T007 (five flake FOD hashes) | Unblocks 7 gate entry points, the browser battery and the pre-commit hook; without it every later claim is unverifiable and nothing can even be committed |
 | **4%** | T010-T019 (battery baseline) + T020-T028 (multi-role) | Buys the verification multiplier and fixes a correctness gap in what shipped |
 | **20%** | T040-T069 (e2e specs, import/export, last-seen) + T090-T096 (tenant switcher) | Customer-visible capability (import/export, last activity) plus browser proof of the new flows |
 | **Rest** | T030-T039, T070-T089, T100-T169 | Edge states, attribution, docs, CHANGELOG archaeology, archive hygiene, upstream asks, owner decisions |
@@ -96,7 +96,7 @@ Ordered by execution dependency, then by score (impact x customer value / effort
 
 | ID | Milestone | Band | Min | Impact | Customer value | Risk | Depends on | Done when |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| M00 | Restore the flake toolchain (goPkg hash) | 1% | 45 | Critical | None (enabler) | Low | - | `nix develop -c go version` prints 1.27.3 and `nix run .#check-go-toolchain` is green |
+| M00 | Restore the flake toolchain (five FOD hashes) | 1% | 60 | Critical | None (enabler) | Low | - | `nix develop -c go version` prints 1.27.3, `nix run .#check-go-toolchain` is green, and the canonical CSS build reproduces the committed bundle's class set |
 | M01 | Gate battery baseline + receipts | 4% | 80 | Critical | None (enabler) | Low | M00 | coverage-gate, cqrs-lint, check-modules, erraudit, docs battery each have a recorded verdict |
 | M02 | Multi-role membership editing (tenant + user surfaces) | 4% | 90 | High | Medium | Medium | M01 | A member can hold two roles; both surfaces set the full set; tests pin it |
 | M03 | Edge states, a11y announcements, sync targets | 20% | 45 | Medium | Medium | Low | M02 | "member of every tenant" state, empty CTA, aria-live alert, data-sync-target markers, last-owner guard; tests green |
@@ -114,7 +114,7 @@ Ordered by execution dependency, then by score (impact x customer value / effort
 | M15 | Upstream asks and the wrong doc comment | Rest | 45 | Medium | Low | Low | - | `AddMember` doc comment corrected; four usermgmt asks filed or recorded as owner-gated |
 | M16 | Owner decision packet (impersonation, sessions, bots, APIs) | Rest | 30 | High | High (unlocks next wave) | Low | - | One decision sheet with the security and release-train tradeoffs, ready for a yes/no |
 
-**Total:** 16 milestones, roughly 16.5 hours of focused work. M00 + M01 are 2 hours and safe to start immediately.
+**Total:** 16 milestones, roughly 16.5 hours of focused work. M00 was executed while unblocking this plan's own commit (receipts in §9); M01 is the next step and is safe to start immediately.
 
 ---
 
@@ -128,12 +128,12 @@ Every task is independently verifiable; each has a done-when in the milestone ta
 | ID | Task | Min | Band |
 | --- | --- | --- | --- |
 | T001 | Confirm ambient `go version` matches the `go.work` floor; record both | 4 | 1% |
-| T002 | Re-read the `goPkg` block and capture the "got" hash from the failed build | 5 | 1% |
-| T003 | Patch the single `hash` line to `sha256-bndJA1zzYPBrJXXRYup535/ajvZxiJ5cN1+OUHd/Jrs=` | 4 | 1% |
-| T004 | `nix develop --command go version` and `nix run .#check-go-toolchain` | 12 | 1% |
-| T005 | `nix run .#build-adminui-css`; byte-compare the bundle to the committed one (expect no diff) | 10 | 1% |
+| T002 | Read the five FOD pins and capture the real hash each failed build reports | 8 | 1% |
+| T003 | Patch `flake.nix` goPkg src, `hash.nix`, `vendorHash.nix`, `templ-hash.nix`, `templ-vendorHash.nix` | 12 | 1% |
+| T004 | `nix develop --command go version` (builds goPkg + benchstat + templGen) and `nix run .#check-go-toolchain` | 12 | 1% |
+| T005 | `nix run .#build-adminui-css`; diff the class-token set against the committed bundle (patch-level Tailwind drift must be token-neutral) | 12 | 1% |
 | T006 | Re-run the CSS form + class-set gates through the canonical path | 8 | 1% |
-| T007 | Add/close the TODO_LIST row naming the defect, the fix and the receipt | 8 | 1% |
+| T007 | Add/close the TODO_LIST row naming the defect class (placeholder FOD hashes) and the receipts | 8 | 1% |
 
 ### M01 - Gate battery baseline (80 min)
 
@@ -409,7 +409,8 @@ flowchart TD
 
 | Date | Milestone | Receipt |
 | --- | --- | --- |
-| - | - | - |
+| 2026-11-14 | M00 (T001-T005) | Five FOD hashes fixed (goPkg src, benchstat src, benchstat vendor, templGen src, templGen vendor). `nix develop --command go version` -> `go1.27.3`; `nix run .#check-go-toolchain` -> "go.work go directive (1.27.3) <= toolchain (1.27.3)"; `nix run .#build-adminui-css` now runs (tailwindcss 4.3.4) and changes only the banner version plus one numeric artifact token, zero utility-set change; `check-css-bundles.sh` green at 87,933 bytes. Found because the pre-commit hook refused the plan commit on `nix-fmt` - the blocker was real, not theoretical. |
+| - | M01 | not started |
 
 ---
 
