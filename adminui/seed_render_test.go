@@ -167,9 +167,10 @@ func TestPanel_TemplComponentsRenderStructurally(t *testing.T) {
 		t.Error("users list: Avatar should render circular initials element")
 	}
 
-	// forms.Select: <select name="role"> present in tenant detail (members card).
-	if !strings.Contains(tenantDetail, `<select`) || !strings.Contains(tenantDetail, `name="role"`) {
-		t.Error("tenant detail: forms.Select should render <select name=role>")
+	// roleCheckboxGroup: the members card renders the role checkboxes (the
+	// multi-role group that replaced the single select).
+	if !strings.Contains(tenantDetail, `type="checkbox"`) || !strings.Contains(tenantDetail, `name="roles"`) {
+		t.Error("tenant detail: roleCheckboxGroup should render checkbox inputs named roles")
 	}
 
 	// forms.Input: <input type="search"> with name="q" in users list.
