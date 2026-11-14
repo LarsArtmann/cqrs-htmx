@@ -1,64 +1,78 @@
 # httputil Utilization Report
 
-> Audit date: 2026-11-05 · Method: library-deep-dive (fleet series, [index](index.html))
-> Library: `github.com/larsartmann/httputil` (root module; `server_timing` submodule has its own report) · Checkout: `/home/lars/projects/httputil`
+> Audit date: 2026-11-14 (refresh of the 2026-11-05 audit) · Method: library-deep-dive (fleet series, [index](index.html))
+> Library: `github.com/larsartmann/httputil` (root module; `server_timing` submodule has its own report; the new `endpoints` submodule has [its own](httputil-endpoints.md)) · Checkout: `/home/lars/projects/httputil`
 
 ## Verdict at a glance
 
-| Pin    | Latest (verified 2026-11-05) | Prod import sites | Adoption                                 | Score                                                          |
-| ------ | ---------------------------- | ----------------- | ---------------------------------------- | -------------------------------------------------------------- |
-| v1.8.0 | v1.8.0 (= latest)            | 53 files          | **Used — the HTTP middleware substrate** | **73/100 count · ~85 effective (library-principle discounts)** |
+| Pin    | Latest (verified 2026-11-14) | Prod import sites          | Adoption                                 | Score                                                          |
+| ------ | ---------------------------- | -------------------------- | ---------------------------------------- | -------------------------------------------------------------- |
+| v1.9.0 | v1.9.0 (= latest)            | 33 files (non-test; 23 excl. examples) | **Used — the HTTP middleware substrate** | **79/100 count · ~90 effective (zero misses; partials are deliberate opt-in/test-scope postures)** |
 
 ## What the library is
 
-The LarsArtmann HTTP middleware toolkit: CSRF (nosurf-based), keyed rate limiting, per-request CSP nonces, security headers, server lifecycle (`NewServer` with validated `ServerConfig`, TLS, shutdown), client-IP/trusted proxies, CORS, compression/decompression, request/body limits, request IDs, logging, metrics, Server-Timing (submodule), i18n language negotiation, K8s health endpoints, `MiddlewareStack` composition with validation. cqrs-htmx's CSRF/Server-Timing/rate-limit re-exports are thin deprecated aliases over this library (v5 removes them; internal modules already import httputil directly — 0 deprecated-alias uses verified).
+The LarsArtmann HTTP middleware toolkit: CSRF (nosurf-based, RFC 10008 QUERY-aware since v1.9.0), keyed rate limiting, per-request CSP nonces, security headers, server lifecycle (`NewServer` with validated `ServerConfig`, TLS, shutdown), client-IP/trusted proxies, CORS, compression/decompression, request/body limits, request IDs, logging, metrics, Server-Timing (submodule), i18n language negotiation, K8s health endpoints, `MiddlewareStack` composition with validation, and an `httpspec` behavioral compliance suite. cqrs-htmx's CSRF/Server-Timing/rate-limit re-exports are thin deprecated aliases over this library (v5 removes them; internal modules already import httputil directly — 0 deprecated-alias uses re-verified).
 
 ## How cqrs-htmx uses it today
 
-Direct symbol census: CSRF suite (`CSRFConfig` ×32, `CSRFMiddleware` ×29, token formatters/test helper, `CSRFResponseHeaderMiddleware`, `WithCSRFToken`, `ErrCSRFInvalid`), keyed rate limiting (`KeyedRateLimiter*` ×45 across limiter/config/middleware/key extractors), nonce CSP (`Nonce`/`NonceFromRequest` ×13, `RecommendedCSPWithNonce` ×4), `SecurityHeaders` ×11 (+configs/defaults), server lifecycle (`NewServer` ×13, `ServerConfig` ×7), client IP (`ClientIP`, `KeyExtractorFromClientIP/FromRemoteAddr`, middleware), `ParseUintQuery` ×4, `ForbiddenHandler` ×4, `RegisterHealth` ×3, `RegisterErrorClassifications` (wired from `app.go` via `sync.Once`). `examples/middleware-showcase` demonstrates all 8 middleware in one validated `MiddlewareStack`. Consumer guide: [docs/guides/leveraging-httputil.md](../../guides/leveraging-httputil.md).
+Direct symbol census: CSRF suite (`CSRFConfig` ×34, `CSRFMiddleware` ×32, `CSRFTokenFromContext` ×7, `ErrCSRFInvalid` ×6, `CSRFResponseHeaderMiddleware`/`WithCSRFToken`/`CSRFTestToken` ×5 each), keyed rate limiting (KeyedRateLimiter family ×47 across limiter/config/middleware/key extractors), nonce CSP (`Nonce`/`NonceFromRequest`/`NonceConfig` ×31, `RecommendedCSPWithNonce` ×4), `SecurityHeaders` ×11 (+configs/defaults), server lifecycle (`NewServer` ×13, `ServerConfig` ×7), client IP (`ClientIP` ×5, `KeyExtractorFromClientIP/FromRemoteAddr` ×15), `ParseUintQuery` ×4, `ForbiddenHandler` ×4, `RegisterHealth` ×3, `RegisterErrorClassifications` (wired from `app.go:142-149` via `sync.Once`). **Since the 2026-11-05 audit the recommended chains are built through `httputil.NewMiddlewareStack` + `Validate`** (`RecommendedSecurityStack`, [recommended_middleware.go:99](../../recommended_middleware.go),107; `RecommendedSecurityMiddleware` delegates to it, :44-45) — the prior report's one actionable miss, closed. The `httpspec` compliance suite pins the root handler surface ([httpspec_compliance_test.go:40](../../httpspec_compliance_test.go),68). `examples/middleware-showcase` demonstrates all 8 middleware in one validated `MiddlewareStack`. Consumer guide: [docs/guides/leveraging-httputil.md](../../guides/leveraging-httputil.md).
 
 ## Capability inventory
 
 | #   | Capability                                                              | Status             | Evidence / reason                                                                                                                                                                                   |
 | --- | ----------------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | CSRF suite (middleware, config, token surface, test helper)             | 🟢 Fully leveraged | 100+ refs; the deprecated root re-export is on the documented v5 glide path                                                                                                                         |
-| 2   | Keyed rate limiting (+key extractors)                                   | 🟢 Fully leveraged | 45+ refs across root/examples/setup                                                                                                                                                                 |
+| 1   | CSRF suite (middleware, config, token surface, test helper)             | 🟢 Fully leveraged | 100+ refs; v1.9.0 safe-lists HTTP QUERY (RFC 10008) — this repo's own ask, filed as httputil#48 from [docs/drafts/httputil-csrf-query-safe-list.md](../../drafts/httputil-csrf-query-safe-list.md), implemented upstream (csrf.go:48,638,814); unblocks native-QUERY routes behind the middleware (ADR-0064, root's `MethodQuery` at method_override.go:19) |
+| 2   | Keyed rate limiting (+key extractors)                                   | 🟢 Fully leveraged | 47 refs across root/examples/setup; v1.9.0 adds `KeyedRateLimiterConfig.Now` clock injection (ratelimit_keyed.go:124) — available for deterministic limiter tests |
 | 3   | Per-request CSP nonce                                                   | 🟢 Fully leveraged | `Nonce`/`NonceFromRequest`/`NonceConfig`/`RecommendedCSPWithNonce`                                                                                                                                  |
-| 4   | Security headers                                                        | 🟢 Fully leveraged | `RecommendedSecurityMiddleware()` builds on `SecurityHeaders` + `RecommendedPermissionsPolicy`                                                                                                      |
+| 4   | Security headers                                                        | 🟢 Fully leveraged | `RecommendedSecurityMiddleware()` → `RecommendedSecurityStack()` builds on `SecurityHeaders` + `RecommendedPermissionsPolicy`                                                                       |
 | 5   | Server lifecycle (`NewServer`, `ServerConfig`, TLS, shutdown)           | 🟢 Fully leveraged | e2e/examples/setup run paths; `RunHandler` keeps no-timeout SSE posture                                                                                                                             |
 | 6   | Client IP + trusted proxies                                             | 🟢 Fully leveraged | extractors + `ClientIP` middleware; rate-limit keys derive through them                                                                                                                             |
-| 7   | CORS                                                                    | 🟡 Partially used  | Documented wrap pattern for cross-origin dashboards + showcase example; not a library default **by design** (never enforce origins consumers disagree with)                                         |
-| 8   | Compression/Decompression                                               | 🟡 Partially used  | Showcase + guide; SSE interplay makes it consumer opt-in                                                                                                                                            |
-| 9   | HTTP metrics (`Metrics`, `MetricsConfig`, `MetricsRecorder`)            | 🟡 Partially used  | Adopted indirectly: `setup` forwards `appkit.ServiceConfig.Metrics` (appkit composes httputil metrics) — `setup/run_appkit.go:82`                                                                   |
+| 7   | CORS                                                                    | 🟡 Partially used  | Documented wrap pattern for cross-origin dashboards + showcase example; not a library default **by design** (never enforce origins consumers disagree with). v1.9.0 hardens it: reflected/allowlisted origins now declare `Vary: Origin` (cors.go:172) — inherited free at the next chain build |
+| 8   | Compression/Decompression                                               | 🟡 Partially used  | Showcase + guide; SSE interplay makes it consumer opt-in. v1.9.0 fixes missing Content-Type when the writer commits headers (sniff under `nosniff`, 1xx/204/304 guards — compress_writer.go:324)     |
+| 9   | HTTP metrics (`Metrics`, `MetricsConfig`, `MetricsRecorder`)            | 🟡 Partially used  | Adopted indirectly: `setup` forwards `appkit.ServiceConfig.Metrics` (appkit composes httputil metrics) — `setup/run_appkit.go:145`                                                                   |
 | 10  | K8s health endpoints (`RegisterHealth`, `LiveHandler`, `ReadyHandler*`) | 🟡 Partially used  | `RegisterHealth` used; readiness is owned by the go-health bridge + `ProjectionReadinessCheck` (deliberate, richer)                                                                                 |
-| 11  | `MiddlewareStack` composition + validation                              | 🔴 Missed          | Showcase only; `RecommendedSecurityMiddleware` builds chains by hand — stack validation (recovery-first checks, duplicate names) would harden the recommended chains. Low effort, low-medium impact |
-| 12  | `MaxBodySize` middleware                                                | ⚪ N/A             | Root enforces body limits at the decode layer with per-handler `WithMaxBodySize` override (`options_validate.go:99`, `decoder.go:22-56`) — semantics a global middleware cannot express             |
+| 11  | `MiddlewareStack` composition + validation                              | 🟢 Fully leveraged | **Fixed since 2026-11-05**: `RecommendedSecurityStack()` builds the baseline chain through `NewMiddlewareStack().Add(...)` + `Validate()` (recommended_middleware.go:99-110) — duplicate-name and recovery-first validation now guard the recommended chains; the stack is handed to consumers for extension |
+| 12  | `MaxBodySize` middleware                                                | ⚪ N/A             | Root enforces body limits at the decode layer with per-handler `WithMaxBodySize` override (`options_validate.go:97`, `decoder.go:22+`) — semantics a global middleware cannot express                 |
 | 13  | Language negotiation suite                                              | ⚪ N/A             | The library has no localized strings                                                                                                                                                                |
 | 14  | `RequestID` middleware                                                  | ⚪ N/A             | Root's `ContextEnrichmentMiddleware` mints branded ULIDs via go-cqrs-lite `id` (type-consistency wins over httputil's time-ordered IDs)                                                             |
 | 15  | `Logging` middleware                                                    | ⚪ N/A             | `RequestLoggingSlog` is slog-native and pre-dates; consolidation possible but low value                                                                                                             |
-| 16  | `Timeout` middleware                                                    | ⚪ N/A             | SSE-safe: server-wide WriteTimeout severs streams (gotcha 46); setup pins `appkit.NoTimeout`                                                                                                        |
+| 16  | `Timeout` middleware                                                    | ⚪ N/A             | SSE-safe: server-wide WriteTimeout severs streams (gotcha 46); setup pins `appkit.NoTimeout` (setup/run_appkit.go:137-139)                                                                          |
 | 17  | ETag middleware                                                         | ⚪ N/A             | `internal/hx` composes `go-etag/server` primitives directly for immutable JSON + `HashTag` (see [go-etag report](go-etag.md)) — the lower-level choice fits the embed/cache contract                |
+| 18  | `httpspec` behavioral compliance suite                                  | 🟡 Partially used  | Standard suite adopted in tests (`httpspec.Run` ×2, httpspec_compliance_test.go:40,68); v1.9.0's new `ExpectNotModifiedDynamic` (harvest-ETag → 304 revalidation, httpspec/httpspec.go:429) is opt-in via `WithExtraSpecs` and unadopted — a natural extra-spec for the ETag-serving handlers (event catalog, OpenAPI, projection status, sync pull) |
+| 19  | HTTP/2 push surface (`Capabilities.Pusher`, `pushDelegate`, `ErrCodePush*`) | ⚪ N/A          | New in v1.9.0 (issue #47; capabilities.go:18, wrapper.go:85). cqrs-htmx never pushes and browsers have retired HTTP/2 push — classified, wrapped errors exist if a consumer ever does                  |
 
 ## Score derivation
 
-17 rows − 6 N/A = **11 applicable**; 6 full ×1 + 4 partial ×0.5 + 1 missed ×0 = **8 → 73/100** (band: high). Every "partial" is a **deliberate library-principle choice** (opt-in, never default-enforced), so the effective posture for a library is **~85 very high**; the one actionable miss is `MiddlewareStack` validation.
+19 rows − 7 N/A = **12 applicable**; 7 full ×1 + 5 partial ×0.5 + 0 missed = **9.5 → 79/100** (band: high). Every "partial" is a **deliberate library-principle choice** (opt-in, never default-enforced) or test-scope adoption, and there are **zero misses** — the 2026-11-05 actionable miss (MiddlewareStack) is closed, so the effective posture for a library is **~90 very high**.
 
 ## Version currency
 
-v1.8.0 pinned = v1.8.0 latest (verified `git ls-remote --tags origin`, 2026-11-05).
+v1.9.0 pinned (`go.mod:22`) = v1.9.0 latest (verified `git ls-remote --tags origin`, 2026-11-14; tag dated 2026-11-14 — swept same-day, treadmill worst-lag 0). Functional delta v1.8.0 → v1.9.0 (59 commits, most chore auto-commits; the substantive changes, all verified in the tag's blobs — the checkout sits 19 commits past the tag with zero drift in these files):
+
+- **CSRF: HTTP QUERY safe-listed** (RFC 10008): nosurf `ExemptFunc` exemption + `isUnsafeCSRFMethod` alignment (csrf.go:48,638,814) — implements this repo's filed ask #48; the low-level `ConfigureNosurfHandler` deliberately keeps challenging QUERY (documented).
+- `KeyedRateLimiterConfig.Now` clock injection — one injected clock drives stamping, TTL eviction, and refill math (ratelimit_keyed.go:124).
+- Compression: `maybeSniffContentType` — invents Content-Type from buffered bytes when the middleware commits the header itself (the `X-Content-Type-Options: nosniff` plain-text trap), with net/http's guards (compress_writer.go:324).
+- CORS: request-dependent origins now declare `Vary: Origin` (shared-cache poisoning class; `AllowAllOrigins` exempt) (cors.go:172).
+- HTTP/2 push: `Capabilities.Pusher` (issue #47) + `pushDelegate` with classified errors (`http.push_unsupported` Infrastructure / `http.push_failed` Transient) (capabilities.go:18, wrapper.go:85, errors.go).
+- `httpspec.ExpectNotModifiedDynamic` — revalidation spec for content-hash ETag handlers (httpspec/httpspec.go:429).
+- `endpoints/` submodule v0.1.0 released (own module, own tag stream, 2026-11-06) — covered in [httputil-endpoints.md](httputil-endpoints.md).
+- Chores: release govulncheck toolchain pinned at go1.27.3; error-sentinel interface typing attempted and reverted (net no-op for consumers).
 
 ## Should cqrs-htmx use it (more)?
 
-Yes — correctly and increasingly so (deprecated re-exports shrink the surface toward v5). One TODO-worthy item: build `RecommendedSecurityMiddleware()` through `httputil.NewMiddlewareStack` to inherit validation.
+Yes — correctly and increasingly so (deprecated re-exports shrink the surface toward v5; the 2026-11-05 TODO — build the recommended chain through `NewMiddlewareStack` — is done). One TODO-worthy item remains: wire `httpspec.ExpectNotModifiedDynamic` as an extra spec for the ETag-serving handlers (internal/hx immutable JSON, projection status, sync pull), where the harvested-tag revalidation contract is exactly what those handlers promise.
 
 ## How to verify
 
 ```bash
 rg -oN 'httputil\.[A-Z][A-Za-z0-9]*' --type go -g '!scripts/**' . | sed 's/.*://' | sort | uniq -c | sort -rn | head -30
 rg -c 'cqrshtmx\.(CSRF|RateLimiter|ServerTiming|SecurityHeaders)' adminui dashboardui loginpage setup usermgmt examples -g '*.go'   # 0 = no deprecated-alias dogfooding
-git -C ~/projects/httputil ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1
+rg -n 'NewMiddlewareStack|Validate' recommended_middleware.go        # the closed 2026-11-05 miss
+git -C ~/projects/httputil ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1   # v1.9.0
+git -C ~/projects/httputil show v1.9.0:csrf.go | grep -n 'methodQuery'                             # QUERY safe-list at the tag
 ```
 
 ## Prior reports
 
+- This report's prior edition: 2026-11-05 (score 73 count / ~85 effective → 79 / ~90; MiddlewareStack miss closed by `RecommendedSecurityStack`, inventory extended with the httpspec and HTTP/2-push rows, pin swept v1.8.0 → v1.9.0).
 - [docs/LIBRARY_INTEGRATIONS.md](../../LIBRARY_INTEGRATIONS.md) (2026-05-13, superseded) — pre-dated the httputil extraction of CSRF/rate-limiting.

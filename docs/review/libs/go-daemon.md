@@ -1,13 +1,13 @@
-# go-daemon Adoption Report (NOT adopted — correctly, with one documentation note)
+# go-daemon Adoption Report (NOT adopted — correctly; systemd note delivered)
 
-> Audit date: 2026-11-05 · Method: library-deep-dive (fleet series, [index](index.html))
+> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html))
 > Library: `github.com/LarsArtmann/go-daemon` v0.4.0 · Checkout: `/home/lars/projects/go-daemon`
 
 ## Verdict
 
 | Direct usage       | Transitive | Latest                       | Verdict                   |
 | ------------------ | ---------- | ---------------------------- | ------------------------- |
-| **0 import sites** | no         | v0.4.0 (verified 2026-11-05) | **Correctly not adopted** |
+| **0 import sites** | no         | v0.4.0 (verified 2026-11-14) | **Correctly not adopted** |
 
 ## What it is
 
@@ -19,18 +19,18 @@ Long-lived daemon building blocks over unix domain sockets: `SocketServer` lifec
 2. **Redundant overlaps**: SSE framing is served by go-sse (server-side, where cqrs-htmx lives — `ParseSSEData` is a client-side parser); flight recording already enters the graph via `go-flightrecorder` (go-cqrs-lite otel stack); content negotiation is handled per-contract in root handlers.
 3. **Library principle**: pulling a unix-socket daemon framework into consumer graphs to use none of it is exactly the dependency tax cqrs-htmx refuses.
 
-## The one worthwhile note (docs, not code)
+## The one worthwhile note — delivered since the last audit
 
-`NotifyReady`/`NotifyStopping`/`Watchdog` are standalone sd_notify helpers for **any** `http.Server`. A short "running under systemd" note in [docs/guides/production-readiness.md](../../guides/production-readiness.md) — pointing consumers at go-daemon's sd_notify helpers (or their own `sd_notify` call) around `setup.Run` — would cost nothing and close a real operational gap for systemd deployments. No dependency required.
+The 2026-11-05 report recommended a "running under systemd" note pointing consumers at sd_notify helpers around `setup.Run`. It landed — better than proposed: [docs/guides/production-readiness.md](../../guides/production-readiness.md) §9 now wires `daemon.SdNotifyReady`/`SdNotifyStopping` through `Config.AppkitStartHooks`/`AppkitDrainHooks` (setup's own hook seams) via `github.com/coreos/go-systemd/v22/daemon` directly — no go-daemon import needed, ever. Nothing outstanding here.
 
 ## How to verify
 
 ```bash
 rg -n 'larsartmann/go-daemon' --type go -g '!scripts/**' . | wc -l   # 0
-rg -n 'sd_notify|NotifyReady' docs/ .agents/ 2>/dev/null | head     # currently absent — the docs note's home
-git -C ~/projects/go-daemon ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1
+rg -n 'SdNotify' docs/guides/production-readiness.md | head -2        # the delivered §9 note (coreos/go-systemd + appkit hooks)
+git -C ~/projects/go-daemon for-each-ref --sort=-v:refname --format='%(refname:short)' refs/tags | head -1
 ```
 
 ## Prior reports
 
-- None.
+- 2026-11-05 (superseded by this refresh) — same verdict; its open item (systemd docs note) shipped 2026-11-06.

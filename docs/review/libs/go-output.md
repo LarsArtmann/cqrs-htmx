@@ -1,13 +1,13 @@
 # go-output Adoption Report (NOT adopted — correctly)
 
-> Audit date: 2026-11-05 · Method: library-deep-dive (fleet series, [index](index.html))
-> Library: `github.com/larsartmann/go-output` (+ 13 submodules: d2, daghtml, delimited, escape, graph, markdown, markup, plantuml, serialization, table, tree, …) v0.38.7 · Checkout: `/home/lars/projects/go-output`
+> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html))
+> Library: `github.com/larsartmann/go-output` (+ 11 submodules: d2, daghtml, delimited, escape, graph, markdown, markup, plantuml, serialization, table, tree) v0.38.7 · Checkout: `/home/lars/projects/go-output`
 
 ## Verdict
 
-| Direct usage       | Transitive                                                                                                               | Latest                        | Verdict                   |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------- | ------------------------- |
-| **0 import sites** | yes — 14 submodules pinned indirect in `auditlog/go.mod` via `samber-do-auditlog` (its viewer renders through go-output) | v0.38.7 (verified 2026-11-05) | **Correctly not adopted** |
+| Direct usage       | Transitive                                                                                                                                                     | Latest                        | Verdict                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------- |
+| **0 import sites** | yes — root + 11 submodules pinned indirect at v0.38.7 in `auditlog/go.mod` (and every other samber-do-auditlog consumer); its viewer renders through go-output | v0.38.7 (verified 2026-11-14) | **Correctly not adopted** |
 
 ## What it is
 
@@ -25,10 +25,11 @@ If `cmd/cqrs-htmx-upgrade` or a future fleet-inspection CLI grows human-facing t
 
 ```bash
 rg -n 'larsartmann/go-output' --type go -g '!scripts/**' . | wc -l      # 0
-rg -c 'go-output' auditlog/go.mod                                       # 14 submodule pins, indirect
-git -C ~/projects/go-output ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1
+rg -c 'go-output' auditlog/go.mod                                       # 12 pins (root + 11 submodules), indirect
+git -C ~/projects/go-output for-each-ref --sort=-v:refname --format='%(refname:short)' refs/tags | head -1
 ```
 
 ## Prior reports
 
 - [docs/LIBRARY_INTEGRATIONS.md](../../LIBRARY_INTEGRATIONS.md) (2026-05-13, superseded) — same verdict.
+- 2026-11-05 (superseded by this refresh) — same verdict; pin count corrected (12 pins, not 14).

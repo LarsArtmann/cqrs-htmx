@@ -1,13 +1,13 @@
 # go-credentials-store Adoption Report (NOT adopted — correctly; it is a sibling application)
 
-> Audit date: 2026-11-05 · Method: library-deep-dive (fleet series, [index](index.html))
-> Library: `github.com/larsartmann/go-credentials-store` v0.3.1 · Checkout: `/home/lars/projects/go-credentials-store`
+> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html))
+> Library: `github.com/larsartmann/go-credentials-store` v0.4.3 · Checkout: `/home/lars/projects/go-credentials-store`
 
 ## Verdict
 
 | Direct usage       | Transitive | Latest                       | Verdict                                               |
 | ------------------ | ---------- | ---------------------------- | ----------------------------------------------------- |
-| **0 import sites** | no         | v0.3.1 (verified 2026-11-05) | **Correctly not adopted — category error, not a gap** |
+| **0 import sites** | no         | v0.4.3 (verified 2026-11-14) | **Correctly not adopted — category error, not a gap** |
 
 ## What it is
 
@@ -28,9 +28,9 @@ None realistic. If cqrs-htmx ever needed a "bot credentials" feature, the honest
 ```bash
 rg -n 'go-credentials-store' --type go -g '!scripts/**' . | wc -l   # 0
 rg -n 'system.New|metaengine' ~/projects/go-credentials-store/README.md | head -3
-git -C ~/projects/go-credentials-store ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1
+git -C ~/projects/go-credentials-store for-each-ref --sort=-v:refname --format='%(refname:short)' refs/tags | head -1   # v0.4.3 (2026-11-13)
 ```
 
 ## Prior reports
 
-- None.
+- 2026-11-05 (superseded by this refresh) — same verdict, then at v0.3.1.

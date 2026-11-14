@@ -5,9 +5,9 @@
 
 ## Verdict
 
-| Direct usage       | Transitive                                                                    | Latest                       | Verdict                   |
-| ------------------ | ----------------------------------------------------------------------------- | ---------------------------- | ------------------------- |
-| **0 import sites** | yes — indirect via `samber-do-auditlog` (`auditlog/`, `integration_test/`, `examples/samber-do-demo/` go.mods) | v0.6.2 (verified 2026-11-14) | **Correctly not adopted** |
+| Direct usage       | Transitive                                                                                   | Latest                       | Verdict                   |
+| ------------------ | -------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------- |
+| **0 import sites** | yes — indirect via `samber-do-auditlog` (auditlog, integration_test, samber-do-demo go.mods) | v0.6.2 (verified 2026-11-14) | **Correctly not adopted** |
 
 ## What it is
 
