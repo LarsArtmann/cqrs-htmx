@@ -1,6 +1,6 @@
 # Status — Close-out pass: the false alarm, two upstream resolutions, an auditlog sweep under fire, and what I fumbled racing the daemon
 
-> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_08-32_get-shit-done-spine-m00-m14-ci-reds-owned_status.md`](../2026-11-08_08-32_get-shit-done-spine-m00-m14-ci-reds-owned_status.md), which executed by the GET-SHIT-DONE spine session (M00/M01/M03/M13 landed, M14 half, CI reds owned in the successor §d); open tails carried in TODO rows + the 06-35 plan. Strike depth:
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_08-32_get-shit-done-spine-m00-m14-ci-reds-owned_status.md`](2026-11-08_08-32_get-shit-done-spine-m00-m14-ci-reds-owned_status.md), which executed by the GET-SHIT-DONE spine session (M00/M01/M03/M13 landed, M14 half, CI reds owned in the successor §d); open tails carried in TODO rows + the 06-35 plan. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
 

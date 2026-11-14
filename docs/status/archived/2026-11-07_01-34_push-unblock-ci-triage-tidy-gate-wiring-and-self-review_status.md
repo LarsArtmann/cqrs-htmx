@@ -1,5 +1,9 @@
 # Push Unblock, CI Triage, Tidy-Gate Wiring, and Self-Review — Session Report (2026-11-07 00:00–01:34 CET)
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which the tidy-gate wiring it unblocked ships as the check-modules Shellcheck leg; the push it gated landed with the v4.17.0 train. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 Scope: the resumption session that started from "PUSH BLOCKED awaiting owner
 adjudication of the templ-era conflict" and ended with everything pushed and CI
 triaged to its documented-red floor. This report VERIFIED: HEAD templ-era state

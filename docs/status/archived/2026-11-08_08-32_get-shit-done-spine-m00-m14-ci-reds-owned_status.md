@@ -1,5 +1,9 @@
 # GET-SHIT-DONE spine execution — M00/M01/M03/M13 landed, M14 half, CI reds owned (status report)
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which the spine's M00-M14 legs closed CI-green and its remaining batches completed in the 12-24 successor report (now archived to this successor). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 **Date:** 2026-11-08 08:32 CET · **Session:** owner full-execution directive over the 06-35 SUPERB plan's runnable-now spine · **Predecessor:** the 03-48 close-out report (archived same-change; its plan is this session's plan of record) · **Tree at start:** master = origin at `7535a76a`, clean, battery 5/5, tail 15.
 
 ## a) FULLY DONE (verified, receipts in commits)
@@ -61,7 +65,7 @@ M15 (adminui CHANGELOG reconstruction), M16 (hermetic suites batch), M17 (quiet-
 
 ## g) Questions for the owner (cannot be figured out from the tree)
 
-1. **M2M D1–D4** — one word per row, or "all recommendations GO": [`docs/proposals/2026-11-07_m2m-owner-decisions-d1-d4.md`](../proposals/2026-11-07_m2m-owner-decisions-d1-d4.md) (summarized with wrong-answer costs in the decision sheet §A). Unlocks M04/M05 — the largest open security-audit debt.
+1. **M2M D1–D4** — one word per row, or "all recommendations GO": [`docs/proposals/2026-11-07_m2m-owner-decisions-d1-d4.md`](../../proposals/2026-11-07_m2m-owner-decisions-d1-d4.md) (summarized with wrong-answer costs in the decision sheet §A). Unlocks M04/M05 — the largest open security-audit debt.
 2. **browser-history domain-keyed commands** (`ClassifyURL`/`Tag`/`Untag`/`Override`/`RemoveOverride`, streams keyed `classify/<domain>`): any-authenticated (recommended — single-operator tool class, matches InboxClean's uniform shape) or admin-tier? Unlocks M06→M07.
 3. **go-datastar v0.8.0** — may a session cut the fork's four-module lockstep release (bundle-only, DataStar 1.0.4, per their checklist; their master already carries the verified bundle)? Unlocks M09→M10→M12 (the v4.19 wave).
 

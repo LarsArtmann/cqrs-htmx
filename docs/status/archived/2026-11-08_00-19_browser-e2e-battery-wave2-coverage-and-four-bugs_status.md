@@ -1,5 +1,9 @@
 # Browser-E2E Battery Wave 2 — Repo-Wide Coverage + Four Shipped Bugs Found & Fixed
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md`](../2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md), which wave-2's four shipped bugs were fixed same-session; the engine scoping and promotion verdict it needed are decided in the successor. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 > Status report · 2026-11-08 00:19 · Continues the 09-13 wave-1 report (plan of
 > record: `docs/planning/2026-11-07_08-55_SUPERB-browser-e2e-battery-ci-and-datastar-coverage.md`).
 > Session scope was the blanket directive: execute the SUPERB plan milestone by

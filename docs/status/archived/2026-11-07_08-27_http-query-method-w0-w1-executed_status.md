@@ -1,5 +1,9 @@
 # Status — HTTP QUERY (RFC 10008) workstream: plan, re-review, recovery, W0+W1 executed
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which RFC 10008 QUERY method W0/W1 shipped in root (MethodOverrideMiddleware, cqrs-query extension, guide); no open item remains in this report. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 **Created:** 2026-11-07, 08:27 CET · **Session scope:** the QUERY-method workstream only (plan `docs/planning/2026-11-07_07-21_SUPERB-http-query-method-pareto-plan.md` + its W0/W1 execution). Everything below is what THIS session did or noticed in passing; no other workstream was researched or verified.
 
 **Verified this session, with the artifact:** Go stdlib QUERY round-trip (live throwaway module), htmx 4 `hx-query` (four.htmx.org fetch), upstream DataStar `@query()` + our pinned bundle 1.0.3 lacking it (data-star.dev fetch + the minified action table in `go-datastar/static@v0.6.1`), OpenAPI 3.2 `query` Path Item field (spec text fetch), httputil csrf.go:789 safe-list (module cache source), `decodeJSONBody` no-method/no-Content-Type gate (`decoder.go:36-53`), `ReadSignals` QUERY-by-construction (`inbound.go:55-68`), full root suite `-race` (23.4s green), integration_test `-race` (green), examples/basic live PARITY-OK, BuildFlow `golangci-lint` step (0 findings in my files), skill-snippets 45/45, skill-claims 221, docs-links 1463, corpus ratchet (baseline 55012), todo-hygiene clean.

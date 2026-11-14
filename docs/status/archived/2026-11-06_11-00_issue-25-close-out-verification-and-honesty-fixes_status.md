@@ -1,6 +1,6 @@
 # Status — Issue #25 close-out: the work was already there, so I verified it, fixed two lies, and shipped the missing docs
 
-> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md`](../2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md), which resolved. Strike depth:
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md`](2026-11-07_18-35_session-closeout-self-review-reds-healed-lessons_status.md), which resolved. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
 

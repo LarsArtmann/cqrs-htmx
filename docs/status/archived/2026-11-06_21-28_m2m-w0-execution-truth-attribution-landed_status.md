@@ -1,5 +1,9 @@
 # Status — Executing the M2M plan's W0 wave: the truth trio landed, bots are attributed, and the machine surface finally speaks RFC 9457
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which M2M W0 bot-dispatch attribution landed (token middleware + zero-actor guard); the attribution thread it opened is extended and receipted by the M08 member-attribution wave in the successor. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 **Date:** 2026-11-06, ~13:05–21:28 CET (one session, with sibling daemons committing alongside)
 **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`, shared working tree. The auto-commit daemon captured this session's edits incrementally (`a77baf29`, `d877e64e`, `995a7312`, `4084bf49`, `63c91b26` among them); the tree was clean at report time.
 **Scope of this session:** execute W0 (truth + attribution) of the 11:49 SUPERB M2M plan — the five 3.1 items plus the A4/A39 tracking tasks — against the findings in the 11:13 audit report. No wave beyond W0 was attempted; W1 is blocked by owner decisions by the plan's own §9.

@@ -1,7 +1,11 @@
 # Status — Browser e2e battery wave 1: DataStar coverage landed, suite flake surfaced
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md`](../2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md), which wave-1 specs landed with their shipped bugs fixed; the engine-divergence resolution it surfaced is resolved in the successor. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 > Session 2026-11-07 08:55–09:13 (continuing the 08-16 session's §f residue under the
-> [SUPERB browser-e2e plan](../planning/2026-11-07_08-55_SUPERB-browser-e2e-battery-ci-and-datastar-coverage.md),
+> [SUPERB browser-e2e plan](../../planning/2026-11-07_08-55_SUPERB-browser-e2e-battery-ci-and-datastar-coverage.md),
 > scope-corrected mid-flight to cover ALL sub-projects, not just datastar-demo).
 > Trigger: owner pushback — "you focus too much on the datastar-demo! What is with all our other sub projects!"
 

@@ -1,6 +1,6 @@
 # Status — issue #41 closed in code: the `huma/v4` adapter, its gates, and what I got wrong
 
-> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md`](../2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md), which resolved. Strike depth:
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md`](2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md), which resolved. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
 

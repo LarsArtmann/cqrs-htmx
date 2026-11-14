@@ -1,6 +1,6 @@
 # Templ-Era Conflict, Train-Lag Zero, and Push Unblock — Session Report (2026-11-06 evening into 2026-11-07 00:15)
 
-> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md`](../2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md), which the templ-era conflict it diagnosed was resolved by the v4.17.0 family train (CI green, lag 0, unmasked reds healed). Strike depth:
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md`](2026-11-07_05-20_v4170-family-train-executed-ci-green-unmasked-reds-healed_status.md), which the templ-era conflict it diagnosed was resolved by the v4.17.0 family train (CI green, lag 0, unmasked reds healed). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-07 (round-23 htmx-session (2026-11-07)).**
 

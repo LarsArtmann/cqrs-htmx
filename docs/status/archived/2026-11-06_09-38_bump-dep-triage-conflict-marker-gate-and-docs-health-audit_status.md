@@ -1,6 +1,6 @@
 # Status — go-appkit sweep triage, a committed merge conflict, a new gate, and a docs-health audit
 
-> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_10-57_full-backlog-pareto-execution-v4180-query-waves-docs-drain_status.md`](../2026-11-07_10-57_full-backlog-pareto-execution-v4180-query-waves-docs-drain_status.md), which superseded. Strike depth:
+> **ANNOTATED 2026-11-08** — ~~this report~~ **SUPERSEDED** by [`2026-11-07_10-57_full-backlog-pareto-execution-v4180-query-waves-docs-drain_status.md`](2026-11-07_10-57_full-backlog-pareto-execution-v4180-query-waves-docs-drain_status.md), which superseded. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
 

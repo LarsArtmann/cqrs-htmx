@@ -1,6 +1,6 @@
 # Status — Second pass: the M2M findings report, and a design answer I published before proving it reachable
 
-> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md`](../2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md), which the SUPERB design answer was adopted and executed by the M2M W0 report; design decisions recorded in the decision batch. Strike depth:
+> **ANNOTATED 2026-11-07** — ~~this report~~ **SUPERSEDED** by [`2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md`](2026-11-06_21-28_m2m-w0-execution-truth-attribution-landed_status.md), which the SUPERB design answer was adopted and executed by the M2M W0 report; design decisions recorded in the decision batch. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-07 (round-23 htmx-session (2026-11-07)).**
 

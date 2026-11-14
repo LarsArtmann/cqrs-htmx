@@ -1,5 +1,9 @@
 # Status: session close-out self-review — full-backlog execution, reds healed, lessons
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which its self-review reds were healed same-session and its standing risks routed to TODO_LIST; nothing actionable remains. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 **Session close:** 2026-11-07 18:34 CET · **Repo:** `cqrs-htmx`, master pushed at `3a4210e6` (CI fully green on `21e4fcd0`; `3a4210e6` carries docs-only tails) · **Companion:** the execution report [`2026-11-07_10-57_...`](2026-11-07_10-57_full-backlog-pareto-execution-v4180-query-waves-docs-drain_status.md) — this file is the honest "what did we get wrong" pass over the same run.
 
 ## §a Fully done (verified this run — receipts cited in the 10-57 report)

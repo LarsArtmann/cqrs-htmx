@@ -1,5 +1,9 @@
 # Status — spine completion: heal, M15/M16/M20/M23/M24/M25/M02/M08 executed, M17 honestly refused (2026-11-08 12:24 CET)
 
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which the spine heal + gate batch landed and its owner questions routed to TODO_LIST; the current execution thread is the successor's adminui wave. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
+
 ## §a Context and summary
 
 Resumed under the owner's "GET SHIT DONE — the whole TODO list" directive with the 06-35 plan's runnable-now spine already deep in flight (M00/M01/M03/M13/M14 + the 08-32 report landed earlier in this lineage, with CI red on three pushes). This session: healed every code-level CI red, completed the interrupted report ritual, then executed the remaining runnable milestones M15, M16, M20, M24, M25, M02, M08, verified M18/M23 as already landed, refused M17 on its own gate, and found M19 gate-closed. **Master is CI-green** (run 42471360496 on `de62722c`; the only reds in between were GitHub 504 infra flakes on the tool-download endpoints, cleared by re-run). One unpushed daemon commit (`9ccb18ea`, sibling lane work) sits on top.
