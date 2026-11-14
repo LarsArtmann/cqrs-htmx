@@ -10,6 +10,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
 )
 
 // navItem is a single sidebar entry. Icon is a key resolved by the svgIcon
@@ -145,13 +146,37 @@ func (r userRow) tenantCountLabel() string {
 type userDetailData struct {
 	User                *identitymodel.User
 	BasePath            string
-	TenantRoles         map[string][]identitymodel.Role // domain -> roles
-	PlatformRoles       []identitymodel.Role            // roles in the wildcard domain ("*")
-	GrantableAdminRoles []identitymodel.Role            // the roles the platform-access card offers
-	IsSelf              bool                            // the shown user is the session user (self-lockout warnings)
-	Timeline            userTimeline                    // recent events about this user's stream
-	ConfiguredProviders []string                        // OAuth2 providers configured on the Service (for the link/unlink card)
-	UnlinkExternalBase  string                          // URL prefix for unlink POSTs: append "/{provider}/unlink"
+	PlatformRoles       []identitymodel.Role // roles in the wildcard domain ("*")
+	GrantableAdminRoles []identitymodel.Role // the roles the platform-access card offers
+	IsSelf              bool                 // the shown user is the session user (self-lockout warnings)
+	Timeline            userTimeline         // recent events about this user's stream
+	ConfiguredProviders []string             // OAuth2 providers configured on the Service (for the link/unlink card)
+	UnlinkExternalBase  string               // URL prefix for unlink POSTs: append "/{provider}/unlink"
+
+	// TenantAccess is the user's tenant memberships, resolved to tenant
+	// identity and ordered by tenant name. The user page is where an admin
+	// usually starts ("who is this person?"), so the multi-tenant picture
+	// belongs here, not only on each tenant's roster.
+	TenantAccess []tenantAccessRow
+	// TenantOptions feeds the "grant access" select: every live tenant, so
+	// access can be added from the user side without a trip to /tenants.
+	TenantOptions []forms.SelectOption
+	// AssignableRoles is the role vocabulary the grant form offers.
+	AssignableRoles []identitymodel.Role
+	// AddTenantAccessURL is the POST target for grants; RemoveTenantBase is a
+	// URL prefix for removals (append "/{tenant}/delete").
+	AddTenantAccessURL string
+	RemoveTenantBase   string
+}
+
+// tenantAccessRow is one resolved tenant membership on the user page. The
+// tenant id is the Casbin domain; Name/Slug come from the tenant read model so
+// the row reads as a tenant, not as a domain string.
+type tenantAccessRow struct {
+	TenantID string
+	Name     string // display name
+	Slug     string
+	Roles    []identitymodel.Role
 }
 
 // tenantsListData drives the tenants index.

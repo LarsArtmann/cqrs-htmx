@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http"
+	"slices"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -175,27 +176,148 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 		return
 	}
 
-	roles := map[string][]identitymodel.Role{}
-	if authz := h.config.Service.Authz(); authz != nil {
-		if domains, derr := authz.DomainsForUser(shown.ID); derr == nil {
-			for _, dom := range domains {
-				if rs, rerr := authz.RolesForUser(shown.ID, dom); rerr == nil && len(rs) > 0 {
-					roles[dom.Get()] = rs
-				}
-			}
-		}
-	}
+	platformRoles, tenantAccess := h.userAccess(r.Context(), shown.ID)
+	userBase := h.config.BasePath + "/users/" + shown.ID.Get().String()
 
 	p := h.page(shown.Email, "/users", user, r)
 	renderPage(w, r, userDetailPage(p, userDetailData{
-		User: shown, BasePath: h.config.BasePath, TenantRoles: roles,
-		PlatformRoles:       roles[identitymodel.WildcardDomain],
+		User:                shown,
+		BasePath:            h.config.BasePath,
+		PlatformRoles:       platformRoles,
 		GrantableAdminRoles: identitymodel.AdminRoles(),
 		IsSelf:              user != nil && user.ID == shown.ID,
 		Timeline:            h.userTimeline(shown),
 		ConfiguredProviders: h.config.Service.ConfiguredOAuth2Providers(),
-		UnlinkExternalBase:  h.config.BasePath + "/users/" + shown.ID.Get().String() + "/external",
+		UnlinkExternalBase:  userBase + "/external",
+		TenantAccess:        tenantAccess,
+		TenantOptions:       tenantSelectOptions(h.config.Service.AllTenants()),
+		AssignableRoles:     identitymodel.AssignableRoles(),
+		AddTenantAccessURL:  userBase + "/tenants",
+		RemoveTenantBase:    userBase + "/tenants",
 	}))
+}
+
+// userAccess resolves a user's authority into the two views the detail page
+// needs: platform (wildcard-domain) roles and their resolved tenant
+// memberships, ordered by tenant name. Domains that no longer resolve to a
+// tenant are dropped — registration grants default roles in a domain named
+// after the user's own stream, and that is not a tenant.
+func (h *Handler) userAccess(
+	ctx context.Context, uid identitymodel.UserID,
+) (platformRoles []identitymodel.Role, access []tenantAccessRow) {
+	authz := h.config.Service.Authz()
+	if authz == nil {
+		return nil, nil
+	}
+	if roles, err := authz.RolesForUser(uid, identitymodel.NewTenantID(identitymodel.WildcardDomain)); err == nil {
+		platformRoles = roles
+	}
+	domains, err := authz.DomainsForUser(uid)
+	if err != nil {
+		return platformRoles, nil
+	}
+	access = make([]tenantAccessRow, 0, len(domains))
+	for _, dom := range domains {
+		if dom.Get() == identitymodel.WildcardDomain {
+			continue
+		}
+		roles, rerr := authz.RolesForUser(uid, dom)
+		if rerr != nil || len(roles) == 0 {
+			continue
+		}
+		tenant, terr := h.config.Service.GetTenant(ctx, dom)
+		if terr != nil {
+			continue
+		}
+		access = append(access, tenantAccessRow{
+			TenantID: dom.Get(), Name: tenant.DisplayName, Slug: tenant.Name, Roles: roles,
+		})
+	}
+	slices.SortFunc(access, func(a, b tenantAccessRow) int {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
+	})
+	return platformRoles, access
+}
+
+// userGrantTenantAccess adds (or replaces) a membership from the user page:
+// dispatches the membership command through the durable event-sourced path, so
+// the grant survives restarts and replays.
+func (h *Handler) userGrantTenantAccess(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, back, ok := h.parseTargetUser(w, r)
+	if !ok {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
+		return
+	}
+	tenantRaw := strings.TrimSpace(r.FormValue("tenant"))
+	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
+	if tenantRaw == "" || role == "" {
+		triggerToast(w, "err", "Pick a tenant and a role")
+		redirect(w, r, back)
+		return
+	}
+	tenantID := identitymodel.NewTenantID(tenantRaw)
+	if _, err := h.config.Service.GetTenant(r.Context(), tenantID); err != nil {
+		triggerToast(w, "err", "Unknown tenant")
+		redirect(w, r, back)
+		return
+	}
+	if !slices.Contains(identitymodel.AssignableRoles(), role) {
+		triggerToast(w, "err", "Unknown role")
+		redirect(w, r, back)
+		return
+	}
+	if err := h.config.Service.AddMember(
+		r.Context(), identitymodel.ActorIDFromUser(target), tenantID, []identitymodel.Role{role},
+	); err != nil {
+		h.writeActionError(w, r, "Grant tenant access", err)
+		return
+	}
+	triggerToast(w, "ok", "Tenant access granted")
+	redirect(w, r, back)
+}
+
+// userRevokeTenantAccess removes one membership from the user page, dispatching
+// the same durable RemoveMember command the tenant roster uses.
+func (h *Handler) userRevokeTenantAccess(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, back, ok := h.parseTargetUser(w, r)
+	if !ok {
+		return
+	}
+	tenantRaw := strings.TrimSpace(r.PathValue("tenant"))
+	if tenantRaw == "" {
+		triggerToast(w, "err", "Missing tenant")
+		redirect(w, r, back)
+		return
+	}
+	tenantID := identitymodel.NewTenantID(tenantRaw)
+	if err := h.config.Service.RemoveMember(
+		r.Context(), identitymodel.ActorIDFromUser(target), tenantID,
+	); err != nil {
+		h.writeActionError(w, r, "Revoke tenant access", err)
+		return
+	}
+	triggerToast(w, "ok", "Tenant access revoked")
+	redirect(w, r, back)
+}
+
+// parseTargetUser parses the {id} path value into a user id and returns the
+// user's detail URL as the safe return path. A malformed id answers 400.
+func (h *Handler) parseTargetUser(w http.ResponseWriter, r *http.Request) (identitymodel.UserID, string, bool) {
+	target, err := identitymodel.ParseUserID(r.PathValue("id"))
+	if err != nil {
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Invalid user id",
+			"The id in the URL path is not a valid user id.",
+		)
+		return identitymodel.UserID{}, "", false
+	}
+	return target, h.config.BasePath + "/users/" + target.Get().String(), true
 }
 
 func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
@@ -147,4 +148,32 @@ func roleSelectOptionsPrompt(assignable []identitymodel.Role) []forms.SelectOpti
 		Disabled: true,
 	}
 	return append([]forms.SelectOption{prompt}, roleSelectOptions(assignable, nil)...)
+}
+
+// tenantSelectOptions builds the "grant tenant access" select: a disabled
+// prompt, then every live tenant ordered by display name (label carries the
+// slug too, because two tenants can share a display name). Deleted tenants are
+// skipped — granting access inside a tombstoned tenant is a dead end.
+func tenantSelectOptions(tenants []*usermgmt.Tenant) []forms.SelectOption {
+	sorted := slices.Clone(tenants)
+	slices.SortFunc(sorted, func(a, b *usermgmt.Tenant) int {
+		return strings.Compare(strings.ToLower(a.DisplayName), strings.ToLower(b.DisplayName))
+	})
+	opts := make([]forms.SelectOption, 0, len(sorted)+1)
+	opts = append(opts, forms.SelectOption{
+		Value: "", Label: "Choose tenant…", Selected: true, Disabled: true,
+	})
+	for _, t := range sorted {
+		if t.Deleted {
+			continue
+		}
+		label := t.DisplayName
+		if label == "" {
+			label = t.Name
+		}
+		opts = append(opts, forms.SelectOption{
+			Value: t.ID.Get(), Label: label + " · " + t.Name,
+		})
+	}
+	return opts
 }

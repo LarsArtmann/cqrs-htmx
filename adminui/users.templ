@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 	"strconv"
 
-	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
 	"github.com/larsartmann/templ-components/utils/wire"
@@ -274,21 +274,7 @@ templ userDetailContent(d userDetailData) {
 	@passkeysCard(d)
 	@externalAccountsCard(d)
 	@platformAccessCard(d)
-	if len(d.TenantRoles) > 0 {
-		@display.Card(display.CardProps{
-			Title:     "Roles & memberships",
-			Padding:   display.CardPaddingNone,
-			BaseProps: utils.BaseProps{Class: "mb-4"},
-		}) {
-			@display.Table(display.TableProps{
-				Headers:     []string{"Tenant", "Roles"},
-				Hover:       true,
-				Body:        tenantRolesRows(d.TenantRoles),
-				Flush:       true,
-				CellPadding: display.TableCellPaddingCompact,
-			})
-		}
-	}
+	@tenantAccessCard(d)
 	@userTimelineCard(d)
 	@display.Card(display.CardProps{
 		Header: dangerZoneHeader(),
@@ -554,16 +540,88 @@ templ userDetailAvatar(d userDetailData) {
 	@display.Avatar(display.AvatarProps{Initials: initials(d.User.Email), Size: display.AvatarSizeLG, Shape: display.AvatarShapeSquare, BaseProps: utils.BaseProps{Class: "h-[52px] w-[52px] rounded-[14px] text-lg"}})
 }
 
-templ tenantRolesRows(tenantRoles map[string][]identitymodel.Role) {
-	for tenant, roles := range tenantRoles {
+// tenantAccessCard is the user-side half of tenant integration: the tenants
+// this person can act in, and the durable membership grant that adds one. The
+// operations are the SAME membership commands the tenant roster dispatches —
+// one authority path, whichever side the admin starts from.
+templ tenantAccessCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:     "Tenant access",
+		Padding:   display.CardPaddingNone,
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		if len(d.TenantAccess) == 0 {
+			<div class="px-4 py-3 text-sm text-gray-500">
+				This user is not a member of any tenant yet. Grant access below to scope
+				their roles to a tenant.
+			</div>
+		} else {
+			@display.Table(display.TableProps{
+				Headers:     []string{"Tenant", "Roles", ""},
+				Hover:       true,
+				Body:        tenantAccessRows(d),
+				Flush:       true,
+				CellPadding: display.TableCellPaddingCompact,
+			})
+		}
+		<div class="border-t border-gray-200 pt-4 mt-4">
+			<form class="flex flex-wrap items-end gap-2" hx-post={ d.AddTenantAccessURL }>
+				@forms.Select(forms.SelectProps{
+					Name:      "tenant",
+					Label:     "Tenant",
+					Options:   d.TenantOptions,
+					Required:  true,
+					BaseProps: utils.BaseProps{Class: "max-w-[220px]"},
+				})
+				@forms.Select(forms.SelectProps{
+					Name:      "role",
+					Label:     "Role",
+					Options:   roleSelectOptionsPrompt(d.AssignableRoles),
+					Required:  true,
+					BaseProps: utils.BaseProps{Class: "max-w-[150px]"},
+				})
+				@display.Button(display.ButtonProps{
+					Type:     display.ButtonHTMLSubmit,
+					Variant:  display.ButtonPrimary,
+					Size:     display.ButtonSizeSM,
+					Children: htmx.LoadingButton("Grant access", "Granting…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"})),
+				})
+			</form>
+			<div class="mt-2 text-xs text-gray-400">
+				Granting a tenant the user already belongs to replaces their roles there.
+			</div>
+		</div>
+	}
+}
+
+templ tenantAccessRows(d userDetailData) {
+	for _, access := range d.TenantAccess {
 		<tr>
-			<td class="px-4 py-2 font-mono text-xs">{ tenant }</td>
 			<td class="px-4 py-2">
-				<div class="flex flex-wrap gap-1">
-					for _, r := range roles {
+				<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + access.TenantID }>
+					<span class="font-medium text-gray-900">{ access.Name }</span>
+					<span class="font-mono text-xs text-gray-400">{ access.Slug }</span>
+				</a>
+			</td>
+			<td class="px-4 py-2">
+				<div class="flex flex-wrap items-center gap-1">
+					for _, r := range access.Roles {
 						@roleBadge(string(r))
 					}
 				</div>
+			</td>
+			<td class="px-4 py-2 text-right">
+				@display.Button(display.ButtonProps{
+					Variant: display.ButtonSecondary,
+					Size:    display.ButtonSizeSM,
+					Icon:    icon("trash"),
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-post":            d.RemoveTenantBase + "/" + access.TenantID + "/delete",
+						"data-confirm":       "Remove " + d.User.Email + " from " + access.Name + "? They lose the roles they hold there.",
+						"data-confirm-title": "Revoke tenant access",
+						"hx-disabled-elt":    "this",
+					}},
+				})
 			</td>
 		</tr>
 	}

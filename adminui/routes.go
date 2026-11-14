@@ -288,6 +288,24 @@ func (h *Handler) superAdminUserAccountRoutes() []routeSpec {
 			write:   true,
 			why:     "sending mail as a user-visible action must be admin-gated",
 		},
+		{
+			method:  http.MethodPost,
+			pattern: "/users/{id}/tenants",
+			panel:   panelUsers,
+			guarded: h.userGrantTenantAccess,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "tenant membership grants a user authority inside that tenant",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/users/{id}/tenants/{tenant}/delete",
+			panel:   panelUsers,
+			guarded: h.userRevokeTenantAccess,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "tenant membership removal revokes a user's access inside that tenant",
+		},
 	}
 }
 

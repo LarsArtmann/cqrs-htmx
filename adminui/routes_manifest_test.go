@@ -66,6 +66,8 @@ func TestRoutes_ManifestGolden(t *testing.T) {
 		"POST /users/{id}/roles/revoke role Users",
 		"POST /users/{id}/credentials/{credential}/delete role Users",
 		"POST /users/{id}/resend-verification role Users",
+		"POST /users/{id}/tenants role Users",
+		"POST /users/{id}/tenants/{tenant}/delete role Users",
 		"GET /tenants role Tenants",
 		"GET /tenants/new role Tenants",
 		"POST /tenants role Tenants",
