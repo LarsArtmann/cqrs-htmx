@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`AddMember`'s doc comment told the truth about the wrong behavior.** It claimed "re-adding the same actor replaces its role set", but the decider has always refused a duplicate membership with a Conflict error (`usermgmt.membership.already_exists`) — discovered while correcting the admin panel's own copy that repeated the claim. The doc comment now states the refusal and points at `UpdateMemberRoles` for role changes. Documentation-only: no behavior change, no API change (the existing conflict behavior is pinned by tests and was already what every caller saw).
+
 ## [v4.20.0] - 2026-11-07
 
 ### Added

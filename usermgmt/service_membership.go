@@ -5,8 +5,12 @@ import (
 )
 
 // AddMember grants the given roles to an actor within a tenant by dispatching
-// an AddMember command. Re-adding the same actor replaces its role set. It is
-// the write-side counterpart of [Service.TenantMembers].
+// an AddMember command. The decider refuses a duplicate membership: re-adding
+// an actor that already holds a membership in the tenant returns a Conflict
+// error ("membership already exists for this actor+tenant pair") — it does not
+// replace the existing role set. Use [Service.UpdateMemberRoles] to change the
+// roles of an existing membership. AddMember is the write-side counterpart of
+// [Service.TenantMembers].
 func (s *Service) AddMember(ctx context.Context, actorID ActorID, tenantID TenantID, roles []Role) error {
 	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
 		ctx, NewAddMemberCmd(actorID, tenantID, roles),
