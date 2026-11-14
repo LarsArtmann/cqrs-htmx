@@ -119,7 +119,7 @@ func TestPanel_TenantAdminAddMember(t *testing.T) {
 	mustRegister(t, svc, "u-add1", "add1@acme.com")
 
 	rec := postForm(h, "/admin/members", url.Values{
-		"email": {"add1@acme.com"}, "role": {"user"},
+		"email": {"add1@acme.com"}, "roles": {"user"},
 	})
 	if rec.Header().Get("HX-Redirect") != "/admin/members" {
 		t.Errorf("add member redirect = %q", rec.Header().Get("HX-Redirect"))
@@ -137,7 +137,7 @@ func TestPanel_TenantAdminAddMemberUnknownEmail(t *testing.T) {
 	mustCreateTenant(t, svc, "acme")
 
 	rec := postForm(h, "/admin/members", url.Values{
-		"email": {"nobody@nowhere.com"}, "role": {"user"},
+		"email": {"nobody@nowhere.com"}, "roles": {"user"},
 	})
 	// Unknown email -> redirect back carrying the typed address, so the page
 	// can explain the miss inline instead of losing what the admin typed.
@@ -195,13 +195,13 @@ func TestPanel_TenantAdminUpdateMemberRole(t *testing.T) {
 	mustAddMember(t, svc, member.User.ID, identitymodel.NewTenantID("acme"), identitymodel.RoleViewer)
 
 	actor := identitymodel.ActorIDFromUser(member.User.ID).PrefixedString()
-	rec := postForm(h, "/admin/members/"+actor, url.Values{"role": {"admin"}})
+	rec := postForm(h, "/admin/members/"+actor, url.Values{"roles": {"admin", "viewer"}})
 	if rec.Header().Get("HX-Redirect") != "/admin/members" {
 		t.Fatalf("update role redirect = %q", rec.Header().Get("HX-Redirect"))
 	}
 	members := svc.TenantMembers(ctx, identitymodel.NewTenantID("acme"))
-	if len(members) != 1 || members[0].Roles[0] != identitymodel.RoleAdmin {
-		t.Errorf("expected admin role, got %+v", members)
+	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleAdmin) || !members[0].HasRole(identitymodel.RoleViewer) {
+		t.Errorf("expected viewer+admin roles, got %+v", members)
 	}
 }
 

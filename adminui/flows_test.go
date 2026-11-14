@@ -101,7 +101,7 @@ func TestFlow_MemberAddAndRemove(t *testing.T) {
 
 	// Add member by email.
 	rec := postForm(h, "/admin/tenants/beta/members", url.Values{
-		"email": {"member1@example.com"}, "role": {"admin"},
+		"email": {"member1@example.com"}, "roles": {"admin"},
 	})
 	if rec.Header().Get("HX-Redirect") != "/admin/tenants/beta" {
 		t.Errorf("add member HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
@@ -132,7 +132,7 @@ func TestFlow_AddMemberUnknownEmail(t *testing.T) {
 		t.Fatal(err)
 	}
 	rec := postForm(h, "/admin/tenants/gamma/members", url.Values{
-		"email": {"nobody@example.com"}, "role": {"user"},
+		"email": {"nobody@example.com"}, "roles": {"user"},
 	})
 	// Unknown email -> error toast + redirect back carrying the miss (no member
 	// added). The return path keeps the typed address for an inline correction.
@@ -194,9 +194,11 @@ func TestFlow_UpdateMemberRole(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Change role from viewer to admin via inline edit endpoint.
+	// Change roles from viewer to viewer+admin via the checkbox group on the
+	// roster row, then reduce back to one: the posted set replaces the whole
+	// membership role set on the tenant surface too.
 	actor := identitymodel.ActorIDFromUser(member.User.ID).PrefixedString()
-	rec := postForm(h, "/admin/tenants/delta/members/"+actor, url.Values{"role": {"admin"}})
+	rec := postForm(h, "/admin/tenants/delta/members/"+actor, url.Values{"roles": {"viewer", "admin"}})
 	if rec.Header().Get("HX-Redirect") != "/admin/tenants/delta" {
 		t.Fatalf("update role HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
 	}
@@ -205,7 +207,24 @@ func TestFlow_UpdateMemberRole(t *testing.T) {
 	if len(members) != 1 {
 		t.Fatalf("expected 1 member, got %d", len(members))
 	}
-	if len(members[0].Roles) != 1 || members[0].Roles[0] != identitymodel.RoleAdmin {
-		t.Errorf("role = %v, want [admin]", members[0].Roles)
+	if len(members[0].Roles) != 2 || !members[0].HasRole(identitymodel.RoleAdmin) || !members[0].HasRole(identitymodel.RoleViewer) {
+		t.Errorf("roles = %v, want [viewer admin]", members[0].Roles)
+	}
+
+	// Clearing every checkbox is refused; the previous set stays.
+	rec = postForm(h, "/admin/tenants/delta/members/"+actor, url.Values{})
+	if !strings.Contains(rec.Header().Get("Hx-Trigger"), "adminui:toast") {
+		t.Errorf("clearing all roles should be refused with a toast, got %q", rec.Header().Get("Hx-Trigger"))
+	}
+	members = svc.TenantMembers(ctx, tenant.ID)
+	if len(members) != 1 || len(members[0].Roles) != 2 {
+		t.Fatalf("the refused clear must leave both roles, got %v", members)
+	}
+
+	// Reducing to one role.
+	rec = postForm(h, "/admin/tenants/delta/members/"+actor, url.Values{"roles": {"admin"}})
+	members = svc.TenantMembers(ctx, tenant.ID)
+	if len(members) != 1 || len(members[0].Roles) != 1 || members[0].Roles[0] != identitymodel.RoleAdmin {
+		t.Errorf("roles = %v, want [admin]", members[0].Roles)
 	}
 }

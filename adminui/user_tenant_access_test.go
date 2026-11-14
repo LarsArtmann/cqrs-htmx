@@ -85,7 +85,7 @@ func TestUserGrantTenantAccess(t *testing.T) {
 	userBase := "/admin/users/" + target.User.ID.Get().String()
 
 	rec := postForm(h, userBase+"/tenants", url.Values{
-		"tenant": {"acme"}, "role": {"owner"},
+		"tenant": {"acme"}, "roles": {"owner"},
 	})
 	if got := rec.Header().Get("HX-Redirect"); got != userBase {
 		t.Errorf("grant redirect = %q, want %q", got, userBase)
@@ -104,20 +104,42 @@ func TestUserGrantTenantAccess(t *testing.T) {
 
 	// A membership is ADDED once: re-granting the same tenant is refused with
 	// guidance instead of silently dispatching a doomed command.
-	rec = postForm(h, userBase+"/tenants", url.Values{"tenant": {"acme"}, "role": {"viewer"}})
+	rec = postForm(h, userBase+"/tenants", url.Values{"tenant": {"acme"}, "roles": {"viewer"}})
 	if !strings.Contains(rec.Header().Get("Hx-Trigger"), "already in this tenant") {
 		t.Errorf("re-grant should explain that the member exists, got %q", rec.Header().Get("Hx-Trigger"))
 	}
 
-	// Changing an existing membership is its own command and replaces the roles.
-	rec = postForm(h, userBase+"/tenants/acme", url.Values{"role": {"viewer"}})
+	// Changing an existing membership replaces the WHOLE role set: two checked
+	// boxes must land as two roles, not the last one the old single select sent.
+	rec = postForm(h, userBase+"/tenants/acme", url.Values{"roles": {"viewer", "admin"}})
 	if got := rec.Header().Get("HX-Redirect"); got != userBase {
 		t.Errorf("role update redirect = %q, want %q", got, userBase)
 	}
 	members = svc.TenantMembers(ctx, tenant.ID)
-	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) {
-		t.Fatalf("expected the role set to become viewer, got %v (toast %q)",
+	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) || !members[0].HasRole(identitymodel.RoleAdmin) {
+		t.Fatalf("expected the role set to become viewer+admin, got %v (toast %q)",
 			members, rec.Header().Get("Hx-Trigger"))
+	}
+	if members[0].HasRole(identitymodel.RoleOwner) {
+		t.Errorf("the grant-time owner role must be gone after the set replaces it, got %v", members[0].Roles)
+	}
+
+	// Reducing to one role works the same way.
+	rec = postForm(h, userBase+"/tenants/acme", url.Values{"roles": {"viewer"}})
+	members = svc.TenantMembers(ctx, tenant.ID)
+	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) || members[0].HasRole(identitymodel.RoleAdmin) {
+		t.Fatalf("expected the role set to reduce to viewer, got %v", members)
+	}
+
+	// Clearing every checkbox is refused: a membership cannot be emptied into
+	// a silent no-role row — the admin revokes instead.
+	rec = postForm(h, userBase+"/tenants/acme", url.Values{})
+	if !strings.Contains(rec.Header().Get("Hx-Trigger"), "adminui:toast") {
+		t.Errorf("clearing all roles should be refused with a toast, got %q", rec.Header().Get("Hx-Trigger"))
+	}
+	members = svc.TenantMembers(ctx, tenant.ID)
+	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) {
+		t.Fatalf("the refused clear must leave the membership untouched, got %v", members)
 	}
 }
 
@@ -136,10 +158,10 @@ func TestUserGrantTenantAccess_RejectsBadInput(t *testing.T) {
 	userBase := "/admin/users/" + target.User.ID.Get().String()
 
 	for name, form := range map[string]url.Values{
-		"unknown role":   {"tenant": {"acme"}, "role": {"root"}},
-		"unknown tenant": {"tenant": {"ghost"}, "role": {"owner"}},
+		"unknown role":   {"tenant": {"acme"}, "roles": {"root"}},
+		"unknown tenant": {"tenant": {"ghost"}, "roles": {"owner"}},
 		"missing role":   {"tenant": {"acme"}},
-		"missing tenant": {"role": {"owner"}},
+		"missing tenant": {"roles": {"owner"}},
 	} {
 		rec := postForm(h, userBase+"/tenants", form)
 		if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {

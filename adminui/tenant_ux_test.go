@@ -135,8 +135,9 @@ func TestTenantsIndex_SearchAndMemberCounts(t *testing.T) {
 }
 
 // TestMembersCard_AddMemberAutocomplete pins the add-member affordances: the
-// directory feeds a datalist so an admin picks a person, and the role select
-// cannot silently default to the first role.
+// directory feeds a datalist so an admin picks a person, and the role control
+// is an unchecked checkbox group — nothing can silently default to the first
+// role, and none checked is refused by the handler.
 func TestMembersCard_AddMemberAutocomplete(t *testing.T) {
 	t.Parallel()
 
@@ -159,8 +160,15 @@ func TestMembersCard_AddMemberAutocomplete(t *testing.T) {
 	if !strings.Contains(body, `value="known@acme.com"`) {
 		t.Error("datalist should carry directory emails")
 	}
-	if !strings.Contains(body, "Choose role…") {
-		t.Error("role select should require an explicit choice")
+	if !strings.Contains(body, `role="group"`) || !strings.Contains(body, `name="roles"`) {
+		t.Error("role control should be a named checkbox group")
+	}
+	// The library renders Checked as a bare ` checked` attribute (its class
+	// tokens only ever contain the `:checked:` pseudo variant, which never has
+	// the leading space), so a fresh tenant with zero members must not contain
+	// one anywhere on the page.
+	if strings.Contains(body, " checked") {
+		t.Error("a fresh tenant's role checkboxes must all start unchecked")
 	}
 }
 
