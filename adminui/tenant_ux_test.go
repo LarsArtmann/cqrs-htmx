@@ -112,8 +112,15 @@ func TestTenantsIndex_SearchAndMemberCounts(t *testing.T) {
 	if !strings.Contains(body, "Globex Corporation") {
 		t.Error("search should keep the matching tenant")
 	}
-	if strings.Contains(body, ">acme<") {
-		t.Error("search should drop the non-matching tenant")
+	// The "drop" assertion reads the TABLE ONLY (the HTMX partial): the full
+	// page legitimately repeats every tenant name in the header switcher,
+	// which is page chrome, not the search result.
+	partial := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/admin/tenants?q=globex+corp", nil)
+	req.Header.Set("HX-Request", "true")
+	h.ServeHTTP(partial, req)
+	if strings.Contains(partial.Body.String(), ">acme<") {
+		t.Error("search should drop the non-matching tenant from the table")
 	}
 
 	// A miss renders honest guidance instead of an empty table.

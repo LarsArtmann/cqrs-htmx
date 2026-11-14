@@ -84,7 +84,7 @@ templ tenantSwitchTrigger(p pageData) {
 			if p.CurrentTenantID != "" {
 				{ tenantSwitchCurrentName(p) }
 			} else {
-				Tenants
+				{ panelTenants }
 			}
 		</span>
 	</span>
@@ -119,7 +119,7 @@ templ topBar(p pageData) {
 				// light-dismiss, keyboard-nav scripts ship with the component.
 				<div class="hidden lg:block">
 					@display.Dropdown(display.DropdownProps{
-						Label:    "Tenants",
+						Label:    panelTenants,
 						Trigger:  tenantSwitchTrigger(p),
 						Position: display.DropdownPositionLeft,
 						BaseProps: utils.BaseProps{

@@ -81,7 +81,7 @@ func tenantSwitchCurrentName(p pageData) string {
 			return opt.DisplayName
 		}
 	}
-	return "Tenants"
+	return panelTenants
 }
 
 // tenantSwitchItems renders the switcher's dropdown items: one link per live
@@ -91,9 +91,13 @@ func tenantSwitchItems(p pageData) []display.DropdownItem {
 	items := make([]display.DropdownItem, 0, len(p.TenantSwitcher))
 	for _, opt := range p.TenantSwitcher {
 		item := display.DropdownItem{
-			Text: opt.DisplayName,
-			Href: p.BasePath + "/tenants/" + opt.ID,
-			Kind: display.DropdownItemLink,
+			Text:     opt.DisplayName,
+			Href:     p.BasePath + "/tenants/" + opt.ID,
+			Icon:     "",
+			Kind:     display.DropdownItemLink,
+			External: false,
+			Disabled: false,
+			Attrs:    nil,
 		}
 		if opt.Current {
 			item.Icon = icons.Check
