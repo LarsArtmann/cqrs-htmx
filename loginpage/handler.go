@@ -271,16 +271,9 @@ func buildPageData(config Config, r *http.Request) PageData {
 	// are guarded.
 	hasWebAuthn := config.Service != nil && config.Service.HasWebAuthn() && !config.NoWebAuthn
 
-	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
-	oauth2Buttons := config.OAuth2Buttons
-	if len(oauth2Buttons) == 0 && config.Service != nil {
-		for _, name := range config.Service.ConfiguredOAuth2Providers() {
-			oauth2Buttons = append(oauth2Buttons, OAuth2ButtonFromProvider(name))
-		}
-	}
-	if config.NoOAuth2 {
-		oauth2Buttons = nil
-	}
+	// Auto-populate OAuth2 buttons from configured providers when not explicitly
+	// set; NoOAuth2 hides the section entirely.
+	oauth2Buttons := resolveOAuth2Buttons(config)
 	hasOAuth2 := len(oauth2Buttons) > 0
 	showReg := !config.NoRegistration && hasWebAuthn
 
@@ -310,6 +303,27 @@ func buildPageData(config Config, r *http.Request) PageData {
 	}
 
 	return data
+}
+
+// resolveOAuth2Buttons returns the OAuth2 buttons for the page: the explicit
+// config buttons when set, otherwise one per provider the service has
+// configured. NoOAuth2 suppresses the section entirely; a nil Service simply
+// has no providers to derive buttons from.
+func resolveOAuth2Buttons(config Config) []OAuth2Button {
+	if config.NoOAuth2 {
+		return nil
+	}
+	if len(config.OAuth2Buttons) > 0 {
+		return config.OAuth2Buttons
+	}
+	if config.Service == nil {
+		return nil
+	}
+	var buttons []OAuth2Button
+	for _, name := range config.Service.ConfiguredOAuth2Providers() {
+		buttons = append(buttons, OAuth2ButtonFromProvider(name))
+	}
+	return buttons
 }
 
 // applyRequestScoped populates the request-scoped PageData fields: CSRF
