@@ -135,3 +135,16 @@ func roleSelectOptions(assignable []identitymodel.Role, current []identitymodel.
 	}
 	return opts
 }
+
+// roleSelectOptionsPrompt builds the add-member role options with a disabled
+// leading prompt. Without it a browser preselects the first role and a
+// distracted Enter grants authority nobody chose.
+func roleSelectOptionsPrompt(assignable []identitymodel.Role) []forms.SelectOption {
+	prompt := forms.SelectOption{
+		Value:    "",
+		Label:    "Choose role…",
+		Selected: true,
+		Disabled: true,
+	}
+	return append([]forms.SelectOption{prompt}, roleSelectOptions(assignable, nil)...)
+}

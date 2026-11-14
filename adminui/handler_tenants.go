@@ -68,16 +68,21 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	memberships := h.config.Service.TenantMembers(r.Context(), tenantID)
 	members := toMemberRows(memberships, h.lookupUser)
 	memberBase := h.config.BasePath + "/tenants/" + tenantID.Get() + "/members"
+	d := tenantDetailData{
+		Tenant:              tenant,
+		Members:             members,
+		AssignableRoles:     identitymodel.AssignableRoles(),
+		BasePath:            h.config.BasePath,
+		AddMemberURL:        memberBase,
+		RemoveMemberBase:    memberBase,
+		UpdateRoleBase:      memberBase,
+		UserDetailBase:      h.config.BasePath + "/users/",
+		UserEmailOptions:    h.memberEmailOptions(),
+		AddMemberCreateHref: h.config.BasePath + "/users/new",
+	}
+	h.applyMemberError(r, &d)
 	p := h.page(tenant.DisplayName, "/tenants", user, r)
-	renderPage(w, r, tenantDetailPage(p, tenantDetailData{
-		Tenant:           tenant,
-		Members:          members,
-		AssignableRoles:  identitymodel.AssignableRoles(),
-		BasePath:         h.config.BasePath,
-		AddMemberURL:     memberBase,
-		RemoveMemberBase: memberBase,
-		UpdateRoleBase:   memberBase,
-	}))
+	renderPage(w, r, tenantDetailPage(p, d))
 }
 
 func (h *Handler) tenantSuspend(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {

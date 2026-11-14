@@ -2,16 +2,75 @@ package adminui
 
 import (
 	"net/http"
+	"net/url"
+	"slices"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
+// Query keys of the add-member error round trip. The typed email rides the
+// redirect so the admin can correct it instead of retyping from scratch.
+const (
+	memberErrorParam   = "member_error"
+	memberEmailParam   = "member_email"
+	memberErrorUnknown = "unknown"
+)
+
 // lookupUser resolves a user id through the panel's service read model. It is
 // the directory seam member rows use so a membership renders as a person.
 func (h *Handler) lookupUser(id identitymodel.UserID) (*identitymodel.User, bool) {
 	return h.config.Service.ReadModel().FindByUserID(id)
+}
+
+// memberEmailOptions lists the directory's email addresses for the add-member
+// autocomplete. Sorted and bounded (MaxListRows) so a large directory cannot
+// balloon the page; the field stays a free-text email input, so typing an
+// address outside the list still works.
+func (h *Handler) memberEmailOptions() []string {
+	all := h.config.Service.ReadModel().AllUsers()
+	emails := make([]string, 0, min(len(all), MaxListRows))
+	for _, u := range all {
+		if u.Email != "" {
+			emails = append(emails, u.Email)
+		}
+	}
+	slices.Sort(emails)
+	if len(emails) > MaxListRows {
+		emails = emails[:MaxListRows]
+	}
+	return emails
+}
+
+// applyMemberError fills the inline add-member guidance from the redirect
+// query. Only the known code is honored: an unknown value renders nothing
+// rather than echoing arbitrary text into the page.
+func (h *Handler) applyMemberError(r *http.Request, d *tenantDetailData) {
+	if r.URL.Query().Get(memberErrorParam) != memberErrorUnknown {
+		return
+	}
+	email := strings.TrimSpace(r.URL.Query().Get(memberEmailParam))
+	d.AddMemberEmail = email
+	if email == "" {
+		d.AddMemberError = "No account matches that email. Create the user first, then add them here."
+		return
+	}
+	d.AddMemberError = "No account matches " + email +
+		". Create the user first, then add them here."
+}
+
+// withMemberError appends the add-member error state to the return path.
+func withMemberError(back, email string) string {
+	u, err := url.Parse(back)
+	if err != nil {
+		return back
+	}
+	q := u.Query()
+	q.Set(memberErrorParam, memberErrorUnknown)
+	q.Set(memberEmailParam, email)
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 // membersIndex is the tenant-scoped members page (ModeTenantAdmin).
@@ -23,8 +82,9 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 	memberships := h.config.Service.TenantMembers(r.Context(), h.config.TenantID)
 	members := toMemberRows(memberships, h.lookupUser)
 	memberBase := h.config.BasePath + "/members"
-	p := h.page("Members", "/members", user, r)
-	renderPage(w, r, membersPage(p, tenantDetailData{
+	// Tenant-admin mode serves NO user directory, so member rows carry no
+	// detail links and the unknown-email banner offers no create escape hatch.
+	d := tenantDetailData{
 		Tenant:           tenant,
 		Members:          members,
 		AssignableRoles:  identitymodel.AssignableRoles(),
@@ -32,7 +92,11 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
 		UpdateRoleBase:   memberBase,
-	}))
+		UserEmailOptions: h.memberEmailOptions(),
+	}
+	h.applyMemberError(r, &d)
+	p := h.page("Members", "/members", user, r)
+	renderPage(w, r, membersPage(p, d))
 }
 
 // membersAdd handles "add member" in tenant-admin mode (tenant from config).
@@ -107,8 +171,8 @@ func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID i
 	}
 	target, ok := h.config.Service.ReadModel().FindByEmail(email)
 	if !ok {
-		triggerToast(w, "err", "No user with that email")
-		redirect(w, r, back)
+		triggerToast(w, "err", "No account matches that email")
+		redirect(w, r, withMemberError(back, email))
 		return
 	}
 	if err := h.config.Service.AddMember(

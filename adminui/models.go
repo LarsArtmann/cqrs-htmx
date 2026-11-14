@@ -132,10 +132,32 @@ type userDetailData struct {
 
 // tenantsListData drives the tenants index.
 type tenantsListData struct {
-	Tenants  []*usermgmt.Tenant
+	Tenants  []tenantRow
 	Total    int
+	Search   string
 	BasePath string
 	listPage
+}
+
+// tenantRow is one tenant list entry plus the facts an admin needs BEFORE
+// opening it: how many actors it scopes and its lifecycle state. The count is
+// derived per visible row (the read model has no batched count query yet) and
+// the list is page-bounded, so this stays O(page × memberships).
+type tenantRow struct {
+	Tenant      *usermgmt.Tenant
+	MemberCount int
+}
+
+// matchesTenantSearch reports whether q occurs in the tenant's slug or display
+// name (case-insensitive). An empty q matches every tenant.
+func matchesTenantSearch(t *usermgmt.Tenant, q string) bool {
+	if q == "" {
+		return true
+	}
+	needle := strings.ToLower(q)
+
+	return strings.Contains(strings.ToLower(t.Name), needle) ||
+		strings.Contains(strings.ToLower(t.DisplayName), needle)
 }
 
 // tenantDetailData drives a single tenant's page with its members. It is also
@@ -177,7 +199,7 @@ type memberRow struct {
 	Actor   identitymodel.ActorID
 	Email   string
 	Name    string
-	IsUser  bool      // the actor is a human user that resolved in the directory
+	IsUser  bool // the actor is a human user that resolved in the directory
 	Roles   []identitymodel.Role
 	AddedAt time.Time // zero when the store did not record it
 }

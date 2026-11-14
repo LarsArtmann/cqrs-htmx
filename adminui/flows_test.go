@@ -134,9 +134,12 @@ func TestFlow_AddMemberUnknownEmail(t *testing.T) {
 	rec := postForm(h, "/admin/tenants/gamma/members", url.Values{
 		"email": {"nobody@example.com"}, "role": {"user"},
 	})
-	// Unknown email -> error toast + redirect back (no member added).
-	if rec.Header().Get("HX-Redirect") != "/admin/tenants/gamma" {
-		t.Errorf("HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
+	// Unknown email -> error toast + redirect back carrying the miss (no member
+	// added). The return path keeps the typed address for an inline correction.
+	redirect := rec.Header().Get("HX-Redirect")
+	if !strings.HasPrefix(redirect, "/admin/tenants/gamma?") ||
+		!strings.Contains(redirect, "member_error=unknown") {
+		t.Errorf("HX-Redirect = %q", redirect)
 	}
 	if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {
 		t.Error("expected error toast header")

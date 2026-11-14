@@ -139,11 +139,30 @@ func TestPanel_TenantAdminAddMemberUnknownEmail(t *testing.T) {
 	rec := postForm(h, "/admin/members", url.Values{
 		"email": {"nobody@nowhere.com"}, "role": {"user"},
 	})
-	if rec.Header().Get("HX-Redirect") != "/admin/members" {
-		t.Errorf("add member redirect = %q", rec.Header().Get("HX-Redirect"))
+	// Unknown email -> redirect back carrying the typed address, so the page
+	// can explain the miss inline instead of losing what the admin typed.
+	redirect := rec.Header().Get("HX-Redirect")
+	if !strings.HasPrefix(redirect, "/admin/members?") ||
+		!strings.Contains(redirect, "member_error=unknown") ||
+		!strings.Contains(redirect, "member_email=nobody%40nowhere.com") {
+		t.Errorf("add member redirect = %q", redirect)
 	}
 	if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {
 		t.Error("expected error toast for unknown email")
+	}
+
+	// The redirect target renders the guidance and keeps the typed email.
+	page := httptest.NewRecorder()
+	h.ServeHTTP(page, httptest.NewRequest(http.MethodGet, redirect, nil))
+	if page.Code != http.StatusOK {
+		t.Fatalf("error page status = %d", page.Code)
+	}
+	body := page.Body.String()
+	if !strings.Contains(body, "That account does not exist yet") {
+		t.Error("expected inline unknown-email banner")
+	}
+	if !strings.Contains(body, `value="nobody@nowhere.com"`) {
+		t.Error("expected the typed email to be preserved in the form")
 	}
 }
 
