@@ -54,9 +54,8 @@ async function postForm(
       "X-Csrf-Token": token,
     },
     data: body,
-    maxRedirects: 0,
   });
-  return { ok: res.ok(), status: res.status(), location: res.headers().location ?? "" };
+  return { ok: res.ok(), status: res.status(), location: res.url() };
 }
 
 /** Seed a user through the panel; returns the user detail path. */
@@ -96,7 +95,7 @@ test("tenant access: grant from the user page renders the row, badges and filter
   const row = page.locator("tr", { hasText: tenantName });
   await expect(row).toHaveCount(1);
   expect(html).toContain(`e2e-grant-${stamp}@acme.dev`.split("@")[0] + "" || tenantName);
-    const badges = await row.innerText();
+  const badges = await row.innerText();
   expect(badges).toContain("viewer");
   expect(badges).toContain("admin");
 
@@ -111,9 +110,11 @@ test("tenant access: grant from the user page renders the row, badges and filter
   await page.goto(`${ADMIN}${tenantPath}`, { waitUntil: "load" });
   await page.waitForTimeout(400);
   await expect(
-    page.locator("#admin-members-table tbody tr, table tbody tr", {
-      hasText: `e2e-grant-${stamp}@acme.dev`,
-    }).first(),
+    page
+      .locator("#admin-members-table tbody tr, table tbody tr", {
+        hasText: `e2e-grant-${stamp}@acme.dev`,
+      })
+      .first(),
   ).toBeVisible();
 });
 
