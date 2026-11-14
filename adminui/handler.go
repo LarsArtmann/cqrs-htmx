@@ -2,6 +2,7 @@ package adminui
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -108,7 +109,7 @@ func (h *Handler) page(title, active string, user *identitymodel.User, r *http.R
 		n.Active = n.Href == active
 		nav[i] = n
 	}
-	return pageData{
+	p := pageData{
 		Title:     title,
 		BasePath:  h.config.BasePath,
 		Accent:    h.config.AccentColor,
@@ -121,6 +122,39 @@ func (h *Handler) page(title, active string, user *identitymodel.User, r *http.R
 		CSRFMeta:  httputil.CSRFTokenHTMLMeta(r),
 		Nonce:     h.nonce(r),
 	}
+	// The tenant switcher is a super-admin affordance: ModeTenantAdmin is
+	// scoped to exactly one tenant by construction, so a switcher there would
+	// offer a navigation that does not exist.
+	if h.config.Mode != ModeTenantAdmin {
+		p.TenantSwitcher = h.tenantSwitchOptions("")
+	}
+	return p
+}
+
+// tenantSwitchOptions lists LIVE tenants (suspended and deleted ones are not
+// navigable targets) in display-name order, marking currentID when non-empty.
+// Tenant detail passes the viewed tenant so the switcher can answer "where
+// am I".
+func (h *Handler) tenantSwitchOptions(currentID string) []tenantSwitchOption {
+	live := make([]*usermgmt.Tenant, 0)
+	for _, t := range h.config.Service.AllTenants() {
+		if !t.Suspended && !t.Deleted {
+			live = append(live, t)
+		}
+	}
+	slices.SortFunc(live, func(a, b *usermgmt.Tenant) int {
+		return strings.Compare(a.DisplayName, b.DisplayName)
+	})
+	opts := make([]tenantSwitchOption, 0, len(live))
+	for _, t := range live {
+		id := t.ID.Get()
+		opts = append(opts, tenantSwitchOption{
+			ID:          id,
+			DisplayName: t.DisplayName,
+			Current:     currentID != "" && id == currentID,
+		})
+	}
+	return opts
 }
 
 // nonce returns the per-request CSP nonce. When Config.NonceFunc is set
