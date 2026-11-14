@@ -30,13 +30,21 @@ func TestUserMenuDropdownRendered(t *testing.T) {
 		`role="menu"`,                          // menu semantics
 		`href="/logout-test"`,                  // the Sign out item keeps its link
 		`Sign out`,                             // item label
-		`aria-label="admin@example.com"`,       // trigger is labelled by the email
 		`tcPopoverPosition`,                    // library positioner singleton shipped
 		`data-tc-anchor`,                       // panel anchored to the trigger
 	} {
 		if !strings.Contains(html, want) {
 			t.Errorf("user menu dropdown missing %q", want)
 		}
+	}
+	// The trigger carries NO aria-label: its accessible name must derive from
+	// the visible content (avatar initials + email) — WCAG 2.5.3 Label in
+	// Name. A label naming only the email failed axe's
+	// label-content-name-mismatch because it does not contain the full
+	// visible text (first adminui a11y sweep, 2026-11-14).
+	trigger := html[strings.Index(html, `id="admin-user-menu-button"`):]
+	if strings.Contains(trigger[:400], `aria-label=`) {
+		t.Error("user menu trigger must not override the content-derived accessible name")
 	}
 	if strings.Contains(html, " onclick=") || strings.Contains(html, " onsubmit=") {
 		t.Error("user menu must not introduce inline handlers (CSP posture)")
