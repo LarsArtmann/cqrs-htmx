@@ -121,33 +121,34 @@ func listPageURL(base, search string) string {
 	return base + "?" + url.Values{"q": []string{search}}.Encode()
 }
 
-// roleSelectOptions builds a []forms.SelectOption from assignable roles,
-// marking the member's current roles as selected. Used by the members table
-// role dropdowns.
-func roleSelectOptions(assignable []identitymodel.Role, current []identitymodel.Role) []forms.SelectOption {
-	opts := make([]forms.SelectOption, len(assignable))
-	for i, r := range assignable {
-		opts[i] = forms.SelectOption{
-			Value:    string(r),
-			Label:    string(r),
-			Selected: slices.Contains(current, r),
-			Disabled: false,
+// parseRolesForm reads the multi-value `roles` checkbox field, trims each
+// entry, deduplicates, and validates every value against AssignableRoles().
+// A membership may hold several roles; none checked or an unknown value
+// refuses the whole request (ok=false) — the caller shows the toast, nothing
+// is dispatched, and no role is silently dropped.
+func parseRolesForm(r *http.Request) ([]identitymodel.Role, bool) {
+	raw := r.Form["roles"]
+	if len(raw) == 0 {
+		return nil, false
+	}
+	assignable := identitymodel.AssignableRoles()
+	roles := make([]identitymodel.Role, 0, len(raw))
+	seen := make(map[identitymodel.Role]bool, len(raw))
+	for _, entry := range raw {
+		role := identitymodel.Role(strings.TrimSpace(entry))
+		if role == "" || !slices.Contains(assignable, role) {
+			return nil, false
 		}
+		if seen[role] {
+			continue
+		}
+		seen[role] = true
+		roles = append(roles, role)
 	}
-	return opts
-}
-
-// roleSelectOptionsPrompt builds the add-member role options with a disabled
-// leading prompt. Without it a browser preselects the first role and a
-// distracted Enter grants authority nobody chose.
-func roleSelectOptionsPrompt(assignable []identitymodel.Role) []forms.SelectOption {
-	prompt := forms.SelectOption{
-		Value:    "",
-		Label:    "Choose role…",
-		Selected: true,
-		Disabled: true,
+	if len(roles) == 0 {
+		return nil, false
 	}
-	return append([]forms.SelectOption{prompt}, roleSelectOptions(assignable, nil)...)
+	return roles, true
 }
 
 // tenantSelectOptions builds the "grant tenant access" select: a disabled

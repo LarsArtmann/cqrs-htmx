@@ -574,13 +574,7 @@ templ tenantAccessCard(d userDetailData) {
 					Required:  true,
 					BaseProps: utils.BaseProps{Class: "max-w-[220px]"},
 				})
-				@forms.Select(forms.SelectProps{
-					Name:      "role",
-					Label:     "Role",
-					Options:   roleSelectOptionsPrompt(d.AssignableRoles),
-					Required:  true,
-					BaseProps: utils.BaseProps{Class: "max-w-[150px]"},
-				})
+				@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
 				@display.Button(display.ButtonProps{
 					Type:     display.ButtonHTMLSubmit,
 					Variant:  display.ButtonPrimary,
@@ -590,7 +584,7 @@ templ tenantAccessCard(d userDetailData) {
 			</form>
 			<div class="mt-2 text-xs text-gray-400">
 				Only tenants the user does not belong to are offered. Change an existing
-				membership's role in its row above.
+				membership's roles in its row above.
 			</div>
 		</div>
 	}
@@ -611,12 +605,7 @@ templ tenantAccessRows(d userDetailData) {
 						@roleBadge(string(r))
 					}
 					<form class="flex items-center gap-1.5" hx-post={ d.UpdateTenantBase + "/" + access.TenantID }>
-						@forms.Select(forms.SelectProps{
-							Name:      "role",
-							Options:   roleSelectOptions(d.AssignableRoles, access.Roles),
-							Required:  true,
-							BaseProps: utils.BaseProps{Class: "max-w-[120px]", AriaLabel: "Set role in " + access.Name},
-						})
+						@roleCheckboxGroup(d.AssignableRoles, access.Roles, "Set roles in " + access.Name)
 						@display.Button(display.ButtonProps{
 							Type:     display.ButtonHTMLSubmit,
 							Variant:  display.ButtonSecondary,

@@ -258,9 +258,9 @@ func (h *Handler) userGrantTenantAccess(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	tenantRaw := strings.TrimSpace(r.FormValue("tenant"))
-	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
-	if tenantRaw == "" || role == "" {
-		triggerToast(w, "err", "Pick a tenant and a role")
+	roles, rolesOK := parseRolesForm(r)
+	if tenantRaw == "" || !rolesOK {
+		triggerToast(w, "err", "Pick a tenant and at least one role")
 		redirect(w, r, back)
 		return
 	}
@@ -270,13 +270,8 @@ func (h *Handler) userGrantTenantAccess(w http.ResponseWriter, r *http.Request, 
 		redirect(w, r, back)
 		return
 	}
-	if !slices.Contains(identitymodel.AssignableRoles(), role) {
-		triggerToast(w, "err", "Unknown role")
-		redirect(w, r, back)
-		return
-	}
 	if err := h.config.Service.AddMember(
-		r.Context(), identitymodel.ActorIDFromUser(target), tenantID, []identitymodel.Role{role},
+		r.Context(), identitymodel.ActorIDFromUser(target), tenantID, roles,
 	); err != nil {
 		h.writeActionError(w, r, "Grant tenant access", err)
 		return
@@ -303,15 +298,15 @@ func (h *Handler) userUpdateTenantRole(w http.ResponseWriter, r *http.Request, _
 		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
 		return
 	}
-	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
-	if !slices.Contains(identitymodel.AssignableRoles(), role) {
-		triggerToast(w, "err", "Unknown role")
+	roles, ok := parseRolesForm(r)
+	if !ok {
+		triggerToast(w, "err", "Pick at least one role")
 		redirect(w, r, back)
 		return
 	}
 	if err := h.config.Service.UpdateMemberRoles(
 		r.Context(), identitymodel.ActorIDFromUser(target), identitymodel.NewTenantID(tenantRaw),
-		[]identitymodel.Role{role},
+		roles,
 	); err != nil {
 		h.writeActionError(w, r, "Update tenant role", err)
 		return

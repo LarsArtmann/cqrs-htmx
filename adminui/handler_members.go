@@ -171,9 +171,9 @@ func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID i
 		return
 	}
 	email := strings.TrimSpace(r.FormValue("email"))
-	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
-	if email == "" || role == "" {
-		triggerToast(w, "err", "Email and role are required")
+	roles, rolesOK := parseRolesForm(r)
+	if email == "" || !rolesOK {
+		triggerToast(w, "err", "Email and at least one role are required")
 		redirect(w, r, back)
 		return
 	}
@@ -187,7 +187,7 @@ func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID i
 		r.Context(),
 		identitymodel.ActorIDFromUser(target.ID),
 		tenantID,
-		[]identitymodel.Role{role},
+		roles,
 	); err != nil {
 		triggerToast(w, "err", "Add member failed: "+actionErrorMessage(err))
 	} else {
@@ -239,13 +239,13 @@ func (h *Handler) doUpdateRole(
 		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
 		return
 	}
-	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
-	if role == "" {
-		triggerToast(w, "err", "Role is required")
+	roles, ok := parseRolesForm(r)
+	if !ok {
+		triggerToast(w, "err", "Pick at least one role")
 		redirect(w, r, back)
 		return
 	}
-	if err := h.config.Service.UpdateMemberRoles(r.Context(), actor, tenantID, []identitymodel.Role{role}); err != nil {
+	if err := h.config.Service.UpdateMemberRoles(r.Context(), actor, tenantID, roles); err != nil {
 		triggerToast(w, "err", "Role update failed: "+actionErrorMessage(err))
 	} else {
 		triggerToast(w, "ok", "Role updated")

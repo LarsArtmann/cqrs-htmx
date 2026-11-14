@@ -1635,13 +1635,7 @@ func tenantAccessCard(d userDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = forms.Select(forms.SelectProps{
-				Name:      "role",
-				Label:     "Role",
-				Options:   roleSelectOptionsPrompt(d.AssignableRoles),
-				Required:  true,
-				BaseProps: utils.BaseProps{Class: "max-w-[150px]"},
-			}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, nil, "Role").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1654,7 +1648,7 @@ func tenantAccessCard(d userDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</form><div class=\"mt-2 text-xs text-gray-400\">Only tenants the user does not belong to are offered. Change an existing membership's role in its row above.</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</form><div class=\"mt-2 text-xs text-gray-400\">Only tenants the user does not belong to are offered. Change an existing membership's roles in its row above.</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1697,7 +1691,7 @@ func tenantAccessRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.BasePath + "/tenants/" + access.TenantID).ResolveURL(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 603, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 597, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var53)
 			if templ_7745c5c3_Err != nil {
@@ -1710,7 +1704,7 @@ func tenantAccessRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var54 string
 			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(access.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 604, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 598, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 			if templ_7745c5c3_Err != nil {
@@ -1723,7 +1717,7 @@ func tenantAccessRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var55 string
 			templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(access.Slug)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 605, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 599, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 			if templ_7745c5c3_Err != nil {
@@ -1746,7 +1740,7 @@ func tenantAccessRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var56 string
 			templ_7745c5c3_Var56, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.UpdateTenantBase + "/" + access.TenantID).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 613, Col: 97}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 607, Col: 97}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var56)
 			if templ_7745c5c3_Err != nil {
@@ -1756,12 +1750,7 @@ func tenantAccessRows(d userDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = forms.Select(forms.SelectProps{
-				Name:      "role",
-				Options:   roleSelectOptions(d.AssignableRoles, access.Roles),
-				Required:  true,
-				BaseProps: utils.BaseProps{Class: "max-w-[120px]", AriaLabel: "Set role in " + access.Name},
-			}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, access.Roles, "Set roles in "+access.Name).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1913,7 +1902,7 @@ func externalAccountRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var60 string
 			templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(ea.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 685, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 674, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 			if templ_7745c5c3_Err != nil {
@@ -1926,7 +1915,7 @@ func externalAccountRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var61 string
 			templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(ea.LinkedAt.Format("Jan 2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 686, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 675, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 			if templ_7745c5c3_Err != nil {

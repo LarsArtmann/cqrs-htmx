@@ -75,12 +75,7 @@ templ membersCard(d tenantDetailData) {
 						<option value={ email }></option>
 					}
 				</datalist>
-				@forms.Select(forms.SelectProps{
-					Name:      "role",
-					Options:   roleSelectOptionsPrompt(d.AssignableRoles),
-					Required:  true,
-					BaseProps: utils.BaseProps{Class: "max-w-[150px]", AriaLabel: "Role"},
-				})
+				@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
 				// display.Button with the Children slot (#405): LoadingButton content
 				// (label swap + spinner) inside the library's Primary+SM classes.
 				@display.Button(display.ButtonProps{
@@ -121,12 +116,7 @@ templ membersRows(d tenantDetailData) {
 						@roleBadge(string(r))
 					}
 					<form class="flex items-center gap-1.5" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
-						@forms.Select(forms.SelectProps{
-							Name:      "role",
-							Options:   roleSelectOptions(d.AssignableRoles, m.Roles),
-							Required:  true,
-							BaseProps: utils.BaseProps{Class: "max-w-[120px]", AriaLabel: "Set role for " + m.displayName()},
-						})
+						@roleCheckboxGroup(d.AssignableRoles, m.Roles, "Set roles for " + m.displayName())
 						// Same Children-slot pattern as the Add member submit (Secondary
 						// variant): LoadingButton shows "Saving…" while the POST runs.
 						@display.Button(display.ButtonProps{

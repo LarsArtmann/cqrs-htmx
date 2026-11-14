@@ -190,12 +190,7 @@ func membersCard(d tenantDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = forms.Select(forms.SelectProps{
-				Name:      "role",
-				Options:   roleSelectOptionsPrompt(d.AssignableRoles),
-				Required:  true,
-				BaseProps: utils.BaseProps{Class: "max-w-[150px]", AriaLabel: "Role"},
-			}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, nil, "Role").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -262,7 +257,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.UserDetailBase + m.Actor.Raw()).ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 105, Col: 112}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 100, Col: 112}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 				if templ_7745c5c3_Err != nil {
@@ -275,7 +270,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(m.displayName())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 105, Col: 132}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 100, Col: 132}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -293,7 +288,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(m.displayName())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 107, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 102, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -312,7 +307,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 110, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 105, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -331,7 +326,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(m.Actor.PrefixedString())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 113, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 108, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -359,7 +354,7 @@ func membersRows(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.UpdateRoleBase + "/" + m.Actor.PrefixedString()).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 123, Col: 104}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 118, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 			if templ_7745c5c3_Err != nil {
@@ -369,12 +364,7 @@ func membersRows(d tenantDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = forms.Select(forms.SelectProps{
-				Name:      "role",
-				Options:   roleSelectOptions(d.AssignableRoles, m.Roles),
-				Required:  true,
-				BaseProps: utils.BaseProps{Class: "max-w-[120px]", AriaLabel: "Set role for " + m.displayName()},
-			}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, m.Roles, "Set roles for "+m.displayName()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -399,7 +389,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.NewAttributeExpression(m.AddedAt.Format("Jan 2, 2006 15:04 MST")).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 143, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 133, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 				if templ_7745c5c3_Err != nil {
