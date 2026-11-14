@@ -65,12 +65,6 @@ test("multi-tab live feed: a second connected dashboard gains the row too", asyn
 });
 
 test("time travel: the slider updates the display while dragging and navigates on release", async ({ page }) => {
-  // The drag probe asserts client-side display state; an SSE-triggered region
-  // refresh (the seed ticker is most active right after server boot) re-renders
-  // the page to the server state mid-test and races the probe. Block the feed:
-  // this test pins slider wiring, not liveness (the live-append test above
-  // covers the feed itself).
-  await page.route("**/events", (route) => route.abort());
   await page.goto("/dashboard/time-travel");
 
   // A seeded User stream has exactly 2 versions.
