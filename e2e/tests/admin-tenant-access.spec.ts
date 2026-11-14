@@ -194,9 +194,11 @@ test("add member: datalist feeds the directory, drops joined members, unknown em
   await page.goto(`${ADMIN}${tenantPath}`, { waitUntil: "load" });
   await page.waitForTimeout(400);
   html = await page.content();
-  const dataList = await page.locator("#admin-member-emails").innerText();
-  expect(dataList).not.toContain(`e2e-m1-${stamp}@acme.dev`);
-  expect(dataList).toContain(`e2e-m2-${stamp}@acme.dev`);
+  // A datalist's options are not rendered content — innerText is empty;
+  // the option elements live in innerHTML.
+  const dataListHTML = await page.locator("#admin-member-emails").innerHTML();
+  expect(dataListHTML).not.toContain(`e2e-m1-${stamp}@acme.dev`);
+  expect(dataListHTML).toContain(`e2e-m2-${stamp}@acme.dev`);
   // The roster row names the person, not the actor token.
   await expect(
     page.locator("table tbody tr", { hasText: `e2e-m1-${stamp}@acme.dev` }).first(),
