@@ -2058,7 +2058,10 @@ func tenantAccessRows(d userDetailData) templ.Component {
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
+				// Icon-only button: name it for screen readers (axe
+				// button-name, first adminui a11y sweep 2026-11-14).
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"aria-label":         "Revoke access to " + access.Name,
 					"hx-post":            d.RemoveTenantBase + "/" + access.TenantID + "/delete",
 					"data-confirm":       tenantRevokeConfirm(d, access),
 					"data-confirm-title": "Revoke tenant access",
@@ -2189,7 +2192,7 @@ func externalAccountRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var68 string
 			templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(ea.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 783, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 786, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 			if templ_7745c5c3_Err != nil {
@@ -2202,7 +2205,7 @@ func externalAccountRows(d userDetailData) templ.Component {
 			var templ_7745c5c3_Var69 string
 			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(ea.LinkedAt.Format("Jan 2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 784, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 787, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 			if templ_7745c5c3_Err != nil {

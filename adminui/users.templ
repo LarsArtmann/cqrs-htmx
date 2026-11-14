@@ -729,7 +729,10 @@ templ tenantAccessRows(d userDetailData) {
 					Variant: display.ButtonSecondary,
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("trash"),
+					// Icon-only button: name it for screen readers (axe
+					// button-name, first adminui a11y sweep 2026-11-14).
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"aria-label":         "Revoke access to " + access.Name,
 						"hx-post":            d.RemoveTenantBase + "/" + access.TenantID + "/delete",
 						"data-confirm":       tenantRevokeConfirm(d, access),
 						"data-confirm-title": "Revoke tenant access",

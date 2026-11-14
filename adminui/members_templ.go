@@ -440,7 +440,10 @@ func membersRows(d tenantDetailData) templ.Component {
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
+				// Icon-only button: name it for screen readers (axe
+				// button-name, first adminui a11y sweep 2026-11-14).
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"aria-label":         "Remove " + m.displayName() + " from this tenant",
 					"hx-post":            d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
 					"data-confirm":       memberRemoveConfirm(d, m),
 					"data-confirm-title": "Remove member",
