@@ -127,6 +127,7 @@ type userRow struct {
 	User          *identitymodel.User
 	PlatformRoles []identitymodel.Role
 	TenantCount   int
+	LastSeen      time.Time // zero when the audit window records no activity
 }
 
 // isPlatformAdmin reports whether the row grants any platform (wildcard) role.

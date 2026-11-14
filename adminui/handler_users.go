@@ -23,8 +23,11 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
 	visible := matched[offset : offset+limit]
 	rows := make([]userRow, 0, len(visible))
+	lastSeen := h.lastSeenIndex()
 	for _, u := range visible {
-		rows = append(rows, h.userRow(r.Context(), u))
+		row := h.userRow(r.Context(), u)
+		row.LastSeen = lastSeen[u.ID.Get().String()]
+		rows = append(rows, row)
 	}
 	d := usersListData{
 		Users: rows, Total: len(matched), Search: q,
@@ -37,6 +40,26 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 	}
 	p := h.page("Users", "/users", user, r)
 	renderPage(w, r, usersPage(p, d))
+}
+
+// lastSeenIndex derives "last recorded activity" per user from the audit
+// window in ONE bounded scan (the window holds DefaultAuditLogLimit entries;
+// a page render pays one pass, not one query per row — no unbounded scan).
+// It is a convenience view over the same window the audit page shows: entries
+// evicted from the window simply leave the user's column at the honest dash.
+func (h *Handler) lastSeenIndex() map[string]time.Time {
+	latest := make(map[string]time.Time)
+	log := h.config.Service.AuditLog()
+	if log == nil {
+		return latest
+	}
+	for _, e := range log.Entries() {
+		key := e.AggregateID.Get()
+		if prev, ok := latest[key]; !ok || e.OccurredAt.After(prev) {
+			latest[key] = e.OccurredAt
+		}
+	}
+	return latest
 }
 
 // userFilter is a one-of status chip narrowing the users list. The zero
