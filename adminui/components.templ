@@ -3,9 +3,12 @@ package adminui
 import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
+	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
 	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
+
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
 templ icon(name string) {
@@ -39,6 +42,25 @@ templ roleBadge(role string) {
 		Type: roleBadgeType(role),
 		Pill: true,
 	})
+}
+
+// roleCheckboxGroup renders the assignable roles as an inline checkbox group
+// posting `roles` (the field name the platform-access card already uses), the
+// member's current roles pre-checked. A membership can hold several roles —
+// the single select this replaces flattened them to one — and the group needs
+// no JS: unchecked boxes simply post nothing. None checked is refused by the
+// handler with a toast, so a membership can never be silently emptied here.
+templ roleCheckboxGroup(assignable, current []identitymodel.Role, groupLabel string) {
+	<div class="flex flex-wrap items-center gap-x-3 gap-y-1" role="group" aria-label={ groupLabel }>
+		for _, role := range assignable {
+			@forms.Checkbox(forms.CheckboxProps{
+				Name:    "roles",
+				Value:   string(role),
+				Label:   string(role),
+				Checked: hasRole(current, role),
+			})
+		}
+	</div>
 }
 
 templ statCardView(c statCard) {
