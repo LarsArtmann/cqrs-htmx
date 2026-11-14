@@ -71,6 +71,19 @@ type tenantSwitchOption struct {
 	Current     bool
 }
 
+// tenantSwitchCurrentName is the trigger label for a tenant-scoped view: the
+// display name of the tenant being viewed. Falls back to the neutral label
+// when no current tenant is set (defensive — the templ branch never calls it
+// with an empty CurrentTenantID).
+func tenantSwitchCurrentName(p pageData) string {
+	for _, opt := range p.TenantSwitcher {
+		if opt.Current {
+			return opt.DisplayName
+		}
+	}
+	return "Tenants"
+}
+
 // tenantSwitchItems renders the switcher's dropdown items: one link per live
 // tenant (display-name order), the tenant being viewed carrying the check
 // icon as its current marker.
@@ -79,7 +92,7 @@ func tenantSwitchItems(p pageData) []display.DropdownItem {
 	for _, opt := range p.TenantSwitcher {
 		item := display.DropdownItem{
 			Text: opt.DisplayName,
-			Href: "/tenants/" + opt.ID,
+			Href: p.BasePath + "/tenants/" + opt.ID,
 			Kind: display.DropdownItemLink,
 		}
 		if opt.Current {

@@ -74,6 +74,22 @@ templ sidebarFooter() {
 	<span class="text-xs text-gray-400">cqrs-htmx admin</span>
 }
 
+// tenantSwitchTrigger is the switcher's trigger visuals; the functional
+// button wiring (popovertarget/aria/keyboard) ships with the Dropdown
+// component. The label names the tenant being viewed when there is one.
+templ tenantSwitchTrigger(p pageData) {
+	<span class="flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-gray-500 hover:text-gray-700">
+		@icon(iconTenants)
+		<span class="hidden text-sm md:inline">
+			if p.CurrentTenantID != "" {
+				{ tenantSwitchCurrentName(p) }
+			} else {
+				Tenants
+			}
+		</span>
+	</span>
+}
+
 // userMenuTrigger is the custom DropdownProps.Trigger content for the header
 // identity menu (templ-components v1.19.0): the functionally wired trigger
 // button keeps popovertarget/aria; this component owns the visuals.
@@ -96,6 +112,24 @@ templ topBar(p pageData) {
 			<div class="text-[17px]">{ p.Title }</div>
 		</div>
 		<div class="flex items-center gap-3.5">
+			if len(p.TenantSwitcher) > 0 {
+				// Tenant switcher (super-admin mode only — page() leaves the list
+				// empty in ModeTenantAdmin): one click moves between tenants.
+				// Same library Dropdown as the user menu: native Popover API,
+				// light-dismiss, keyboard-nav scripts ship with the component.
+				<div class="hidden lg:block">
+					@display.Dropdown(display.DropdownProps{
+						Label:    "Tenants",
+						Trigger:  tenantSwitchTrigger(p),
+						Position: display.DropdownPositionLeft,
+						BaseProps: utils.BaseProps{
+							ID:    "admin-tenant-switcher",
+							Nonce: p.Nonce,
+						},
+						Items: tenantSwitchItems(p),
+					})
+				</div>
+			}
 			@layout.ThemeToggle("Toggle theme", p.Nonce)
 			if p.SSEURL != "" {
 				<div class="sync-bar" data-sync-status="idle">

@@ -104,6 +104,11 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	}
 	h.applyMemberError(r, &d)
 	p := h.page(tenant.DisplayName, "/tenants", user, r)
+	// The switcher is rebuilt with the viewed tenant marked, so the dropdown
+	// answers "where am I" (T091: tenant detail is the tenant dashboard the
+	// switcher falls back to from any other page).
+	p.CurrentTenantID = tenantID.Get()
+	p.TenantSwitcher = h.tenantSwitchOptions(tenantID.Get())
 	renderPage(w, r, tenantDetailPage(p, d))
 }
 
