@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"context"
 	"encoding/base64"
 	"net/http"
 	"strings"
@@ -22,7 +23,7 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 	visible := matched[offset : offset+limit]
 	rows := make([]userRow, 0, len(visible))
 	for _, u := range visible {
-		rows = append(rows, h.userRow(u))
+		rows = append(rows, h.userRow(r.Context(), u))
 	}
 	d := usersListData{
 		Users: rows, Total: len(matched), Search: q,
@@ -109,7 +110,13 @@ func userMatchesFilter(u *identitymodel.User, filter userFilter) bool {
 // (wildcard-domain) roles they hold and how many tenants they belong to. A
 // policy-engine failure degrades the column to empty rather than failing the
 // page — the directory itself is still the truth about who exists.
-func (h *Handler) userRow(u *identitymodel.User) userRow {
+//
+// The tenant count is derived from the domains the policy engine reports AND
+// that resolve to a real tenant. Registration grants a user's default roles in
+// a domain named after their own stream, so a raw domain count would report a
+// phantom "tenant" for every user; the tenant lookup is what makes the number
+// mean what it says.
+func (h *Handler) userRow(ctx context.Context, u *identitymodel.User) userRow {
 	row := userRow{User: u}
 	authz := h.config.Service.Authz()
 	if authz == nil {
@@ -120,7 +127,10 @@ func (h *Handler) userRow(u *identitymodel.User) userRow {
 	}
 	if domains, err := authz.DomainsForUser(u.ID); err == nil {
 		for _, dom := range domains {
-			if dom.Get() != identitymodel.WildcardDomain {
+			if dom.Get() == identitymodel.WildcardDomain {
+				continue
+			}
+			if _, err := h.config.Service.GetTenant(ctx, dom); err == nil {
 				row.TenantCount++
 			}
 		}
@@ -134,7 +144,7 @@ func (h *Handler) userRow(u *identitymodel.User) userRow {
 func (h *Handler) filterPlatformAdmins(all []*identitymodel.User) []*identitymodel.User {
 	out := make([]*identitymodel.User, 0, len(all))
 	for _, u := range all {
-		if h.userRow(u).isPlatformAdmin() {
+		if h.userRow(context.Background(), u).isPlatformAdmin() {
 			out = append(out, u)
 		}
 	}

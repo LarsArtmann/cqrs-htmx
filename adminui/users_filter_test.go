@@ -79,8 +79,9 @@ func TestFlow_UsersFilterComposeWithSearch(t *testing.T) {
 func TestUserFilterChipsList_PreservesSearch(t *testing.T) {
 	d := usersListData{BasePath: "/admin", Search: "ada", Filter: userFilterVerified}
 	chips := userFilterChipsList(d)
-	if len(chips) != 4 {
-		t.Fatalf("got %d chips, want 4", len(chips))
+	// Five status chips: verified, unverified, MFA, has-provider, administrators.
+	if len(chips) != 5 {
+		t.Fatalf("got %d chips, want 5", len(chips))
 	}
 	active := 0
 	for _, c := range chips {
@@ -108,6 +109,7 @@ func TestParseUserFilter_RefusesUnknown(t *testing.T) {
 		"mfa":        userFilterMFA,
 		"external":   userFilterExternal,
 		"unverified": userFilterUnverified,
+		"admin":      userFilterAdmin,
 		"garbage":    userFilterNone,
 		"<script>":   userFilterNone,
 	} {

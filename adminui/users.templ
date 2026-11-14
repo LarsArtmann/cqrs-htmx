@@ -134,7 +134,7 @@ templ usersRows(d usersListData) {
 				</a>
 			</td>
 			<td class="px-4 py-2">
-				@userAccessCell(row)
+				@userAccessCell(row, d.BasePath)
 			</td>
 			<td class="px-4 py-2">
 				<div class="flex flex-wrap gap-1">
@@ -165,19 +165,14 @@ templ usersRows(d usersListData) {
 // reach what. Platform roles render as badges (wildcard domain), tenant
 // memberships as a count; a user with neither reads as a quiet dash rather
 // than an empty cell that could mean "not loaded".
-templ userAccessCell(row userRow) {
+templ userAccessCell(row userRow, basePath string) {
 	<div class="flex flex-wrap items-center gap-1">
 		for _, role := range row.PlatformRoles {
 			@roleBadge(string(role))
 		}
 		if row.TenantCount > 0 {
-			<a class="text-xs text-gray-500 no-underline hover:underline" href={ "/admin/users/" + row.User.ID.Get().String() }>
-				{ strconv.Itoa(row.TenantCount) }
-				if row.TenantCount == 1 {
-					<span> tenant</span>
-				} else {
-					<span> tenants</span>
-				}
+			<a class="text-xs text-gray-500 no-underline hover:underline" href={ basePath + "/users/" + row.User.ID.Get().String() }>
+				{ row.tenantCountLabel() }
 			</a>
 		}
 		if !row.isPlatformAdmin() && row.TenantCount == 0 {

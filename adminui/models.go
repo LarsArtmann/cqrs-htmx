@@ -3,6 +3,7 @@ package adminui
 import (
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -129,6 +130,16 @@ type userRow struct {
 
 // isPlatformAdmin reports whether the row grants any platform (wildcard) role.
 func (r userRow) isPlatformAdmin() bool { return len(r.PlatformRoles) > 0 }
+
+// tenantCountLabel is the memberships summary ("1 tenant", "3 tenants"). It is
+// built here, not in the template, so the number and the noun render as one
+// text node (a screen reader announces "one tenant", not "one" then "tenant").
+func (r userRow) tenantCountLabel() string {
+	if r.TenantCount == 1 {
+		return "1 tenant"
+	}
+	return strconv.Itoa(r.TenantCount) + " tenants"
+}
 
 // userDetailData drives a single user's page.
 type userDetailData struct {
