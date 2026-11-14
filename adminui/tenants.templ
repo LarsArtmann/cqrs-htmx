@@ -49,13 +49,15 @@ templ tenantsContent(d tenantsListData) {
 	// Lifecycle filter chips + sort control: plain links so the state is a
 	// shareable URL, preserving the current search. Counts are the
 	// search-scoped mix, so a chip never promises rows the search hides.
+	// gray-600 (not 500): Tailwind v4's gray-500 misses 4.5:1 on white — the
+	// first adminui axe sweep flagged it (2026-11-14).
 	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
 		@tenantStatusChip(d, "", "All", d.Total)
 		@tenantStatusChip(d, "active", "Active", d.StatusCounts["active"])
 		@tenantStatusChip(d, "suspended", "Suspended", d.StatusCounts["suspended"])
 		@tenantStatusChip(d, "deleted", "Deleted", d.StatusCounts["deleted"])
 		<span class="text-gray-300">|</span>
-		<span class="text-gray-400">Sort</span>
+		<span class="text-gray-600 dark:text-gray-400">Sort</span>
 		@tenantSortLink(d, "name", "Name")
 		<span class="text-gray-300">/</span>
 		@tenantSortLink(d, "members", "Members")
@@ -75,7 +77,7 @@ templ tenantStatusChip(d tenantsListData, status, label string, count int) {
 		</span>
 	} else {
 		<a
-			class="rounded-full px-2.5 py-0.5 text-gray-500 no-underline hover:bg-gray-100 hover:text-gray-900"
+			class="rounded-full px-2.5 py-0.5 text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
 			href={ tenantListURL(d, status, d.Sort) }
 		>{ label } ({ strconv.Itoa(count) })</a>
 	}
@@ -88,7 +90,7 @@ templ tenantSortLink(d tenantsListData, sort, label string) {
 		<span class="font-medium text-gray-900">{ label }</span>
 	} else {
 		<a
-			class="text-gray-500 no-underline hover:text-gray-900"
+			class="text-gray-600 no-underline hover:text-gray-900 dark:text-gray-400"
 			href={ tenantListURL(d, d.Status, sort) }
 		>{ label }</a>
 	}

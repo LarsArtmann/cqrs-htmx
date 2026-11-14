@@ -153,11 +153,15 @@ templ topBar(p pageData) {
 								Class: "lg:hidden",
 							},
 						})
-						<div class="hidden lg:block">
-							@display.Dropdown(display.DropdownProps{
-								Label:    p.User.Email,
-								Trigger:  userMenuTrigger(p.User.Email),
-								Position: display.DropdownPositionRight,
+					<div class="hidden lg:block">
+						@display.Dropdown(display.DropdownProps{
+							// No aria-label: the trigger carries its own visible text
+							// (avatar initials + email), and WCAG 2.5.3 wants the
+							// accessible name derived from that content — a label
+							// naming only the email fails the name-contains-label
+							// rule axe pins (first adminui sweep, 2026-11-14).
+							Trigger:  userMenuTrigger(p.User.Email),
+							Position: display.DropdownPositionRight,
 								BaseProps: utils.BaseProps{
 									ID:    "admin-user-menu",
 									Nonce: p.Nonce,

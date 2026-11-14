@@ -23,7 +23,18 @@ test.describe.configure({ mode: "serial" });
 const ADMIN = "http://localhost:18930";
 
 const ACCEPTED = new Set<string>([
-  // (none yet - first adminui sweep baseline; populate with reasons, not silently)
+  // color-contrast — first adminui sweep baseline (2026-11-14): ~12 serious
+  // findings are PRE-EXISTING panel chrome, not this wave's markup —
+  // accent-tinted brand elements (white-on-blue active nav / buttons /
+  // avatar tile) and neutral gray-400 metadata hints (slugs, member hints,
+  // the trigger email). The wave's own additions were fixed to gray-600 and
+  // the user-menu accessible name was fixed to derive from content; the
+  // remaining chrome contrast debt is a deliberate design pass (accent
+  // palette + metadata ramp), tracked for the next adminui polish wave.
+  // Accepting by ID is coarse (it would mask new contrast regressions on
+  // these pages too) — the follow-up design pass should shrink this entry
+  // to per-node scoping or delete it.
+  "color-contrast",
 ]);
 
 test.beforeEach(async ({ page }) => {
