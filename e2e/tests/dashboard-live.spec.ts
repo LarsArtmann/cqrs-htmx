@@ -81,7 +81,7 @@ test("time travel: the slider updates the display while dragging and navigates o
   // document-delegated, so this also fails if anyone re-binds it to the
   // element and breaks boosted navigation again.
   await page.evaluate(() => {
-    const s = document.getElementById("version-slider");
+    const s = document.getElementById("version-slider") as HTMLInputElement | null;
     if (!s) throw new Error("slider missing");
     s.value = "1";
     s.dispatchEvent(new Event("input", { bubbles: true }));
@@ -93,7 +93,7 @@ test("time travel: the slider updates the display while dragging and navigates o
   // (the server-rendered state). Pinned end-to-end. (Reset to v2 first: the
   // probe above left the slider at 1, and ArrowLeft from 1 clamps at min.)
   await page.evaluate(() => {
-    const s = document.getElementById("version-slider");
+    const s = document.getElementById("version-slider") as HTMLInputElement | null;
     if (s) s.value = "2";
   });
   await slider.focus();
