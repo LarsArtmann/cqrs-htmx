@@ -57,7 +57,7 @@ for (const mode of MODES) {
 
     test("captures the tenants list", async ({ page }) => {
       await page.goto(`${ADMIN}/admin/tenants`, { waitUntil: "load" });
-      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(700);
       await page.screenshot({
         path: `../docs/screenshots/${mode.name}/admin-tenants.png`,
         fullPage: true,
@@ -67,7 +67,7 @@ for (const mode of MODES) {
 
     test("captures the users list", async ({ page }) => {
       await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
-      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(700);
       await page.screenshot({
         path: `../docs/screenshots/${mode.name}/admin-users.png`,
         fullPage: true,
@@ -82,7 +82,7 @@ for (const mode of MODES) {
         test.skip(true, `tenant detail unavailable (${resp?.status()})`);
         return;
       }
-      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(700);
       await page.screenshot({
         path: `../docs/screenshots/${mode.name}/admin-tenant-detail.png`,
         fullPage: true,
@@ -97,7 +97,7 @@ for (const mode of MODES) {
         test.skip(true, `user detail unavailable (${resp?.status()})`);
         return;
       }
-      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(700);
       await page.screenshot({
         path: `../docs/screenshots/${mode.name}/admin-user-detail.png`,
         fullPage: true,
