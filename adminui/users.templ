@@ -81,12 +81,11 @@ templ importResultPanel(result usermgmt.ImportResult, back string) {
 			Message: fmt.Sprintf("%d imported, %d skipped, %d rows with errors.", result.Imported, result.Skipped, len(result.Errors)),
 		})
 		<ul class="mt-2 list-inside list-disc text-xs text-gray-600 dark:text-gray-300">
-			for i, e := range result.Errors {
-				if i >= maxRenderedImportErrors {
-					<li>… and { strconv.Itoa(len(result.Errors) - maxRenderedImportErrors) } more</li>
-					break
-				}
+			for _, e := range visibleImportErrors(result.Errors) {
 				<li>{ e }</li>
+			}
+			if remainingImportErrors(result.Errors) > 0 {
+				<li>… and { strconv.Itoa(remainingImportErrors(result.Errors)) } more</li>
 			}
 		</ul>
 	}

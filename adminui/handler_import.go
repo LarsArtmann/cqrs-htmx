@@ -171,3 +171,19 @@ func exportContentType(format usermgmt.UserDataFormat) string {
 func htmxRequest(r *http.Request) bool {
 	return r.Header.Get("HX-Request") == "true"
 }
+
+// visibleImportErrors bounds the rendered error list; remainingImportErrors
+// reports the honest remainder (templ renders each with a single-value call).
+func visibleImportErrors(errs []string) []string {
+	if len(errs) <= maxRenderedImportErrors {
+		return errs
+	}
+	return errs[:maxRenderedImportErrors]
+}
+
+func remainingImportErrors(errs []string) int {
+	if len(errs) <= maxRenderedImportErrors {
+		return 0
+	}
+	return len(errs) - maxRenderedImportErrors
+}
