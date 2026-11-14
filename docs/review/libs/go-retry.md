@@ -27,7 +27,7 @@ A non-CQRS retry need inside the library itself (e.g. an HTTP client helper with
 
 ```bash
 rg -n 'larsartmann/go-retry' --type go -g '!scripts/**' . | wc -l          # 0
-rg -n 'backoff|Backoff' -g '*.go' -g '!*_test.go' -g '!scripts/**' .       # only projectionhost.WithBackoff params + status strings
+rg -n 'backoff|Backoff' -g '*.go' -g '!*_test.go' -g '!scripts/**' .       # only WithBackoff params, comments, status strings
 rg -n 'CommandRetry' docs/guides/leveraging-go-cqrs-lite.md | head -3
 rg -n 'go-retry' ~/projects/go-cqrs-lite/middleware/v4/go.mod             # v0.9.0 — the transitive pin
 git -C ~/projects/go-retry for-each-ref --sort=-v:refname --format='%(refname:short)' refs/tags | head -1
