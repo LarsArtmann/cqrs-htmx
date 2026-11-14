@@ -160,7 +160,13 @@ type userDetailData struct {
 	TenantAccess []tenantAccessRow
 	// TenantOptions feeds the "grant access" select: every live tenant, so
 	// access can be added from the user side without a trip to /tenants.
+	// Empty means the user already belongs to every live tenant — the grant
+	// form would be a dead end and is replaced by an honest state.
 	TenantOptions []forms.SelectOption
+	// TenantAdminCounts maps tenant id -> how many of its members hold an
+	// admin-tier role (admin or owner). The revoke confirm reads it to
+	// escalate when the shown user holds the tenant's only admin-tier role.
+	TenantAdminCounts map[string]int
 	// AssignableRoles is the role vocabulary the grant form offers.
 	AssignableRoles []identitymodel.Role
 	// AddTenantAccessURL is the POST target for grants. UpdateTenantBase and
@@ -292,6 +298,53 @@ func toMemberRows(
 // hasRole reports whether roles contains role.
 func hasRole(roles []identitymodel.Role, role identitymodel.Role) bool {
 	return slices.Contains(roles, role)
+}
+
+// holdsAdminTier reports whether the role set contains admin or owner — the
+// roles a tenant needs at least one holder of to stay administrable.
+func holdsAdminTier(roles []identitymodel.Role) bool {
+	for _, r := range roles {
+		if r == identitymodel.RoleAdmin || r == identitymodel.RoleOwner {
+			return true
+		}
+	}
+	return false
+}
+
+// anyOtherAdminTier reports whether any member OTHER than except holds an
+// admin-tier role in the tenant.
+func anyOtherAdminTier(members []memberRow, except memberRow) bool {
+	for _, m := range members {
+		if m.Actor.PrefixedString() == except.Actor.PrefixedString() {
+			continue
+		}
+		if holdsAdminTier(m.Roles) {
+			return true
+		}
+	}
+	return false
+}
+
+// memberRemoveConfirm builds the roster remove confirm text, escalating like
+// the passkey case when the member holds the tenant's ONLY admin-tier role:
+// the admin is about to leave a tenant nobody can administer.
+func memberRemoveConfirm(d tenantDetailData, m memberRow) string {
+	msg := "Remove " + m.displayName() + " from this tenant?"
+	if holdsAdminTier(m.Roles) && !anyOtherAdminTier(d.Members, m) {
+		msg += " They hold the only admin or owner role here — the tenant would be left without an admin."
+	}
+	return msg
+}
+
+// tenantRevokeConfirm builds the user-page revoke confirm text with the same
+// last-admin escalation, keyed on the per-tenant admin-tier counts the
+// handler computed for the visible rows.
+func tenantRevokeConfirm(d userDetailData, access tenantAccessRow) string {
+	msg := "Remove " + d.User.Email + " from " + access.Name + "? They lose the roles they hold there."
+	if holdsAdminTier(access.Roles) && d.TenantAdminCounts[access.TenantID] <= 1 {
+		msg += " They hold the only admin or owner role there — the tenant would be left without an admin."
+	}
+	return msg
 }
 
 // removeCredentialConfirm builds the passkey-removal confirm text: removing

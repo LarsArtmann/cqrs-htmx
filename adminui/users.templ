@@ -101,7 +101,7 @@ templ usersTableContent(d usersListData) {
 			if d.Search != "" {
 				@empty("users", "No users match your search", "No registered user matches the search term.", "Clear search", d.BasePath+"/users")
 			} else {
-				@empty("users", "No users found", "Registered users will appear here.", "", "")
+				@empty("users", "No users yet", "Registered users will appear here.", "Create the first user", d.BasePath+"/users/new")
 			}
 		}
 	} else {
@@ -546,11 +546,11 @@ templ userDetailAvatar(d userDetailData) {
 // operations are the SAME membership commands the tenant roster dispatches —
 // one authority path, whichever side the admin starts from.
 templ tenantAccessCard(d userDetailData) {
-	@display.Card(display.CardProps{
-		Title:     "Tenant access",
-		Padding:   display.CardPaddingNone,
-		BaseProps: utils.BaseProps{Class: "mb-4"},
-	}) {
+@display.Card(display.CardProps{
+	Title:     "Tenant access",
+	Padding:   display.CardPaddingNone,
+	BaseProps: utils.BaseProps{Class: "mb-4", Attrs: templ.Attributes{"data-sync-target": ""}},
+}) {
 		if len(d.TenantAccess) == 0 {
 			<div class="px-4 py-3 text-sm text-gray-500">
 				This user is not a member of any tenant yet. Grant access below to scope
@@ -566,26 +566,33 @@ templ tenantAccessCard(d userDetailData) {
 			})
 		}
 		<div class="border-t border-gray-200 pt-4 mt-4">
-			<form class="flex flex-wrap items-end gap-2" hx-post={ d.AddTenantAccessURL }>
-				@forms.Select(forms.SelectProps{
-					Name:      "tenant",
-					Label:     "Tenant",
-					Options:   d.TenantOptions,
-					Required:  true,
-					BaseProps: utils.BaseProps{Class: "max-w-[220px]"},
-				})
-				@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
-				@display.Button(display.ButtonProps{
-					Type:     display.ButtonHTMLSubmit,
-					Variant:  display.ButtonPrimary,
-					Size:     display.ButtonSizeSM,
-					Children: htmx.LoadingButton("Grant access", "Granting…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"})),
-				})
-			</form>
-			<div class="mt-2 text-xs text-gray-400">
-				Only tenants the user does not belong to are offered. Change an existing
-				membership's roles in its row above.
-			</div>
+			if len(d.TenantOptions) == 0 {
+				<div class="text-sm text-gray-500">
+					This user is a member of every live tenant — nothing to grant here.
+					New tenants appear as they are created.
+				</div>
+			} else {
+				<form class="flex flex-wrap items-end gap-2" hx-post={ d.AddTenantAccessURL }>
+					@forms.Select(forms.SelectProps{
+						Name:      "tenant",
+						Label:     "Tenant",
+						Options:   d.TenantOptions,
+						Required:  true,
+						BaseProps: utils.BaseProps{Class: "max-w-[220px]"},
+					})
+					@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
+					@display.Button(display.ButtonProps{
+						Type:     display.ButtonHTMLSubmit,
+						Variant:  display.ButtonPrimary,
+						Size:     display.ButtonSizeSM,
+						Children: htmx.LoadingButton("Grant access", "Granting…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"})),
+					})
+				</form>
+				<div class="mt-2 text-xs text-gray-400">
+					Only tenants the user does not belong to are offered. Change an existing
+					membership's roles in its row above.
+				</div>
+			}
 		</div>
 	}
 }
@@ -622,7 +629,7 @@ templ tenantAccessRows(d userDetailData) {
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.RemoveTenantBase + "/" + access.TenantID + "/delete",
-						"data-confirm":       "Remove " + d.User.Email + " from " + access.Name + "? They lose the roles they hold there.",
+						"data-confirm":       tenantRevokeConfirm(d, access),
 						"data-confirm-title": "Revoke tenant access",
 						"hx-disabled-elt":    "this",
 					}},

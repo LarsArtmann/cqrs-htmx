@@ -248,7 +248,7 @@ templ tenantDetailContent(d tenantDetailData) {
 // the current roster size. It answers "which tenant am I looking at" without
 // making the admin infer it from the members below.
 templ tenantMetaCard(d tenantDetailData) {
-	@display.Card(display.CardProps{Title: "Tenant"}) {
+	@display.Card(display.CardProps{Title: "Tenant", BaseProps: utils.BaseProps{Attrs: templ.Attributes{"data-sync-target": ""}}}) {
 		@display.DefinitionList(display.DefinitionListProps{
 			Items: []display.DefinitionItem{
 				{Term: "Tenant ID", DetailComponent: copyableID(d.Tenant.ID.Get())},

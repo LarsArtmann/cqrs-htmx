@@ -423,7 +423,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
-					"data-confirm":       "Remove " + m.displayName() + " from this tenant?",
+					"data-confirm":       memberRemoveConfirm(d, m),
 					"data-confirm-title": "Remove member",
 					"hx-disabled-elt":    "this",
 				}},

@@ -196,11 +196,29 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 		UnlinkExternalBase:  userBase + "/external",
 		TenantAccess:        tenantAccess,
 		TenantOptions:       withoutTenantOptions(tenantSelectOptions(h.config.Service.AllTenants()), tenantAccess),
+		TenantAdminCounts:   h.tenantAdminCounts(r.Context(), tenantAccess),
 		AssignableRoles:     identitymodel.AssignableRoles(),
 		AddTenantAccessURL:  userBase + "/tenants",
 		UpdateTenantBase:    userBase + "/tenants",
 		RemoveTenantBase:    userBase + "/tenants",
 	}))
+}
+
+// tenantAdminCounts counts, per tenant the shown user belongs to, how many of
+// that tenant's members hold an admin-tier role. It is the data behind the
+// revoke confirm's last-admin escalation; one bounded TenantMembers query per
+// visible row (a user belongs to few tenants, so this stays page-sized).
+func (h *Handler) tenantAdminCounts(ctx context.Context, access []tenantAccessRow) map[string]int {
+	counts := make(map[string]int, len(access))
+	for _, row := range access {
+		tid := identitymodel.NewTenantID(row.TenantID)
+		for _, m := range h.config.Service.TenantMembers(ctx, tid) {
+			if holdsAdminTier(m.Roles) {
+				counts[row.TenantID]++
+			}
+		}
+	}
+	return counts
 }
 
 // userAccess resolves a user's authority into the two views the detail page
