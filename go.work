@@ -20,6 +20,7 @@ use (
 	./examples/setup-demo
 	./examples/sync-demo
 	./examples/system-demo
+	./gfl-usermgmt
 	./health
 	./huma
 	./identity-model
