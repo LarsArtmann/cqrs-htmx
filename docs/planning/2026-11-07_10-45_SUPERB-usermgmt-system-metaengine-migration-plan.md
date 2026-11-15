@@ -3,6 +3,7 @@
 **Created:** 2026-11-07, 10:45 CET · **Repo:** `/home/lars/projects/cqrs-htmx`, branch `master`
 **Status:** PLAN (nothing executed). Pinned surface audited: `system/v4 v4.17.0`, `metaengine/v4 v4.22.0`, `metaengine/projectionadapter/v4 v4.6.2` (systemadapter/go.mod:12-24).
 **ADR-0051 go-criterion verdict (re-checked 2026-11-07 at source): PARTIALLY MET** — see §6.
+> Engine-layer audit evidence (2026-11-15): `docs/review/libs/go-cqrs-lite.md` — the metaengine family is swept to latest (v4.26.0/sqliteengine v4.9.1, B1 + the same-day re-true) and the deep-dive capability census (47 rows) is the W-wave's engine-risk baseline.
 
 ---
 

@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.9.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.18.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.19.0
 )
 
 require (
