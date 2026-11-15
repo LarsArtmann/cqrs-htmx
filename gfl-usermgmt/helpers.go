@@ -11,12 +11,15 @@ package gflusermgmt
 
 import (
 	"context"
+	"encoding/hex"
+	"errors"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
@@ -239,4 +242,94 @@ func TenantName(ctx context.Context, sc *systemscenario.Scenario) (string, error
 		return "", err
 	}
 	return view.Name, nil
+}
+
+// --- Audit-journal Then helpers (the audit_log projection; user events only). ---
+
+// AuditEntryCount reads the total number of entries in the audit journal.
+func AuditEntryCount(ctx context.Context, sc *systemscenario.Scenario) (int, error) {
+	entries, err := systemadapter.AuditEntries(ctx, sc.System())
+	if err != nil {
+		return 0, err
+	}
+
+	return len(entries), nil
+}
+
+// AuditEntryCountForUser reads the number of audit entries for the fixed
+// user stream.
+func AuditEntryCountForUser(ctx context.Context, sc *systemscenario.Scenario) (int, error) {
+	entries, err := systemadapter.AuditEntriesFor(ctx, sc.System(), userStream.Get())
+	if err != nil {
+		return 0, err
+	}
+
+	return len(entries), nil
+}
+
+// AuditEventTypesForUser lists the audit journal's recorded event types for
+// the fixed user stream, comma-joined in journal order ("" when none).
+// Deterministic for single entries; prefer the count helpers when order
+// could tie.
+func AuditEventTypesForUser(ctx context.Context, sc *systemscenario.Scenario) (string, error) {
+	entries, err := systemadapter.AuditEntriesFor(ctx, sc.System(), userStream.Get())
+	if err != nil {
+		return "", err
+	}
+
+	types := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		types = append(types, entry.EventType)
+	}
+
+	return strings.Join(types, ","), nil
+}
+
+// --- Remaining read-model Then helpers (membership, bot, email lookups). ---
+
+// MembershipRolesForActor joins the roles of the fixed actor's first
+// membership view, comma-separated.
+func MembershipRolesForActor(ctx context.Context, sc *systemscenario.Scenario) (string, error) {
+	memberships, err := systemadapter.FindMembershipsByActor(ctx, sc.System(), memberActor.String())
+	if err != nil {
+		return "", err
+	}
+
+	if len(memberships) == 0 {
+		return "", nil
+	}
+
+	return strings.Join(memberships[0].Roles, ","), nil
+}
+
+// MembershipCountForActor counts the fixed actor's membership views across
+// ALL tenants (memberships are keyed per actor+tenant pair).
+func MembershipCountForActor(ctx context.Context, sc *systemscenario.Scenario) (int, error) {
+	memberships, err := systemadapter.FindMembershipsByActor(ctx, sc.System(), memberActor.String())
+	if err != nil {
+		return 0, err
+	}
+
+	return len(memberships), nil
+}
+
+// BotNameByTokenHash resolves the bot's name through the bot_tokens
+// secondary index (fixture token hash, hex-encoded as the index stores it).
+func BotNameByTokenHash(ctx context.Context, sc *systemscenario.Scenario) (string, error) {
+	view, err := systemadapter.FindBotByTokenHash(ctx, sc.System(), hex.EncodeToString(botTokenHash))
+	if err != nil {
+		return "", err
+	}
+
+	return view.Name, nil
+}
+
+// UserEmailExists reports whether a user view exists under the given email.
+func UserEmailExists(ctx context.Context, sc *systemscenario.Scenario, email string) (bool, error) {
+	_, err := systemadapter.FindUserByEmail(ctx, sc.System(), email)
+	if errors.Is(err, system.ErrNotFound) {
+		return false, nil
+	}
+
+	return err == nil, err
 }

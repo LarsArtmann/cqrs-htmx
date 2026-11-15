@@ -28,6 +28,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
@@ -337,6 +338,20 @@ func (sr *statusRecorder) WriteHeader(code int) {
 // and prevents double-execution when a client retries after losing the ACK.
 func ackMiddleware(bc *cqrshtmx.Broadcaster, idem idempotency.Store) func(http.Handler) http.Handler {
 	hook := bc.BroadcastOnAck()
+	// dedupKey resolves the replay key for one mutation request: the browser
+	// path sends X-Command-Id (admin.js generates it); token-authenticated bot
+	// clients have no JS, so the RFC-growing Idempotency-Key header is their
+	// twin — same Seen/Record-after-success discipline, same 409 on replay.
+	// (Recipe: docs/guides/leveraging-go-cqrs-lite.md § Client-driven
+	// idempotency for token-authenticated bot traffic.)
+	idempotencyKeyHeader := "Idempotency-Key"
+	resolveDedupKey := func(r *http.Request) string {
+		if cmdID := cqrshtmx.CommandIDFromRequest(r); cmdID != "" {
+			return cmdID
+		}
+		return strings.TrimSpace(r.Header.Get(idempotencyKeyHeader))
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Idempotency check: reject already-SEEN command IDs, but only
@@ -345,8 +360,8 @@ func ackMiddleware(bc *cqrshtmx.Broadcaster, idem idempotency.Store) func(http.H
 			// honest retry with the same X-Command-Id would 409 for the full
 			// TTL while the command never executed.
 			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
-				if cmdID := cqrshtmx.CommandIDFromRequest(r); cmdID != "" {
-					if seen, seenErr := idem.Seen(r.Context(), cmdID); seenErr == nil && seen {
+				if dedupKey := resolveDedupKey(r); dedupKey != "" {
+					if seen, seenErr := idem.Seen(r.Context(), dedupKey); seenErr == nil && seen {
 						w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 						w.WriteHeader(http.StatusConflict)
 						_, _ = w.Write([]byte("duplicate command ID"))
@@ -360,10 +375,10 @@ func ackMiddleware(bc *cqrshtmx.Broadcaster, idem idempotency.Store) func(http.H
 			next.ServeHTTP(sr, r)
 
 			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
-				if cmdID := cqrshtmx.CommandIDFromRequest(r); cmdID != "" {
+				if dedupKey := resolveDedupKey(r); dedupKey != "" {
 					// Record only successful executions (see note above).
 					if sr.status < 400 {
-						_ = idem.Record(r.Context(), cmdID, 10*time.Minute)
+						_ = idem.Record(r.Context(), dedupKey, 10*time.Minute)
 					}
 
 					if sr.status >= 400 {

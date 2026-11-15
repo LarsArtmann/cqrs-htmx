@@ -112,6 +112,76 @@ Ordering rationale lives in [`dispatch-middleware-ordering.md`](dispatch-middlew
 
 **Idempotency store decision:** `idempotency.NewMemoryStore` is development/test-only (in-process, swept TTL — it is deprecated for production use upstream). For production, implement `idempotency.Store` (`CheckAndRecord(ctx, key, ttl)`) against your SQL database — the contract is one atomic claim — and share the store across replicas so a replay hitting a different node is still deduplicated. HTTP consumers wanting client-driven idempotency keys pass a custom `keyExtractor` that reads the key from command metadata (populated by a decode hook from the `Idempotency-Key` header); commands without a key pass through un-deduped by design. A dispatch-path proof lives in `usermgmt/command_idempotency_test.go`.
 
+#### Client-driven idempotency for token-authenticated bot traffic
+
+Bots are the replay-prone caller class: an API client retries a timed-out POST verbatim, but every retry decodes into a NEW command with a freshly minted ID — so the default `nil` keyExtractor (which keys on `cmd.ID()`) never dedups it. The fix is a client-supplied key carried end-to-end. Three pieces:
+
+**1. Decode the header into command metadata.** Use a `-WithRequest` decoder so the mapper sees the headers:
+
+```go
+const idempotencyKeyMeta = "cqrs-htmx.dev/idempotency-key"
+
+mux.Handle("POST /api/todos", app.Command("CreateTodo",
+    cqrshtmx.DecodeJSONWithRequest(func(r *http.Request, body createTodoRequest) (command.Command, error) {
+        cmd := newCreateTodoCmd(body)
+        if key := strings.TrimSpace(r.Header.Get("Idempotency-Key")); key != "" {
+            // MetadataCarrier (every *BasicCommand and wrapper embedding it)
+            // takes options after construction.
+            cmd.ApplyOptions(command.WithCustomMetadata(idempotencyKeyMeta, key))
+        }
+        return cmd, nil
+    }),
+    // ... render options
+))
+```
+
+**2. Extract it in the dispatcher middleware.** An empty key passes through un-deduped (the upstream contract), so browser traffic and key-less bots are unaffected:
+
+```go
+func idempotencyKeyFromMetadata(cmd command.Command) string {
+    carrier, ok := cmd.(command.MetadataCarrier)
+    if !ok {
+        return ""
+    }
+    return carrier.Metadata().Custom[command.MetadataKey(idempotencyKeyMeta)]
+}
+
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    CommandMiddleware: []command.Middleware{
+        middleware.CommandRecovery(),
+        // replays that ARE deduped must surface as 409, not the sentinel's
+        // untyped-family 503 (a 503 invites a retry loop on every replay).
+        translateDuplicateToConflict(), // defined below; wraps idempotency
+        middleware.CommandValidation(usermgmt.ValidateCommand),
+        middleware.CommandIdempotency(idemStore, 15*time.Minute, idempotencyKeyFromMetadata),
+        middleware.CommandRetry(middleware.DefaultRetryConfig()),
+    },
+})
+```
+
+**3. Translate the replay sentinel to HTTP semantics.** `idempotency.ErrDuplicate` carries no family, so `cqrshtmx.MapError` fails open to 503. A replay is a client error, not an availability incident — wrap the idempotency middleware (it must sit OUTSIDE, i.e. earlier in the slice, to observe the sentinel) and re-family the error:
+
+```go
+func translateDuplicateToConflict() command.Middleware {
+    return middleware.AsCommand(func(next command.Handler) command.Handler {
+        return func(ctx context.Context, cmd command.Command) error {
+            err := next(ctx, cmd)
+            if errors.Is(err, idempotency.ErrDuplicate) {
+                return errorfamily.NewConflict(
+                    "app.command.replayed",
+                    "duplicate request: an identical request was already accepted",
+                )
+            }
+            return err
+        }
+    })
+}
+```
+
+TTL guidance: size the TTL to the LONGEST retry window your clients use, not to processing time — `CheckAndRecord` claims the key whether the command succeeds or fails, so a TTL shorter than the client's retry budget lets a replayed failed request re-execute (15 min covers most schedulers; the browser UI path in `examples/admin-demo` uses 10 min for the same reason). Key scoping: the header value is trusted as a namespace only as wide as its callers — with per-token bots sharing one dispatcher, prefix the key with the authenticated actor (`botID + "/" + key`) so one bot's retry cannot suppress another bot's distinct command.
+
+Runnable demo wiring: `examples/admin-demo` honors `Idempotency-Key` in its HTTP idempotency middleware (`ackMiddleware`) as the bot-class twin of the browser's `X-Command-Id` header — same Seen/Record-after-success discipline, same 409.
+
 **What the built-in chain costs:** the three audit middlewares add roughly 0.3 µs and 14 allocations (~275 ns median delta, 3→17 allocs) per dispatch against a bare dispatcher (see `usermgmt/dispatch_bench_test.go` — `BenchmarkDispatchAuditChain`, benchstat-friendly `b.Loop` + `-count=5`); a full-stack register dispatch through journal + projections lands around 25 µs. Negligible next to the audit trail it buys.
 
 ### Two recovery layers (HTTP vs dispatch)
