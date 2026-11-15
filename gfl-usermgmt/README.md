@@ -19,7 +19,7 @@ audit-journal assertions the hand-written suite never had), green under
 | 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go` | 32 scenarios in prose + 40 bindings, compiled to `usermgmt_test.go` | `gfl generate tests` (below) |
 | `TestEventCatalog_InventoryMatchesEventConstants` (code-vs-code drift police) | `es_event_catalog_test.go` | spec-vs-universe drift gate with nearest-match suggestions + [events_sync_test.go](events_sync_test.go) (universe-vs-code) | `gfl validate --events-file` |
 | `ArchitectureCatalog()` (hand-built topology, one flat service) | `es_architecture_catalog.go` | [usermgmt.dot](usermgmt.dot) / [usermgmt.png](usermgmt.png) — the feature graph with typed edges | `gfl parse` |
-| `DefaultEventCatalog()` served at `GET /events/catalog` | `es_event_catalog.go` | [eventcatalog/](eventcatalog/) — 24 MDX pages (services, events, flows) | `gfl export eventcatalog` |
+| `GET /events/catalog` served from runtime registration (`DefaultEventCatalog()`) | `es_event_catalog.go` + `es_event_catalog_artifact.go` | the endpoint now serves the committed generated artifact `usermgmt/event-catalog.json` (byte-identical, ETag-verified); the spec-side gate chains through `usermgmt.gfl` → [usermgmt-events.json](usermgmt-events.json) → identity-model constants → artifact | `gfl validate --events-file` + sync tests |
 
 ### One scenario, two authoring styles
 
