@@ -16,9 +16,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
@@ -91,10 +91,7 @@ func newDirectoryQueryDispatcher(svc *usermgmt.Service) *query.Dispatcher {
 			}
 
 			total := len(users)
-			start := max(0, (q.Page-1)*directorySearchPageSize)
-			if start > total {
-				start = total
-			}
+			start := min(max(0, (q.Page-1)*directorySearchPageSize), total)
 			end := min(total, start+directorySearchPageSize)
 
 			return directoryResult{Total: total, Users: users[start:end]}, nil
@@ -128,7 +125,7 @@ func directorySearchOpenAPI() openapi.Operation {
 
 	return openapi.Query("SearchDirectory").
 		Summary("Search the user directory").
-		Desc("Safe, idempotent read over the event-sourced directory. " +
+		Desc("Safe, idempotent read over the event-sourced directory. "+
 			"Send the same body as a plain POST (the fallback rung) when an intermediary refuses the QUERY verb.").
 		Tag("directory").
 		JSONBody(bodySchema).

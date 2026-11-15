@@ -110,6 +110,6 @@ func (h *Handler) usersSearchData(ctx context.Context, q string, filter userFilt
 
 	return usersListData{
 		Users: rows, Total: len(matched), Search: q,
-		Filter: filter, BasePath: h.config.BasePath, listPage: listPage{Page: current, TotalPages: totalPages},
+		Filter: filter, BasePath: h.config.BasePath, Page: current, TotalPages: totalPages,
 	}
 }

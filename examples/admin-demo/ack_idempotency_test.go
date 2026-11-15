@@ -61,7 +61,7 @@ func TestAckMiddleware_NoHeaderPassesThrough(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		req := httptest.NewRequest(http.MethodPost, "/admin/users", nil)
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
