@@ -9,9 +9,9 @@ through 2026-11-15 (V01–V04 of that plan landed).
 
 | Module / surface | Journal surface? | Verdict | Why / candidate | Status |
 | --- | --- | --- | --- | --- |
-| usermgmt deciders (4) | yes | **DONE** | this folder: 25/25 scenarios green (23/23 parity with the hand-written suite) | ✅ |
+| usermgmt deciders (4) | yes | **DONE** | this folder: 32/32 scenarios green (23/23 parity + 9 read-model/audit extras) | ✅ |
 | usermgmt error paths (12 ThenError tests) | yes | **DONE** | `error`/`errorFamily` bindings → `.ThenError(...)` | ✅ 2026-11-15 |
-| systemadapter read models | views | **HIGH** | AuditEntriesFor, Membership/Bot/Token/Policy views unasserted (queries.go) | open |
+| systemadapter read models | views | **DONE** | AuditEntriesFor (incl. tenant-events-out asymmetry pinned), cross-tenant memberships, FindBotByTokenHash, FindUserByEmail — all asserted in this folder (2026-11-15) | ✅ 2026-11-15 |
 | DeleteTenant cascade | yes (shaped) | **HIGH** | service_tenant.go loop-dispatches RemoveMemberCmd — deriver promotion is small | open |
 | DeleteUser cascade (memberships+bots+Casbin) | yes (shaped) | **HIGH/L** | anchors: service_delete_cascade_test.go | open |
 | root eventcatalog/ package | is a universe | **HIGH/S** | manual registry → GFL-generated JSON source of truth for `GET /events/catalog` | renderer landed (`export.EventsUniverse`); serving swap open |

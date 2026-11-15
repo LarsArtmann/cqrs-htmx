@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Adopted upstream `datastartest` for the response tests' wire assertions (2026-11-15).** The adapter tests' hand-rolled SSE-body string fragments (`requireBodyContains`) are replaced by structured `datastartest` assertions — parsed event types, dataline-exact selector/mode/elements, exact signals JSON, script-content equality — so a wire-format drift in the response builder fails at the protocol layer, not as a missing substring. Same module pin line (go-datastar v0.7.0).
+
 ### Fixed
 
 - **`NewEventBridge(nil)` fails at construction and `MappedEventTypes` is sorted (2026-10-25, S39).** A nil broadcaster previously constructed fine and panicked only when the FIRST mapped event was handled — far from the cause; `NewEventBridge` now panics immediately with a message naming the fix (`broadcast.NewBroadcaster`). `MappedEventTypes` sorts its result, making it deterministic — the existing test was named `ReturnsSortedCopy` but only asserted `Contains`, so it could not fail on unsorted output; it now asserts the exact order.

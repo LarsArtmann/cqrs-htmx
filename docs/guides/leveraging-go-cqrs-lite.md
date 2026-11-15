@@ -163,7 +163,7 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 
 ```go
 func translateDuplicateToConflict() command.Middleware {
-    return middleware.AsCommand(func(next command.Handler) command.Handler {
+    return func(next command.Handler) command.Handler {
         return func(ctx context.Context, cmd command.Command) error {
             err := next(ctx, cmd)
             if errors.Is(err, idempotency.ErrDuplicate) {
@@ -174,7 +174,7 @@ func translateDuplicateToConflict() command.Middleware {
             }
             return err
         }
-    })
+    }
 }
 ```
 
