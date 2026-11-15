@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 
 	"github.com/larsartmann/cqrs-htmx/systemadapter/v4"
+	"github.com/larsartmann/go-error-family"
 )
 
 func TestGFLUserRegistration(t *testing.T) {
@@ -15,6 +16,12 @@ func TestGFLUserRegistration(t *testing.T) {
 		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.When(RegisterUser()).
 			Then("UserRegistered")
+	})
+	t.Run("Registering a duplicate user is rejected [user,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.Given(RegisteredUser(sc)...).
+			When(RegisterUser()).
+			ThenError(errorfamily.NewConflict("usermgmt.user_already_exists", ""))
 	})
 }
 
@@ -69,6 +76,27 @@ func TestGFLTenantLifecycle(t *testing.T) {
 			When(DeleteTenant("shutdown")).
 			Then("TenantDeleted")
 	})
+	t.Run("Creating a duplicate tenant is rejected [tenant,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.Given(CreatedTenant(sc, "acme")...).
+			When(CreateTenant("acme")).
+			ThenError(errorfamily.NewConflict("usermgmt.tenant.already_exists", ""))
+	})
+	t.Run("Creating a tenant without a name is rejected [tenant,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(CreateTenant("")).
+			ThenError(errorfamily.NewRejection("usermgmt.tenant.name_required", ""))
+	})
+	t.Run("Suspending a missing tenant is rejected [tenant,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(SuspendTenant("policy violation")).
+			ThenError(errorfamily.NewRejection("usermgmt.tenant_suspend.not_found", ""))
+	})
+	t.Run("Deleting a missing tenant is rejected [tenant,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(DeleteTenant("shutdown")).
+			ThenError(errorfamily.NewRejection("usermgmt.tenant_delete.not_found", ""))
+	})
 }
 
 func TestGFLMembership(t *testing.T) {
@@ -89,6 +117,22 @@ func TestGFLMembership(t *testing.T) {
 			When(RemoveMember()).
 			Then("MemberRemoved")
 	})
+	t.Run("Adding a duplicate member is rejected [membership,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.Given(MemberWithRoles(sc, "admin")...).
+			When(AddMember("writer")).
+			ThenError(errorfamily.NewConflict("usermgmt.membership.already_exists", ""))
+	})
+	t.Run("Adding a member without an actor is rejected [membership,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(AddMemberWithoutActor()).
+			ThenError(errorfamily.NewRejection("usermgmt.membership.actor_required", ""))
+	})
+	t.Run("Removing a missing member is rejected [membership,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(RemoveMember()).
+			ThenError(errorfamily.NewRejection("usermgmt.membership_remove.not_found", ""))
+	})
 }
 
 func TestGFLBotLifecycle(t *testing.T) {
@@ -102,5 +146,26 @@ func TestGFLBotLifecycle(t *testing.T) {
 		sc.Given(RegisteredBot(sc)...).
 			When(DeleteBot("retired")).
 			Then("BotDeleted")
+	})
+	t.Run("Registering a duplicate bot is rejected [bot,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.Given(RegisteredBot(sc)...).
+			When(RegisterBot("deploy-bot")).
+			ThenError(errorfamily.NewConflict("usermgmt.bot.already_exists", ""))
+	})
+	t.Run("Registering a bot without a name is rejected [bot,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(RegisterBot("")).
+			ThenError(errorfamily.NewRejection("usermgmt.bot.name_required", ""))
+	})
+	t.Run("Registering a bot without an owner is rejected [bot,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(RegisterBotWithoutOwner()).
+			ThenError(errorfamily.NewRejection("usermgmt.bot.owner_required", ""))
+	})
+	t.Run("Deleting a missing bot is rejected [bot,error]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(DeleteBot("retired")).
+			ThenError(errorfamily.NewRejection("usermgmt.bot_delete.not_found", ""))
 	})
 }

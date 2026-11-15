@@ -61,6 +61,22 @@
       "when": "AddMember(\"$1\")"
     },
     {
+      "pattern": "a member without an actor is added",
+      "when": "AddMemberWithoutActor()"
+    },
+    {
+      "pattern": "a tenant is created without a name",
+      "when": "CreateTenant(\"\")"
+    },
+    {
+      "pattern": "a bot is registered without a name",
+      "when": "RegisterBot(\"\")"
+    },
+    {
+      "pattern": "a bot is registered without an owner",
+      "when": "RegisterBotWithoutOwner()"
+    },
+    {
       "pattern": "the member roles change to \"(.*)\"",
       "when": "UpdateMemberRoles(\"$1\")"
     },
@@ -79,6 +95,14 @@
     {
       "pattern": "events (.+) are emitted",
       "events": "$1"
+    },
+    {
+      "pattern": "the command is rejected with conflict \"([\\w.]+)\"",
+      "error": "errorfamily.NewConflict(\"$1\", \"\")"
+    },
+    {
+      "pattern": "the command is rejected because \"([\\w.]+)\"",
+      "error": "errorfamily.NewRejection(\"$1\", \"\")"
     },
     {
       "pattern": "the read model shows the email verified",

@@ -1,0 +1,25 @@
+---
+id: UserProfile-changing-the-email-un-verifies-the-account
+name: Changing the email un-verifies the account
+version: 0.0.1
+summary: 'Scenario "Changing the email un-verifies the account" of feature UserProfile. Tags: user, read-model.'
+steps:
+    - id: UserProfile-changing-the-email-un-verifies-the-account-step-0
+      title: Given a registered user with a verified email
+      next_step:
+        id: UserProfile-changing-the-email-un-verifies-the-account-step-1
+        label: When the email is changed to "new@test.com"
+    - id: UserProfile-changing-the-email-un-verifies-the-account-step-1
+      title: When the email is changed to "new@test.com"
+      next_step:
+        id: UserProfile-changing-the-email-un-verifies-the-account-step-2
+        label: Then events "EmailChanged" are emitted
+    - id: UserProfile-changing-the-email-un-verifies-the-account-step-2
+      title: Then events "EmailChanged" are emitted
+---
+
+## Overview
+
+Scenario "Changing the email un-verifies the account" of feature UserProfile. Tags: user, read-model.
+
+<NodeGraph />

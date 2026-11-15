@@ -179,6 +179,12 @@ func AddMember(roles string) *identitymodel.AddMemberCmd {
 	return identitymodel.NewAddMemberCmd(memberActor, memberTenant, parseRoles(roles))
 }
 
+// AddMemberWithoutActor builds the AddMember command with a zero actor —
+// the actor_required rejection path.
+func AddMemberWithoutActor() *identitymodel.AddMemberCmd {
+	return identitymodel.NewAddMemberCmd(identitymodel.ActorID{}, memberTenant, []identitymodel.Role{"admin"})
+}
+
 // UpdateMemberRoles builds the UpdateMemberRoles command.
 func UpdateMemberRoles(roles string) *identitymodel.UpdateMemberRolesCmd {
 	return identitymodel.NewUpdateMemberRolesCmd(memberActor, memberTenant, parseRoles(roles))
@@ -192,6 +198,12 @@ func RemoveMember() *identitymodel.RemoveMemberCmd {
 // RegisterBot builds the RegisterBot command.
 func RegisterBot(name string) *identitymodel.RegisterBotCmd {
 	return identitymodel.NewRegisterBotCmd(botStream, name, botOwner, botTokenHash, []string{"deploy"})
+}
+
+// RegisterBotWithoutOwner builds the RegisterBot command with an empty
+// owner user — the owner_required rejection path.
+func RegisterBotWithoutOwner() *identitymodel.RegisterBotCmd {
+	return identitymodel.NewRegisterBotCmd(botStream, "ci-bot", identitymodel.NewUserID(""), botTokenHash, nil)
 }
 
 // DeleteBot builds the DeleteBot command.

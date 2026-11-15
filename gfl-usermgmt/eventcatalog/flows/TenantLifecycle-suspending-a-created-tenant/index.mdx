@@ -1,0 +1,25 @@
+---
+id: TenantLifecycle-suspending-a-created-tenant
+name: Suspending a created tenant
+version: 0.0.1
+summary: 'Scenario "Suspending a created tenant" of feature TenantLifecycle. Tags: tenant, read-model.'
+steps:
+    - id: TenantLifecycle-suspending-a-created-tenant-step-0
+      title: Given a tenant named "acme"
+      next_step:
+        id: TenantLifecycle-suspending-a-created-tenant-step-1
+        label: When the tenant is suspended for "policy violation"
+    - id: TenantLifecycle-suspending-a-created-tenant-step-1
+      title: When the tenant is suspended for "policy violation"
+      next_step:
+        id: TenantLifecycle-suspending-a-created-tenant-step-2
+        label: Then events "TenantSuspended" are emitted
+    - id: TenantLifecycle-suspending-a-created-tenant-step-2
+      title: Then events "TenantSuspended" are emitted
+---
+
+## Overview
+
+Scenario "Suspending a created tenant" of feature TenantLifecycle. Tags: tenant, read-model.
+
+<NodeGraph />

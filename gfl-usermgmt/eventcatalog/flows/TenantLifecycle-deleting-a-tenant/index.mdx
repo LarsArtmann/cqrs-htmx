@@ -1,0 +1,25 @@
+---
+id: TenantLifecycle-deleting-a-tenant
+name: Deleting a tenant
+version: 0.0.1
+summary: 'Scenario "Deleting a tenant" of feature TenantLifecycle. Tags: tenant.'
+steps:
+    - id: TenantLifecycle-deleting-a-tenant-step-0
+      title: Given a tenant named "acme"
+      next_step:
+        id: TenantLifecycle-deleting-a-tenant-step-1
+        label: When the tenant is deleted for "shutdown"
+    - id: TenantLifecycle-deleting-a-tenant-step-1
+      title: When the tenant is deleted for "shutdown"
+      next_step:
+        id: TenantLifecycle-deleting-a-tenant-step-2
+        label: Then events "TenantDeleted" are emitted
+    - id: TenantLifecycle-deleting-a-tenant-step-2
+      title: Then events "TenantDeleted" are emitted
+---
+
+## Overview
+
+Scenario "Deleting a tenant" of feature TenantLifecycle. Tags: tenant.
+
+<NodeGraph />

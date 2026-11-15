@@ -1,0 +1,25 @@
+---
+id: BotLifecycle-retiring-a-bot
+name: Retiring a bot
+version: 0.0.1
+summary: 'Scenario "Retiring a bot" of feature BotLifecycle. Tags: bot.'
+steps:
+    - id: BotLifecycle-retiring-a-bot-step-0
+      title: Given a registered bot named "deploy-bot"
+      next_step:
+        id: BotLifecycle-retiring-a-bot-step-1
+        label: When the bot is deleted for "retired"
+    - id: BotLifecycle-retiring-a-bot-step-1
+      title: When the bot is deleted for "retired"
+      next_step:
+        id: BotLifecycle-retiring-a-bot-step-2
+        label: Then events "BotDeleted" are emitted
+    - id: BotLifecycle-retiring-a-bot-step-2
+      title: Then events "BotDeleted" are emitted
+---
+
+## Overview
+
+Scenario "Retiring a bot" of feature BotLifecycle. Tags: bot.
+
+<NodeGraph />

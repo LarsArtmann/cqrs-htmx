@@ -1,0 +1,25 @@
+---
+id: Membership-updating-member-roles
+name: Updating member roles
+version: 0.0.1
+summary: 'Scenario "Updating member roles" of feature Membership. Tags: membership.'
+steps:
+    - id: Membership-updating-member-roles-step-0
+      title: Given a member with roles "admin"
+      next_step:
+        id: Membership-updating-member-roles-step-1
+        label: When the member roles change to "admin, writer"
+    - id: Membership-updating-member-roles-step-1
+      title: When the member roles change to "admin, writer"
+      next_step:
+        id: Membership-updating-member-roles-step-2
+        label: Then events "MemberRolesChanged" are emitted
+    - id: Membership-updating-member-roles-step-2
+      title: Then events "MemberRolesChanged" are emitted
+---
+
+## Overview
+
+Scenario "Updating member roles" of feature Membership. Tags: membership.
+
+<NodeGraph />

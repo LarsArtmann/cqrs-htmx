@@ -1,0 +1,25 @@
+---
+id: TenantLifecycle-reactivating-a-suspended-tenant
+name: Reactivating a suspended tenant
+version: 0.0.1
+summary: 'Scenario "Reactivating a suspended tenant" of feature TenantLifecycle. Tags: tenant, read-model.'
+steps:
+    - id: TenantLifecycle-reactivating-a-suspended-tenant-step-0
+      title: Given a suspended tenant named "acme"
+      next_step:
+        id: TenantLifecycle-reactivating-a-suspended-tenant-step-1
+        label: When the tenant is reactivated
+    - id: TenantLifecycle-reactivating-a-suspended-tenant-step-1
+      title: When the tenant is reactivated
+      next_step:
+        id: TenantLifecycle-reactivating-a-suspended-tenant-step-2
+        label: Then events "TenantReactivated" are emitted
+    - id: TenantLifecycle-reactivating-a-suspended-tenant-step-2
+      title: Then events "TenantReactivated" are emitted
+---
+
+## Overview
+
+Scenario "Reactivating a suspended tenant" of feature TenantLifecycle. Tags: tenant, read-model.
+
+<NodeGraph />

@@ -16,6 +16,12 @@ Scenario: Registering a new user
   When a user registers
   Then events "UserRegistered" are emitted
 
+Scenario: Registering a duplicate user is rejected
+  @user, @error
+  Given a registered user
+  When a user registers
+  Then the command is rejected with conflict "usermgmt.user_already_exists"
+
 Feature: UserProfile
   @owner: "identity"
   @source: "usermgmt/es_decide_profile.go"
@@ -89,6 +95,27 @@ Scenario: Deleting a tenant
   When the tenant is deleted for "shutdown"
   Then events "TenantDeleted" are emitted
 
+Scenario: Creating a duplicate tenant is rejected
+  @tenant, @error
+  Given a tenant named "acme"
+  When a tenant named "acme" is created
+  Then the command is rejected with conflict "usermgmt.tenant.already_exists"
+
+Scenario: Creating a tenant without a name is rejected
+  @tenant, @error
+  When a tenant is created without a name
+  Then the command is rejected because "usermgmt.tenant.name_required"
+
+Scenario: Suspending a missing tenant is rejected
+  @tenant, @error
+  When the tenant is suspended for "policy violation"
+  Then the command is rejected because "usermgmt.tenant_suspend.not_found"
+
+Scenario: Deleting a missing tenant is rejected
+  @tenant, @error
+  When the tenant is deleted for "shutdown"
+  Then the command is rejected because "usermgmt.tenant_delete.not_found"
+
 Feature: Membership
   @owner: "identity"
   @source: "usermgmt/es_membership_decide.go"
@@ -118,6 +145,22 @@ Scenario: Removing a member
   When the member is removed
   Then events "MemberRemoved" are emitted
 
+Scenario: Adding a duplicate member is rejected
+  @membership, @error
+  Given a member with roles "admin"
+  When a member with roles "writer" is added
+  Then the command is rejected with conflict "usermgmt.membership.already_exists"
+
+Scenario: Adding a member without an actor is rejected
+  @membership, @error
+  When a member without an actor is added
+  Then the command is rejected because "usermgmt.membership.actor_required"
+
+Scenario: Removing a missing member is rejected
+  @membership, @error
+  When the member is removed
+  Then the command is rejected because "usermgmt.membership_remove.not_found"
+
 Feature: BotLifecycle
   @owner: "identity"
   @source: "usermgmt/es_bot_decide.go"
@@ -139,6 +182,27 @@ Scenario: Retiring a bot
   Given a registered bot named "deploy-bot"
   When the bot is deleted for "retired"
   Then events "BotDeleted" are emitted
+
+Scenario: Registering a duplicate bot is rejected
+  @bot, @error
+  Given a registered bot named "deploy-bot"
+  When a bot named "deploy-bot" is registered
+  Then the command is rejected with conflict "usermgmt.bot.already_exists"
+
+Scenario: Registering a bot without a name is rejected
+  @bot, @error
+  When a bot is registered without a name
+  Then the command is rejected because "usermgmt.bot.name_required"
+
+Scenario: Registering a bot without an owner is rejected
+  @bot, @error
+  When a bot is registered without an owner
+  Then the command is rejected because "usermgmt.bot.owner_required"
+
+Scenario: Deleting a missing bot is rejected
+  @bot, @error
+  When the bot is deleted for "retired"
+  Then the command is rejected because "usermgmt.bot_delete.not_found"
 
 Feature: AuthAudit
   @owner: "identity"

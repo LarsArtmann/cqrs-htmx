@@ -1,0 +1,25 @@
+---
+id: UserProfile-verifying-the-email-flips-the-read-model
+name: Verifying the email flips the read model
+version: 0.0.1
+summary: 'Scenario "Verifying the email flips the read model" of feature UserProfile. Tags: user, read-model.'
+steps:
+    - id: UserProfile-verifying-the-email-flips-the-read-model-step-0
+      title: Given a registered user
+      next_step:
+        id: UserProfile-verifying-the-email-flips-the-read-model-step-1
+        label: When the email is verified
+    - id: UserProfile-verifying-the-email-flips-the-read-model-step-1
+      title: When the email is verified
+      next_step:
+        id: UserProfile-verifying-the-email-flips-the-read-model-step-2
+        label: Then events "EmailVerified" are emitted
+    - id: UserProfile-verifying-the-email-flips-the-read-model-step-2
+      title: Then events "EmailVerified" are emitted
+---
+
+## Overview
+
+Scenario "Verifying the email flips the read model" of feature UserProfile. Tags: user, read-model.
+
+<NodeGraph />

@@ -6,14 +6,16 @@ projections, untouched — described as one GFL document
 ([usermgmt.gfl](usermgmt.gfl)) and compiled into an executable test suite.
 Compare the artifacts here against the hand-written originals a directory over.
 
-**Headline: 13 prose scenarios → 13 generated tests, green under `-race` in
-~1s, against the production deciders wired by `systemadapter.DomainConfig()`.**
+**Headline: 25 prose scenarios → 25 generated tests (11 happy paths + 12
+rejection paths + 2 read-model extras), green under `-race` in ~1s, against
+the production deciders wired by `systemadapter.DomainConfig()` — full
+parity with the 23 hand-written scenario tests.**
 
 ## The comparison
 
 | usermgmt hand-rolls | Where | GFL equivalent here | Command |
 | --- | --- | --- | --- |
-| 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go` | 13 scenarios in prose + 25 bindings, compiled to `usermgmt_test.go` | `gfl generate tests` (below) |
+| 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go` | 25 scenarios in prose + 31 bindings, compiled to `usermgmt_test.go` | `gfl generate tests` (below) |
 | `TestEventCatalog_InventoryMatchesEventConstants` (code-vs-code drift police) | `es_event_catalog_test.go` | spec-vs-universe drift gate with nearest-match suggestions + [events_sync_test.go](events_sync_test.go) (universe-vs-code) | `gfl validate --events-file` |
 | `ArchitectureCatalog()` (hand-built topology, one flat service) | `es_architecture_catalog.go` | [usermgmt.dot](usermgmt.dot) / [usermgmt.png](usermgmt.png) — the feature graph with typed edges | `gfl parse` |
 | `DefaultEventCatalog()` served at `GET /events/catalog` | `es_event_catalog.go` | [eventcatalog/](eventcatalog/) — 24 MDX pages (services, events, flows) | `gfl export eventcatalog` |
@@ -49,13 +51,47 @@ The second `Then` line is something the hand-written test does not check: it
 asserts the `user_by_id` projection actually flipped `EmailVerified` to false.
 Prose scenarios made adding the read-model assertion a one-line edit.
 
+Rejection paths compile too. The hand-written
+`TestScenario_RegisterUser_AlreadyExists` ends in
+`ThenError(errorfamily.NewConflict("usermgmt.user_already_exists", ""))`; the
+GFL equivalent is prose plus a two-line binding:
+
+```gfl
+Scenario: Registering a duplicate user is rejected
+  Given a registered user
+  When a user registers
+  Then the command is rejected with conflict "usermgmt.user_already_exists"
+```
+
+```json
+{ "pattern": "the command is rejected with conflict \"([\\w.]+)\"",
+  "error": "errorfamily.NewConflict(\"$1\", \"\")" }
+```
+
+All 12 `ThenError` tests from the hand-written suite (duplicate/required/
+not-found across user, tenant, membership, bot) have GFL counterparts.
+
+### Lines of code, honestly counted (`wc -l`)
+
+| Hand-written (usermgmt) | LOC | GFL rebuild (here) | LOC |
+| --- | ---: | --- | ---: |
+| `es_scenario*_test.go` (23 tests) | 602 | `usermgmt.gfl` (25 scenarios, 7 features) | 232 |
+| | | `gfl.bindings.json` (31 patterns) | 133 |
+| | | `helpers.go` (the only hand-written Go) | 242 |
+| | | **authored total** | **607** |
+| | | `usermgmt_test.go` (generated, DO NOT EDIT) | 171 |
+
+The authored total is a wash on raw lines — the win is what the lines
+ARE: 232 lines are prose a product owner can read and a graph/DOT/catalog
+are generated from, the bindings are 31 reusable patterns (not per-test
+boilerplate), and every regeneration picks up parser/generator fixes for
+free. The hand-written side additionally carries per-test event marshaling
+and adapter closures that the generated side never needs. See
+[VALUE-MAP.md](VALUE-MAP.md) for where else in cqrs-htmx this trade pays
+off — and where it deliberately does not.
+
 ## Honest coverage gaps (GFL today)
 
-- **Error paths**: 8 of the 23 hand-written tests are `ThenError(...)`
-  assertions (duplicate registration, name-required, not-found, ...). GFL
-  bindings support exactly `Query+Result` / `Events` / `Commands` Then shapes —
-  no `ThenError`. The scenarios above cover every *happy path*; the rejection
-  paths stay hand-written until GFL grows an error binding.
 - **Service-level cascades**: `DeleteUser` → membership + Casbin cleanup and
   `UpdateRoles` → session revocation live in the service layer, not the event
   journal, so journal-asserting generated specs cannot pin them. The
@@ -87,14 +123,14 @@ Prose scenarios made adding the read-model assertion a one-line edit.
 
 | File | Role |
 | --- | --- |
-| `usermgmt.gfl` | The spec: 7 features, 13 scenarios, typed relationships |
-| `gfl.bindings.json` | Step-to-Go bindings (25 patterns) |
+| `usermgmt.gfl` | The spec: 7 features, 25 scenarios, typed relationships |
+| `gfl.bindings.json` | Step-to-Go bindings (31 patterns) |
 | `helpers.go` | The only hand-written Go: fixed streams + one helper per binding |
 | `usermgmt_test.go` | Generated (DO NOT EDIT) — the executable suite |
 | `events_sync_test.go` | Pins `usermgmt-events.json` to identity-model's 27 constants |
 | `usermgmt-events.json` | The event universe for the drift gate |
 | `usermgmt.dot` / `usermgmt.png` | Feature graph (v2 DOT generator + graphviz) |
-| `eventcatalog/` | EventCatalog MDX export |
+| `eventcatalog/` | EventCatalog MDX export (49 resources: 24 services/events + 25 scenario flows via `--bindings`) |
 
 ## Reproduce
 
@@ -109,15 +145,16 @@ gfl generate tests gfl-usermgmt/usermgmt.gfl -o gfl-usermgmt -p gflusermgmt \
   --domain 'systemadapter.DomainConfig()' \
   --deploy 'systemadapter.RecommendedMemoryDeployment()' \
   --import github.com/larsartmann/cqrs-htmx/systemadapter/v4 \
+  --import github.com/larsartmann/go-error-family \
   --bindings gfl-usermgmt/gfl.bindings.json
 
 # 3. run them against the real deciders (same command shape as usermgmt's own suite)
 GOEXPERIMENT=jsonv2 go test ./gfl-usermgmt/... -race -count=1
 
-# 4. the graph and the catalog
+# 4. the graph and the catalog (scenario→flow export needs --bindings)
 (cd gfl-usermgmt && gfl parse usermgmt.gfl && mv usermgmt.gfl.dot usermgmt.dot \
   && dot -Tpng usermgmt.dot -o usermgmt.png \
-  && gfl export eventcatalog usermgmt.gfl -o eventcatalog)
+  && gfl export eventcatalog usermgmt.gfl --bindings gfl.bindings.json -o eventcatalog)
 ```
 
 The `--deploy` flag matters: `systemadapter`'s declarative projections need

@@ -20,12 +20,12 @@
     "RolesUpdated",
     "SessionEnded",
     "SessionStarted",
+    "TOTPDisabled",
+    "TOTPEnabled",
     "TenantCreated",
     "TenantDeleted",
     "TenantReactivated",
     "TenantSuspended",
-    "TOTPDisabled",
-    "TOTPEnabled",
     "UserDeleted",
     "UserRegistered"
   ]

@@ -1,0 +1,25 @@
+---
+id: UserProfile-display-names-change-in-sequence
+name: Display names change in sequence
+version: 0.0.1
+summary: 'Scenario "Display names change in sequence" of feature UserProfile. Tags: user, data-table.'
+steps:
+    - id: UserProfile-display-names-change-in-sequence-step-0
+      title: Given a registered user
+      next_step:
+        id: UserProfile-display-names-change-in-sequence-step-1
+        label: When the display name changes to
+    - id: UserProfile-display-names-change-in-sequence-step-1
+      title: When the display name changes to
+      next_step:
+        id: UserProfile-display-names-change-in-sequence-step-2
+        label: Then events "DisplayNameChanged", "DisplayNameChanged" are emitted
+    - id: UserProfile-display-names-change-in-sequence-step-2
+      title: Then events "DisplayNameChanged", "DisplayNameChanged" are emitted
+---
+
+## Overview
+
+Scenario "Display names change in sequence" of feature UserProfile. Tags: user, data-table.
+
+<NodeGraph />

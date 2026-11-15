@@ -1,0 +1,25 @@
+---
+id: Membership-removing-a-member
+name: Removing a member
+version: 0.0.1
+summary: 'Scenario "Removing a member" of feature Membership. Tags: membership.'
+steps:
+    - id: Membership-removing-a-member-step-0
+      title: Given a member with roles "admin"
+      next_step:
+        id: Membership-removing-a-member-step-1
+        label: When the member is removed
+    - id: Membership-removing-a-member-step-1
+      title: When the member is removed
+      next_step:
+        id: Membership-removing-a-member-step-2
+        label: Then events "MemberRemoved" are emitted
+    - id: Membership-removing-a-member-step-2
+      title: Then events "MemberRemoved" are emitted
+---
+
+## Overview
+
+Scenario "Removing a member" of feature Membership. Tags: membership.
+
+<NodeGraph />
