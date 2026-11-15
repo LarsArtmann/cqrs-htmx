@@ -59,5 +59,5 @@ rg -n 'NewBroadcasterFromHub' setup/sse.go integration_test/datastar_route_split
 
 ## Prior reports
 
-- [2026-11-07 DataStar client-side deep dive](../../../research/2026-11-07_datastar-client-side-deep-dive.html) (client-side; JS SDK v1.0.4 studied against the then-embedded v1.0.3; demo `data-on:load` defect found+fixed same-session; ADR-0050 Tier-4 M11–M14) — see also [research series row 34](../../../research/README.md).
+- [2026-11-07 DataStar client-side deep dive](../../research/2026-11-07_datastar-client-side-deep-dive.html) (client-side; JS SDK v1.0.4 studied against the then-embedded v1.0.3; demo `data-on:load` defect found+fixed same-session; ADR-0050 Tier-4 M11–M14) — see also [research series row 34](../../research/README.md).
 - Guides: [datastar-integration.md](../../guides/datastar-integration.md), [sse-and-datastar.md](../../guides/sse-and-datastar.md).
