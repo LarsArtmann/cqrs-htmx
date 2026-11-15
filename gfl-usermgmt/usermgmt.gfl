@@ -49,7 +49,7 @@ Scenario: Display names change in sequence
     | name  |
     | Ada   |
     | Grace |
-  Then events "DisplayNameChanged, DisplayNameChanged" are emitted
+  Then events "DisplayNameChanged", "DisplayNameChanged" are emitted
 
 Feature: TenantLifecycle
   @owner: "identity"
