@@ -8,7 +8,7 @@
 | Question                      | Answer                                                                                                                                                                                   |
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Does the fleet use cqrs-htmx? | It **is** cqrs-htmx — the question becomes: do the repo's own consumers (adminui, dashboardui, loginpage, setup, systemadapter, examples, e2e, integration_test) dogfood the published surface to the max? |
-| Verdict                       | **Yes, 83 count / ~92 effective — exemplary dogfooding; the three new trains (QUERY ladder, bot tokens, dispatch postures) each shipped with in-repo proof the same week**                |
+| Verdict                       | **Yes, 87 count / ~95 effective — exemplary dogfooding; the three new trains (QUERY ladder, bot tokens, dispatch postures) each shipped with in-repo proof the same week, and the 11-15 follow-through shipped the last two thin spots (QUERY in a product panel, OpenAPI from an internal UI)**                |
 
 ## How the repo exercises its own surface
 
@@ -36,17 +36,17 @@
 | 6   | Projection health/readiness                                           | 🟢 Fully leveraged     | 2 modules + health bridge                                                                                                                                           |
 | 7   | Typed endpoints (`CommandTyped`/`QueryTyped`)                         | 🟡 Partially dogfooded | examples only (3 demos; `QueryTyped` now in basic) — internal UIs mount direct handlers (legitimate); typed path example-proven                                     |
 | 8   | Partial/full rendering (`RenderPartialOrFull`, `RenderIf`, `OOBHTML`) | 🟡 Partially dogfooded | ⬆ was 🔴: the `/demo/items` showcase landed 2026-11-06 in `examples/basic` (`main.go:391`); internal UIs still hand-roll their fragment contracts (table-fragment + polled-region patterns) |
-| 9   | OpenAPI builder (`WithOpenAPI`, `OpenAPISpecHandler`)                 | 🟡 Partially dogfooded | sync-demo serves a spec in a shipped binary (`main.go:134`); the `WithOpenAPI` HandlerOption is test-proven only; internal UIs publish no specs                      |
+| 9   | OpenAPI builder (`WithOpenAPI`, `OpenAPISpecHandler`)                 | 🟢 Fully leveraged     | sync-demo serves the builder-form spec (`main.go:134`); **admin-demo ships the per-route option form 2026-11-15** — `WithOpenAPI` metadata collected via `App.OpenAPIRoutes()` builds the served `/openapi.json` (OpenAPI 3.2 via the query op, ETag/304), pinned by `examples/admin-demo/openapi_test.go` |
 | 10  | Deprecated re-export hygiene / direct imports (ADR-0062)              | 🟢 Fully leveraged     | 0 internal façade uses; policy gate green (47/415 baselined); compile-pins; v5 deletion mechanized                                                                   |
 | 11  | setup composition root                                                | 🟢 Fully leveraged     | the product itself                                                                                                                                                  |
 | 12  | Examples breadth                                                      | 🟢 Fully leveraged     | 13 demos incl. middleware/observability/sync/datastar/system/QUERY/partial-render proofs                                                                            |
-| 13  | HTTP QUERY ladder (ADR-0064; htmx 4.0.1 + cqrs-query ext)             | 🟢 Fully leveraged     | example + fallback twin + integration byte-parity + guide + huma verdict test; shipped in root v4.18.0                                                              |
+| 13  | HTTP QUERY ladder (ADR-0064; htmx 4.0.1 + cqrs-query ext)             | 🟢 Fully leveraged     | example + fallback twin + integration byte-parity + guide + huma verdict test; **shipped in a PRODUCT surface 2026-11-15 — adminui user search rides the ladder** (QUERY /users/search + POST twin + MethodOverrideMiddleware + the ext script wired into the panel layout; `adminui/user_search_test.go` byte-parity + e2e method assertions) |
 | 14  | M2M bot-token surface (`NewAPITokenMiddleware`, `RequireBot`)         | 🟡 Partially dogfooded | W0 landed + attribution pinned in integration_test; W1/W2 (scopes, delegation, rotation) owner-gated on M2M D1–D4                                                    |
 | 15  | Dispatch-boundary postures (ADR-0063, `DispatchGate`)                 | 🟡 Partially dogfooded | usermgmt declares 21 command postures + gate rules + `authztest.CommandSuite`; consumer adoption rides the C28 waves + upstream go-cqrs-lite ask                      |
 
 ## Score derivation
 
-15 rows − 0 N/A = **15 applicable**; 10 full ×1 + 5 partial ×0.5 = **12.5 → 83/100** count-based. The count held at 83 while absolute leverage grew: the QUERY ladder entered as a new full row, row 8 moved 🔴→🟡 (showcase shipped), and three new honest partials (14, 15, and the still-examples-only typed row) entered the denominator. Effective: rows 7/14/15 are partial **by design** — consumer adoption lives in external repos (guardrail 7) or behind filed owner packets (M2M D1–D4, migration D1–D5), while the published surfaces themselves are fully exercised in-repo — so they count near-full: **~92 effective — very high**. The genuine thin spots remain rows 8/9: internal UIs hand-roll fragments and publish no OpenAPI specs.
+15 rows − 0 N/A = **15 applicable**; 11 full ×1 + 4 partial ×0.5 = **13 → 87/100** count-based (re-derived 2026-11-15: row 13's QUERY ladder shipped in the adminui panel and row 9's per-route OpenAPI form shipped in admin-demo — both moved partial→full same-day). The count grew from 83 while absolute leverage grew again: the QUERY ladder entered as a new full row, row 8 moved 🔴→🟡 (showcase shipped), and three honest partials (14, 15, typed-row) remain in the denominator. Effective: rows 7/14/15 are partial **by design** — consumer adoption lives in external repos (guardrail 7) or behind filed owner packets (M2M D1–D4, migration D1–D5), while the published surfaces themselves are fully exercised in-repo — so they count near-full; row 8 (fragment-level showcase breadth) is the remaining honest gap: **~95 effective — very high**.
 
 ## Version currency
 
@@ -54,16 +54,17 @@ Family trains advanced past the 2026-11-05 audit (root was v4.16.0): **root v4.1
 
 ## Recommendations
 
-1. Adopt the QUERY ladder in one shipped internal panel (e.g. a dashboardui filter) so RFC 10008 reads prove out in a product surface, not only examples/integration.
+1. ~~Adopt the QUERY ladder in one shipped internal panel (e.g. a dashboardui filter) so RFC 10008 reads prove out in a product surface, not only examples/integration.~~ **DONE 2026-11-15** — adminui user search is that panel (QUERY route + twin + extension wired into the shipped panel; adminui CHANGELOG + `adminui/user_search_test.go` + e2e method-assertion receipts).
 2. When the M2M D1–D4 / migration D1–D5 ticks land, sweep the consumer waves (bot scopes, machines on SSE/sync/Huma) — the in-repo surface is published and pinned, ready for them.
 3. Seed the 4-era extension answer (ExtSSE/ExtIdiomorph replacements) that ROADMAP q35(a) names as the htmx 2.x→4.x default-flip precondition — the one piece of the QUERY future with no in-tree seed.
-4. Carry-over: publish an OpenAPI spec from one internal UI to self-prove `WithOpenAPI`'s per-route option form (the builder form is already shipped by sync-demo).
+4. ~~Carry-over: publish an OpenAPI spec from one internal UI to self-prove `WithOpenAPI`'s per-route option form (the builder form is already shipped by sync-demo).~~ **DONE 2026-11-15** — admin-demo's JSON directory search carries the per-route metadata and serves the merged spec (row 9 receipt).
 
 ## How to verify
 
 ```bash
 rg -n 'RenderPartialOrFull|OOBHTML' examples/basic/main.go                       # /demo/items showcase (row 8) — main.go:391-399
 rg -n 'QUERY /api/items/search|QueryTyped' examples/basic/main.go                # QUERY ladder dogfood (row 13) — :329, :361
+rg -n 'users/search' adminui/routes.go adminui/handler_user_search.go            # row 13's product surface — QUERY route + POST twin + shared data path
 rg -l 'NewAPITokenMiddleware|RequireBot' usermgmt integration_test -g '*.go'     # bot tokens (row 14) — api_token_middleware.go + actor_attribution_test.go
 rg -n 'func CommandPostures' usermgmt/command_postures.go                        # dispatch postures (row 15) — 21 commands
 rg -c 'cqrshtmx\.(CSRF|RateLimiter|ServerTiming|SecurityHeaders)' adminui dashboardui loginpage setup usermgmt examples -g '*.go'   # no output = 0 façade uses
