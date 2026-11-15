@@ -111,30 +111,40 @@ templ usersContent(d usersListData) {
 			Size:      display.ButtonSizeSM,
 			BaseProps: utils.BaseProps{Class: classNoUnderline},
 		})
-		// FilterInput carries the search affordance without an icon (library
-		// look accepted: the component reserves no start padding, so an
-		// overlaid icon would collide with typed text). The form-level
-		// hx-get/hx-trigger intercept Enter-submits so they swap like typing;
-		// hx-push-url, hx-swap, hx-indicator, and autocomplete are inherited
-		// from the form by htmx and the browser respectively. The spinner
-		// shows while a search request is in flight.
+		// The search rides the RFC 10008 fallback ladder
+		// (docs/guides/http-query-method.md): Enter submits the form as a
+		// native QUERY request (the cqrs-query extension upgrades the POST
+		// trigger and downgrades to X-HTTP-Method-Override only when an
+		// intermediary refuses the verb), live typing fires POST to the
+		// fallback twin, and the GET route stays the bookmarkable rung the
+		// chips and history navigate (the no-JS form action). FilterInput's
+		// wire vocabulary has no QUERY concept, so the ladder lives on the
+		// FORM attrs (Enter) while the input's debounced wire uses the twin.
+		// Both wire ends self-pin hx-target/hx-swap — inside the boosted
+		// app-shell wrapper an unpinned ajax element would blank the page
+		// (the htmx-attribute-inheritance trap).
 		@forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
 			Placeholder: "Search users\u2026",
 			Action:      d.BasePath + "/users",
 			DebounceMS:  350,
-			Wire:        &wire.Action{URL: d.BasePath + "/users", Target: "#users-table"},
+			Wire: &wire.Action{
+				URL:    d.BasePath + "/users/search",
+				Method: wire.MethodPost,
+				Target: "#users-table",
+			},
 			BaseProps: utils.BaseProps{
 				AriaLabel: "Search users",
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",
-					"hx-get":       d.BasePath + "/users",
+					"hx-ext":       "cqrs-query",
+					"hx-post":      d.BasePath + "/users/search",
+					"hx-query":     "",
 					"hx-trigger":   "submit",
 					"hx-target":    "#users-table",
 					"hx-swap":      "innerHTML",
-					"hx-push-url":  "true",
 					"hx-indicator": "#users-search-spinner",
 				},
 			},

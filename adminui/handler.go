@@ -201,7 +201,13 @@ func (h *Handler) guard(fn func(http.ResponseWriter, *http.Request, *identitymod
 func (h *Handler) routes() http.Handler {
 	mux := http.NewServeMux()
 	h.registerRoutes(mux)
-	return mux
+	// The QUERY ladder's rung 2: a POST carrying X-HTTP-Method-Override: QUERY
+	// is rewritten to QUERY BEFORE routing, so one QUERY pattern serves both
+	// rungs. Inside the panel's own stack by construction: a consumer's CSRF
+	// layer wraps the panel and validates the wire POST first (the security
+	// placement is a decision, docs/guides/http-query-method.md). Only QUERY
+	// is honored as an override target — never an unsafe verb.
+	return cqrshtmx.MethodOverrideMiddleware(mux)
 }
 
 // Handler returns an http.Handler serving the whole panel at root-relative

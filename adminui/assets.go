@@ -38,3 +38,9 @@ func syncWorkerHandler() http.Handler { return cqrshtmx.SyncWorkerHandler() }
 
 // syncClientHandler serves the offline sync tab-side client from the root module.
 func syncClientHandler() http.Handler { return cqrshtmx.SyncClientHandler() }
+
+// cqrsQueryExtHandler serves the embedded cqrs-query htmx extension from the
+// root module: the RFC 10008 QUERY upgrade for the panel's search, with the
+// automatic POST + method-override downgrade when an intermediary refuses
+// the verb (docs/guides/http-query-method.md).
+func cqrsQueryExtHandler() http.Handler { return htmx.ExtensionHandler(htmx.ExtCQRSQuery) }

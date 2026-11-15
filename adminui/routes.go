@@ -140,6 +140,10 @@ func (h *Handler) sharedRoutes() []routeSpec {
 			method: http.MethodGet, pattern: "/-/sync-client.js", panel: panelAssets, asset: syncClientHandler(),
 			mode: routeModeBoth, why: "static sync client, no data",
 		},
+		{
+			method: http.MethodGet, pattern: "/-/ext/cqrs-query.js", panel: panelAssets, asset: cqrsQueryExtHandler(),
+			mode: routeModeBoth, why: "vendored HTMX QUERY extension, no data",
+		},
 
 		// --- Dashboard (both modes, guarded) ---
 		{
@@ -203,6 +207,16 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 		{
 			method: http.MethodGet, pattern: patternUsers, panel: panelUsers, guarded: h.usersIndex,
 			mode: routeModeSuperAdmin, why: "the user list spans every tenant",
+		},
+		{
+			method: cqrshtmx.MethodQuery, pattern: "/users/search", panel: panelUsers, guarded: h.userSearch,
+			mode: routeModeSuperAdmin,
+			why:  "body-carrying user search (RFC 10008): a safe read whose criteria travel as a request body",
+		},
+		{
+			method: http.MethodPost, pattern: "/users/search", panel: panelUsers, guarded: h.userSearch,
+			mode: routeModeSuperAdmin,
+			why:  "the search fallback twin: byte-identical responses for clients that cannot send QUERY",
 		},
 		{
 			method: http.MethodGet, pattern: "/users/new", panel: panelUsers, guarded: h.userNew,

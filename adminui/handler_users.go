@@ -17,23 +17,7 @@ import (
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	filter := parseUserFilter(r.URL.Query().Get("filter"))
-	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
-	if filter == userFilterAdmin {
-		matched = h.filterPlatformAdmins(matched)
-	}
-	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
-	visible := matched[offset : offset+limit]
-	rows := make([]userRow, 0, len(visible))
-	lastSeen := h.lastSeenIndex()
-	for _, u := range visible {
-		row := h.userRow(r.Context(), u)
-		row.LastSeen = lastSeen[u.ID.Get().String()]
-		rows = append(rows, row)
-	}
-	d := usersListData{
-		Users: rows, Total: len(matched), Search: q,
-		Filter: filter, BasePath: h.config.BasePath, Page: page, TotalPages: totalPages,
-	}
+	d := h.usersSearchData(r.Context(), q, filter, parsePageQuery(r))
 
 	if htmx.RenderPartial(r) {
 		renderPartial(w, r, usersTableContent(d))

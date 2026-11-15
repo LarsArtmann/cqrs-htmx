@@ -52,6 +52,12 @@ templ headExtras(p pageData) {
 	// preference, and applies .dark + color-scheme before first paint.
 	@layout.ThemeScript(p.Nonce)
 	@templ.Raw(accentStyleTag(p))
+	// The cqrs-query htmx extension upgrades this panel's search to the
+	// native HTTP QUERY method (RFC 10008) and downgrades to POST +
+	// method-override only when an intermediary refuses the verb. Plain
+	// synchronous script AFTER the htmx tag: defineExtension needs the htmx
+	// global, and HeadContent renders after the HTMXSrc script tag.
+	<script src={ p.BasePath + "/-/ext/cqrs-query.js" }></script>
 }
 
 templ sidebar(p pageData) {
