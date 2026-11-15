@@ -211,7 +211,12 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		t.Fatalf("dispatch DeleteTenant: %v", err)
 	}
 
-	deadline := time.Now().Add(5 * time.Second)
+	// 30s, not 5s: the 256 derived RemoveMember dispatches are async
+	// (WithAsyncDispatch) and under -race the full cascade needs several
+	// seconds — a 5s deadline failed with ~100 members still mid-flight.
+	// Stranded members (the regression this pins) NEVER resolve, so the
+	// longer deadline only widens the green path's budget.
+	deadline := time.Now().Add(30 * time.Second)
 
 	for {
 		members, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenant.Get())
@@ -224,7 +229,7 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		}
 
 		if time.Now().After(deadline) {
-			t.Fatalf("cold-boot seeded members still present after 5s: %d of %d", len(members), seedMembers)
+			t.Fatalf("cold-boot seeded members still present after 30s: %d of %d", len(members), seedMembers)
 		}
 
 		time.Sleep(10 * time.Millisecond)
