@@ -73,12 +73,12 @@ fi
 
 echo "libs-report-count: $files_count report file(s), $rows_count index row(s) (raw $row_raw)"
 
+drift=0
 if [ "$rows_count" -ne "$row_raw" ]; then
+  drift=1
   echo "✗ libs-report-count: duplicate report row(s) in the index ($row_raw raw vs $rows_count unique)" >&2
-  exit 1
 fi
 
-drift=0
 if diff_out=$(diff <(printf '%s\n' "${report_files[@]}") <(printf '%s\n' "${row_names[@]}")); then
   :
 else

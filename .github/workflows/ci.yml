@@ -813,6 +813,16 @@ jobs:
       - name: Root files allowlist self-test
         run: bash scripts/selftests/test-check-root-files.sh
 
+      # Fleet-series integrity (2026-11-15, plan B11): the go-etag report
+      # shipped in the 11-14 refresh with its index row missing because
+      # nothing compared the two sides. Report files and index rows must
+      # agree in BOTH directions at the pinned size.
+      - name: Fleet libs report-count check
+        run: bash scripts/checks/check-libs-report-count.sh --strict
+
+      - name: Fleet libs report-count self-test
+        run: bash scripts/selftests/test-check-libs-report-count.sh
+
       # ADR-0062 Direct Imports Only. Two failure classes, one policy: a NEW
       # *_reexport.go (or any alias file outside the frozen baseline) means a
       # move shipped a compatibility shim instead of repointed consumers, and a

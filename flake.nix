@@ -1313,6 +1313,8 @@
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
                         "root-files:bash scripts/checks/check-root-files.sh --strict"
                         "root-files-self-test:bash scripts/selftests/test-check-root-files.sh"
+                        "libs-report-count:bash scripts/checks/check-libs-report-count.sh --strict"
+                        "libs-report-count-self-test:bash scripts/selftests/test-check-libs-report-count.sh"
                         "reexport-policy:bash scripts/checks/check-reexport-policy.sh --strict"
                         "reexport-policy-self-test:bash scripts/selftests/test-check-reexport-policy.sh"
                         "buildflow-skips:bash scripts/checks/check-buildflow-skips.sh"
@@ -1553,6 +1555,46 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-root-files.sh --strict
+                  '';
+                }
+              );
+            };
+
+            check-libs-report-count = {
+              type = "app";
+              meta.description = "Fleet-series integrity gate: docs/review/libs report files must equal the index.html table rows in BOTH directions at the pinned size (the go-etag drop class)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-libs-report-count";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.diffutils
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-libs-report-count.sh --strict
+                  '';
+                }
+              );
+            };
+
+            test-check-libs-report-count = {
+              type = "app";
+              meta.description = "Fixture self-test for check-libs-report-count.sh (11 cases: green/file-without-row/row-without-file/FORMAT-invisible/shrink/duplicate-row/advisory/strict/update-refused/update-green/missing-baseline)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-libs-report-count";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-libs-report-count.sh
                   '';
                 }
               );

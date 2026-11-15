@@ -1,1 +1,688 @@
-[]
+[
+  {
+    "type": "UserRegistered",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "A user registered with an email address and display name",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "display_name",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "roles",
+        "type": "[]Role",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "RolesUpdated",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "Legacy event: user roles updated. No longer emitted; decoded for backward compat",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "roles",
+        "type": "[]Role",
+        "required": true
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "EmailChanged",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "User changed their email address",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "DisplayNameChanged",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "User changed their display name",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "display_name",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "UserDeleted",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "User was deleted with an optional reason",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "CredentialAdded",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "A WebAuthn credential was added to the user",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "id",
+        "type": "[]byte",
+        "required": true
+      },
+      {
+        "name": "public_key",
+        "type": "[]byte",
+        "required": true
+      },
+      {
+        "name": "attestation_type",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "transports",
+        "type": "[]string",
+        "required": false
+      },
+      {
+        "name": "aaguid",
+        "type": "[]byte",
+        "required": false
+      },
+      {
+        "name": "sign_count",
+        "type": "uint32",
+        "required": true
+      },
+      {
+        "name": "user_present",
+        "type": "bool",
+        "required": false
+      },
+      {
+        "name": "user_verified",
+        "type": "bool",
+        "required": false
+      },
+      {
+        "name": "backup_eligible",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "backup_state",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "type": "CredentialRemoved",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "A WebAuthn credential was removed from the user",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "id",
+        "type": "[]byte",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "CredentialUsed",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "A WebAuthn credential was used: the assertion's signature counter and flags were recorded",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "credential_id",
+        "type": "[]byte",
+        "required": true
+      },
+      {
+        "name": "sign_count",
+        "type": "uint32",
+        "required": true
+      },
+      {
+        "name": "user_present",
+        "type": "bool",
+        "required": false
+      },
+      {
+        "name": "user_verified",
+        "type": "bool",
+        "required": false
+      },
+      {
+        "name": "backup_state",
+        "type": "bool",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "EmailVerified",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "User verified their email address",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TOTPEnabled",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "TOTP two-factor authentication was enabled",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "secret",
+        "type": "[]byte",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TOTPDisabled",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "TOTP two-factor authentication was disabled",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "ExternalAccountLinked",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "An external account (OAuth2/OIDC) was linked to the user",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "display_name",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "type": "ExternalAccountUnlinked",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "An external account was unlinked from the user",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "MemberAdded",
+    "aggregate": "Membership",
+    "schemaVersion": 2,
+    "description": "A member was added to a tenant with roles",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "actor_kind",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "tenant_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "roles",
+        "type": "[]Role",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "MemberRolesChanged",
+    "aggregate": "Membership",
+    "schemaVersion": 2,
+    "description": "A member roles were changed within a tenant",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "actor_kind",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "tenant_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "roles",
+        "type": "[]Role",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "MemberRemoved",
+    "aggregate": "Membership",
+    "schemaVersion": 2,
+    "description": "A member was removed from a tenant",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "tenant_id",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TenantCreated",
+    "aggregate": "Tenant",
+    "schemaVersion": 2,
+    "description": "A tenant was created",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "display_name",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TenantSuspended",
+    "aggregate": "Tenant",
+    "schemaVersion": 2,
+    "description": "A tenant was suspended with an optional reason",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TenantReactivated",
+    "aggregate": "Tenant",
+    "schemaVersion": 2,
+    "description": "A suspended tenant was reactivated",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TenantDeleted",
+    "aggregate": "Tenant",
+    "schemaVersion": 2,
+    "description": "A tenant was deleted with an optional reason",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "BotRegistered",
+    "aggregate": "Bot",
+    "schemaVersion": 2,
+    "description": "A bot was registered with a token hash and scopes",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "owner_id",
+        "type": "ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]",
+        "required": true
+      },
+      {
+        "name": "token_hash",
+        "type": "[]byte",
+        "required": true
+      },
+      {
+        "name": "scopes",
+        "type": "[]string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "BotDeleted",
+    "aggregate": "Bot",
+    "schemaVersion": 2,
+    "description": "A bot was deleted with an optional reason",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "LoginSucceeded",
+    "aggregate": "Auth",
+    "schemaVersion": 2,
+    "description": "A login succeeded (auth audit journal; one dedicated Auth stream per event)",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "method",
+        "type": "AuthMethod",
+        "required": true
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "type": "LoginFailed",
+    "aggregate": "Auth",
+    "schemaVersion": 2,
+    "description": "A known-user login failed with a bounded reason class (never raw error text or secrets)",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "method",
+        "type": "AuthMethod",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "AuthFailureReason",
+        "required": true
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "type": "RegistrationClosed",
+    "aggregate": "Auth",
+    "schemaVersion": 2,
+    "description": "A registration attempt was rejected because registration is closed",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "SessionStarted",
+    "aggregate": "Auth",
+    "schemaVersion": 2,
+    "description": "A session was established; carries the impersonation origin (by, reason) when an admin acted on the user's behalf",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "impersonator",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "started_at",
+        "type": "Time",
+        "required": true
+      },
+      {
+        "name": "expires_at",
+        "type": "Time",
+        "required": true
+      },
+      {
+        "name": "token_hash",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "SessionEnded",
+    "aggregate": "Auth",
+    "schemaVersion": 2,
+    "description": "A session ended with a bounded cause (logout, expired, impersonation_ended, revoked, deleted)",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "impersonator",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "token_hash",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "cause",
+        "type": "SessionEndCause",
+        "required": true
+      }
+    ]
+  }
+]

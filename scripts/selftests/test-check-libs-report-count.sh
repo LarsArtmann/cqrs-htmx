@@ -70,12 +70,14 @@ rc=$?
 if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q "go-orph"; then ok "2-file-without-row"; else bad "2-file-without-row" "rc=$rc $out"; fi
 rm "$R/docs/review/libs/go-orph.md"
 
-# 3. row without a file
-fixture "$R" go-alpha go-beta go-ghost
+# 3. row without a file (append a ghost row, create no file)
+fixture "$R" go-alpha go-beta
+printf '            <tr><td><a href="go-ghost.md">md</a></td></tr>\n' >>"$R/docs/review/libs/index.html"
 printf '2\n' >"$B"
 out=$(run "$R" "$B" --strict)
 rc=$?
 if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q "go-ghost"; then ok "3-row-without-file"; else bad "3-row-without-file" "rc=$rc $out"; fi
+sed -i '/go-ghost\.md/d' "$R/docs/review/libs/index.html"
 fixture "$R" go-alpha go-beta
 
 # 4. FORMAT.md invisible (extra conventions file never drifts the count)
@@ -109,6 +111,11 @@ if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q "duplicate"; then ok "6-dupli
 out=$(run "$R" "$B")
 rc=$?
 if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q "advisory"; then ok "7-advisory-passes"; else bad "7-advisory-passes" "rc=$rc $out"; fi
+
+# 7b. strict mode blocks the same drift
+out=$(run "$R" "$B" --strict)
+rc=$?
+if [ "$rc" -eq 1 ]; then ok "7b-strict-blocks"; else bad "7b-strict-blocks" "rc=$rc $out"; fi
 
 # 8. --update-baseline refuses while sides disagree
 out=$(run "$R" "$B" --update-baseline)

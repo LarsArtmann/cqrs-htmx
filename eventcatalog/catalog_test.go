@@ -148,3 +148,46 @@ func TestEventCatalog_JSONEmpty(t *testing.T) {
 		t.Errorf("empty catalog JSON = %q, want %q", body, "[]")
 	}
 }
+
+func TestEventCatalog_NewFromJSONRoundTrip(t *testing.T) {
+	catalog := sampleCatalog()
+
+	data, err := catalog.JSON()
+	if err != nil {
+		t.Fatalf("JSON() returned error: %v", err)
+	}
+
+	loaded, err := eventcatalog.NewFromJSON(data)
+	if err != nil {
+		t.Fatalf("NewFromJSON returned error: %v", err)
+	}
+
+	if got := len(loaded.Events()); got != len(catalog.Events()) {
+		t.Fatalf("loaded catalog has %d events, want %d", got, len(catalog.Events()))
+	}
+
+	for i, meta := range catalog.Events() {
+		if loaded.Events()[i].Type != meta.Type {
+			t.Errorf("event %d type = %q, want %q (order must be preserved)", i, loaded.Events()[i].Type, meta.Type)
+		}
+	}
+
+	reserialized, err := loaded.JSON()
+	if err != nil {
+		t.Fatalf("JSON() on loaded catalog returned error: %v", err)
+	}
+
+	if strings.TrimSpace(string(reserialized)) != strings.TrimSpace(string(data)) {
+		t.Errorf("round-trip is not byte-stable:\noriginal: %s\nloaded:   %s", data, reserialized)
+	}
+}
+
+func TestEventCatalog_NewFromJSONRejectsMalformed(t *testing.T) {
+	if _, err := eventcatalog.NewFromJSON([]byte(`{"not":"an array"}`)); err == nil {
+		t.Error("NewFromJSON accepted a non-array JSON object, want an infrastructure error")
+	}
+
+	if _, err := eventcatalog.NewFromJSON([]byte(`not json`)); err == nil {
+		t.Error("NewFromJSON accepted malformed JSON, want an infrastructure error")
+	}
+}
