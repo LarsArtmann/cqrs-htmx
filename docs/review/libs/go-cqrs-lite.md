@@ -46,7 +46,7 @@ Ten graded rows have since been resolved (each re-verified against source 2026-1
 
 ## Open findings (the residual tail)
 
-1. **metaengine family lag — RESOLVED 2026-11-15 (the B10.3 replay's gotcha-39 catch, swept same-day)** — `metaengine/v4` now v4.26.0, `metaengine/sqliteengine/v4` now v4.9.1, `system/v4` v4.19.0; the treadmill gate reads worst lag 0 across 20 repos · 80 prefixes. The v4.24.0+ nested `metaengine/v4/` dir restructure is consumed and hermetic-green.
+1. **metaengine family lag — RESOLVED 2026-11-15 (the B10.3 replay's gotcha-39 catch, swept same-day)** — `metaengine/v4` now v4.26.0, `metaengine/sqliteengine/v4` now v4.9.1, `system/v4` v4.19.0; the treadmill gate reads worst lag 0 across 20 repos · 81 prefixes (first-hand re-run 2026-11-15 13:16). The v4.24.0+ nested `metaengine/v4/` dir restructure is consumed and hermetic-green.
 2. **cqrs-lint gate binary — RESOLVED 2026-11-15 (plan B4)** — rebuilt at v4.21.0 (commit 213aa5e, ldflags version-pinned); the waiver-adoption delta exercised live when the repo-wide E014 anchor moved; the gate runs GREEN 14/14 under BOTH the new build and system 4.20.1.
 3. **flightrecorder** — the last missed row; VERDICT RECORDED 2026-11-15 (plan B7 spike): the wiring recipe (`middleware.CommandFlightRecorder(rec, trigger)` over `ServiceConfig.CommandMiddleware`) is documented in `docs/guides/leveraging-go-cqrs-lite.md` §2.8 and COMPILE-VERIFIED against the pinned middleware train (throwaway module, v4.7.2 — `TriggerContext`/`WithMaxSnapshots`/`WithFile` all resolve). Deliberate N/A-with-reason for in-tree adoption: a flight recorder is PROCESS-GLOBAL (upstream doc: exactly one active recorder per process) — a library cannot safely default it on, and the incident-response story (who reads `flight.log`, when snapshots trigger) is a consumer-operational decision. The consumer seam is one `CommandMiddleware` entry; the dashboard snapshot panel idea stays on the ROADMAP, not wired. Score row stays missed ×0 honestly (documented ≠ used) — the evaluation is the receipt.
 4. **testutil / idtest / querytest** still unimported (eventtest only partially covers the helper family).
@@ -55,7 +55,7 @@ Ten graded rows have since been resolved (each re-verified against source 2026-1
 
 ## Version currency
 
-**38 of 38 trains at latest; worst lag 0**, re-verified 2026-11-15 via `ls-remote` spot checks (metaengine v4.26.0, sqliteengine v4.9.1, system v4.19.0, catalog v4.15.0 all match their pins) and the repo's treadmill gate (`nix run .#check-upstream-treadmill` → "20 repos · 80 prefixes · worst lag 0"). The 11-14 "metaengine lag 1" state was swept same-day (gotcha 39: the train-lag tail regrows under you — the B10 verify-block replay caught the v4.26.0 re-lag within hours; the sweep recipe landed it). The treadmill gate tracks this continuously.
+**38 of 38 trains at latest; worst lag 0**, re-verified 2026-11-15 via `ls-remote` spot checks (metaengine v4.26.0, sqliteengine v4.9.1, system v4.19.0, catalog v4.15.0 all match their pins) and the repo's treadmill gate (`nix run .#check-upstream-treadmill` → "20 repos · 81 upstream prefixes · worst lag 0 · 0 disagreement warning(s)", first-hand run 2026-11-15). The 11-14 "metaengine lag 1" state was swept same-day (gotcha 39: the train-lag tail regrows under you — the B10 verify-block replay caught the v4.26.0 re-lag within hours; the sweep recipe landed it). The treadmill gate tracks this continuously.
 
 ## Should cqrs-htmx use it (more)?
 
