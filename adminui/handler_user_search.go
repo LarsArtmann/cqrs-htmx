@@ -18,7 +18,7 @@ const maxSearchBody = 64 << 10
 
 // errSearchBody is the Rejection for an unreadable search body (oversized or
 // malformed urlencoded data).
-var errSearchBody = errorfamily.NewRejection("adminui.search.body", "search body is malformed or too large")
+var errSearchBody error = errorfamily.NewRejection("adminui.search.body", "search body is malformed or too large")
 
 // userSearch carries the criteria of one search exchange up the QUERY-method
 // fallback ladder (docs/guides/http-query-method.md): the same three keys the

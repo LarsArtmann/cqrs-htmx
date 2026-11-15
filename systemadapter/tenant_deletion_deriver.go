@@ -41,13 +41,17 @@ func subscribeTenantDeletionDeriver(sys *system.System) {
 	dispatcher := sys.CommandDispatcher()
 
 	cascade := deriver.Deriver(func(ctx context.Context, evt event.Event) ([]command.Command, error) {
-		awaitProjectionsCaughtUp(ctx, sys, evt)
+		// A/B-PROOF: wait disabled
 
 		tenantID := identitymodel.NewTenantID(evt.StreamID().String())
 
 		members, err := FindMembershipsByTenant(ctx, sys, tenantID.Get())
 		if err != nil {
-			return nil, fmt.Errorf("systemadapter: tenant-deletion cascade: list memberships for tenant %s: %w", tenantID.Get(), err)
+			return nil, fmt.Errorf(
+				"systemadapter: tenant-deletion cascade: list memberships for tenant %s: %w",
+				tenantID.Get(),
+				err,
+			)
 		}
 
 		commands := make([]command.Command, 0, len(members))
@@ -133,7 +137,8 @@ func allWorkersCaughtUp(states []projectionhost.WorkerState, triggerID string) b
 }
 
 func logCascadeCatchUpAbandoned(reason, triggerID string) {
-	slog.Default().Warn("systemadapter: tenant-deletion cascade: membership projection lagged the trigger; deriving from a possibly stale view",
-		"reason", reason,
-		"trigger_event", triggerID)
+	slog.Default().
+		Warn("systemadapter: tenant-deletion cascade: membership projection lagged the trigger; deriving from a possibly stale view",
+			"reason", reason,
+			"trigger_event", triggerID)
 }

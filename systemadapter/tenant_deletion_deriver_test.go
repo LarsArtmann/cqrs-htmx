@@ -126,10 +126,19 @@ func mustStreamID(t *testing.T, raw string) id.StreamID {
 // TestTenantDeletionDeriver_ColdBootSeedsRace pins the systemscenario boot
 // pattern against the cascade: raw journal appends + bus publishes (Given
 // seeding) with NO projection-readiness wait, then an immediate delete —
-// the deriver must still see the seeded member because its catch-up wait
+// the deriver must still see every seeded member because its catch-up wait
 // lets the projection host drain through the trigger before it queries.
-// Regression test for the race where the cascade derived nothing and
-// MemberRemoved never landed.
+// Regression test for the race where the cascade derived only what the
+// lagging projection had folded so far and the missing members' RemoveMember
+// never landed.
+//
+// The single-member window is microsecond-scale — the host usually drains a
+// two-event seed before the act dispatch reaches the deriver — so the test
+// seeds a 64-member tenant: the host's fold of 64 membership views
+// measurably outlasts the delete dispatch, which is the production shape of
+// the lag (a busy journal under load). Verified by A/B: with the catch-up
+// wait disabled this test fails at the deadline; with it, the cascade
+// removes all 64 members.
 func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 	ctx := context.Background()
 
@@ -147,11 +156,8 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 	t.Cleanup(func() { _ = sys.Close() })
 
 	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
-	actor := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
 
 	tenantRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeTenant), mustStreamID(t, tenant.Get()))
-	membershipRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
-		identitymodel.DeriveMembershipID(actor, tenant))
 
 	tenantCreated, err := event.New(identitymodel.EventTenantCreated, tenantRef.ID, tenantRef.Type, 1,
 		identitymodel.TenantCreatedPayload{
@@ -163,27 +169,39 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		t.Fatalf("mint TenantCreated: %v", err)
 	}
 
-	memberAdded, err := event.New(identitymodel.EventMemberAdded, membershipRef.ID, membershipRef.Type, 1,
-		identitymodel.MemberAddedPayload{
-			SchemaVersion: identitymodel.CurrentSchemaVersion,
-			ActorKind:     actor.Kind().String(),
-			ActorID:       actor.String(),
-			TenantID:      tenant.Get(),
-			Roles:         []identitymodel.Role{identitymodel.RoleAdmin},
-		})
-	if err != nil {
-		t.Fatalf("mint MemberAdded: %v", err)
-	}
-
 	if err := sys.EventStore().AppendBatch(ctx, tenantRef, []event.Event{tenantCreated}); err != nil {
 		t.Fatalf("append TenantCreated: %v", err)
 	}
 
-	if err := sys.EventStore().AppendBatch(ctx, membershipRef, []event.Event{memberAdded}); err != nil {
-		t.Fatalf("append MemberAdded: %v", err)
+	const seedMembers = 64
+
+	seeds := []event.Event{tenantCreated}
+
+	for range seedMembers {
+		actor := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
+		membershipRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
+			identitymodel.DeriveMembershipID(actor, tenant))
+
+		memberAdded, err := event.New(identitymodel.EventMemberAdded, membershipRef.ID, membershipRef.Type, 1,
+			identitymodel.MemberAddedPayload{
+				SchemaVersion: identitymodel.CurrentSchemaVersion,
+				ActorKind:     actor.Kind().String(),
+				ActorID:       actor.String(),
+				TenantID:      tenant.Get(),
+				Roles:         []identitymodel.Role{identitymodel.RoleAdmin},
+			})
+		if err != nil {
+			t.Fatalf("mint MemberAdded: %v", err)
+		}
+
+		if err := sys.EventStore().AppendBatch(ctx, membershipRef, []event.Event{memberAdded}); err != nil {
+			t.Fatalf("append MemberAdded: %v", err)
+		}
+
+		seeds = append(seeds, memberAdded)
 	}
 
-	if err := sys.Publisher().Publish(ctx, tenantCreated, memberAdded); err != nil {
+	if err := sys.Publisher().Publish(ctx, seeds...); err != nil {
 		t.Fatalf("publish seeds: %v", err)
 	}
 
@@ -205,7 +223,7 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		}
 
 		if time.Now().After(deadline) {
-			t.Fatalf("cold-boot seeded member still present after 5s: %d", len(members))
+			t.Fatalf("cold-boot seeded members still present after 5s: %d of %d", len(members), seedMembers)
 		}
 
 		time.Sleep(10 * time.Millisecond)

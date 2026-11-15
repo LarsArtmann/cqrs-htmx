@@ -126,7 +126,12 @@ func TestResponseRedirect(t *testing.T) {
 
 	events := parseEvents(t, w)
 	datastartest.RequireEventCount(t, events, 1)
-	require.True(t, events[0].IsScript(), "Redirect should emit a script-bearing patch-elements event, got %q", events[0].Type)
+	require.True(
+		t,
+		events[0].IsScript(),
+		"Redirect should emit a script-bearing patch-elements event, got %q",
+		events[0].Type,
+	)
 	script := events[0].ScriptContent()
 	require.Contains(t, script, "window.location.href")
 	require.Contains(t, script, "/home")

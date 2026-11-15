@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	_ "embed"
-
 	"encoding/json/v2"
 
 	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"

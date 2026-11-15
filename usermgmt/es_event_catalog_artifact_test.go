@@ -37,8 +37,11 @@ func TestEventCatalogArtifactInSync(t *testing.T) {
 	}
 
 	if !bytes.Equal(raw, want) {
-		t.Errorf("event-catalog.json drifted from the specs table; regenerate with -update (want %d bytes, artifact has %d)",
-			len(want), len(raw))
+		t.Errorf(
+			"event-catalog.json drifted from the specs table; regenerate with -update (want %d bytes, artifact has %d)",
+			len(want),
+			len(raw),
+		)
 	}
 }
 

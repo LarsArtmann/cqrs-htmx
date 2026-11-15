@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"encoding/json/jsontext"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -139,7 +141,7 @@ func TestOpenAPISpec_ServesAnd304(t *testing.T) {
 		Info    struct {
 			Title string `json:"title"`
 		} `json:"info"`
-		Paths map[string]map[string]json.RawMessage `json:"paths"`
+		Paths map[string]map[string]jsontext.Value `json:"paths"`
 	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &doc); err != nil {
 		t.Fatalf("spec is not JSON: %v", err)
