@@ -38,16 +38,14 @@ templ userImportContent(basePath string) {
 		@display.Card(display.CardProps{}) {
 			<form hx-post={ basePath + "/users/import" } hx-target="#import-result" hx-swap="innerHTML" enctype="multipart/form-data">
 				<div class="mb-4">
-					<label for="import-file" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">File</label>
-					<input
-						type="file"
-						id="import-file"
-						name="file"
-						required=""
-						accept=".csv,.json,text/csv,application/json"
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-xs file:mr-3 file:rounded-md file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-500 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-					/>
-					<p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">A .csv or .json file of users (email + optional display_name).</p>
+					@forms.FileInput(forms.FileInputProps{
+						ID:       "import-file",
+						Name:     "file",
+						Label:    "File",
+						Required: true,
+						Accept:   ".csv,.json,text/csv,application/json",
+						HelpText: "A .csv or .json file of users (email + optional display_name).",
+					})
 				</div>
 				<div class="mb-4 rounded-md bg-gray-50 px-3.5 py-2.5 text-xs text-gray-500">
 					Each row creates a passwordless account: imported users enroll their
