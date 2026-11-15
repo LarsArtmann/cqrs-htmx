@@ -134,11 +134,12 @@ func mustStreamID(t *testing.T, raw string) id.StreamID {
 //
 // The single-member window is microsecond-scale — the host usually drains a
 // two-event seed before the act dispatch reaches the deriver — so the test
-// seeds a 64-member tenant: the host's fold of 64 membership views
+// seeds a 256-member tenant: the host's fold of 256 membership views
 // measurably outlasts the delete dispatch, which is the production shape of
-// the lag (a busy journal under load). Verified by A/B: with the catch-up
-// wait disabled this test fails at the deadline; with it, the cascade
-// removes all 64 members.
+// the lag (a busy journal under load). A deriver without the catch-up wait
+// sees only a prefix of members and the tail survives the cascade — A/B
+// under -race (wait disabled): members strand at the deadline; wait
+// restored: the cascade removes all of them.
 func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 	ctx := context.Background()
 
@@ -173,7 +174,7 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		t.Fatalf("append TenantCreated: %v", err)
 	}
 
-	const seedMembers = 64
+	const seedMembers = 256
 
 	seeds := []event.Event{tenantCreated}
 
