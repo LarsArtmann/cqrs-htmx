@@ -1,6 +1,6 @@
 # Status — spine completion: heal, M15/M16/M20/M23/M24/M25/M02/M08 executed, M17 honestly refused (2026-11-08 12:24 CET)
 
-> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which the spine heal + gate batch landed and its owner questions routed to TODO_LIST; the current execution thread is the successor's adminui wave. Strike depth:
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md), which the spine heal + gate batch landed and its owner questions routed to TODO_LIST; the current execution thread is the successor's adminui wave. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
 

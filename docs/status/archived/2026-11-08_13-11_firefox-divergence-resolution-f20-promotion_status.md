@@ -1,5 +1,9 @@
 # Firefox-divergence resolution, F20 promotion, and the probe-driven root-cause wave (status report)
 
+> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_18-30_m01-aggregate-closure-branching-flow-repin-docs-gates-green_status.md`](../2026-11-14_18-30_m01-aggregate-closure-branching-flow-repin-docs-gates-green_status.md), which resolved — both-engine battery 207/207, firefox promoted to blocking, CI green (three clean observations cited in-report); the divergences are TODO-tracked. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-15 (round-23 (2026-11-15)).**
+
 **Date:** 2026-11-08 13:11 CET · **Session:** full-execution of the remaining e2e-train items (the four "firefox divergences", F20 promotion, the (e) sync investigation, the `e2e-firefox` tooling fix) · **Predecessor:** the 06-14 browser-e2e report and the 06-26 SUPERB plan (§Execution log carries this session's receipts) · **Tree at end:** master = origin at `aecb54c2`, clean, both-engine battery 207/207, corpus 58,090 + this report's true-up, tail 12.
 
 ## a) FULLY DONE (verified, receipts in commits)

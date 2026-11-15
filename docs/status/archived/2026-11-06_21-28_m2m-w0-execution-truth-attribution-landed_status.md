@@ -1,6 +1,6 @@
 # Status — Executing the M2M plan's W0 wave: the truth trio landed, bots are attributed, and the machine surface finally speaks RFC 9457
 
-> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which M2M W0 bot-dispatch attribution landed (token middleware + zero-actor guard); the attribution thread it opened is extended and receipted by the M08 member-attribution wave in the successor. Strike depth:
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md), which M2M W0 bot-dispatch attribution landed (token middleware + zero-actor guard); the attribution thread it opened is extended and receipted by the M08 member-attribution wave in the successor. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
 

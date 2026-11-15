@@ -1,5 +1,9 @@
 # Admin UI/UX wave: Tenant integration and User management (status report)
 
+> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_16-21_adminui-m05-m17-completion-status.md`](../2026-11-14_16-21_adminui-m05-m17-completion-status.md), which superseded — the completion report absorbed the wave's gate debt (hermetic adminui suite, CSS gates, e2e family) that 08-41 had to defer. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-15 (round-23 (2026-11-15)).**
+
 **Date:** 2026-11-14 08:41 CET · **Session:** one continuous UX/implementation session on the adminui module (tenant integration + user management), no plan of record, no sibling coordination · **Tree at end:** master clean at the daemon's `51c49f15`; adminui 158 tests green (workspace AND `GOWORK=off`), lint 0 issues, route-posture gate green (adminui 4 manifest tests), CSS bundle rebuilt (+1 class token) and both CSS gates green · **Not run this session:** `nix run .#check-modules`, `.#coverage-gate`, `.#check-cqrs-lint`, `.#e2e*` (environmental blocks recorded in §d).
 
 > **Scope note.** The user asked: "How can we improve the Admin UI/UX especially for Tenant Integration and User Management?" — then: break it down, execute and verify one step at a time. This report covers ONLY that work and what was noticed while doing it. Nothing here claims progress on the backlog rows this session did not touch.

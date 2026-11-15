@@ -1,6 +1,6 @@
 # GET-SHIT-DONE spine execution — M00/M01/M03/M13 landed, M14 half, CI reds owned (status report)
 
-> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which the spine's M00-M14 legs closed CI-green and its remaining batches completed in the 12-24 successor report (now archived to this successor). Strike depth:
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md), which the spine's M00-M14 legs closed CI-green and its remaining batches completed in the 12-24 successor report (now archived to this successor). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
 

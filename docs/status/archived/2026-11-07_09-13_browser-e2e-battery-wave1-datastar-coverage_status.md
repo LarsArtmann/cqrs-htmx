@@ -1,6 +1,6 @@
 # Status — Browser e2e battery wave 1: DataStar coverage landed, suite flake surfaced
 
-> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md`](../2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md), which wave-1 specs landed with their shipped bugs fixed; the engine-divergence resolution it surfaced is resolved in the successor. Strike depth:
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md`](2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md), which wave-1 specs landed with their shipped bugs fixed; the engine-divergence resolution it surfaced is resolved in the successor. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
 

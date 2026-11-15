@@ -1,7 +1,7 @@
 # Adminui next-wave M05–M17 completion — session status report
 
 **Date:** 2026-11-14 16:2x CET
-**Author:** session agent (continuation execution session for `docs/planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md`; predecessor report: [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md) — its §b/§c lists are this session's work order)
+**Author:** session agent (continuation execution session for `docs/planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md`; predecessor report: [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](archived/2026-11-14_11-29_adminui-next-wave-execution-status.md) — its §b/§c lists are this session's work order)
 **Scope:** finished the plan's remaining milestones on the settled tree — M17 completion, M05 verdicts, M14 archive, M09/M10/M11/M12 feature waves, and the true-ups — then ran the final aggregate.
 **Directive:** "execute the WHOLE todo list … keep going until everything works."
 

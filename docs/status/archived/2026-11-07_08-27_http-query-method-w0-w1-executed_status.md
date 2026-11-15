@@ -1,6 +1,6 @@
 # Status — HTTP QUERY (RFC 10008) workstream: plan, re-review, recovery, W0+W1 executed
 
-> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which RFC 10008 QUERY method W0/W1 shipped in root (MethodOverrideMiddleware, cqrs-query extension, guide); no open item remains in this report. Strike depth:
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md), which RFC 10008 QUERY method W0/W1 shipped in root (MethodOverrideMiddleware, cqrs-query extension, guide); no open item remains in this report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
 

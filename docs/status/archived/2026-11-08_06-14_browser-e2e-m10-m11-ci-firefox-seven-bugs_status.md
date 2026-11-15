@@ -1,7 +1,7 @@
 # Browser E2E train: M10–M11 landed, CI job added, firefox promoted then flaked — 7 bugs total this wave
 
 > **ANNOTATED 2026-11-08** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-08 (round-23 (2026-11-08)).**
-> The next session in the same arc is [`2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md`](../2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md), which resolved.
+> The next session in the same arc is [`2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md`](2026-11-08_13-11_firefox-divergence-resolution-f20-promotion_status.md), which resolved.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Date:** 2026-11-08 06:14 CET

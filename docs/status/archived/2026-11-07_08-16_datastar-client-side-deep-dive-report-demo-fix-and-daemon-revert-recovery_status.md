@@ -1,6 +1,6 @@
 # Status — DataStar client-side deep dive: research report, verified demo fix, daemon-revert recovery
 
-> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which DataStar demo fixes and the guide KiB truthing landed; the deep-dive report lives in docs/research and the SSE guides carry the corrected numbers. Strike depth:
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md), which DataStar demo fixes and the guide KiB truthing landed; the deep-dive report lives in docs/research and the SSE guides carry the corrected numbers. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
 

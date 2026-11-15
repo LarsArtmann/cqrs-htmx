@@ -1,6 +1,6 @@
 # Status: full-backlog pareto execution — v4.18.0 + QUERY W2/W4 + docs-drain + upstream filings
 
-> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](../2026-11-14_11-29_adminui-next-wave-execution-status.md), which the v4.18.0 query waves and docs drain it planned shipped; the remaining backlog rows live in TODO_LIST.md. Strike depth:
+> **ANNOTATED 2026-11-14** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md), which the v4.18.0 query waves and docs drain it planned shipped; the remaining backlog rows live in TODO_LIST.md. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-14 (adminui-next-wave M14 (2026-11-14)).**
 
