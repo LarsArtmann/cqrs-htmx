@@ -212,5 +212,6 @@ graph TD
 | When | What | Receipt |
 | --- | --- | --- |
 | 2026-11-15 07:21 | Plan written, harvested pointer added to TODO fleet row | this file; corpus re-trued with ledger |
+| 2026-11-15 07:30 | **B1 EXECUTED** — metaengine v4.24.0 sweep (commit `8e7822c9`, 5 modules, tidy+verify+build+vet+lint green) + sqliteengine v4.9.0 sweep (bump-dep own commit); nested-dir restructure resolved cleanly through the module path, zero import changes (K1 not hit) | `nix run .#check-upstream-treadmill -- --strict-lag 0` GREEN (worst lag 0, 20 repos · 79 prefixes); dashboardui + systemadapter suites green; usermgmt hermetic (GOWORK=off) green — the one workspace-mode red is the `StateShape` sentinel correctly firing because the tracked go.work replaces storage at unreleased upstream MASTER carrying the go-cqrs-lite#117 fix (no storage tag yet; flip+close at the tag — TODO row 93 updated with the nuance) |
 
 <!-- append rows as waves land; never rewrite history -->

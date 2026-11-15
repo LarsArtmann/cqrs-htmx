@@ -204,7 +204,7 @@ func DeleteBot(reason string) *identitymodel.DeleteBotCmd {
 
 // UserEmailVerified reads the user_by_id projection's EmailVerified flag.
 func UserEmailVerified(ctx context.Context, sc *systemscenario.Scenario) (bool, error) {
-	view, err := systemadapter.FindUserByID(ctx, sc.System(), userStream.String())
+	view, err := systemadapter.FindUserByID(ctx, sc.System(), userStream.Get())
 	if err != nil {
 		return false, err
 	}
@@ -213,7 +213,7 @@ func UserEmailVerified(ctx context.Context, sc *systemscenario.Scenario) (bool, 
 
 // TenantSuspended reads the tenant_by_id projection's Suspended flag.
 func TenantSuspended(ctx context.Context, sc *systemscenario.Scenario) (bool, error) {
-	view, err := systemadapter.FindTenantByID(ctx, sc.System(), tenantStream.String())
+	view, err := systemadapter.FindTenantByID(ctx, sc.System(), tenantStream.Get())
 	if err != nil {
 		return false, err
 	}
@@ -222,7 +222,7 @@ func TenantSuspended(ctx context.Context, sc *systemscenario.Scenario) (bool, er
 
 // TenantName reads the tenant_by_id projection's Name.
 func TenantName(ctx context.Context, sc *systemscenario.Scenario) (string, error) {
-	view, err := systemadapter.FindTenantByID(ctx, sc.System(), tenantStream.String())
+	view, err := systemadapter.FindTenantByID(ctx, sc.System(), tenantStream.Get())
 	if err != nil {
 		return "", err
 	}
