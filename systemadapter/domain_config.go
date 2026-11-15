@@ -105,6 +105,8 @@ func registerAllCommands(sys *system.System) {
 	registerMembershipCommands(sys)
 	registerTenantCommands(sys)
 	registerBotCommands(sys)
+
+	subscribeTenantDeletionDeriver(sys)
 }
 
 func must(err error) {
