@@ -1,6 +1,6 @@
 # go-etag Utilization Report
 
-> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html))
+> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html)) · Series conventions: [FORMAT.md](FORMAT.md)
 > Library: `github.com/larsartmann/go-etag` (root + `server`/`entitytag` submodules, single tag stream) · Checkout: `/home/lars/projects/go-etag`
 
 ## Verdict at a glance
