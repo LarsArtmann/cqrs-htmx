@@ -189,11 +189,14 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Test gfl-usermgmt (GFL executable-spec case study)
-        run: cd gfl-usermgmt && go test ./... -race -count=1
+        run: cd gfl-usermgmt && go test ./... -race -count=1 -coverprofile=coverage.out
         env:
           GOWORK: off
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: gfl-usermgmt coverage check
+        run: bash scripts/checks/check-coverage-threshold.sh gfl-usermgmt
 
       - name: Build health submodule
         run: cd health && go build ./...
