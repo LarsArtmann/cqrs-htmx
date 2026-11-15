@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.18.0
 )
 

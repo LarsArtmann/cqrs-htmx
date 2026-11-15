@@ -1,0 +1,109 @@
+{
+  "bindings": [
+    {
+      "pattern": "a registered user",
+      "given": "RegisteredUser(sc)..."
+    },
+    {
+      "pattern": "a registered user with a verified email",
+      "given": "VerifiedUser(sc)..."
+    },
+    {
+      "pattern": "a tenant named \"(.*)\"",
+      "given": "CreatedTenant(sc, \"$1\")..."
+    },
+    {
+      "pattern": "a suspended tenant named \"(.*)\"",
+      "given": "SuspendedTenant(sc, \"$1\")..."
+    },
+    {
+      "pattern": "a member with roles \"(.*)\"",
+      "given": "MemberWithRoles(sc, \"$1\")..."
+    },
+    {
+      "pattern": "a registered bot named \"(.*)\"",
+      "given": "RegisteredBot(sc)..."
+    },
+    {
+      "pattern": "a user registers",
+      "when": "RegisterUser()"
+    },
+    {
+      "pattern": "the email is changed to \"(.*)\"",
+      "when": "ChangeEmail(\"$1\")"
+    },
+    {
+      "pattern": "the email is verified",
+      "when": "VerifyEmail()"
+    },
+    {
+      "pattern": "the display name changes to",
+      "when": "ChangeDisplayName(\"${name}\")"
+    },
+    {
+      "pattern": "a tenant named \"(.*)\" is created",
+      "when": "CreateTenant(\"$1\")"
+    },
+    {
+      "pattern": "the tenant is suspended for \"(.*)\"",
+      "when": "SuspendTenant(\"$1\")"
+    },
+    {
+      "pattern": "the tenant is reactivated",
+      "when": "ReactivateTenant()"
+    },
+    {
+      "pattern": "the tenant is deleted for \"(.*)\"",
+      "when": "DeleteTenant(\"$1\")"
+    },
+    {
+      "pattern": "a member with roles \"(.*)\" is added",
+      "when": "AddMember(\"$1\")"
+    },
+    {
+      "pattern": "the member roles change to \"(.*)\"",
+      "when": "UpdateMemberRoles(\"$1\")"
+    },
+    {
+      "pattern": "the member is removed",
+      "when": "RemoveMember()"
+    },
+    {
+      "pattern": "a bot named \"(.*)\" is registered",
+      "when": "RegisterBot(\"$1\")"
+    },
+    {
+      "pattern": "the bot is deleted for \"(.*)\"",
+      "when": "DeleteBot(\"$1\")"
+    },
+    {
+      "pattern": "events (.+) are emitted",
+      "events": "$1"
+    },
+    {
+      "pattern": "the read model shows the email verified",
+      "query": "UserEmailVerified(t.Context(), sc)",
+      "result": "true"
+    },
+    {
+      "pattern": "the read model shows the email unverified",
+      "query": "UserEmailVerified(t.Context(), sc)",
+      "result": "false"
+    },
+    {
+      "pattern": "the read model shows the tenant suspended",
+      "query": "TenantSuspended(t.Context(), sc)",
+      "result": "true"
+    },
+    {
+      "pattern": "the read model shows the tenant not suspended",
+      "query": "TenantSuspended(t.Context(), sc)",
+      "result": "false"
+    },
+    {
+      "pattern": "the read model shows the tenant name \"(.*)\"",
+      "query": "TenantName(t.Context(), sc)",
+      "result": "\"$1\""
+    }
+  ]
+}

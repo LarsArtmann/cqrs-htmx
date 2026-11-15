@@ -1,0 +1,32 @@
+{
+  "system": "usermgmt",
+  "events": [
+    "BotDeleted",
+    "BotRegistered",
+    "CredentialAdded",
+    "CredentialRemoved",
+    "CredentialUsed",
+    "DisplayNameChanged",
+    "EmailChanged",
+    "EmailVerified",
+    "ExternalAccountLinked",
+    "ExternalAccountUnlinked",
+    "LoginFailed",
+    "LoginSucceeded",
+    "MemberAdded",
+    "MemberRemoved",
+    "MemberRolesChanged",
+    "RegistrationClosed",
+    "RolesUpdated",
+    "SessionEnded",
+    "SessionStarted",
+    "TenantCreated",
+    "TenantDeleted",
+    "TenantReactivated",
+    "TenantSuspended",
+    "TOTPDisabled",
+    "TOTPEnabled",
+    "UserDeleted",
+    "UserRegistered"
+  ]
+}

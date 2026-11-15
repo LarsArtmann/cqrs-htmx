@@ -1,0 +1,168 @@
+Feature: UserRegistration
+  @owner: "identity"
+  @source: "usermgmt/es_decide.go"
+
+Description:
+  Registers users on the User aggregate (stream type User).
+  A fresh stream with RegisterUser emits exactly one UserRegistered
+  event; a duplicate registration is rejected with a conflict
+  (usermgmt.user_already_exists).
+
+Relationships:
+  ProvidesTo: UserProfile, Membership, BotLifecycle
+
+Scenario: Registering a new user
+  @smoke, @user
+  When a user registers
+  Then events "UserRegistered" are emitted
+
+Feature: UserProfile
+  @owner: "identity"
+  @source: "usermgmt/es_decide_profile.go"
+
+Description:
+  Email, display name, verification, credentials, and TOTP on the
+  User aggregate. Changing the email un-verifies the account in the
+  read model; verifying the email flips it back.
+
+Relationships:
+  DependsOn: UserRegistration
+
+Scenario: Verifying the email flips the read model
+  @user, @read-model
+  Given a registered user
+  When the email is verified
+  Then events "EmailVerified" are emitted
+    And the read model shows the email verified
+
+Scenario: Changing the email un-verifies the account
+  @user, @read-model
+  Given a registered user with a verified email
+  When the email is changed to "new@test.com"
+  Then events "EmailChanged" are emitted
+    And the read model shows the email unverified
+
+Scenario: Display names change in sequence
+  @user, @data-table
+  Given a registered user
+  When the display name changes to
+    | name  |
+    | Ada   |
+    | Grace |
+  Then events "DisplayNameChanged, DisplayNameChanged" are emitted
+
+Feature: TenantLifecycle
+  @owner: "identity"
+  @source: "usermgmt/es_tenant_decide.go"
+
+Description:
+  Tenant aggregate lifecycle: create, suspend, reactivate, delete.
+  The suspended flag is a read-model projection of TenantSuspended
+  and TenantReactivated.
+
+Relationships:
+  ProvidesTo: Membership
+
+Scenario: Creating a tenant
+  @smoke, @tenant, @read-model
+  When a tenant named "acme" is created
+  Then events "TenantCreated" are emitted
+    And the read model shows the tenant name "acme"
+
+Scenario: Suspending a created tenant
+  @tenant, @read-model
+  Given a tenant named "acme"
+  When the tenant is suspended for "policy violation"
+  Then events "TenantSuspended" are emitted
+    And the read model shows the tenant suspended
+
+Scenario: Reactivating a suspended tenant
+  @tenant, @read-model
+  Given a suspended tenant named "acme"
+  When the tenant is reactivated
+  Then events "TenantReactivated" are emitted
+    And the read model shows the tenant not suspended
+
+Scenario: Deleting a tenant
+  @tenant
+  Given a tenant named "acme"
+  When the tenant is deleted for "shutdown"
+  Then events "TenantDeleted" are emitted
+
+Feature: Membership
+  @owner: "identity"
+  @source: "usermgmt/es_membership_decide.go"
+
+Description:
+  Membership aggregates keyed by DeriveMembershipID(actor, tenant):
+  add, change roles, remove. The decider is local — adding a member
+  to an empty stream emits MemberAdded without tenant pre-existence.
+
+Relationships:
+  DependsOn: UserRegistration, TenantLifecycle
+
+Scenario: Adding a member to a tenant
+  @smoke, @membership
+  When a member with roles "admin" is added
+  Then events "MemberAdded" are emitted
+
+Scenario: Updating member roles
+  @membership
+  Given a member with roles "admin"
+  When the member roles change to "admin, writer"
+  Then events "MemberRolesChanged" are emitted
+
+Scenario: Removing a member
+  @membership
+  Given a member with roles "admin"
+  When the member is removed
+  Then events "MemberRemoved" are emitted
+
+Feature: BotLifecycle
+  @owner: "identity"
+  @source: "usermgmt/es_bot_decide.go"
+
+Description:
+  Bot aggregate lifecycle: register with owner, token hash and
+  scopes; delete with a reason.
+
+Relationships:
+  DependsOn: UserRegistration
+
+Scenario: Registering a bot
+  @smoke, @bot
+  When a bot named "deploy-bot" is registered
+  Then events "BotRegistered" are emitted
+
+Scenario: Retiring a bot
+  @bot
+  Given a registered bot named "deploy-bot"
+  When the bot is deleted for "retired"
+  Then events "BotDeleted" are emitted
+
+Feature: AuthAudit
+  @owner: "identity"
+  @source: "usermgmt/auth_audit.go"
+
+Description:
+  Auth audit journal (LoginSucceeded, LoginFailed,
+  RegistrationClosed, SessionStarted, SessionEnded) on dedicated
+  Auth-typed streams. Emitted by the service layer around login and
+  session flows — not by a decider, so no executable scenarios here.
+
+Relationships:
+  EmitsTo: AuditJournal with events="LoginSucceeded, LoginFailed, RegistrationClosed, SessionStarted, SessionEnded"
+
+Feature: AuditJournal
+  @owner: "identity"
+  @source: "usermgmt/audit_log.go"
+
+Description:
+  The AuditLog subscribes to the full user lifecycle plus the auth
+  audit journal (allAuditedEventTypes). Tenant, membership and bot
+  events are NOT audited.
+
+Relationships:
+  ListensFrom: UserRegistration with events="UserRegistered, UserDeleted"
+  ListensFrom: UserProfile with events="EmailChanged, DisplayNameChanged, EmailVerified, TOTPEnabled, TOTPDisabled, CredentialAdded, CredentialRemoved, CredentialUsed, ExternalAccountLinked, ExternalAccountUnlinked"
+  ListensFrom: AuthAudit with events="LoginSucceeded, LoginFailed, RegistrationClosed, SessionStarted, SessionEnded"
