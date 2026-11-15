@@ -1,0 +1,8 @@
+{
+  "system": "ordersaga",
+  "events": [
+    "order.created",
+    "order.cancelled",
+    "payment.settled"
+  ]
+}

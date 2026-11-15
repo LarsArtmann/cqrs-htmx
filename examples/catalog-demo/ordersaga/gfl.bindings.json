@@ -1,0 +1,42 @@
+{
+  "bindings": [
+    {
+      "pattern": "a placed order",
+      "given": "ordersaga.Seeded(sc)..."
+    },
+    {
+      "pattern": "an order is placed",
+      "when": "ordersaga.Place()"
+    },
+    {
+      "pattern": "the order is cancelled",
+      "when": "ordersaga.Cancel()"
+    },
+    {
+      "pattern": "events (.+) are emitted",
+      "events": "$1"
+    },
+    {
+      "pattern": "commands (.+) are dispatched",
+      "commands": "$1"
+    },
+    {
+      "pattern": "the command is rejected because the order already exists",
+      "error": "ordersaga.ErrAlreadyCreated"
+    },
+    {
+      "pattern": "the command is rejected because the order does not exist",
+      "error": "ordersaga.ErrOrderNotFound"
+    },
+    {
+      "pattern": "the order is cancelled in the read model",
+      "query": "ordersaga.IsCancelled(t.Context(), sc)",
+      "result": "true"
+    },
+    {
+      "pattern": "the (\\w+) stage count is (\\d+)",
+      "query": "ordersaga.StageCount(t.Context(), sc, \"$1\")",
+      "result": "int64($2)"
+    }
+  ]
+}

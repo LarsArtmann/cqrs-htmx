@@ -1,0 +1,62 @@
+Feature: OrderService
+  @owner: "orders"
+
+Description:
+  Places and cancels customer orders; settlement is derived from
+  the placed order, never dispatched by hand.
+
+Relationships:
+  EmitsTo: PaymentProcessing with events="order.created"
+
+Scenario: Placing an order drives settlement
+  @smoke, @saga
+  When an order is placed
+  Then events "order.created", "payment.settled" are emitted
+    And commands "order.create", "payment.settle" are dispatched
+
+Scenario: Placing a second order is rejected
+  @error
+  Given a placed order
+  When an order is placed
+  Then the command is rejected because the order already exists
+
+Scenario: Cancelling a placed order
+  @read-model
+  Given a placed order
+  When the order is cancelled
+  Then the order is cancelled in the read model
+
+Scenario: Cancelling an unknown order is rejected
+  @error
+  When the order is cancelled
+  Then the command is rejected because the order does not exist
+
+Scenario: The read model sees the settlement
+  @read-model
+  When an order is placed
+  Then commands "order.create", "payment.settle" are dispatched
+    And the settled stage count is 1
+
+Feature: PaymentProcessing
+  @owner: "payments"
+
+Description:
+  Settles placed orders. The payment.settle command is DERIVED from
+  order.created by the bus deriver (ADR-0154); only the read model
+  and the event journal ever see settlement happen.
+
+Relationships:
+  ListensFrom: OrderService with events="order.created"
+  EmitsTo: Fulfillment with events="payment.settled"
+
+Feature: Fulfillment
+  @owner: "logistics"
+
+Description:
+  Ships settled orders. Docs-only in this fixture: the feature graph
+  and the EventCatalog flows describe the dependency, no executable
+  scenarios yet.
+
+Relationships:
+  ListensFrom: PaymentProcessing with events="payment.settled"
+  ProvidesTo: OrderService
