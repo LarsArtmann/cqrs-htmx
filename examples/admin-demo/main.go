@@ -96,6 +96,17 @@ func main() {
 		5 * time.Minute,
 	)
 	defer idemStore.Close()
+
+	// The App-dispatched JSON directory search (openapi.go): the demo's first
+	// root-App dispatch surface — machine clients read the same directory the
+	// panel renders, over the RFC 10008 QUERY ladder, and the served spec is
+	// built from the handler's own WithOpenAPI metadata.
+	directoryApp, directorySpec := newDirectoryApp(svc)
+	directorySpecHandler, err := cqrshtmx.OpenAPISpecHandler(directorySpec)
+	if err != nil {
+		log.Fatalf("openapi: %v", err)
+	}
+
 	panel, err := adminui.New(adminui.Config{ //nolint:exhaustruct // demo uses sensible defaults
 		Service:     svc,
 		Title:       "cqrs-htmx Admin",
@@ -106,6 +117,7 @@ func main() {
 		// prefix), so sibling surfaces stay reachable from the sidebar.
 		ExtraNav: []adminui.NavEntry{
 			{Label: "cqrs-htmx docs", Href: "https://github.com/LarsArtmann/cqrs-htmx", Icon: icons.Book},
+			{Label: "OpenAPI spec", Href: "/openapi.json", Icon: icons.DocumentText},
 		},
 	})
 	if err != nil {
@@ -143,6 +155,13 @@ func main() {
 
 	mux.Handle("/admin/", ackMW(sessionMW(csrfMW(panelMW(http.StripPrefix("/admin", panel.Handler()))))))
 	mux.Handle("/tenant-admin/", sessionMW(csrfMW(http.StripPrefix("/tenant-admin", tenantPanel.Handler()))))
+
+	// The JSON directory search (QUERY ladder, both rungs) + its served spec.
+	// requireSession is the GATE — NewSessionMiddleware only enriches the
+	// context, so the API surface answers 401 without a session itself.
+	mux.Handle(cqrshtmx.MethodQuery+" /api/users/search", sessionMW(requireSession(directorySearchHandler(directoryApp, false))))
+	mux.Handle(http.MethodPost+" /api/users/search", sessionMW(requireSession(directorySearchHandler(directoryApp, false))))
+	mux.Handle("GET /openapi.json", directorySpecHandler)
 
 	// SSE endpoint — streams live events from the Broadcaster to the browser.
 	// Sits behind session middleware (auth required) but NOT CSRF (GET-only, safe).
