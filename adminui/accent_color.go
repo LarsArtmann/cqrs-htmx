@@ -1,3 +1,4 @@
+// cqrs-lint:ignore(E014) drain/read-your-writes is owned by the enclosing usermgmt.Service consumers, not this panel
 package adminui
 
 import "strings"

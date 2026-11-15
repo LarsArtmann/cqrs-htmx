@@ -1,0 +1,15 @@
+{
+  "preset": "library",
+  "rules": {
+    "disable": [
+      // F032 (no-catalog-import): adminui is the identity-operations panel —
+      // it consumes usermgmt.Service read models and the audit log, not the
+      // published event language. Event-schemas browsing is dashboardui's
+      // surface (the sibling dashboard module wires the catalog + its handler);
+      // the panels cross-link in both READMEs. The v4.21.0 triage (2026-11-15)
+      // flagged this module for the first time — same walk-mode widening that
+      // moved E014's anchor, not a new coupling.
+      "F032"
+    ]
+  }
+}

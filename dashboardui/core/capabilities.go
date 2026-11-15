@@ -10,7 +10,6 @@
 // it fetches data via core functions and renders it through templ
 // components. Future consumers can use core directly with their own
 // rendering.
-// cqrs-lint:ignore(E014) drain/read-your-writes is owned by the enclosing usermgmt.Service consumers, not this pure data layer
 package core
 
 import (
