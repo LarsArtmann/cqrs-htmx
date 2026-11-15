@@ -16,6 +16,17 @@
     // ARE correct in go.mod (event/v4 v4.14.0) while the detector compares
     // them against a different family require (command/v4 v4.13.1) — the
     // same lockstep assumption V006 is disabled for.
-    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007", "D005"]
+    //
+    // E014 (projection drain/read-your-writes) is owned by usermgmt.Service
+    // (waitForDrain inside startProjectionHost) — every panel and consumer
+    // sits BEHIND the service, so no workspace package needs its own drain
+    // call. The repo-wide walk mode anchors the finding wherever the last
+    // touched file lives (it was dashboardui/core/capabilities.go, then
+    // adminui/accent_color.go — gotcha 28/29 anchor drift); an inline
+    // directive cannot survive both walk modes (stale in the module walk,
+    // load-bearing in the repo-wide one), so the disable lives here with the
+    // reason. Revisit only if a package ever dispatches commands OUTSIDE a
+    // usermgmt.Service with its own projection host.
+    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007", "D005", "E014"]
   }
 }
