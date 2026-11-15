@@ -125,6 +125,50 @@
       "result": "false"
     },
     {
+      "pattern": "a member of another tenant with roles \"(.*)\"",
+      "given": "MemberOfAnotherTenant(sc, \"$1\")..."
+    },
+    {
+      "pattern": "the audit journal for the user records \"(.*)\"",
+      "query": "AuditEventTypesForUser(t.Context(), sc)",
+      "result": "\"$1\""
+    },
+    {
+      "pattern": "the audit journal for the user has (\\d+) entr(y|ies)",
+      "query": "AuditEntryCountForUser(t.Context(), sc)",
+      "result": "$1"
+    },
+    {
+      "pattern": "the audit journal has (\\d+) entr(y|ies)",
+      "query": "AuditEntryCount(t.Context(), sc)",
+      "result": "$1"
+    },
+    {
+      "pattern": "the actor membership shows roles \"(.*)\"",
+      "query": "MembershipRolesForActor(t.Context(), sc)",
+      "result": "\"$1\""
+    },
+    {
+      "pattern": "the actor has (\\d+) membership(s?)",
+      "query": "MembershipCountForActor(t.Context(), sc)",
+      "result": "$1"
+    },
+    {
+      "pattern": "the token hash resolves to the bot \"(.*)\"",
+      "query": "BotNameByTokenHash(t.Context(), sc)",
+      "result": "\"$1\""
+    },
+    {
+      "pattern": "the email \"(.*)\" finds the user",
+      "query": "UserEmailExists(t.Context(), sc, \"$1\")",
+      "result": "true"
+    },
+    {
+      "pattern": "the email \"(.*)\" finds no user",
+      "query": "UserEmailExists(t.Context(), sc, \"$1\")",
+      "result": "false"
+    },
+    {
       "pattern": "the read model shows the tenant name \"(.*)\"",
       "query": "TenantName(t.Context(), sc)",
       "result": "\"$1\""

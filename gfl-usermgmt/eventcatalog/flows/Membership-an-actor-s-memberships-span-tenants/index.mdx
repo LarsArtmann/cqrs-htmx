@@ -1,0 +1,30 @@
+---
+id: Membership-an-actor-s-memberships-span-tenants
+name: An actor's memberships span tenants
+version: 0.0.1
+summary: 'Scenario "An actor''s memberships span tenants" of feature Membership. Tags: membership, read-model.'
+steps:
+    - id: Membership-an-actor-s-memberships-span-tenants-step-0
+      title: Given a member with roles "admin"
+      next_step:
+        id: Membership-an-actor-s-memberships-span-tenants-step-1
+        label: And a member of another tenant with roles "writer"
+    - id: Membership-an-actor-s-memberships-span-tenants-step-1
+      title: And a member of another tenant with roles "writer"
+      next_step:
+        id: Membership-an-actor-s-memberships-span-tenants-step-2
+        label: When the member is removed
+    - id: Membership-an-actor-s-memberships-span-tenants-step-2
+      title: When the member is removed
+      next_step:
+        id: Membership-an-actor-s-memberships-span-tenants-step-3
+        label: Then events "MemberRemoved" are emitted
+    - id: Membership-an-actor-s-memberships-span-tenants-step-3
+      title: Then events "MemberRemoved" are emitted
+---
+
+## Overview
+
+Scenario "An actor's memberships span tenants" of feature Membership. Tags: membership, read-model.
+
+<NodeGraph />

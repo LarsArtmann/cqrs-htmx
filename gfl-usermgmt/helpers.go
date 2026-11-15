@@ -124,6 +124,22 @@ func MemberWithRoles(sc *systemscenario.Scenario, roles string) []event.Event {
 	})}
 }
 
+// MemberOfAnotherTenant seeds MemberAdded for the SAME actor in a second,
+// fixed tenant — the cross-tenant membership stream (per actor+tenant key).
+func MemberOfAnotherTenant(sc *systemscenario.Scenario, roles string) []event.Event {
+	otherTenant := identitymodel.NewTenantID("01JXGFLOTHER00000000000D4")
+	ref := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
+		identitymodel.DeriveMembershipID(memberActor, otherTenant))
+
+	return []event.Event{sc.Event(identitymodel.EventMemberAdded, ref, identitymodel.MemberAddedPayload{
+		SchemaVersion: identitymodel.CurrentSchemaVersion,
+		ActorKind:     memberActor.Kind().String(),
+		ActorID:       memberActor.String(),
+		TenantID:      otherTenant.Get(),
+		Roles:         parseRoles(roles),
+	})}
+}
+
 // RegisteredBot seeds BotRegistered owned by the fixed bot owner.
 func RegisteredBot(sc *systemscenario.Scenario) []event.Event {
 	return []event.Event{sc.Event(identitymodel.EventBotRegistered, botRef(), identitymodel.BotRegisteredPayload{

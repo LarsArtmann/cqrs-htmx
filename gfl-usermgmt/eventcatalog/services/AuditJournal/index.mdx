@@ -5,7 +5,8 @@ version: 0.0.1
 summary: |-
     The AuditLog subscribes to the full user lifecycle plus the auth
     audit journal (allAuditedEventTypes). Tenant, membership and bot
-    events are NOT audited.
+    events are NOT audited — the scenarios below pin that asymmetry
+    executably against the audit_log read model.
 receives:
     - id: UserRegistered
       version: 0.0.1
@@ -47,7 +48,8 @@ receives:
 
 The AuditLog subscribes to the full user lifecycle plus the auth
 audit journal (allAuditedEventTypes). Tenant, membership and bot
-events are NOT audited.
+events are NOT audited — the scenarios below pin that asymmetry
+executably against the audit_log read model.
 
 ## Relationships
 

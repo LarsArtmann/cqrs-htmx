@@ -6,16 +6,17 @@ projections, untouched — described as one GFL document
 ([usermgmt.gfl](usermgmt.gfl)) and compiled into an executable test suite.
 Compare the artifacts here against the hand-written originals a directory over.
 
-**Headline: 25 prose scenarios → 25 generated tests (11 happy paths + 12
-rejection paths + 2 read-model extras), green under `-race` in ~1s, against
-the production deciders wired by `systemadapter.DomainConfig()` — full
-parity with the 23 hand-written scenario tests.**
+**Headline: 32 prose scenarios → 32 generated tests (23/23 parity with the
+hand-written suite — 11 happy + 12 rejection — plus 9 read-model and
+audit-journal assertions the hand-written suite never had), green under
+`-race` in ~1s, against the production deciders wired by
+`systemadapter.DomainConfig()`.**
 
 ## The comparison
 
 | usermgmt hand-rolls | Where | GFL equivalent here | Command |
 | --- | --- | --- | --- |
-| 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go` | 25 scenarios in prose + 31 bindings, compiled to `usermgmt_test.go` | `gfl generate tests` (below) |
+| 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go` | 32 scenarios in prose + 40 bindings, compiled to `usermgmt_test.go` | `gfl generate tests` (below) |
 | `TestEventCatalog_InventoryMatchesEventConstants` (code-vs-code drift police) | `es_event_catalog_test.go` | spec-vs-universe drift gate with nearest-match suggestions + [events_sync_test.go](events_sync_test.go) (universe-vs-code) | `gfl validate --events-file` |
 | `ArchitectureCatalog()` (hand-built topology, one flat service) | `es_architecture_catalog.go` | [usermgmt.dot](usermgmt.dot) / [usermgmt.png](usermgmt.png) — the feature graph with typed edges | `gfl parse` |
 | `DefaultEventCatalog()` served at `GET /events/catalog` | `es_event_catalog.go` | [eventcatalog/](eventcatalog/) — 24 MDX pages (services, events, flows) | `gfl export eventcatalog` |
@@ -75,20 +76,22 @@ not-found across user, tenant, membership, bot) have GFL counterparts.
 
 | Hand-written (usermgmt) | LOC | GFL rebuild (here) | LOC |
 | --- | ---: | --- | ---: |
-| `es_scenario*_test.go` (23 tests) | 602 | `usermgmt.gfl` (25 scenarios, 7 features) | 232 |
-| | | `gfl.bindings.json` (31 patterns) | 133 |
-| | | `helpers.go` (the only hand-written Go) | 242 |
-| | | **authored total** | **607** |
-| | | `usermgmt_test.go` (generated, DO NOT EDIT) | 171 |
+| `es_scenario*_test.go` (23 tests) | 602 | `usermgmt.gfl` (32 scenarios, 7 features) | 283 |
+| | | `gfl.bindings.json` (40 patterns) | 177 |
+| | | `helpers.go` (the only hand-written Go) | 351 |
+| | | **authored total** | **811** |
+| | | `usermgmt_test.go` (generated, DO NOT EDIT) | 222 |
 
-The authored total is a wash on raw lines — the win is what the lines
-ARE: 232 lines are prose a product owner can read and a graph/DOT/catalog
-are generated from, the bindings are 31 reusable patterns (not per-test
-boilerplate), and every regeneration picks up parser/generator fixes for
-free. The hand-written side additionally carries per-test event marshaling
-and adapter closures that the generated side never needs. See
-[VALUE-MAP.md](VALUE-MAP.md) for where else in cqrs-htmx this trade pays
-off — and where it deliberately does not.
+The authored total is ~35% MORE raw lines — and buys 9 extra scenarios the
+hand-written suite never had (audit-journal entries, the tenant-events-out
+asymmetry, membership/bot-token/email-lookup read models) on top of 23/23
+parity. The win is what the lines ARE: 283 lines are prose a product owner
+can read and a graph/DOT/catalog are generated from, the bindings are 40
+reusable patterns (not per-test boilerplate), and every regeneration picks
+up parser/generator fixes for free. The hand-written side additionally
+carries per-test event marshaling and adapter closures that the generated
+side never needs. See [VALUE-MAP.md](VALUE-MAP.md) for where else in
+cqrs-htmx this trade pays off — and where it deliberately does not.
 
 ## Honest coverage gaps (GFL today)
 
@@ -123,14 +126,14 @@ off — and where it deliberately does not.
 
 | File | Role |
 | --- | --- |
-| `usermgmt.gfl` | The spec: 7 features, 25 scenarios, typed relationships |
-| `gfl.bindings.json` | Step-to-Go bindings (31 patterns) |
+| `usermgmt.gfl` | The spec: 7 features, 32 scenarios, typed relationships |
+| `gfl.bindings.json` | Step-to-Go bindings (40 patterns) |
 | `helpers.go` | The only hand-written Go: fixed streams + one helper per binding |
 | `usermgmt_test.go` | Generated (DO NOT EDIT) — the executable suite |
 | `events_sync_test.go` | Pins `usermgmt-events.json` to identity-model's 27 constants |
 | `usermgmt-events.json` | The event universe for the drift gate |
 | `usermgmt.dot` / `usermgmt.png` | Feature graph (v2 DOT generator + graphviz) |
-| `eventcatalog/` | EventCatalog MDX export (49 resources: 24 services/events + 25 scenario flows via `--bindings`) |
+| `eventcatalog/` | EventCatalog MDX export (56 resources: 24 services/events + 32 scenario flows via `--bindings`) |
 
 ## Reproduce
 

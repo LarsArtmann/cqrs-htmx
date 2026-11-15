@@ -1,0 +1,25 @@
+---
+id: UserProfile-the-user-is-findable-by-the-new-email-after-a-change
+name: The user is findable by the new email after a change
+version: 0.0.1
+summary: 'Scenario "The user is findable by the new email after a change" of feature UserProfile. Tags: user, read-model.'
+steps:
+    - id: UserProfile-the-user-is-findable-by-the-new-email-after-a-change-step-0
+      title: Given a registered user
+      next_step:
+        id: UserProfile-the-user-is-findable-by-the-new-email-after-a-change-step-1
+        label: When the email is changed to "moved@test.com"
+    - id: UserProfile-the-user-is-findable-by-the-new-email-after-a-change-step-1
+      title: When the email is changed to "moved@test.com"
+      next_step:
+        id: UserProfile-the-user-is-findable-by-the-new-email-after-a-change-step-2
+        label: Then events "EmailChanged" are emitted
+    - id: UserProfile-the-user-is-findable-by-the-new-email-after-a-change-step-2
+      title: Then events "EmailChanged" are emitted
+---
+
+## Overview
+
+Scenario "The user is findable by the new email after a change" of feature UserProfile. Tags: user, read-model.
+
+<NodeGraph />

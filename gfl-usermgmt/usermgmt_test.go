@@ -47,6 +47,14 @@ func TestGFLUserProfile(t *testing.T) {
 			Command(ChangeDisplayName("Grace")).
 			Then("DisplayNameChanged", "DisplayNameChanged")
 	})
+	t.Run("The user is findable by the new email after a change [user,read-model]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.Given(RegisteredUser(sc)...).
+			When(ChangeEmail("moved@test.com")).
+			Then("EmailChanged").
+			ThenQuery(func() (any, error) { return UserEmailExists(t.Context(), sc, "moved@test.com") }, true).
+			ThenQuery(func() (any, error) { return UserEmailExists(t.Context(), sc, "user@test.com") }, false)
+	})
 }
 
 func TestGFLTenantLifecycle(t *testing.T) {
@@ -133,6 +141,20 @@ func TestGFLMembership(t *testing.T) {
 		sc.When(RemoveMember()).
 			ThenError(errorfamily.NewRejection("usermgmt.membership_remove.not_found", ""))
 	})
+	t.Run("Adding a member projects the membership view [membership,read-model]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(AddMember("admin")).
+			Then("MemberAdded").
+			ThenQuery(func() (any, error) { return MembershipRolesForActor(t.Context(), sc) }, "admin")
+	})
+	t.Run("An actor's memberships span tenants [membership,read-model]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.Given(MemberWithRoles(sc, "admin")...).
+			Events(MemberOfAnotherTenant(sc, "writer")...).
+			When(RemoveMember()).
+			Then("MemberRemoved").
+			ThenQuery(func() (any, error) { return MembershipCountForActor(t.Context(), sc) }, 1)
+	})
 }
 
 func TestGFLBotLifecycle(t *testing.T) {
@@ -167,5 +189,34 @@ func TestGFLBotLifecycle(t *testing.T) {
 		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.When(DeleteBot("retired")).
 			ThenError(errorfamily.NewRejection("usermgmt.bot_delete.not_found", ""))
+	})
+	t.Run("A bot resolves by its token hash [bot,read-model]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(RegisterBot("deploy-bot")).
+			Then("BotRegistered").
+			ThenQuery(func() (any, error) { return BotNameByTokenHash(t.Context(), sc) }, "deploy-bot")
+	})
+}
+
+func TestGFLAuditJournal(t *testing.T) {
+	t.Run("Registering a user appends to the audit journal [audit,read-model]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(RegisterUser()).
+			Then("UserRegistered").
+			ThenQuery(func() (any, error) { return AuditEventTypesForUser(t.Context(), sc) }, "UserRegistered").
+			ThenQuery(func() (any, error) { return AuditEntryCount(t.Context(), sc) }, 1)
+	})
+	t.Run("Display-name changes append further audit entries [audit,read-model]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.Given(RegisteredUser(sc)...).
+			When(ChangeDisplayName("Renamed")).
+			Then("DisplayNameChanged").
+			ThenQuery(func() (any, error) { return AuditEntryCountForUser(t.Context(), sc) }, 2)
+	})
+	t.Run("Tenant events stay out of the audit journal [audit,read-model]", func(t *testing.T) {
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+		sc.When(CreateTenant("acme")).
+			Then("TenantCreated").
+			ThenQuery(func() (any, error) { return AuditEntryCount(t.Context(), sc) }, 0)
 	})
 }

@@ -57,6 +57,14 @@ Scenario: Display names change in sequence
     | Grace |
   Then events "DisplayNameChanged", "DisplayNameChanged" are emitted
 
+Scenario: The user is findable by the new email after a change
+  @user, @read-model
+  Given a registered user
+  When the email is changed to "moved@test.com"
+  Then events "EmailChanged" are emitted
+    And the email "moved@test.com" finds the user
+    And the email "user@test.com" finds no user
+
 Feature: TenantLifecycle
   @owner: "identity"
   @source: "usermgmt/es_tenant_decide.go"
@@ -161,6 +169,20 @@ Scenario: Removing a missing member is rejected
   When the member is removed
   Then the command is rejected because "usermgmt.membership_remove.not_found"
 
+Scenario: Adding a member projects the membership view
+  @membership, @read-model
+  When a member with roles "admin" is added
+  Then events "MemberAdded" are emitted
+    And the actor membership shows roles "admin"
+
+Scenario: An actor's memberships span tenants
+  @membership, @read-model
+  Given a member with roles "admin"
+  And a member of another tenant with roles "writer"
+  When the member is removed
+  Then events "MemberRemoved" are emitted
+    And the actor has 1 membership
+
 Feature: BotLifecycle
   @owner: "identity"
   @source: "usermgmt/es_bot_decide.go"
@@ -204,6 +226,12 @@ Scenario: Deleting a missing bot is rejected
   When the bot is deleted for "retired"
   Then the command is rejected because "usermgmt.bot_delete.not_found"
 
+Scenario: A bot resolves by its token hash
+  @bot, @read-model
+  When a bot named "deploy-bot" is registered
+  Then events "BotRegistered" are emitted
+    And the token hash resolves to the bot "deploy-bot"
+
 Feature: AuthAudit
   @owner: "identity"
   @source: "usermgmt/auth_audit.go"
@@ -224,9 +252,32 @@ Feature: AuditJournal
 Description:
   The AuditLog subscribes to the full user lifecycle plus the auth
   audit journal (allAuditedEventTypes). Tenant, membership and bot
-  events are NOT audited.
+  events are NOT audited — the scenarios below pin that asymmetry
+  executably against the audit_log read model.
 
 Relationships:
   ListensFrom: UserRegistration with events="UserRegistered, UserDeleted"
   ListensFrom: UserProfile with events="EmailChanged, DisplayNameChanged, EmailVerified, TOTPEnabled, TOTPDisabled, CredentialAdded, CredentialRemoved, CredentialUsed, ExternalAccountLinked, ExternalAccountUnlinked"
   ListensFrom: AuthAudit with events="LoginSucceeded, LoginFailed, RegistrationClosed, SessionStarted, SessionEnded"
+
+Scenario: Registering a user appends to the audit journal
+  @audit, @read-model
+  When a user registers
+  Then events "UserRegistered" are emitted
+    And the audit journal for the user records "UserRegistered"
+    And the audit journal has 1 entry
+
+Scenario: Display-name changes append further audit entries
+  @audit, @read-model
+  Given a registered user
+  When the display name changes to
+    | name    |
+    | Renamed |
+  Then events "DisplayNameChanged" are emitted
+    And the audit journal for the user has 2 entries
+
+Scenario: Tenant events stay out of the audit journal
+  @audit, @read-model
+  When a tenant named "acme" is created
+  Then events "TenantCreated" are emitted
+    And the audit journal has 0 entries

@@ -1,0 +1,25 @@
+---
+id: AuditJournal-display-name-changes-append-further-audit-entries
+name: Display-name changes append further audit entries
+version: 0.0.1
+summary: 'Scenario "Display-name changes append further audit entries" of feature AuditJournal. Tags: audit, read-model.'
+steps:
+    - id: AuditJournal-display-name-changes-append-further-audit-entries-step-0
+      title: Given a registered user
+      next_step:
+        id: AuditJournal-display-name-changes-append-further-audit-entries-step-1
+        label: When the display name changes to
+    - id: AuditJournal-display-name-changes-append-further-audit-entries-step-1
+      title: When the display name changes to
+      next_step:
+        id: AuditJournal-display-name-changes-append-further-audit-entries-step-2
+        label: Then events "DisplayNameChanged" are emitted
+    - id: AuditJournal-display-name-changes-append-further-audit-entries-step-2
+      title: Then events "DisplayNameChanged" are emitted
+---
+
+## Overview
+
+Scenario "Display-name changes append further audit entries" of feature AuditJournal. Tags: audit, read-model.
+
+<NodeGraph />
