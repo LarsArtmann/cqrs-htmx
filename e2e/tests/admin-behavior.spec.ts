@@ -148,7 +148,9 @@ test("confirm modal: open, fill, Esc/Cancel/backdrop close, Confirm deletes", as
   await page.waitForTimeout(900);
   expect(posts.some((u) => u.includes("/delete"))).toBe(true);
 
-  await page.goto(`${ADMIN}/admin/users?q=${encodeURIComponent(victimEmail)}`, { waitUntil: "load" });
+  await page.goto(`${ADMIN}/admin/users?q=${encodeURIComponent(victimEmail)}`, {
+    waitUntil: "load",
+  });
   await page.waitForTimeout(400);
   await expect(page.locator("#users-table tbody tr")).toHaveCount(0);
 });
@@ -220,4 +222,69 @@ test("theme toggle: flips .dark on <html>, syncs aria, persists across reload", 
   await page.waitForTimeout(300);
   const persisted = await page.evaluate(() => document.documentElement.classList.contains("dark"));
   expect(persisted).toBe(after);
+});
+
+test("QUERY ladder: Enter upgrades the search to the native QUERY method", async ({ page }) => {
+  await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
+  await page.waitForTimeout(400);
+
+  // Enter submits the form; the cqrs-query extension upgrades the POST
+  // trigger to the native RFC 10008 QUERY verb (the method assertion is the
+  // point: adminui ships the ladder, not just a GET search). The response
+  // fragment must scope to #users-table and carry the filtered rows.
+  const input = page.locator('input[name="q"]');
+  await input.fill("team1");
+  const [queryResponse] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes("/admin/users/search")),
+    input.press("Enter"),
+  ]);
+  expect(queryResponse.request().method(), "Enter must ride native QUERY").toBe("QUERY");
+  expect(queryResponse.status()).toBe(200);
+  const table = await page.locator("#users-table").innerText();
+  expect(table).toContain("team10@acme.dev");
+  expect(table).not.toContain("admin@demo.dev");
+});
+
+test("QUERY ladder: live typing fires the POST twin and swaps the fragment", async ({ page }) => {
+  await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
+  await page.waitForTimeout(400);
+
+  // Typing rides the input's debounced wire (POST /users/search — the
+  // fallback twin, byte-identical to the QUERY rung server-side).
+  const input = page.locator('input[name="q"]');
+  const [twinResponse] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes("/admin/users/search")),
+    (async () => {
+      await input.click();
+      await input.pressSequentially("team1", { delay: 60 });
+      await page.waitForTimeout(600); // the 350ms debounce + request
+    })(),
+  ]);
+  expect(twinResponse.request().method(), "typing must ride the POST twin").toBe("POST");
+  expect(twinResponse.status()).toBe(200);
+  const table = await page.locator("#users-table").innerText();
+  expect(table).toContain("team10@acme.dev");
+});
+
+test("QUERY ladder: native QUERY fetch with CSRF token answers the fragment", async ({ page }) => {
+  await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
+  await page.waitForTimeout(400);
+  const csrfToken = await page.evaluate(() =>
+    document.querySelector('meta[name="csrf-token"]')?.getAttribute("content"),
+  );
+  const result = await page.evaluate(async (token) => {
+    const r = await fetch("/admin/users/search", {
+      method: "QUERY",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "X-CSRF-Token": token ?? "",
+      },
+      body: "q=team1",
+    });
+    return { status: r.status, body: await r.text() };
+  }, csrfToken);
+  expect(result.status).toBe(200);
+  expect(result.body).toContain("<tbody");
+  expect(result.body).toContain("team10@acme.dev");
+  expect(result.body).not.toContain('id="users-table"');
 });
