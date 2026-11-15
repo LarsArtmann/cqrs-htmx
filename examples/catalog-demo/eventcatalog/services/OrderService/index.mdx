@@ -1,0 +1,22 @@
+---
+id: OrderService
+name: OrderService
+version: 0.0.1
+summary: |-
+    Places and cancels customer orders; settlement is derived from
+    the placed order, never dispatched by hand.
+sends:
+    - id: order.created
+      version: 0.0.1
+---
+
+## Overview
+
+Places and cancels customer orders; settlement is derived from
+the placed order, never dispatched by hand.
+
+## Relationships
+
+- EmitsTo **PaymentProcessing** with events `order.created`
+
+<NodeGraph />

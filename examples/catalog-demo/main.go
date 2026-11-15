@@ -145,8 +145,9 @@ func main() {
 	addr := flag.String("addr", ":8080", "listen address")
 	eventCatalogDir := flag.String(
 		"eventcatalog",
-		"./eventcatalog",
-		"directory for generated EventCatalog MDX files (empty to skip)",
+		"./eventcatalog-runtime",
+		"directory for the runtime EventCatalog MDX export (empty to skip); "+
+			"the committed ./eventcatalog tree is owned by gfl export — point elsewhere",
 	)
 	exportOnly := flag.Bool(
 		"export-only",

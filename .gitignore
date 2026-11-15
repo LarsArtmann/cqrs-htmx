@@ -52,7 +52,10 @@ node_modules/
 examples/basic/basic
 examples/datastar-demo/datastar-demo
 examples/catalog-demo/catalog-demo
-examples/catalog-demo/eventcatalog/
+# catalog-demo: the runtime EventCatalog export (catalog/v4 library tree);
+# the COMMITTED examples/catalog-demo/eventcatalog/ is the GFL-owned export
+# (order-saga.gfl via gfl export eventcatalog) and must stay tracked.
+examples/catalog-demo/eventcatalog-runtime/
 examples/admin-demo/admin-demo
 examples/dashboard-demo/dashboard-demo
 examples/async-startup-demo/async-startup-demo

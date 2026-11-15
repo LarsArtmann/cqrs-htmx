@@ -1,0 +1,25 @@
+---
+id: Fulfillment
+name: Fulfillment
+version: 0.0.1
+summary: |-
+    Ships settled orders. Docs-only in this fixture: the feature graph
+    and the EventCatalog flows describe the dependency, no executable
+    scenarios yet.
+receives:
+    - id: payment.settled
+      version: 0.0.1
+---
+
+## Overview
+
+Ships settled orders. Docs-only in this fixture: the feature graph
+and the EventCatalog flows describe the dependency, no executable
+scenarios yet.
+
+## Relationships
+
+- ListensFrom **PaymentProcessing** with events `payment.settled`
+- ProvidesTo **OrderService**
+
+<NodeGraph />

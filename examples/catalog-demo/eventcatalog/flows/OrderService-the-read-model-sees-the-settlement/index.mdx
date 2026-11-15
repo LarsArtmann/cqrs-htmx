@@ -1,0 +1,20 @@
+---
+id: OrderService-the-read-model-sees-the-settlement
+name: The read model sees the settlement
+version: 0.0.1
+summary: 'Scenario "The read model sees the settlement" of feature OrderService. Tags: read-model.'
+steps:
+    - id: OrderService-the-read-model-sees-the-settlement-step-0
+      title: When an order is placed
+      next_step:
+        id: OrderService-the-read-model-sees-the-settlement-step-1
+        label: Then commands "order.create", "payment.settle" are dispatched
+    - id: OrderService-the-read-model-sees-the-settlement-step-1
+      title: Then commands "order.create", "payment.settle" are dispatched
+---
+
+## Overview
+
+Scenario "The read model sees the settlement" of feature OrderService. Tags: read-model.
+
+<NodeGraph />

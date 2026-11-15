@@ -1,6 +1,7 @@
 package ordersaga_test
 
 import (
+	"encoding/json"
 	"os"
 	"slices"
 	"testing"
@@ -8,8 +9,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 
 	"github.com/larsartmann/cqrs-htmx/examples/catalog-demo/ordersaga"
-	"gfl-lang/pkg/parser"
 )
+
+// eventUniverse mirrors the `--events-file` JSON shape the gfl CLI's drift
+// gate consumes (system + declared event names). Parsed here with the
+// stdlib so this public repo never imports the private GFL module — the
+// bridge is one-way by design.
+type eventUniverse struct {
+	System string   `json:"system"`
+	Events []string `json:"events"`
+}
 
 // TestEventsFixtureInSync pins order-saga-events.json to the real
 // DomainConfig.Events of the ordersaga domain: the fixture must never
@@ -23,8 +32,8 @@ func TestEventsFixtureInSync(t *testing.T) {
 		t.Fatalf("read fixture: %v", err)
 	}
 
-	universe, err := parser.ParseEventUniverse(data)
-	if err != nil {
+	var universe eventUniverse
+	if err := json.Unmarshal(data, &universe); err != nil {
 		t.Fatalf("fixture is not a valid event universe: %v", err)
 	}
 

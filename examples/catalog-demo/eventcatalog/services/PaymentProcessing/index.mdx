@@ -1,0 +1,28 @@
+---
+id: PaymentProcessing
+name: PaymentProcessing
+version: 0.0.1
+summary: |-
+    Settles placed orders. The payment.settle command is DERIVED from
+    order.created by the bus deriver (ADR-0154); only the read model
+    and the event journal ever see settlement happen.
+receives:
+    - id: order.created
+      version: 0.0.1
+sends:
+    - id: payment.settled
+      version: 0.0.1
+---
+
+## Overview
+
+Settles placed orders. The payment.settle command is DERIVED from
+order.created by the bus deriver (ADR-0154); only the read model
+and the event journal ever see settlement happen.
+
+## Relationships
+
+- ListensFrom **OrderService** with events `order.created`
+- EmitsTo **Fulfillment** with events `payment.settled`
+
+<NodeGraph />

@@ -1,0 +1,25 @@
+---
+id: OrderService-placing-an-order-drives-settlement
+name: Placing an order drives settlement
+version: 0.0.1
+summary: 'Scenario "Placing an order drives settlement" of feature OrderService. Tags: smoke, saga.'
+steps:
+    - id: OrderService-placing-an-order-drives-settlement-step-0
+      title: When an order is placed
+      next_step:
+        id: OrderService-placing-an-order-drives-settlement-step-1
+        label: Then events "order.created", "payment.settled" are emitted
+    - id: OrderService-placing-an-order-drives-settlement-step-1
+      title: Then events "order.created", "payment.settled" are emitted
+      next_step:
+        id: OrderService-placing-an-order-drives-settlement-step-2
+        label: And commands "order.create", "payment.settle" are dispatched
+    - id: OrderService-placing-an-order-drives-settlement-step-2
+      title: And commands "order.create", "payment.settle" are dispatched
+---
+
+## Overview
+
+Scenario "Placing an order drives settlement" of feature OrderService. Tags: smoke, saga.
+
+<NodeGraph />
