@@ -141,7 +141,7 @@ func (h *Handler) export(w http.ResponseWriter, r *http.Request, format usermgmt
 // empty result on a foreign header — the panel refuses that up front so the
 // admin hears why nothing landed.
 func csvHeaderHasEmail(header string) bool {
-	for _, field := range strings.Split(strings.ToLower(header), ",") {
+	for field := range strings.SplitSeq(strings.ToLower(header), ",") {
 		if strings.TrimSpace(field) == "email" {
 			return true
 		}

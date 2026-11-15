@@ -3,7 +3,7 @@ package adminui
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"

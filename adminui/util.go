@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"cmp"
 	"net/http"
 	"net/url"
 	"slices"
@@ -266,7 +267,7 @@ func sortTenants(tenants []*usermgmt.Tenant, sort string, counts map[identitymod
 	slices.SortFunc(tenants, func(a, b *usermgmt.Tenant) int {
 		if sort == "members" {
 			if ca, cb := counts[a.ID], counts[b.ID]; ca != cb {
-				return cb - ca
+				return cmp.Compare(cb, ca)
 			}
 		}
 		return strings.Compare(strings.ToLower(a.DisplayName), strings.ToLower(b.DisplayName))
