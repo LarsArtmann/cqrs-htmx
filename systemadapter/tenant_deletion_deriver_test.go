@@ -163,7 +163,10 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 	actor := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
 
 	tenantRef := id.NewStreamRef(identitymodel.AggregateTypeTenant, mustStreamID(t, tenant.Get()))
-	membershipRef := id.NewStreamRef(identitymodel.AggregateTypeMembership, identitymodel.DeriveMembershipID(actor, tenant))
+	membershipRef := id.NewStreamRef(
+		identitymodel.AggregateTypeMembership,
+		identitymodel.DeriveMembershipID(actor, tenant),
+	)
 
 	tenantCreated, err := event.New(identitymodel.EventTenantCreated, tenantRef.ID, tenantRef.Type, 1,
 		identitymodel.TenantCreatedPayload{

@@ -64,7 +64,7 @@ require (
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/templ-components v1.27.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.27.0 // indirect
 	github.com/larsartmann/templ-components/icons v1.27.0 // indirect
