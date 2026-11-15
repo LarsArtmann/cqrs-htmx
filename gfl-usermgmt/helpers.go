@@ -17,8 +17,6 @@ import (
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
@@ -201,23 +199,12 @@ func DeleteBot(reason string) *identitymodel.DeleteBotCmd {
 	return identitymodel.NewDeleteBotCmd(botStream, reason)
 }
 
-// --- Then helpers: read the systemadapter declarative read models ---
-
-func userView(ctx context.Context, sc *systemscenario.Scenario) (systemadapter.UserView, error) {
-	return metaengine.ExecuteTyped[system.LookupInput[string], systemadapter.UserView](
-		ctx, sc.System().MetaEngine(), system.LookupInput[string]{ID: userStream.String()},
-	)
-}
-
-func tenantView(ctx context.Context, sc *systemscenario.Scenario) (systemadapter.TenantView, error) {
-	return metaengine.ExecuteTyped[system.LookupInput[string], systemadapter.TenantView](
-		ctx, sc.System().MetaEngine(), system.LookupInput[string]{ID: tenantStream.String()},
-	)
-}
+// --- Then helpers: read the systemadapter declarative read models via the
+// exported finders (FindUserByID / FindTenantByID). ---
 
 // UserEmailVerified reads the user_by_id projection's EmailVerified flag.
 func UserEmailVerified(ctx context.Context, sc *systemscenario.Scenario) (bool, error) {
-	view, err := userView(ctx, sc)
+	view, err := systemadapter.FindUserByID(ctx, sc.System(), userStream.String())
 	if err != nil {
 		return false, err
 	}
@@ -226,7 +213,7 @@ func UserEmailVerified(ctx context.Context, sc *systemscenario.Scenario) (bool, 
 
 // TenantSuspended reads the tenant_by_id projection's Suspended flag.
 func TenantSuspended(ctx context.Context, sc *systemscenario.Scenario) (bool, error) {
-	view, err := tenantView(ctx, sc)
+	view, err := systemadapter.FindTenantByID(ctx, sc.System(), tenantStream.String())
 	if err != nil {
 		return false, err
 	}
@@ -235,7 +222,7 @@ func TenantSuspended(ctx context.Context, sc *systemscenario.Scenario) (bool, er
 
 // TenantName reads the tenant_by_id projection's Name.
 func TenantName(ctx context.Context, sc *systemscenario.Scenario) (string, error) {
-	view, err := tenantView(ctx, sc)
+	view, err := systemadapter.FindTenantByID(ctx, sc.System(), tenantStream.String())
 	if err != nil {
 		return "", err
 	}

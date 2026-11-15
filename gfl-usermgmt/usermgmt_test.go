@@ -12,7 +12,7 @@ import (
 
 func TestGFLUserRegistration(t *testing.T) {
 	t.Run("Registering a new user [smoke,user]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.When(RegisterUser()).
 			Then("UserRegistered")
 	})
@@ -20,21 +20,21 @@ func TestGFLUserRegistration(t *testing.T) {
 
 func TestGFLUserProfile(t *testing.T) {
 	t.Run("Verifying the email flips the read model [user,read-model]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(RegisteredUser(sc)...).
 			When(VerifyEmail()).
 			Then("EmailVerified").
 			ThenQuery(func() (any, error) { return UserEmailVerified(t.Context(), sc) }, true)
 	})
 	t.Run("Changing the email un-verifies the account [user,read-model]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(VerifiedUser(sc)...).
 			When(ChangeEmail("new@test.com")).
 			Then("EmailChanged").
 			ThenQuery(func() (any, error) { return UserEmailVerified(t.Context(), sc) }, false)
 	})
 	t.Run("Display names change in sequence [user,data-table]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(RegisteredUser(sc)...).
 			When(ChangeDisplayName("Ada")).
 			Command(ChangeDisplayName("Grace")).
@@ -44,27 +44,27 @@ func TestGFLUserProfile(t *testing.T) {
 
 func TestGFLTenantLifecycle(t *testing.T) {
 	t.Run("Creating a tenant [smoke,tenant,read-model]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.When(CreateTenant("acme")).
 			Then("TenantCreated").
 			ThenQuery(func() (any, error) { return TenantName(t.Context(), sc) }, "acme")
 	})
 	t.Run("Suspending a created tenant [tenant,read-model]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(CreatedTenant(sc, "acme")...).
 			When(SuspendTenant("policy violation")).
 			Then("TenantSuspended").
 			ThenQuery(func() (any, error) { return TenantSuspended(t.Context(), sc) }, true)
 	})
 	t.Run("Reactivating a suspended tenant [tenant,read-model]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(SuspendedTenant(sc, "acme")...).
 			When(ReactivateTenant()).
 			Then("TenantReactivated").
 			ThenQuery(func() (any, error) { return TenantSuspended(t.Context(), sc) }, false)
 	})
 	t.Run("Deleting a tenant [tenant]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(CreatedTenant(sc, "acme")...).
 			When(DeleteTenant("shutdown")).
 			Then("TenantDeleted")
@@ -73,18 +73,18 @@ func TestGFLTenantLifecycle(t *testing.T) {
 
 func TestGFLMembership(t *testing.T) {
 	t.Run("Adding a member to a tenant [smoke,membership]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.When(AddMember("admin")).
 			Then("MemberAdded")
 	})
 	t.Run("Updating member roles [membership]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(MemberWithRoles(sc, "admin")...).
 			When(UpdateMemberRoles("admin, writer")).
 			Then("MemberRolesChanged")
 	})
 	t.Run("Removing a member [membership]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(MemberWithRoles(sc, "admin")...).
 			When(RemoveMember()).
 			Then("MemberRemoved")
@@ -93,12 +93,12 @@ func TestGFLMembership(t *testing.T) {
 
 func TestGFLBotLifecycle(t *testing.T) {
 	t.Run("Registering a bot [smoke,bot]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.When(RegisterBot("deploy-bot")).
 			Then("BotRegistered")
 	})
 	t.Run("Retiring a bot [bot]", func(t *testing.T) {
-		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemscenario.Memory())
+		sc := systemscenario.System(t, t.Context(), systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
 		sc.Given(RegisteredBot(sc)...).
 			When(DeleteBot("retired")).
 			Then("BotDeleted")
