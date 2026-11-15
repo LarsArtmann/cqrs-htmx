@@ -1,13 +1,13 @@
 # go-cqrs-lite Utilization Report
 
-> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html))
+> Audit date: 2026-11-15 (version re-true) · Method: library-deep-dive (fleet series, [index](index.html))
 > Library: `github.com/larsartmann/go-cqrs-lite/**` (multi-module, per-module version trains) · Checkout: `/home/lars/projects/go-cqrs-lite`
 
 ## Verdict at a glance
 
 | Pin(s)                | Latest (verified 2026-11-14: tag checkout + live treadmill)                  | Prod import sites | Test import sites | Adoption                  | Score                                            |
 | --------------------- | --------------------------------------------------------------------------- | ----------------- | ----------------- | ------------------------- | ------------------------------------------------ |
-| 38 trains (see below) | **37/38 = latest; metaengine lag 1** (v4.23.0 → v4.24.0, treadmill worst-lag) | 170 files         | 233 files         | **Used — the foundation** | **73/100 audited → ~80 (11-05) → 90.5/100 standing** |
+| 38 trains (see below) | **38/38 = latest** (2026-11-15 re-true: the 11-14 metaengine lag was swept same-day — treadmill worst lag 0) | 171 files         | 235 files         | **Used — the foundation** | **73/100 audited → ~80 (11-05) → 90.5/100 standing** |
 
 ## What the library is
 
@@ -15,8 +15,8 @@ The composable CQRS + event-sourcing foundation under every cqrs-htmx module: de
 
 ## How cqrs-htmx uses it today
 
-- **170 production files** (233 test files) across every module import it — the deepest dependency in the fleet.
-- **38 pinned trains** (all verified against `go.mod` files; only stale pin in-tree is the poisoned fixture `scripts/testdata/verify-tag/real-setup-v4.8.1-poisoned/`): `event/v4 v4.15.2`, `command/v4 v4.14.1`, `query/v4 v4.10.1`, `system/v4 v4.18.0`, `metaengine/v4 v4.23.0`, `middleware/v4 v4.7.2`, `storage/v4 v4.11.1`, `projectionhost/v4 v4.7.1`, `kv/v4 v4.4.0`, `catalog/v4 v4.15.0`, `commandlifecycle/v4 v4.3.1`, `dispatcher/v4 v4.5.2`, `scheduling/v4 v4.7.0`, `snapshot/v4 v4.7.0`, `stack/v4 v4.5.1`, `systemcatalog/v4 v4.0.0`, `dedup/v4 v4.3.0`, `scenario/v4 v4.4.3`, `watermill/v4 v4.7.0`, `id/v4 v4.7.5`, `record/v4 v4.6.2`, `schema/v4 v4.7.1`, `metadata/v4 v4.7.3`, `listing/v4 v4.4.4`, `decider/v4 v4.8.0`, `otel/v4 v4.5.3`, `projection/v4 v4.4.2`, `storage/memory/v4 v4.6.2`, `metaengine/{projectionadapter v4.6.2, sqliteengine v4.8.0, bboltengine v4.3.3}`, `commandlifecycle/projections/v4 v4.2.3`, `event/v4/eventtest v0.4.0`, `claiming/v4 v4.0.2`, `encryption/v4 v4.4.6`, `prometheus/v4 v4.3.4`, `signing/v4 v4.4.2`, `systemscenario/v4 v4.3.0`.
+- **171 production files** (235 test files) across every module import it — the deepest dependency in the fleet.
+- **38 pinned trains** (all verified against `go.mod` files; only stale pin in-tree is the poisoned fixture `scripts/testdata/verify-tag/real-setup-v4.8.1-poisoned/`): `event/v4 v4.15.2`, `command/v4 v4.14.1`, `query/v4 v4.10.1`, `system/v4 v4.19.0`, `metaengine/v4 v4.26.0`, `middleware/v4 v4.7.2`, `storage/v4 v4.11.1`, `projectionhost/v4 v4.7.1`, `kv/v4 v4.4.0`, `catalog/v4 v4.15.0`, `commandlifecycle/v4 v4.3.1`, `dispatcher/v4 v4.5.2`, `scheduling/v4 v4.7.0`, `snapshot/v4 v4.7.0`, `stack/v4 v4.5.1`, `systemcatalog/v4 v4.0.0`, `dedup/v4 v4.3.0`, `scenario/v4 v4.4.3`, `watermill/v4 v4.7.0`, `id/v4 v4.7.5`, `record/v4 v4.6.2`, `schema/v4 v4.7.1`, `metadata/v4 v4.7.3`, `listing/v4 v4.4.4`, `decider/v4 v4.8.0`, `otel/v4 v4.5.3`, `projection/v4 v4.4.2`, `storage/memory/v4 v4.6.2`, `metaengine/{projectionadapter v4.6.2, sqliteengine v4.9.1, bboltengine v4.3.3}`, `commandlifecycle/projections/v4 v4.2.3`, `event/v4/eventtest v0.4.0`, `claiming/v4 v4.0.2`, `encryption/v4 v4.4.6`, `prometheus/v4 v4.3.4`, `signing/v4 v4.4.2`, `systemscenario/v4 v4.3.0`.
 - Canonical integration map: [docs/guides/leveraging-go-cqrs-lite.md](../../guides/leveraging-go-cqrs-lite.md); runnable proofs in `examples/middleware-demo` and `examples/observability-demo`.
 - **R2 (landed 2026-11-06)** — `systemcatalog` is now pinned and used: `systemadapter/architecture_catalog.go:24-40` derives the full command+event inventory from `DomainConfig()` via `systemcatalog.FromDomainConfig` (ephemeral in-memory boot), with drift gates at `systemadapter/architecture_catalog_test.go:46-57` (21-command + 27-event inventories) and `:64-92` (parity with the usermgmt published language). It does **not replace** `usermgmt.DefaultEventCatalog()` (`usermgmt/es_event_catalog.go:27`, still the served endpoint via `setup/machine.go:24`): one hand-curated table (`eventCatalogSpecs`) now feeds both wire formats, and `usermgmt/es_architecture_catalog.go:29` + its parity tests make silent drift impossible. The F032 `no-catalog-import` lint disables were removed.
 - **CBOR (ADR-0059)** — five payloads CBOR-encoded via the shared `cborEventCodec` instance (`usermgmt/es_decide_credentials.go:15`): `CredentialAdded` :50, `CredentialRemoved` :93, `CredentialUsed` :155, `TOTPEnabled` (`es_decide_security.go:32`), `BotRegistered` (`es_bot_decide.go:63`). `dashboardui/core/payload.go` renders JSON/CBOR/Raw exhaustively (gotcha 55: `event.New` defaults CBOR since event/v4 v4.15.2; corrupt bytes fall back to CBOR EDN).
@@ -46,8 +46,8 @@ Ten graded rows have since been resolved (each re-verified against source 2026-1
 
 ## Open findings (the residual tail)
 
-1. **metaengine pin v4.23.0 vs upstream v4.24.0 (lag 1)** — the only stale train; v4.24.0 also restructures the module into a nested `metaengine/v4/` dir (dual tags `metaengine/v4.24.0` + `metaengine/v4/v4.24.0`), so the bump needs a path check, not just a version edit.
-2. **cqrs-lint gate binary at v4.20.0 vs upstream v4.21.0** — delta is waiver adoption (orphaned waiver reasons reattach to moved findings; `cmd/cqrs-lint/waiver_adoption.go`, +92/-0 with tests). Rebuild via the documented git-archive + ldflags recipe.
+1. **metaengine family lag — RESOLVED 2026-11-15 (the B10.3 replay's gotcha-39 catch, swept same-day)** — `metaengine/v4` now v4.26.0, `metaengine/sqliteengine/v4` now v4.9.1, `system/v4` v4.19.0; the treadmill gate reads worst lag 0 across 20 repos · 80 prefixes. The v4.24.0+ nested `metaengine/v4/` dir restructure is consumed and hermetic-green.
+2. **cqrs-lint gate binary — RESOLVED 2026-11-15 (plan B4)** — rebuilt at v4.21.0 (commit 213aa5e, ldflags version-pinned); the waiver-adoption delta exercised live when the repo-wide E014 anchor moved; the gate runs GREEN 14/14 under BOTH the new build and system 4.20.1.
 3. **flightrecorder** — the last missed row; VERDICT RECORDED 2026-11-15 (plan B7 spike): the wiring recipe (`middleware.CommandFlightRecorder(rec, trigger)` over `ServiceConfig.CommandMiddleware`) is documented in `docs/guides/leveraging-go-cqrs-lite.md` §2.8 and COMPILE-VERIFIED against the pinned middleware train (throwaway module, v4.7.2 — `TriggerContext`/`WithMaxSnapshots`/`WithFile` all resolve). Deliberate N/A-with-reason for in-tree adoption: a flight recorder is PROCESS-GLOBAL (upstream doc: exactly one active recorder per process) — a library cannot safely default it on, and the incident-response story (who reads `flight.log`, when snapshots trigger) is a consumer-operational decision. The consumer seam is one `CommandMiddleware` entry; the dashboard snapshot panel idea stays on the ROADMAP, not wired. Score row stays missed ×0 honestly (documented ≠ used) — the evaluation is the receipt.
 4. **testutil / idtest / querytest** still unimported (eventtest only partially covers the helper family).
 5. **Deprecated `meta.CausationID` reads ×3** — `dashboardui/detail_items.go:166,187,269`; rename at the next family wave (the `record.Cause` ×3 reads stay v5-gated — upstream has no v4 API).
@@ -55,22 +55,22 @@ Ten graded rows have since been resolved (each re-verified against source 2026-1
 
 ## Version currency
 
-**37 of 38 trains at latest; worst lag 1** (`metaengine/v4` v4.23.0 → v4.24.0), re-verified 2026-11-14 via the tag checkout and the repo's treadmill gate (`nix run .#check-upstream-treadmill` → "20 repos · 79 prefixes · worst lag 1"). Spot-checked 9 head trains with `ls-remote`: all match their pins except metaengine. The treadmill gate tracks this continuously.
+**38 of 38 trains at latest; worst lag 0**, re-verified 2026-11-15 via `ls-remote` spot checks (metaengine v4.26.0, sqliteengine v4.9.1, system v4.19.0, catalog v4.15.0 all match their pins) and the repo's treadmill gate (`nix run .#check-upstream-treadmill` → "20 repos · 80 prefixes · worst lag 0"). The 11-14 "metaengine lag 1" state was swept same-day (gotcha 39: the train-lag tail regrows under you — the B10 verify-block replay caught the v4.26.0 re-lag within hours; the sweep recipe landed it). The treadmill gate tracks this continuously.
 
 ## Should cqrs-htmx use it (more)?
 
-**Yes — and it now is, near the max.** Verdict: very high adoption, 0 anti-patterns, every graded open row from the 2026-11-03 plan of record executed and receipted. The residual is the metaengine/cqrs-lint bumps, one missed row (flightrecorder — genuinely N/A-adjacent until an incident-response story exists), and the owner-gated usermgmt → system/metaengine migration (W2+).
+**Yes — and it now is, near the max.** Verdict: very high adoption, 0 anti-patterns, every graded open row from the 2026-11-03 plan of record executed and receipted, and the version tail is fully current (worst lag 0). The residual is one missed row (flightrecorder — deliberately N/A-adjacent until an incident-response story exists; B7 verdict recorded), the helper-family partials, and the owner-gated usermgmt → system/metaengine migration (W2+).
 
 ## How to verify
 
 ```bash
-rg -l '"github.com/larsartmann/go-cqrs-lite/' --glob '**/*.go' -g '!scripts/testdata/**' . | wc -l   # 403 files (170 prod / 233 test)
+rg -l '"github.com/larsartmann/go-cqrs-lite/' --glob '**/*.go' -g '!scripts/testdata/**' . | wc -l   # 406 files (171 prod / 235 test)
 for m in command event id query storage middleware projectionhost system metaengine; do
   git -C ~/projects/go-cqrs-lite ls-remote --tags origin | grep -oE "$m/v4(\.[0-9]+)+$" | sort -V | tail -1
-done   # all = pinned except metaengine v4.24.0 (pin v4.23.0)
+done   # all = pinned (worst lag 0; metaengine restructure consumed)
 rg -c '<tr><td>[0-9]+</td>' docs/research/2026-11-03_go-cqrs-lite-deep-dive.html   # 47 rows
 go test ./systemadapter/ -run 'TestArchitectureCatalog'   # R2 drift + parity gates
-nix run .#check-upstream-treadmill   # worst lag 1 (metaengine)
+nix run .#check-upstream-treadmill   # worst lag 0
 ```
 
 ## Prior reports
