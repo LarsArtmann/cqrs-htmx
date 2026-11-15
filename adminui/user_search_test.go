@@ -53,10 +53,22 @@ func TestUserSearch_LadderParity(t *testing.T) {
 	seedTwoUsers(t, svc)
 
 	rungs := map[string]*httptest.ResponseRecorder{
-		"native QUERY":                  doSearch(t, h, cqrshtmx.MethodQuery, "q=alpha", nil),
-		"POST twin":                     doSearch(t, h, http.MethodPost, "q=alpha", nil),
-		"override POST (rung 2)":        doSearch(t, h, http.MethodPost, "q=alpha", map[string]string{"X-HTTP-Method-Override": "QUERY"}),
-		"override legacy X-HTTP-Method": doSearch(t, h, http.MethodPost, "q=alpha", map[string]string{"X-HTTP-Method": "QUERY"}),
+		"native QUERY": doSearch(t, h, cqrshtmx.MethodQuery, "q=alpha", nil),
+		"POST twin":    doSearch(t, h, http.MethodPost, "q=alpha", nil),
+		"override POST (rung 2)": doSearch(
+			t,
+			h,
+			http.MethodPost,
+			"q=alpha",
+			map[string]string{"X-HTTP-Method-Override": "QUERY"},
+		),
+		"override legacy X-HTTP-Method": doSearch(
+			t,
+			h,
+			http.MethodPost,
+			"q=alpha",
+			map[string]string{"X-HTTP-Method": "QUERY"},
+		),
 	}
 
 	golden := rungs["native QUERY"]
@@ -92,7 +104,8 @@ func TestUserSearch_CriteriaRideTheBody(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("filter-only search status = %d; body=%s", rec.Code, rec.Body.String())
 	}
-	if body := rec.Body.String(); !strings.Contains(body, "alpha@example.com") || !strings.Contains(body, "beta@example.com") {
+	if body := rec.Body.String(); !strings.Contains(body, "alpha@example.com") ||
+		!strings.Contains(body, "beta@example.com") {
 		t.Error("unverified filter must keep both seeded users (no verification configured)")
 	}
 
