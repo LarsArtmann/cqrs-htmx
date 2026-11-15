@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	godatastar "github.com/larsartmann/go-datastar"
 	"github.com/larsartmann/httputil"
 )
 
@@ -57,13 +59,18 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(indexHTML))
 }
 
-const indexHTML = `<!DOCTYPE html>
+// indexHTMLRaw is the page template; the client script tag is spliced in at
+// init so the served URL pins the embedded client version — ScriptHandler
+// serves the bundle with a 24h max-age, and a versioned URL turns each
+// release into a distinct cache key instead of risking a stale client
+// against a newer server (ScriptTagVersioned's exact contract).
+const indexHTMLRaw = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CQRS + Datastar Todo Demo</title>
-    <script type="module" src="/datastar.js"></script>
+    ___DATASTAR_SCRIPT___
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -337,3 +344,7 @@ const indexHTML = `<!DOCTYPE html>
     </div>
 </body>
 </html>`
+
+// indexHTML is the served page: the template with the versioned client
+// script tag spliced in (never a hardcoded src — see indexHTMLRaw).
+var indexHTML = strings.Replace(indexHTMLRaw, "___DATASTAR_SCRIPT___", godatastar.ScriptTagVersioned("/datastar.js"), 1)

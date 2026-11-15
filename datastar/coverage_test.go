@@ -12,6 +12,7 @@ import (
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/go-datastar/broadcast"
+	"github.com/larsartmann/go-datastar/datastartest"
 	"github.com/larsartmann/go-sse"
 	"github.com/stretchr/testify/require"
 )
@@ -144,7 +145,9 @@ func TestErrorResponse(t *testing.T) {
 
 	err := ds.ErrorResponse(stream, "something broke", "ERR_500")
 	require.NoError(t, err)
-	requireBodyContains(t, w, "datastar-patch-signals", "something broke")
+	events := datastartest.MustReadEvents(t, strings.NewReader(w.Body.String()))
+	datastartest.RequireEventCount(t, events, 1)
+	datastartest.RequireSignals(t, events[0], `{"error":{"message":"something broke","code":"ERR_500"}}`)
 }
 
 func TestBroadcastWithReplayStore(t *testing.T) {

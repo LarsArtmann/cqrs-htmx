@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/go-datastar/datastartest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,14 +22,13 @@ func newTestResponse(t *testing.T) (*httptest.ResponseRecorder, *ds.Response) {
 	return w, ds.NewResponse(w, req)
 }
 
-// requireBodyContains asserts the recorder's SSE body contains each fragment.
-func requireBodyContains(t *testing.T, w *httptest.ResponseRecorder, want ...string) {
+// parseEvents decodes the recorder's SSE body into wire-format events via
+// datastartest, so assertions run against the parsed protocol structure
+// (event types, datalines) instead of raw string fragments.
+func parseEvents(t *testing.T, w *httptest.ResponseRecorder) []datastartest.Event {
 	t.Helper()
 
-	body := w.Body.String()
-	for _, fragment := range want {
-		require.Contains(t, body, fragment)
-	}
+	return datastartest.MustReadEvents(t, strings.NewReader(w.Body.String()))
 }
 
 func TestNewResponse(t *testing.T) {
@@ -45,7 +45,10 @@ func TestResponsePatchElements(t *testing.T) {
 
 	err := resp.PatchElements("<div>hello</div>", ds.WithSelectorID("feed"))
 	require.NoError(t, err)
-	requireBodyContains(t, w, "event: datastar-patch-elements", "elements <div>hello</div>")
+
+	events := parseEvents(t, w)
+	datastartest.RequireEventCount(t, events, 1)
+	datastartest.RequireElements(t, events[0], "#feed", "outer", "<div>hello</div>")
 }
 
 func TestResponsePatchSignals(t *testing.T) {
@@ -55,7 +58,10 @@ func TestResponsePatchSignals(t *testing.T) {
 
 	err := resp.PatchSignals([]byte(`{"count":1}`))
 	require.NoError(t, err)
-	requireBodyContains(t, w, "event: datastar-patch-signals", "count")
+
+	events := parseEvents(t, w)
+	datastartest.RequireEventCount(t, events, 1)
+	datastartest.RequireSignals(t, events[0], `{"count":1}`)
 }
 
 func TestResponseMarshalAndPatchSignals(t *testing.T) {
@@ -65,7 +71,10 @@ func TestResponseMarshalAndPatchSignals(t *testing.T) {
 
 	err := resp.MarshalAndPatchSignals(map[string]any{"total": 5, "label": "items"})
 	require.NoError(t, err)
-	requireBodyContains(t, w, "event: datastar-patch-signals", "total", "5")
+
+	events := parseEvents(t, w)
+	datastartest.RequireEventCount(t, events, 1)
+	datastartest.RequireSignals(t, events[0], `{"total":5,"label":"items"}`)
 }
 
 func TestResponseExecuteScript(t *testing.T) {
@@ -75,7 +84,10 @@ func TestResponseExecuteScript(t *testing.T) {
 
 	err := resp.ExecuteScript("alert('done')")
 	require.NoError(t, err)
-	requireBodyContains(t, w, "event: datastar-patch-elements", "alert('done')")
+
+	events := parseEvents(t, w)
+	datastartest.RequireEventCount(t, events, 1)
+	datastartest.RequireScript(t, events[0], "alert('done')")
 }
 
 func TestResponseRemoveElement(t *testing.T) {
@@ -85,7 +97,10 @@ func TestResponseRemoveElement(t *testing.T) {
 
 	err := resp.RemoveElement("#stale")
 	require.NoError(t, err)
-	requireBodyContains(t, w, "selector #stale", "mode remove")
+
+	events := parseEvents(t, w)
+	datastartest.RequireEventCount(t, events, 1)
+	datastartest.RequireElements(t, events[0], "#stale", "remove", "")
 }
 
 func TestResponseRemoveElementByID(t *testing.T) {
@@ -95,7 +110,10 @@ func TestResponseRemoveElementByID(t *testing.T) {
 
 	err := resp.RemoveElementByID("item-3")
 	require.NoError(t, err)
-	requireBodyContains(t, w, "selector #item-3", "mode remove")
+
+	events := parseEvents(t, w)
+	datastartest.RequireEventCount(t, events, 1)
+	datastartest.RequireElements(t, events[0], "#item-3", "remove", "")
 }
 
 func TestResponseRedirect(t *testing.T) {
@@ -105,7 +123,13 @@ func TestResponseRedirect(t *testing.T) {
 
 	err := resp.Redirect("/home")
 	require.NoError(t, err)
-	requireBodyContains(t, w, "window.location.href", "/home")
+
+	events := parseEvents(t, w)
+	datastartest.RequireEventCount(t, events, 1)
+	require.True(t, events[0].IsScript(), "Redirect should emit a script-bearing patch-elements event, got %q", events[0].Type)
+	script := events[0].ScriptContent()
+	require.Contains(t, script, "window.location.href")
+	require.Contains(t, script, "/home")
 }
 
 func TestResponseMultiplePatches(t *testing.T) {
@@ -117,15 +141,22 @@ func TestResponseMultiplePatches(t *testing.T) {
 	require.NoError(t, resp.PatchSignals([]byte(`{"step":1}`)))
 	require.NoError(t, resp.ExecuteScript("console.log('done')"))
 
-	body := w.Body.String()
+	events := parseEvents(t, w)
 
 	// PatchElements + ExecuteScript both produce patch-elements events;
 	// ExecuteScript wraps the script in a <script> element and sends it via
 	// patch-elements with selector=body, mode=append (matching the DataStar SDK).
-	patchElementsCount := strings.Count(body, "event: datastar-patch-elements")
-	patchSignalsCount := strings.Count(body, "event: datastar-patch-signals")
+	var elementEvents, signalEvents []datastartest.Event
+	for _, evt := range events {
+		switch {
+		case evt.IsElements():
+			elementEvents = append(elementEvents, evt)
+		case evt.IsSignals():
+			signalEvents = append(signalEvents, evt)
+		}
+	}
 
-	require.Equal(t, 2, patchElementsCount, "PatchElements + ExecuteScript should produce 2 patch-elements events")
-	require.Equal(t, 1, patchSignalsCount)
-	require.Contains(t, body, "console.log('done')")
+	require.Len(t, elementEvents, 2, "PatchElements + ExecuteScript should produce 2 patch-elements events")
+	require.Len(t, signalEvents, 1)
+	datastartest.RequireScript(t, elementEvents[1], "console.log('done')")
 }

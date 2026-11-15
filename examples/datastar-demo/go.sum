@@ -54,6 +54,8 @@ github.com/larsartmann/go-datastar v0.7.0 h1:PE//9bGCdGdVdCdL8AdtRYJYlkl3Yq+On6F
 github.com/larsartmann/go-datastar v0.7.0/go.mod h1:bbE8MTwWiO4ECbKyKBlFm4jwW6lV4rLD+rNlqI2tlWk=
 github.com/larsartmann/go-datastar/broadcast v0.7.0 h1:G2v/lWlGk5Hl+cUgTjYGZTWzrN9p2hKSDR44v6c1lPs=
 github.com/larsartmann/go-datastar/broadcast v0.7.0/go.mod h1:lLuYFpYIJd9Tn9CCr8QVvjhe2u/S6K495z5Jv1JrZ3M=
+github.com/larsartmann/go-datastar/datastartest v0.7.0 h1:mzGUhnZsK88TzVXp5VtOuIztAHdpRdYpraL+jZlXU+g=
+github.com/larsartmann/go-datastar/datastartest v0.7.0/go.mod h1:j7kMD6vwCZ59ZcFVLyEjr4xlZHWf+cBlTepGBZbFsHs=
 github.com/larsartmann/go-datastar/static v0.7.0 h1:1NnskL0rjiH/RLnwryfPHP3kNjmQbWzRFDCb+LCSub4=
 github.com/larsartmann/go-datastar/static v0.7.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=
@@ -64,6 +66,10 @@ github.com/larsartmann/go-etag/server v0.6.1 h1:JVguufBCoLSj83bHM1FqgfSEYc2x1E31
 github.com/larsartmann/go-etag/server v0.6.1/go.mod h1:o3VNBhO58/5rIm0qaU3jLsgRPyjTcaMBtfbHm0lphJk=
 github.com/larsartmann/go-sse v0.7.0 h1:dLT0eBk5hrxfajew84MmFoWHnEZ1eZfokqzbaA9qxH0=
 github.com/larsartmann/go-sse v0.7.0/go.mod h1:ZsW88AQMBRy+ZEhCWl8FGyEoXcb/YwvwosKYQEDLgBs=
+github.com/larsartmann/go-sse/sseparse v0.2.1 h1:GHn8SFFZkMJRhLkmusJwtchgSPJV0/b5Keq6z3xop9k=
+github.com/larsartmann/go-sse/sseparse v0.2.1/go.mod h1:1Nql3y1hf9v/IVd4/26AfRilz0/OiDyF7YA2mvwwtHw=
+github.com/larsartmann/go-sse/ssetest v0.5.0 h1:6QQ9rURjqScKfkV8BmpNdoMSW5pxsNVs+ioLOqERS4k=
+github.com/larsartmann/go-sse/ssetest v0.5.0/go.mod h1:mTBSF8nBmmw3Eb7DOKWqgmp0B1unUOFcjt6WGdUJT0o=
 github.com/larsartmann/httputil v1.9.0 h1:xsQER6jThYIYr5S3rR+d4aAQ3xNPvKvYvMC2/gsb9vU=
 github.com/larsartmann/httputil v1.9.0/go.mod h1:CeA+jp3SzVZk7ve3cFhvO03alZI74V45RP9a5jPkwCw=
 github.com/larsartmann/httputil/server_timing v1.0.3 h1:V1ypfid9TvWznr/qH3p+1uH8034goI3lSwyqIrl6KCY=
