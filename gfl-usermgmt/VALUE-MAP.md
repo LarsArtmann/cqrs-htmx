@@ -12,9 +12,9 @@ through 2026-11-15 (V01–V04 of that plan landed).
 | usermgmt deciders (4) | yes | **DONE** | this folder: 32/32 scenarios green (23/23 parity + 9 read-model/audit extras) | ✅ |
 | usermgmt error paths (12 ThenError tests) | yes | **DONE** | `error`/`errorFamily` bindings → `.ThenError(...)` | ✅ 2026-11-15 |
 | systemadapter read models | views | **DONE** | AuditEntriesFor (incl. tenant-events-out asymmetry pinned), cross-tenant memberships, FindBotByTokenHash, FindUserByEmail — all asserted in this folder (2026-11-15) | ✅ 2026-11-15 |
-| DeleteTenant cascade | yes (shaped) | **HIGH** | service_tenant.go loop-dispatches RemoveMemberCmd — deriver promotion is small | open |
+| DeleteTenant cascade | yes (shaped) | **DONE** | ADR-0154 deriver in systemadapter + cascade scenario (ThenCommands); stale-view race A/B-proven and pinned | ✅ 2026-11-15 |
 | DeleteUser cascade (memberships+bots+Casbin) | yes (shaped) | **HIGH/L** | anchors: service_delete_cascade_test.go | open |
-| root eventcatalog/ package | is a universe | **HIGH/S** | manual registry → GFL-generated JSON source of truth for `GET /events/catalog` | renderer landed (`export.EventsUniverse`); serving swap open |
+| root eventcatalog/ package | is a universe | **DONE** | `GET /events/catalog` serves the generated artifact byte-identically (T03) | ✅ 2026-11-15 |
 | catalog-demo (examples) | schema-only | **HIGH/M** | docs-only order service whose MDX tree GFL now exports incl. scenario flows → executable saga showcase | open |
 | AuthAudit flows | service-layer | **MED/M** | needs an AuthAudit command surface (register→LoginSucceeded+SessionStarted, ...) | open |
 | sync push/pull journal half | yes | **MED/M** | idempotent commandId, cursor ordering (sync_push.go) | open |

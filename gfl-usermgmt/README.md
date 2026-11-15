@@ -17,6 +17,7 @@ audit-journal assertions the hand-written suite never had), green under
 | usermgmt hand-rolls | Where | GFL equivalent here | Command |
 | --- | --- | --- | --- |
 | 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go` | 32 scenarios in prose + 40 bindings, compiled to `usermgmt_test.go` | `gfl generate tests` (below) |
+| `DeleteTenant` cascade: the service loop-dispatches `RemoveMember` per member | `service_tenant.go` (legacy loop, kept) | ADR-0154 bus deriver in `systemadapter` + the cascade scenario (emitted events, dispatched commands, read model emptied) | deriver + `gfl generate tests` |
 | `TestEventCatalog_InventoryMatchesEventConstants` (code-vs-code drift police) | `es_event_catalog_test.go` | spec-vs-universe drift gate with nearest-match suggestions + [events_sync_test.go](events_sync_test.go) (universe-vs-code) | `gfl validate --events-file` |
 | `ArchitectureCatalog()` (hand-built topology, one flat service) | `es_architecture_catalog.go` | [usermgmt.dot](usermgmt.dot) / [usermgmt.png](usermgmt.png) — the feature graph with typed edges | `gfl parse` |
 | `GET /events/catalog` served from runtime registration (`DefaultEventCatalog()`) | `es_event_catalog.go` + `es_event_catalog_artifact.go` | the endpoint now serves the committed generated artifact `usermgmt/event-catalog.json` (byte-identical, ETag-verified); the spec-side gate chains through `usermgmt.gfl` → [usermgmt-events.json](usermgmt-events.json) → identity-model constants → artifact | `gfl validate --events-file` + sync tests |
@@ -95,11 +96,17 @@ cqrs-htmx this trade pays off — and where it deliberately does not.
 
 ## Honest coverage gaps (GFL today)
 
-- **Service-level cascades**: `DeleteUser` → membership + Casbin cleanup and
-  `UpdateRoles` → session revocation live in the service layer, not the event
-  journal, so journal-asserting generated specs cannot pin them. The
-  saga/deriver shape (see GFL's `examples/saga.gfl`) is the eventual fix:
-  promote cascades to derived commands/events first.
+- **DeleteTenant cascade: CLOSED (2026-11-15, T04).** The cleanup loop is
+  now an ADR-0154 bus deriver in `systemadapter` (`TenantDeleted` → one
+  `RemoveMember` per member, projection catch-up awaited before the query —
+  the stale-view race is A/B-proven and pinned), and the scenario "Deleting
+  a tenant with a member removes the member" pins it end to end: emitted
+  events, the full dispatched-command list (`DeleteTenant`, `RemoveMember`),
+  and the emptied membership read model.
+- **Remaining service-level cascades**: `DeleteUser` → membership + Casbin
+  cleanup and `UpdateRoles` → session revocation live in the service layer,
+  not the event journal, so journal-asserting generated specs cannot pin
+  them — the same deriver-promotion shape closes them when they matter.
 - **AuthAudit**: LoginSucceeded/LoginFailed/Session* are emitted by the
   service layer around HTTP flows, not by a decider — modeled as a feature
   with relationships only, no executable scenarios.
