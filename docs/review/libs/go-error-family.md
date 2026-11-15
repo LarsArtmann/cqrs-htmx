@@ -44,7 +44,7 @@ v0.12.0 pinned = v0.12.0 latest (re-verified `git ls-remote --tags origin`, 2026
 
 ## Should cqrs-htmx use it (more)?
 
-Core adoption is maximal and both prior stretch items are done. One open tail: wire `ProblemDetailsAudienceErrorHandler`'s per-request resolver (operator detection) into a route so operators get raw 5xx diagnostics in-band — today only the fail-safe public form renders by default. `WrapOnce` and message templates remain optional niceties, not TODOs.
+Core adoption is maximal and both prior stretch items are done. The one open tail — wire `ProblemDetailsAudienceErrorHandler`'s per-request resolver into a route — is **RECORDED N/A-WITH-REASON 2026-11-15 (plan B6, decision D4 wire-or-record)**: this repo is a LIBRARY, not a consumer; none of its demos dispatch through a root `App` with `Config.ErrorHandler` (admin-demo mounts the adminui panel directly over `usermgmt.Service` and builds no `cqrshtmx.App`), so there is no problem-handler path to resolve audiences on. Forcing a command pipeline into a demo just to host a resolver would be the wiring-for-its-own-sake class. The capability itself ships tested (`httperr/audience_test.go` covers public-redaction vs operator-detail); the natural first wire target is the first demo that grows a real command-dispatch pipeline, and the resolver recipe is one session's work there. `WrapOnce` and message templates remain optional niceties, not TODOs.
 
 ## How to verify
 
