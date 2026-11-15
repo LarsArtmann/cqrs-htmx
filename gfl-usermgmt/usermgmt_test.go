@@ -91,7 +91,7 @@ func TestGFLTenantLifecycle(t *testing.T) {
 			When(DeleteTenant("shutdown")).
 			Await().
 			Then("TenantDeleted", "MemberRemoved").
-			ThenCommands("RemoveMember").
+			ThenCommands("DeleteTenant", "RemoveMember").
 			ThenQuery(func() (any, error) { return MembershipCountForActor(t.Context(), sc) }, 0)
 	})
 	t.Run("Creating a duplicate tenant is rejected [tenant,error]", func(t *testing.T) {

@@ -109,7 +109,7 @@ Scenario: Deleting a tenant with a member removes the member
     And a member of the tenant with roles "admin"
   When the tenant is deleted for "shutdown"
   Then events "TenantDeleted", "MemberRemoved" are emitted
-    And commands "RemoveMember" are dispatched
+    And commands "DeleteTenant", "RemoveMember" are dispatched
     And the actor has 0 memberships
 
 Scenario: Creating a duplicate tenant is rejected

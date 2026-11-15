@@ -1,13 +1,16 @@
 package systemadapter_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // TestTenantDeletionDeriver_RemovesEveryMember is the parity test for the
@@ -118,4 +121,93 @@ func mustStreamID(t *testing.T, raw string) id.StreamID {
 	}
 
 	return streamID
+}
+
+// TestTenantDeletionDeriver_ColdBootSeedsRace pins the systemscenario boot
+// pattern against the cascade: raw journal appends + bus publishes (Given
+// seeding) with NO projection-readiness wait, then an immediate delete —
+// the deriver must still see the seeded member because its catch-up wait
+// lets the projection host drain through the trigger before it queries.
+// Regression test for the race where the cascade derived nothing and
+// MemberRemoved never landed.
+func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, systemadapter.DomainConfig(), systemadapter.RecommendedMemoryDeployment())
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	if err := sys.Start(ctx); err != nil {
+		_ = sys.Close()
+
+		t.Fatalf("system.Start: %v", err)
+	}
+
+	t.Cleanup(func() { _ = sys.Close() })
+
+	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
+	actor := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
+
+	tenantRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeTenant), mustStreamID(t, tenant.Get()))
+	membershipRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
+		identitymodel.DeriveMembershipID(actor, tenant))
+
+	tenantCreated, err := event.New(identitymodel.EventTenantCreated, tenantRef.ID, tenantRef.Type, 1,
+		identitymodel.TenantCreatedPayload{
+			SchemaVersion: identitymodel.CurrentSchemaVersion,
+			Name:          "cold",
+			DisplayName:   "Cold",
+		})
+	if err != nil {
+		t.Fatalf("mint TenantCreated: %v", err)
+	}
+
+	memberAdded, err := event.New(identitymodel.EventMemberAdded, membershipRef.ID, membershipRef.Type, 1,
+		identitymodel.MemberAddedPayload{
+			SchemaVersion: identitymodel.CurrentSchemaVersion,
+			ActorKind:     actor.Kind().String(),
+			ActorID:       actor.String(),
+			TenantID:      tenant.Get(),
+			Roles:         []identitymodel.Role{identitymodel.RoleAdmin},
+		})
+	if err != nil {
+		t.Fatalf("mint MemberAdded: %v", err)
+	}
+
+	if err := sys.EventStore().AppendBatch(ctx, tenantRef, []event.Event{tenantCreated}); err != nil {
+		t.Fatalf("append TenantCreated: %v", err)
+	}
+
+	if err := sys.EventStore().AppendBatch(ctx, membershipRef, []event.Event{memberAdded}); err != nil {
+		t.Fatalf("append MemberAdded: %v", err)
+	}
+
+	if err := sys.Publisher().Publish(ctx, tenantCreated, memberAdded); err != nil {
+		t.Fatalf("publish seeds: %v", err)
+	}
+
+	if err := sys.CommandDispatcher().Dispatch(ctx,
+		identitymodel.NewDeleteTenantCmd(mustStreamID(t, tenant.Get()), "cold boot race")); err != nil {
+		t.Fatalf("dispatch DeleteTenant: %v", err)
+	}
+
+	deadline := time.Now().Add(5 * time.Second)
+
+	for {
+		members, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenant.Get())
+		if err != nil {
+			t.Fatalf("FindMembershipsByTenant: %v", err)
+		}
+
+		if len(members) == 0 {
+			return
+		}
+
+		if time.Now().After(deadline) {
+			t.Fatalf("cold-boot seeded member still present after 5s: %d", len(members))
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
 }
