@@ -15,8 +15,10 @@
 //	http://localhost:8080/health             — liveness probe
 //	http://localhost:8080/openapi.yaml       — same spec as YAML (add ?format=yaml)
 //
-// It also writes an EventCatalog MDX file tree to ./eventcatalog on startup,
-// demonstrating build-time doc generation.
+// It also writes an EventCatalog MDX file tree to ./eventcatalog-runtime on
+// startup, demonstrating build-time doc generation. The COMMITTED
+// ./eventcatalog tree is owned by GFL (`ordersaga/order-saga.gfl` via
+// `gfl export eventcatalog`) — never point this flag at it.
 //
 // In CI (the eventcatalog-hub federation) the server part is unwanted:
 // run with -export-only to write the EventCatalog tree and exit 0.
