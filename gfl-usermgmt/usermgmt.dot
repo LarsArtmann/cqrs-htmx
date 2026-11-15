@@ -1,0 +1,25 @@
+digraph FeatureGraph {
+  rankdir=LR;
+  node [shape=box, style=filled, fillcolor=lightblue];
+
+  "UserRegistration" [label="UserRegistration", tooltip="Registers users on the User aggregate (stream type User).\nA fresh stream with RegisterUser emits exactly one UserRegistered\nevent; a duplicate registration is rejected with a conflict\n(usermgmt.user_already_exists).\nowner=identity\nsource=usermgmt/es_decide.go"];
+  "UserProfile" [label="UserProfile", tooltip="Email, display name, verification, credentials, and TOTP on the\nUser aggregate. Changing the email un-verifies the account in the\nread model; verifying the email flips it back.\nowner=identity\nsource=usermgmt/es_decide_profile.go"];
+  "TenantLifecycle" [label="TenantLifecycle", tooltip="Tenant aggregate lifecycle: create, suspend, reactivate, delete.\nThe suspended flag is a read-model projection of TenantSuspended\nand TenantReactivated.\nowner=identity\nsource=usermgmt/es_tenant_decide.go"];
+  "Membership" [label="Membership", tooltip="Membership aggregates keyed by DeriveMembershipID(actor, tenant):\nadd, change roles, remove. The decider is local — adding a member\nto an empty stream emits MemberAdded without tenant pre-existence.\nowner=identity\nsource=usermgmt/es_membership_decide.go"];
+  "BotLifecycle" [label="BotLifecycle", tooltip="Bot aggregate lifecycle: register with owner, token hash and\nscopes; delete with a reason.\nowner=identity\nsource=usermgmt/es_bot_decide.go"];
+  "AuthAudit" [label="AuthAudit", tooltip="Auth audit journal (LoginSucceeded, LoginFailed,\nRegistrationClosed, SessionStarted, SessionEnded) on dedicated\nAuth-typed streams. Emitted by the service layer around login and\nsession flows — not by a decider, so no executable scenarios here.\nowner=identity\nsource=usermgmt/auth_audit.go"];
+  "AuditJournal" [label="AuditJournal", tooltip="The AuditLog subscribes to the full user lifecycle plus the auth\naudit journal (allAuditedEventTypes). Tenant, membership and bot\nevents are NOT audited.\nowner=identity\nsource=usermgmt/audit_log.go"];
+
+  "UserRegistration" -> "UserProfile" [label="ProvidesTo"];
+  "UserRegistration" -> "Membership" [label="ProvidesTo"];
+  "UserRegistration" -> "BotLifecycle" [label="ProvidesTo"];
+  "UserProfile" -> "UserRegistration" [label="DependsOn"];
+  "TenantLifecycle" -> "Membership" [label="ProvidesTo"];
+  "Membership" -> "UserRegistration" [label="DependsOn"];
+  "Membership" -> "TenantLifecycle" [label="DependsOn"];
+  "BotLifecycle" -> "UserRegistration" [label="DependsOn"];
+  "AuthAudit" -> "AuditJournal" [label="EmitsTo"];
+  "AuditJournal" -> "UserRegistration" [label="ListensFrom"];
+  "AuditJournal" -> "UserProfile" [label="ListensFrom"];
+  "AuditJournal" -> "AuthAudit" [label="ListensFrom"];
+}

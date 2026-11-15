@@ -188,6 +188,13 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Test gfl-usermgmt (GFL executable-spec case study)
+        run: cd gfl-usermgmt && go test ./... -race -count=1
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Build health submodule
         run: cd health && go build ./...
         env:

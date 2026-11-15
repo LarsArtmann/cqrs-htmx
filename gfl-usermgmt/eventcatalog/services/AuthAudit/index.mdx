@@ -1,0 +1,34 @@
+---
+id: AuthAudit
+name: AuthAudit
+version: 0.0.1
+summary: |-
+    Auth audit journal (LoginSucceeded, LoginFailed,
+    RegistrationClosed, SessionStarted, SessionEnded) on dedicated
+    Auth-typed streams. Emitted by the service layer around login and
+    session flows — not by a decider, so no executable scenarios here.
+sends:
+    - id: LoginSucceeded
+      version: 0.0.1
+    - id: LoginFailed
+      version: 0.0.1
+    - id: RegistrationClosed
+      version: 0.0.1
+    - id: SessionStarted
+      version: 0.0.1
+    - id: SessionEnded
+      version: 0.0.1
+---
+
+## Overview
+
+Auth audit journal (LoginSucceeded, LoginFailed,
+RegistrationClosed, SessionStarted, SessionEnded) on dedicated
+Auth-typed streams. Emitted by the service layer around login and
+session flows — not by a decider, so no executable scenarios here.
+
+## Relationships
+
+- EmitsTo **AuditJournal** with events `LoginSucceeded`, `LoginFailed`, `RegistrationClosed`, `SessionStarted`, `SessionEnded`
+
+<NodeGraph />

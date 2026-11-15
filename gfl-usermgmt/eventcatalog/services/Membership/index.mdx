@@ -1,0 +1,22 @@
+---
+id: Membership
+name: Membership
+version: 0.0.1
+summary: |-
+    Membership aggregates keyed by DeriveMembershipID(actor, tenant):
+    add, change roles, remove. The decider is local — adding a member
+    to an empty stream emits MemberAdded without tenant pre-existence.
+---
+
+## Overview
+
+Membership aggregates keyed by DeriveMembershipID(actor, tenant):
+add, change roles, remove. The decider is local — adding a member
+to an empty stream emits MemberAdded without tenant pre-existence.
+
+## Relationships
+
+- DependsOn **UserRegistration**
+- DependsOn **TenantLifecycle**
+
+<NodeGraph />

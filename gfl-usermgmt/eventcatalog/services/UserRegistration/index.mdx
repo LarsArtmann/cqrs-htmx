@@ -1,0 +1,25 @@
+---
+id: UserRegistration
+name: UserRegistration
+version: 0.0.1
+summary: |-
+    Registers users on the User aggregate (stream type User).
+    A fresh stream with RegisterUser emits exactly one UserRegistered
+    event; a duplicate registration is rejected with a conflict
+    (usermgmt.user_already_exists).
+---
+
+## Overview
+
+Registers users on the User aggregate (stream type User).
+A fresh stream with RegisterUser emits exactly one UserRegistered
+event; a duplicate registration is rejected with a conflict
+(usermgmt.user_already_exists).
+
+## Relationships
+
+- ProvidesTo **UserProfile**
+- ProvidesTo **Membership**
+- ProvidesTo **BotLifecycle**
+
+<NodeGraph />

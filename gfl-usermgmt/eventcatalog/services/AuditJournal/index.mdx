@@ -1,0 +1,58 @@
+---
+id: AuditJournal
+name: AuditJournal
+version: 0.0.1
+summary: |-
+    The AuditLog subscribes to the full user lifecycle plus the auth
+    audit journal (allAuditedEventTypes). Tenant, membership and bot
+    events are NOT audited.
+receives:
+    - id: UserRegistered
+      version: 0.0.1
+    - id: UserDeleted
+      version: 0.0.1
+    - id: EmailChanged
+      version: 0.0.1
+    - id: DisplayNameChanged
+      version: 0.0.1
+    - id: EmailVerified
+      version: 0.0.1
+    - id: TOTPEnabled
+      version: 0.0.1
+    - id: TOTPDisabled
+      version: 0.0.1
+    - id: CredentialAdded
+      version: 0.0.1
+    - id: CredentialRemoved
+      version: 0.0.1
+    - id: CredentialUsed
+      version: 0.0.1
+    - id: ExternalAccountLinked
+      version: 0.0.1
+    - id: ExternalAccountUnlinked
+      version: 0.0.1
+    - id: LoginSucceeded
+      version: 0.0.1
+    - id: LoginFailed
+      version: 0.0.1
+    - id: RegistrationClosed
+      version: 0.0.1
+    - id: SessionStarted
+      version: 0.0.1
+    - id: SessionEnded
+      version: 0.0.1
+---
+
+## Overview
+
+The AuditLog subscribes to the full user lifecycle plus the auth
+audit journal (allAuditedEventTypes). Tenant, membership and bot
+events are NOT audited.
+
+## Relationships
+
+- ListensFrom **UserRegistration** with events `UserRegistered`, `UserDeleted`
+- ListensFrom **UserProfile** with events `EmailChanged`, `DisplayNameChanged`, `EmailVerified`, `TOTPEnabled`, `TOTPDisabled`, `CredentialAdded`, `CredentialRemoved`, `CredentialUsed`, `ExternalAccountLinked`, `ExternalAccountUnlinked`
+- ListensFrom **AuthAudit** with events `LoginSucceeded`, `LoginFailed`, `RegistrationClosed`, `SessionStarted`, `SessionEnded`
+
+<NodeGraph />

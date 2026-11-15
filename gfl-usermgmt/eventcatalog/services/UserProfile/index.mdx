@@ -1,0 +1,21 @@
+---
+id: UserProfile
+name: UserProfile
+version: 0.0.1
+summary: |-
+    Email, display name, verification, credentials, and TOTP on the
+    User aggregate. Changing the email un-verifies the account in the
+    read model; verifying the email flips it back.
+---
+
+## Overview
+
+Email, display name, verification, credentials, and TOTP on the
+User aggregate. Changing the email un-verifies the account in the
+read model; verifying the email flips it back.
+
+## Relationships
+
+- DependsOn **UserRegistration**
+
+<NodeGraph />
