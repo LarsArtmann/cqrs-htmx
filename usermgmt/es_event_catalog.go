@@ -13,17 +13,20 @@ import (
 
 // DefaultEventCatalog builds a eventcatalog.Catalog populated with all 27
 // event types across the five aggregates (User, Membership, Tenant, Bot,
-// Auth). Both wire formats derive from ONE table (eventCatalogSpecs): the
-// served catalog's PayloadFields are reflected from the payload structs
-// (payloadFieldsFrom, Go-source vocabulary), and the architecture catalog
+// Auth). It is the GENERATOR for the served artifact: its rendered JSON is
+// committed as event-catalog.json, the serving path
+// ([EventSourcedSetup.EventCatalog] / [Service.EventCatalog]) loads that
+// artifact instead of running this registration, and
+// TestEventCatalogArtifactInSync fails when the two drift. Both wire
+// formats derive from ONE table (eventCatalogSpecs): the served catalog's
+// PayloadFields are reflected from the payload structs (payloadFieldsFrom,
+// Go-source vocabulary), and the architecture catalog
 // ([ArchitectureCatalog]) derives its JSON schemas through the shared
 // go-cqrs-lite catalog reflection. A renamed json tag or added field
 // therefore updates both automatically, and
 // TestEventCatalog_InventoryMatchesEventConstants fails when an event
 // constant and the table drift apart. Descriptions stay curated in the
-// table: they are prose, not derivable. Consumers can serve this catalog at
-// an HTTP endpoint (e.g. GET /events/catalog) so that projection builders
-// can discover the event schema without reading the source code.
+// table: they are prose, not derivable.
 func DefaultEventCatalog() *eventcatalog.Catalog {
 	catalog := eventcatalog.New()
 	for _, spec := range eventCatalogSpecs {

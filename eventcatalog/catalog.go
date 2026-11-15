@@ -42,6 +42,24 @@ func New() *Catalog {
 	return &Catalog{events: nil}
 }
 
+// NewFromJSON builds a Catalog from JSON in the shape [Catalog.JSON]
+// produces (an array of EventMetadata), preserving element order. This is
+// the loader for generated catalog artifacts: systems whose published event
+// language is generated rather than hand-registered commit the JSON and
+// serve it through the same [Handler] path, so the served bytes are exactly
+// the reviewed, diffable artifact.
+func NewFromJSON(data []byte) (*Catalog, error) {
+	var events []EventMetadata
+
+	if err := json.Unmarshal(data, &events); err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			"cqrshtmx.event_catalog.parse",
+			"parse event catalog JSON")
+	}
+
+	return &Catalog{events: events}, nil
+}
+
 // Register adds an event type to the catalog. Call during startup, before
 // creating an [Handler]. Duplicate type+aggregate pairs are
 // ignored (last registration wins).

@@ -13,10 +13,13 @@ import (
 
 // --- EventSourcedSetup methods ---
 
-// EventCatalog returns a catalog populated with all 21 usermgmt event types.
-// Use this with eventcatalog.Handler to serve an event schema endpoint.
+// EventCatalog returns the catalog served at the event schema endpoint,
+// loaded from the committed generated artifact (event-catalog.json) rather
+// than built by runtime registration — the served bytes are exactly the
+// reviewed artifact. Use this with eventcatalog.Handler to serve an event
+// schema endpoint.
 func (s *EventSourcedSetup) EventCatalog() *eventcatalog.Catalog {
-	return DefaultEventCatalog()
+	return servedEventCatalog()
 }
 
 // ProjectionStatuses adapts the internal projectionhost.Host status to the
@@ -44,10 +47,13 @@ func (s *EventSourcedSetup) RebuildProjection(ctx context.Context, name string) 
 
 // --- Service methods ---
 
-// EventCatalog returns a catalog populated with all 21 usermgmt event types.
-// Use this with eventcatalog.Handler to serve an event schema endpoint.
+// EventCatalog returns the catalog served at the event schema endpoint,
+// loaded from the committed generated artifact (event-catalog.json) rather
+// than built by runtime registration — the served bytes are exactly the
+// reviewed artifact. Use this with eventcatalog.Handler to serve an event
+// schema endpoint.
 func (svc *Service) EventCatalog() *eventcatalog.Catalog {
-	return DefaultEventCatalog()
+	return servedEventCatalog()
 }
 
 // ProjectionStatuses adapts the internal projectionhost.Host status to the
