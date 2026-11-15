@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **gfl-usermgmt joins the coverage gate (T01).** The CI build step now runs the executable-spec case study with `-coverprofile` and checks it against a `gfl-usermgmt 85` row in `scripts/checks/coverage-thresholds.tsv` (measured 86.6–89.0% across runs; the row rides the same single-source TSV as every other module). The generated-suite drift gate itself lives in the graph-features-language repo's CI, which can see both trees — see its CHANGELOG.
 - **`httperr.StructuredError.Retryable`** — a shared, machine-readable retryability signal (RFC 7807 extension, derived from the error family: Transient/Infrastructure true, client faults false). Emitted as `"retryable":true` only when true (`omitzero`, so non-retryable documents stay byte-identical); huma's `ProblemError` inherits it via embedding at the next pin bump. The decision record: retryability belongs to the SHARED document, not a huma-only field — one vocabulary on both transports.
 
 ### Changed
