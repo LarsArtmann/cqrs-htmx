@@ -28,18 +28,18 @@ import (
 
 // Wire names of the order-saga domain.
 const (
-	StreamType      id.StreamType = "Order"
-	StreamName                    = "order-demo"
-	CreateType      command.Type  = "order.create"
-	CancelType      command.Type  = "order.cancel"
-	SettleType      command.Type  = "payment.settle"
-	Created         event.Type    = "order.created"
-	Cancelled       event.Type    = "order.cancelled"
-	Settled         event.Type    = "payment.settled"
-	ProjectionName                = "ordersaga-stage-counts"
-	CreatedKey                    = "created"
-	CancelledKey                  = "cancelled"
-	SettledKey                    = "settled"
+	StreamType     id.StreamType = "Order"
+	StreamName                   = "order-demo"
+	CreateType     command.Type  = "order.create"
+	CancelType     command.Type  = "order.cancel"
+	SettleType     command.Type  = "payment.settle"
+	Created        event.Type    = "order.created"
+	Cancelled      event.Type    = "order.cancelled"
+	Settled        event.Type    = "payment.settled"
+	ProjectionName               = "ordersaga-stage-counts"
+	CreatedKey                   = "created"
+	CancelledKey                 = "cancelled"
+	SettledKey                   = "settled"
 )
 
 // Causality rejections: dispatching a command out of chain order fails the

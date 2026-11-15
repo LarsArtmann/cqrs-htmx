@@ -15,7 +15,10 @@ test.describe.configure({ mode: "serial" });
 
 const DEBUG_TYPE = "E2e.debugEmitted";
 
-test("live append: an emitted event lands a row at the top of the events table", async ({ page, request }) => {
+test("live append: an emitted event lands a row at the top of the events table", async ({
+  page,
+  request,
+}) => {
   await page.goto("/dashboard/events");
   await expect(page.locator("#events-tbody tr").first()).toBeVisible();
   const before = await page.locator("#events-tbody tr").count();
@@ -41,7 +44,11 @@ test("journal replay: a fresh page load still lists the emitted event", async ({
   await expect(page.locator("#events-tbody")).toContainText(DEBUG_TYPE);
 });
 
-test("multi-tab live feed: a second connected dashboard gains the row too", async ({ page, context, request }) => {
+test("multi-tab live feed: a second connected dashboard gains the row too", async ({
+  page,
+  context,
+  request,
+}) => {
   await page.goto("/dashboard/events");
   const tab2 = await context.newPage();
   await tab2.goto("/dashboard/events");
@@ -64,7 +71,9 @@ test("multi-tab live feed: a second connected dashboard gains the row too", asyn
     .toBe(before2 + 1);
 });
 
-test("time travel: the slider updates the display while dragging and navigates on release", async ({ page }) => {
+test("time travel: the slider updates the display while dragging and navigates on release", async ({
+  page,
+}) => {
   await page.goto("/dashboard/time-travel");
 
   // A seeded User stream has exactly 2 versions.
@@ -103,7 +112,10 @@ test("time travel: the slider updates the display while dragging and navigates o
   await expect(page.locator("#version-slider")).toHaveValue("1");
 });
 
-test("console guard: no console or page errors during live feed and time travel", async ({ page, request }) => {
+test("console guard: no console or page errors during live feed and time travel", async ({
+  page,
+  request,
+}) => {
   const errors: string[] = [];
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);
@@ -114,7 +126,9 @@ test("console guard: no console or page errors during live feed and time travel"
   await expect(page.locator("#events-tbody tr").first()).toBeVisible();
   const resp = await request.post("/api/debug/emit", { form: { name: "console-guard-probe" } });
   expect(resp.status()).toBe(202);
-  await expect(page.locator("#events-tbody tr").first()).toContainText(DEBUG_TYPE, { timeout: 15_000 });
+  await expect(page.locator("#events-tbody tr").first()).toContainText(DEBUG_TYPE, {
+    timeout: 15_000,
+  });
 
   await page.goto("/dashboard/time-travel");
   await expect(page.locator("table tbody tr").first()).toBeVisible();

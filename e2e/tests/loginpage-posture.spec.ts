@@ -20,7 +20,10 @@ test("posture: /auth/me refuses anonymous callers with 401 JSON", async ({ reque
   await expect(resp.json()).resolves.toMatchObject({ error: expect.any(String) });
 });
 
-test("register issues a browser session: /auth/me answers 200 with the user", async ({ page, context }) => {
+test("register issues a browser session: /auth/me answers 200 with the user", async ({
+  page,
+  context,
+}) => {
   const address = email();
 
   // The CSRF token lives in the /login page's meta tag; the request space
@@ -49,7 +52,10 @@ test("register issues a browser session: /auth/me answers 200 with the user", as
   await expect(page.locator("#post-login-email")).toHaveText(address);
 });
 
-test("logout revokes the session: /auth/me 401 again, gated page bounces", async ({ page, context }) => {
+test("logout revokes the session: /auth/me 401 again, gated page bounces", async ({
+  page,
+  context,
+}) => {
   // Playwright gives every test a fresh context — establish this test's own
   // session before revoking it (register issues the session cookie).
   await page.goto("/login", { waitUntil: "load" });

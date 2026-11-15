@@ -10,7 +10,9 @@ import { test, expect } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
-test("health dashboard renders live: page, operational status, SSE patch applied", async ({ page }) => {
+test("health dashboard renders live: page, operational status, SSE patch applied", async ({
+  page,
+}) => {
   // In-page marker for the first DataStar patch: the definitive proof the
   // /sse feed is wired in the browser (a page-only mount never gets one).
   await page.addInitScript(
@@ -32,7 +34,10 @@ test("health dashboard renders live: page, operational status, SSE patch applied
 
   // The probe with zero registered projections reports the overall pass
   // verdict (upstream wording: "All Systems Operational").
-  await expect(page.locator("#health-region, main").first()).toContainText("All Systems Operational", { timeout: 20_000 });
+  await expect(page.locator("#health-region, main").first()).toContainText(
+    "All Systems Operational",
+    { timeout: 20_000 },
+  );
 
   // The SSE feed delivered at least one DataStar patch into the page.
   await expect
@@ -67,7 +72,10 @@ test("auditlog viewer renders and its SSE stream connects", async ({ page }) => 
   await expect(page.locator("#connection-status")).toHaveText(/connected/, { timeout: 20_000 });
 });
 
-test("auditlog viewer streams injector events: invoke grows the events table live", async ({ page, request }) => {
+test("auditlog viewer streams injector events: invoke grows the events table live", async ({
+  page,
+  request,
+}) => {
   await page.goto("/bridges/auditlog/", { waitUntil: "load" });
   await expect(page.locator("#connection-status")).toHaveText(/connected/, { timeout: 20_000 });
 
@@ -115,7 +123,10 @@ test("console guard: no console or page errors across both bridge surfaces", asy
 
   await page.goto("/bridges/health/ui", { waitUntil: "load" });
   await expect(page.getByRole("heading", { name: "Health Dashboard" })).toBeVisible();
-  await expect(page.locator("#health-region, main").first()).toContainText("All Systems Operational", { timeout: 20_000 });
+  await expect(page.locator("#health-region, main").first()).toContainText(
+    "All Systems Operational",
+    { timeout: 20_000 },
+  );
   await page.goto("/bridges/auditlog/", { waitUntil: "load" });
   await expect(page.locator("#connection-status")).toHaveText(/connected/, { timeout: 20_000 });
 

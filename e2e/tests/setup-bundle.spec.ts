@@ -52,7 +52,10 @@ test("panels answer under a session: admin and CQRS dashboard both render", asyn
   await expect(page).toHaveTitle(/Setup Demo/);
 });
 
-test("dual-transport hub: /broadcast patches the DataStar signal on /ds-demo", async ({ page, request }) => {
+test("dual-transport hub: /broadcast patches the DataStar signal on /ds-demo", async ({
+  page,
+  request,
+}) => {
   // The feed (/ds/events) is session-gated by design — event metadata is
   // not public data — so establish the demo session before opening the page.
   await page.goto(`${DEMO}/dev-login`, { waitUntil: "load" });
@@ -92,7 +95,10 @@ test("dual-transport hub: /broadcast patches the DataStar signal on /ds-demo", a
   await expect(counter).toHaveText(String(baseline + 2), { timeout: 15_000 });
 });
 
-test("console guard: no console or page errors across login page, dashboard, and ds-demo", async ({ page, context }) => {
+test("console guard: no console or page errors across login page, dashboard, and ds-demo", async ({
+  page,
+  context,
+}) => {
   const errors: string[] = [];
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);

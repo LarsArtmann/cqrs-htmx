@@ -95,9 +95,9 @@
         htmx.ajax("POST", config.path, {
           source: elt,
           values: config.parameters,
-          headers: { "X-Http-Method-Override": "QUERY" }
+          headers: { "X-Http-Method-Override": "QUERY" },
         });
       }
-    }
+    },
   });
 })();

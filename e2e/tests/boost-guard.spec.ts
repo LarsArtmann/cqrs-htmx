@@ -13,7 +13,10 @@ import { test, expect } from "@playwright/test";
  */
 test.describe.configure({ mode: "serial" });
 
-test("overview PolledRegion pins its own target/select and survives a live event", async ({ page, request }) => {
+test("overview PolledRegion pins its own target/select and survives a live event", async ({
+  page,
+  request,
+}) => {
   await page.goto("/dashboard/", { waitUntil: "load" });
 
   const region = page.locator("#projection-health");
@@ -33,10 +36,13 @@ test("overview PolledRegion pins its own target/select and survives a live event
   // The events counter on the overview must move (the emit reached the
   // live feed and the page re-rendered boosted content).
   await expect
-    .poll(async () => {
-      const t = (await page.locator("#stat-total-events").textContent()) ?? "";
-      return /^\d+/.test(t.trim());
-    }, { timeout: 20_000 })
+    .poll(
+      async () => {
+        const t = (await page.locator("#stat-total-events").textContent()) ?? "";
+        return /^\d+/.test(t.trim());
+      },
+      { timeout: 20_000 },
+    )
     .toBeTruthy();
 
   // After the live re-render: the boost wrapper still exists (the page did
@@ -50,7 +56,10 @@ test("overview PolledRegion pins its own target/select and survives a live event
   await expect(page.locator("#projection-health")).toHaveAttribute("hx-select", "unset");
 });
 
-test("events filter form pins its own target/select/swap and survives a live event", async ({ page, request }) => {
+test("events filter form pins its own target/select/swap and survives a live event", async ({
+  page,
+  request,
+}) => {
   await page.goto("/dashboard/events", { waitUntil: "load" });
 
   const form = page.locator("form.filter-bar");

@@ -16,7 +16,9 @@ test.describe("dashboard badges + stat cards (N6)", () => {
     // dashboard-live.spec emits events into it (alphabetically it runs first);
     // the seed alone is 4, and any later count still proves the stat is live.
     await expect(page.locator("#stat-total-events")).toHaveText(/\d+/);
-    expect(Number(await page.locator("#stat-total-events").textContent())).toBeGreaterThanOrEqual(4);
+    expect(Number(await page.locator("#stat-total-events").textContent())).toBeGreaterThanOrEqual(
+      4,
+    );
 
     const health = page.locator("#stat-system-health");
     await expect(health).toBeVisible();

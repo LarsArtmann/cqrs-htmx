@@ -50,9 +50,9 @@ REFRESH=0
 NO_CACHE=0
 for arg in "${@:-}"; do
   case "$arg" in
-    --strict) STRICT=true ;;
-    --refresh-cache) REFRESH=1 ;;
-    --no-cache) NO_CACHE=1 ;;
+  --strict) STRICT=true ;;
+  --refresh-cache) REFRESH=1 ;;
+  --no-cache) NO_CACHE=1 ;;
   esac
 done
 

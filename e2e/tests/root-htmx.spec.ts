@@ -18,7 +18,9 @@ test.describe.configure({ mode: "serial" });
 
 const DEMO = "http://localhost:18932";
 
-test("RenderPartialOrFull: HX-Request switches fragment+OOB vs full document", async ({ request }) => {
+test("RenderPartialOrFull: HX-Request switches fragment+OOB vs full document", async ({
+  request,
+}) => {
   // Full shape (no HTMX headers): a navigable document.
   const full = await request.get(`${DEMO}/demo/items`);
   expect(full.ok()).toBeTruthy();
@@ -62,7 +64,10 @@ test("RenderIf: an HX-Request aimed at #item-count answers the bare count", asyn
   expect(await page.text()).toContain("<title>Partial-render showcase");
 });
 
-test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", async ({ page, request }) => {
+test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", async ({
+  page,
+  request,
+}) => {
   await page.goto(`${DEMO}/demo/items`, { waitUntil: "load" });
 
   // The in-memory item store is SHARED by both playwright projects (one
@@ -101,10 +106,12 @@ test("OOBHTML: a partial refresh swaps the list AND the badge out-of-band", asyn
   await expect(page.locator("#item-list li", { hasText: itemName })).toHaveCount(1);
   // The OOB element was consumed by the swap machinery, not rendered into
   // the target container.
-  expect(await page.locator('#item-list [hx-swap-oob]').count()).toBe(0);
+  expect(await page.locator("#item-list [hx-swap-oob]").count()).toBe(0);
 });
 
-test("SSE-triggered refresh: Add on / re-renders #items via the itemCreated loop", async ({ page }) => {
+test("SSE-triggered refresh: Add on / re-renders #items via the itemCreated loop", async ({
+  page,
+}) => {
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
 
   // The hx-trigger="load" initial fill resolves (JSON list render).
@@ -119,7 +126,9 @@ test("SSE-triggered refresh: Add on / re-renders #items via the itemCreated loop
   await expect(page.locator("#items")).toContainText(name, { timeout: 15_000 });
 });
 
-test("console guard: no console or page errors during create and partial refresh", async ({ page }) => {
+test("console guard: no console or page errors during create and partial refresh", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);

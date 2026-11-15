@@ -24,7 +24,7 @@ const DEMO = "http://localhost:18931";
 // data-* attribute names carry colons (DataStar RC.6+ syntax); CSS attribute
 // selectors must escape them. Scoped to the create form: todo rows carry an
 // inline edit input bound to the SAME signal name.
-const TITLE_INPUT = 'form.input-group input[data-bind\\:title]';
+const TITLE_INPUT = "form.input-group input[data-bind\\:title]";
 const TODO_LIST = "#todo-list";
 const STATS = "#stats";
 const EVENT_LOG = "#event-log .event-entry";
@@ -62,7 +62,9 @@ async function connectStream(page: Page, request: APIRequestContext, label: stri
   throw new Error(`SSE stream never went live: ${label}`);
 }
 
-test("boot: initial @get patch populates list and stats (the data-on:load regression)", async ({ page }) => {
+test("boot: initial @get patch populates list and stats (the data-on:load regression)", async ({
+  page,
+}) => {
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
 
   // The initial @get('/api/todos') must patch #todo-list — either the empty
@@ -76,7 +78,9 @@ test("boot: initial @get patch populates list and stats (the data-on:load regres
   await expect(page.locator(STATS)).toContainText("Total:", { timeout: 10_000 });
 });
 
-test("create round-trip: bound signal posts, list+stats+notification patch back", async ({ page }) => {
+test("create round-trip: bound signal posts, list+stats+notification patch back", async ({
+  page,
+}) => {
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
   await expect
     .poll(async () => page.locator(`${TODO_LIST} > *`).count(), { timeout: 10_000 })
@@ -97,7 +101,10 @@ test("create round-trip: bound signal posts, list+stats+notification patch back"
   await expect(page.locator(TITLE_INPUT)).toHaveValue("");
 });
 
-test("live feed: an event fired after page load lands in the event log", async ({ page, request }) => {
+test("live feed: an event fired after page load lands in the event log", async ({
+  page,
+  request,
+}) => {
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
 
   // The feed is live-only (no replay for fresh clients) — a delivered probe
@@ -105,7 +112,9 @@ test("live feed: an event fired after page load lands in the event log", async (
   await connectStream(page, request, "live-probe");
 });
 
-test("live-only honesty: a fresh client receives nothing from before its connection", async ({ page }) => {
+test("live-only honesty: a fresh client receives nothing from before its connection", async ({
+  page,
+}) => {
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
 
   // Earlier tests created many todos — the journal/broadcaster holds plenty
@@ -125,7 +134,11 @@ test("live-only honesty: a fresh client receives nothing from before its connect
   expect(await eventCount(page)).toBe(0);
 });
 
-test("multi-tab: a second tab on the same origin receives the same live feed", async ({ page, context, request }) => {
+test("multi-tab: a second tab on the same origin receives the same live feed", async ({
+  page,
+  context,
+  request,
+}) => {
   await page.goto(`${DEMO}/`, { waitUntil: "load" });
 
   // Tab 1's stream proven live first (tab 1 is front after its goto).
@@ -149,7 +162,9 @@ test("multi-tab: a second tab on the same origin receives the same live feed", a
   await connectStream(tab2, request, "tab2-probe");
 });
 
-test("console guard: no console errors or uncaught page errors during the whole flow", async ({ page }) => {
+test("console guard: no console errors or uncaught page errors during the whole flow", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);
@@ -164,7 +179,9 @@ test("console guard: no console errors or uncaught page errors during the whole 
   const before = await page.locator(`${TODO_LIST} li.todo-item`).count();
 
   await createTodo(page, "console-guard-probe");
-  await expect(page.locator(`${TODO_LIST} li.todo-item`)).toHaveCount(before + 1, { timeout: 10_000 });
+  await expect(page.locator(`${TODO_LIST} li.todo-item`)).toHaveCount(before + 1, {
+    timeout: 10_000,
+  });
 
   expect(errors, errors.join("\n")).toEqual([]);
 });

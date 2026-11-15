@@ -44,8 +44,8 @@ test.beforeEach(async ({ page }) => {
 
 /** The request CSRF token lives in the layout's meta tag. */
 async function csrf(page: Page): Promise<string> {
-  const token = await page.evaluate(
-    () => document.querySelector('meta[name="csrf-token"]')?.getAttribute("content"),
+  const token = await page.evaluate(() =>
+    document.querySelector('meta[name="csrf-token"]')?.getAttribute("content"),
   );
   expect(token, "panel layout should render the csrf meta").toBeTruthy();
   return token ?? "";
@@ -166,7 +166,8 @@ test("keyboard: the tenant grant form is reachable and operable without a mouse"
   await page.goto(`${ADMIN}/admin/users?q=e2e-a11y-${stamp}@acme.dev`, { waitUntil: "load" });
   await page.waitForTimeout(400);
 
-  await page.locator("#users-table tbody tr", { hasText: `e2e-a11y-${stamp}@acme.dev` })
+  await page
+    .locator("#users-table tbody tr", { hasText: `e2e-a11y-${stamp}@acme.dev` })
     .locator("a")
     .first()
     .click();
@@ -193,9 +194,7 @@ test("keyboard: the tenant grant form is reachable and operable without a mouse"
         () => (document.activeElement as HTMLInputElement).checked,
       );
       await page.keyboard.press("Space");
-      const after = await page.evaluate(
-        () => (document.activeElement as HTMLInputElement).checked,
-      );
+      const after = await page.evaluate(() => (document.activeElement as HTMLInputElement).checked);
       expect(after, "Space must toggle the focused role checkbox").toBe(!before);
     }
     if (info.startsWith("button[submit]") || info.includes("button")) break;
@@ -213,7 +212,8 @@ test("keyboard: the tenant grant form is reachable and operable without a mouse"
   await seedTenantAndUser(page, stamp2);
   await page.goto(`${ADMIN}/admin/users?q=e2e-a11y-${stamp2}@acme.dev`, { waitUntil: "load" });
   await page.waitForTimeout(400);
-  await page.locator("#users-table tbody tr", { hasText: `e2e-a11y-${stamp2}@acme.dev` })
+  await page
+    .locator("#users-table tbody tr", { hasText: `e2e-a11y-${stamp2}@acme.dev` })
     .locator("a")
     .first()
     .click();
