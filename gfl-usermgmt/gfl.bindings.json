@@ -21,6 +21,10 @@
       "given": "MemberWithRoles(sc, \"$1\")..."
     },
     {
+      "pattern": "a member of the tenant with roles \"(.*)\"",
+      "given": "MemberOfTenant(sc, \"$1\")..."
+    },
+    {
       "pattern": "a registered bot named \"(.*)\"",
       "given": "RegisteredBot(sc)..."
     },
@@ -152,6 +156,10 @@
       "pattern": "the actor has (\\d+) membership(s?)",
       "query": "MembershipCountForActor(t.Context(), sc)",
       "result": "$1"
+    },
+    {
+      "pattern": "commands (.+) are dispatched",
+      "commands": "$1"
     },
     {
       "pattern": "the token hash resolves to the bot \"(.*)\"",

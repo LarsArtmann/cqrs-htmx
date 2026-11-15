@@ -124,6 +124,23 @@ func MemberWithRoles(sc *systemscenario.Scenario, roles string) []event.Event {
 	})}
 }
 
+// MemberOfTenant seeds MemberAdded for the fixed actor on THE tenant stream
+// the tenant scenarios delete — the bridge the tenant-deletion cascade
+// scenario needs, since MemberWithRoles seeds against the separate
+// memberTenant fixture.
+func MemberOfTenant(sc *systemscenario.Scenario, roles string) []event.Event {
+	ref := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
+		identitymodel.DeriveMembershipID(memberActor, identitymodel.NewTenantID(tenantStream.String())))
+
+	return []event.Event{sc.Event(identitymodel.EventMemberAdded, ref, identitymodel.MemberAddedPayload{
+		SchemaVersion: identitymodel.CurrentSchemaVersion,
+		ActorKind:     memberActor.Kind().String(),
+		ActorID:       memberActor.String(),
+		TenantID:      tenantStream.String(),
+		Roles:         parseRoles(roles),
+	})}
+}
+
 // MemberOfAnotherTenant seeds MemberAdded for the SAME actor in a second,
 // fixed tenant — the cross-tenant membership stream (per actor+tenant key).
 func MemberOfAnotherTenant(sc *systemscenario.Scenario, roles string) []event.Event {

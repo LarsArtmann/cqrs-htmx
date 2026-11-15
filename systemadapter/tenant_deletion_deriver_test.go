@@ -1,12 +1,12 @@
 package systemadapter_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
@@ -19,11 +19,11 @@ import (
 func TestTenantDeletionDeriver_RemovesEveryMember(t *testing.T) {
 	ctx, sys := startDeclarativeSystem(t)
 
-	dispatch := func(cmd any) {
+	dispatch := func(cmd command.Command) {
 		t.Helper()
 
 		if err := sys.CommandDispatcher().Dispatch(ctx, cmd); err != nil {
-			t.Fatalf("dispatch %T: %v", cmd, err)
+			t.Fatalf("dispatch %s: %v", cmd.Type(), err)
 		}
 	}
 
@@ -34,8 +34,8 @@ func TestTenantDeletionDeriver_RemovesEveryMember(t *testing.T) {
 	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
 	otherTenant := identitymodel.NewTenantID(id.NewStreamID().String())
 
-	dispatch(identitymodel.NewCreateTenantCmd(id.ParseStreamIDOrPanic(tenant.Get()), "doomed", "Doomed"))
-	dispatch(identitymodel.NewCreateTenantCmd(id.ParseStreamIDOrPanic(otherTenant.Get()), "survivor", "Survivor"))
+	dispatch(identitymodel.NewCreateTenantCmd(mustStreamID(t, tenant.Get()), "doomed", "Doomed"))
+	dispatch(identitymodel.NewCreateTenantCmd(mustStreamID(t, otherTenant.Get()), "survivor", "Survivor"))
 
 	dispatch(identitymodel.NewAddMemberCmd(userA, tenant, []identitymodel.Role{identitymodel.RoleAdmin}))
 	dispatch(identitymodel.NewAddMemberCmd(userB, tenant, nil))
@@ -45,7 +45,7 @@ func TestTenantDeletionDeriver_RemovesEveryMember(t *testing.T) {
 		t.Fatalf("precondition: tenant members = %d (err %v), want 2", len(members), err)
 	}
 
-	dispatch(identitymodel.NewDeleteTenantCmd(id.ParseStreamIDOrPanic(tenant.Get()), "cascade test"))
+	dispatch(identitymodel.NewDeleteTenantCmd(mustStreamID(t, tenant.Get()), "cascade test"))
 
 	deadline := time.Now().Add(5 * time.Second)
 	for {
@@ -84,12 +84,12 @@ func TestTenantDeletionDeriver_EmptyTenantDerivesNothing(t *testing.T) {
 	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
 
 	if err := sys.CommandDispatcher().Dispatch(ctx,
-		identitymodel.NewCreateTenantCmd(id.ParseStreamIDOrPanic(tenant.Get()), "empty", "Empty")); err != nil {
+		identitymodel.NewCreateTenantCmd(mustStreamID(t, tenant.Get()), "empty", "Empty")); err != nil {
 		t.Fatalf("dispatch CreateTenant: %v", err)
 	}
 
 	if err := sys.CommandDispatcher().Dispatch(ctx,
-		identitymodel.NewDeleteTenantCmd(id.ParseStreamIDOrPanic(tenant.Get()), "")); err != nil {
+		identitymodel.NewDeleteTenantCmd(mustStreamID(t, tenant.Get()), "")); err != nil {
 		t.Fatalf("dispatch DeleteTenant: %v", err)
 	}
 
@@ -107,4 +107,15 @@ func mustUserID(t *testing.T, raw string) identitymodel.UserID {
 	}
 
 	return userID
+}
+
+func mustStreamID(t *testing.T, raw string) id.StreamID {
+	t.Helper()
+
+	streamID, err := id.ParseStreamID(raw)
+	if err != nil {
+		t.Fatalf("ParseStreamID(%q): %v", raw, err)
+	}
+
+	return streamID
 }

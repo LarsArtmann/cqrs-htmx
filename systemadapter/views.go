@@ -23,12 +23,16 @@ type BotView struct {
 	Scopes    []string `json:"scopes"`
 }
 
-// MembershipView is the read-model projection for memberships.
+// MembershipView is the read-model projection for memberships. ActorKind is
+// part of the member's identity: without it the raw ActorID cannot be
+// reconstructed into an id.ActorID, so derived commands (the TenantDeleted →
+// RemoveMember cascade) depend on it being carried.
 type MembershipView struct {
-	ID       string   `json:"id"`
-	ActorID  string   `json:"actor_id"`
-	TenantID string   `json:"tenant_id"`
-	Roles    []string `json:"roles"`
+	ID        string   `json:"id"`
+	ActorKind string   `json:"actor_kind"`
+	ActorID   string   `json:"actor_id"`
+	TenantID  string   `json:"tenant_id"`
+	Roles     []string `json:"roles"`
 }
 
 // CredentialView is a sub-struct of UserView for WebAuthn credentials.

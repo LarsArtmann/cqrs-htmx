@@ -40,12 +40,13 @@ func subscribeTenantDeletionDeriver(sys *system.System) {
 		commands := make([]command.Command, 0, len(members))
 
 		for _, member := range members {
-			actorID, err := identitymodel.ParseActorID(member.ActorID)
+			kind, err := identitymodel.ActorKindFromString(member.ActorKind)
 			if err != nil {
-				return nil, fmt.Errorf("systemadapter: tenant-deletion cascade: parse actor %q: %w", member.ActorID, err)
+				return nil, fmt.Errorf("systemadapter: tenant-deletion cascade: member %q: %w", member.ActorID, err)
 			}
 
-			commands = append(commands, identitymodel.NewRemoveMemberCmd(actorID, tenantID))
+			commands = append(commands, identitymodel.NewRemoveMemberCmd(
+				identitymodel.NewActorID(kind, member.ActorID), tenantID))
 		}
 
 		return commands, nil

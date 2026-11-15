@@ -179,10 +179,11 @@ func insertMembership() metaengine.Fold {
 		projectionadapter.EventWithID[identitymodel.MemberAddedPayload]{},
 		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.MemberAddedPayload]) (string, MembershipView) {
 			return e.ID, MembershipView{
-				ID:       e.ID,
-				ActorID:  e.Payload.ActorID,
-				TenantID: e.Payload.TenantID,
-				Roles:    rolesToStrings(e.Payload.Roles),
+				ID:        e.ID,
+				ActorKind: e.Payload.ActorKind,
+				ActorID:   e.Payload.ActorID,
+				TenantID:  e.Payload.TenantID,
+				Roles:     rolesToStrings(e.Payload.Roles),
 			}
 		},
 	)
