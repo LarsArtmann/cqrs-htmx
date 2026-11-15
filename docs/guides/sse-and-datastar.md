@@ -275,6 +275,14 @@ surface (verified against go-sse; all hooks are promoted on both the
 | `hub.Health()`                          | `BroadcasterHealth{Closed, Draining, SubscriberCount, BufferSize}` | readiness payload / gauge set  |
 | wrapper around `hub.Broadcast*`         | your own timing (fan-out is synchronous)                           | fan-out duration histogram     |
 
+For the drop counter specifically, the library already ships the wiring:
+`cqrshtmx.NewDropStats()` returns an `sse.Option[sse.Event]` that counts every
+drop (`sse_drop_stats.go:42`) and exposes `Total()`/`Snapshot()` for panels —
+hand it to `cqrshtmx.NewBroadcaster(b.SSEDrops.Option())` instead of
+writing your own `OnDrop` closure, and `setup` attaches it automatically when
+you build the bundle through `setup.New` (`setup/sse.go:26`, surfaced as
+`Bundle.SSEDrops` and wired into the dashboardui/adminui hub-stats cards).
+
 Because the hub is the shared object (`Bundle.Broadcaster.Hub()`), construct
 it yourself, register the hooks, and wrap it in the adapter — no library
 change:

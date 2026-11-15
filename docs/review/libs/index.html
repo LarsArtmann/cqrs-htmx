@@ -981,14 +981,14 @@
           <span class="severity severity-nice">Nice to have</span>
           <h3>datastar-demo serves the SDK unversioned behind a 24h cache</h3>
           <div class="where">examples/datastar-demo/main.go:66 &middot; go-datastar ScriptTagVersioned/ETagFor (v0.7.0) unadopted</div>
+          <div class="where">RESOLVED 2026-11-15 (plan B3): the demo splices godatastar.ScriptTagVersioned and datastartest carries the adapter's SSE assertions</div>
           <p>
-            The demo hardcodes <code>&lt;script src="/datastar.js"&gt;</code>
-            while the handler serves 24h <code>max-age</code> &mdash; exactly
-            the old-client/new-server skew upstream built
-            <code>ScriptTagVersioned</code>/<code>ETagFor</code> for (upstream
-            fixed this same bug in its own example). The adapter does not
-            re-export either helper; the <code>datastartest</code> submodule
-            is also unused while adapter tests hand-roll SSE-body assertions.
+            The demo now splices <code>ScriptTagVersioned</code> at init
+            (direct import, no adapter re-export &mdash; ADR-0062 policy) and
+            pins the versioned tag + ETag/304 contract with a smoke test;
+            the adapter's hand-rolled SSE-body assertions are replaced by
+            structured <code>datastartest</code> wire assertions. Report
+            score 71 &rarr; 93.
           </p>
         </div>
 
@@ -1179,7 +1179,7 @@
               <td>go-datastar</td>
               <td>v0.7.0 lockstep = latest</td>
               <td><span class="badge badge-fixed">Used</span></td>
-              <td>71 &middot; NEW report; JS SDK v1.0.4 embedded</td>
+              <td>93 &middot; NEW report; v0.7.0 deltas adopted 2026-11-15 (B3)</td>
               <td><a href="go-datastar.md">md</a></td>
             </tr>
             <tr>

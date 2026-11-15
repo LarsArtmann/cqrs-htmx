@@ -7,7 +7,7 @@
 
 | Pin                                             | Latest (verified 2026-11-14) | Prod import sites                        | Adoption                                    | Score               |
 | ----------------------------------------------- | ---------------------------- | ---------------------------------------- | ------------------------------------------- | ------------------- |
-| go-datastar v0.7.0 + broadcast v0.7.0 (+ static v0.7.0 indirect) | **v0.7.0 = latest** (four-module lockstep cut, 2026-11-07) | adapter (`datastar/`), `setup/`, 2 demos, integration tests | **Used — the whole `datastar/` adapter module is built on it** | **71/100 · at latest** |
+| go-datastar v0.7.0 + broadcast v0.7.0 (+ static v0.7.0 indirect) | **v0.7.0 = latest** (four-module lockstep cut, 2026-11-07) | adapter (`datastar/`), `setup/`, 2 demos, integration tests | **Used — the whole `datastar/` adapter module is built on it** | **93/100 · at latest** |
 
 ## What the library is
 
@@ -27,16 +27,16 @@ Server-side DataStar protocol vocabulary for Go — the opinionated alternative 
 | 1   | Patch vocabulary (8 merge modes, namespaces, view transitions, templ)    | 🟢 Fully leveraged | 1:1 delegation, zero reimplementation (`datastar/patch.go:124-164`); used by demo + `setup/setup_datastar_test.go:162`                                          |
 | 2   | Inbound decoding (`ReadSignals`, `LastEventID`)                          | 🟢 Fully leveraged | re-exported `datastar/patch.go:169-178`; demo decodes signals from POSTs                                                                                       |
 | 3   | Fluent `Response` builder (patch/redirect/remove/prefetch/errors)        | 🟢 Fully leveraged | aliased + wrapped over `sse.NewStream` (`datastar/patch.go:183-185`), covered by `datastar/response_test.go`                                                    |
-| 4   | Script serving + v0.7.0 cache-busting (`ScriptTagVersioned`, `ETagFor`)  | 🟡 Partially used  | `ScriptHandler` served (`setup/mount.go:126`, demo `main.go:24`) but the demo embeds a hardcoded **unversioned** tag (`examples/datastar-demo/main.go:66`) — with the handler's 24h `max-age`, upgrades can skew old-client/new-server; the two v0.7.0 additions are neither re-exported nor used anywhere |
+| 4   | Script serving + v0.7.0 cache-busting (`ScriptTagVersioned`, `ETagFor`)  | 🟢 Fully leveraged | demo splices `godatastar.ScriptTagVersioned("/datastar.js")` into the page head at init (`examples/datastar-demo/main.go`, the versioned-URL cache-busting contract) and `TestSmoke_VersionedScriptServing` pins the versioned tag + ETag/304 revalidation pair (B2 of the follow-through plan closed the unversioned-tag gap 2026-11-15); `ScriptHandler` served at `setup/mount.go:126`, demo `main.go:24` |
 | 5   | Broadcast fan-out & hub sharing (`FromHub`, filters, `SubscriberCount`)  | 🟢 Fully leveraged | cross-transport hub sharing is the flagship pattern and it's the prod wiring (`setup/sse.go:60`, integration test above)                                        |
 | 6   | Replay ring buffer (`WithReplayCapacity`/`WithStore`/`MemoryStore`)      | ⚪ N/A             | reconnection replay is sourced from the domain EventStore journal through the shared hub (`setup/sse.go:30-33`, `WithMaxReplay`) — ring buffer deliberately bypassed |
 | 7   | Broadcast tuning options (buffer size, heartbeat interval/disable)       | ⚪ N/A             | drop/heartbeat policy is owned by the shared cqrs-htmx hub (`SSEDrops.Option()`, `setup/sse.go:27`), not the broadcast wrapper                                  |
-| 8   | `datastartest` E2E helpers (SSE parsing, chunk-boundary assertions)      | 🔴 Not used        | adapter tests hand-roll SSE-body string assertions (`datastar/response_test.go:25-48`); module not even in any go.mod                                            |
+| 8   | `datastartest` E2E helpers (SSE parsing, chunk-boundary assertions)      | 🟢 Fully leveraged | adapter tests assert the parsed wire format — event types, dataline-exact selector/mode/elements, exact signals JSON, script content (`datastar/response_test.go`, `coverage_test.go`; module direct in `datastar/go.mod` since the 2026-11-15 B3 pass) |
 | 9   | Deprecated alias shims to `broadcast` (v5 glide path, ADR-0062)          | 🟡 Partially used  | 6 `Deprecated` markers, removal bundled with v5 (`datastar/broadcaster.go`); zero non-test in-repo consumers remain (one doc mention, `sse_broadcaster.go:64`) — on track |
 
 ## Score derivation
 
-9 rows − 2 N/A = **7 applicable**; 4 full ×1 + 2 partial ×0.5 = **5 → 71/100** (band: high — protocol adoption is complete; docked for the unadopted v0.7.0 cache-busting fix and unused test helpers).
+9 rows − 2 N/A = **7 applicable**; 6 full ×1 + 1 partial ×0.5 = **6.5 → 93/100** (band: very high — protocol adoption complete and the two v0.7.0 deltas adopted 2026-11-15; the remaining half-point is the deprecated broadcast shims on their deliberate v5 glide path).
 
 ## Version currency
 
@@ -44,7 +44,7 @@ At latest everywhere: v0.7.0 lockstep (root + `broadcast` + `static`) across `da
 
 ## Should cqrs-htmx use it (more)?
 
-Two cheap wins: (1) re-export `ScriptTagVersioned` from the adapter and use it in the demo's `<head>` (upstream fixed this exact bug in its own example app in v0.7.0); (2) consider `datastartest` for the adapter's response tests. Everything else is as deep as the contracts require — replay via the domain EventStore, hub-owned drop policy, and shims on the v5 glide path are deliberate (ADR-0050/0062).
+Both 2026-11-14 cheap wins are DONE (2026-11-15, B3): (1) the demo uses `ScriptTagVersioned` directly (`godatastar` import — a re-export through the adapter was rejected on ADR-0062/D2 policy: a re-export is the permanent-alias class); (2) `datastartest` carries the adapter's SSE assertions. Everything else is as deep as the contracts require — replay via the domain EventStore, hub-owned drop policy, and shims on the v5 glide path are deliberate (ADR-0050/0062).
 
 ## How to verify
 
@@ -52,7 +52,7 @@ Two cheap wins: (1) re-export `ScriptTagVersioned` from the adapter and use it i
 rg -n 'go-datastar' --glob 'go.mod' . | grep -v indirect   # all direct pins at v0.7.0
 git -C ~/projects/go-datastar for-each-ref --sort=-v:refname --format='%(refname:short)' refs/tags | head -5
 rg -n 'const Version' ~/projects/go-datastar/static/static.go  # 1.0.4 — deep-dive gap closed
-rg -n 'ScriptTagVersioned|ETagFor|WithHeartbeatDisabled' --glob '*.go' . | wc -l   # 0 — v0.7.0 additions unadopted
+rg -n 'ScriptTagVersioned|ETagFor|WithHeartbeatDisabled' --glob '*.go' . | wc -l   # 3 — demo splice (main.go:350) + its doc comments (B3, 2026-11-15)
 rg -c 'Deprecated' datastar/broadcaster.go                # 6 alias shims, removal bundled with v5
 rg -n 'NewBroadcasterFromHub' setup/sse.go integration_test/datastar_route_split_test.go
 ```
