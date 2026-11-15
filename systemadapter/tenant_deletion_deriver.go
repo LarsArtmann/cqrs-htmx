@@ -46,7 +46,6 @@ func subscribeTenantDeletionDeriver(sys *system.System) {
 		tenantID := identitymodel.NewTenantID(evt.StreamID().String())
 
 		members, err := FindMembershipsByTenant(ctx, sys, tenantID.Get())
-		println("T04-AB deriver queried members:", len(members))
 		if err != nil {
 			return nil, fmt.Errorf(
 				"systemadapter: tenant-deletion cascade: list memberships for tenant %s: %w",

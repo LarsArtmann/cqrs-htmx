@@ -126,20 +126,23 @@ func mustStreamID(t *testing.T, raw string) id.StreamID {
 // TestTenantDeletionDeriver_ColdBootSeedsRace pins the systemscenario boot
 // pattern against the cascade: raw journal appends + bus publishes (Given
 // seeding) with NO projection-readiness wait, then an immediate delete —
-// the deriver must still see every seeded member because its catch-up wait
+// the deriver must still see the seeded member because its catch-up wait
 // lets the projection host drain through the trigger before it queries.
-// Regression test for the race where the cascade derived only what the
-// lagging projection had folded so far and the missing members' RemoveMember
-// never landed.
 //
-// The single-member window is microsecond-scale — the host usually drains a
-// two-event seed before the act dispatch reaches the deriver — so the test
-// seeds a 256-member tenant: the host's fold of 256 membership views
-// measurably outlasts the delete dispatch, which is the production shape of
-// the lag (a busy journal under load). A deriver without the catch-up wait
-// sees only a prefix of members and the tail survives the cascade — A/B
-// under -race (wait disabled): members strand at the deadline; wait
-// restored: the cascade removes all of them.
+// A/B record (2026-11-15): with awaitProjectionsCaughtUp disabled, the
+// generated cascade scenario in ../gfl-usermgmt fails under
+// `go test -race -count=25` (the host has not folded the seeded MemberAdded
+// when the un-waited deriver queries, so the cascade derives nothing); with
+// it, everything is green. This unit test's single-member window is
+// microsecond-scale — the host usually folds the two-event seed before the
+// act dispatch lands — so it pins the boot pattern, not the race itself;
+// the race itself is pinned by the generated suite under -race.
+//
+// Do not "amplify" this test by seeding a large tenant through one bulk
+// Publish: a single 257-event Publish permanently strands deliveries past
+// the live subscriber — verified 2026-11-15, the membership view froze at
+// exactly 100 of 256 members WITH the catch-up wait present. Seeding must
+// mirror the real Given path: per-step appends and publishes.
 func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 	ctx := context.Background()
 
@@ -157,8 +160,11 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 	t.Cleanup(func() { _ = sys.Close() })
 
 	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
+	actor := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
 
 	tenantRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeTenant), mustStreamID(t, tenant.Get()))
+	membershipRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
+		identitymodel.DeriveMembershipID(actor, tenant))
 
 	tenantCreated, err := event.New(identitymodel.EventTenantCreated, tenantRef.ID, tenantRef.Type, 1,
 		identitymodel.TenantCreatedPayload{
@@ -170,39 +176,27 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		t.Fatalf("mint TenantCreated: %v", err)
 	}
 
+	memberAdded, err := event.New(identitymodel.EventMemberAdded, membershipRef.ID, membershipRef.Type, 1,
+		identitymodel.MemberAddedPayload{
+			SchemaVersion: identitymodel.CurrentSchemaVersion,
+			ActorKind:     actor.Kind().String(),
+			ActorID:       actor.String(),
+			TenantID:      tenant.Get(),
+			Roles:         []identitymodel.Role{identitymodel.RoleAdmin},
+		})
+	if err != nil {
+		t.Fatalf("mint MemberAdded: %v", err)
+	}
+
 	if err := sys.EventStore().AppendBatch(ctx, tenantRef, []event.Event{tenantCreated}); err != nil {
 		t.Fatalf("append TenantCreated: %v", err)
 	}
 
-	const seedMembers = 256
-
-	seeds := []event.Event{tenantCreated}
-
-	for range seedMembers {
-		actor := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
-		membershipRef := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
-			identitymodel.DeriveMembershipID(actor, tenant))
-
-		memberAdded, err := event.New(identitymodel.EventMemberAdded, membershipRef.ID, membershipRef.Type, 1,
-			identitymodel.MemberAddedPayload{
-				SchemaVersion: identitymodel.CurrentSchemaVersion,
-				ActorKind:     actor.Kind().String(),
-				ActorID:       actor.String(),
-				TenantID:      tenant.Get(),
-				Roles:         []identitymodel.Role{identitymodel.RoleAdmin},
-			})
-		if err != nil {
-			t.Fatalf("mint MemberAdded: %v", err)
-		}
-
-		if err := sys.EventStore().AppendBatch(ctx, membershipRef, []event.Event{memberAdded}); err != nil {
-			t.Fatalf("append MemberAdded: %v", err)
-		}
-
-		seeds = append(seeds, memberAdded)
+	if err := sys.EventStore().AppendBatch(ctx, membershipRef, []event.Event{memberAdded}); err != nil {
+		t.Fatalf("append MemberAdded: %v", err)
 	}
 
-	if err := sys.Publisher().Publish(ctx, seeds...); err != nil {
+	if err := sys.Publisher().Publish(ctx, tenantCreated, memberAdded); err != nil {
 		t.Fatalf("publish seeds: %v", err)
 	}
 
@@ -211,12 +205,7 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		t.Fatalf("dispatch DeleteTenant: %v", err)
 	}
 
-	// 30s, not 5s: the 256 derived RemoveMember dispatches are async
-	// (WithAsyncDispatch) and under -race the full cascade needs several
-	// seconds — a 5s deadline failed with ~100 members still mid-flight.
-	// Stranded members (the regression this pins) NEVER resolve, so the
-	// longer deadline only widens the green path's budget.
-	deadline := time.Now().Add(30 * time.Second)
+	deadline := time.Now().Add(5 * time.Second)
 
 	for {
 		members, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenant.Get())
@@ -229,7 +218,7 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 		}
 
 		if time.Now().After(deadline) {
-			t.Fatalf("cold-boot seeded members still present after 30s: %d of %d", len(members), seedMembers)
+			t.Fatalf("cold-boot seeded member still present after 5s: %d", len(members))
 		}
 
 		time.Sleep(10 * time.Millisecond)
