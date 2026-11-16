@@ -2,7 +2,6 @@ package systemadapter
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 

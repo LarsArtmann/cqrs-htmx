@@ -42,7 +42,7 @@ type userSearch struct {
 func parseUserSearch(r *http.Request) (userSearch, error) {
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxSearchBody+1))
 	if err != nil {
-		return userSearch{}, err
+		return userSearch{}, errorfamily.WrapTransient(err, "adminui.search.body_read", "read search body")
 	}
 	if len(body) > maxSearchBody {
 		return userSearch{}, errSearchBody
