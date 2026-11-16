@@ -44,6 +44,7 @@ declare -A DEP_BUDGET=(
 )
 
 failed=0
+OVER=()
 
 echo "=== Dependency Budget Check ==="
 echo ""
@@ -77,6 +78,7 @@ for mod in "${!DEP_BUDGET[@]}"; do
   if [[ $dep_count -gt $budget ]]; then
     echo "OVER BUDGET"
     echo "    Reduce deps or justify increase in scripts/checks/check-dep-budgets.sh"
+    OVER+=("$module_name: $dep_count/$budget (entry: [\"$mod\"])")
     failed=1
   else
     remaining=$((budget - dep_count))
@@ -85,6 +87,11 @@ for mod in "${!DEP_BUDGET[@]}"; do
 done
 
 echo ""
+if [[ ${#OVER[@]} -gt 0 ]]; then
+  echo "OVER BUDGET SUMMARY (the composite buries these — every offender, one line):"
+  for o in "${OVER[@]}"; do echo "  OVER: $o"; done
+  echo "  Fix: raise the budget entry WITH a same-change justification comment (the datastar B3 / systemadapter deriver precedents), or reduce the module's direct requires."
+fi
 if [[ $failed -eq 0 ]]; then
   echo "✓ All modules within dependency budget"
 else

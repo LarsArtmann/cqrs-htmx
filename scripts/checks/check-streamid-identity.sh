@@ -92,6 +92,8 @@ while IFS= read -r entry; do
   if [ "$allowlisted" -eq 0 ]; then
     echo "FAIL: unpinned display-form StreamID site(s) in $file (identity positions must use .Get()):"
     grep -F "$ROOT/$file" "$tmp" | sed "s|^$ROOT/||" | sed 's/^/    /'
+    echo "    Pin recipe (display sites only, with a justification comment):"
+    echo "      add \"$file:<count>\" to the allowlist in scripts/checks/check-streamid-identity.sh, then re-pin the pinned_total expectation if the gate prints one"
     fail=1
   fi
 done <<EOF

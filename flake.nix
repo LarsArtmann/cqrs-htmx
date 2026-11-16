@@ -2893,7 +2893,7 @@
                   if [ -f "$mod/go.mod" ]; then
                     # Module row: hermetic per-module test run.
                     if ! (cd "$mod" && go test ./... -count=1 -coverprofile="$profile" >/dev/null 2>&1); then
-                      echo "FAIL: $mod test run failed — coverage not measured"
+                      echo "FAIL: [$mod] test run failed — coverage not measured; reproduce: (cd $mod && go test ./... -count=1)"
                       rm -f "$profile"
                       fail=1
                       continue
@@ -2903,7 +2903,7 @@
                     parent=$(dirname "$mod")
                     pkg=$(basename "$mod")
                     if ! (cd "$parent" && go test "./$pkg/..." -count=1 -coverprofile="$profile" >/dev/null 2>&1); then
-                      echo "FAIL: $mod test run failed — coverage not measured"
+                      echo "FAIL: [$mod] test run failed — coverage not measured; reproduce: (cd $parent && go test ./$pkg/... -count=1)"
                       rm -f "$profile"
                       fail=1
                       continue
