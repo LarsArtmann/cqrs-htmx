@@ -22,20 +22,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
-// directorySearchBody is the JSON body of the QUERY rung. The keys mirror the
-// panel search's URL params (q, filter, page) so a consumer can move between
-// the HTML and JSON surfaces without learning a second vocabulary.
-type directorySearchBody struct {
+// directorySearchQuery is the dispatched query type AND the QUERY rung's
+// JSON body vocabulary: the keys mirror the panel search's URL params
+// (q, filter, page) so a consumer can move between the HTML and JSON
+// surfaces without learning a second vocabulary.
+type directorySearchQuery struct {
 	Q      string `json:"q"`
 	Filter string `json:"filter"`
 	Page   int    `json:"page"`
-}
-
-// directorySearchQuery is the dispatched query type.
-type directorySearchQuery struct {
-	Q      string
-	Filter string
-	Page   int
 }
 
 func (q *directorySearchQuery) Type() query.Type { return "SearchDirectory" }
@@ -141,8 +135,8 @@ func directorySearchOpenAPI() openapi.Operation {
 // QUERY rung carries the WithOpenAPI metadata (one spec entry per operation).
 func directorySearchHandler(app *cqrshtmx.App, withOpenAPI bool) http.Handler {
 	options := []cqrshtmx.HandlerOption{
-		cqrshtmx.DecodeJSONQuery(func(body directorySearchBody) (query.Query, error) {
-			return &directorySearchQuery{Q: body.Q, Filter: body.Filter, Page: body.Page}, nil
+		cqrshtmx.DecodeJSONQuery(func(body *directorySearchQuery) (query.Query, error) {
+			return body, nil
 		}),
 		cqrshtmx.RenderJSON[directoryResult](),
 	}
