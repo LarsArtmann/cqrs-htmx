@@ -15,7 +15,7 @@ through 2026-11-15 (V01–V04 of that plan landed).
 | DeleteTenant cascade | yes (shaped) | **DONE** | ADR-0154 deriver in systemadapter + cascade scenario (ThenCommands); stale-view race A/B-proven and pinned | ✅ 2026-11-15 |
 | DeleteUser cascade (memberships+bots+Casbin) | yes (shaped) | **HIGH/L** | anchors: service_delete_cascade_test.go | open |
 | root eventcatalog/ package | is a universe | **DONE** | `GET /events/catalog` serves the generated artifact byte-identically (T03) | ✅ 2026-11-15 |
-| catalog-demo (examples) | schema-only | **HIGH/M** | docs-only order service whose MDX tree GFL now exports incl. scenario flows → executable saga showcase | open |
+| catalog-demo (examples) | schema-only → executable | **DONE** | order-saga fixture + generated suite green (`-race`); committed MDX tree is now the GFL export incl. scenario flows (T07) | ✅ 2026-11-15 |
 | AuthAudit flows | service-layer | **MED/M** | needs an AuthAudit command surface (register→LoginSucceeded+SessionStarted, ...) | open |
 | sync push/pull journal half | yes | **MED/M** | idempotent commandId, cursor ordering (sync_push.go) | open |
 | authz dispatch postures | no (policy) | **MED/M** | catalog-shaped table; needs a GFL posture-metadata extension (GFL 2.0 gate) | design-first |
