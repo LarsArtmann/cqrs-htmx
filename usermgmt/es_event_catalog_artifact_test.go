@@ -13,11 +13,7 @@ import (
 
 // update regenerates event-catalog.json:
 // go test ./usermgmt/ -run TestEventCatalogArtifactInSync -update
-var catalogUpdate = flag.Bool(
-	"update",
-	false,
-	"rewrite generated golden artifacts",
-) //nolint:gochecknoglobals // standard golden-artifact update flag
+var catalogUpdate = flag.Bool("update", false, "regenerate catalog.json") //nolint:gochecknoglobals
 
 // TestEventCatalogArtifactInSync pins event-catalog.json (the artifact the
 // serving path loads) byte-for-byte to the specs table's rendered catalog.
