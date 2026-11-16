@@ -1,6 +1,6 @@
 # Firefox-divergence resolution, F20 promotion, and the probe-driven root-cause wave (status report)
 
-> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_18-30_m01-aggregate-closure-branching-flow-repin-docs-gates-green_status.md`](../2026-11-14_18-30_m01-aggregate-closure-branching-flow-repin-docs-gates-green_status.md), which resolved — both-engine battery 207/207, firefox promoted to blocking, CI green (three clean observations cited in-report); the divergences are TODO-tracked. Strike depth:
+> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_18-30_m01-aggregate-closure-branching-flow-repin-docs-gates-green_status.md`](2026-11-14_18-30_m01-aggregate-closure-branching-flow-repin-docs-gates-green_status.md), which resolved — both-engine battery 207/207, firefox promoted to blocking, CI green (three clean observations cited in-report); the divergences are TODO-tracked. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-15 (round-23 (2026-11-15)).**
 

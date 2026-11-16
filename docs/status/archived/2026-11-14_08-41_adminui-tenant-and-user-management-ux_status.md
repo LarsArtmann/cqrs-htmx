@@ -1,6 +1,6 @@
 # Admin UI/UX wave: Tenant integration and User management (status report)
 
-> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_16-21_adminui-m05-m17-completion-status.md`](../2026-11-14_16-21_adminui-m05-m17-completion-status.md), which superseded — the completion report absorbed the wave's gate debt (hermetic adminui suite, CSS gates, e2e family) that 08-41 had to defer. Strike depth:
+> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_16-21_adminui-m05-m17-completion-status.md`](2026-11-14_16-21_adminui-m05-m17-completion-status.md), which superseded — the completion report absorbed the wave's gate debt (hermetic adminui suite, CSS gates, e2e family) that 08-41 had to defer. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-15 (round-23 (2026-11-15)).**
 

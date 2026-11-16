@@ -1,6 +1,10 @@
 # Fleet-audit follow-through execution — B1..B20 status (supersedes the 07-16 refresh session's tail)
 
-**Date:** 2026-11-15 11:52 · **Session:** the GET-SHIT-DONE continuation of the [2026-11-15 07-21 plan of record](../planning/2026-11-15_07-21_SUPERB-fleet-audit-follow-through-v2-pareto-plan.md) (resumed from the 07-16 audit-refresh session's handoff).
+> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](../2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which the v2 plan executable tail (B2-B20) is fully executed; the comprehensive ledger carries the final state and its 50 next items. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-16 (round-23 (2026-11-16)).**
+
+**Date:** 2026-11-15 11:52 · **Session:** the GET-SHIT-DONE continuation of the [2026-11-15 07-21 plan of record](../../planning/2026-11-15_07-21_SUPERB-fleet-audit-follow-through-v2-pareto-plan.md) (resumed from the 07-16 audit-refresh session's handoff).
 **Mission:** execute the WHOLE plan table (B1–B20), unblock the push, leave every gate green. **Verification bar:** every landed change tested or gate-checked in this report §h; every gate named was run THIS session.
 
 ## a) Context (what this session inherited)

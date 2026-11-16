@@ -1,5 +1,9 @@
 # Status — M01 aggregate closure: branching-flow re-pin, final 104/104, docs-gates green
 
+> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](../2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which M01 closure + branching-flow re-pin + docs-gates green all landed and extended by the 11-16 re-pin (212). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-16 (round-23 (2026-11-16)).**
+
 **Scope of this report.** VERIFIED this session (2026-11-14 ~16:25–18:30, the continuation session after the 16-21 exit report landed): the final `check-modules` aggregate on the repaired tree (**104/104 GREEN, rc=0**, `/var/tmp/check-modules-final3.log`), the `coverage-gate` verdict (**PASSED, 16/16 modules**, `/var/tmp/coverage-gate-final.log`), the `check-branching-flow` re-pin (**+0 added**, run post-commit), the docs-gates battery (**freshness/annotate/routing/cadence PASS, audit-all the standing owner red**), and the corpus/tail/conflict-marker gates post-true-up (corpus 59,301 = baseline). NOT verified: a full `check-modules` rerun AFTER the final docs true-ups (plan §9/exit-report/TODO_LIST edits — only the specific affected gates were re-run; the 104/104 verdict binds the pre-true-up tree, and the true-ups touch no code), the e2e browser battery (untouched this session), push/CI (75+ commits ahead of origin, unpushed), and the audit-all itemization (the 267→277 drift is attributed by class, not itemized).
 
 The 16-21 exit report carried one open technical question: the final aggregate had failed **2 of 104 checks** — corpus (repaired by that report's commit 82876e9f) and ONE check whose name was unknown (its first log was lost to /tmp cleanup). This session resolved the second, closed M01, and re-greened the docs gates.

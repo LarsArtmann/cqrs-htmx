@@ -1,5 +1,9 @@
 # Fleet-Libs Audit Refresh (22 Libraries) — Session Status
 
+> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](../2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which the 22-lib refresh shipped into the living audit index docs/review/libs/index.html; its follow-through rows live in the fleet TODO row. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-16 (round-23 (2026-11-16)).**
+
 > Session 2026-11-14 evening → 2026-11-15 07:16 · Thread: owner blanket directive "re-audit all LarsArtmann libs, SUPERBLY, latest versions, reports + index"
 > Series: `docs/review/libs/` (supersedes-in-place the 2026-11-05 round; index regenerated)
 

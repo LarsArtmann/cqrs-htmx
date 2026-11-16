@@ -22,7 +22,9 @@
 ## c) PARTIALLY DONE
 
 1. **The second push** — staged as this report's commit train (release-train refresh → push). Everything else that blocked it is green.
+   > **DONE 2026-11-16:** the train landed as `1d8df13b..9d159fdc master -> master` (pre-push release-train strict + version-drift strict green) after the settled-tree gate-heal pass; the CI watch rides `.#push-and-watch`.
 2. **The settled-tree composite re-run** (§f.50 ritual) — deferred until the sibling's session ends; its module state rode the B9 run (documented, not hidden).
+   > **DONE 2026-11-16:** the composite re-ran on the settled tree at 101/106 with the GFL wave's five reds triaged and healed in the same pass (dep-budget raise, streamid identity fix, branching-flow re-pin, usermgmt lint nolint).
 
 ## d) NOT STARTED
 
@@ -54,6 +56,7 @@
 1. **K2** — default `CommandIdempotency` ON for token-authenticated dispatch? (recipe shipped; default owner-gated per plan).
 2. **K3** — send the prepared popover PR? (branch + draft ready on the templ-components checkout).
 3. **Push timing** — the sibling authored `daf8fb5b` at 14:17 and may keep committing; push now (its module rides CI as it has all day) or hold for a quieter window?
+   > **RESOLVED 2026-11-16:** the owner's standing GO settled it — pushed mid-morning with the sibling's committed wave aboard (`1d8df13b..9d159fdc`), CI watch riding.
 
 ## h) Verification receipts (this session)
 

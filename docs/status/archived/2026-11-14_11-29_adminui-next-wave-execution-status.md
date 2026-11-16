@@ -1,6 +1,6 @@
 # Adminui tenant/user-management next-wave execution — session status report
 
-> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_16-21_adminui-m05-m17-completion-status.md`](../2026-11-14_16-21_adminui-m05-m17-completion-status.md), which superseded — its three carry-overs closed: the mixed-sweep tree healed by the B1-class clean sweeps, the e2e noise rerun green in 16-21, the concurrency lesson recorded. Strike depth:
+> **ANNOTATED 2026-11-15** — ~~this report~~ **SUPERSEDED** by [`2026-11-14_16-21_adminui-m05-m17-completion-status.md`](2026-11-14_16-21_adminui-m05-m17-completion-status.md), which superseded — its three carry-overs closed: the mixed-sweep tree healed by the B1-class clean sweeps, the e2e noise rerun green in 16-21, the concurrency lesson recorded. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-15 (round-23 (2026-11-15)).**
 

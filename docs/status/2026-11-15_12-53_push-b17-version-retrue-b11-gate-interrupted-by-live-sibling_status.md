@@ -25,7 +25,9 @@
 2. **B14** admin-demo OpenAPI consumer (`WithOpenAPI` + spec handler + UI link + tests + README).
 3. **B15** forms.InputFile swap in adminui `users.templ` + CSS bundle rebuild + golden diff.
 4. **B16** popover-CSS upstream PR prep (evidence pack + branch + github-voice text; send stays owner-gated K3).
+   > **DONE 2026-11-16:** sent as templ-components#101 (branch fix/popover-x-axis, their visualtest anchor e2e green pre-send).
 5. **Final pass**: corpus ledger sentence + CORPUS/TAIL re-true, second push, CURRENT_FOCUS/plan status updates.
+   > **DONE 2026-11-16:** the second push landed as 1d8df13b..9d159fdc after the settled-tree gate-heal pass; the K3 send rode the same morning.
 6. **B18** — stays trigger-gated (next go-cqrs-lite family train), deliberately not started.
 
 ## §d — Totally fucked up (owned failures, this session)

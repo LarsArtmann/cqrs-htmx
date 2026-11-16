@@ -1,7 +1,11 @@
 # Adminui next-wave M05–M17 completion — session status report
 
+> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](../2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which M05-M17 exit set: the wave shipped and its distinctive tails are harvested as TODO_LIST P2 rows; the comprehensive 11-15 ledger is the current execution record. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-16 (round-23 (2026-11-16)).**
+
 **Date:** 2026-11-14 16:2x CET
-**Author:** session agent (continuation execution session for `docs/planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md`; predecessor report: [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](archived/2026-11-14_11-29_adminui-next-wave-execution-status.md) — its §b/§c lists are this session's work order)
+**Author:** session agent (continuation execution session for `docs/planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md`; predecessor report: [`2026-11-14_11-29_adminui-next-wave-execution-status.md`](2026-11-14_11-29_adminui-next-wave-execution-status.md) — its §b/§c lists are this session's work order)
 **Scope:** finished the plan's remaining milestones on the settled tree — M17 completion, M05 verdicts, M14 archive, M09/M10/M11/M12 feature waves, and the true-ups — then ran the final aggregate.
 **Directive:** "execute the WHOLE todo list … keep going until everything works."
 
