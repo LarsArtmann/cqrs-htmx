@@ -43,7 +43,7 @@ func subscribeTenantDeletionDeriver(sys *system.System) {
 	cascade := deriver.Deriver(func(ctx context.Context, evt event.Event) ([]command.Command, error) {
 		awaitProjectionsCaughtUp(ctx, sys, evt)
 
-		tenantID := identitymodel.NewTenantID(evt.StreamID().String())
+		tenantID := identitymodel.NewTenantID(evt.StreamID().Get())
 
 		members, err := FindMembershipsByTenant(ctx, sys, tenantID.Get())
 		if err != nil {

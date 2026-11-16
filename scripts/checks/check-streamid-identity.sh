@@ -34,6 +34,10 @@ allowlist=(
   "e2e/server/dashboard.go:1"
   "examples/basic/main.go:1"
   "transport/event_sse.go:1"
+  # slog display sites: deriver failure logs and the demo saga's derive log
+  # carry the stream identity for human correlation only, never for lookup.
+  "systemadapter/tenant_deletion_deriver.go:1"
+  "examples/catalog-demo/ordersaga/ordersaga.go:1"
 )
 
 pattern='StreamID\(\)\.String\(\)|\baggID\.String\(\)|\bstreamID\.String\(\)'
