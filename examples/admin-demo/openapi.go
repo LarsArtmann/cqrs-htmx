@@ -19,6 +19,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
+	"github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 

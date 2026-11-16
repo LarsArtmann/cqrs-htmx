@@ -175,3 +175,66 @@ func TestOpenAPISpec_ServesAnd304(t *testing.T) {
 		t.Errorf("conditional spec GET: status = %d, want 304", rec304.Code)
 	}
 }
+
+// TestDirectorySearch_NegativePageRefused pins the refuse-don't-clamp rule:
+// a non-positive page is a Rejection (400 problem document), never a silent
+// clamp to page 1 — consistent with the panel's refuse-to-none filter rule.
+func TestDirectorySearch_NegativePageRefused(t *testing.T) {
+	t.Parallel()
+	h, token := newDirectoryTestServer(t)
+
+	rec := directoryRequest(t, h, cqrshtmx.MethodQuery, `{"q":"","page":0}`, token, nil)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("page=0 QUERY: status = %d, want 400", rec.Code)
+	}
+	if body := rec.Body.String(); !strings.Contains(body, "page_invalid") {
+		t.Errorf("400 body = %q, want the page_invalid code", body)
+	}
+}
+
+// TestDirectorySearch_StrictContentTypeLadder exercises the root module's
+// opt-in RFC 10008 strict mode end-to-end: the same demo handler rebuilt with
+// RequireContentType answers 415 for a non-JSON body and passes JSON through.
+// The shipped demo routes stay Content-Type-lenient; this pins the strict
+// ladder a consumer opts into.
+func TestDirectorySearch_StrictContentTypeLadder(t *testing.T) {
+	t.Parallel()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	app, _ := newDirectoryApp(svc)
+
+	strict := app.Query("SearchDirectory",
+		cqrshtmx.DecodeJSONQuery(func(body *directorySearchQuery) (query.Query, error) {
+			return body, nil
+		}),
+		cqrshtmx.RenderJSON[directoryResult](),
+		cqrshtmx.RequireContentType("application/json"),
+	)
+
+	rec := directoryRequest(t, strict, cqrshtmx.MethodQuery, `{"q":""}`, "", map[string]string{"Content-Type": "text/plain"})
+	if rec.Code != http.StatusUnsupportedMediaType {
+		t.Fatalf("text/plain QUERY under strict mode: status = %d, want 415", rec.Code)
+	}
+
+	rec = directoryRequest(t, strict, cqrshtmx.MethodQuery, `{"q":""}`, "", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("json QUERY under strict mode: status = %d, want 200", rec.Code)
+	}
+}
+
+// TestDirectorySearch_TokenLessQueryPasses pins the demo's CSRF posture: the
+// API surface is session-gated, NOT CSRF-gated (the panel mux carries the
+// CSRF layer; the JSON rungs sit outside it), so a QUERY with a valid session
+// cookie and no CSRF token answers 200. Consumers that mount CSRF must
+// safe-list QUERY per RFC 10008 — the guide's posture note covers that door.
+func TestDirectorySearch_TokenLessQueryPasses(t *testing.T) {
+	t.Parallel()
+	h, token := newDirectoryTestServer(t)
+
+	rec := directoryRequest(t, h, cqrshtmx.MethodQuery, `{"q":""}`, token, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("token-less QUERY: status = %d, want 200", rec.Code)
+	}
+}
