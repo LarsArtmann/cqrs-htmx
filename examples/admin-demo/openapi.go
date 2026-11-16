@@ -85,6 +85,13 @@ func newDirectoryQueryDispatcher(svc *usermgmt.Service) *query.Dispatcher {
 			}
 
 			total := len(users)
+			if q.Page < 1 {
+				return directoryResult{}, errorfamily.NewRejection(
+					"admin-demo.directory.page_invalid",
+					"page must be >= 1 (got %d)",
+					q.Page,
+				)
+			}
 			start := min(max(0, (q.Page-1)*directorySearchPageSize), total)
 			end := min(total, start+directorySearchPageSize)
 
