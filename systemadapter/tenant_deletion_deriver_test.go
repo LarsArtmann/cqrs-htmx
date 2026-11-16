@@ -34,8 +34,8 @@ func TestTenantDeletionDeriver_RemovesEveryMember(t *testing.T) {
 	userB := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
 	otherUser := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
 
-	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
-	otherTenant := identitymodel.NewTenantID(id.NewStreamID().String())
+	tenant := identitymodel.NewTenantID(id.NewStreamID().Get())
+	otherTenant := identitymodel.NewTenantID(id.NewStreamID().Get())
 
 	dispatch(identitymodel.NewCreateTenantCmd(mustStreamID(t, tenant.Get()), "doomed", "Doomed"))
 	dispatch(identitymodel.NewCreateTenantCmd(mustStreamID(t, otherTenant.Get()), "survivor", "Survivor"))
@@ -84,7 +84,7 @@ func TestTenantDeletionDeriver_RemovesEveryMember(t *testing.T) {
 func TestTenantDeletionDeriver_EmptyTenantDerivesNothing(t *testing.T) {
 	ctx, sys := startDeclarativeSystem(t)
 
-	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
+	tenant := identitymodel.NewTenantID(id.NewStreamID().Get())
 
 	if err := sys.CommandDispatcher().Dispatch(ctx,
 		identitymodel.NewCreateTenantCmd(mustStreamID(t, tenant.Get()), "empty", "Empty")); err != nil {
@@ -159,7 +159,7 @@ func TestTenantDeletionDeriver_ColdBootSeedsRace(t *testing.T) {
 
 	t.Cleanup(func() { _ = sys.Close() })
 
-	tenant := identitymodel.NewTenantID(id.NewStreamID().String())
+	tenant := identitymodel.NewTenantID(id.NewStreamID().Get())
 	actor := identitymodel.ActorIDFromUser(mustUserID(t, id.NewStreamID().String()))
 
 	tenantRef := id.NewStreamRef(identitymodel.AggregateTypeTenant, mustStreamID(t, tenant.Get()))
