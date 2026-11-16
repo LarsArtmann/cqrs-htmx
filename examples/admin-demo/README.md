@@ -23,7 +23,7 @@ the same directory:
 - `GET /openapi.json` — the served OpenAPI 3.2 spec, built from the
   handler's own `WithOpenAPI` metadata (`App.OpenAPIRoutes()`), ETag-cached
   (conditional GETs answer 304). Linked from the panel sidebar as
-  "OpenAPI spec".
+  "OpenAPI spec" (machine clients need a panel session — see below).
 
 Both rungs are session-gated: `usermgmt.NewSessionMiddleware` only enriches
 the request context, so the API route carries its own `requireSession` gate
