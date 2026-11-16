@@ -1,0 +1,45 @@
+<!doctype html>
+<!--
+  position-area computed-style probe — the reusable form of the 2026-11-15
+  popover investigation (templ-components#101).
+
+  WHY the var() indirection matters: a declarative CSS layer typically sets
+  `position-area: var(--tc-popover-area)`. Chromium rejects invalid
+  var() substitutions at COMPUTED-VALUE time, so the property resolves to
+  its INITIAL value (`none`) instead of falling back to an earlier cascade
+  declaration — the component silently parks at its static position even
+  when a fallback exists. The probe therefore reads getComputedStyle, not
+  the cascade.
+
+  Add one row per candidate spelling to SPELLINGS; probe.mjs prints the
+  computed `position-area` for each. Accepted spellings compute verbatim;
+  rejected ones come back `none`.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>position-area probe</title>
+<style>
+  .probe {
+    position: fixed;
+    top: 40px;
+    left: 40px;
+    width: 120px;
+    height: 40px;
+    inset: auto; /* anchor positioning needs a resolved inset box */
+    position-anchor: --probe-anchor;
+    position-area: var(--area);
+  }
+</style>
+</head>
+<body>
+<div id="host" class="probe"></div>
+<script>
+  // Feed each candidate through var() exactly like the production layer.
+  window.setArea = (value) => {
+    document.getElementById("host").style.setProperty("--area", value);
+    return getComputedStyle(document.getElementById("host")).positionArea;
+  };
+</script>
+</body>
+</html>
