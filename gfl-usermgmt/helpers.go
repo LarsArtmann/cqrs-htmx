@@ -130,13 +130,13 @@ func MemberWithRoles(sc *systemscenario.Scenario, roles string) []event.Event {
 // memberTenant fixture.
 func MemberOfTenant(sc *systemscenario.Scenario, roles string) []event.Event {
 	ref := id.NewStreamRef(id.StreamType(identitymodel.AggregateTypeMembership),
-		identitymodel.DeriveMembershipID(memberActor, identitymodel.NewTenantID(tenantStream.String())))
+		identitymodel.DeriveMembershipID(memberActor, identitymodel.NewTenantID(tenantStream.Get())))
 
 	return []event.Event{sc.Event(identitymodel.EventMemberAdded, ref, identitymodel.MemberAddedPayload{
 		SchemaVersion: identitymodel.CurrentSchemaVersion,
 		ActorKind:     memberActor.Kind().String(),
 		ActorID:       memberActor.String(),
-		TenantID:      tenantStream.String(),
+		TenantID:      tenantStream.Get(),
 		Roles:         parseRoles(roles),
 	})}
 }
