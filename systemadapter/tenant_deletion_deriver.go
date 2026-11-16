@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-error-family"
 )
 
 // Catch-up bounds for the tenant-deletion cascade's read-model wait. The
@@ -47,11 +48,9 @@ func subscribeTenantDeletionDeriver(sys *system.System) {
 
 		members, err := FindMembershipsByTenant(ctx, sys, tenantID.Get())
 		if err != nil {
-			return nil, fmt.Errorf(
-				"systemadapter: tenant-deletion cascade: list memberships for tenant %s: %w",
-				tenantID.Get(),
-				err,
-			)
+			return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure,
+				"systemadapter.cascade.list_memberships",
+				"tenant-deletion cascade: list memberships for tenant %s", tenantID.Get())
 		}
 
 		commands := make([]command.Command, 0, len(members))
@@ -59,7 +58,9 @@ func subscribeTenantDeletionDeriver(sys *system.System) {
 		for _, member := range members {
 			kind, err := identitymodel.ActorKindFromString(member.ActorKind)
 			if err != nil {
-				return nil, fmt.Errorf("systemadapter: tenant-deletion cascade: member %q: %w", member.ActorID, err)
+				return nil, errorfamily.Wrapf(err, errorfamily.Corruption,
+					"systemadapter.cascade.actor_kind",
+					"tenant-deletion cascade: member %q: unknown actor kind", member.ActorID)
 			}
 
 			commands = append(commands, identitymodel.NewRemoveMemberCmd(
