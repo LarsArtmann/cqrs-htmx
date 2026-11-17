@@ -250,8 +250,8 @@ github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 h1:iVMpCZnjhIK+P2uwUwbDW
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0/go.mod h1:02FR0CDEWBlmg6KBOl3rwH6qF7DpJ2SmDoIrchBUymY=
 github.com/larsartmann/go-datastar v0.7.0 h1:PE//9bGCdGdVdCdL8AdtRYJYlkl3Yq+On6FktUziy1I=
 github.com/larsartmann/go-datastar v0.7.0/go.mod h1:bbE8MTwWiO4ECbKyKBlFm4jwW6lV4rLD+rNlqI2tlWk=
-github.com/larsartmann/go-datastar/static v0.7.0 h1:1NnskL0rjiH/RLnwryfPHP3kNjmQbWzRFDCb+LCSub4=
-github.com/larsartmann/go-datastar/static v0.7.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
+github.com/larsartmann/go-datastar/static v0.8.0 h1:pncsjORsZ3tPFBf3eX8HN5IJcxQtxQgz9ngwNVPEO88=
+github.com/larsartmann/go-datastar/static v0.8.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=
 github.com/larsartmann/go-error-family v0.12.0/go.mod h1:gB43rKC69SoPilihuze43OFqKYMGQxDNUi/25PF9MgE=
 github.com/larsartmann/go-etag/entitytag v0.6.1 h1:tBr+hR4dqks75SY+pqmUNHUajzOG6qUfT8gE9H+Pbws=
