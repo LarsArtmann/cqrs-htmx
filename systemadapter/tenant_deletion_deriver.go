@@ -77,7 +77,9 @@ func subscribeTenantDeletionDeriver(sys *system.System) {
 				"error", err)
 		}))
 
+	//cqrs-lint:ignore(C027) deliberate bus.Subscribe cascade bridge (ADR-0051 declarative path) — the deriver dispatches commands; projectionhost runs projections: disjoint consumers, no double-processing
 	if err := sys.Bus().Subscribe(identitymodel.EventTenantDeleted, handler); err != nil {
+		//cqrs-lint:ignore(C009) init-time subscription failure is a fatal config error (must-style)
 		panic("systemadapter: subscribe TenantDeleted cascade: " + err.Error())
 	}
 }

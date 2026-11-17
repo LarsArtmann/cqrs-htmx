@@ -1,0 +1,13 @@
+{
+  "preset": "library",
+  "rules": {
+    // GFL executable-spec case study (2026-11-15 per-module triage): the
+    // generated suite drives systemadapter.DomainConfig() deciders — the
+    // spec code consumes the library, it is not library surface.
+    //
+    // C044: helpers.go passes ActorID.String() into systemadapter lookups —
+    // ActorID.String() returns the BARE raw (id/v4 actor_id.go:152), so the
+    // round-trip is form-consistent (the suite is green end to end).
+    "disable": ["F032", "A018", "C044"]
+  }
+}

@@ -30,6 +30,7 @@ func servedEventCatalog() *eventcatalog.Catalog {
 	var events []eventcatalog.EventMetadata
 
 	if err := json.Unmarshal(eventCatalogArtifact, &events); err != nil {
+		//cqrs-lint:ignore(C009) compiled-in artifact: a corrupt embed is a build-time defect, must-style
 		panic(err)
 	}
 

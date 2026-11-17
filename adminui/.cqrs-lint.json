@@ -9,7 +9,11 @@
       // the panels cross-link in both READMEs. The v4.21.0 triage (2026-11-15)
       // flagged this module for the first time — same walk-mode widening that
       // moved E014's anchor, not a new coupling.
-      "F032"
+      "F032",
+      // A018 (no-actual-event-sourcing), 2026-11-15: identity-ops panels
+      // consume usermgmt.Service read models and dispatch through the
+      // service; event writes live inside usermgmt — the panel owns none.
+      "A018"
     ]
   }
 }

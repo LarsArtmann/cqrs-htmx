@@ -37,6 +37,7 @@ func DomainEventToSSE(evt event.Event) sse.Event {
 	payload := EventPayload{
 		Type:       string(evt.Type()),
 		StreamType: string(evt.StreamType()),
+		//cqrs-lint:ignore(C044) golden-pinned SSE envelope wire form — clients treat the ID as opaque and echo cursors back; parse side strips the prefix
 		StreamID:   evt.StreamID().String(),
 		Version:    evt.Version().UInt64(),
 		OccurredAt: evt.OccurredAt().Format(time.RFC3339),

@@ -6,6 +6,12 @@
     // operations. It declares no commands, events, or queries of its own, so
     // catalog-driven documentation belongs to the consumer app, not here.
     // Triage 2026-11-06 (cqrs-lint v4.20.1, the cqrs-htmx#41 wave).
+    //
+    // 2026-11-15: A025 (command-query-no-events) — the adapter runs the
+    // APP's dispatchers unchanged; event sourcing is the app's choice, not
+    // the transport's. F007 (no-idempotency-middleware) — same LIBRARY
+    // PRINCIPLE: the adapter adds no middleware defaults to the consumer's
+    // chain (the app wires idempotency before handing the dispatcher over).
     "disable": [
       "F002",
       "F006",
@@ -17,7 +23,9 @@
       "S007",
       "A018",
       "C015",
-      "F032"
+      "F032",
+      "A025",
+      "F007"
     ]
   }
 }

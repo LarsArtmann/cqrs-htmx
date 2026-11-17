@@ -23,6 +23,7 @@ func validateDispatch[T any](
 			// which hid the dead validator until it mattered. This is a
 			// registration-order bug in consumer code — fail fast, at
 			// registration, where the stack trace points at the offender.
+			//cqrs-lint:ignore(C009) registration-time fail-fast for a consumer registration-order bug (Must-style; comment above)
 			panic("cqrs-htmx: " + label + " applied before a decoder — apply it after DecodeJSON/DecodeForm")
 		}
 

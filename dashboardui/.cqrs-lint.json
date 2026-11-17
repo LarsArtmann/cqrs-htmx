@@ -6,6 +6,15 @@
     // reads the journal — wiring catalog-driven documentation is the
     // consumer application's job, not the dashboard library's. Triage
     // 2026-11-05 (cqrs-lint v4.20.0).
-    "disable": ["F032"]
+    //
+    // C044 (branded-id-display-string), 2026-11-15: the sites are templ-
+    // generated renders (truncated ID columns, row keys for hx-target
+    // round-trips that re-parse on the server) and core read-model display
+    // fields — display contexts, reviewed per the 2026-11-05 sweep.
+    //
+    // A018 (no-actual-event-sourcing): the dashboard READS the journal and
+    // renders projections; event writes live upstream in usermgmt/core —
+    // an observability panel owns no Save/Publish by design.
+    "disable": ["F032", "C044", "A018"]
   }
 }

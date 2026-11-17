@@ -1,0 +1,11 @@
+{
+  "preset": "library",
+  "rules": {
+    // Demo/example module (2026-11-15 per-module triage). Demos exist to be
+    // READ: startup panics are must-style init failures, dispatcher
+    // middleware/observability/idempotency wiring is deliberately minimal to
+    // show the SEAM, and catalog-driven docs are the consumer app's job.
+    // The root config's family-wide disables (A009, F032) inherit here.
+    "disable": ["B026", "B031", "E010", "F003", "F005", "F025"]
+  }
+}

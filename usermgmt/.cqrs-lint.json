@@ -6,6 +6,32 @@
     // schema half is the shared go-cqrs-lite catalog reflection (leverage-plan
     // R2, docs/planning/
     // 2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md).
-    "disable": []
+    //
+    // 2026-11-15 per-module triage (the BuildFlow cqrs-lint incident — the
+    // toolsdk walk surfaced per-module findings the exit-code gate never
+    // displayed; every class below verified against its sites):
+    //
+    // E023 (satellite-owned-SQL): the SQL stores are the documented
+    // pre-metaengine class (ADR-0051/v5 migration plan; AGENTS.md cqrs-lint
+    // row) — advisory until the metaengine train.
+    //
+    // C044 (branded-id-display-string): every site is ActorID, whose
+    // String() returns the BARE raw by definition (id/v4 actor_id.go:152 —
+    // the prefixed form is PrefixedString()), so ActorID keys/DTO fields are
+    // form-consistent with TenantID.Get(); display sites reviewed.
+    //
+    // A016/F007 (idempotency middleware) + B024 (bus recovery): the LIBRARY
+    // PRINCIPLE — never enforce defaults consumers might disagree with. The
+    // consumer seam is ServiceConfig.CommandMiddleware (retry, breaker,
+    // idempotency, validation); booting usermgmt's own defaults would seize
+    // the consumer's chain.
+    //
+    // F005 (no-schema-upcasters): every payload stamps WithSchemaVersion;
+    // upcasters land with the FIRST schema change (none yet).
+    //
+    // A027 (repeated-withcodec): per-event WithCodec is deliberate —
+    // event.DefaultCodec is a PROCESS GLOBAL, and a library must not seize
+    // it from consumer code (ADR-0059 payload encodings stay explicit).
+    "disable": ["E023", "C044", "A016", "F007", "B024", "F005", "A027"]
   }
 }

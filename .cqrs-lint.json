@@ -27,6 +27,15 @@
     // load-bearing in the repo-wide one), so the disable lives here with the
     // reason. Revisit only if a package ever dispatches commands OUTSIDE a
     // usermgmt.Service with its own projection host.
-    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007", "D005", "E014"]
+    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007", "D005", "E014",
+
+      // A009 (missing-stack-preset): this is a LIBRARY family — stack/ presets are
+      // app composition roots; no module here is an application. Inherited by
+      // every submodule via config inheritance (toolsdk walk 2026-11-15).
+      // F032 (no-catalog-import): the published-language surface is
+      // usermgmt.DefaultEventCatalog + systemadapter.ArchitectureCatalog;
+      // internal/hx is plumbing that imports go-cqrs-lite for event envelopes
+      // and owes no catalog documentation.
+      "A009", "F032"]
   }
 }

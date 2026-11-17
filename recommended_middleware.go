@@ -49,6 +49,7 @@ func RecommendedSecurityMiddleware() func(http.Handler) http.Handler {
 		// Validate cannot fail. A panic here means this file drifted from
 		// its own entries — fix the entries, not the panic (MustNew
 		// precedent for impossible-by-construction failures).
+		//cqrs-lint:ignore(C009) impossible-by-construction (comment above; MustNew precedent)
 		panic(err)
 	}
 
