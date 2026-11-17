@@ -144,6 +144,9 @@ func directorySearchOpenAPI() openapi.Operation {
 func directorySearchHandler(app *cqrshtmx.App, withOpenAPI bool) http.Handler {
 	options := []cqrshtmx.HandlerOption{
 		cqrshtmx.DecodeJSONQuery(func(body *directorySearchQuery) (query.Query, error) {
+			if body.Page == 0 {
+				body.Page = 1
+			}
 			return body, nil
 		}),
 		cqrshtmx.RenderJSON[directoryResult](),

@@ -184,9 +184,9 @@ func TestDirectorySearch_NegativePageRefused(t *testing.T) {
 	t.Parallel()
 	h, token := newDirectoryTestServer(t)
 
-	rec := directoryRequest(t, h, cqrshtmx.MethodQuery, `{"q":"","page":0}`, token, nil)
+	rec := directoryRequest(t, h, cqrshtmx.MethodQuery, `{"q":"","page":-1}`, token, nil)
 	if rec.Code != http.StatusBadRequest {
-		t.Fatalf("page=0 QUERY: status = %d, want 400", rec.Code)
+		t.Fatalf("page=-1 QUERY: status = %d, want 400", rec.Code)
 	}
 	if body := rec.Body.String(); !strings.Contains(body, "page_invalid") {
 		t.Errorf("400 body = %q, want the page_invalid code", body)
@@ -208,6 +208,9 @@ func TestDirectorySearch_StrictContentTypeLadder(t *testing.T) {
 
 	strict := app.Query("SearchDirectory",
 		cqrshtmx.DecodeJSONQuery(func(body *directorySearchQuery) (query.Query, error) {
+			if body.Page == 0 {
+				body.Page = 1
+			}
 			return body, nil
 		}),
 		cqrshtmx.RenderJSON[directoryResult](),
