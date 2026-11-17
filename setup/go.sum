@@ -228,8 +228,8 @@ github.com/larsartmann/go-datastar v0.7.0 h1:PE//9bGCdGdVdCdL8AdtRYJYlkl3Yq+On6F
 github.com/larsartmann/go-datastar v0.7.0/go.mod h1:bbE8MTwWiO4ECbKyKBlFm4jwW6lV4rLD+rNlqI2tlWk=
 github.com/larsartmann/go-datastar/broadcast v0.7.0 h1:G2v/lWlGk5Hl+cUgTjYGZTWzrN9p2hKSDR44v6c1lPs=
 github.com/larsartmann/go-datastar/broadcast v0.7.0/go.mod h1:lLuYFpYIJd9Tn9CCr8QVvjhe2u/S6K495z5Jv1JrZ3M=
-github.com/larsartmann/go-datastar/static v0.7.0 h1:1NnskL0rjiH/RLnwryfPHP3kNjmQbWzRFDCb+LCSub4=
-github.com/larsartmann/go-datastar/static v0.7.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
+github.com/larsartmann/go-datastar/static v0.8.0 h1:pncsjORsZ3tPFBf3eX8HN5IJcxQtxQgz9ngwNVPEO88=
+github.com/larsartmann/go-datastar/static v0.8.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=
 github.com/larsartmann/go-error-family v0.12.0/go.mod h1:gB43rKC69SoPilihuze43OFqKYMGQxDNUi/25PF9MgE=
 github.com/larsartmann/go-etag/entitytag v0.6.1 h1:tBr+hR4dqks75SY+pqmUNHUajzOG6qUfT8gE9H+Pbws=

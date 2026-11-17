@@ -92,6 +92,56 @@ grep -q -- '--fail-on-stale-suppressions' "$GATE" || {
 }
 echo "ok   flag wiring present"
 
+# --- cases 6-8: the escalated findings posture + stale-binary guard, proven
+# against STUB binaries (offline: the real binary skips stdlib-only fixtures
+# with "Nothing to lint", so real findings cannot be reproduced here; the
+# stub pins the GATE's output-shape detection, not the tool's rule engine) ---
+mkfake() { # mkfake <dir> <version-line> <run-output> <run-rc>
+  mkdir -p "$1"
+  cat >"$1/cqrs-lint" <<STUB
+#!/usr/bin/env bash
+if [ "\${1:-}" = "version" ]; then
+  echo "$2"
+  exit 0
+fi
+printf '%s\n' "$3"
+exit $4
+STUB
+  chmod +x "$1/cqrs-lint"
+}
+
+# case 6: an INFO finding (exit 0!) must FAIL the gate and PRINT the evidence
+mkfake "$TMP/fakefinding" "cqrs-lint 4.22.0 (go-finding: 1.15.1)" \
+  "INFO /tmp/x/main.go:9:25 errors.New at main.go:9:25 — unclassified error
+  [D006]" 0
+out=$(PATH="$TMP/fakefinding:$PATH" bash "$GATE" "$TMP/clean" 2>&1)
+rc=$?
+check "info finding fails the gate (rc)" 1 "$rc" "" "$out"
+printf '%s\n' "$out" | grep -q "INFO /tmp/x/main.go:9:25" || {
+  echo "FAIL evidence-print: gate did not print the finding evidence"
+  printf '%s\n' "$out" | head -8
+  failures=$((failures + 1))
+}
+echo "ok   evidence printed on finding failure"
+
+# case 7: benign output (summary/banner lines, no finding shape) must PASS —
+# the banner's indented bare ERROR must never match the anchored pattern
+mkfake "$TMP/fakebenign" "cqrs-lint 4.22.0 (go-finding: 1.15.1)" \
+  "Analyzed 3 file(s) in 950ms
+
+          ERROR
+
+  Findings with error severity." 0
+out=$(PATH="$TMP/fakebenign:$PATH" bash "$GATE" "$TMP/clean" 2>&1)
+rc=$?
+check "benign banner output passes" 0 "$rc" "All modules pass" "$out"
+
+# case 8: a stale binary (< 4.22.0) must fail BEFORE any module runs — the
+# findings-blocking posture is unsound on the fleet-constant phantom class
+mkfake "$TMP/fakestale" "cqrs-lint 4.20.1-0.20261115182037-cc597bb319fd (go-finding: 1.15.1)" "" 0
+out=$(PATH="$TMP/fakestale:$PATH" bash "$GATE" "$TMP/clean" 2>&1)
+check "stale binary refused" 1 "$?" "older than the required 4.22.0" "$out"
+
 if [ "$failures" -gt 0 ]; then
   echo "check-cqrs-lint self-test: $failures FAILURE(S)"
   exit 1
