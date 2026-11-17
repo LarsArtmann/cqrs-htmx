@@ -12,6 +12,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -89,8 +90,7 @@ func newDirectoryQueryDispatcher(svc *usermgmt.Service) *query.Dispatcher {
 			if q.Page < 1 {
 				return directoryResult{}, errorfamily.NewRejection(
 					"admin-demo.directory.page_invalid",
-					"page must be >= 1 (got %d)",
-					q.Page,
+					fmt.Sprintf("page must be >= 1 (got %d)", q.Page),
 				)
 			}
 			start := min(max(0, (q.Page-1)*directorySearchPageSize), total)

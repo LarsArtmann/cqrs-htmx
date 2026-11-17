@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 // newDirectoryTestServer boots the demo's API surface against a seeded
