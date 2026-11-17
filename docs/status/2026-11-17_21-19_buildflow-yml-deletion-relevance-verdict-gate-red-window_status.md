@@ -104,3 +104,5 @@
 ---
 
 *Point-in-time snapshot. Annotation convention: `docs/status/README.md`. The red-gate window (§d.1) was still open at write time — 21:19 CET, `git status` re-checked: only `D .buildflow.yml`.*
+
+> **ADDENDUM (same session, ~21:35): the §d.1 warning MATERIALIZED mid-report.** The daemon's `8a438530` (stamped 2026-11-17 21:16:07) committed the `.buildflow.yml` deletion (153 lines) alongside two foreign `check-cqrs-lint.sh`/`test-check-cqrs-lint.sh` edits — the deletion is now COMMITTED, exactly the gotcha-35 capture class. Verified consequences, fresh runs: `check-buildflow-skips` exit 1 (file not found) and `check-root-files` reports `1d0 < .buildflow.yml` against the baseline (strict mode = CI red). The scope line's "uncommitted working-tree D" is stale as of this addendum. Recovery one-liner when the owner decides: `git restore --source=8a438530^ -- .buildflow.yml` (restore-first doctrine). Question g.1 is now URGENT: every push from here reddens the CI checks job.

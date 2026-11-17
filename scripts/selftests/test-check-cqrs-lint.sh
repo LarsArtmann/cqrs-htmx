@@ -111,7 +111,7 @@ STUB
 }
 
 # case 6: an INFO finding (exit 0!) must FAIL the gate and PRINT the evidence
-mkfake "$TMP/fakefinding" "cqrs-lint 4.22.1 (go-finding: 1.15.1)" \
+mkfake "$TMP/fakefinding" "cqrs-lint 4.22.2 (go-finding: 1.15.1)" \
   "INFO /tmp/x/main.go:9:25 errors.New at main.go:9:25 — unclassified error
   [D006]" 0
 out=$(PATH="$TMP/fakefinding:$PATH" bash "$GATE" "$TMP/clean" 2>&1)
@@ -126,7 +126,7 @@ echo "ok   evidence printed on finding failure"
 
 # case 7: benign output (summary/banner lines, no finding shape) must PASS —
 # the banner's indented bare ERROR must never match the anchored pattern
-mkfake "$TMP/fakebenign" "cqrs-lint 4.22.1 (go-finding: 1.15.1)" \
+mkfake "$TMP/fakebenign" "cqrs-lint 4.22.2 (go-finding: 1.15.1)" \
   "Analyzed 3 file(s) in 950ms
 
           ERROR
@@ -140,7 +140,7 @@ check "benign banner output passes" 0 "$rc" "All modules pass" "$out"
 # findings-blocking posture is unsound on the fleet-constant phantom class
 mkfake "$TMP/fakestale" "cqrs-lint 4.20.1-0.20261115182037-cc597bb319fd (go-finding: 1.15.1)" "" 0
 out=$(PATH="$TMP/fakestale:$PATH" bash "$GATE" "$TMP/clean" 2>&1)
-check "stale binary refused" 1 "$?" "older than the required 4.22.1" "$out"
+check "stale binary refused" 1 "$?" "older than the required 4.22.2" "$out"
 
 if [ "$failures" -gt 0 ]; then
   echo "check-cqrs-lint self-test: $failures FAILURE(S)"

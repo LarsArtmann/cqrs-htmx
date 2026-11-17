@@ -45,7 +45,7 @@ command -v cqrs-lint >/dev/null 2>&1 || {
 # a binary would red on noise instead of truth. Pseudo-version suffixes
 # (4.20.1-0.<date>-<sha>) sort below the plain release, which is the
 # direction we want to refuse.
-GATE_MIN_VERSION="4.22.1"
+GATE_MIN_VERSION="4.22.2"
 GOT_VERSION="$(cqrs-lint version 2>/dev/null | awk '{print $2}')"
 if [ -z "$GOT_VERSION" ]; then
   echo "check-cqrs-lint: FAILED — 'cqrs-lint version' printed nothing (stale or broken binary)" >&2
@@ -71,7 +71,7 @@ echo "candidates=${#MODULES[@]}"
 fail=0
 for mod in "${MODULES[@]}"; do
   echo "==> $mod"
-  module_out="$(cd "$mod" && cqrs-lint --strict --fail-on-stale-suppressions . 2>&1)"
+  module_out="$(cd "$mod" && cqrs-lint --scope=module --strict --fail-on-stale-suppressions . 2>&1)"
   module_rc=$?
   # Finding lines carry a position: "<SEVERITY> <file>:<line>:<col> ..." at
   # column 0. The verdict banner's bare "ERROR" is indented, so it never
