@@ -1187,9 +1187,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # GO-2026-6859 (net/http, fixed in go1.27.4): pinned while the ADR-0003
+      # fleet nixpkgs rev still ships 1.27.3 — go.work stays 1.27.3 (the
+      # check-go-toolchain gate forbids directive > flake toolchain under
+      # GOTOOLCHAIN=local). Revert to go-version-file when the fleet rev
+      # ships >= 1.27.4 (tracked in TODO_LIST).
       - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
-          go-version-file: go.mod
+          go-version: "1.27.4"
 
       # Canonical zero-pseudo scan (scripts/checks/check-require-tags.sh) replaces
       # the former inline grep copy in this job.
