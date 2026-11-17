@@ -2,13 +2,18 @@
   description = "Go library for go-cqrs-lite with HTMX, templ, and Casbin authorization";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # adr/0003 §canon: fleet-pinned nixpkgs rev (go 1.27.3 ships natively —
+    # the 2026-09..11 overrideAttrs patch-forward hack is gone with it).
+    nixpkgs.url = "github:NixOS/nixpkgs/d5cc6833999746cffdfe0598f7bc801a57b887a9";
     flake-parts = {
-      url = "github:hercules-ci/flake-parts";
+      url = "github:hercules-ci/flake-parts/ea2630b7470978622c7689a1ff75d2b389175399";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
     treefmt-nix = {
-      url = "github:numtide/treefmt-nix";
+      # 0d6d739a + canon nixpkgs d5cc6833 is the verified-working pairing
+      # (2026-11-17 A08: treefmt-full-flake templates, check=0); treefmt-nix
+      # revs older than this broke on canon nixpkgs' nodePackages removal.
+      url = "github:numtide/treefmt-nix/0d6d739a833ba9a9c93034862e4a7b061a062a1c";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -33,35 +38,10 @@
           ...
         }:
         let
-          # 2026-09-19: the fleet re-pin condition fired — go-cqrs-lite moved
-          # ALL its modules to go 1.27.1 (upstream go-finding v1.11 pushed
-          # module floors to >= 1.27.1) and go-etag v0.4.0 declares go 1.27.1
-          # too. GOTOOLCHAIN=local (sandbox forbids toolchain downloads)
-          # cannot satisfy those directives under go_1_26, so the toolchain
-          # moves to nixpkgs' go_1_27 — the same change go-cqrs-lite landed
-          # in its flake the same day.
-          #
-          # 2026-10-11: stdlib net/http vulns GO-2026-6603/6611/6613/6617
-          # (HTTP/2 HPACK race class) reddened CI's govulncheck on the 1.27.1
-          # floor; fixes ship in go 1.27.2. This nixpkgs rev still carries
-          # go_1_27 = 1.27.1, so pin the patch version forward via
-          # overrideAttrs (same mechanism go-health used in reverse for gosec
-          # on 2026-10-11) instead of a whole nixpkgs bump.
-          # 2026-11-07: 1.27.3 — go-faster/errors v0.8.0's MVS floor pushed
-          # go.work past 1.27.2; the fleet floor follows (all module go.mods
-          # bumped same-wave).
-          goPkg = pkgs.go_1_27.overrideAttrs (_old: rec {
-            version = "1.27.3";
-            src = pkgs.fetchurl {
-              url = "https://go.dev/dl/go${version}.src.tar.gz";
-              # Real hash for go1.27.3.src.tar.gz. The placeholder here broke
-              # every nix-backed gate app (check-modules, coverage-gate,
-              # cqrs-lint, build-adminui-css, e2e) AND the pre-commit hook's
-              # nix-fmt step; recorded from the build's own mismatch report
-              # (2026-11-14).
-              hash = "sha256-bndJA1zzYPBrJXXRYup535/ajvZxiJ5cN1+OUHd/Jrs=";
-            };
-          });
+          # adr/0003: canon nixpkgs (d5cc6833, 2026-11-13) ships go 1.27.3
+          # natively, so the 2026-10/11 overrideAttrs patch-forward block
+          # (1.27.1 -> 1.27.2 -> 1.27.3 while nixpkgs trailed) is retired.
+          goPkg = pkgs.go_1_27;
 
           goEnv = ''
             export GOWORK=off

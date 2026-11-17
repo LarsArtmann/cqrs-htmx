@@ -17,6 +17,7 @@
       "original": {
         "owner": "hercules-ci",
         "repo": "flake-parts",
+        "rev": "ea2630b7470978622c7689a1ff75d2b389175399",
         "type": "github"
       }
     },
@@ -31,8 +32,8 @@
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-unstable",
         "repo": "nixpkgs",
+        "rev": "d5cc6833999746cffdfe0598f7bc801a57b887a9",
         "type": "github"
       }
     },
@@ -60,6 +61,7 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "rev": "0d6d739a833ba9a9c93034862e4a7b061a062a1c",
         "type": "github"
       }
     }
