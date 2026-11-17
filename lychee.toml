@@ -1,0 +1,12 @@
+# lychee link-check configuration.
+#
+# BuildFlow's lychee step merges this repo config with its own default
+# archived-docs excludes (docs/status, docs/planning/archive*, docs/reviews,
+# docs/feedback). The two entries below cover this repo's additional
+# point-in-time doc directories — archived reports quote the very links they
+# fixed, so checking them is guaranteed false-positive volume
+# (BuildFlow doctor check `lychee-archived-docs`, 2026-11-15).
+exclude_path = [
+  "docs/modularization/archived",
+  "docs/research/archived",
+]
