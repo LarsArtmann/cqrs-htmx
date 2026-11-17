@@ -32,7 +32,7 @@ require (
 	github.com/larsartmann/go-datastar/static v0.8.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
-	github.com/larsartmann/go-idempotency v0.4.0 // indirect
+	github.com/larsartmann/go-idempotency v0.5.0 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil v1.9.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
