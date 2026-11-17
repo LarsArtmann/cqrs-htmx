@@ -31,7 +31,7 @@
 
       // A009 (missing-stack-preset): this is a LIBRARY family — stack/ presets are
       // app composition roots; no module here is an application. Inherited by
-      // every submodule via config inheritance (toolsdk walk 2026-11-15).
+      // every submodule via config inheritance (toolsdk walk 2026-11-17).
       // F032 (no-catalog-import): the published-language surface is
       // usermgmt.DefaultEventCatalog + systemadapter.ArchitectureCatalog;
       // internal/hx is plumbing that imports go-cqrs-lite for event envelopes

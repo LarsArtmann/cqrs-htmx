@@ -5,7 +5,7 @@
 # docs/feedback). The two entries below cover this repo's additional
 # point-in-time doc directories — archived reports quote the very links they
 # fixed, so checking them is guaranteed false-positive volume
-# (BuildFlow doctor check `lychee-archived-docs`, 2026-11-15).
+# (BuildFlow doctor check `lychee-archived-docs`, 2026-11-17).
 exclude_path = [
   "docs/modularization/archived",
   "docs/research/archived",

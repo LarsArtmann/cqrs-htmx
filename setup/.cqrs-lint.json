@@ -1,7 +1,7 @@
 {
   "preset": "library",
   "rules": {
-    // NEW 2026-11-15 (per-module triage; the module had no config before).
+    // NEW 2026-11-17 (per-module triage; the module had no config before).
     // setup is the one-call COMPOSITION ROOT library — it wires consumer-
     // supplied pieces, owns no server and enforces no defaults.
     //

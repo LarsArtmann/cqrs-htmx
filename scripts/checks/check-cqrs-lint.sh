@@ -37,8 +37,15 @@ echo "candidates=${#MODULES[@]}"
 fail=0
 for mod in "${MODULES[@]}"; do
   echo "==> $mod"
+  # The gate's verdict is cqrs-lint's EXIT CODE (error-severity findings),
+  # which stays green while warning/info findings accumulate invisibly —
+  # the 2026-11-17 BuildFlow incident: 143 findings sat behind this redirect
+  # while the gate stayed green for weeks. On failure, re-run WITHOUT the
+  # redirect so the evidence is in the log instead of requiring a manual
+  # re-run; warnings stay non-blocking by design (same posture as CI).
   if ! (cd "$mod" && cqrs-lint --strict --fail-on-stale-suppressions . >/dev/null 2>&1); then
-    echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --fail-on-stale-suppressions .' for details)"
+    echo "FAIL: cqrs-lint findings in $mod (full report below):"
+    (cd "$mod" && cqrs-lint --strict --fail-on-stale-suppressions . 2>&1 | tail -60)
     fail=1
   fi
 done

@@ -7,7 +7,7 @@
     // R2, docs/planning/
     // 2026-11-03_20-02_SUPERB-gocqrslite-leverage-maximization-pareto-plan.md).
     //
-    // 2026-11-15 per-module triage (the BuildFlow cqrs-lint incident — the
+    // 2026-11-17 per-module triage (the BuildFlow cqrs-lint incident — the
     // toolsdk walk surfaced per-module findings the exit-code gate never
     // displayed; every class below verified against its sites):
     //

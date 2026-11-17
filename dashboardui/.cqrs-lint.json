@@ -7,7 +7,7 @@
     // consumer application's job, not the dashboard library's. Triage
     // 2026-11-05 (cqrs-lint v4.20.0).
     //
-    // C044 (branded-id-display-string), 2026-11-15: the sites are templ-
+    // C044 (branded-id-display-string), 2026-11-17: the sites are templ-
     // generated renders (truncated ID columns, row keys for hx-target
     // round-trips that re-parse on the server) and core read-model display
     // fields — display contexts, reviewed per the 2026-11-05 sweep.

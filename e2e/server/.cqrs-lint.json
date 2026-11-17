@@ -1,7 +1,7 @@
 {
   "preset": "library",
   "rules": {
-    // E2E test server (2026-11-15 per-module triage): a throwaway browser-
+    // E2E test server (2026-11-17 per-module triage): a throwaway browser-
     // battery fixture, not shipped code — Playwright drives it, and its
     // event flow mirrors the demos (emitDebugHandler must-style panics,
     // journal reads, in-memory stores). Findings here prove nothing about

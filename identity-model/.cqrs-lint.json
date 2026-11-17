@@ -8,13 +8,13 @@
     // DefaultEventCatalog. Importing go-cqrs-lite/catalog here would be a
     // dead dependency. Triage 2026-11-05 (cqrs-lint v4.20.0).
     //
-    // E005 (command-without-handler), 2026-11-15: identity-model DECLARES the
+    // E005 (command-without-handler), 2026-11-17: identity-model DECLARES the
     // 21 command types as the published catalog; handlers register in
     // CONSUMERS (usermgmt deciders, systemadapter.DomainConfig,
     // system.RegisterCommand). A per-module walk structurally cannot see
     // cross-module registrations — every declaration would warn forever.
     //
-    // C013 (time-time-in-event-payload), 2026-11-15: SessionStarted/Ended
+    // C013 (time-time-in-event-payload), 2026-11-17: SessionStarted/Ended
     // carry StartedAt/ExpiresAt as time.Time — UTC instants by construction
     // (issued/verified server-side); the CBOR epoch zone drop is benign. The
     // event.Instant migration is a v5-class payload API change across every

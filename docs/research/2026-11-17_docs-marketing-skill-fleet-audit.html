@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>How 21 Fleet Reviews Read cqrs-htmx — Docs, Marketing &amp; AI-Skill Brief (2026-11-17)</title>
     <style>
       /* =========================================================================
          BAUHAUS LIGHT — Editorial template
@@ -848,15 +848,13 @@
     </style>
   </head>
   <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>FLEET ADOPTION AUDIT &middot; DOCS / MARKETING / AI SKILL</span>
+      <span>2026-11-17</span>
+      <span>cqrs-htmx maintainers</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
@@ -864,213 +862,701 @@
           <a href="#scorecard">Scorecard</a>
           <a href="#strengths">Strengths</a>
           <a href="#findings">Findings</a>
-          <a href="#proposal">Proposal</a>
+          <a href="#fixes">The fix list</a>
           <a href="#appendix">Appendix</a>
         </nav>
       </aside>
 
-      <!-- Main content -->
       <main class="main">
-        <!-- Hero -->
         <header class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="bar"></div>
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="eyebrow">REPORT TYPE &middot; YYYY-MM-DD</div>
-          <h1>Report Title</h1>
+          <div class="eyebrow">FLEET ADOPTION AUDIT &middot; 2026-11-17</div>
+          <h1>How 21 Fleet Reviews Read cqrs-htmx</h1>
           <p class="subtitle">
-            One or two sentences that set the frame: who this is for, what was
-            reviewed, and what the reader will take away.
+            Every project in the fleet has audited its use of this library in
+            <code>docs/review/libs/cqrs-htmx.md</code>. All 21 reviews were read
+            end to end; this brief extracts what they say about how the library
+            presents itself &mdash; its docs, its marketing (README/positioning),
+            and its AI skill (<code>.agents/skills/cqrs-htmx/SKILL.md</code>)
+            &mdash; and turns that into a prioritized fix list. Every claim was
+            re-verified against the tree at HEAD on 2026-11-17.
           </p>
           <div class="meta">
-            <span class="tag amber">Scope: example</span>
-            <span class="tag">Version: 1.0.0</span>
-            <span class="tag teal">Status: draft</span>
+            <span class="tag amber">Scope: docs &middot; marketing &middot; SKILL.md</span>
+            <span class="tag">Evidence: 21 reviews &middot; 2026-11-04&ndash;17</span>
+            <span class="tag teal">Status: improvement brief</span>
           </div>
         </header>
 
-        <!-- Scorecard -->
         <section id="scorecard" class="scorecard">
           <div class="score-card score-good">
+            <div class="score">11</div>
+            <div class="label">Correct non-adoptions (of 20 consumer reviews)</div>
+          </div>
+          <div class="score-card score-good">
             <div class="score">8</div>
-            <div class="label">Items passing</div>
+            <div class="label">Presentation strengths</div>
           </div>
           <div class="score-card score-warn">
-            <div class="score">3</div>
-            <div class="label">Warnings</div>
+            <div class="score">10</div>
+            <div class="label">Improvement findings</div>
           </div>
           <div class="score-card score-bad">
-            <div class="score">1</div>
-            <div class="label">Blockers</div>
-          </div>
-          <div class="score-card">
-            <div class="score">12</div>
-            <div class="label">Total reviewed</div>
+            <div class="score">3</div>
+            <div class="label">Blocking-class (license, security re-tag, discoverability)</div>
           </div>
         </section>
 
-        <!-- Summary -->
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            Replace this with the bottom-line verdict. A good summary tells the
-            reader whether the subject is ready, what the biggest risk is, and
-            what one action would unlock the most value.
+            The presentation engine <strong>works</strong>. Eleven of the twenty
+            consumer audits end in a <em>correct</em> refusal to adopt
+            (headless CLIs, single-operator tools, no go-cqrs-lite), and those
+            reviews quote the README fit-test line as the deciding artifact.
+            The AI skill is not marketing collateral &mdash; it is the
+            <strong>de-facto utilization rubric</strong>: consumer audits grade
+            their own endpoints against its sections by name, and its
+            vocabulary (Path 0/A/B/C) has migrated into consumers' own AGENTS
+            and STACK docs. Nine adopters run the library at 75&ndash;100/100
+            utilization.
+          </p>
+          <p>
+            The highest-leverage improvements are not new features. They are
+            corrections to signals the fleet is already reading, sometimes
+            wrongly: two consumer audits recorded this MIT library as
+            <em>proprietary</em>; a security patch sits stranded behind a
+            stale nested-module tag; the library's largest adoption tax
+            (dependency weight) is nowhere documented; and four integration
+            recipes had to be invented by consumers because the skill does not
+            carry them.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
-            State the verdict plainly. If the report is blocking, say so. If
-            it's mostly positive, lead with that.
+            Keep the positioning honest &mdash; it is the most-cited asset the
+            library has &mdash; and spend the next window on three
+            corrections (license disambiguation, the oauth2 security re-tag,
+            the header-constant discoverability erratum) and two additions
+            (the dependency-footprint table, the four invented skill recipes).
+            Everything else in this report is second-order.
           </div>
         </section>
 
-        <!-- Strengths -->
         <section id="strengths">
-          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <h2><span class="num">&#9670;</span>What the fleet says already works</h2>
           <p>
-            Before the criticism: acknowledge what works. This builds trust and
-            keeps the report from reading like a pure complaint list.
+            Eight presentation assets the consumer reviews treat as
+            load-bearing. These are the things to protect, not change.
           </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength one</strong>
-                <span>Explain why it matters and what it enables.</span>
+                <strong>The fit-test sentence closes bad adoptions before they start</strong>
+                <span>&ldquo;If you are not using go-cqrs-lite, this library is not for
+                you&rdquo; (<code>README.md:77</code>) is quoted approvingly in at least five
+                non-adoption audits (invoices, Cyberdom, google-domain-detector,
+                business-networking, profileagent) &mdash; several make it their
+                primary rejection reason. Honest negative-space marketing is the
+                single most-cited artifact across the fleet.</span>
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength two</strong>
-                <span
-                  >Reference files, metrics, or patterns where possible.</span
-                >
+                <strong>The AI skill is the fleet's utilization rubric</strong>
+                <span>audiblesync graded its endpoints against the skill <em>by section
+                name</em> (&ldquo;exactly the request-aware decoder the skill
+                prescribes&rdquo;, &ldquo;skill cheat sheet 1/3&rdquo;, &ldquo;skill Path 0
+                list&rdquo;, &ldquo;skill Form-based SSR/HTMX section&rdquo;); go-taskqueue
+                cross-checked its capability summary against <code>SKILL.md</code>;
+                Code-To-CV-Agent, cvagent and quotaboard use &ldquo;Path 0&rdquo; in
+                their own AGENTS/STACK docs. The skill's decision-tree vocabulary
+                is now shared fleet vocabulary &mdash; treat section titles and path
+                names as a published API.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>README receipts are stable and navigable</strong>
+                <span>Reviews cite the README by line number across months
+                (<code>README:23&ndash;36</code>, <code>:77</code>, <code>:83&ndash;86</code>,
+                <code>:100&ndash;112</code>, <code>:126&ndash;138</code>). The section
+                structure has not churned under them; that stability is why
+                consumers can cite it as evidence.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Deprecation hygiene is consumer-verifiable</strong>
+                <span>Code-To-CV-Agent migrated off <em>all</em> deprecated root aliases
+                ahead of v5 (&ldquo;zero remain, verified&rdquo;); audiblesync declared
+                itself &ldquo;already ready for the ADR-0062 v5 re-export deletion&rdquo;
+                by a one-line grep. Every deprecated symbol names its owner and
+                removal release, so audits can pin readiness mechanically.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The demand-signal loop is fast and credited</strong>
+                <span>browser-history filed issue #41; the huma adapter was built the
+                same day and tagged the next, with the changelog crediting the
+                issue. Their review calls it &ldquo;the ecosystem-first doctrine
+                working in both directions within ~24 hours.&rdquo; Adoption-side
+                reviews explicitly track this loop as a maturity signal.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The skill is one synchronized artifact</strong>
+                <span>Consumers read the fan-out copy
+                (<code>~/.config/crush/skills/cqrs-htmx/SKILL.md</code>); the repo
+                owns the source. Verified in sync this session (byte-identical).
+                The fleet's audits cite both paths interchangeably.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Migration docs are consumed, not just written</strong>
+                <span><code>VERSIONING.md</code>, <code>docs/migrations/v4-to-v5.md</code>
+                (per-symbol WebSocket-removal recipes) and the ADR index are
+                cited by Cyberdom, webphone and ChastityAPI as decision inputs.
+                The SSE-only ADR 0046 is referenced in ten separate reviews.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Dogfooding receipts back the marketing claims</strong>
+                <span>The self-audit (87 count / ~95 effective) shows the shipped UIs
+                exercising the same pipeline stages consumers get &mdash; QUERY ladder
+                in a product panel, OpenAPI from an internal UI, postures generated
+                from one routeSpec table. Marketing claims and internal proof
+                point at the same code.</span>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- Findings -->
         <section id="findings">
           <h2><span class="num">01</span>Findings</h2>
-          <p>These are the issues that need attention, ordered by impact.</p>
-
-          <!-- Issue 1 -->
-          <div class="issue issue-critical" id="issue-1">
-            <span class="severity severity-critical"
-              >Blocking &middot; High impact</span
-            >
-            <h3>Critical issue title</h3>
-            <div class="where">
-              path/to/file.go:42-58 &middot; short context
-            </div>
-            <p>
-              Describe the problem, cite the code or behavior, and explain why
-              it matters to the reader's goals.
-            </p>
-            <pre><code>// Example of the problematic pattern
-func BadExample() {}</code></pre>
-            <div class="callout callout-teal">
-              <strong>Fix: recommended action</strong>
-              State the concrete fix, including file names, function names, or
-              configuration changes.
-            </div>
-          </div>
-
-          <!-- Issue 2 -->
-          <div class="issue issue-important" id="issue-2">
-            <span class="severity severity-important"
-              >Important &middot; Medium impact</span
-            >
-            <h3>Important issue title</h3>
-            <div class="where">path/to/another.go:12-19</div>
-            <p>
-              Explain the risk. Important issues are not blockers but would make
-              a careful reviewer hesitate before shipping.
-            </p>
-          </div>
-
-          <!-- Issue 3 -->
-          <div class="issue issue-nice" id="issue-3">
-            <span class="severity severity-nice"
-              >Nice to have &middot; Low impact</span
-            >
-            <h3>Nice-to-have improvement</h3>
-            <div class="where">docs/ or config</div>
-            <p>
-              Minor polish, documentation gaps, or future-proofing suggestions
-              go here.
-            </p>
-          </div>
-        </section>
-
-        <!-- Proposal -->
-        <section id="proposal">
-          <h2><span class="num">02</span>What the solution could look like</h2>
           <p>
-            If the findings were fixed, what would the new state be? Show the
-            target API, structure, or workflow.
+            Ordered by impact. Severity classes: <strong>critical</strong> =
+            wrong or stranded signals consumers act on today;
+            <strong>important</strong> = recurring friction every audit
+            re-derives; <strong>nice</strong> = leverage waiting to be claimed.
           </p>
-          <pre><code>// Target state after the recommended changes
-type BetterAPI struct {
-    Field string
-}</code></pre>
-          <div class="callout callout-teal">
-            <strong>This is the target</strong>
-            Summarize why this state is better and what it unlocks.
+
+          <div class="issue issue-critical" id="issue-1">
+            <span class="severity severity-critical">Critical &middot; consumers are deciding on a wrong premise</span>
+            <h3>F1 &mdash; License split-brain: the fleet records this MIT library as proprietary</h3>
+            <div class="where">
+              LICENSE (MIT, line 1) &middot; README.md:6 badge &middot; cited wrong in:
+              go-taskqueue review, business-networking review
+            </div>
+            <p>
+              <code>go-taskqueue/docs/review/libs/cqrs-htmx.md</code> keeps the
+              library out partly on a &ldquo;License/stance note:
+              PROPRIETARY (same author/policy as go-cqrs-lite)&hellip; cqrs-htmx
+              has no such instruction here.&rdquo; business-networking claims
+              adoption &ldquo;would add&hellip; a proprietary licence.&rdquo;
+              Both are factually wrong &mdash; the LICENSE is MIT &mdash; and the
+              error pattern-matches the sibling library, whose proprietary
+              status is real and does gate some consumers. The license signal
+              is being inherited across the family instead of read per
+              library, and it has already contaminated one keep-out verdict
+              and one &ldquo;to the max&rdquo; cost estimate.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Disambiguate per library in every family-facing surface: the
+              README first screen already carries the MIT badge &mdash; add one
+              line where the family is discussed (&ldquo;MIT. Note: some sibling
+              LarsArtmann libraries are proprietary; each repo's LICENSE is
+              authoritative&rdquo;), and mirror the note in the how-to-golang /
+              stack-selection policy tables consumers actually consult. Write
+              errata on the two consumer reviews (the fleet's erratum culture
+              expects corrections in place, not rewrites).
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="issue-2">
+            <span class="severity severity-critical">Critical &middot; a security patch is unreachable by its consumers</span>
+            <h3>F2 &mdash; The go-jose DoS patch is stranded behind a stale oauth2 sub-tag</h3>
+            <div class="where">
+              commit 7fd1db43 (2026-10-28) &middot; latest
+              <code>usermgmt/oauth2/*</code> tag: v4.13.0 (2026-10-11) &mdash;
+              verified 2026-11-17 via <code>git tag -l 'usermgmt/oauth2/*'</code>
+            </div>
+            <p>
+              The JWK RSA-key DoS patch (go-jose v4.1.5 &rarr; v4.1.6) landed on
+              the root train, but the oauth2 nested module has not been
+              re-tagged since &mdash; and nested-module importers cannot consume
+              root-tag-only releases (dnsblockd's review names this exact
+              mechanism as the &ldquo;templ-components v1.8.3 class&rdquo;).
+              dnsblockd, the standalone oauth2 consumer, has now documented
+              the exposure in its own review &mdash; dependency resolved to
+              v4.1.5, patch uncovered &mdash; with the practical severity
+              downgraded only because its IdP is operator-configured. The
+              stranded state is still live three weeks later.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Cut <code>usermgmt/oauth2/v4.13.1</code> (and sweep webauthn/totp
+              if their closures carry the same bump) and publish the consumer
+              sweep recipe in the changelog entry. Then add the release rule:
+              a security-relevant dependency bump inside a nested module's
+              closure triggers a same-window nested re-tag. Consumers should
+              never have to file the release request themselves.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="issue-3">
+            <span class="severity severity-critical">Critical &middot; an audit mis-verified a shipped surface</span>
+            <h3>F3 &mdash; The Header* constants exist, yet a fleet audit concluded they don't</h3>
+            <div class="where">
+              htmx/htmx.go:27-28 (<code>HeaderRetarget</code>,
+              <code>HeaderReswap</code>) &middot; added e1bc0095, 2026-11-04
+              &middot; present in v4.18.1 &mdash; the exact tag audiblesync pins
+            </div>
+            <p>
+              audiblesync's review states: &ldquo;the htmx subpackage exposes no
+              constants for them (verified via go doc)&rdquo; and hand-rolls the
+              raw strings <code>"HX-Retarget"</code>/<code>"HX-Reswap"</code> in
+              its error contract. The constants exist in the tag the audit
+              pins. Whether the cause was a stale module cache or the
+              <code>Header</code> prefix hiding them from a searcher looking
+              for <code>Retarget</code>, the outcome is the same: a careful
+              fleet audit ran a verification and got a false negative on a
+              shipped API &mdash; and encoded the raw-string workaround as its
+              documented contract.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Three layers: (1) skill &mdash; add <code>htmx.HeaderRetarget</code>/
+              <code>HeaderReswap</code> to the &ldquo;Discoverability notes&rdquo;
+              section and cross-link them from the Response-builder
+              <code>Retarget()</code> bullet; (2) erratum on the audiblesync
+              review citing <code>htmx/htmx.go:27-28</code>; (3) consider the
+              discoverability lesson &mdash; the constants' names are the only
+              API element in the package that does not start with what a
+              consumer searches for.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="issue-4">
+            <span class="severity severity-important">Important &middot; the #1 recorded non-adoption tax is undocumented</span>
+            <h3>F4 &mdash; Dependency weight decides adoptions, and every audit re-derives it by hand</h3>
+            <div class="where">
+              Six reviews derive it manually: PapDashboard, dnsblockd,
+              google-domain-detector, io-surface, invoices, Cyberdom
+            </div>
+            <p>
+              The recurring computation: PapDashboard &mdash; &ldquo;1 symbol costs
+              the binary go-sse + go-etag + go-idempotency compilation
+              units&rdquo;; dnsblockd &mdash; re-implemented
+              <code>RenderTemplComponent</code> locally to avoid dragging the
+              &ldquo;11-repo closure&rdquo; into a hermetic flake;
+              google-domain-detector &mdash; &ldquo;dependency explosion for a
+              hermetic nix single-binary CLI&rdquo;; io-surface &mdash; &ldquo;four
+              rejections compounding into one&rdquo;; invoices &mdash; &ldquo;ADD ~7
+              direct deps, a toolchain bump&rdquo;; Cyberdom &mdash; the
+              vendorHash recompute dance. The README's module table says what
+              each module <em>provides</em> but never what it <em>costs</em>.
+              For this fleet &mdash; nix-heavy, hermetic-build-sensitive
+              &mdash; the closure footprint is a first-class adoption
+              criterion, and the library makes every consumer measure it
+              themselves.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Publish a per-module dependency-footprint table in the README
+              (direct requires count, closure size, Go floor per module),
+              linked from &ldquo;The modules&rdquo; section. Regenerate it in the
+              release checklist so it cannot rot &mdash; the same
+              single-source discipline as the coverage thresholds.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="issue-5">
+            <span class="severity severity-important">Important &middot; two near-adopters stalled on the same buried fact</span>
+            <h3>F5 &mdash; dashboardui's identity-free mounting is true but nearly undiscoverable</h3>
+            <div class="where">
+              dashboardui/go.mod (zero usermgmt requires &mdash; verified
+              2026-11-17) &middot; stated in one skill table row &middot; absent
+              from dashboardui/README.md Integration Modes
+            </div>
+            <p>
+              The index audit treats dashboardui-only adoption as
+              &ldquo;gated: API-key-only mounting UNVERIFIED &mdash; treat as
+              gated&rdquo;; CV's review parks dashboardui as its one real
+              future candidate. The decisive fact &mdash; dashboardui depends
+              on root + go-cqrs-lite only, <em>no usermgmt</em> &mdash; exists
+              in exactly one place: the skill's module table
+              (&ldquo;verified against dashboardui/go.mod 2026-10-25&rdquo;).
+              The consumer-facing document (dashboardui README, Integration
+              Modes section) does not lead with it, so two separate audits
+              hedged on the same question within one week.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              dashboardui/README.md &sect; Integration Modes gets an explicit
+              &ldquo;Runs without usermgmt&rdquo; receipt (go.mod citation) plus a
+              headless/API-key mounting example. The skill row stays as the
+              pointer; the README becomes the proof.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="issue-6">
+            <span class="severity severity-important">Important &middot; every consumer audit re-explains the tag mechanics</span>
+            <h3>F6 &mdash; Per-module release trains need a consumer-facing doc</h3>
+            <div class="where">
+              dnsblockd &sect;2, PapDashboard &sect;1, journal, browser-history
+              &sect;2 &mdash; each spends paragraphs explaining trains
+            </div>
+            <p>
+              Consumers repeatedly reconstruct the release model mid-audit:
+              dnsblockd explains that a flake input must ride &ldquo;the tag
+              whose commit carries the sub-module tag&rdquo; and that
+              &ldquo;root-tag-only releases can't be consumed by nested-module
+              importers&rdquo;; PapDashboard notes &ldquo;core tags vs package
+              tags move separately&rdquo;; browser-history documents being
+              four minors behind loginpage/adminui (masked in dev by
+              go.work replaces); journal missed the htmx 2.0.11 asset release
+              for two minors before catching it. The per-module train design
+              is deliberate and correct &mdash; but it is explained in
+              maintainer docs, not consumer docs, so every audit pays the
+              comprehension cost again.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Extend README &sect; Versioning &amp; migrations with a
+              consumer-facing train table: which nested tags map to which
+              root tag, the flake-input rule for nested-module importers, and
+              the escalation path when a nested train lags a security patch
+              (see F2). Link it from each nested module's README.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="issue-7">
+            <span class="severity severity-important">Important &middot; changelog receipts outran the tags once already</span>
+            <h3>F7 &mdash; Changelog claims need per-tag diff verification</h3>
+            <div class="where">
+              dnsblockd review errata (2026-11-08) &mdash; the receipt for this
+              finding
+            </div>
+            <p>
+              dnsblockd's refresh found that v4.13.0's changelog receipts
+              documented three features (<code>ClientType</code> public
+              clients, <code>preferred_username</code>,
+              <code>FinishLoginWithToken</code>) that were already present in
+              v4.12.0 &mdash; verified by reading the tagged
+              <code>provider.go</code> &mdash; and that its earlier edition had
+              cited APIs (&ldquo;<code>BeginLoginWithNonce</code>&rdquo;) that do
+              not exist at any tag. A consumer audit treating the changelog as
+              version truth got burned twice by the same document class.
+              Consumers plan bumps and security postures from these receipts;
+              a receipts-vs-tree mismatch costs them a verification round
+              trip per claim.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Add a receipt rule to the release checklist: every changelog
+              entry naming a symbol must be diff-verified against the tagged
+              tree at tag time (the release-train gate can carry the check).
+              Ship the dnsblockd-class erratum practice upstream: when a
+              receipt is found overstated, correct the changelog of the next
+              train with a dated note.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="issue-8">
+            <span class="severity severity-important">Important &middot; four integration recipes were invented downstream</span>
+            <h3>F8 &mdash; The skill is missing the recipes consumers had to derive themselves</h3>
+            <div class="where">
+              .agents/skills/cqrs-htmx/SKILL.md (764 lines) &mdash; verified
+              absent by grep this session
+            </div>
+            <p>
+              The skill's decision trees are the fleet's rubric &mdash; which is
+              exactly why its gaps become every consumer's invention: (1)
+              <strong>standalone oauth2</strong> &mdash; dnsblockd built the
+              lazy-provider-retry + <code>FinishLoginWithToken</code> nonce
+              pattern with no Path in the skill covering &ldquo;oauth2 module
+              without usermgmt&rdquo;; (2) <strong>the HTMX flash error
+              contract</strong> &mdash; audiblesync hand-designed
+              200 + <code>HX-Retarget</code> + <code>HX-Reswap</code> retarget
+              to a flash partial (the skill documents
+              <code>Retarget()</code> but no error-path recipe); (3)
+              <strong>dashboardui headless mounting</strong> &mdash; index's
+              &ldquo;API-key-only mounting UNVERIFIED&rdquo; question; (4)
+              <strong>metaengine facts &rarr; dashboardui</strong> &mdash;
+              invoices and CV both park event-store observability because
+              systemadapter covers the identity domain only. Each of these is
+              a consumer that invented a pattern the library wants adopted
+              uniformly.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Add a &ldquo;Standalone module recipes&rdquo; skill section with the
+              four patterns, each crediting the consumer that proved it
+              (dnsblockd, audiblesync, index, invoices). Keep the existing
+              path names and section titles untouched &mdash; consumers cite
+              them verbatim; this is additive.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="issue-9">
+            <span class="severity severity-nice">Nice to have &middot; the API-side completion of F3</span>
+            <h3>F9 &mdash; A first-class &ldquo;error &rarr; HTMX flash&rdquo; helper</h3>
+            <div class="where">
+              candidate: httperr package &middot; demand signal: audiblesync's
+              dispatchError/flash contract (handlers.go:221-251)
+            </div>
+            <p>
+              audiblesync's bespoke contract &mdash; HTMX clients get
+              200 + retarget to a flash partial, plain clients get the real
+              status &mdash; is the shape at least two other HTMX consumers will
+              re-derive (it is the standard HTMX error UX). Once the F3
+              discoverability fix lands, a <code>httperr.FlashErrorHandler</code>
+              (or a documented Response-builder recipe) turns that invention
+              into a paved road. Candidate for the v4 line's next minor; not
+              urgent.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="issue-10">
+            <span class="severity severity-nice">Nice to have &middot; converts two parked near-adopters</span>
+            <h3>F10 &mdash; The metaengine-facts &rarr; dashboardui bridge story</h3>
+            <div class="where">
+              demand signal: invoices review recommendation 3 &middot; CV review
+              &ldquo;dashboardui post-S5&rdquo; park
+            </div>
+            <p>
+              Two consumers independently want dashboardui's event-store
+              observability over a metaengine journal without the identity
+              stack, and both stop at the same missing piece: a documented
+              bridge from metaengine facts to the dashboard's domain-event
+              surface (invoices proposes pricing &ldquo;a thin bridge&rdquo;;
+              CV parks behind its S5 cutover). A guide &mdash; or an
+              <code>examples/</code> spike &mdash; would convert both from
+              parked to adoptable, and it reuses F5's README receipt as its
+              front door.
+            </p>
           </div>
         </section>
 
-        <!-- Appendix -->
-        <section id="appendix">
-          <h2><span class="num">03</span>Appendix</h2>
+        <section id="fixes">
+          <h2><span class="num">02</span>The fix list, in order</h2>
           <p>
-            Methodology, links to related files, or a priority matrix can live
-            here.
+            Impact &times; ease, with the evidence receipt each step closes.
+            Steps 1&ndash;3 are corrections to wrong/stranded signals; steps
+            4&ndash;6 are additions; step 7 is the process rule that keeps the
+            class from recurring.
           </p>
           <table class="compare">
             <thead>
               <tr>
-                <th>Issue</th>
-                <th>Severity</th>
+                <th>#</th>
+                <th>Action</th>
+                <th>Finding</th>
                 <th>Effort</th>
-                <th>Status</th>
+                <th>Closes</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Issue one</td>
-                <td class="no">Critical</td>
-                <td>Low</td>
-                <td class="no">Open</td>
+                <td>1</td>
+                <td>Cut <code>usermgmt/oauth2/v4.13.1</code> carrying the go-jose DoS patch; publish the consumer sweep recipe</td>
+                <td>F2</td>
+                <td>Release pass</td>
+                <td class="no">Live exposure</td>
               </tr>
               <tr>
-                <td>Issue two</td>
-                <td class="no">Important</td>
-                <td>Medium</td>
-                <td class="yes">In progress</td>
+                <td>2</td>
+                <td>License disambiguation line in README + policy tables; errata on the two consumer reviews</td>
+                <td>F1</td>
+                <td>~1 h</td>
+                <td class="no">Wrong premise</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Skill Discoverability notes gain <code>HeaderRetarget</code>/<code>HeaderReswap</code>; audiblesync review erratum</td>
+                <td>F3</td>
+                <td>~30 min</td>
+                <td class="no">False negative</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>dashboardui README: &ldquo;Runs without usermgmt&rdquo; receipt + headless mounting example</td>
+                <td>F5</td>
+                <td>~30 min</td>
+                <td class="yes">2 parked adopters</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>README dependency-footprint table (per module: direct requires, closure, Go floor), release-checklist generated</td>
+                <td>F4</td>
+                <td>~2 h</td>
+                <td class="yes">#1 non-adoption tax</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Consumer-facing release-train table in README &sect; Versioning; link from nested READMEs</td>
+                <td>F6</td>
+                <td>~1 h</td>
+                <td class="yes">Per-audit re-derivation</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Standalone-recipes skill section (oauth2 / flash contract / dashboardui headless / metaengine bridge), consumer-credited</td>
+                <td>F8</td>
+                <td>~2 h</td>
+                <td class="yes">4 invented patterns</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Changelog receipt rule (diff-verify named symbols at tag time) in the release checklist / release-train gate</td>
+                <td>F7</td>
+                <td>~1 h</td>
+                <td class="yes">Receipt trust</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><code>httperr.FlashErrorHandler</code> or documented flash recipe (v4 minor)</td>
+                <td>F9</td>
+                <td>Half-day</td>
+                <td class="yes">Paved road</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>metaengine-facts &rarr; dashboardui bridge guide or example spike</td>
+                <td>F10</td>
+                <td>1&ndash;2 days</td>
+                <td class="yes">2 near-adopters</td>
               </tr>
             </tbody>
           </table>
+          <div class="callout callout-teal">
+            <strong>Sequencing note</strong>
+            Steps 1&ndash;3 are corrections and belong in the next working
+            session; steps 4&ndash;6 ride the next README/docs pass; step 7
+            belongs with the next skill edit (section titles must not
+            change); steps 9&ndash;10 are v4-line candidates for the next minor
+            train.
+          </div>
         </section>
 
-        <!-- Footer -->
+        <section id="appendix">
+          <h2><span class="num">03</span>Appendix &mdash; evidence &amp; verification</h2>
+          <p>
+            <strong>Method.</strong> All 21
+            <code>~/projects/*/docs/review/libs/cqrs-htmx.md</code> files were
+            read in full (2026-11-17): 20 consumer audits plus the in-repo
+            self-audit. Every finding above cites the review(s) that surfaced
+            it, and every factual claim about this repo was re-verified
+            against HEAD this session. External-repo paths are cited as
+            evidence text, not links.
+          </p>
+
+          <h3 style="margin-top:1.5rem">The evidence base</h3>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Consumer repo</th>
+                <th>Verdict</th>
+                <th>Score</th>
+                <th>Cites in this report</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>audiblesync</td><td class="yes">USED &middot; expand</td><td>77</td><td>skill-as-rubric (S), F3, F8</td></tr>
+              <tr><td>dnsblockd</td><td class="yes">USED &middot; oauth2 module</td><td>100</td><td>F2, F4, F6, F7, F8</td></tr>
+              <tr><td>invoices</td><td class="no">DEFER</td><td>&mdash;</td><td>fit-test (S), F4, F10</td></tr>
+              <tr><td>journal</td><td class="yes">USED &middot; Tier-0 + dashboardui</td><td>86</td><td>F6</td></tr>
+              <tr><td>browser-history</td><td class="yes">USED &middot; deepest consumer</td><td>80</td><td>demand loop (S), F6</td></tr>
+              <tr><td>Code-To-CV-Agent</td><td class="yes">USED &middot; Path 0</td><td>92</td><td>skill vocab (S), deprecations (S)</td></tr>
+              <tr><td>quotaboard</td><td class="yes">USED &middot; core pipelines</td><td>75</td><td>skill vocab (S)</td></tr>
+              <tr><td>webphone</td><td class="yes">USED &middot; identity train</td><td>100</td><td>migration docs (S)</td></tr>
+              <tr><td>pbx-lens</td><td class="yes">ADOPTED &middot; leaf modules</td><td>78</td><td>&mdash;</td></tr>
+              <tr><td>PapDashboard</td><td class="yes">USED &middot; single symbol</td><td>6</td><td>F4, F6</td></tr>
+              <tr><td>Cyberdom</td><td class="no">DEFER (Phase 3)</td><td>&mdash;</td><td>fit-test (S), F4, migration docs (S)</td></tr>
+              <tr><td>google-domain-detector</td><td class="no">NOT ADOPTED</td><td>&mdash;</td><td>fit-test (S), F4</td></tr>
+              <tr><td>business-networking</td><td class="no">SKIP</td><td>&mdash;</td><td>fit-test (S), F1</td></tr>
+              <tr><td>go-taskqueue</td><td class="no">KEEP OUT</td><td>&mdash;</td><td>skill citation (S), F1</td></tr>
+              <tr><td>cv</td><td class="no">NOT USED (correct)</td><td>&mdash;</td><td>F5, F10</td></tr>
+              <tr><td>CV</td><td class="no">NOT USED (correct)</td><td>&mdash;</td><td>F5, F10</td></tr>
+              <tr><td>index</td><td class="no">DON'T ADOPT NOW</td><td>&mdash;</td><td>F5</td></tr>
+              <tr><td>ChastityAPI</td><td class="no">KEEP NOT IMPORTING</td><td>&mdash;</td><td>pattern ports (S)</td></tr>
+              <tr><td>io-surface</td><td class="no">NOT USED</td><td>&mdash;</td><td>F4</td></tr>
+              <tr><td>profileagent</td><td class="no">REJECT (trigger documented)</td><td>&mdash;</td><td>fit-test (S)</td></tr>
+              <tr><td>cqrs-htmx (self-audit)</td><td class="yes">Dogfooding</td><td>87/95</td><td>dogfooding (S)</td></tr>
+            </tbody>
+          </table>
+
+          <h3 style="margin-top:1.5rem">How to verify (all run this session)</h3>
+          <pre><code># F1: the license is MIT
+head -2 LICENSE; grep -n "License: MIT" README.md | head -1
+rg -n "PROPRIETARY|proprietary" ~/projects/go-taskqueue/docs/review/libs/cqrs-htmx.md \
+   ~/projects/business-networking/docs/review/libs/cqrs-htmx.md
+
+# F2: the oauth2 train lags the go-jose DoS patch
+git tag -l 'usermgmt/oauth2/*' | sort -V | tail -1        # v4.13.0 (2026-10-11)
+git log --format="%h %cs %s" -1 7fd1db43                  # 2026-10-28, the DoS patch
+
+# F3: the constants exist at the tag the audit pins
+git show v4.18.1:htmx/htmx.go | grep -n "HeaderRetarget\|HeaderReswap"
+rg -n "no constants" ~/projects/audiblesync/docs/review/libs/cqrs-htmx.md
+
+# F5: dashboardui really has no usermgmt require
+grep -c usermgmt dashboardui/go.mod                       # 0
+rg -n "UNVERIFIED" ~/projects/index/docs/review/libs/cqrs-htmx.md
+
+# Skill-as-rubric (S2) + skill recipe gaps (F8)
+rg -n "skill Path|skill cheat|SKILL.md" ~/projects/audiblesync/docs/review/libs/cqrs-htmx.md \
+   ~/projects/go-taskqueue/docs/review/libs/cqrs-htmx.md | head -6
+rg -c "standalone|FinishLoginWithToken" .agents/skills/cqrs-htmx/SKILL.md \
+   .agents/skills/cqrs-htmx/references/*.md               # no standalone-oauth2 recipe
+
+# The fit-test line the non-adopters quote
+sed -n '77p' README.md
+rg -l "not for you" ~/projects/*/docs/review/libs/cqrs-htmx.md | wc -l   # 5+</code></pre>
+
+          <p style="margin-top:1rem">
+            <strong>Related in this repo:</strong>
+            the fleet series index at
+            <a href="../review/libs/index.html">docs/review/libs/index.html</a>,
+            this library's self-audit at
+            <a href="../review/libs/cqrs-htmx.md">docs/review/libs/cqrs-htmx.md</a>,
+            the skill source at
+            <a href="../../.agents/skills/cqrs-htmx/SKILL.md">.agents/skills/cqrs-htmx/SKILL.md</a>,
+            and the go-cqrs-lite adoption-audit series entry at
+            <a href="2026-11-03_go-cqrs-lite-deep-dive.html">2026-11-03_go-cqrs-lite-deep-dive.html</a>.
+          </p>
+        </section>
+
         <footer class="footer">
           <p>
-            Generated YYYY-MM-DD &middot; Reviewed against version X.Y.Z
-            &middot; All claims verified against source code where noted
+            Generated 2026-11-17 &middot; Evidence: 21 fleet reviews dated
+            2026-11-04&ndash;17 &middot; every repo claim re-verified against
+            HEAD this session &middot; external review paths cited as evidence,
+            not links
           </p>
         </footer>
       </main>
     </div>
 
-    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
     <script>
       (function () {
         if (!("IntersectionObserver" in window)) return;
