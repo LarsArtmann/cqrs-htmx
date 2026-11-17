@@ -1,6 +1,6 @@
 # Status — M01 aggregate closure: branching-flow re-pin, final 104/104, docs-gates green
 
-> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](../2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which M01 closure + branching-flow re-pin + docs-gates green all landed and extended by the 11-16 re-pin (212). Strike depth:
+> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which M01 closure + branching-flow re-pin + docs-gates green all landed and extended by the 11-16 re-pin (212). Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-16 (round-23 (2026-11-16)).**
 

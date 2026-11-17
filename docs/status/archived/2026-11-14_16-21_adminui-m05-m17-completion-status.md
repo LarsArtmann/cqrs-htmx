@@ -1,6 +1,6 @@
 # Adminui next-wave M05–M17 completion — session status report
 
-> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](../2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which M05-M17 exit set: the wave shipped and its distinctive tails are harvested as TODO_LIST P2 rows; the comprehensive 11-15 ledger is the current execution record. Strike depth:
+> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which M05-M17 exit set: the wave shipped and its distinctive tails are harvested as TODO_LIST P2 rows; the comprehensive 11-15 ledger is the current execution record. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-16 (round-23 (2026-11-16)).**
 

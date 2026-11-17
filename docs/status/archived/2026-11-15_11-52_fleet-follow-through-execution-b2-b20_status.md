@@ -1,6 +1,6 @@
 # Fleet-audit follow-through execution — B1..B20 status (supersedes the 07-16 refresh session's tail)
 
-> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](../2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which the v2 plan executable tail (B2-B20) is fully executed; the comprehensive ledger carries the final state and its 50 next items. Strike depth:
+> **ANNOTATED 2026-11-16** — ~~this report~~ **SUPERSEDED** by [`2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md`](2026-11-15_14-37_comprehensive-status-update-plan-tail-execution_status.md), which the v2 plan executable tail (B2-B20) is fully executed; the comprehensive ledger carries the final state and its 50 next items. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-16 (round-23 (2026-11-16)).**
 
