@@ -5,8 +5,8 @@
 
 ## Verdict at a glance
 
-| Pin                                     | Latest (verified 2026-11-14) | Prod import sites                 | Adoption                                             | Score                                  |
-| --------------------------------------- | ---------------------------- | --------------------------------- | ---------------------------------------------------- | -------------------------------------- |
+| Pin                                     | Latest (verified 2026-11-14) | Prod import sites                    | Adoption                                                                                  | Score                                  |
+| --------------------------------------- | ---------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------- | -------------------------------------- |
 | v1.0.3 (root direct; admin-demo direct) | v1.0.3 (= latest)            | 3 files (re-export, app.go, example) | **Used — deprecated re-export on the v5 glide path; root App consumes upstream directly** | **n/a — wind-down, correctly managed** |
 
 ## What the library is
@@ -22,10 +22,10 @@ The Server-Timing middleware suite (W3C Server Timing API: middleware + `Measure
 
 ## Capability inventory
 
-| #   | Capability                                      | Status                            | Evidence / reason                                                                                                  |
-| --- | ----------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 1   | Server-Timing middleware + measurement spans    | 🟢 Fully leveraged (upstream-direct) | root `Config.ServerTiming` + `WrapServerTiming` on every Command/Query handler; alias file delegates 1:1; example shows the middleware form |
-| 2   | Direct upstream adoption inside library modules | ⚪ N/A (by design)                | library code doesn't emit Server-Timing by default (never enforce headers consumers might not want); consumers opt in via the root predicate |
+| #   | Capability                                      | Status                               | Evidence / reason                                                                                                                            |
+| --- | ----------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Server-Timing middleware + measurement spans    | 🟢 Fully leveraged (upstream-direct) | root `Config.ServerTiming` + `WrapServerTiming` on every Command/Query handler; alias file delegates 1:1; example shows the middleware form  |
+| 2   | Direct upstream adoption inside library modules | ⚪ N/A (by design)                   | library code doesn't emit Server-Timing by default (never enforce headers consumers might not want); consumers opt in via the root predicate |
 
 ## Score derivation
 

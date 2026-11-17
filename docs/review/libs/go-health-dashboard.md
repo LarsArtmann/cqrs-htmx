@@ -5,9 +5,9 @@
 
 ## Verdict at a glance
 
-| Pin                            | Latest (verified 2026-11-14) | Prod import sites                                                  | Adoption                             | Score                                                            |
-| ------------------------------ | ---------------------------- | ------------------------------------------------------------------ | ------------------------------------ | ---------------------------------------------------------------- |
-| v0.13.3 (health bridge direct) | v0.13.3 (= latest)           | 3 files (`health/dashboard.go`, `e2e/server/bridges.go`, examples) | **Used — one-call mount, by design** | **100/100 · nonce/CSP gap closed 2026-11-06**                    |
+| Pin                            | Latest (verified 2026-11-14) | Prod import sites                                                  | Adoption                             | Score                                         |
+| ------------------------------ | ---------------------------- | ------------------------------------------------------------------ | ------------------------------------ | --------------------------------------------- |
+| v0.13.3 (health bridge direct) | v0.13.3 (= latest)           | 3 files (`health/dashboard.go`, `e2e/server/bridges.go`, examples) | **Used — one-call mount, by design** | **100/100 · nonce/CSP gap closed 2026-11-06** |
 
 ## What the library is
 
@@ -19,15 +19,15 @@ Real-time health dashboard over go-health, DataStar-SSE powered: status banners,
 
 ## Capability inventory (graded against what a bridge _should_ surface)
 
-| #   | Capability                                      | Status             | Evidence / reason                                                                                                                                                                                                              |
-| --- | ----------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | One-call mount (`New`, `Dashboard`, routes)     | 🟢 Fully leveraged | `health/dashboard.go` + README map + e2e mount (`e2e/server/bridges.go:60`)                                                                                                                                                    |
-| 2   | Branding (`WithTitle`)                          | 🟢 Fully leveraged | exposed through the bridge signature                                                                                                                                                                                           |
+| #   | Capability                                          | Status                                    | Evidence / reason                                                                                                                                                                                                            |
+| --- | --------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | One-call mount (`New`, `Dashboard`, routes)         | 🟢 Fully leveraged                        | `health/dashboard.go` + README map + e2e mount (`e2e/server/bridges.go:60`)                                                                                                                                                  |
+| 2   | Branding (`WithTitle`)                              | 🟢 Fully leveraged                        | exposed through the bridge signature                                                                                                                                                                                         |
 | 3   | CSP-safe serving (`WithNonce`/`WithNonceExtractor`) | 🟢 Fully leveraged (was 🔴 at 2026-11-05) | bridge passes options through (`dashboard.go:11`); `TestNewDashboard_ForwardsCSPNonceOptions` pins fixed-nonce (`:28-31`), per-request extraction (`:50-53`), and the `RecommendedCSP` header pairing (`:44`); README :75-88 |
-| 4   | Rate limiting (`WithRateLimit`)                 | ⚪ N/A             | consumers wrap the mux; a library bridge should not double-rate-limit                                                                                                                                                          |
-| 5   | Metrics (`WithMetrics`)                         | ⚪ N/A             | probe-level metrics belong to the go-health layer                                                                                                                                                                              |
-| 6   | Push modes / trend / timeline / grouping config | ⚪ N/A             | presentation depth beyond bridge intent — direct consumers import the module                                                                                                                                                   |
-| 7   | Webhooks / introspection                        | ⚪ N/A             | operational features of the standalone hub pattern                                                                                                                                                                             |
+| 4   | Rate limiting (`WithRateLimit`)                     | ⚪ N/A                                    | consumers wrap the mux; a library bridge should not double-rate-limit                                                                                                                                                        |
+| 5   | Metrics (`WithMetrics`)                             | ⚪ N/A                                    | probe-level metrics belong to the go-health layer                                                                                                                                                                            |
+| 6   | Push modes / trend / timeline / grouping config     | ⚪ N/A                                    | presentation depth beyond bridge intent — direct consumers import the module                                                                                                                                                 |
+| 7   | Webhooks / introspection                            | ⚪ N/A                                    | operational features of the standalone hub pattern                                                                                                                                                                           |
 
 ## Score derivation
 

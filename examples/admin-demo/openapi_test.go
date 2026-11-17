@@ -53,7 +53,12 @@ func newDirectoryTestServer(t *testing.T) (http.Handler, string) {
 	return mux, token
 }
 
-func directoryRequest(t *testing.T, h http.Handler, method, body, token string, headers map[string]string) *httptest.ResponseRecorder {
+func directoryRequest(
+	t *testing.T,
+	h http.Handler,
+	method, body, token string,
+	headers map[string]string,
+) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(method, "/api/users/search", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -217,7 +222,14 @@ func TestDirectorySearch_StrictContentTypeLadder(t *testing.T) {
 		cqrshtmx.RequireContentType("application/json"),
 	)
 
-	rec := directoryRequest(t, strict, cqrshtmx.MethodQuery, `{"q":""}`, "", map[string]string{"Content-Type": "text/plain"})
+	rec := directoryRequest(
+		t,
+		strict,
+		cqrshtmx.MethodQuery,
+		`{"q":""}`,
+		"",
+		map[string]string{"Content-Type": "text/plain"},
+	)
 	if rec.Code != http.StatusUnsupportedMediaType {
 		t.Fatalf("text/plain QUERY under strict mode: status = %d, want 415", rec.Code)
 	}

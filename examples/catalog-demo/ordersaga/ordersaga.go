@@ -156,7 +156,10 @@ func registerCommands(sys *system.System) {
 
 // mintStage returns a command guard that checks precondition, then mints
 // the stage's event at the next version.
-func mintStage(precondition func(state OrderState) error, evtType event.Type) func(OrderState, event.Version) ([]event.Event, error) {
+func mintStage(
+	precondition func(state OrderState) error,
+	evtType event.Type,
+) func(OrderState, event.Version) ([]event.Event, error) {
 	return func(state OrderState, ver event.Version) ([]event.Event, error) {
 		if err := precondition(state); err != nil {
 			return nil, err

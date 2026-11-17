@@ -53,11 +53,11 @@ rejection paths, and two read-model assertions, green under `-race`.
 
 ### The committed EventCatalog tree changed hands
 
-| | before | after |
-| --- | --- | --- |
+|                      | before                                                                                     | after                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `eventcatalog/` tree | generated at runtime by the catalog/v4 library from Go struct tags (untracked, gitignored) | generated from `ordersaga/order-saga.gfl` via `gfl export eventcatalog --bindings` (committed: 3 services, 2 events, 5 scenario flows) |
-| source of truth | Go types in `main.go` | the GFL spec — the same file that generates the executable suite and feeds the drift gate |
-| runtime export | default `-eventcatalog ./eventcatalog` | default `-eventcatalog ./eventcatalog-runtime` (gitignored); the library export still serves the CI architecture-gate |
+| source of truth      | Go types in `main.go`                                                                      | the GFL spec — the same file that generates the executable suite and feeds the drift gate                                              |
+| runtime export       | default `-eventcatalog ./eventcatalog`                                                     | default `-eventcatalog ./eventcatalog-runtime` (gitignored); the library export still serves the CI architecture-gate                  |
 
 The scenario flows exist because the bindings resolve every step: prose in,
 flow documentation out, from one artifact.

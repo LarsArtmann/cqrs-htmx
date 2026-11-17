@@ -20,8 +20,8 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
-	"github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // directorySearchQuery is the dispatched query type AND the QUERY rung's
@@ -113,7 +113,11 @@ func directorySearchOpenAPI() openapi.Operation {
 	bodySchema := openapi.Object(
 		openapi.Prop("q", openapi.String().WithDescription("case-insensitive substring over email and display name")),
 		openapi.Prop("filter", openapi.String().WithDescription("verified | unverified (omit for all)")),
-		openapi.Prop("page", openapi.Integer().WithDescription("1-based page ("+strconv.Itoa(directorySearchPageSize)+" users per page)")),
+		openapi.Prop(
+			"page",
+			openapi.Integer().
+				WithDescription("1-based page ("+strconv.Itoa(directorySearchPageSize)+" users per page)"),
+		),
 	)
 
 	resultSchema := openapi.Object(
@@ -182,7 +186,11 @@ func requireSession(next http.Handler) http.Handler {
 		if usermgmt.UserIDFromRequest(r) == "" {
 			w.Header().Set("Content-Type", "application/problem+json")
 			w.WriteHeader(http.StatusUnauthorized)
-			_, _ = w.Write([]byte(`{"type":"about:blank","title":"unauthorized","status":401,"detail":"sign in to search the directory"}` + "\n"))
+			_, _ = w.Write(
+				[]byte(
+					`{"type":"about:blank","title":"unauthorized","status":401,"detail":"sign in to search the directory"}` + "\n",
+				),
+			)
 
 			return
 		}

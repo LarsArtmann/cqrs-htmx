@@ -5,8 +5,8 @@
 
 ## Verdict at a glance
 
-| Pin                  | Latest (verified 2026-11-14) | Prod import sites                               | Test import sites                                             | Adoption                                           | Score      |
-| -------------------- | ---------------------------- | ----------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------- | ---------- |
+| Pin                  | Latest (verified 2026-11-14) | Prod import sites                               | Test import sites                                                                             | Adoption                                           | Score      |
+| -------------------- | ---------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------- |
 | v0.3.2 (root direct) | v0.3.2 (= latest)            | 3 files (root alias layer, examples/admin-demo) | 1 direct + 1 alias-layer (`usermgmt/command_idempotency_test.go`, root `idempotency_test.go`) | **Used — fully delegated, winding down by design** | **88/100** |
 
 ## What the library is
@@ -30,9 +30,9 @@ A deliberately tiny command-idempotency kit. The **root package** is five export
 | 2   | `MemoryStore` + sweeper       | 🟢 Fully leveraged | documented default (`NewMemoryIdempotencyStore` delegates; dev/test-only posture upstream, per guide line 113)                                           |
 | 3   | `ErrDuplicate` classification | 🟢 Fully leveraged | maps to 409 Conflict in admin-demo (`MapError`); aliased as `ErrDuplicateCommand`; seam test asserts `errors.Is(…, idempotency.ErrDuplicate)`            |
 | 4   | Durable store variants        | ⚪ N/A             | root library offers none (memory-only); durability arrives via go-cqrs-lite `idempotency/sqlstore/v4` implementing this `Store`                          |
-| 5   | Direct-adoption posture       | 🟡 Partially used  | integration is a deprecated alias layer scheduled for v5 removal — deliberate exit, not neglect; the example + guide keep the upstream-first story alive  |
-| 6   | `middleware/` subpackage      | ⚪ N/A             | superseded here — go-cqrs-lite's `CommandIdempotency` wraps the same Store with a native `command.Command` adapter; cqrs-htmx's seam is that factory    |
-| 7   | `contract/` subpackage        | ⚪ N/A             | store-implementor test kit; becomes applicable only when a custom (SQL) `Store` lands per the guide's production recommendation                         |
+| 5   | Direct-adoption posture       | 🟡 Partially used  | integration is a deprecated alias layer scheduled for v5 removal — deliberate exit, not neglect; the example + guide keep the upstream-first story alive |
+| 6   | `middleware/` subpackage      | ⚪ N/A             | superseded here — go-cqrs-lite's `CommandIdempotency` wraps the same Store with a native `command.Command` adapter; cqrs-htmx's seam is that factory     |
+| 7   | `contract/` subpackage        | ⚪ N/A             | store-implementor test kit; becomes applicable only when a custom (SQL) `Store` lands per the guide's production recommendation                          |
 
 ## Score derivation
 

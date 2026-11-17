@@ -14,13 +14,13 @@ audit-journal assertions the hand-written suite never had), green under
 
 ## The comparison
 
-| usermgmt hand-rolls | Where | GFL equivalent here | Command |
-| --- | --- | --- | --- |
-| 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go` | 32 scenarios in prose + 40 bindings, compiled to `usermgmt_test.go` | `gfl generate tests` (below) |
-| `DeleteTenant` cascade: the service loop-dispatches `RemoveMember` per member | `service_tenant.go` (legacy loop, kept) | ADR-0154 bus deriver in `systemadapter` + the cascade scenario (emitted events, dispatched commands, read model emptied) | deriver + `gfl generate tests` |
-| `TestEventCatalog_InventoryMatchesEventConstants` (code-vs-code drift police) | `es_event_catalog_test.go` | spec-vs-universe drift gate with nearest-match suggestions + [events_sync_test.go](events_sync_test.go) (universe-vs-code) | `gfl validate --events-file` |
-| `ArchitectureCatalog()` (hand-built topology, one flat service) | `es_architecture_catalog.go` | [usermgmt.dot](usermgmt.dot) / [usermgmt.png](usermgmt.png) — the feature graph with typed edges | `gfl parse` |
-| `GET /events/catalog` served from runtime registration (`DefaultEventCatalog()`) | `es_event_catalog.go` + `es_event_catalog_artifact.go` | the endpoint now serves the committed generated artifact `usermgmt/event-catalog.json` (byte-identical, ETag-verified); the spec-side gate chains through `usermgmt.gfl` → [usermgmt-events.json](usermgmt-events.json) → identity-model constants → artifact | `gfl validate --events-file` + sync tests |
+| usermgmt hand-rolls                                                                                 | Where                                                  | GFL equivalent here                                                                                                                                                                                                                                           | Command                                   |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| 23 `scenario.Given(...).When(...).Then(...)` tests, each ~35 lines of marshal + adapter boilerplate | `es_scenario*_test.go`                                 | 32 scenarios in prose + 40 bindings, compiled to `usermgmt_test.go`                                                                                                                                                                                           | `gfl generate tests` (below)              |
+| `DeleteTenant` cascade: the service loop-dispatches `RemoveMember` per member                       | `service_tenant.go` (legacy loop, kept)                | ADR-0154 bus deriver in `systemadapter` + the cascade scenario (emitted events, dispatched commands, read model emptied)                                                                                                                                      | deriver + `gfl generate tests`            |
+| `TestEventCatalog_InventoryMatchesEventConstants` (code-vs-code drift police)                       | `es_event_catalog_test.go`                             | spec-vs-universe drift gate with nearest-match suggestions + [events_sync_test.go](events_sync_test.go) (universe-vs-code)                                                                                                                                    | `gfl validate --events-file`              |
+| `ArchitectureCatalog()` (hand-built topology, one flat service)                                     | `es_architecture_catalog.go`                           | [usermgmt.dot](usermgmt.dot) / [usermgmt.png](usermgmt.png) — the feature graph with typed edges                                                                                                                                                              | `gfl parse`                               |
+| `GET /events/catalog` served from runtime registration (`DefaultEventCatalog()`)                    | `es_event_catalog.go` + `es_event_catalog_artifact.go` | the endpoint now serves the committed generated artifact `usermgmt/event-catalog.json` (byte-identical, ETag-verified); the spec-side gate chains through `usermgmt.gfl` → [usermgmt-events.json](usermgmt-events.json) → identity-model constants → artifact | `gfl validate --events-file` + sync tests |
 
 ### One scenario, two authoring styles
 
@@ -66,8 +66,7 @@ Scenario: Registering a duplicate user is rejected
 ```
 
 ```json
-{ "pattern": "the command is rejected with conflict \"([\\w.]+)\"",
-  "error": "errorfamily.NewConflict(\"$1\", \"\")" }
+{ "pattern": "the command is rejected with conflict \"([\\w.]+)\"", "error": "errorfamily.NewConflict(\"$1\", \"\")" }
 ```
 
 All 12 `ThenError` tests from the hand-written suite (duplicate/required/
@@ -75,13 +74,13 @@ not-found across user, tenant, membership, bot) have GFL counterparts.
 
 ### Lines of code, honestly counted (`wc -l`)
 
-| Hand-written (usermgmt) | LOC | GFL rebuild (here) | LOC |
-| --- | ---: | --- | ---: |
-| `es_scenario*_test.go` (23 tests) | 602 | `usermgmt.gfl` (32 scenarios, 7 features) | 283 |
-| | | `gfl.bindings.json` (40 patterns) | 177 |
-| | | `helpers.go` (the only hand-written Go) | 351 |
-| | | **authored total** | **811** |
-| | | `usermgmt_test.go` (generated, DO NOT EDIT) | 222 |
+| Hand-written (usermgmt)           | LOC | GFL rebuild (here)                          |     LOC |
+| --------------------------------- | --: | ------------------------------------------- | ------: |
+| `es_scenario*_test.go` (23 tests) | 602 | `usermgmt.gfl` (32 scenarios, 7 features)   |     283 |
+|                                   |     | `gfl.bindings.json` (40 patterns)           |     177 |
+|                                   |     | `helpers.go` (the only hand-written Go)     |     351 |
+|                                   |     | **authored total**                          | **811** |
+|                                   |     | `usermgmt_test.go` (generated, DO NOT EDIT) |     222 |
 
 The authored total is ~35% MORE raw lines — and buys 9 extra scenarios the
 hand-written suite never had (audit-journal entries, the tenant-events-out
@@ -131,16 +130,16 @@ cqrs-htmx this trade pays off — and where it deliberately does not.
 
 ## Files
 
-| File | Role |
-| --- | --- |
-| `usermgmt.gfl` | The spec: 7 features, 32 scenarios, typed relationships |
-| `gfl.bindings.json` | Step-to-Go bindings (40 patterns) |
-| `helpers.go` | The only hand-written Go: fixed streams + one helper per binding |
-| `usermgmt_test.go` | Generated (DO NOT EDIT) — the executable suite |
-| `events_sync_test.go` | Pins `usermgmt-events.json` to identity-model's 27 constants |
-| `usermgmt-events.json` | The event universe for the drift gate |
-| `usermgmt.dot` / `usermgmt.png` | Feature graph (v2 DOT generator + graphviz) |
-| `eventcatalog/` | EventCatalog MDX export (56 resources: 24 services/events + 32 scenario flows via `--bindings`) |
+| File                            | Role                                                                                            |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `usermgmt.gfl`                  | The spec: 7 features, 32 scenarios, typed relationships                                         |
+| `gfl.bindings.json`             | Step-to-Go bindings (40 patterns)                                                               |
+| `helpers.go`                    | The only hand-written Go: fixed streams + one helper per binding                                |
+| `usermgmt_test.go`              | Generated (DO NOT EDIT) — the executable suite                                                  |
+| `events_sync_test.go`           | Pins `usermgmt-events.json` to identity-model's 27 constants                                    |
+| `usermgmt-events.json`          | The event universe for the drift gate                                                           |
+| `usermgmt.dot` / `usermgmt.png` | Feature graph (v2 DOT generator + graphviz)                                                     |
+| `eventcatalog/`                 | EventCatalog MDX export (56 resources: 24 services/events + 32 scenario flows via `--bindings`) |
 
 ## Reproduce
 

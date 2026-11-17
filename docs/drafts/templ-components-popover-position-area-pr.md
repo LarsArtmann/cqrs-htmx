@@ -18,13 +18,13 @@ positioning (>= 125).
 
 ## Evidence (Chromium 152.0.7977.82, headless, computed styles)
 
-| declaration                                        | computed `position-area` | verdict                             |
-| -------------------------------------------------- | ------------------------ | ----------------------------------- |
-| `bottom span-inline-start` (the shipped band)      | `none`                   | REJECTED — drops to initial         |
-| `bottom span-inline-end`                           | `none`                   | REJECTED                            |
-| `bottom span-x-start` (the fix)                    | `span-x-start bottom`    | accepted                            |
-| `bottom x-start` / `bottom right` / `bottom span-right` | accepted            | alternative spellings work too      |
-| `bottom` (single-keyword band)                     | `bottom`                 | accepted — unaffected by this bug   |
+| declaration                                             | computed `position-area` | verdict                           |
+| ------------------------------------------------------- | ------------------------ | --------------------------------- |
+| `bottom span-inline-start` (the shipped band)           | `none`                   | REJECTED — drops to initial       |
+| `bottom span-inline-end`                                | `none`                   | REJECTED                          |
+| `bottom span-x-start` (the fix)                         | `span-x-start bottom`    | accepted                          |
+| `bottom x-start` / `bottom right` / `bottom span-right` | accepted                 | alternative spellings work too    |
+| `bottom` (single-keyword band)                          | `bottom`                 | accepted — unaffected by this bug |
 
 Second finding pinned by the same probe: `anchor()` functions cannot see the
 implicit `popovertarget` invoker as anchor — `top: anchor(bottom)` computes
@@ -60,4 +60,5 @@ to the old (never-rendered) intent. If logical spelling matters upstream, the
 accepted alternative is `x-start`/`x-end` per probe — both physical.
 
 ---
+
 💘 Generated with Crush

@@ -46,11 +46,12 @@
    `path/to/file.go:NN` receipt (symbol:line, not file-level hand-waving).
 3. **Capability inventory** — the numbered table:
 
-   | # | Capability | Status | Evidence / reason |
-   | - | ---------- | ------ | ----------------- |
+   | #   | Capability | Status | Evidence / reason |
+   | --- | ---------- | ------ | ----------------- |
 
    Status vocabulary is a CLOSED set: 🟢 Fully leveraged · 🟡 Partially used ·
    🔴 Not used · ⚪ N/A. "N/A" needs a one-clause reason in the same row.
+
 4. **Score derivation** — show the arithmetic: applicable rows, full ×1,
    partial ×0.5, the resulting score, and the one-line band rationale.
 5. **Issues / open items** (or folded into the inventory when small) — each

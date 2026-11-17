@@ -99,6 +99,8 @@ func TestEventsFileMatchesIdentityModel(t *testing.T) {
 	}
 
 	if !bytes.Equal(raw, want) {
-		t.Errorf("usermgmt-events.json drifted from the identity-model constants; regenerate with: go test ./gfl-usermgmt/ -run TestEventsFileMatchesIdentityModel -update")
+		t.Errorf(
+			"usermgmt-events.json drifted from the identity-model constants; regenerate with: go test ./gfl-usermgmt/ -run TestEventsFileMatchesIdentityModel -update",
+		)
 	}
 }

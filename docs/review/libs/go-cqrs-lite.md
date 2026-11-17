@@ -5,8 +5,8 @@
 
 ## Verdict at a glance
 
-| Pin(s)                | Latest (verified 2026-11-14: tag checkout + live treadmill)                  | Prod import sites | Test import sites | Adoption                  | Score                                            |
-| --------------------- | --------------------------------------------------------------------------- | ----------------- | ----------------- | ------------------------- | ------------------------------------------------ |
+| Pin(s)                | Latest (verified 2026-11-14: tag checkout + live treadmill)                                                  | Prod import sites | Test import sites | Adoption                  | Score                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------- | ----------------- | ------------------------- | ---------------------------------------------------- |
 | 38 trains (see below) | **38/38 = latest** (2026-11-15 re-true: the 11-14 metaengine lag was swept same-day — treadmill worst lag 0) | 171 files         | 235 files         | **Used — the foundation** | **73/100 audited → ~80 (11-05) → 90.5/100 standing** |
 
 ## What the library is
@@ -29,18 +29,18 @@ The [2026-11-03 deep dive](../../research/2026-11-03_go-cqrs-lite-deep-dive.html
 
 Ten graded rows have since been resolved (each re-verified against source 2026-11-14):
 
-| Row (audit grade)                            | Resolution (wave)                                                                                                                                  |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CBOR for binary payloads (missed)            | ADR-0059 — five payloads `event.WithCodec(cborEventCodec)` (2026-11-04)                                                                            |
-| Replay-seam dedup: raw map (partial)         | `dedup.Ring` at `transport/serve.go:475` (R3, `823fcd7e`)                                                                                          |
-| `kv` FindByID write-through cache (partial)  | Opt-in cache at `usermgmt/view_cache.go:97` — now **upstream** `kv.NewCacheForViewStore` (kv v4.4.0; ask #113 answered; the 182-line otter adapter is gone, otter now only indirect) (R9, `72a0ae84`) |
-| `WithSnapshotStateVersion` (partial)         | `decider.WithSnapshotStateVersion[State]("v1")` in `repositoryOptions` (`usermgmt/snapshot.go:112`) (R10, `13d0f0e9`)                              |
-| systemcatalog derivation (missed)            | R2, see above — derived catalogs + `Assert{Event,Command}Inventory` gates + F032 removals (2026-11-06)                                              |
-| commandlifecycle streams (missed)            | `ServiceConfig.CommandLifecycle` (`usermgmt/service_core.go:215`, factory `service_factory.go:128-134`) + dashboardui Command Fates panel (`handlers_command_fates.go`, `core/command_fates.go`) (R7/F1) |
-| projectionhost DLQ memory-default (partial)  | `durableDeadLetterStore` — durable DLQ by default in the SQL setups (`usermgmt/es_projection_setup.go:72-80`, wired :154) (R4)                      |
-| Checkpoint batching unused (partial)         | `ProjectionHostOptions []projectionhost.HostOption` threaded setup→usermgmt (`setup/config.go:490`, `usermgmt/service_core.go:187`), `WithCheckpointEvery` documented (`setup/config.go:487`) (R8) |
-| metaengine engine breadth (partial)          | 8 `Recommended*Deployment` presets — memory/sqlite/split/pebble/bbolt/postgres/duckdb/turso (`systemadapter/presets.go:36-165`) via `system.Standard` (ADR-0165) |
-| test helpers imported nowhere (missed)       | → **partial**: `eventtest.NewFakeBus` adopted in 4 modules (root `setup`, `dashboardui`, `e2e/server`, examples); `testutil`/`idtest`/`querytest` still unimported |
+| Row (audit grade)                           | Resolution (wave)                                                                                                                                                                                        |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CBOR for binary payloads (missed)           | ADR-0059 — five payloads `event.WithCodec(cborEventCodec)` (2026-11-04)                                                                                                                                  |
+| Replay-seam dedup: raw map (partial)        | `dedup.Ring` at `transport/serve.go:475` (R3, `823fcd7e`)                                                                                                                                                |
+| `kv` FindByID write-through cache (partial) | Opt-in cache at `usermgmt/view_cache.go:97` — now **upstream** `kv.NewCacheForViewStore` (kv v4.4.0; ask #113 answered; the 182-line otter adapter is gone, otter now only indirect) (R9, `72a0ae84`)    |
+| `WithSnapshotStateVersion` (partial)        | `decider.WithSnapshotStateVersion[State]("v1")` in `repositoryOptions` (`usermgmt/snapshot.go:112`) (R10, `13d0f0e9`)                                                                                    |
+| systemcatalog derivation (missed)           | R2, see above — derived catalogs + `Assert{Event,Command}Inventory` gates + F032 removals (2026-11-06)                                                                                                   |
+| commandlifecycle streams (missed)           | `ServiceConfig.CommandLifecycle` (`usermgmt/service_core.go:215`, factory `service_factory.go:128-134`) + dashboardui Command Fates panel (`handlers_command_fates.go`, `core/command_fates.go`) (R7/F1) |
+| projectionhost DLQ memory-default (partial) | `durableDeadLetterStore` — durable DLQ by default in the SQL setups (`usermgmt/es_projection_setup.go:72-80`, wired :154) (R4)                                                                           |
+| Checkpoint batching unused (partial)        | `ProjectionHostOptions []projectionhost.HostOption` threaded setup→usermgmt (`setup/config.go:490`, `usermgmt/service_core.go:187`), `WithCheckpointEvery` documented (`setup/config.go:487`) (R8)       |
+| metaengine engine breadth (partial)         | 8 `Recommended*Deployment` presets — memory/sqlite/split/pebble/bbolt/postgres/duckdb/turso (`systemadapter/presets.go:36-165`) via `system.Standard` (ADR-0165)                                         |
+| test helpers imported nowhere (missed)      | → **partial**: `eventtest.NewFakeBus` adopted in 4 modules (root `setup`, `dashboardui`, `e2e/server`, examples); `testutil`/`idtest`/`querytest` still unimported                                       |
 
 **Standing: 31 full ×1 + 5 partial ×0.5 + 1 missed ×0 = 33.5 / 37 ≈ 90.5/100** (band: very high). Remaining partial: record structural metadata (Cause reads are v4-impossible — no `metadata.Cause` exists in any v4 release, plan erratum), metaengine planner/folds direct use, `system.New` for usermgmt's own runtime (migration plan drafted, W1 probes GO 2026-11-08), otel/otlp one-call exporter, test helpers. Remaining missed: flightrecorder.
 

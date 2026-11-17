@@ -159,8 +159,14 @@ func main() {
 	// The JSON directory search (QUERY ladder, both rungs) + its served spec.
 	// requireSession is the GATE — NewSessionMiddleware only enriches the
 	// context, so the API surface answers 401 without a session itself.
-	mux.Handle(cqrshtmx.MethodQuery+" /api/users/search", sessionMW(requireSession(directorySearchHandler(directoryApp, false))))
-	mux.Handle(http.MethodPost+" /api/users/search", sessionMW(requireSession(directorySearchHandler(directoryApp, false))))
+	mux.Handle(
+		cqrshtmx.MethodQuery+" /api/users/search",
+		sessionMW(requireSession(directorySearchHandler(directoryApp, false))),
+	)
+	mux.Handle(
+		http.MethodPost+" /api/users/search",
+		sessionMW(requireSession(directorySearchHandler(directoryApp, false))),
+	)
 	mux.Handle("GET /openapi.json", directorySpecHandler)
 
 	// SSE endpoint — streams live events from the Broadcaster to the browser.
