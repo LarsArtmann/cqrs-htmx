@@ -172,8 +172,7 @@ func TestA11y_FilterInputsKeepLabelPairing(t *testing.T) {
 	}
 
 	for _, want := range []string{
-		`class="filter-bar" hx-post="`,
-		`hx-ext="cqrs-query"`,
+		`hx-ext="cqrs-query" hx-post="/dashboard/events/search"`,
 		`hx-query=""`,
 		`hx-target="#main-content"`,
 		`hx-select="#main-content"`,

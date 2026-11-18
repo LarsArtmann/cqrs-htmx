@@ -61,7 +61,7 @@ func TestRoutes_MatchRegisteredMuxPatterns(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), routeProbeTimeout)
 
 		req := httptest.NewRequest(route.Method, samplePath(route.Pattern), nil).WithContext(ctx)
-		req.Header.Set("HX-Request", "true")
+		req.Header.Set("Hx-Request", "true")
 
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)

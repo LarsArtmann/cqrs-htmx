@@ -22,9 +22,10 @@ func seedTypedEvents(t *testing.T, types ...event.Type) *http.ServeMux {
 
 	store := memorystorage.NewMemoryStore()
 
-	for i, evtType := range types {
+	for _, evtType := range types {
 		aggID := id.NewStreamID()
 		evt, _ := event.New(evtType, aggID, "User", event.Version(1), struct{}{})
+
 		if err := store.Save(
 			context.Background(),
 			id.NewStreamRef("User", aggID),
@@ -33,7 +34,6 @@ func seedTypedEvents(t *testing.T, types ...event.Type) *http.ServeMux {
 		); err != nil {
 			t.Fatalf("seed %s: %v", evtType, err)
 		}
-		_ = i
 	}
 
 	return mustTestDashboardMuxWithConfig(t, Config{EventSource: store, Journal: store})
@@ -43,11 +43,17 @@ func seedTypedEvents(t *testing.T, types ...event.Type) *http.ServeMux {
 // request with the given method, the urlencoded criteria body, and optional
 // override headers. HX-Request is set so the response is the HTMX partial the
 // filter form's swap expects.
-func eventsSearchRung(t *testing.T, mux *http.ServeMux, method, body string, headers map[string]string) *httptest.ResponseRecorder {
+func eventsSearchRung(
+	t *testing.T,
+	mux *http.ServeMux,
+	method, body string,
+	headers map[string]string,
+) *httptest.ResponseRecorder {
 	t.Helper()
 
 	req := httptest.NewRequest(method, "/dashboard/events/search", strings.NewReader(body))
-	req.Header.Set("HX-Request", "true")
+	req.Header.Set("Hx-Request", "true")
+
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -87,9 +93,11 @@ func TestEventsSearch_LadderParity(t *testing.T) {
 	if !strings.Contains(golden.Body.String(), "Alpha") {
 		t.Errorf("filtered page must keep the Alpha row; body=%s", golden.Body.String())
 	}
+
 	if strings.Contains(golden.Body.String(), "Beta") {
 		t.Error("filtered page must exclude the Beta row")
 	}
+
 	if !strings.Contains(golden.Body.String(), `id="main-content"`) {
 		t.Errorf("HTMX partial response must carry the main-content region; body=%s", golden.Body.String())
 	}
@@ -98,6 +106,7 @@ func TestEventsSearch_LadderParity(t *testing.T) {
 		if rung.Code != golden.Code {
 			t.Errorf("%s: status = %d, want %d", name, rung.Code, golden.Code)
 		}
+
 		if !bytes.Equal(rung.Body.Bytes(), golden.Body.Bytes()) {
 			t.Errorf("%s: fragment diverges from the native QUERY rung (byte-parity contract)", name)
 		}
@@ -138,9 +147,11 @@ func TestCQRSQueryExtAssetServed(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("cqrs-query.js status = %d, want 200", rec.Code)
 	}
+
 	if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, "javascript") {
 		t.Errorf("cqrs-query.js Content-Type = %q, want a javascript type", ct)
 	}
+
 	if !strings.Contains(rec.Body.String(), "cqrs-query") {
 		t.Error("served script is not the cqrs-query extension")
 	}
