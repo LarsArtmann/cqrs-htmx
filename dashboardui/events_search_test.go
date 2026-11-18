@@ -90,6 +90,7 @@ func TestEventsSearch_LadderParity(t *testing.T) {
 	if golden.Code != http.StatusOK {
 		t.Fatalf("native QUERY status = %d, want 200; body=%s", golden.Code, golden.Body.String())
 	}
+
 	if !strings.Contains(golden.Body.String(), "Alpha") {
 		t.Errorf("filtered page must keep the Alpha row; body=%s", golden.Body.String())
 	}
