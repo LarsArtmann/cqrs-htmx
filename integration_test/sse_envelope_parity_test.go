@@ -23,11 +23,13 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
-	"github.com/larsartmann/cqrs-htmx/transport"
+	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-sse"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +43,7 @@ func sseEnvelopes(t *testing.T, events []event.Event) []transport.EventPayload {
 	for _, evt := range events {
 		sseEvt := transport.DomainEventToSSE(evt)
 		require.Equal(t, "event", sseEvt.Event, "envelope SSE event name")
-		require.Equal(t, evt.ID().String(), sseEvt.ID.String(), "envelope SSE id must carry the event id")
+		require.Equal(t, sse.NewEventID(evt.ID().String()), sseEvt.ID, "envelope SSE id must carry the event id")
 
 		var payload transport.EventPayload
 		require.NoError(t, json.Unmarshal([]byte(sseEvt.Data), &payload), "envelope data must decode")
@@ -82,9 +84,12 @@ func TestSSEEnvelopeParity_LegacyVsSystem(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	legacyStream, err := id.ParseStreamID(legacyUser.User.ID.String())
+	require.NoError(t, err)
+
 	legacyEvents, err := legacyStore.Load(
 		ctx,
-		id.NewStreamRef(identitymodel.AggregateTypeUser, id.StreamID(legacyUser.User.ID.String())),
+		id.NewStreamRef(identitymodel.AggregateTypeUser, legacyStream),
 	)
 	require.NoError(t, err)
 	require.NotEmpty(t, legacyEvents, "legacy path must record the registration events")

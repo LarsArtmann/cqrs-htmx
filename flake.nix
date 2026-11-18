@@ -3087,7 +3087,7 @@
                       # nixpkgs lib forest via E2E_BROWSER_LIBS, scoped to
                       # chromium launches in the playwright config.
                       CH_HOME="''${PLAYWRIGHT_BROWSERS_PATH:-/mnt/buildcache/playwright}"
-                      CHROME_BIN="$(find "$CH_HOME" "$HOME/.cache/ms-playwright" -maxdepth 4 -path '*/chromium-*/chrome-linux/chrome' -type f 2>/dev/null | sort -V | tail -1 || true)"
+                      CHROME_BIN="$(find "$CH_HOME" "$HOME/.cache/ms-playwright" -maxdepth 4 -path '*/chromium-*/chrome-linux*/chrome' -type f 2>/dev/null | sort -V | tail -1 || true)"
                       if [ -n "$CHROME_BIN" ]; then
                         E2E_BROWSER_PATH="$CHROME_BIN"
                         export E2E_BROWSER_PATH
