@@ -3023,7 +3023,7 @@
                       with pkgs;
                       [
                         gtk3
-                        cups
+                        cups.lib
                         alsa-lib
                         dbus.lib
                         dbus-glib
