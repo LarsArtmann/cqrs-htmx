@@ -1,23 +1,75 @@
 package dashboardui
 
 import (
+	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
+// maxEventFilterBody caps the search rungs' request body (the htmx form
+// serialization of three short filter inputs; adminui's search cap is the
+// same bound). A larger body is refused before any parse work.
+const maxEventFilterBody = 64 << 10
+
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
-	p := d.page("Events", "/events", r)
+	d.renderEvents(w, r, parseEventFilter(r), parseSort(r))
+}
 
-	filters := parseEventFilter(r)
-	sortBy := parseSort(r)
+// eventsSearchHandler is the QUERY ladder surface for the events filter
+// (RFC 10008): the same read as GET /events, with the filter criteria
+// traveling as the request body instead of URL params. The native QUERY route
+// and its POST fallback twin register the SAME handler, so every rung of the
+// ladder answers byte-identically; the client is htmx + the embedded
+// cqrs-query extension, which upgrade the METHOD but keep htmx's urlencoded
+// form serialization for the body (the adminui search precedent). GET /events
+// stays the bookmarkable URL-params form.
+func (d *Dashboard) eventsSearchHandler(w http.ResponseWriter, r *http.Request) {
+	filters, ok := parseEventFilterBody(r)
+	if !ok {
+		d.renderError(w, r, http.StatusBadRequest, "invalid event filter body")
 
+		return
+	}
+
+	d.renderEvents(w, r, filters, parseSort(r))
+}
+
+// parseEventFilterBody reads the filter criteria from a urlencoded request
+// body. Content-Type-lenient per the library principle (never enforce
+// defaults consumers might disagree with); a consumer stacking RFC
+// 10008-strict rejection wraps the route with RequireContentType.
+func parseEventFilterBody(r *http.Request) (eventFilter, bool) {
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxEventFilterBody+1))
+	if err != nil || len(body) > maxEventFilterBody {
+		return eventFilter{}, false
+	}
+
+	values, err := url.ParseQuery(string(body))
+	if err != nil {
+		return eventFilter{}, false
+	}
+
+	return eventFilter{
+		Type:       values.Get("type"),
+		StreamType: values.Get("streamType"),
+		StreamID:   values.Get("streamID"),
+	}, true
+}
+
+// renderEvents is the shared events-read core behind GET /events and the
+// QUERY search rungs: one load-and-render path so every rung of the ladder
+// answers the same page.
+func (d *Dashboard) renderEvents(w http.ResponseWriter, r *http.Request, filters eventFilter, sortBy sortState) {
 	if format := parseFormat(r); format != formatHTML {
 		d.exportEvents(w, r, format, filters, sortBy)
 
 		return
 	}
+
+	p := d.page("Events", "/events", r)
 
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
