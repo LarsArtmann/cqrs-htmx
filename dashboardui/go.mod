@@ -81,7 +81,7 @@ require (
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
-	github.com/larsartmann/go-idempotency v0.5.0 // indirect
+	github.com/larsartmann/go-idempotency v0.6.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

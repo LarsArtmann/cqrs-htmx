@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.18.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/go-idempotency v0.5.0
+	github.com/larsartmann/go-idempotency v0.6.0
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.9.0
 	github.com/larsartmann/httputil/server_timing v1.0.3
