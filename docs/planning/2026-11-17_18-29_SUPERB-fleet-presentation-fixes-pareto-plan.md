@@ -254,4 +254,45 @@ graph TD
 
 ## Execution log
 
-- (empty — filled on execution; receipts pasted per task)
+- (P01–P18 receipts paste here per task as execution proceeds — nothing
+  executed yet; the detour below is pre-plan work, recorded so the log is
+  honest about the gap between planning and execution)
+
+### Pre-execution detour: the train-alignment sweep (2026-11-18, 06:20–07:05)
+
+The strict train gate red'd BEFORE P01 could start (gotcha 39 live: the lag
+tail grows while you work — two upstream families published overnight).
+Swept, verified, landed. Zero plan tasks touched; P01–P18 remain gated on
+K1/K2 per decisions D2/D4.
+
+- **go-datastar/static v0.7.0 → v0.8.0 — 9 modules.** Upstream delta verified
+  additive FIRST (tag diff: +37/−0 exported constants), so the sweep is pure
+  version bumps, no consumer code changes.
+- **go-idempotency v0.3.2 → v0.4.0 → v0.5.0 — 23 modules.** First pass reached
+  16/23 when the supply side published v0.5.0 MID-SWEEP; second pass completed
+  the sweep and re-aligned every module to v0.5.0 (delta: test internals + a
+  separate `idemtest` module; `rg "Forever"` over this repo: zero matches —
+  still a pure bump).
+- **Verification battery:** workspace build/vet green, root suite green
+  (23.9s), admin-demo suite green, per-module bump-dep legs (hermetic tidy +
+  `go mod verify` + build + vet + golangci-lint) ×23, and
+  `check-release-train --refresh-cache --strict-lag 0` → **0 unpublished /
+  0 train lag** (07:01 receipt).
+- **Commit receipts (the daemon-shred class, gotcha 47 live):** bump-dep
+  `--commit` lost the HEAD race 3× — the ~51–150s BuildFlow pre-commit hook
+  plus the auto-commit daemon lock `HEAD` first, so the sweeps' detailed
+  messages never landed; the content landed as daemon heuristic commits
+  instead: `f2d9dc23`/`1fe470e3` (datastar wave), `5f0c3354`/`a6777da5`
+  (idempotency waves, `7abfe864` lineage). The durable receipt lives in the
+  root CHANGELOG § Housekeeping ("Three-train alignment swept the consumer
+  fleet", landed 07:26 same day).
+- **Doc ratchets pinned in the same window:** `docs/CORPUS_BASELINE` → 62066,
+  docs tail baseline 6 → 9 (three live reports); all five docs gates green
+  after.
+- **Wiring landed, daemon-split across `440237c5`/`ebce8876`/`10a117c6`/
+  `b0e6e842` (content verified per-file in history):** the 07-01 status
+  report, the TODO_LIST P1 pointer row, the audit series row in
+  `docs/research/README.md`, and this ledger's corpus sentence.
+
+**Status: P01–P18 NOT STARTED** — K1 (oauth2 hotfix-vs-train) and K2
+(cross-repo push scope) await owner answers before execution begins.
