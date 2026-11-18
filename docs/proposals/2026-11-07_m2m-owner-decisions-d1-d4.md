@@ -1,6 +1,6 @@
 # Owner decision packet — M2M owner decisions D1–D4
 
-> Audit evidence (2026-11-15 refresh): `docs/review/libs/go-idempotency.md` (the bot-path replay gap this packet's W1 recipe closes — the guide recipe shipped 2026-11-15, default-on stays behind this packet's tick).
+> Audit evidence (2026-11-15 refresh): `docs/review/libs/go-idempotency.md` (the bot-path replay gap this packet's W1 recipe closes — the guide recipe shipped 2026-11-15, default-on stays behind this packet's tick). **K2 recommendation now pre-staged 2026-11-18: [`2026-11-18_k2-idempotency-default-on-owner-decision.md`](2026-11-18_k2-idempotency-default-on-owner-decision.md)** (GO — mounted by default keyed by `Idempotency-Key`, empty-key pass-through; low wrong-answer cost, hazard lives in the extractor which B2 already ships+tests).
 
 **Filed:** 2026-11-07 (blanket-directive evening session) · **Plan:** [`docs/planning/2026-11-06_11-49_SUPERB-m2m-agent-and-data-mesh-auth-pareto-plan.md`](../planning/2026-11-06_11-49_SUPERB-m2m-agent-and-data-mesh-auth-pareto-plan.md) §9 · **Status: RECOMMENDATIONS ONLY — W1/W2 stay blocked until the owner ticks this table** (unlike the migration D1–D5 packet, this plan records **no** "default if unanswered": §9's third column says each answer "cannot be inferred". The blanket directive does not manufacture answers the plan itself declares un-inferable; what it does buy is this packet — the reasoning pre-staged so one word per row converts W1/W2 to GO.)
 
