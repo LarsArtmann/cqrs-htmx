@@ -172,11 +172,12 @@ func TestA11y_FilterInputsKeepLabelPairing(t *testing.T) {
 	}
 
 	for _, want := range []string{
-		`class="filter-bar" hx-get="`,
+		`class="filter-bar" hx-post="`,
+		`hx-ext="cqrs-query"`,
+		`hx-query=""`,
 		`hx-target="#main-content"`,
 		`hx-select="#main-content"`,
 		`hx-swap="outerHTML"`,
-		`hx-push-url="true"`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("filter form wiring %q missing", want)

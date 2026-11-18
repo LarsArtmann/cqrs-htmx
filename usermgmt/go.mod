@@ -81,7 +81,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
+	github.com/larsartmann/go-etag/entitytag v0.6.2 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect

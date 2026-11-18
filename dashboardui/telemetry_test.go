@@ -164,13 +164,10 @@ func TestTelemetry_ProviderErrorRenderedInline(t *testing.T) {
 func TestTelemetry_HealthzListsEnginesAndReadyzGatesOnHealth(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, telemetryTestConfig())
 
-	mux, ok := d.Handler().(*http.ServeMux)
-	if !ok {
-		t.Fatalf("Handler() should expose the internal mux, got %T", d.Handler())
-	}
+	handler := d.Handler()
 
 	healthRec := httptest.NewRecorder()
-	mux.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/-/healthz", nil))
+	handler.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/-/healthz", nil))
 
 	if healthRec.Code != http.StatusOK {
 		t.Fatalf("healthz status = %d, liveness must stay 200 with a sick engine", healthRec.Code)
@@ -184,7 +181,7 @@ func TestTelemetry_HealthzListsEnginesAndReadyzGatesOnHealth(t *testing.T) {
 	}
 
 	readyRec := httptest.NewRecorder()
-	mux.ServeHTTP(readyRec, httptest.NewRequest(http.MethodGet, "/-/readyz", nil))
+	handler.ServeHTTP(readyRec, httptest.NewRequest(http.MethodGet, "/-/readyz", nil))
 
 	if readyRec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("readyz status = %d, want 503 while an engine is unhealthy", readyRec.Code)

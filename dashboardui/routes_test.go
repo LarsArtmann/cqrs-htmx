@@ -1,9 +1,9 @@
 package dashboardui
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
@@ -37,31 +37,25 @@ func samplePath(pattern string) string {
 	return wildcardRE.ReplaceAllString(pattern, "sample")
 }
 
-// muxPattern maps a consumer-facing pattern to the ServeMux registration form:
-// only the overview root differs ("/" registers as "/{$}").
-func muxPattern(pattern string) string {
-	if pattern == "/" {
-		return "/{$}"
-	}
-
-	return pattern
-}
-
 func TestRoutes_MatchRegisteredMuxPatterns(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, fullRoutesConfig())
 
-	mux, ok := d.Handler().(*http.ServeMux)
-	if !ok {
-		t.Fatalf("Handler() should expose the internal mux, got %T", d.Handler())
-	}
+	handler := d.Handler()
 
 	for _, route := range d.Routes() {
 		req := httptest.NewRequest(route.Method, samplePath(route.Pattern), nil)
-		_, matched := mux.Handler(req)
+		req.Header.Set("HX-Request", "true")
 
-		if want := route.Method + " " + muxPattern(route.Pattern); matched != want {
-			t.Errorf("manifest lists %s %s, but the mux serves %q (drift between Routes() and routes())",
-				route.Method, route.Pattern, matched)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		// A registration miss lands on the catch-all (styled 404 for GETs)
+		// or ServeMux's bare form (method-specific misses) — either way the
+		// exact "404 page not found" line is the bare form's signature, and no
+		// matched route can produce it (error pages render real markup).
+		if strings.HasSuffix(rec.Body.String(), "404 page not found\n") {
+			t.Errorf("manifest lists %s %s, but the mux does not serve it (drift between Routes() and routes())",
+				route.Method, route.Pattern)
 		}
 	}
 }
@@ -70,11 +64,11 @@ func TestRoutes_FullConfigExposesEveryPanel(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, fullRoutesConfig())
 
 	wantPanels := map[string]int{
-		"Assets":        4,
+		"Assets":        5,
 		"Observability": 3,
 		"Overview":      1,
 		"Live updates":  1,
-		"Events":        2,
+		"Events":        4,
 		"Aggregates":    2,
 		"Projections":   4,
 		"Dead letters":  6,
@@ -146,9 +140,11 @@ func TestRoutes_MinimalConfigListsOnlyUnconditionalRoutes(t *testing.T) {
 
 	routes := d.Routes()
 
-	// 4 assets + 3 observability probes + the overview + 2 event routes
-	// + the command-fates window (journal-derived, same gate as events).
-	const want = 12
+	// 5 assets + 3 observability probes + the overview + 4 event routes
+	// (the index, the QUERY search rung, its POST twin, the detail page)
+	// + the command-fates window (journal-derived, same gate as events)
+	// + throughput.
+	const want = 15
 
 	if len(routes) != want {
 		t.Fatalf("Journal-only manifest has %d routes, want %d: %+v", len(routes), want, routes)

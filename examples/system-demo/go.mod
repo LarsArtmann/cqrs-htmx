@@ -70,7 +70,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/systemcatalog/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
-	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
+	github.com/larsartmann/go-etag/entitytag v0.6.2 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-idempotency v0.6.0 // indirect
