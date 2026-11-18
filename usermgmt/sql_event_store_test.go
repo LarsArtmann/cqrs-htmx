@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -13,11 +14,27 @@ import (
 
 func newTestSQLiteStore(t *testing.T) *SQLEventStore {
 	t.Helper()
-	db, err := sql.Open("sqlite", ":memory:")
+	// Bare ":memory:" gives EVERY pooled connection its own empty database:
+	// the auto-migrate DDL lands on one conn and a later query on another
+	// dies with "no such table: events" (gotcha 41 — three consecutive CI
+	// reds in TestSQLEventStore_WithService, whose projection drain reads
+	// concurrently with the seeding writes). A named shared-cache memory DB
+	// gives every pool connection the SAME schema; the keeper conn pins the
+	// shared DB's lifetime while the pool momentarily drains to zero.
+	dsn := fmt.Sprintf("file:sql_event_store_%s?mode=memory&cache=shared", t.Name())
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
-	t.Cleanup(func() { _ = db.Close() })
+	keeper, err := db.Conn(context.Background())
+	if err != nil {
+		_ = db.Close()
+		t.Fatalf("keeper conn: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = keeper.Close()
+		_ = db.Close()
+	})
 	store, err := NewSQLEventStore(context.Background(), db, "sqlite")
 	if err != nil {
 		t.Fatalf("NewSQLEventStore: %v", err)
