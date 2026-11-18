@@ -147,7 +147,7 @@ func TestErrorResponse(t *testing.T) {
 	require.NoError(t, err)
 	events := datastartest.MustReadEvents(t, strings.NewReader(w.Body.String()))
 	datastartest.RequireEventCount(t, events, 1)
-	datastartest.RequireSignals(t, events[0], `{"error":{"message":"something broke","code":"ERR_500"}}`)
+	requireSignalsSemantically(t, events[0], `{"error":{"message":"something broke","code":"ERR_500"}}`)
 }
 
 func TestBroadcastWithReplayStore(t *testing.T) {

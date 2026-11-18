@@ -74,7 +74,7 @@ func TestResponseMarshalAndPatchSignals(t *testing.T) {
 
 	events := parseEvents(t, w)
 	datastartest.RequireEventCount(t, events, 1)
-	datastartest.RequireSignals(t, events[0], `{"total":5,"label":"items"}`)
+	requireSignalsSemantically(t, events[0], `{"total":5,"label":"items"}`)
 }
 
 func TestResponseExecuteScript(t *testing.T) {
