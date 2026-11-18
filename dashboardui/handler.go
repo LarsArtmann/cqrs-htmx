@@ -54,7 +54,12 @@ func (d *Dashboard) routes() http.Handler {
 	// Catch-all: styled 404 for any unmatched GET route under the dashboard.
 	mux.HandleFunc("GET /", d.guard(d.notFoundHandler))
 
-	return mux
+	// The QUERY ladder's rung 2: a POST carrying X-HTTP-Method-Override: QUERY
+	// is rewritten to QUERY BEFORE routing, so one QUERY pattern serves both
+	// rungs (the events filter's fallback ladder). Inside the security layers,
+	// before the mux (ADR-0064 placement table). Only QUERY is honored as an
+	// override target — safe read fallbacks only.
+	return cqrshtmx.MethodOverrideMiddleware(mux)
 }
 
 // versionzRoute applies the optional versionz auth guard: with

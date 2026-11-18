@@ -101,6 +101,15 @@ func serveHTMXScript() http.HandlerFunc {
 	return script.ServeHTTP
 }
 
+// serveCQRSQueryExt adapts the embedded cqrs-query extension handler once
+// (the QUERY ladder's auto-downgrade extension; the events filter form is
+// its consumer).
+func serveCQRSQueryExt() http.HandlerFunc {
+	ext := htmx.ExtensionHandler(htmx.ExtCQRSQuery)
+
+	return ext.ServeHTTP
+}
+
 // routeTable is the dashboard's complete route surface in registration order:
 // the unconditional rows first, then the capability-gated ones. Capabilities
 // gate the conditional rows; write rows additionally require !ReadOnly.
@@ -122,6 +131,13 @@ func (d *Dashboard) unconditionalRoutes() []routeSpec {
 			pattern:   "/-/htmx.js",
 			panel:     panelAssets,
 			handler:   serveHTMXScript(),
+			guardMode: guardNever,
+		},
+		{
+			method:    http.MethodGet,
+			pattern:   "/-/ext/cqrs-query.js",
+			panel:     panelAssets,
+			handler:   serveCQRSQueryExt(),
 			guardMode: guardNever,
 		},
 
@@ -174,6 +190,20 @@ func (d *Dashboard) capabilityRoutes() []routeSpec {
 			pattern: "/events",
 			panel:   panelEvents,
 			handler: d.eventsIndexHandler,
+			when:    whenCaps(Capabilities.HasEventRead),
+		},
+		{
+			method:  cqrshtmx.MethodQuery,
+			pattern: "/events/search",
+			panel:   panelEvents,
+			handler: d.eventsSearchHandler,
+			when:    whenCaps(Capabilities.HasEventRead),
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/events/search",
+			panel:   panelEvents,
+			handler: d.eventsSearchHandler,
 			when:    whenCaps(Capabilities.HasEventRead),
 		},
 		{
