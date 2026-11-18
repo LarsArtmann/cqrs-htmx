@@ -3008,11 +3008,15 @@
             };
 
             e2e-firefox =
-              # The Playwright firefox build expects FHS system libraries that
-              # NixOS does not provide globally — symlink a forest of nixpkgs
-              # libs into one directory the wrapper exports as LD_LIBRARY_PATH.
+              # The Playwright-managed browser builds expect FHS system
+              # libraries that NixOS does not provide globally — symlink a
+              # forest of nixpkgs libs into one directory the wrapper exports
+              # per engine (E2E_FIREFOX_LIBS / E2E_BROWSER_LIBS). One shared
+              # forest: chromium additionally needs nss/nspr (hit live
+              # 2026-11-08: chromium died on libnspr4.so without them);
+              # firefox tolerates the extra entries.
               let
-                playwrightFirefoxLibs = pkgs.runCommand "playwright-firefox-libs" { } ''
+                playwrightBrowserLibs = pkgs.runCommand "playwright-browser-libs" { } ''
                   mkdir -p $out/lib
                   for p in ${
                     toString (
@@ -3042,6 +3046,8 @@
                         libXt
                         libxcb
                         libXi
+                        nss
+                        nspr
                         libXcursor
                         libXrender
                         stdenv.cc.cc.lib
@@ -3058,7 +3064,7 @@
               in
               {
                 type = "app";
-                meta.description = "Run the Playwright battery on BOTH engines: nix Chromium + the cached Playwright firefox build (with its nixpkgs lib forest)";
+                meta.description = "Run the Playwright battery on BOTH engines: the cached Playwright chromium + firefox builds (with the nixpkgs lib forest)";
                 program = pkgs.lib.getExe (
                   pkgs.writeShellApplication {
                     name = "e2e-firefox";
@@ -3071,8 +3077,26 @@
                     text = ''
                       export GOEXPERIMENT=jsonv2
 
-                      # Chromium side (the e2e app's NixOS fallback).
-                      if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
+                      # Chromium side: prefer the Playwright-managed build —
+                      # it is protocol-matched to the driver by construction.
+                      # A system chromium can skew OLDER and fail every
+                      # newContext (hit live 2026-11-18: nix chromium 157 vs
+                      # the driver's expected 159 — Browser.setDownloadOptions
+                      # unknown, every test died on browser launch, zero
+                      # assertion failures). The managed build gets the
+                      # nixpkgs lib forest via E2E_BROWSER_LIBS, scoped to
+                      # chromium launches in the playwright config.
+                      CH_HOME="''${PLAYWRIGHT_BROWSERS_PATH:-/mnt/buildcache/playwright}"
+                      CHROME_BIN="$(find "$CH_HOME" "$HOME/.cache/ms-playwright" -maxdepth 4 -path '*/chromium-*/chrome-linux/chrome' -type f 2>/dev/null | sort -V | tail -1 || true)"
+                      if [ -n "$CHROME_BIN" ]; then
+                        E2E_BROWSER_PATH="$CHROME_BIN"
+                        export E2E_BROWSER_PATH
+                        export E2E_BROWSER_LIBS="${playwrightBrowserLibs}/lib"
+                        echo "==> chromium: $CHROME_BIN (playwright-managed + nix lib forest)"
+                      elif [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
+                        echo "WARN: no Playwright-managed chromium found (looked in $CH_HOME and ~/.cache/ms-playwright);" >&2
+                        echo "      falling back to the system chromium — version skew vs the driver may fail every newContext" >&2
+                        echo "      provision the managed build with: (cd e2e && ./node_modules/.bin/playwright install chromium)" >&2
                         E2E_BROWSER_PATH="$(command -v chromium)"
                         export E2E_BROWSER_PATH
                       fi
@@ -3095,7 +3119,7 @@
                       # forest; the playwright config (E2E_FIREFOX_LIBS) prepends
                       # it to LD_LIBRARY_PATH before any browser child spawns.
                       export E2E_FIREFOX_PATH="$FF_BIN"
-                      export E2E_FIREFOX_LIBS="${playwrightFirefoxLibs}/lib"
+                      export E2E_FIREFOX_LIBS="${playwrightBrowserLibs}/lib"
 
                       # The stale-server ritual as one command: never test
                       # yesterday's binary through reuseExistingServer.

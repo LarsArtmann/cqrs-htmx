@@ -59,6 +59,19 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         launchOptions: {
           executablePath: process.env.E2E_BROWSER_PATH || undefined,
+          // The Playwright-managed chromium (protocol-matched to this
+          // driver) needs a nixpkgs lib forest on NixOS, scoped to THIS
+          // engine's launches exactly like the firefox forest below.
+          ...(process.env.E2E_BROWSER_LIBS
+            ? {
+                env: {
+                  ...process.env,
+                  LD_LIBRARY_PATH: [process.env.E2E_BROWSER_LIBS, process.env.LD_LIBRARY_PATH]
+                    .filter(Boolean)
+                    .join(":"),
+                },
+              }
+            : {}),
         },
       },
     },
