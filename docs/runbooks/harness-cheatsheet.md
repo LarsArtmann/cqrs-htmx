@@ -55,10 +55,14 @@ full disk and no cache-env source.
 ## templ regeneration (canonical generator only)
 
 ```bash
-nix build .#templGen && ./result/bin/templ generate -path <module> && rm -f result
+nix run .#gen
 ```
 
-Never the ambient templ binary (gotcha 10). CSS bundles rebuild in the SAME
+`nix run .#gen` is the ONLY sanctioned producer: it generates AND formats
+(treefmt baked in). A bare `templ generate` — even the pinned
+`nix build .#templGen` binary — writes UNFORMATTED bytes and flips the
+canonical form (gotcha 67; CI's codegen gate greens only on the gen-app
+form). Never the ambient templ binary (gotcha 10). CSS bundles rebuild in the SAME
 change as any templ-components bump (`nix run .#build-adminui-css` and the
 dashboardui twin).
 
