@@ -499,7 +499,13 @@ jobs:
           git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
           git clone --depth 1 https://github.com/LarsArtmann/go-idempotency.git "${GITHUB_WORKSPACE}/../go-idempotency"
           git clone --depth 1 https://github.com/LarsArtmann/httputil.git "${GITHUB_WORKSPACE}/../httputil"
-          sed -i "s|/home/lars/projects/|${GITHUB_WORKSPACE}/../|g" go.work
+          # The replacement MUST be canonical: spelling siblings as
+          # "<workspace>/../<sibling>" makes go treat the ../-form and the
+          # normalized form as two module instances — a nested module
+          # (event/v4/eventtest) then resolves twice and every
+          # workspace-mode member build dies with "ambiguous import"
+          # (reproduced 2026-11-17; local dev paths are already canonical).
+          sed -i "s|/home/lars/projects/|$(dirname "${GITHUB_WORKSPACE}")/|g" go.work
 
       # Pre-compile the five servers the Playwright webServers launch (`go
       # run .`) so the per-server 120s webServer timeout is not spent on a
