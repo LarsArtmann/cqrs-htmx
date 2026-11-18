@@ -113,13 +113,13 @@ func TestEventsSearch_InvalidBodyIs400(t *testing.T) {
 	mux := seedTypedEvents(t, "Alpha")
 
 	oversized := strings.Repeat("x", maxEventFilterBody+1)
-	if rec := eventsSearchRung(t, mux, cqrshtmx.MethodQuery, oversized); rec.Code != http.StatusBadRequest {
+	if rec := eventsSearchRung(t, mux, cqrshtmx.MethodQuery, oversized, nil); rec.Code != http.StatusBadRequest {
 		t.Errorf("oversized body: status = %d, want 400", rec.Code)
 	}
 
 	// url.ParseQuery refuses a bare '%' escape; the rung must reject, not
 	// silently filter on an empty value.
-	if rec := eventsSearchRung(t, mux, cqrshtmx.MethodQuery, "%zz"); rec.Code != http.StatusBadRequest {
+	if rec := eventsSearchRung(t, mux, cqrshtmx.MethodQuery, "%zz", nil); rec.Code != http.StatusBadRequest {
 		t.Errorf("malformed body: status = %d, want 400", rec.Code)
 	}
 }

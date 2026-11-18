@@ -198,20 +198,17 @@ func TestTelemetry_HealthzListsEnginesAndReadyzGatesOnHealth(t *testing.T) {
 func TestTelemetry_ProbesUnchangedWithoutProvider(t *testing.T) {
 	d := mustTestDashboardWithConfig(t, Config{Journal: &stubJournal{}})
 
-	mux, ok := d.Handler().(*http.ServeMux)
-	if !ok {
-		t.Fatalf("Handler() should expose the internal mux, got %T", d.Handler())
-	}
+	handler := d.Handler()
 
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/-/healthz", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/-/healthz", nil))
 
 	if strings.Contains(rec.Body.String(), "engines") {
 		t.Errorf("healthz must not carry an engines key without a provider: %s", rec.Body.String())
 	}
 
 	rec = httptest.NewRecorder()
-	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/-/readyz", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/-/readyz", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("readyz status = %d, want 200 (provider-absent behavior unchanged)", rec.Code)

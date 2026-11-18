@@ -38,6 +38,13 @@ func TestRenderedPages_AjaxElementsPinTargetAndSelect(t *testing.T) {
 			continue
 		}
 
+		// Assets are scripts and stylesheets, not rendered pages: the ext's
+		// JS source quotes usage examples whose hx-post/hx-query attributes
+		// would trip the scanner. Only document routes carry ajax elements.
+		if route.Panel == panelAssets {
+			continue
+		}
+
 		// Wildcards get placeholder values: invalid IDs render error pages,
 		// which carry no ajax elements and pass trivially.
 		path := "/dashboard" + strings.NewReplacer("{id}", "x", "{type}", "x").Replace(route.Pattern)
