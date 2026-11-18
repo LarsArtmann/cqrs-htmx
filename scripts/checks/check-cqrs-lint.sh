@@ -22,6 +22,15 @@
 # (`<SEVERITY> <file>:<line>:<col> ...`), so the verdict no longer depends on
 # the binary's exit-code severity policy.
 #
+# Candidate set (g1, 2026-11-18): every module with a .cqrs-lint.json is a
+# candidate — examples/*, e2e/server, and gfl-usermgmt included — so no
+# configured module's findings are invisible to the local loop. The root
+# `--scope=workspace` walk is DIAGNOSTIC-ONLY: it applies only the root
+# config (module configs are not merged there by design), so its output is
+# the pre-triage view, not truth; this gate and the BuildFlow toolsdk both
+# walk per-module with ancestor-merged configs, and those two surfaces must
+# stay the only enforcement points.
+#
 # cqrs-lint shells out to `go list`: goPkg (the pinned flake toolchain) +
 # GOTOOLCHAIN=local are REQUIRED or every module fails with load errors (the
 # ambient go cannot load the workspace floor).
@@ -63,7 +72,7 @@ fi
 
 MODULES=("$@")
 if [ "${#MODULES[@]}" -eq 0 ]; then
-  MODULES=(. identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar huma systemadapter health auditlog)
+  MODULES=(. identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar huma systemadapter health auditlog gfl-usermgmt e2e/server examples/admin-demo examples/basic examples/catalog-demo examples/dashboard-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/samber-do-demo examples/sync-demo examples/system-demo)
 fi
 
 echo "=== cqrs-lint strict check (ANY finding fails; stale suppressions fail) ==="
