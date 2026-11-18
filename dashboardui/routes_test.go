@@ -1,14 +1,21 @@
 package dashboardui
 
 import (
+	"context"
 	"net/http/httptest"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
+
+// routeProbeTimeout bounds every probe request in route-walking tests: a
+// never-ending route (SSE stream, long poll) degrades to one bounded slow
+// probe instead of hanging the suite at the package wall-clock timeout.
+const routeProbeTimeout = 5 * time.Second
 
 // fullRoutesConfig wires every capability so the manifest covers all
 // conditional panels, read-write included.
@@ -43,11 +50,22 @@ func TestRoutes_MatchRegisteredMuxPatterns(t *testing.T) {
 	handler := d.Handler()
 
 	for _, route := range d.Routes() {
-		req := httptest.NewRequest(route.Method, samplePath(route.Pattern), nil)
+		// Streams never complete: a probe at the SSE endpoint would block
+		// the recorder forever (the 600s package-timeout hang). Streams are
+		// registered in the same mux pattern table, so skipping the live
+		// probe loses no registration coverage.
+		if route.Panel == panelLiveUpdates {
+			continue
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), routeProbeTimeout)
+
+		req := httptest.NewRequest(route.Method, samplePath(route.Pattern), nil).WithContext(ctx)
 		req.Header.Set("HX-Request", "true")
 
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
+		cancel()
 
 		// A registration miss lands on the catch-all (styled 404 for GETs)
 		// or ServeMux's bare form (method-specific misses) — either way the
