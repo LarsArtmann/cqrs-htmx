@@ -122,6 +122,26 @@ stays empty. The restart wiring itself is pinned by
 `TestDeclarative_DurableCheckpointSurvivesRestart`: same SQLite journal, same
 checkpoint store, second `system.New` resumes at exactly the saved positions.
 
+### Checkpoint-key inventory (what lives where)
+
+The two paths keep checkpoints under DIFFERENT stores and key spaces (F11 of
+the usermgmt→system migration plan):
+
+| Path | Checkpoint store | Key space |
+| --- | --- | --- |
+| Legacy `usermgmt.NewService` | the consumer's `ServiceConfig.CheckpointStore`; in-memory (full replay each boot) when nil | projection `Name()`: `user-read-model`, `tenant-read-model`, `membership-read-model`, `bot-read-model`, `casbin-projection`, `audit-log` |
+| Declarative `systemadapter.DomainConfig` + `system.New` | `DomainConfig`'s `CheckpointStore`; default = entries of the `system_checkpoints` Map collection on the deployment-declared engine (ADR-0142; Map-less engines fall back to in-memory) | the declarative query names: `user_by_id`, `users`, `tenant_by_id`, `tenants`, `membership_by_id`, `memberships`, `bot_by_id`, `bots`, `bot_tokens`, `authz_policy_by_id`, `authz_policies`, `audit_log` |
+| Deprecated `systemadapter.NewProjectionLayer` | `WithCheckpointStore` (in-memory default) | the same legacy projection `Name()` key space |
+
+The legacy and declarative key spaces are disjoint by construction, so the
+FIRST boot after a legacy→declarative swap replays the journal once per
+projection — the same accepted cost class as the 2024
+`usermgmt:start_projections` → per-projection-key change
+(`usermgmt/es_projection_setup.go`). This is deliberate: checkpoint data does
+not migrate across the swap, and replay is the honest convergence (append
+handlers are idempotent and delivery is at-least-once). Do not attempt to
+translate keys between the stores.
+
 ## Engine support
 
 The declarative folds run on every metaengine driver — memory **and** SQL
