@@ -56,7 +56,7 @@ test("overview PolledRegion pins its own target/select and survives a live event
   await expect(page.locator("#projection-health")).toHaveAttribute("hx-select", "unset");
 });
 
-test("events filter form pins its own target/select/swap and survives a live event", async ({
+test("events filter form rides the QUERY ladder, pins its own attrs, and survives a live event", async ({
   page,
   request,
 }) => {
@@ -64,7 +64,12 @@ test("events filter form pins its own target/select/swap and survives a live eve
 
   const form = page.locator("form.filter-bar");
   await expect(form).toBeVisible();
-  await expect(form).toHaveAttribute("hx-get", /\/dashboard\/events$/);
+  // The QUERY ladder wiring: hx-post + hx-query via the cqrs-query ext
+  // (the browser upgrades to native QUERY or falls back to POST — either
+  // way the submit lands on /events/search, never a bare GET).
+  await expect(form).toHaveAttribute("hx-post", /\/dashboard\/events\/search$/);
+  await expect(form).toHaveAttribute("hx-query", "");
+  await expect(form).toHaveAttribute("hx-ext", "cqrs-query");
   await expect(form).toHaveAttribute("hx-target", "#main-content");
   await expect(form).toHaveAttribute("hx-select", "#main-content");
 
@@ -79,9 +84,19 @@ test("events filter form pins its own target/select/swap and survives a live eve
     .poll(async () => page.locator("table tbody tr").count(), { timeout: 20_000 })
     .toBeGreaterThan(before);
 
+  // REAL submit through the ext: filter on the just-emitted event's type
+  // and prove the filtered partial lands in the page (the full ladder:
+  // submit -> /events/search -> filtered swap -> pins intact).
+  await page.locator("#filter-type").fill("E2e.debugEmitted");
+  await form.locator('button[type="submit"]').click();
+  await expect(page.locator("table tbody tr").first()).toContainText("debugEmitted", {
+    timeout: 20_000,
+  });
+
   // Post-swap: the form's own pins are intact (a re-rendered form without
   // them would inherit the boost wrapper's target on its NEXT submit and
   // blank the page — the original bug's shape).
+  await expect(page.locator("form.filter-bar")).toHaveAttribute("hx-post", /\/dashboard\/events\/search$/);
   await expect(page.locator("form.filter-bar")).toHaveAttribute("hx-target", "#main-content");
   await expect(page.locator("form.filter-bar")).toHaveAttribute("hx-select", "#main-content");
 });
