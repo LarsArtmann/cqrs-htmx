@@ -3024,6 +3024,9 @@
                       [
                         gtk3
                         cups.lib
+                        expat
+                        libgbm
+                        udev
                         alsa-lib
                         dbus.lib
                         dbus-glib
