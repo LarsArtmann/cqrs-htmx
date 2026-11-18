@@ -23,8 +23,8 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
-	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
@@ -65,37 +65,44 @@ func requireWellFormedEnvelope(t *testing.T, name string, p transport.EventPaylo
 	require.NoError(t, err, "%s: occurredAt must be RFC3339, got %q", name, p.OccurredAt)
 }
 
-func TestSSEEnvelopeParity_LegacyVsSystem(t *testing.T) {
+// registerLegacyUser drives the legacy path: usermgmt.Service over a memory
+// event store, registration command dispatched, stream events read back.
+func registerLegacyUser(t *testing.T) []event.Event {
+	t.Helper()
 	ctx := context.Background()
 
-	// Path A — the legacy usermgmt.Service over a memory event store.
-	legacyStore := memorystorage.NewMemoryStore()
+	store := memorystorage.NewMemoryStore()
 
-	legacySvc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		EventStore: legacyStore,
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		EventStore: store,
 		AuditLog:   usermgmt.NewAuditLog(),
 	})
 	require.NoError(t, err)
 
-	legacyUser, err := legacySvc.Register(ctx, usermgmt.RegisterRequest{
+	registered, err := svc.Register(ctx, usermgmt.RegisterRequest{
 		ID:          id.NewUserID(),
 		Email:       "parity-legacy@example.com",
 		DisplayName: "Parity Legacy",
 	})
 	require.NoError(t, err)
 
-	legacyStream, err := id.ParseStreamID(legacyUser.User.ID.String())
+	stream, err := id.ParseStreamID(registered.User.ID.String())
 	require.NoError(t, err)
 
-	legacyEvents, err := legacyStore.Load(
-		ctx,
-		id.NewStreamRef(identitymodel.AggregateTypeUser, legacyStream),
-	)
+	events, err := store.Load(ctx, id.NewStreamRef(identitymodel.AggregateTypeUser, stream))
 	require.NoError(t, err)
-	require.NotEmpty(t, legacyEvents, "legacy path must record the registration events")
+	require.NotEmpty(t, events, "legacy path must record the registration events")
 
-	// Path B — the system path: systemadapter.DomainConfig over the memory
-	// preset, dispatched through the system's command dispatcher.
+	return events
+}
+
+// registerSystemUser drives the system path: systemadapter.DomainConfig over
+// the memory preset, the same command dispatched through the system's
+// dispatcher, stream events read back.
+func registerSystemUser(t *testing.T) []event.Event {
+	t.Helper()
+	ctx := context.Background()
+
 	sys, err := system.New(
 		ctx,
 		systemadapter.DomainConfig(),
@@ -106,23 +113,24 @@ func TestSSEEnvelopeParity_LegacyVsSystem(t *testing.T) {
 	require.NoError(t, sys.Start(ctx))
 	t.Cleanup(func() { _ = sys.Close() })
 
-	sysStream := id.NewStreamID()
+	stream := id.NewStreamID()
 	require.NoError(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
-		sysStream,
+		stream,
 		"parity-system@example.com",
 		"Parity System",
 		[]identitymodel.Role{identitymodel.RoleViewer, identitymodel.RoleUser},
 	)))
 
-	sysEvents, err := sys.EventStore().Load(
-		ctx,
-		id.NewStreamRef(identitymodel.AggregateTypeUser, sysStream),
-	)
+	events, err := sys.EventStore().Load(ctx, id.NewStreamRef(identitymodel.AggregateTypeUser, stream))
 	require.NoError(t, err)
-	require.NotEmpty(t, sysEvents, "system path must record the registration events")
+	require.NotEmpty(t, events, "system path must record the registration events")
 
-	legacyEnvelopes := sseEnvelopes(t, legacyEvents)
-	sysEnvelopes := sseEnvelopes(t, sysEvents)
+	return events
+}
+
+func TestSSEEnvelopeParity_LegacyVsSystem(t *testing.T) {
+	legacyEnvelopes := sseEnvelopes(t, registerLegacyUser(t))
+	sysEnvelopes := sseEnvelopes(t, registerSystemUser(t))
 
 	// The dispatch paths must produce the same EVENT SEQUENCE and the same
 	// per-position envelope metadata: this is the parity contract.
