@@ -3148,6 +3148,21 @@
                       fi
                       if command -v bun >/dev/null 2>&1; then
                         bun install --frozen-lockfile 2>/dev/null || bun install
+
+                        # Chromium revision-drift check (mirrors the firefox
+                        # block above): a same-number/different-build cache
+                        # survives the driver's install skip and fails every
+                        # newContext with a protocol scheme error — the
+                        # 2026-11-18 gotcha-66 class. Advisory: warn + name
+                        # the re-provision, never kill.
+                        CH_WANT_REV="$(grep -A3 '"name": "chromium"' node_modules/playwright-core/browsers.json 2>/dev/null \
+                          | grep -o '"revision": "[0-9]*"' | grep -o '[0-9]*' | head -1 || true)"
+                        CH_HAVE_REV="$(echo "$CHROME_BIN" | sed -n 's/.*chromium-\([0-9]*\)\/.*/\1/p' || true)"
+                        if [ -n "$CH_WANT_REV" ] && [ -n "$CH_HAVE_REV" ] && [ "$CH_WANT_REV" != "$CH_HAVE_REV" ]; then
+                          echo "WARN: chromium revision drift: runner wants $CH_WANT_REV, using cached $CH_HAVE_REV" >&2
+                          echo "      (re-provision: PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 PLAYWRIGHT_BROWSERS_PATH=$CH_HOME ./node_modules/.bin/playwright install chromium)" >&2
+                        fi
+
                         ./node_modules/.bin/playwright test "$@"
                       else
                         echo "FAIL: bun not found (the battery runner)." >&2
