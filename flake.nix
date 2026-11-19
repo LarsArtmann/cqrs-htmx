@@ -268,7 +268,7 @@
                 benchstat # benchmark comparison (golang.org/x/perf; used by nix run .#bench-spike)
                 pkgs.ginkgo
                 pkgs.tailwindcss_4
-                templGen # the CI-canonical generator (v0.3.1100); pkgs.templ is 1020-era
+                templGen # the CI-canonical generator (v0.3.1118 — true-1118 source after the 2026-11-19 hash-fix poison find, gotcha 10); pkgs.templ is 1020-era
                 # BuildFlow pre-commit hook formatters/linters
                 pkgs.shfmt # shell scripts (scripts/*.sh)
                 pkgs.shellcheck # same set CI lints; check-shellcheck.sh + BuildFlow shellcheck step
@@ -314,7 +314,7 @@
               packages = [
                 goPkg
                 pkgs.golangci-lint
-                templGen # the CI-canonical generator (v0.3.1100); pkgs.templ is 1020-era
+                templGen # the CI-canonical generator (v0.3.1118 — true-1118 source after the 2026-11-19 hash-fix poison find, gotcha 10); pkgs.templ is 1020-era
               ];
 
               GOWORK = "off";
