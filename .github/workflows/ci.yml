@@ -1140,7 +1140,7 @@ jobs:
         env:
           GOEXPERIMENT: jsonv2
         run: |
-          go install github.com/a-h/templ/cmd/templ@v0.3.1100
+          go install github.com/a-h/templ/cmd/templ@v0.3.1118
           for mod in adminui loginpage dashboardui; do
             echo "==> $mod"
             (cd "$mod" && templ generate && gofmt -w ./*_templ.go)

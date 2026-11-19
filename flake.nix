@@ -117,7 +117,7 @@
             ];
           };
           # templ generator pinned to the CI-canonical version. CI runs
-          # `go install github.com/a-h/templ/cmd/templ@v0.3.1100`; nixpkgs'
+          # `go install github.com/a-h/templ/cmd/templ@v0.3.1118`; nixpkgs'
           # pkgs.templ is older (v0.3.1020) and regenerating with it
           # downgrades every _templ.go stamp+form (hit live 2026-11-05:
           # `nix run .#gen` emitted 1020-form files that CI's codegen-drift
@@ -129,11 +129,11 @@
           # — gotcha 22; codegen is the CI-parity surface).
           templGen = pkgs.buildGoModule {
             pname = "templ";
-            version = "0.3.1100";
+            version = "0.3.1118";
 
             src = pkgs.fetchgit {
               url = "https://github.com/a-h/templ";
-              rev = "v0.3.1100";
+              rev = "v0.3.1118";
               hash = import ./templ-hash.nix;
             };
 
