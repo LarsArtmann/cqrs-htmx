@@ -125,6 +125,13 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	dispatcher := command.NewDispatcher()
 	dispatcher.Use(commandAuditMiddleware()...)
+	if !config.DisableCommandIdempotency {
+		// K2 (owner tick 2026-11-18): the replay guard mounts by default,
+		// keyed by the actor-scoped Idempotency-Key metadata — requests
+		// without the key pass through un-deduped, so session traffic and
+		// key-less bots are unaffected. See command_idempotency.go.
+		dispatcher.Use(defaultCommandIdempotency(config.IdempotencyStore))
+	}
 	if config.CommandLifecycle != nil {
 		// Adjacent pair per the upstream contract: outer classifies the
 		// terminal outcome (consuming the attempt tracker's state), attempt
