@@ -1,12 +1,14 @@
 package usermgmt
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-idempotency"
 )
 
@@ -64,22 +66,19 @@ func attachIdempotencyKey(cmd command.Command, key string) {
 	}
 }
 
-// newKeyedRegisterUser builds one registration command with a replay key.
-func newKeyedRegisterUser(t *testing.T, email, key string) command.Command {
+// newKeyedRegisterUser builds one registration command with a replay key
+// (an empty key leaves the command key-less — the guard's pass-through form)
+// and returns it with the user ID its aggregate maps to.
+func newKeyedRegisterUser(t *testing.T, email, key string) (command.Command, UserID) {
 	t.Helper()
-	cmd := NewRegisterUserCmd(aggIDFromUserMust(t, GenerateUserID()), email, "", nil)
-	attachIdempotencyKey(cmd, key)
-	return cmd
-}
-
-// aggIDFromUserMust wraps the aggregate-ID conversion for table-free tests.
-func aggIDFromUserMust(t *testing.T, userID UserID) id.AggregateID {
-	t.Helper()
+	userID := GenerateUserID()
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
 		t.Fatalf("aggIDFromUser: %v", err)
 	}
-	return aggID
+	cmd := NewRegisterUserCmd(aggID, email, "", nil)
+	attachIdempotencyKey(cmd, key)
+	return cmd, userID
 }
 
 // TestCommandIdempotency_DefaultMountDedupesKeyedRetry proves the K2 default
@@ -94,12 +93,12 @@ func TestCommandIdempotency_DefaultMountDedupesKeyedRetry(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{})
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	first := newKeyedRegisterUser(t, "k2-first@example.com", "retry-42")
+	first, _ := newKeyedRegisterUser(t, "k2-first@example.com", "retry-42")
 	if err := svc.dispatcher.Dispatch(t.Context(), first); err != nil {
 		t.Fatalf("first dispatch: %v", err)
 	}
 
-	second := newKeyedRegisterUser(t, "k2-second@example.com", "retry-42")
+	second, secondID := newKeyedRegisterUser(t, "k2-second@example.com", "retry-42")
 	err := svc.dispatcher.Dispatch(t.Context(), second)
 	if err == nil {
 		t.Fatal("keyed replay unexpectedly executed")
@@ -109,8 +108,7 @@ func TestCommandIdempotency_DefaultMountDedupesKeyedRetry(t *testing.T) {
 	}
 
 	// The deduped command never reached the domain: its user does not exist.
-	replayedID := mustUserIDFromAggregate(t, second)
-	if _, err := svc.GetUser(t.Context(), replayedID); err == nil {
+	if _, err := svc.GetUser(t.Context(), secondID); err == nil {
 		t.Error("replayed command's user exists — the deduped dispatch executed")
 	}
 }
@@ -126,7 +124,7 @@ func TestCommandIdempotency_NoKeyPassesThroughUnDeduped(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{})
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	cmd := NewRegisterUserCmd(aggIDFromUserMust(t, GenerateUserID()), "no-key@example.com", "", nil)
+	cmd, _ := newKeyedRegisterUser(t, "no-key@example.com", "")
 	if err := svc.dispatcher.Dispatch(t.Context(), cmd); err != nil {
 		t.Fatalf("first dispatch: %v", err)
 	}
@@ -152,16 +150,15 @@ func TestCommandIdempotency_OptOutDisablesGuard(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{DisableCommandIdempotency: true})
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	first := newKeyedRegisterUser(t, "optout-first@example.com", "retry-7")
+	first, _ := newKeyedRegisterUser(t, "optout-first@example.com", "retry-7")
 	if err := svc.dispatcher.Dispatch(t.Context(), first); err != nil {
 		t.Fatalf("first dispatch: %v", err)
 	}
 
-	second := newKeyedRegisterUser(t, "optout-second@example.com", "retry-7")
+	second, secondID := newKeyedRegisterUser(t, "optout-second@example.com", "retry-7")
 	if err := svc.dispatcher.Dispatch(t.Context(), second); err != nil {
 		t.Fatalf("opted-out keyed replay executed: %v", err)
 	}
-	secondID := mustUserIDFromAggregate(t, second)
 	if _, err := svc.GetUser(t.Context(), secondID); err != nil {
 		t.Errorf("second user missing — the opted-out replay did not execute: %v", err)
 	}
@@ -190,16 +187,15 @@ func TestCommandIdempotency_TTLExpiryExecutesAgain(t *testing.T) {
 	svc := newTestServiceWithConfig(t, ServiceConfig{IdempotencyStore: expiringStore{}})
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	first := newKeyedRegisterUser(t, "ttl-first@example.com", "expired-key")
+	first, _ := newKeyedRegisterUser(t, "ttl-first@example.com", "expired-key")
 	if err := svc.dispatcher.Dispatch(t.Context(), first); err != nil {
 		t.Fatalf("first dispatch: %v", err)
 	}
 
-	second := newKeyedRegisterUser(t, "ttl-second@example.com", "expired-key")
+	second, secondID := newKeyedRegisterUser(t, "ttl-second@example.com", "expired-key")
 	if err := svc.dispatcher.Dispatch(t.Context(), second); err != nil {
 		t.Fatalf("post-expiry dispatch should execute again: %v", err)
 	}
-	secondID := mustUserIDFromAggregate(t, second)
 	if _, err := svc.GetUser(t.Context(), secondID); err != nil {
 		t.Errorf("post-expiry user missing — the second command did not execute: %v", err)
 	}

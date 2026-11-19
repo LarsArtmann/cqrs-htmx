@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-idempotency"
 )
 
@@ -57,35 +56,50 @@ func idempotencyKeyFromMetadata(cmd command.Command) string {
 	return key
 }
 
-// defaultCommandIdempotency builds the default-mounted replay guard: keyed
-// by the actor-scoped Idempotency-Key metadata, pass-through when the key is
-// absent, duplicate sentinel re-familied to Conflict so HTTP consumers
-// answer 409 (cqrshtmx.MapError falls open to 503 for family-less errors —
-// a replay is a client error, not an availability incident). The guard sits
-// directly inside the audit chain: replays short-circuit before lifecycle
-// and consumer middleware run, so a deduped retry burns no retry budget and
-// emits no lifecycle events. The store claims the key whether the command
-// succeeds or fails (upstream CheckAndRecord contract) — a consumer needing
-// record-after-success semantics runs the HTTP-layer recipe instead
-// (examples/admin-demo ackMiddleware) or opts out via
-// ServiceConfig.DisableCommandIdempotency.
+// defaultCommandIdempotency builds the default-mounted replay guard. It owns
+// the claim end to end — the CheckAndRecord discipline mirrors upstream
+// middleware.CommandIdempotency with the Conflict translation built in — so
+// the re-familied replay error can ONLY originate from this guard's own
+// store claim: an ErrDuplicate bubbling from a consumer-mounted idempotency
+// middleware deeper in the chain passes through untouched (the B2 recipe's
+// sentinel contract stays intact; the wrapper-composition form in the guide
+// is the consumer-side equivalent). Keyed by the actor-scoped
+// Idempotency-Key metadata, pass-through when the key is absent; HTTP
+// consumers answer 409 (cqrshtmx.MapError falls open to 503 for
+// family-less errors — a replay is a client error, not an availability
+// incident). The guard sits directly inside the audit chain: replays
+// short-circuit before lifecycle and consumer middleware run, so a deduped
+// retry burns no retry budget and emits no lifecycle events. The store
+// claims the key whether the command succeeds or fails (the upstream
+// CheckAndRecord contract) — a consumer needing record-after-success
+// semantics runs the HTTP-layer recipe instead (examples/admin-demo
+// ackMiddleware) or opts out via ServiceConfig.DisableCommandIdempotency.
 func defaultCommandIdempotency(store idempotency.Store) command.Middleware {
 	if store == nil {
 		//nolint:staticcheck // SA1019: MemoryStore is deprecated for production; the default is the dev/test class — inject ServiceConfig.IdempotencyStore for multi-instance deployments.
 		store = idempotency.NewMemoryStore(idempotencyMemoryStoreSweep)
 	}
-	dedup := middleware.CommandIdempotency(store, DefaultCommandIdempotencyTTL, idempotencyKeyFromMetadata)
 	return func(next command.Handler) command.Handler {
-		guarded := dedup(next)
 		return func(ctx context.Context, cmd command.Command) error {
-			err := guarded(ctx, cmd)
-			if errors.Is(err, idempotency.ErrDuplicate) {
-				return errorfamily.NewConflict(
-					"usermgmt.command.replayed",
-					"duplicate request: a request with this Idempotency-Key was already accepted within the replay window",
+			key := idempotencyKeyFromMetadata(cmd)
+			if key == "" {
+				return next(ctx, cmd)
+			}
+			if err := store.CheckAndRecord(ctx, key, DefaultCommandIdempotencyTTL); err != nil {
+				if errors.Is(err, idempotency.ErrDuplicate) {
+					return errorfamily.NewConflict(
+						"usermgmt.command.replayed",
+						"duplicate request: a request with this Idempotency-Key was already accepted within the replay window",
+					)
+				}
+				return errorfamily.Wrapf(
+					err, errorfamily.Transient,
+					"usermgmt.command_idempotency",
+					"check-and-record failed for %s",
+					cmd.Type(),
 				)
 			}
-			return err
+			return next(ctx, cmd)
 		}
 	}
 }
