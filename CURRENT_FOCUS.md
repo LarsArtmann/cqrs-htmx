@@ -4,18 +4,17 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-11-18 (23:2x, CI all-green on the healed train — no active thread) · **Owner:** Lars · **Module count:** 30 (`go.work`)
+**As of:** 2026-11-19 (evening — verdict wave executed, hash-poison found and fixed) · **Owner:** Lars · **Module count:** 30 (`go.work`)
 
 ## The active thread
 
-**None — waiting on the owner.** CI run `44397985522` on `5321c847` came back ALL GREEN: `e2e`, `build`, `test`, `mod-tidy`, every `lint (module)` leg, `module-architecture`, `security`, and `checks`. That verdict settles the stretch's last open question: the codegen gate greens on the `nix run .#gen` (generated-AND-formatted) templ form — the format war's canonical-form question is answered by evidence, and the never-bare-generate rule landed as gotcha 67. Tree clean, pushed 0/0.
-
-The day's receipts live in [the 14-26 report](docs/status/2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md) and [the 22-05 report](docs/status/2026-11-18_22-05_ci-shepherding-codegen-format-war-battery-245-green_status.md): the e2e browser-cache heal + full 245/245 both-engine battery, the dashboardui SSE-hang fix + QUERY-ladder close-out, migration W1.3/W1.4 executed, the K2 packet and go-datastar#31 filed.
+**None — waiting on the owner.** The 2026-11-19 evening executed all four owner verdicts and settled the open anomaly: K2 GO → the default command idempotency guard is landed and verified (own-the-claim design; receipts in the [K2 packet](docs/proposals/2026-11-18_k2-idempotency-default-on-owner-decision.md) § Executed and the [20-47 report](docs/status/2026-11-19_20-47_owner-verdicts-k2-wave-templ-1118-hook-fix_status.md)); hook fix → templ aligned to the latest PUBLISHED release (v0.3.1118 — v0.3.1123 is the owner's unpublished system build) in go.mods, the CI pin, and templGen; cache attribution → unattributed, the provisioning ritual landed in gotcha 66; M2M/adminui → per-row (verdicts recorded in both packets). The §b3 hash anomaly was then settled — and it mattered: the first "aligned" templGen was still the 1100 source behind cache-satisfied fixed-outputs (stale hashes validated, the day's gen verification void); the true hashes are pinned, the true-1118 regen landed (21 stamp lines, stamp-only), and the mechanism lives in gotcha 10 with the war status in gotcha 67 (e).
 
 ## Waiting on the owner
 
-- **§g.2 (22-05 report, carries the 14-26 one)** — do the M2M D1–D4 / adminui D1–D3 packets tick under "all recommendations GO" (converts W1/W2 + the adminui panel waves), or stay parked behind per-row ticks? One word per row converts ~2 days of work.
-- **K2** — one "GO" tick on [the packet](docs/proposals/2026-11-18_k2-idempotency-default-on-owner-decision.md) executes the ~2–4 h default-mount wave.
-- **§g.3** — who provisioned the poisoned chromium-1255 cache (Nov 17 ~19:25)? Attribution closes gotcha 66's loop.
+- **§g.1 (20-47 report)** — the NixOS system templ (0.3.1123, unpublished master build) is the hook-poison's last standing cause: repin it to a published release (one-line system-flake change, owner-side), or ask for a runbook patch note first.
+- **§g.3 (20-47 report)** — K2 multi-instance follow-up: a reference SQL/Redis `idempotency.Store` guide example, or the seam + docs suffice (§g.2 is answered — the anomaly was settled same-evening).
+- **Per-row M2M D1–D4 / adminui D1–D3** — the packets stay parked; each decision surfaces individually through the native decision tool per the owner's 2026-11-19 verdict.
+- **Fleet-cache hygiene (from the gotcha-10 poison find)** — a substituter served stale fixed-output content under new revs (`cache.home.lan/*` is the suspect class, unattributed): worth a fleet-side prune/provenance check.
 
-Known standing reds: none local, CI green on HEAD. Quiet-window carryovers (deferred under 7 live sibling sessions, load ~52/32 cores): the erraudit advisory TOTAL re-true and one local `check-modules` composite run — CI's `checks` job carries both verdicts on HEAD meanwhile.
+Known standing reds: none local. Quiet-window carryovers: the erraudit advisory TOTAL re-true (blocking window closes 2026-12-16), one local check-modules composite, archive pass at tail 15.
