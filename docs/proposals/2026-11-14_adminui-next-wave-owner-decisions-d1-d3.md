@@ -1,6 +1,7 @@
 # Owner decision packet — adminui next wave D1–D3
 
 **Filed:** 2026-11-14 · **Plan:** [`docs/planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md`](../planning/2026-11-14_08-45_SUPERB-adminui-tenant-user-management-next-wave-pareto-plan.md) §7 · **Status: RECOMMENDATIONS ONLY — the named follow-on work stays blocked until the owner ticks this table** (same shape as the [M2M D1–D4 packet](2026-11-07_m2m-owner-decisions-d1-d4.md); the blanket directive does not manufacture owner answers the plan explicitly gates).
+> **Verdict (2026-11-19, native decision tool): PER-ROW.** Same ruling as the M2M packet — the owner closed the blanket-directive era: the packets stay parked and each D-decision surfaces individually through the native decision tool before its wave ("stop blanket-asking"). D1–D3 tick one at a time; the panel waves stay blocked until the first per-row tick.
 
 ## The decisions
 
