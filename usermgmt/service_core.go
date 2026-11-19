@@ -202,6 +202,23 @@ type ServiceConfig struct {
 	// dispatcher bare apart from the audit chain — backward compatible.
 	CommandMiddleware []command.Middleware
 
+	// IdempotencyStore, if provided, backs the default-mounted command
+	// idempotency guard (replay dedupe keyed by the actor-scoped
+	// Idempotency-Key command metadata — see [IdempotencyMetadataKey] and
+	// [DefaultCommandIdempotencyTTL]). When nil, the guard runs on an
+	// in-memory store (dev/test class: in-process, swept TTL — replays
+	// hitting a DIFFERENT replica are not deduped). Multi-instance
+	// deployments should implement idempotency.Store against their SQL or
+	// Redis so the claim is shared. Ignored when DisableCommandIdempotency
+	// is true.
+	IdempotencyStore idempotency.Store
+
+	// DisableCommandIdempotency opts out of the default-mounted replay
+	// guard entirely (the recipe-only posture: mount
+	// middleware.CommandIdempotency yourself via CommandMiddleware with
+	// your own store, TTL, and key extractor).
+	DisableCommandIdempotency bool
+
 	// CommandLifecycle, when non-nil, wires go-cqrs-lite's commandlifecycle
 	// pair (outer + attempt) around the command pipeline: every dispatched
 	// command emits command.received and command.completed — or
