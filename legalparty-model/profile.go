@@ -54,6 +54,18 @@ type LegalPartyProfile struct {
 // consistent with the identifiers carried, and registry anchors required
 // where the class owes the register its existence.
 func (p LegalPartyProfile) Validate() error {
+	if err := p.validateIdentity(); err != nil {
+		return err
+	}
+	if err := p.validateIdentifiers(); err != nil {
+		return err
+	}
+
+	return p.validateClassConsistency()
+}
+
+// validateIdentity checks the required identity facts.
+func (p LegalPartyProfile) validateIdentity() error {
 	if strings.TrimSpace(p.LegalName) == "" {
 		return errorfamily.NewRejection("legalparty.profile.name_required",
 			"a legal party carries its registered name")
@@ -66,9 +78,12 @@ func (p LegalPartyProfile) Validate() error {
 		return errorfamily.NewRejection("legalparty.profile.country_invalid",
 			"a legal party names its jurisdiction (ISO 3166-1 alpha-2)")
 	}
-	if err := p.RegisteredAddr.Validate(); err != nil {
-		return err
-	}
+
+	return p.RegisteredAddr.Validate()
+}
+
+// validateIdentifiers format-checks every identifier the profile carries.
+func (p LegalPartyProfile) validateIdentifiers() error {
 	if p.BillingEmail != "" {
 		if _, err := identitymodel.ParseEmail(string(p.BillingEmail)); err != nil {
 			return errorfamily.NewRejection("legalparty.profile.billing_email_invalid",
@@ -85,15 +100,23 @@ func (p LegalPartyProfile) Validate() error {
 			return errorfamily.NewRejection("legalparty.profile.legal_form_code_invalid",
 				"an ISO 20275 ELF code is four alphanumeric characters, got "+p.LegalFormCode)
 		}
-		if p.LegalForm == LegalFormNaturalPerson {
-			return errorfamily.NewRejection("legalparty.profile.natural_person_legal_form_code",
-				"a natural person carries no ISO 20275 ELF code; use OtherLegalForm for the trade name")
-		}
 	}
 	if p.Register != nil {
 		if err := p.Register.Validate(); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// validateClassConsistency enforces the class-dependent identifier rules:
+// natural persons hold neither LEI nor ELF code, and legal entities and
+// partnerships carry a registry anchor.
+func (p LegalPartyProfile) validateClassConsistency() error {
+	if p.LegalForm == LegalFormNaturalPerson && p.LegalFormCode != "" {
+		return errorfamily.NewRejection("legalparty.profile.natural_person_legal_form_code",
+			"a natural person carries no ISO 20275 ELF code; use OtherLegalForm for the trade name")
 	}
 	if p.LEI != "" && !p.LegalForm.AllowsLEI() {
 		return errorfamily.NewRejection("legalparty.profile.natural_person_lei",

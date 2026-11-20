@@ -81,7 +81,9 @@ func TestParseLegalPartyID_Strict(t *testing.T) {
 }
 
 func TestGenerateLegalPartyID_Unique(t *testing.T) {
-	if GenerateLegalPartyID().Get() == GenerateLegalPartyID().Get() {
+	first := GenerateLegalPartyID()
+	second := GenerateLegalPartyID()
+	if first.Get() == second.Get() {
 		t.Fatal("two generated ids must differ")
 	}
 }

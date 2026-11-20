@@ -147,11 +147,20 @@ func ParseVATID(s string) (VATID, error) {
 }
 
 func validateVATNationalPart(cc CountryCode, national string) error {
-	digits := 0
+	if err := validateVATCharacters(cc, national); err != nil {
+		return err
+	}
+
+	return validateVATLength(cc, national)
+}
+
+// validateVATCharacters checks the national part's alphabet: digits only,
+// except the Dutch form which carries the literal B separator.
+func validateVATCharacters(cc CountryCode, national string) error {
 	for _, r := range national {
 		switch {
 		case r >= '0' && r <= '9':
-			digits++
+			continue
 		case r >= 'A' && r <= 'Z':
 			if cc != "NL" {
 				return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
@@ -163,6 +172,11 @@ func validateVATNationalPart(cc CountryCode, national string) error {
 		}
 	}
 
+	return nil
+}
+
+// validateVATLength enforces the per-jurisdiction national-part shape.
+func validateVATLength(cc CountryCode, national string) error {
 	switch cc {
 	case "DE":
 		if len(national) != 9 {
@@ -189,7 +203,7 @@ func validateVATNationalPart(cc CountryCode, national string) error {
 				"a Dutch BTW-nummer is NL followed by 9 digits, B, and 2 digits")
 		}
 	default:
-		if digits < 8 || digits > 12 {
+		if len(national) < 8 || len(national) > 12 {
 			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
 				"the national part of a "+string(cc)+" VAT ID is 8 to 12 characters")
 		}
@@ -206,7 +220,7 @@ func validateVATNationalPart(cc CountryCode, national string) error {
 // fails, calc('79462') == '3', calc('00200667308') == '5'.
 func validDEVATChecksum(national string) bool {
 	check := 5
-	for i := 0; i < len(national); i++ {
+	for i := range len(national) {
 		d := int(national[i] - '0')
 		base := check
 		if base == 0 {
@@ -239,23 +253,34 @@ func ParseTaxNumber(country CountryCode, s string) (TaxNumber, error) {
 			"a tax number carries no country prefix; parse "+v+" as a VAT ID instead")
 	}
 
+	if err := validateTaxNumberBody(country, v); err != nil {
+		return "", err
+	}
+
+	return TaxNumber(v), nil
+}
+
+// validateTaxNumberBody enforces the per-jurisdiction shape after separator
+// removal: Germany takes the 10-13 digit national forms, everyone else is
+// format-checked.
+func validateTaxNumberBody(country CountryCode, v string) error {
 	if country == "DE" {
 		if len(v) < 10 || len(v) > 13 {
-			return "", errorfamily.NewRejection("legalparty.tax_number.national_invalid",
+			return errorfamily.NewRejection("legalparty.tax_number.national_invalid",
 				"a German Steuernummer has 10 to 13 digits (legacy or ELSTER form)")
 		}
 	} else if len(v) < 5 || len(v) > 16 {
-		return "", errorfamily.NewRejection("legalparty.tax_number.national_invalid",
+		return errorfamily.NewRejection("legalparty.tax_number.national_invalid",
 			"a "+string(country)+" tax number is 5 to 16 characters after separator removal")
 	}
 	for _, r := range v {
 		if (r < '0' || r > '9') && (r < 'A' || r > 'Z') {
-			return "", errorfamily.NewRejection("legalparty.tax_number.national_invalid",
+			return errorfamily.NewRejection("legalparty.tax_number.national_invalid",
 				"a tax number carries only letters and digits after separator removal")
 		}
 	}
 
-	return TaxNumber(v), nil
+	return nil
 }
 
 // isPrefixedVATShape reports whether the value is a two-letter country

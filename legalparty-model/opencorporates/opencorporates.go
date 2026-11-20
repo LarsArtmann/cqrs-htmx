@@ -139,8 +139,8 @@ type address struct {
 }
 
 func readBody(resp *http.Response) ([]byte, error) {
-	switch {
-	case resp.StatusCode == http.StatusOK:
+	switch resp.StatusCode {
+	case http.StatusOK:
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, errorfamily.WrapCorruption(err,
@@ -148,15 +148,15 @@ func readBody(resp *http.Response) ([]byte, error) {
 		}
 
 		return body, nil
-	case resp.StatusCode == http.StatusNotFound:
+	case http.StatusNotFound:
 		return nil, legalparty.ErrRegistryNotFound
-	case resp.StatusCode == http.StatusUnauthorized:
+	case http.StatusUnauthorized:
 		return nil, errorfamily.NewInfrastructure("legalparty.registry.invalid_token",
 			"OpenCorporates rejected the API token (check X-API-TOKEN)")
-	case resp.StatusCode == http.StatusForbidden, resp.StatusCode == http.StatusTooManyRequests:
+	case http.StatusForbidden, http.StatusTooManyRequests:
 		return nil, errorfamily.WrapTransient(legalparty.ErrRegistryUnavailable,
 			"legalparty.registry.unavailable", "OpenCorporates rate limited the request (403); back off")
-	case resp.StatusCode == http.StatusServiceUnavailable:
+	case http.StatusServiceUnavailable:
 		return nil, errorfamily.WrapTransient(legalparty.ErrRegistryUnavailable,
 			"legalparty.registry.unavailable",
 			"OpenCorporates is overloaded or the company is temporarily redacted (503)")

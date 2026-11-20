@@ -15,7 +15,7 @@ import (
 // LegalPartyDecider returns the Decider for the LegalParty aggregate.
 func LegalPartyDecider() decider.Decider[LegalPartyState] {
 	return decider.Decider[LegalPartyState]{
-		Initial: LegalPartyState{}, //nolint:exhaustruct // zero-value is correct for aggregate initial state
+		Initial: LegalPartyState{},
 		Apply:   FoldLegalParty,
 	}
 }
@@ -165,6 +165,8 @@ func rejectIllegalMaintainer(actor identitymodel.ActorID) error {
 	switch actor.Kind() {
 	case identitymodel.ActorUser, identitymodel.ActorSystem, identitymodel.ActorService:
 		return nil
+	case identitymodel.ActorBot, identitymodel.ActorUnknown:
+		return ErrBotActorForbidden
 	default:
 		return ErrBotActorForbidden
 	}

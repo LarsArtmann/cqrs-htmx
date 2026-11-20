@@ -86,6 +86,7 @@ linters:
       ignore-package-globs:
         - github.com/larsartmann/go-error-family*
         - github.com/larsartmann/go-cqrs-lite/event/*
+        - github.com/larsartmann/cqrs-htmx/legalparty-model*
     cyclop:
       max-complexity: 12
     exhaustruct:
@@ -101,6 +102,8 @@ linters:
         # fields legitimately decode to zero values.
         - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4/gleif\.\w+$
         - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4/opencorporates\.\w+$
+        # Optional-field clients construct the stdlib client with defaults.
+        - net/http\.Client$
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -138,6 +141,7 @@ linters:
           - wrapcheck
           - exhaustruct
           - goconst
+          - gochecknoglobals
           - paralleltest
           - unparam
           - cyclop
