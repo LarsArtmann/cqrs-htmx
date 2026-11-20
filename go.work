@@ -25,6 +25,7 @@ use (
 	./huma
 	./identity-model
 	./integration_test
+	./legalparty-model
 	./loginpage
 	./setup
 	./systemadapter

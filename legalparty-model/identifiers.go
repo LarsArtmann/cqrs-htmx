@@ -1,6 +1,7 @@
 package legalparty
 
 import (
+	"strconv"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -22,7 +23,7 @@ func ParseLEI(s string) (LEI, error) {
 	v := strings.ToUpper(strings.TrimSpace(s))
 	if len(v) != 20 {
 		return "", errorfamily.NewRejection("legalparty.lei.invalid",
-			"a LEI is exactly 20 characters, got "+len(v)+" in "+s)
+			"a LEI is exactly 20 characters, got "+strconv.Itoa(len(v))+" in "+s)
 	}
 	for _, r := range v {
 		if (r < '0' || r > '9') && (r < 'A' || r > 'Z') {
@@ -154,7 +155,7 @@ func validateVATNationalPart(cc CountryCode, national string) error {
 		case r >= 'A' && r <= 'Z':
 			if cc != "NL" {
 				return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
-					"the national part of a "+cc+" VAT ID carries only digits")
+					"the national part of a "+string(cc)+" VAT ID carries only digits")
 			}
 		default:
 			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
@@ -190,7 +191,7 @@ func validateVATNationalPart(cc CountryCode, national string) error {
 	default:
 		if digits < 8 || digits > 12 {
 			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
-				"the national part of a "+cc+" VAT ID is 8 to 12 characters")
+				"the national part of a "+string(cc)+" VAT ID is 8 to 12 characters")
 		}
 	}
 
@@ -246,7 +247,7 @@ func ParseTaxNumber(country CountryCode, s string) (TaxNumber, error) {
 		}
 	} else if len(v) < 5 || len(v) > 16 {
 		return "", errorfamily.NewRejection("legalparty.tax_number.national_invalid",
-			"a "+country+" tax number is 5 to 16 characters after separator removal")
+			"a "+string(country)+" tax number is 5 to 16 characters after separator removal")
 	}
 	for _, r := range v {
 		if (r < '0' || r > '9') && (r < 'A' || r > 'Z') {
