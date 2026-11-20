@@ -45,5 +45,10 @@ func copyButtonComponent(text, nonce string) templ.Component {
 		Icon:        true,
 		Href:        "",
 		LabelClass:  "",
+		// The buttons ride event-detail items that re-render inside
+		// htmx-swapped fragments, where innerHTML-inserted script elements
+		// never execute — the shell-mounted CopyButtonScript (layout.templ)
+		// handles clicks instead (templ-components v1.27.2).
+		NoScript: true,
 	})
 }
