@@ -198,25 +198,24 @@ func validateVATNationalPart(cc CountryCode, national string) error {
 	return nil
 }
 
-// validDEVATChecksum applies the ISO 7064 Mod 11,10 check to the nine-digit
-// German national part (BMF-published example DE136695976).
+// validDEVATChecksum applies the ISO 7064 Mod 11,10 checksum to the full
+// nine-digit German national part. Faithful port of the published reference
+// implementation (python-stdnum, stdnum/iso7064/mod_11_10.py): the checksum
+// runs over ALL digits with a seed of 5 and is valid iff it equals 1.
+// Verified vectors: BMF/BZSt example DE136695976 validates, DE136695978
+// fails, calc('79462') == '3', calc('00200667308') == '5'.
 func validDEVATChecksum(national string) bool {
-	product := 10
-	for i := 0; i < 8; i++ {
+	check := 5
+	for i := 0; i < len(national); i++ {
 		d := int(national[i] - '0')
-		sum := (d + product) % 10
-		if sum == 0 {
-			sum = 10
+		base := check
+		if base == 0 {
+			base = 10
 		}
-		product = (sum * 2) % 11
+		check = ((base*2)%11 + d) % 10
 	}
 
-	check := 11 - product
-	if check == 10 {
-		check = 0
-	}
-
-	return check == int(national[8]-'0')
+	return check == 1
 }
 
 // TaxNumber is a national direct-tax number (the German Steuernummer, UK

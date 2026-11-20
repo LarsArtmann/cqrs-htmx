@@ -55,6 +55,11 @@ type RegistryFacts struct {
 	LegalFormLabel string `json:"legal_form_label,omitempty"`
 	// Status is the registry's entity status (ACTIVE/INACTIVE/...).
 	Status string `json:"status,omitempty"`
+	// SourceURL is the registry's own page for this entity — the link
+	// attribution requires when displaying the facts (OpenCorporates ODbL
+	// terms: a hyperlink reading "from OpenCorporates"; GLEIF: CC BY 4.0
+	// attribution).
+	SourceURL string `json:"source_url,omitempty"`
 	// Country is the registry's jurisdiction, when resolvable.
 	Country CountryCode `json:"country,omitempty"`
 	// RegisteredAddr is the registered address on file, when the registry
