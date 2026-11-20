@@ -68,3 +68,4 @@
 | [0062](0062-direct-imports-only.md)                        | Direct Imports Only — No Permanent Cross-Package Alias, One Breaking Window Per Major              | Accepted                                                             |
 | [0063](0063-authorization-at-the-dispatch-boundary.md)     | Authorization at the Dispatch Boundary — Postures Declared at Registration                         | Accepted                                                             |
 | [0064](0064-http-query-fallback-ladder.md)                    | The HTTP QUERY Fallback Ladder as a Library Contract — One Handler, Decoder-Driven Accept-Query, QUERY-Only Override          | Accepted                                                             |
+| [0065](0065-billing-processor-and-merchant-of-record.md) | Billing Processor and Merchant of Record — Stripe as Processor, Owner Holds Tax Liability            | Accepted                                                             |

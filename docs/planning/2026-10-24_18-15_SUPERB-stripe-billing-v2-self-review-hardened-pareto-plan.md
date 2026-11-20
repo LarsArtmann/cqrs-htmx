@@ -2,6 +2,7 @@
 
 **Created:** 2026-10-24 18:15 CEST
 **Status:** PLAN — proposed, NOT started. **Not the active thread** ([CURRENT_FOCUS.md](../../CURRENT_FOCUS.md) unchanged; owner-gated like everything in this lane).
+**S00 status (2026-11-20):** CLOSED — merchant of record decided (Stripe as processor, owner holds tax liability) and the demand gate recorded as an explicit owner override, both in [ADR 0065](../adr/0065-billing-processor-and-merchant-of-record.md). S01 is therefore the first executable milestone; no implementation exists yet.
 **Amended (same day, evening):** +**S25 metrics lane** — CLV/MRR/churn delivery to consumer apps via projections + typed queries + SSE (§2.5, owner ask "data like CLTV back to my apps"). 26 milestones / 104 tasks / ≈30.7 h.
 **Supersedes:** [`2026-10-24_17-32_SUPERB-stripe-billing-bounded-context-pareto-plan.md`](2026-10-24_17-32_SUPERB-stripe-billing-bounded-context-pareto-plan.md) (v1) **for execution order and task definitions**. v1 stays authoritative for its decision evidence (its §2 anchors, the Stripe-docs verification log) — do not re-derive those.
 **Predecessor:** the brutal self-review of v1 (session turn, 2026-10-24): 8 findings, all fixed here (§1).
@@ -55,6 +56,8 @@ Seat updates are *requests*: the billing decider clamps to the processor's plan 
 
 S00 produces two artifacts and nothing else: (a) the demand evidence file path or an explicit park decision, (b) the MoR decision record. Until both exist, S01+ is frozen — matching how ADR-0050 treats its tiers.
 
+**Closed 2026-11-20 (ADR 0065):** S00b decided — Stripe as processor, the owner is merchant of record and holds tax liability. S00a has no admissible consumer artifact, so it is recorded as an explicit owner override rather than mislabelled as demand evidence; kill criterion K1 stays a standing risk. K3 does not fire, so S07's dunning choreography and S17's reconciliation keep their scope. The freeze lifts for S01 only — no billing code exists.
+
 ### 2.5 Metrics lane (added same day on owner ask: "data like CLTV back to my apps")
 
 Doctrine: **events carry settled facts; metrics are disposable projections.** `PaymentReceived` carries `amount_minor` + ISO currency (the settled fact from `invoice.paid`); Stripe stays the ledger — we keep the facts we need to reason. CLV/MRR/ARPU/churn/seat-utilization are folds over those facts, never aggregate state:
@@ -81,7 +84,7 @@ Hard traps: CAC is external input (never fabricated from billing events); FX con
 
 | ID | Milestone | Tier | Impact | Effort | Depends | Verify |
 | --- | --- | --- | --- | ---: | --- | --- |
-| S00 | **Demand + MoR gate**: consumer-demand artifact (or park decision) + processor-vs-MoR decision record | gate | **Blocking** | 30m | — | both artifacts exist in `docs/adr/` or plan parked to ROADMAP |
+| S00 | **Demand + MoR gate**: consumer-demand artifact (or park decision) + processor-vs-MoR decision record | gate | **Blocking** | 30m | — | both artifacts exist in `docs/adr/` or plan parked to ROADMAP — **CLOSED 2026-11-20** by [ADR 0065](../adr/0065-billing-processor-and-merchant-of-record.md) |
 | S01 | ADR-0057 — v1's D1–D13 + §2 deltas (ProcessorRef naming, bounded seen-refs, bidirectional choreography, kill criteria) | 1% | High | 45m | S00 | ADR filed, linked from `docs/adr/` index |
 | S02 | `billing-model` scaffold (go.mod, README, lint configs, go.work) | 1% | High | 40m | S01 | `GOEXPERIMENT=jsonv2 go build ./billing-model/...` |
 | S03 | Domain types v2: `ProcessorRef`, bounded seen-refs shape, seats + plan-limit fields, events/commands in our vocabulary, branded IDs | 1% | **Critical** | 90m | S02 | compiles; vocabulary ban holds (`rg -i 'stripe\|evt_\|cus_\|sub_' billing-model/` → 0 code hits) |
@@ -284,4 +287,5 @@ Identical to v1 §8 (module tests, `.#test`, `.#lint`, `.#check-cqrs-lint`, `.#c
 - 2026-10-24: v1's mermaid graph validated post-hoc (`mmdc` render, 228 KB SVG). **This file's graph was validated BEFORE commit** (same tool).
 - 2026-10-24: v1 findings 1–8 (brutal self-review, session turn) → fixes mapped in §1; findings 1,3,4,6 changed design, not just tasks.
 - 2026-10-24: BuildFlow `nix-fmt` tmpdir-loop repro: `buildflow history --step nix-fmt --last-error` (5 consecutive identical failures; root cause string: `could not find [go.mod] in /tmp/buildflow-roundtrip-*`). TODO row added in this commit (close-the-loop state c→b).
+- 2026-11-20: **S00 closed.** Merchant-of-record decided — Stripe as processor, owner holds tax liability ("for now I own tax"); demand gate recorded as an explicit owner override after an all-state issue search and a repo tree sweep found no admissible consumer artifact. Decision record: [ADR 0065](../adr/0065-billing-processor-and-merchant-of-record.md). Consequence for S01: its working title "ADR-0057" is stale because 0057 is the authorization contract — the billing design ADR takes the next free number, 0066.
 - v1 §2 decision evidence and the Stripe-docs quotes remain authoritative in the v1 file — not duplicated here.
