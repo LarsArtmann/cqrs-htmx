@@ -19,7 +19,7 @@ func errorCode(t *testing.T, err error) string {
 		t.Fatalf("error %v carries no code", err)
 	}
 
-	return coded.Code()
+	return coded.ErrorCode()
 }
 
 // TestParseLegalPartyID_RoundTrip pins the strict reconstruction path: a
@@ -35,7 +35,7 @@ func TestParseLegalPartyID_RoundTrip(t *testing.T) {
 		t.Fatalf("round trip changed identity: got %q, want %q", parsed.Get(), id.Get())
 	}
 
-	prefixed, err := ParseLegalPartyID("LegalParty:" + id.String())
+	prefixed, err := ParseLegalPartyID("LegalParty:" + id.Get())
 	if err != nil {
 		t.Fatalf("display prefix must parse: %v", err)
 	}
@@ -45,7 +45,7 @@ func TestParseLegalPartyID_RoundTrip(t *testing.T) {
 }
 
 func TestParseLegalPartyID_Strict(t *testing.T) {
-	valid := GenerateLegalPartyID().String()
+	valid := GenerateLegalPartyID().Get()
 
 	tests := []struct {
 		name     string
@@ -53,8 +53,8 @@ func TestParseLegalPartyID_Strict(t *testing.T) {
 		wantCode string
 	}{
 		{"valid ulid", valid, ""},
-		{"empty", "", "legalparty.branded_id.invalid"},
-		{"whitespace-padded", " " + valid + " ", "legalparty.branded_id.invalid"},
+		{"empty", "", "legalparty.legal_party_id.invalid"},
+		{"whitespace-padded", " " + valid + " ", "legalparty.legal_party_id.invalid"},
 		{"not a ulid", "hello-world", "legalparty.legal_party_id.invalid"},
 		{"truncated", valid[:20], "legalparty.legal_party_id.invalid"},
 		{"other brand prefix", "Tenant:" + valid, "legalparty.legal_party_id.invalid"},

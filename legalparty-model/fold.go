@@ -38,7 +38,10 @@ func (s LegalPartyState) IsValid() bool {
 	if !s.Closed && s.CloseReason != "" {
 		return false
 	}
-	if s.Closed != s.ClosedAt.IsZero() {
+	if s.Closed && s.ClosedAt.IsZero() {
+		return false
+	}
+	if !s.Closed && !s.ClosedAt.IsZero() {
 		return false
 	}
 	if !s.Opened && !s.OpenedAt.IsZero() {

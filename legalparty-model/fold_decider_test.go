@@ -140,7 +140,10 @@ func TestDecideOpenLegalParty_Guards(t *testing.T) {
 	})
 
 	t.Run("invalid profile rejected", func(t *testing.T) {
-		_, err := decideOpen(t, LegalPartyProfile{LegalName: "x", LegalForm: LegalFormLegalEntity}, testUserID)
+		anchored := gmbhProfile()
+		anchored.LEI = ""
+		anchored.Register = nil
+		_, err := decideOpen(t, anchored, testUserID)
 		requireErrorCode(t, err, "legalparty.profile.registry_anchor_required")
 	})
 }
@@ -149,7 +152,7 @@ func TestDecideUpdateLegalPartyProfile_Guards(t *testing.T) {
 	t.Run("unknown party", func(t *testing.T) {
 		_, err := DecideUpdateLegalPartyProfile(testStream, gmbhProfile(), nil, testUserID, testTime)(
 			LegalPartyState{}, event.Version(0))
-		requireErrorCode(t, err, ErrLegalPartyNotFound.Error())
+		requireErrorCode(t, err, "legalparty.legal_party.not_found")
 	})
 
 	t.Run("closed party", func(t *testing.T) {
@@ -202,7 +205,7 @@ func TestDecideCloseLegalParty_Guards(t *testing.T) {
 	t.Run("unknown party", func(t *testing.T) {
 		_, err := DecideCloseLegalParty(testStream, "ceased trading", testUserID, testTime)(
 			LegalPartyState{}, event.Version(0))
-		requireErrorCode(t, err, ErrLegalPartyNotFound.Error())
+		requireErrorCode(t, err, "legalparty.legal_party.not_found")
 	})
 
 	t.Run("empty reason rejected", func(t *testing.T) {
