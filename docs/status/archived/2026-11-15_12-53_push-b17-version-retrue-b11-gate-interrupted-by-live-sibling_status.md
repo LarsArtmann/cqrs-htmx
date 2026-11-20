@@ -1,5 +1,9 @@
 # Fleet Follow-Through Resumption — Push Landed, B17/B11 Done, Sibling Collision Live
 
+> **ANNOTATED 2026-11-20** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-20 (round-23 (2026-11-20)).**
+> The next session in the same arc is [`2026-11-15_14-20_plan-tail-completion-b9-b13-b14-b15-b16_status.md`](../2026-11-15_14-20_plan-tail-completion-b9-b13-b14-b15-b16_status.md), which B-series receipts settled: B17 version re-true + B11 gate landed and ledgered in the 14-20 completion report and the plan execution log.
+> Nothing here is a live work item: it is kept as the session's evidence.
+
 > 2026-11-15 12:53 CET · Session resuming the v2 Pareto plan's still-open tail after the 11-52 close-out.
 > Branch master · 6 commits ahead of origin (mixed authorship — see §d.3) · sibling session LIVE in this tree since ~12:41.
 
