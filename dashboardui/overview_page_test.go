@@ -105,7 +105,9 @@ var _ = Describe("the overview page", func() {
 
 	It("renders the stat grid through display.Grid's bundle-covered auto-fit utility", func() {
 		Expect(html).To(ContainSubstring(
-			`[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]`))
+			`[grid-template-columns:repeat(auto-fit,minmax(var(--tc-grid-min),1fr))]`))
+		Expect(html).To(ContainSubstring(`style="--tc-grid-min:190px;"`),
+			"the library carries the width inline since v1.27.2; the stylesheet redefines it for nonce CSP (layout_assets.go)")
 		Expect(html).NotTo(ContainSubstring(`class="stat-grid"`),
 			"the hand-rolled .stat-grid container must stay retired")
 	})

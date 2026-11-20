@@ -83,10 +83,11 @@ func overviewContent(p pageData, stats overviewStats) templ.Component {
 
 // overviewStatGrid builds the overview stat cards (events, aggregates,
 // projections-active, system health, DLQ, SSE clients) into a library
-// display.Grid. MinColWidth stays "190px" — that exact arbitrary-value
-// utility is the one the bundle scan covers (via the library's grid.templ
-// source); other widths would silently drop the template-columns rule.
-// The check-css-bundle-classes gate fires if a library bump ever drops it.
+// display.Grid. MinColWidth stays "190px" — since v1.27.2 the library emits
+// it as an inline --tc-grid-min style attribute next to the var-form
+// utility class; the stylesheet redefines the variable for nonce CSP
+// (layout_assets.go), and the check-css-bundle-classes gate fires if a
+// library bump ever drops the class from the bundle scan.
 func overviewStatGrid(stats overviewStats) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -275,7 +276,7 @@ func projectionHealthRows(projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(pr.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 95, Col: 16}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 96, Col: 16}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -296,7 +297,7 @@ func projectionHealthRows(projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(pr.Lag)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 99, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 100, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -309,7 +310,7 @@ func projectionHealthRows(projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(pr.Processed, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 100, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 101, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -322,7 +323,7 @@ func projectionHealthRows(projs []projectionStat) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(pr.Errors, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 101, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 102, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -395,7 +396,7 @@ func recentEventRows(basePath string, canInspectStreams bool, events []RecentEve
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templruntime.NewAttributeExpression(e.Time).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 118, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 119, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 			if templ_7745c5c3_Err != nil {
@@ -408,7 +409,7 @@ func recentEventRows(basePath string, canInspectStreams bool, events []RecentEve
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(recentEventTime(e))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 118, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 119, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -421,7 +422,7 @@ func recentEventRows(basePath string, canInspectStreams bool, events []RecentEve
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templruntime.NewAttributeExpression(basePath + "/events/" + e.EventID).ResolveURL(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 119, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 120, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 			if templ_7745c5c3_Err != nil {
@@ -434,7 +435,7 @@ func recentEventRows(basePath string, canInspectStreams bool, events []RecentEve
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(e.Type)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 119, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 120, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -455,7 +456,7 @@ func recentEventRows(basePath string, canInspectStreams bool, events []RecentEve
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(e.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 123, Col: 18}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 124, Col: 18}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -495,7 +496,7 @@ func recentEventStreamCell(basePath string, canInspectStreams bool, e RecentEven
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templruntime.NewAttributeExpression(basePath + "/aggregates/" + e.StreamType + "/" + e.StreamID).ResolveURL(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 130, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 131, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 			if templ_7745c5c3_Err != nil {
@@ -508,7 +509,7 @@ func recentEventStreamCell(basePath string, canInspectStreams bool, e RecentEven
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(e.StreamID, eventIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 130, Col: 123}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 131, Col: 123}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -522,7 +523,7 @@ func recentEventStreamCell(basePath string, canInspectStreams bool, e RecentEven
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(e.StreamID, eventIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 132, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `overview.templ`, Line: 133, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {

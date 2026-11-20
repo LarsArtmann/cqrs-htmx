@@ -26,10 +26,11 @@ templ overviewContent(p pageData, stats overviewStats) {
 
 // overviewStatGrid builds the overview stat cards (events, aggregates,
 // projections-active, system health, DLQ, SSE clients) into a library
-// display.Grid. MinColWidth stays "190px" — that exact arbitrary-value
-// utility is the one the bundle scan covers (via the library's grid.templ
-// source); other widths would silently drop the template-columns rule.
-// The check-css-bundle-classes gate fires if a library bump ever drops it.
+// display.Grid. MinColWidth stays "190px" — since v1.27.2 the library emits
+// it as an inline --tc-grid-min style attribute next to the var-form
+// utility class; the stylesheet redefines the variable for nonce CSP
+// (layout_assets.go), and the check-css-bundle-classes gate fires if a
+// library bump ever drops the class from the bundle scan.
 templ overviewStatGrid(stats overviewStats) {
 	@display.Grid(display.GridProps{
 		BaseProps:   utils.BaseProps{Class: "mb-6"},
