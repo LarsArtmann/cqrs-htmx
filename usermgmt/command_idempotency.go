@@ -74,10 +74,20 @@ func idempotencyKeyFromMetadata(cmd command.Command) string {
 // CheckAndRecord contract) — a consumer needing record-after-success
 // semantics runs the HTTP-layer recipe instead (examples/admin-demo
 // ackMiddleware) or opts out via ServiceConfig.DisableCommandIdempotency.
+// newDefaultCommandIdempotencyStore builds the fallback store for the
+// default-mounted replay guard. The caller owns the returned store's sweeper
+// goroutine: Service.stopEvictions stops it via
+// Service.stopCommandIdemSweeper, so a consumer that never injects
+// ServiceConfig.IdempotencyStore still shuts the goroutine down on
+// Service.Stop/Close instead of leaking it past construction.
+func newDefaultCommandIdempotencyStore() idempotency.Store {
+	//nolint:staticcheck // SA1019: MemoryStore is deprecated for production; the default is the dev/test class — inject ServiceConfig.IdempotencyStore for multi-instance deployments.
+	return idempotency.NewMemoryStore(idempotencyMemoryStoreSweep)
+}
+
 func defaultCommandIdempotency(store idempotency.Store) command.Middleware {
 	if store == nil {
-		//nolint:staticcheck // SA1019: MemoryStore is deprecated for production; the default is the dev/test class — inject ServiceConfig.IdempotencyStore for multi-instance deployments.
-		store = idempotency.NewMemoryStore(idempotencyMemoryStoreSweep)
+		store = newDefaultCommandIdempotencyStore()
 	}
 	return func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {

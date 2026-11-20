@@ -123,6 +123,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		logger = slog.Default()
 	}
 
+	var stopCommandIdemSweeper func()
 	dispatcher := command.NewDispatcher()
 	dispatcher.Use(commandAuditMiddleware()...)
 	if !config.DisableCommandIdempotency {
@@ -130,7 +131,14 @@ func NewService(config ServiceConfig) (*Service, error) {
 		// keyed by the actor-scoped Idempotency-Key metadata — requests
 		// without the key pass through un-deduped, so session traffic and
 		// key-less bots are unaffected. See command_idempotency.go.
-		dispatcher.Use(defaultCommandIdempotency(config.IdempotencyStore))
+		idemStore := config.IdempotencyStore
+		if idemStore == nil {
+			idemStore = newDefaultCommandIdempotencyStore()
+			if c, ok := idemStore.(interface{ Close() }); ok {
+				stopCommandIdemSweeper = c.Close
+			}
+		}
+		dispatcher.Use(defaultCommandIdempotency(idemStore))
 	}
 	if config.CommandLifecycle != nil {
 		// Adjacent pair per the upstream contract: outer classifies the
@@ -159,28 +167,29 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	//nolint:exhaustruct // fields set conditionally below
 	svc := &Service{
-		repository:          setup.Repository,
-		membershipRepo:      setup.MembershipRepository,
-		tenantRepo:          setup.TenantRepository,
-		botRepo:             setup.BotRepository,
-		dispatcher:          dispatcher,
-		readModel:           setup.ReadModel,
-		membershipReadModel: setup.MembershipReadModel,
-		tenantReadModel:     setup.TenantReadModel,
-		botReadModel:        setup.BotReadModel,
-		casbinProjection:    casbinProjection,
-		authz:               authz,
-		sessions:            config.SessionStore,
-		sessionTTL:          config.SessionTTL,
-		logger:              logger,
-		lockout:             config.Lockout,
-		bus:                 setup.Bus,
-		store:               setup.Store,
-		authAudit:           authAuditor{logger: logger, store: setup.Store, bus: setup.Bus},
-		auditLog:            config.AuditLog,
-		projectionHost:      setup.projectionHost,
-		checkpointStore:     setup.checkpointStore,
-		projections:         setup.projections,
+		stopCommandIdemSweeper: stopCommandIdemSweeper,
+		repository:             setup.Repository,
+		membershipRepo:         setup.MembershipRepository,
+		tenantRepo:             setup.TenantRepository,
+		botRepo:                setup.BotRepository,
+		dispatcher:             dispatcher,
+		readModel:              setup.ReadModel,
+		membershipReadModel:    setup.MembershipReadModel,
+		tenantReadModel:        setup.TenantReadModel,
+		botReadModel:           setup.BotReadModel,
+		casbinProjection:       casbinProjection,
+		authz:                  authz,
+		sessions:               config.SessionStore,
+		sessionTTL:             config.SessionTTL,
+		logger:                 logger,
+		lockout:                config.Lockout,
+		bus:                    setup.Bus,
+		store:                  setup.Store,
+		authAudit:              authAuditor{logger: logger, store: setup.Store, bus: setup.Bus},
+		auditLog:               config.AuditLog,
+		projectionHost:         setup.projectionHost,
+		checkpointStore:        setup.checkpointStore,
+		projections:            setup.projections,
 	}
 
 	// Wrap the session store with lifecycle audit emission AFTER the struct

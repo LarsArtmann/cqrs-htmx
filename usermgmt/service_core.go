@@ -59,6 +59,7 @@ type Service struct {
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
 	stopLockoutEviction      func()
+	stopCommandIdemSweeper   func()
 	tokenPepper              TokenPepper
 	projectionHost           *projectionhost.Host
 	checkpointStore          event.CheckpointStore

@@ -40,6 +40,7 @@ func (s *Service) stopEvictions() {
 		&s.stopPendingTOTPEviction,
 		&s.stopOAuth2Eviction,
 		&s.stopLockoutEviction,
+		&s.stopCommandIdemSweeper,
 	} {
 		if *stop != nil {
 			(*stop)()
