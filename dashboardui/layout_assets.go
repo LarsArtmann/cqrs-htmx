@@ -5,6 +5,15 @@ package dashboardui
 // Split out of layout.go so the layout code reads without the asset blobs.
 
 const dashboardCSS = `
+/* v1.27.2 display.Grid moved the min column width into an inline
+   style="--tc-grid-min:…" attribute, which a nonce CSP blocks (style
+   attributes fall under style-src-attr and the nonce never matches them —
+   the --tc-sidebar-w precedent). Every grid in this dashboard uses the
+   same 190px, so the stylesheet defines the variable for exactly those
+   elements; the inline definition stays for CSP-less consumers. */
+[class*="minmax(var(--tc-grid-min)"] {
+	--tc-grid-min: 190px;
+}
 :root {
 	--accent: #4f46e5;
 	/* --link is the TEXT-safe accent (links, focus outlines). Kept separate
