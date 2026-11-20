@@ -24,7 +24,8 @@ Demand research performed for this ADR (2026-11-20): zero admissible third-party
 An all-state issue search for billing, stripe, subscription, and payment terms returned two
 unrelated issues (a legal-party type request and a closed SSE filter request); the repository
 tree contains no billing package, and every billing hit under docs is a plan, a proposal, or
-a TODO row. No fleet product has asked for billing in writing.
+a TODO row. No fleet product is known to have asked for billing in writing — the fleet was not
+audited repo by repo, so this is an absence of evidence, not proof of absent demand.
 
 ## Decision
 
