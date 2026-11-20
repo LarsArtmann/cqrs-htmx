@@ -296,3 +296,19 @@ K1/K2 per decisions D2/D4.
 
 **Status: P01–P18 NOT STARTED** — K1 (oauth2 hotfix-vs-train) and K2
 (cross-repo push scope) await owner answers before execution begins.
+
+### Detour continuation: the treadmill moved twice more (2026-11-18 → 11-20)
+
+- **go-idempotency v0.5.0 → v0.6.0** (same morning, 07:54): upstream extended
+  `NewMemoryStore(sweepInterval, opts ...MemoryStoreOption)` — the old
+  signature is a subset, zero call-site changes here; both existing calls
+  verified compiling. Delta otherwise additive (`clock.go` + `WithClock`,
+  middleware +4). Landed as ONE reviewable bump-dep commit `c100e9c5`
+  (all legs + per-module golangci-lint green ×25 consumers).
+- **go-etag/entitytag v0.6.1 → v0.6.2** (landed during the interleaved
+  11-18 → 11-20 window via daemon capture `7e2991d3`): upstream delta is the
+  go-directive floor (1.27.1 → 1.27) + release scripts only — no code. All 25
+  consumer go.mods verified at v0.6.2.
+- **Strict train gate re-verified GREEN (2026-11-20 evening): 0 unpublished /
+  0 train lag** across 1049 internal requires — the alignment receipts above
+  are the difference between the 48-lag red and this green.
