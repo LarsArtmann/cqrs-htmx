@@ -49,7 +49,7 @@ func validLEIChecksum(code string) bool {
 		case r >= '0' && r <= '9':
 			remainder = (remainder*10 + int(r-'0')) % 97
 		case r >= 'A' && r <= 'Z':
-			v := int(r - 'A') + 10
+			v := int(r-'A') + 10
 			remainder = (remainder*10 + v/10) % 97
 			remainder = (remainder*10 + v%10) % 97
 		default:

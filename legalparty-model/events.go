@@ -19,10 +19,10 @@ type LegalPartyOpenedPayload struct {
 // LegalPartyProfileUpdatedPayload replaces the profile wholesale, optionally
 // carrying the provenance-stamped registry facts the update was built from.
 type LegalPartyProfileUpdatedPayload struct {
-	SchemaVersion int                `json:"schema_version"`
-	Profile       LegalPartyProfile  `json:"profile"`
-	RegistryFacts *RegistryFacts     `json:"registry_facts,omitempty"`
-	UpdatedAt     time.Time          `json:"updated_at"`
+	SchemaVersion int               `json:"schema_version"`
+	Profile       LegalPartyProfile `json:"profile"`
+	RegistryFacts *RegistryFacts    `json:"registry_facts,omitempty"`
+	UpdatedAt     time.Time         `json:"updated_at"`
 }
 
 // LegalPartyClosedPayload records terminal closure. Closure is never a

@@ -12,7 +12,7 @@ import (
 
 // shared fixtures
 var (
-	testTime  = time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	testTime   = time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	testUserID = identitymodel.NewActorID(identitymodel.ActorUser, ulid.Make().String())
 	testBotID  = identitymodel.NewActorID(identitymodel.ActorBot, ulid.Make().String())
 	testSysID  = identitymodel.NewActorID(identitymodel.ActorSystem, "seed-import")
@@ -37,7 +37,7 @@ func gmbhProfile() LegalPartyProfile {
 	ref, _ := NewRegisterRef("de", "HRB 127525")
 
 	return LegalPartyProfile{
-		LegalName:      "ANDHOFF Immobilien GmbH",
+		LegalName:      "ANDHOFF Wohnbau GmbH",
 		LegalForm:      LegalFormLegalEntity,
 		LegalFormCode:  "2HBR",
 		Country:        "DE",
@@ -58,9 +58,9 @@ func freelancerProfile() LegalPartyProfile {
 
 func openState(profile LegalPartyProfile) LegalPartyState {
 	return LegalPartyState{
-		Profile:   profile,
-		Opened:    true,
-		OpenedAt:  testTime,
+		Profile:       profile,
+		Opened:        true,
+		OpenedAt:      testTime,
 		LastUpdatedAt: testTime,
 	}
 }

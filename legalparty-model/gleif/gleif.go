@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/legalparty-model/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -115,9 +114,9 @@ type record struct {
 }
 
 type attributes struct {
-	LEI           string       `json:"lei"`
-	Entity        entity       `json:"entity"`
-	Registration  registration `json:"registration"`
+	LEI          string       `json:"lei"`
+	Entity       entity       `json:"entity"`
+	Registration registration `json:"registration"`
 }
 
 type entity struct {
@@ -229,6 +228,7 @@ func recordToFacts(rec record, sourceURL string) legalparty.RegistryFacts {
 	e := rec.Attributes.Entity
 
 	facts := legalparty.RegistryFacts{
+		Source:    legalparty.RegistrySourceGLEIF,
 		LEI:       legalparty.LEI(rec.Attributes.LEI),
 		LegalName: e.LegalName.Name,
 		Status:    normalizeStatus(e.Status),

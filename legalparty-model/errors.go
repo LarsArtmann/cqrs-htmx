@@ -7,8 +7,10 @@ var (
 	// tries to open, update, or close a legal party. Actors are not
 	// billable parties, and a machine credential must never be the
 	// responsible party for billing master data.
-	ErrBotActorForbidden = errorfamily.NewRejection("legalparty.actor.bot_forbidden",
-		"legal parties are maintained by human, system, or service actors; a bot or unattributed actor cannot open, update, or close one")
+	ErrBotActorForbidden = errorfamily.NewRejection(
+		"legalparty.actor.bot_forbidden",
+		"legal parties are maintained by human, system, or service actors; a bot or unattributed actor cannot open, update, or close one",
+	)
 	// ErrLegalPartyNotFound is returned when a legal party command targets
 	// a stream that was never opened.
 	ErrLegalPartyNotFound = errorfamily.NewRejection("legalparty.legal_party.not_found",

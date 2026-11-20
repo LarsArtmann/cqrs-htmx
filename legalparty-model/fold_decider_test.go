@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-codec"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 func TestFoldLifecycle(t *testing.T) {
@@ -28,7 +28,7 @@ func TestFoldLifecycle(t *testing.T) {
 	facts := &RegistryFacts{
 		Source:    RegistrySourceGLEIF,
 		LEI:       LEI(leiLiveDE),
-		LegalName: "ANDHOFF Immobilien GmbH",
+		LegalName: "ANDHOFF Wohnbau GmbH",
 		Status:    "ACTIVE",
 		FetchedAt: testTime,
 	}
@@ -56,7 +56,7 @@ func TestFoldLifecycle(t *testing.T) {
 
 	// Retention: closure never erases the identity behind an issued
 	// invoice — profile and provenance survive in the folded state.
-	if state.Profile.LegalName != "ANDHOFF Immobilien GmbH" || state.LastRegistryFacts == nil {
+	if state.Profile.LegalName != "ANDHOFF Wohnbau GmbH" || state.LastRegistryFacts == nil {
 		t.Fatalf("retention violated: profile=%+v facts=%v", state.Profile, state.LastRegistryFacts)
 	}
 }
@@ -92,7 +92,7 @@ func TestPayloadRoundTrip_BothEncodings(t *testing.T) {
 			if got.SchemaVersion != CurrentSchemaVersion {
 				t.Fatalf("schema version: got %d, want %d", got.SchemaVersion, CurrentSchemaVersion)
 			}
-			if got.Profile.LegalName != "ANDHOFF Immobilien GmbH" || got.Profile.Register == nil {
+			if got.Profile.LegalName != "ANDHOFF Wohnbau GmbH" || got.Profile.Register == nil {
 				t.Fatalf("profile did not round-trip: %+v", got.Profile)
 			}
 			if !got.OpenedAt.Equal(testTime) {
@@ -249,7 +249,9 @@ func TestDecideCloseLegalParty_Guards(t *testing.T) {
 func TestFoldLegalParty_UnknownEvent(t *testing.T) {
 	evt, err := event.New(
 		"BogusEvent", testStream, AggregateTypeLegalParty, event.Version(0).Increment(),
-		struct{ X int `json:"x"` }{X: 1},
+		struct {
+			X int `json:"x"`
+		}{X: 1},
 		event.WithCodec(codec.JSONCodec{}))
 	requireNoError(t, err)
 

@@ -3,10 +3,10 @@ package legalparty
 import (
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
