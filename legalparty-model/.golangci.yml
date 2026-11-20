@@ -1,0 +1,149 @@
+version: "2"
+run:
+  timeout: 5m
+  go: 1.27.2
+  build-tags:
+    - goexperiment.arenas
+    - goexperiment.goroutineleakprofile
+    - goexperiment.jsonv2
+    - goexperiment.runtimesecret
+    - goexperiment.simd
+  allow-parallel-runners: true
+  allow-serial-runners: true
+  issues-exit-code: 1
+  tests: true
+output:
+  formats: {}
+linters:
+  enable:
+    - bodyclose
+    - contextcheck
+    - copyloopvar
+    - cyclop
+    - dupl
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustruct
+    - forcetypeassert
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gochecksumtype
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - gosec
+    - gosmopolitan
+    - govet
+    - ineffassign
+    - interfacebloat
+    - intrange
+    - loggercheck
+    - maintidx
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - noctx
+    - nolintlint
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - protogetter
+    - reassign
+    - recvcheck
+    - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - testifylint
+    - thelper
+    - unconvert
+    - unparam
+    - unused
+    - usetesting
+    - wastedassign
+    - wrapcheck
+    - zerologlint
+  settings:
+    wrapcheck:
+      ignore-sigs:
+        - .WithCause(
+        - .WithContext(
+        - .WithContextAny(
+      ignore-package-globs:
+        - github.com/larsartmann/go-error-family*
+        - github.com/larsartmann/go-cqrs-lite/event/*
+    cyclop:
+      max-complexity: 12
+    exhaustruct:
+      exclude:
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4\.\w+Payload$
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4\.LegalPartyState$
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4\.LegalPartyProfile$
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4\.RegisteredAddress$
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4\.RegistryFacts$
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4\.RegisterRef$
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4\.LegalPartyID$
+        # Registry adapters decode external JSON:API envelopes where absent
+        # fields legitimately decode to zero values.
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4/gleif\.\w+$
+        - github\.com/larsartmann/cqrs-htmx/legalparty-model/v4/opencorporates\.\w+$
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    revive:
+      rules:
+        - disabled: true
+          name: exported
+        - disabled: true
+          name: package-comments
+  exclusions:
+    generated: lax
+    rules:
+      - path: errors\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
+      - path: constants\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
+      - path: country\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
+      - path: ids\.go$
+        linters:
+          - recvcheck
+      - path: fold\.go$
+        linters:
+          - cyclop
+          - funlen
+          - gocognit
+      - path: _test\.go
+        linters:
+          - wrapcheck
+          - exhaustruct
+          - goconst
+          - paralleltest
+          - unparam
+          - cyclop
+          - funlen
+          - noctx
+    paths:
+      - \.gen\.go$
+      - _mock\.go$
+      - _templ\.go$

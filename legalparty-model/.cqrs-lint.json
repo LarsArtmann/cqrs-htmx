@@ -1,0 +1,24 @@
+{
+  "preset": "library",
+  "rules": {
+    // F032 (no-catalog-import), 2026-11-20: pure domain module (issue #45) —
+    // no HTTP surface, no doc serving; the published event language for
+    // billing surfaces belongs to the future consumer module (the Stripe
+    // billing-model plan, docs/planning/2026-11-20_20-25). Importing
+    // go-cqrs-lite/catalog here would be a dead dependency.
+    //
+    // E005 (command-without-handler), 2026-11-20: the three command types are
+    // the published vocabulary; handlers register in CONSUMERS via
+    // system.RegisterCommand or command.RegisterTyped over the deciders this
+    // module exports — a per-module walk structurally cannot see
+    // cross-module registrations.
+    //
+    // C013 (time-time-in-event-payload), 2026-11-20: OpenedAt/UpdatedAt/
+    // ClosedAt and RegistryFacts.FetchedAt are time.Time — UTC instants by
+    // construction (deciders normalize with .UTC()); the CBOR epoch zone drop
+    // is benign. The event.Instant migration is a v5-class payload API
+    // change across every consumer; revisit at the v4-to-v5 cutover
+    // (identity-model carries the identical disable for SessionStarted/Ended).
+    "disable": ["F032", "E005", "C013"]
+  }
+}
