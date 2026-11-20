@@ -65,10 +65,10 @@ require (
 	github.com/larsartmann/go-etag/server v0.6.2 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect
-	github.com/larsartmann/templ-components v1.27.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.27.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.27.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.27.0 // indirect
+	github.com/larsartmann/templ-components v1.27.2 // indirect
+	github.com/larsartmann/templ-components/htmx v1.27.2 // indirect
+	github.com/larsartmann/templ-components/icons v1.27.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.27.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

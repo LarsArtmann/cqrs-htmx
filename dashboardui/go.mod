@@ -22,11 +22,11 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.9.0
-	github.com/larsartmann/templ-components v1.27.0
-	github.com/larsartmann/templ-components/errorpage v1.27.0
-	github.com/larsartmann/templ-components/htmx v1.27.0
-	github.com/larsartmann/templ-components/icons v1.27.0
-	github.com/larsartmann/templ-components/utils v1.27.0
+	github.com/larsartmann/templ-components v1.27.2
+	github.com/larsartmann/templ-components/errorpage v1.27.2
+	github.com/larsartmann/templ-components/htmx v1.27.2
+	github.com/larsartmann/templ-components/icons v1.27.2
+	github.com/larsartmann/templ-components/utils v1.27.2
 	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 )
