@@ -179,34 +179,55 @@ func validateVATCharacters(cc CountryCode, national string) error {
 func validateVATLength(cc CountryCode, national string) error {
 	switch cc {
 	case "DE":
-		if len(national) != 9 {
-			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
-				"a German USt-IdNr. is DE followed by exactly 9 digits")
-		}
-		if !validDEVATChecksum(national) {
-			return errorfamily.NewRejection("legalparty.vat_id.checksum_failed",
-				"USt-IdNr. "+national+" fails the ISO 7064 Mod 11,10 checksum")
-		}
-	case "AT":
-		if len(national) != 8 {
-			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
-				"an Austrian UID is ATU followed by exactly 8 digits")
-		}
-	case "PL":
-		if len(national) != 10 {
-			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
-				"a Polish NIP is PL followed by exactly 10 digits")
-		}
+		return validateDEVAT(national)
 	case "NL":
-		if len(national) != 12 || national[9] != 'B' {
-			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
-				"a Dutch BTW-nummer is NL followed by 9 digits, B, and 2 digits")
-		}
+		return validateNLVAT(national)
+	case "AT", "PL":
+		return validateFixedLengthVAT(cc, national)
 	default:
-		if len(national) < 8 || len(national) > 12 {
-			return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
-				"the national part of a "+string(cc)+" VAT ID is 8 to 12 characters")
-		}
+		return validateGenericVAT(national)
+	}
+}
+
+func validateDEVAT(national string) error {
+	if len(national) != 9 {
+		return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
+			"a German USt-IdNr. is DE followed by exactly 9 digits")
+	}
+	if !validDEVATChecksum(national) {
+		return errorfamily.NewRejection("legalparty.vat_id.checksum_failed",
+			"USt-IdNr. "+national+" fails the ISO 7064 Mod 11,10 checksum")
+	}
+
+	return nil
+}
+
+func validateNLVAT(national string) error {
+	if len(national) != 12 || national[9] != 'B' {
+		return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
+			"a Dutch BTW-nummer is NL followed by 9 digits, B, and 2 digits")
+	}
+
+	return nil
+}
+
+// validateFixedLengthVAT checks the single-length national forms
+// (AT: 8 digits, PL: 10 digits).
+func validateFixedLengthVAT(cc CountryCode, national string) error {
+	lengths := map[CountryCode]int{"AT": 8, "PL": 10}
+	if len(national) != lengths[cc] {
+		return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
+			"the national part of a "+string(cc)+" VAT ID is "+strconv.Itoa(lengths[cc])+" digits")
+	}
+
+	return nil
+}
+
+// validateGenericVAT checks jurisdictions without a dedicated rule.
+func validateGenericVAT(national string) error {
+	if len(national) < 8 || len(national) > 12 {
+		return errorfamily.NewRejection("legalparty.vat_id.national_invalid",
+			"the national part of this VAT ID is 8 to 12 characters")
 	}
 
 	return nil

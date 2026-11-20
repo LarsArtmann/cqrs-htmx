@@ -72,7 +72,7 @@ func (c *Client) ResolveByLEI(ctx context.Context, lei legalparty.LEI) (legalpar
 		return legalparty.RegistryFacts{}, err
 	}
 
-	return recordToFacts(record, c.baseURL+"/lei-records/"+string(record.Attributes.LEI)), nil
+	return recordToFacts(record, c.baseURL+"/lei-records/"+record.Attributes.LEI), nil
 }
 
 // ResolveByRegister fetches the registry record for a national register
@@ -98,7 +98,7 @@ func (c *Client) ResolveByRegister(
 
 	first := list.Data[0]
 
-	return recordToFacts(first, c.baseURL+"/lei-records/"+string(first.Attributes.LEI)), nil
+	return recordToFacts(first, c.baseURL+"/lei-records/"+first.Attributes.LEI), nil
 }
 
 type recordEnvelope struct {
@@ -204,8 +204,8 @@ func (c *Client) get(ctx context.Context, endpoint string) ([]byte, error) {
 }
 
 func readBody(resp *http.Response) ([]byte, error) {
-	switch {
-	case resp.StatusCode == http.StatusOK:
+	switch resp.StatusCode {
+	case http.StatusOK:
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, errorfamily.WrapCorruption(err,
@@ -213,9 +213,9 @@ func readBody(resp *http.Response) ([]byte, error) {
 		}
 
 		return body, nil
-	case resp.StatusCode == http.StatusNotFound:
+	case http.StatusNotFound:
 		return nil, legalparty.ErrRegistryNotFound
-	case resp.StatusCode == http.StatusTooManyRequests:
+	case http.StatusTooManyRequests:
 		return nil, errorfamily.WrapTransient(legalparty.ErrRegistryUnavailable,
 			"legalparty.registry.unavailable", "GLEIF rate limited the request (60/min); back off")
 	default:

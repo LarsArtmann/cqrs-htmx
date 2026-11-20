@@ -185,7 +185,7 @@ func TestDecideUpdateLegalPartyProfile_Guards(t *testing.T) {
 	t.Run("valid facts ride the event", func(t *testing.T) {
 		facts := &RegistryFacts{
 			Source:    RegistrySourceOpenCorporates,
-			LegalName: "ANDHOFF Immobilien GmbH",
+			LegalName: "ANDHOFF Wohnbau GmbH",
 			Status:    "Currently Registered",
 			FetchedAt: testTime,
 		}

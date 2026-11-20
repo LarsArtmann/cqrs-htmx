@@ -165,7 +165,7 @@ func rejectIllegalMaintainer(actor identitymodel.ActorID) error {
 	switch actor.Kind() {
 	case identitymodel.ActorUser, identitymodel.ActorSystem, identitymodel.ActorService:
 		return nil
-	case identitymodel.ActorBot, identitymodel.ActorUnknown:
+	case identitymodel.ActorBot, id.ActorUnknown:
 		return ErrBotActorForbidden
 	default:
 		return ErrBotActorForbidden

@@ -6,6 +6,7 @@
 # Bump a threshold only with the coverage to justify it, in the same commit.
 .	90
 identity-model	70
+legalparty-model	80
 usermgmt	74
 usermgmt/totp	80
 usermgmt/webauthn	80
