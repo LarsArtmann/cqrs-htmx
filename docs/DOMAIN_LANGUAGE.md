@@ -65,6 +65,16 @@ Every term below should mean the **same thing** to everyone who reads it.
 | WebAuthnProvider   | Interface for WebAuthn ceremony delegation via []byte JSON; implemented by usermgmt/webauthn/v4                                                            | Auth strategy (ADR 0035)                  |
 | WebAuthnSessionTTL | Configurable TTL for WebAuthn challenge sessions (ServiceConfig.WebAuthnSessionTTL)                                                                        | Authentication                            |
 | OAuth2Provider     | Interface for OAuth2/OIDC login flow (PKCE + token exchange); implemented by usermgmt/oauth2/v4                                                            | Auth strategy (ADR 0035)                  |
+| LegalParty         | A party with legal personality — registered name, address, legal form, jurisdiction, tax identifiers — that contracts bind and tax documents address; closed but never deleted (retention) | legalparty-model (issue #45)              |
+| LegalFormClass     | The five-value personality classifier: natural_person, legal_entity, partnership, public_body, non_profit — peers, never a bool; decides register-number and document requirements | legalparty-model                          |
+| LegalFormCode      | The ISO 20275 ELF code when a registry speaks one (GLEIF carries it); natural persons carry none and use OtherLegalForm instead                            | legalparty-model                          |
+| LEI                | Legal Entity Identifier (ISO 17442): 20-character, mod-97-checksummed global ID for legal entities; natural persons cannot hold one                        | legalparty-model                          |
+| RegisterRef        | Opaque pointer to a commercial/public register entry (registry code + number), e.g. an OpenCorporates jurisdiction code plus company number                | legalparty-model                          |
+| VATID              | Value-added tax identifier in canonical prefixed EU form (DE validates the ISO 7064 Mod 11,10 checksum); deliberately a different type from TaxNumber      | legalparty-model                          |
+| TaxNumber          | National direct-tax number (Steuernummer, UTR); carries no country prefix, so a prefixed VAT shape is rejected instead of silently accepted                | legalparty-model                          |
+| RegistryFacts      | Provenance-stamped snapshot of what an external registry says about a party; applied to the aggregate only through an explicit profile update, never silently | legalparty-model                        |
+| LEIResolver        | The registry port resolving a LEI into RegistryFacts; implemented by gleif (api.gleif.org, unauthenticated, CC BY 4.0 attribution)                         | legalparty-model                          |
+| RegisterResolver   | The registry port resolving a RegisterRef into RegistryFacts; implemented by opencorporates (X-API-TOKEN auth, ODbL attribution mandatory)                 | legalparty-model                          |
 
 ## Entities
 
@@ -162,3 +172,4 @@ Intents that trigger state changes.
 | Authorization           | RBAC policy management, enforcement, role hierarchy                               | usermgmt (Authz) |
 | MFA                     | TOTP second-factor enrollment and verification                                    | usermgmt         |
 | Auditing                | Immutable record of user actions derived from events                              | usermgmt         |
+| Legal Party             | Billing legal-party domain: LegalParty aggregate (opened/updated/closed, never deleted), legal-form and tax-identifier types, GLEIF/OpenCorporates registry enrichment | legalparty-model |

@@ -4,7 +4,7 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-11-19 (evening — verdict wave executed, hash-poison found and fixed) · **Owner:** Lars · **Module count:** 30 (`go.work`)
+**As of:** 2026-11-20 (legalparty-model landed off-thread — issue #45; active thread unchanged) · **Owner:** Lars · **Module count:** 31 (`go.work`)
 
 ## The active thread
 
