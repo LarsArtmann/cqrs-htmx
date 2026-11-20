@@ -123,33 +123,8 @@ func NewService(config ServiceConfig) (*Service, error) {
 		logger = slog.Default()
 	}
 
-	var stopCommandIdemSweeper func()
 	dispatcher := command.NewDispatcher()
-	dispatcher.Use(commandAuditMiddleware()...)
-	if !config.DisableCommandIdempotency {
-		// K2 (owner tick 2026-11-18): the replay guard mounts by default,
-		// keyed by the actor-scoped Idempotency-Key metadata — requests
-		// without the key pass through un-deduped, so session traffic and
-		// key-less bots are unaffected. See command_idempotency.go.
-		idemStore := config.IdempotencyStore
-		if idemStore == nil {
-			idemStore = newDefaultCommandIdempotencyStore()
-			if c, ok := idemStore.(interface{ Close() }); ok {
-				stopCommandIdemSweeper = c.Close
-			}
-		}
-		dispatcher.Use(defaultCommandIdempotency(idemStore))
-	}
-	if config.CommandLifecycle != nil {
-		// Adjacent pair per the upstream contract: outer classifies the
-		// terminal outcome (consuming the attempt tracker's state), attempt
-		// records per-attempt failed/rejected. Consumer middleware — including
-		// any retry middleware via CommandMiddleware — runs inside both, so
-		// retries surface as command.retried + per-attempt command.failed.
-		outer, attempt := commandlifecycle.New(config.CommandLifecycle)
-		dispatcher.Use(outer, attempt)
-	}
-	dispatcher.Use(config.CommandMiddleware...)
+	stopCommandIdemSweeper := mountDispatchMiddleware(dispatcher, config)
 	if err := RegisterCommands(dispatcher, setup.Repository); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.command.register", "register commands").WithCause(err)
 	}
@@ -266,4 +241,39 @@ func NewService(config ServiceConfig) (*Service, error) {
 	svc.maxUsers = config.MaxUsers
 
 	return svc, nil
+}
+
+// mountDispatchMiddleware mounts the dispatcher pipeline in its one canonical
+// order: audit chain outermost, then the default replay guard (unless
+// disabled — the returned stop func is non-nil only when the guard created
+// its default in-memory store's sweeper), then the opt-in lifecycle pair,
+// then consumer middleware innermost (it observes commands already carrying
+// actor metadata). See command_idempotency.go for the guard's contract.
+func mountDispatchMiddleware(dispatcher *command.Dispatcher, config ServiceConfig) (stopCommandIdemSweeper func()) {
+	dispatcher.Use(commandAuditMiddleware()...)
+	if !config.DisableCommandIdempotency {
+		// K2 (owner tick 2026-11-19): the replay guard mounts by default,
+		// keyed by the actor-scoped Idempotency-Key metadata — requests
+		// without the key pass through un-deduped, so session traffic and
+		// key-less bots are unaffected. See command_idempotency.go.
+		idemStore := config.IdempotencyStore
+		if idemStore == nil {
+			idemStore = newDefaultCommandIdempotencyStore()
+			if c, ok := idemStore.(interface{ Close() }); ok {
+				stopCommandIdemSweeper = c.Close
+			}
+		}
+		dispatcher.Use(defaultCommandIdempotency(idemStore))
+	}
+	if config.CommandLifecycle != nil {
+		// Adjacent pair per the upstream contract: outer classifies the
+		// terminal outcome (consuming the attempt tracker's state), attempt
+		// records per-attempt failed/rejected. Consumer middleware — including
+		// any retry middleware via CommandMiddleware — runs inside both, so
+		// retries surface as command.retried + per-attempt command.failed.
+		outer, attempt := commandlifecycle.New(config.CommandLifecycle)
+		dispatcher.Use(outer, attempt)
+	}
+	dispatcher.Use(config.CommandMiddleware...)
+	return stopCommandIdemSweeper
 }
