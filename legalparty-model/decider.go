@@ -97,7 +97,6 @@ func DecideUpdateLegalPartyProfile(
 				RegistryFacts: facts,
 				UpdatedAt:     updatedAt.UTC(),
 			},
-			//cqrs-lint:ignore(A027) one codec per repository is intentional; global DefaultCodec would couple unrelated aggregates
 			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(CurrentSchemaVersion),
 		)
 		if err != nil {
@@ -142,7 +141,6 @@ func DecideCloseLegalParty(
 				Reason:        reason,
 				ClosedAt:      closedAt.UTC(),
 			},
-			//cqrs-lint:ignore(A027) one codec per repository is intentional; global DefaultCodec would couple unrelated aggregates
 			event.WithCodec(codec.JSONCodec{}), event.WithSchemaVersion(CurrentSchemaVersion),
 		)
 		if err != nil {

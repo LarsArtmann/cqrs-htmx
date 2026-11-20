@@ -72,7 +72,7 @@ fi
 
 MODULES=("$@")
 if [ "${#MODULES[@]}" -eq 0 ]; then
-  MODULES=(. identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar huma systemadapter health auditlog gfl-usermgmt e2e/server examples/admin-demo examples/basic examples/catalog-demo examples/dashboard-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/samber-do-demo examples/sync-demo examples/system-demo)
+  MODULES=(. identity-model legalparty-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar huma systemadapter health auditlog gfl-usermgmt e2e/server examples/admin-demo examples/basic examples/catalog-demo examples/dashboard-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/samber-do-demo examples/sync-demo examples/system-demo)
 fi
 
 echo "=== cqrs-lint strict check (ANY finding fails; stale suppressions fail) ==="

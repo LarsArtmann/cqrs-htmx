@@ -19,6 +19,14 @@
     // is benign. The event.Instant migration is a v5-class payload API
     // change across every consumer; revisit at the v4-to-v5 cutover
     // (identity-model carries the identical disable for SessionStarted/Ended).
-    "disable": ["F032", "E005", "C013"]
+    //
+    // S006 (no-encryption-detected), 2026-11-20: payload encryption is a
+    // CONSUMER-side deployment decision in this fleet (opt-in go-cqrs-lite
+    // encryption/v4; the library never enforces defaults consumers might
+    // disagree with — identity-model holds credentials under the same
+    // posture). This module carries business identity data (tax IDs,
+    // addresses), no secret material; consumers billing regulated parties
+    // enable encryption at their composition root.
+    "disable": ["F032", "E005", "C013", "S006"]
   }
 }
