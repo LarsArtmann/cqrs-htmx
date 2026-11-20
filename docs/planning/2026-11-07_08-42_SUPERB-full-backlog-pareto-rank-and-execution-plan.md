@@ -73,7 +73,7 @@ The v4.17.0 family train shipped 2026-11-07 and the QUERY workstream landed W0+W
 | C40 | architecture-gate policy + probe self-test; repository-protection decision (owner) (rows 100/102) | 5 | S | rest |
 | C41 | v5 tracks: direct-imports W1–W3, v5-upgrade codemod M26–M28, ProjectionLayer removal, appkit revisit (rows 2/123/112/118) | 8 | L | rest |
 | C42 | system/metaengine migration plan (needs the usermgmt deep-dive; row 110) + V007 watch (row 111) | 5 | L | rest |
-| C43 | PARKED (no action): Stripe (S00 unmet), DataStar Tier 4 (no demand), SidebarNav (criterion 2), BF1 (upstream), bench-spike (quiet window), quarterly sweep (due 2027-01), README TOC (2026-11-17), hardware watch, scorecard timing, datastar-demo rebrand (owner) | 3 | — | rest |
+| C43 | PARKED (no action): Stripe (S00 CLOSED 2026-11-20 per ADR 0065 — S01 next, still off the active thread), DataStar Tier 4 (no demand), SidebarNav (criterion 2), BF1 (upstream), bench-spike (quiet window), quarterly sweep (due 2027-01), README TOC (2026-11-17), hardware watch, scorecard timing, datastar-demo rebrand (owner) | 3 | — | rest |
 | C44 | WATCHES: catalog templ release (blocks hermetic integration_test), go-cqrs-lite#113, templ-components svg + popover upstream, treefmt-nix#545, erraudit month flip (row 51/156/68) | 5 | S | rest |
 
 ## 4. Fine plan (≤12 min each; ALL tasks; grouped by coarse id)

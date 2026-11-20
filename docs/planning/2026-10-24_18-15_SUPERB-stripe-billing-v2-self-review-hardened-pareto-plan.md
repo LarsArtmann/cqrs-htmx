@@ -85,7 +85,7 @@ Hard traps: CAC is external input (never fabricated from billing events); FX con
 | ID | Milestone | Tier | Impact | Effort | Depends | Verify |
 | --- | --- | --- | --- | ---: | --- | --- |
 | S00 | **Demand + MoR gate**: consumer-demand artifact (or park decision) + processor-vs-MoR decision record | gate | **Blocking** | 30m | — | both artifacts exist in `docs/adr/` or plan parked to ROADMAP — **CLOSED 2026-11-20** by [ADR 0065](../adr/0065-billing-processor-and-merchant-of-record.md) |
-| S01 | ADR-0057 — v1's D1–D13 + §2 deltas (ProcessorRef naming, bounded seen-refs, bidirectional choreography, kill criteria) | 1% | High | 45m | S00 | ADR filed, linked from `docs/adr/` index |
+| S01 | ADR-0066 (working title in this plan said 0057; that number is the authorization contract) — v1's D1–D13 + §2 deltas (ProcessorRef naming, bounded seen-refs, bidirectional choreography, kill criteria) | 1% | High | 45m | S00 | ADR filed, linked from `docs/adr/` index |
 | S02 | `billing-model` scaffold (go.mod, README, lint configs, go.work) | 1% | High | 40m | S01 | `GOEXPERIMENT=jsonv2 go build ./billing-model/...` |
 | S03 | Domain types v2: `ProcessorRef`, bounded seen-refs shape, seats + plan-limit fields, events/commands in our vocabulary, branded IDs | 1% | **Critical** | 90m | S02 | compiles; vocabulary ban holds (`rg -i 'stripe\|evt_\|cus_\|sub_' billing-model/` → 0 code hits) |
 | S04 | Decider: all command paths, unknown-reference rejection, seat clamping to plan limits | 1% | **Critical** | 90m | S03 | decide table-tests green |

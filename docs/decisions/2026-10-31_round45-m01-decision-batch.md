@@ -43,7 +43,7 @@ No Go test asserts any old code string (verified by grep 2026-10-31: health test
 
 Every parked row re-checked; verdicts:
 
-1. **Stripe S00 gate** — STAYS PARKED (re-affirmed): still no demand artifact, still no MoR decision; the plan of record (26 milestones) is preserved; nothing executed without its gate.
+1. **Stripe S00 gate** — STAYS PARKED (re-affirmed): still no demand artifact, still no MoR decision; the plan of record (26 milestones) is preserved; nothing executed without its gate. SUPERSEDED 2026-11-20 by [ADR 0065](../adr/0065-billing-processor-and-merchant-of-record.md): merchant of record decided for Stripe as processor with the owner holding tax liability, demand recorded as an explicit owner override (no admissible consumer artifact), so the S00 gate is closed and S01 is the next milestone.
 2. **V007 criterion (declarative Hydrator upstream)** — STAYS UNMET (re-verified 2026-10-31): newest `system/v4` tag is v4.9.0 and no declarative Hydrator equivalent has shipped; the 68 SQLViewStore findings remain gated.
 3. **Appkit ADR-0052** — STAYS v5-WINDOW (re-verified): appkit v0.9.0 is the newest tag; the adoption trigger remains the v5-window revisit, not an appkit release.
 4. **E005 filing (cqrs-lint cross-module registration)** — STAYS DRAFTED (`docs/proposals/2026-10-01_cqrs-lint-e005-cross-module-registration.md`); filing is owner-gated pending cqrs-lint's installable distribution (same trigger as the doanalyzerv2 gate).
