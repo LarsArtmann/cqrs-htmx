@@ -13,37 +13,32 @@ import { dirname, join } from "node:path";
 
 const spellings = process.argv.slice(2);
 if (spellings.length === 0) {
-  console.error(
-    "usage: node probe.mjs '<position-area spelling>' [<more spellings>...]",
-  );
-  process.exit(2);
+	console.error("usage: node probe.mjs '<position-area spelling>' [<more spellings>...]");
+	process.exit(2);
 }
 
 const browserPath = process.env.E2E_BROWSER_PATH;
 if (!browserPath) {
-  console.error("E2E_BROWSER_PATH must point at a Chromium binary");
-  process.exit(2);
+	console.error("E2E_BROWSER_PATH must point at a Chromium binary");
+	process.exit(2);
 }
 
-const page = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "probe.html",
-);
+const page = join(dirname(fileURLToPath(import.meta.url)), "probe.html");
 
 const browser = await chromium.launch({
-  executablePath: browserPath,
-  headless: true,
+	executablePath: browserPath,
+	headless: true,
 });
 try {
-  const context = await browser.newContext();
-  const p = await context.newPage();
-  await p.goto(`file://${page}`);
+	const context = await browser.newContext();
+	const p = await context.newPage();
+	await p.goto(`file://${page}`);
 
-  for (const spelling of spellings) {
-    const computed = await p.evaluate((v) => window.setArea(v), spelling);
-    const verdict = computed === "none" ? "REJECTED" : "accepted";
-    console.log(`${spelling} -> ${computed} [${verdict}]`);
-  }
+	for (const spelling of spellings) {
+		const computed = await p.evaluate((v) => window.setArea(v), spelling);
+		const verdict = computed === "none" ? "REJECTED" : "accepted";
+		console.log(`${spelling} -> ${computed} [${verdict}]`);
+	}
 } finally {
-  await browser.close();
+	await browser.close();
 }

@@ -96,7 +96,10 @@ test("events filter form rides the QUERY ladder, pins its own attrs, and survive
   // Post-swap: the form's own pins are intact (a re-rendered form without
   // them would inherit the boost wrapper's target on its NEXT submit and
   // blank the page — the original bug's shape).
-  await expect(page.locator("form.filter-bar")).toHaveAttribute("hx-post", /\/dashboard\/events\/search$/);
+  await expect(page.locator("form.filter-bar")).toHaveAttribute(
+    "hx-post",
+    /\/dashboard\/events\/search$/,
+  );
   await expect(page.locator("form.filter-bar")).toHaveAttribute("hx-target", "#main-content");
   await expect(page.locator("form.filter-bar")).toHaveAttribute("hx-select", "#main-content");
 });
