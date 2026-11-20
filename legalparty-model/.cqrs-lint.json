@@ -27,6 +27,17 @@
     // posture). This module carries business identity data (tax IDs,
     // addresses), no secret material; consumers billing regulated parties
     // enable encryption at their composition root.
-    "disable": ["F032", "E005", "C013", "S006"]
+    //
+    // E004 (emitted-event-not-in-catalog), 2026-11-20: catalog registration
+    // and doc serving happen in CONSUMERS (the Stripe billing lane's catalog
+    // surface; usermgmt satisfies this rule by registering
+    // DefaultEventCatalog). This module mints the three legal-party events
+    // but owns no HTTP/doc surface — the F032/B026 argument again.
+    //
+    // F005 (schema-version-without-upcasters), 2026-11-20: payloads are at
+    // SchemaVersion 1 with no v2 yet — the upcaster skeleton lands together
+    // with the first payload shape change (identity-model grew its registry
+    // the same way). A no-op registry now would be decorative.
+    "disable": ["F032", "E005", "C013", "S006", "B026", "E004", "F005"]
   }
 }
