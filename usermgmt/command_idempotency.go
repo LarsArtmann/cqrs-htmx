@@ -28,11 +28,17 @@ const DefaultCommandIdempotencyTTL = 10 * time.Minute
 // with no further wiring). Commands whose metadata does not carry the key
 // pass through un-deduped: session traffic and key-less bots are
 // byte-for-byte unaffected.
-const IdempotencyMetadataKey command.MetadataKey = "cqrs-htmx.dev/idempotency-key"
+//
+// The constant is deliberately UNTYPED (it converts implicitly to
+// command.MetadataKey at every use site, the B2 recipe's own form): a const
+// typed by an upstream type is counted as an alias declaration by the
+// ADR-0062 re-export scanner, and the frozen reexport-baseline refuses new
+// alias files without an ADR amendment.
+const IdempotencyMetadataKey = "cqrs-htmx.dev/idempotency-key"
 
 // idempotencyMemoryStoreSweep bounds how often the default in-memory store
 // reclaims expired keys.
-const idempotencyMemoryStoreSweep = time.Minute
+const idempotencyMemoryStoreSweep = 60 * time.Second
 
 // idempotencyKeyFromMetadata resolves the dedup key for one command: the
 // client-declared Idempotency-Key metadata, scoped by the authenticated
