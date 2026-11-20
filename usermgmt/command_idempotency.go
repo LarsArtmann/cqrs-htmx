@@ -88,7 +88,8 @@ func idempotencyKeyFromMetadata(cmd command.Command) string {
 // Service.Stop/Close instead of leaking it past construction.
 func newDefaultCommandIdempotencyStore() idempotency.Store {
 	//nolint:staticcheck // SA1019: MemoryStore is deprecated for production; the default is the dev/test class — inject ServiceConfig.IdempotencyStore for multi-instance deployments.
-	return idempotency.NewMemoryStore(idempotencyMemoryStoreSweep) //cqrs-lint:ignore(C026) sweep interval, not a TTL — the replay TTL is DefaultCommandIdempotencyTTL at the CheckAndRecord claim below
+	//cqrs-lint:ignore(C026) the argument is the sweep interval, not a TTL — the replay TTL is DefaultCommandIdempotencyTTL at the CheckAndRecord claim below
+	return idempotency.NewMemoryStore(idempotencyMemoryStoreSweep)
 }
 
 func defaultCommandIdempotency(store idempotency.Store) command.Middleware {
