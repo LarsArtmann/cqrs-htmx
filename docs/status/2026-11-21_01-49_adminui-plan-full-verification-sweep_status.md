@@ -20,7 +20,7 @@
 10. **docs-gates `annotate` CLEAN** (215 files, 1508 struck, 0 findings) after fixing the one rule-F violation this lane introduced (see §d item 3 for the fix), and `check-docs-freshness` (links) PASSED.
 11. **All three docs ratchets GREEN same-change**: corpus ledger sentence appended to the manifest + `CORPUS_BASELINE` re-trued to the measured 63,819; `check-docs-corpus-budget --ratchet`, `check-docs-tail-budget --ratchet`, `check-conflict-markers` (2035 files) all ✓.
 12. **Freshness harvest for the then-newest report (20-25 round-2 CI-heal)**: the three unharvested items it flagged are now routed — TODO_LIST P2 row (gosec.sarif artifact from run 44776015013; dgraph NixOS-VM-test connection-refused localhost:9080) and a session-start-runbook paragraph (the sibling-lane input check, §f25 healed in place: `nix run` consumes the working tree's flake.lock, so a green local run under modified flake inputs is not a CI-parity receipt).
-13. **CHANGELOG rule-F reword** — "`MemoryStoreOption`s" → "`MemoryStoreOption` values" (the annotate gate's only finding; the battery's rule F bans alnum touching a backtick, plurals included).
+13. **CHANGELOG rule-F reword** — the `MemoryStoreOption` plural form rewritten to "`MemoryStoreOption` values" (the annotate gate's only finding; the battery's rule F bans alnum touching a backtick, plurals included).
 14. **TODO_LIST hygiene respected** — one additive P2 row, no `[x]` rows, no section imbalance introduced.
 
 ## b) PARTIALLY DONE
