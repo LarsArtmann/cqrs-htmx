@@ -99,6 +99,20 @@ html.dark {
   --color-blue-600: var(--accent);
   --color-blue-500: color-mix(in srgb, var(--accent) 85%, white);
 
+  /* ADR-0049 (templ-components v1.27.2): library components emit accent-*
+     classes for the brand slot — the shades blue-* used to carry. The
+     branded shades mirror the blue mappings above (pixel-identical swap);
+     the rest keep Tailwind's literal blue defaults per the upstream
+     starter block. */
+  --color-accent-600: var(--accent);
+  --color-accent-500: color-mix(in srgb, var(--accent) 85%, white);
+  --color-accent-400: oklch(70.7% 0.165 254.624);
+  --color-accent-700: oklch(48.8% 0.243 264.376);
+  --color-accent-50: oklch(97% 0.014 254.604);
+  --color-accent-200: oklch(88.2% 0.059 254.128);
+  --color-accent-800: oklch(42.4% 0.199 265.638);
+  --color-accent-900: oklch(37.9% 0.146 265.522);
+
   --color-gray-50: var(--surface-2);
   --color-gray-100: var(--bg);
   --color-gray-200: var(--border);

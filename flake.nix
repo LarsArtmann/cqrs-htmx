@@ -849,6 +849,20 @@
                         cp "$ERRORPAGE_DIR/"*.templ "$SCAN_DIR/" 2>/dev/null || true
                         cp "$ERRORPAGE_DIR/styles.go" "$SCAN_DIR/" 2>/dev/null || true
                       fi
+                      # ADR-0049 (v1.27.2): the tone/token system emits
+                      # accent-* classes from GO sources — the display
+                      # component builders and the utils module's tone
+                      # package — which no .templ scan can see. Without
+                      # these the accent utility families are silently
+                      # absent while the build stays green (the errorpage
+                      # false-green class again).
+                      UTILS_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/utils 2>/dev/null || true)
+                      for gosrc in "$TC_DIR/display/"*.go "$UTILS_DIR/"*.go "$UTILS_DIR/tone/"*.go; do
+                        case "$gosrc" in
+                          *_test.go) continue ;;
+                        esac
+                        cp "$gosrc" "$SCAN_DIR/" 2>/dev/null || true
+                      done
                       echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
                     fi
 
