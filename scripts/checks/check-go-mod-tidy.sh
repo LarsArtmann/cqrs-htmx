@@ -50,7 +50,11 @@ checked=0
 while IFS= read -r mod; do
   [ -z "$mod" ] && continue
   moddir="$ROOT/$mod"
-  [ -f "$moddir/go.mod" ] || { echo "tidy-gate: $mod: no go.mod (go.work names it)" >&2; failures=$((failures + 1)); continue; }
+  [ -f "$moddir/go.mod" ] || {
+    echo "tidy-gate: $mod: no go.mod (go.work names it)" >&2
+    failures=$((failures + 1))
+    continue
+  }
   checked=$((checked + 1))
   out="$(cd "$moddir" && go mod tidy -diff 2>&1)"
   rc=$?
@@ -60,7 +64,7 @@ while IFS= read -r mod; do
     [ "$(printf '%s\n' "$out" | wc -l)" -gt 20 ] && echo "    ... (truncated)"
     failures=$((failures + 1))
   fi
-done <<< "$MODULES"
+done <<<"$MODULES"
 
 if [ "$failures" -gt 0 ]; then
   echo "✗ tidy-gate: $failures of $checked module(s) would change under go mod tidy — run 'go mod tidy' in the named module(s) and commit together"

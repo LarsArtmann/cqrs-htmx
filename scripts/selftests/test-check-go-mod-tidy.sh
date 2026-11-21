@@ -12,7 +12,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/cleanmod" "$tmp/driftmod"
-cat > "$tmp/go.work" <<'EOF'
+cat >"$tmp/go.work" <<'EOF'
 go 1.27
 
 use (
@@ -21,21 +21,21 @@ use (
 )
 EOF
 
-cat > "$tmp/cleanmod/go.mod" <<'EOF'
+cat >"$tmp/cleanmod/go.mod" <<'EOF'
 module example.com/cleanmod
 
 go 1.27
 EOF
-printf 'package cleanmod\n\nfunc Hello() string { return "hi" }\n' > "$tmp/cleanmod/hello.go"
+printf 'package cleanmod\n\nfunc Hello() string { return "hi" }\n' >"$tmp/cleanmod/hello.go"
 
-cat > "$tmp/driftmod/go.mod" <<'EOF'
+cat >"$tmp/driftmod/go.mod" <<'EOF'
 module example.com/driftmod
 
 go 1.27
 
 require github.com/someone/unused v1.2.3
 EOF
-printf 'package driftmod\n\nfunc Hello() string { return "hi" }\n' > "$tmp/driftmod/hello.go"
+printf 'package driftmod\n\nfunc Hello() string { return "hi" }\n' >"$tmp/driftmod/hello.go"
 
 fail=0
 
@@ -45,13 +45,14 @@ rc=$?
 if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q "driftmod" && printf '%s' "$out" | grep -q "DRIFT"; then
   echo "  ok 1: drift module named, rc=1"
 else
-  echo "  FAIL 1: expected rc=1 naming driftmod, got rc=$rc:"; printf '%s\n' "$out" | sed 's/^/    /'
+  echo "  FAIL 1: expected rc=1 naming driftmod, got rc=$rc:"
+  printf '%s\n' "$out" | sed 's/^/    /'
   fail=1
 fi
 
 # Case 2: clean-only tree passes.
 rm "$tmp/driftmod/go.mod"
-cat > "$tmp/go.work" <<'EOF'
+cat >"$tmp/go.work" <<'EOF'
 go 1.27
 
 use (
@@ -63,7 +64,8 @@ rc=$?
 if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q "tidy-clean"; then
   echo "  ok 2: clean tree passes, rc=0"
 else
-  echo "  FAIL 2: expected rc=0 tidy-clean, got rc=$rc:"; printf '%s\n' "$out" | sed 's/^/    /'
+  echo "  FAIL 2: expected rc=0 tidy-clean, got rc=$rc:"
+  printf '%s\n' "$out" | sed 's/^/    /'
   fail=1
 fi
 
@@ -73,12 +75,13 @@ rc=$?
 if [ "$rc" -eq 2 ]; then
   echo "  ok 3: missing go.work refused, rc=2"
 else
-  echo "  FAIL 3: expected rc=2, got rc=$rc"; printf '%s\n' "$out" | sed 's/^/    /'
+  echo "  FAIL 3: expected rc=2, got rc=$rc"
+  printf '%s\n' "$out" | sed 's/^/    /'
   fail=1
 fi
 
 # Case 4: a go.work member without go.mod is a named failure (rc=1).
-cat > "$tmp/go.work" <<'EOF'
+cat >"$tmp/go.work" <<'EOF'
 go 1.27
 
 use (
@@ -92,7 +95,8 @@ rc=$?
 if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q "ghostmod"; then
   echo "  ok 4: go.mod-less member named, rc=1"
 else
-  echo "  FAIL 4: expected rc=1 naming ghostmod, got rc=$rc:"; printf '%s\n' "$out" | sed 's/^/    /'
+  echo "  FAIL 4: expected rc=1 naming ghostmod, got rc=$rc:"
+  printf '%s\n' "$out" | sed 's/^/    /'
   fail=1
 fi
 

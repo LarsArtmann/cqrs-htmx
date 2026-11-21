@@ -207,16 +207,16 @@ for i in "${!reports[@]}"; do
   # docs/status/archived/, so the file exists at both depths and only the
   # prefix tells the truth.
   case "$successor" in
-    archived/*)
+  archived/*)
+    successor_rel="$(basename "$successor")"
+    ;;
+  *)
+    if [ -f "$STATUS_DIR/$successor" ]; then
+      successor_rel="../$(basename "$successor")"
+    else
       successor_rel="$(basename "$successor")"
-      ;;
-    *)
-      if [ -f "$STATUS_DIR/$successor" ]; then
-        successor_rel="../$(basename "$successor")"
-      else
-        successor_rel="$(basename "$successor")"
-      fi
-      ;;
+    fi
+    ;;
   esac
 
   if ! git -C "$ROOT" mv "docs/status/$report" "docs/status/archived/$report"; then
