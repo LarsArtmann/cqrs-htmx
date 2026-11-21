@@ -460,3 +460,48 @@ func ProblemDetailsAudienceErrorHandler(
 		})
 	}
 }
+
+// DefaultFlashTarget is the retarget [FlashErrorHandler] uses when the
+// caller passes an empty target — the flash-region convention from the
+// consumer that invented the pattern (audiblesync's `#flash` partial).
+const DefaultFlashTarget = "#flash"
+
+// DefaultFlashSwap is the swap strategy [FlashErrorHandler] writes alongside
+// the retarget: the flash region re-renders its content in place.
+const DefaultFlashSwap = "innerHTML"
+
+// FlashErrorHandler returns an error handler for HTMX flash surfaces — the
+// two-path contract consumer audits repeatedly reinvent: an HTMX client gets
+// HTTP 200 with `HX-Retarget` + `HX-Reswap` so the configured flash region
+// re-renders carrying the (redacted) error text, while a non-HTMX client gets
+// the real mapped status with the same plain-body redaction rules as
+// [DefaultErrorHandler]. An empty target falls back to [DefaultFlashTarget].
+//
+// The 200-on-HTMX branch is deliberate: an error status would make htmx
+// ignore the swap options and (by default) not swap at all, so the flash UX
+// rides the SUCCESS path — the partial body is the message.
+//
+// For full control over the flash body (a templ partial instead of text),
+// hand-roll the same branch with [htmx.IsRequest] and the typed
+// [htmx.HeaderRetarget]/[htmx.HeaderReswap] constants — see the skill's
+// "HTMX flash error contract" recipe.
+func FlashErrorHandler(target string) func(http.ResponseWriter, *http.Request, error) {
+	if target == "" {
+		target = DefaultFlashTarget
+	}
+
+	return func(w http.ResponseWriter, r *http.Request, err error) {
+		status := MapError(err)
+		if htmx.IsRequest(r) {
+			w.Header().Set(htmx.HeaderRetarget, target)
+			w.Header().Set(htmx.HeaderReswap, DefaultFlashSwap)
+			w.Header().Set("Content-Type", hx.ContentTypePlain)
+			w.WriteHeader(http.StatusOK)
+			hx.WriteAllString(w, SafeDetail(err, status, false))
+			return
+		}
+
+		setRetryAfterHeader(w, err, status)
+		PlainBodyWriter(r, PlainBodyOptions{IncludeInternal: false, IncludeRequestID: false})(w, err, status)
+	}
+}
