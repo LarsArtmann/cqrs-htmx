@@ -577,6 +577,20 @@ go run github.com/larsartmann/cqrs-htmx/v4/cmd/cqrs-htmx-upgrade@latest -apply .
 
 Migration guides: [v2→v3](docs/migrations/v2-to-v3.md) · [v3→v4](docs/migrations/v3-to-v4.md) · [v4→v5](docs/migrations/v4-to-v5.md)
 
+### Consuming nested modules (the release-train mechanics)
+
+Sub-modules release on **per-module version trains, not lockstep** — each carries its own tags. The tag shapes and the consumer moves:
+
+| What | Tag shape | Example |
+| --- | --- | --- |
+| Root module | `v4.X.Y` | `v4.18.1` |
+| Nested sub-module | `<module-dir>/v4.X.Y` | `usermgmt/oauth2/v4.13.1` |
+
+1. **A nested require resolves only sub-module tags.** `go mod` on `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4` can never consume a root tag — if the fix you need landed on root but no sub-tag carries it, the fix is unreachable from a nested go.mod until the sub-tag is cut.
+2. **A sub-tag is cut ON the root train commit that carries it.** `usermgmt/oauth2/v4.13.1` and root `v4.18.1` are the same commit: identical trees, two tags. Verify with `git show <sub-tag>:<module>/go.mod`.
+3. **Flake-input rule (lockstep move):** pin the flake input at the ROOT tag whose commit equals the sub-tag's commit, and move the go.mod require + vendor hash in the same change. Half of the move (flake without go.mod, or vice versa) leaves the build resolving a different tree than the pins claim.
+4. **Security-lag escalation:** if a consumer audit finds an uncovered security patch in a nested module, check the CHANGELOG's consumer sweep recipe for that module first (e.g. the `usermgmt/oauth2/v4.13.1` entry — the go-jose JWK DoS fix carrier), then the [fleet review errata convention](docs/review/libs/FORMAT.md) if the upstream tag still doesn't exist.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for build/test/lint commands, code style, and the PR checklist.

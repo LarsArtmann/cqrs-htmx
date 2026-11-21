@@ -698,6 +698,12 @@ SSE live updates, and a goroutine that publishes new events every 5 seconds.
 >
 > Then open http://localhost:8098/dashboard/
 
+**Version currency note:** dashboardui is a nested sub-module on its own
+release train (`dashboardui/v4.X.Y` tags) cut on the root-train commits that
+carry it. If you consume dashboardui from a flake input, the root-tag ↔
+sub-tag mapping, the lockstep move, and the security-lag escalation path are
+documented in the root README § [Consuming nested modules](../README.md#consuming-nested-modules-the-release-train-mechanics).
+
 ## Build
 
 This module requires Go 1.26+ with `GOEXPERIMENT=jsonv2`:
