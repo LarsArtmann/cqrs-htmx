@@ -213,7 +213,7 @@ The three damage-adjacent events all self-healed or were absorbed:
 32. **Skill fan-out guard** after the recipe-3 edit (`bash scripts/checks/check-skill-fanout.sh`
     class — cheap, confirms the symlink carries the edit).
 33. **Watch the metaengine family** for the next train (B18 trigger — the ROADMAP
-    bridge row and the §f12 spike both wait on it).
+    bridge row and the §f12 spike both wait on it). <!-- fresh:skip -->
 34. **Recipe-1 promotion check**: whether the lazy-provider oauth2 pattern deserves
     oauth2 module docs (demand signal first — dnsblockd is the only known user).
 35. **Tail-budget hygiene going forward**: every new report bumps TAIL_BASELINE in
