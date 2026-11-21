@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/async-startup-demo
 
-go 1.27.4
+go 1.27.3
 
 require github.com/larsartmann/cqrs-htmx/setup/v4 v4.17.0
 
