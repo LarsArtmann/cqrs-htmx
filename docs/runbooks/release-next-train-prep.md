@@ -80,6 +80,24 @@ nix run .#check-release-train  # 0 unpublished, replace-exempt count drops to 0
 nix run .#build && nix run .#test && nix run .#lint
 ```
 
+**The changelog receipt rule (added 2026-11-21, the dnsblockd case study):**
+at TAG time, diff-verify every symbol, version, and commit hash the new
+CHANGELOG entry names — replay each claim against the tagged tree, not the
+working tree or memory:
+
+```sh
+git show <tag>:<path> | grep <symbol>       # symbol exists AT the tag
+git tag --contains <commit> | head -3       # hash is an ancestor of a tag
+git show <tag>:<module>/go.mod | grep <dep> # dependency version at the tag
+```
+
+Case study: a fleet consumer review carried `BeginLoginWithNonce` /
+`FinishLoginWithNonce` (symbols that exist at NO tag) and a "go-jose v4.1.8"
+sighting measured against a REVERTED roll-up graph — both shipped as facts
+until a downstream audit replayed them as ERRATA. A CHANGELOG claim without a
+symbol-level receipt is a lie the next consumer audit bills back to this
+repo.
+
 ## 5. Go-appkit fold-in reminder (separate decision, ADR-001)
 
 Not part of this train. Precondition: push the go-appkit wave cut at

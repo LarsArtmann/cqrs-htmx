@@ -48,6 +48,11 @@
 #       3 = lag exceeds --strict-lag N
 #       4 = ls-remote failure outside CI (cannot check, not a verdict)
 #       5 = a --consumers hermetic build failed
+# Changelog receipt rule: this gate proves every require resolves to a
+# PUBLISHED tag; the companion discipline (docs/runbooks/
+# release-next-train-prep.md §4) diff-verifies every SYMBOL the CHANGELOG
+# names at the tag — a published tag with a lying changelog entry still
+# ships wrong facts to consumer audits.
 # Requires: network access to github.com (git ls-remote) on cache miss.
 # CI=true downgrades ls-remote failures to warnings (advisory mode there).
 #

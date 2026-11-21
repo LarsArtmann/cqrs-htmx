@@ -710,6 +710,87 @@ mux.Handle("GET /ext/bundle.js", htmx.ExtensionsHandler(htmx.ExtSSE, htmx.ExtIdi
 
 Same caching as `htmx.ScriptHandler` (ETag, `Cache-Control: 1yr immutable`, 304). Add `<script>` tags after htmx core.
 
+## Standalone module recipes (consumer-invented)
+
+These four patterns were invented by fleet consumers, verified, and recorded here so the next adopter starts from the proven shape. **This section is additive-only**: existing titles are cited verbatim in consumer reviews (audiblesync, go-taskqueue, dnsblockd) — new recipes append, existing ones never rename or move.
+
+### Recipe 1: oauth2 without usermgmt (credit: dnsblockd)
+
+`oauth2.New` is EAGER — it runs OIDC discovery (`oidc.NewProvider`) at construction, so an unreachable IdP fails boot. dnsblockd (self-hosted, its own DNS resolver) wraps construction in a lazy singleton retried per request instead:
+
+```go
+//doc:api-tour
+// ensureProvider: construct on first use, retry until the IdP resolves.
+// Blocking startup on the IdP deadlocks boot when the app IS the resolver.
+provider   *oauth2.Provider
+providerMu sync.Mutex
+
+func (s *server) ensureProvider(ctx context.Context) (*oauth2.Provider, error) {
+    s.providerMu.Lock()
+    defer s.providerMu.Unlock()
+    if s.provider != nil {
+        return s.provider, nil
+    }
+    prov, err := oauth2.New(ctx, oauth2.Config{
+        Providers: map[string]oauth2.ProviderConfig{
+            "idp": {IssuerURL: s.idpIssuer, ClientID: s.idpClientID, RedirectURL: s.idpRedirect},
+        },
+    })
+    if err != nil {
+        return nil, err // retried on the next request
+    }
+    s.provider = prov
+    return prov, nil
+}
+```
+
+For headless finishes (no browser round-trip — a service hands you the authorization code), `(*Provider).FinishLoginWithToken` exchanges the code and returns the claims/ID token directly (`usermgmt/oauth2/provider.go:323`).
+
+### Recipe 2: dashboardui headless / API-key mounting (credit: index)
+
+dashboardui has zero usermgmt requires (`dashboardui/go.mod`, verified 2026-11-21) — mount it in an ops binary with a four-line `Authorizer` and `ReadOnly`:
+
+```go
+cfg := dashboardui.Config{ // after Autodetect fills the introspection fields
+    Title:      "Ops: event store",
+    BasePath:   "/ops/events",
+    ReadOnly:   true, // write endpoints not mounted at all
+    Authorizer: checkOpsKey, // func(*http.Request) error; any error answers 403
+}
+dash := dashboardui.MustNew(cfg)
+dash.Mount(mux, "/ops/events/")
+```
+
+Full example with the API-key body and the safe-default contract: `dashboardui/README.md` § "Runs without usermgmt".
+
+### Recipe 3: the HTMX flash error contract (credit: audiblesync)
+
+Two-path error handling in a raw handler: HTMX clients get a 200 with retarget headers so the flash partial renders inline; plain clients get the real status:
+
+```go
+func (s *server) flashError(w http.ResponseWriter, r *http.Request, err error, status int) {
+    if htmx.IsRequest(r) {
+        w.Header().Set(htmx.HeaderRetarget, "#flash")
+        w.Header().Set(htmx.HeaderReswap, "innerHTML")
+        w.WriteHeader(http.StatusOK) // the swap carries the failure UX
+        _ = s.flashPartial(w, err)
+        return
+    }
+    http.Error(w, http.StatusText(status), status)
+}
+```
+
+`htmx.HeaderRetarget`/`HeaderReswap` are the typed constants (`htmx/htmx.go:27-28`, since v4.16.0) — never hand-write `"Hx-Retarget"`.
+
+### Recipe 4: metaengine → dashboardui, which SSE surface (credit: invoices, CV)
+
+Two self-sufficient SSE stacks — pick by content, don't bridge by default:
+
+- Serving **collection values** (a metaengine `Store` collection): metaengine owns the story end to end — `dx.NewWatcher[V](store, collection)` + metaengine `ServeSSE[V](w, r, watcher, opts...)` with id-carrying replay.
+- Serving the **domain-event journal** (go-cqrs-lite events): dashboardui mounts `transport.ServeDomainEvents` with the golden-pinned `DomainEventToSSE` envelope.
+
+The mixed bridge (watcher values wrapped in the domain-event envelope so ONE dashboard feed carries both) is a recorded spike, not a shipped guide — see this repo's ROADMAP row "metaengine→dashboardui envelope bridge" before building it.
+
 ## Top gotchas (the ones that bite)
 
 These are the highest-frequency mistakes. Read `references/gotchas.md` for the full list.
