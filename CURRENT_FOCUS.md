@@ -4,7 +4,7 @@
 > Rewrite this file when the focus changes; never append history to it (that is what
 > [CHANGELOG.md](CHANGELOG.md) and `docs/status/` are for).
 
-**As of:** 2026-11-20 (legalparty-model landed off-thread — issue #45; active thread unchanged) · **Owner:** Lars · **Module count:** 31 (`go.work`)
+**As of:** 2026-11-21 (master-CI ratchet heal + harvest session; active thread unchanged) · **Owner:** Lars · **Module count:** 31 (`go.work`)
 
 ## The active thread
 
@@ -16,5 +16,7 @@
 - **§g.3 (20-47 report)** — K2 multi-instance follow-up: a reference SQL/Redis `idempotency.Store` guide example, or the seam + docs suffice (§g.2 is answered — the anomaly was settled same-evening).
 - **Per-row M2M D1–D4 / adminui D1–D3** — the packets stay parked; each decision surfaces individually through the native decision tool per the owner's 2026-11-19 verdict.
 - **Fleet-cache hygiene (from the gotcha-10 poison find)** — a substituter served stale fixed-output content under new revs (`cache.home.lan/*` is the suspect class, unattributed): worth a fleet-side prune/provenance check.
+- **§g.2 (03-09 report)** — gate robustness vs fail-loud for shared-worktree transients: should one-retry tolerance become the norm for the local-only gates, or does strict fail-loud + the documented re-run-before-triage rule (now gotcha 68) stand?
+- **§g.3 (03-09 report) — migration-plan D1/D2, the W3/W4 gate.** The 11-08 owner decision sheet says "Defaults already ADOPTED — no tick needed" while the plan's §6 says W3/W4 "hinge only on the D1/D2 owner ticks" — those two statements contradict each other; pick one (adopt-the-defaults unblocks the read-tier cutover waves, or keep W3/W4 parked until an explicit tick). Recorded per the no-re-ask directive — not surfaced via the question tool.
 
-Known standing reds: none local. Quiet-window carryovers: the erraudit advisory TOTAL re-true (blocking window closes 2026-12-16), one local check-modules composite, archive pass at tail 15.
+Known standing reds: none local. Quiet-window carryovers, trued 2026-11-21: erraudit re-true DONE (TOTAL=364, converged ×3 with the AGENTS receipt — the blocking-promotion window RESTARTED at 364, closes 2026-12-21); the local check-modules composite bill is RESOLVED (isolation leg green ×2 — the old `root FAIL (vet)` was the sibling-lane transient, gotcha 68; cqrs-lint gate green 26/26 after a stale 4.20.1 `~/go/bin` shadow binary was retired — the profile dev build is the only instrument again; branching-flow +11 adjudicated under existing verdicts and re-pinned 212 → 220 with the triage-decisions row; corpus re-trues at every docs commit per the treadmill); the archive round is STILL OWED at tail 20 (the ledger's loudest open item — archive BEFORE any next report).

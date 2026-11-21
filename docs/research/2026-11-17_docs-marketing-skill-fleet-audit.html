@@ -1535,6 +1535,27 @@ sed -n '77p' README.md
 rg -l "not for you" ~/projects/*/docs/review/libs/cqrs-htmx.md | wc -l   # 5+</code></pre>
 
           <p style="margin-top:1rem">
+            <strong>Replay receipt (2026-11-21, plan P17 — the fleet replay rule).</strong>
+            The block was re-run verbatim on 2026-11-21. Where the annotated
+            output still matches, the finding stands as audited; where a fix
+            landed in between, the replay shows the <em>new</em> truth and the
+            original annotation is the historical before-state: F1's MIT facts
+            confirmed (the two PROPRIETARY rows now carry dated errata in their
+            consumer repos); F2's tag query now returns
+            <code>usermgmt/oauth2/v4.13.1</code> (the patch-tag cut the audit
+            demanded &mdash; P01); F3's constants resolve at
+            <code>v4.18.1:htmx/htmx.go:27-28</code> and audiblesync's
+            &ldquo;no constants&rdquo; row carries its dated erratum; F5 still
+            reads <code>0</code> (dashboardui's usermgmt-free closure stands);
+            the skill standalone/FinishLoginWithToken grep now hits (recipe 1
+            shipped); the fit-test line is unchanged and 7 consumer reviews
+            quote it. <strong>Next refresh trigger:</strong> after the next
+            family train lands (or any F-row's fix receipt changes), re-run
+            this block and move this receipt's date &mdash; the B10 lesson:
+            replay catches rot within a day.
+          </p>
+
+          <p style="margin-top:1rem">
             <strong>Related in this repo:</strong>
             the fleet series index at
             <a href="../review/libs/index.html">docs/review/libs/index.html</a>,

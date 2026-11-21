@@ -132,6 +132,13 @@ bundle := setup.MustNew(setup.Config{
 - [ ] **Ordering guarantee (pinned by test)** — start hooks run before the first accepted request, drain hooks before the listener closes, shutdown hooks before `Bundle.Close()`
 - [ ] **See** `setup/README.md` § Drain posture and the `appkit.ServiceConfig` hook contracts
 
+### 10. CSP and Library Inline Styles
+
+- [ ] **Know the one sanctioned inline-style exemption** — templ-components' auto-fit Grid emits `style="--tc-grid-min:190px;"` (a custom-property declaration for the responsive column floor; the library's documented inline-style exemption, same shape as the chart/heatmap width properties). Under a nonce CSP (`httputil.Nonce`), the browser blocks it and every console-error guard reddens on the FIRST grid page.
+- [ ] **Grant the carve-out with `'unsafe-hashes'`, never `'unsafe-inline'`** — hash the exact attribute string and allow only it: append `'unsafe-hashes' 'sha256-<hash>'` to your `style-src`. Compute the hash at RUNTIME from the library's constant (`tcAutoFitGridStyle` in setup-demo's `main.go`) so an upstream width change fails LOUDLY in your console guard instead of silently carrying a stale allowance. Identify WHICH inline style a CSP error blocks by base64-SHA-256-matching: `printf '%s' "<style-value>" | openssl dgst -sha256 -binary | base64` — compare against the hash in the browser's console message (semicolons count: the value includes the trailing `;`, no trailing space).
+- [ ] **Own the security layer when you need a custom CSP** — `setup.Config{DisableSecurityMiddleware: true, ExtraMiddleware: [...]}` and rebuild the three recommended entries (recovery, security headers, nonce-with-your-CSP-builder). setup-demo's `demoCSP`/`demoSecurity` is the working reference; admin surfaces mounting the same grids need the same carve-out (the library attribute fires under ANY nonce CSP, and no gate collects console errors outside the e2e battery).
+- [ ] **Keep a console-error guard in your browser tests** — the battery's console guard is what turns an upstream inline-style change into a red test instead of a silent visitor-facing console error.
+
 ## Quick-Start Template
 
 ```go

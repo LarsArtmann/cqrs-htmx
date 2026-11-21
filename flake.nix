@@ -3209,6 +3209,25 @@
               );
             };
 
+            e2e-fast-slice = {
+              type = "app";
+              meta.description = "The ~3-minute chromium e2e slice REQUIRED for render-touching family bumps: loginpage-golden + admin-behavior + setup-bundle console guards (the 2026-11-21 process fix; extra args forward to playwright)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "e2e-fast-slice";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.nodejs
+                    pkgs.bash
+                  ];
+                  text = ''
+                    REPO_ROOT="''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    exec bash "$REPO_ROOT/scripts/tools/e2e-fast-slice.sh" "$@"
+                  '';
+                }
+              );
+            };
+
             check-phantom-version = {
               type = "app";
               meta.description = "DEPRECATED name for check-require-tags (the gate enforces tag existence now, not just pseudo-versions)";

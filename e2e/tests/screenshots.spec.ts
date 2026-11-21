@@ -7,6 +7,12 @@ import { test } from "@playwright/test";
  *
  * Output: docs/screenshots/{light,dark,mobile}/dashboard-<page>.png
  * Run: pnpm dlx playwright test screenshots.spec.ts
+ *
+ * BYTE-NONDETERMINISTIC: the PNGs differ run-to-run even at an identical
+ * render. After a battery run, `git restore` the churn unless the RENDER
+ * actually changed — the test verdicts are the render-behavior proof, never
+ * byte equality. Two sessions (2026-11-20/21) almost committed run-churn as
+ * a render change; report 2026-11-21 03-09 §e3 is the receipt.
  */
 
 const PAGES = [

@@ -56,7 +56,7 @@
 2. Record the per-row verdict in the M2M and adminui packets (owner answered via the tool; stop blanket-asking).
 3. Write the unattributed cache-provisioning ritual into gotcha 66 (owner answered unattributed).
 4. True the two stale flake comments ("CI-canonical generator (v0.3.1100)" at the devShell/apps sites) and the templ-hash.nix comment text.
-5. Settle the templ-hash anomaly: `nix build .#templGen --rebuild`, inspect the fetched source tree (version constant + go.mod), record the finding next to the hash files.
+5. ~~Settle the templ-hash anomaly: `nix build .#templGen --rebuild`, inspect the fetched source tree (version constant + go.mod), record the finding next to the hash files.~~ done at `cc7f3bfd` — settled same-evening; the full resolution is the inline annotation on §a3 above (stale substituter tree, true hashes pinned, stamp-only regen, gotcha 10 + gotcha 67(e)).
 6. Commit the K2 fix + helper refactor (uncommitted in the worktree) and push the 4 local commits; watch CI on the push.
 7. OWNER (out of repo): repin the NixOS system templ from the 0.3.1123 master build to a published release (v0.3.1118 or v0.3.1100 — both produce the canonical 1100-form stamps) — the one lever that ends the hook-poison war.
 8. Quiet window: erraudit strict sweep, refresh the AGENTS TOTAL receipt (window closes 2026-12-16).
@@ -94,7 +94,7 @@
 ## g) Questions for the owner (3)
 
 1. **The system templ repin is the last lever of YOUR hook-fix directive, and it is outside this repo**: your NixOS profile ships templ 0.3.1123 (an unpublished master build; the hook inherits it via PATH). Repinning the system templ to a published release (v0.3.1118 or v0.3.1100 — both emit the canonical 1100-form stamps, proven by tonight's builds) ends the war without scoping the hook. Do you want me to write the exact patch text into a runbook note (I cannot see your system-flake repo from here), or will you repin it directly?
-2. **The templ-hash anomaly**: the templGen build validated the recorded 1100-era source hash at rev v0.3.1118 — the mechanism is unexplained and the tags peeled to distinct commits, so it is not a same-tree release. The functional output is verified byte-identical twice. Shall I settle it now with `--rebuild` plus a fetched-source inspection (about ten minutes), or park it while everything works?
+2. ~~**The templ-hash anomaly**: the templGen build validated the recorded 1100-era source hash at rev v0.3.1118 — the mechanism is unexplained and the tags peeled to distinct commits, so it is not a same-tree release. The functional output is verified byte-identical twice. Shall I settle it now with `--rebuild` plus a fetched-source inspection (about ten minutes), or park it while everything works?~~ done at `cc7f3bfd` — answered by action the same evening: the anomaly was load-bearing (stale substituter tree behind cache-satisfied fixed-output hashes), settled with true-hash pins + the true-1118 regen; see §a3's inline resolution, gotcha 10, and gotcha 67(e).
 3. **K2's multi-instance story**: the default mount's in-memory store cannot dedupe replays hitting a different replica (documented in the field comment). For production consumers, is a reference SQL or Redis `idempotency.Store` example in the guide worth a scoped follow-up wave, or does the injectable seam plus the store-contract docs cover it for v4?
 
 ---

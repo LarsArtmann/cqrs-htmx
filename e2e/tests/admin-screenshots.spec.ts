@@ -10,6 +10,10 @@ import { test, expect, Page } from "@playwright/test";
  * Output: docs/screenshots/{light,dark}/admin-<page>.png
  * Run: node_modules/.bin/playwright test --project=chromium admin-screenshots.spec.ts
  *
+ * BYTE-NONDETERMINISTIC: the PNGs differ run-to-run even at an identical
+ * render — `git restore` the churn unless the RENDER changed; see
+ * screenshots.spec.ts header for the receipt trail.
+ *
  * Serial + dev-login (no CSRF writes needed — the panel's seed already
  * carries demo users/tenants to photograph).
  */

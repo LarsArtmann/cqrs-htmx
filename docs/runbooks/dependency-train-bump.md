@@ -1,6 +1,6 @@
 # Dependency Train Bump — Playbook
 
-> How to sweep a family dependency (cqrs-htmx, go-cqrs-lite, templ-components, httputil, go-sse, …) to a new published version across this 29-module workspace. Companion to `release-next-train-prep.md` (cutting OUR train) — this runbook is for consuming SOMEONE ELSE'S.
+> How to sweep a family dependency (cqrs-htmx, go-cqrs-lite, templ-components, httputil, go-sse, …) to a new published version across this 31-module workspace. Companion to `release-next-train-prep.md` (cutting OUR train) — this runbook is for consuming SOMEONE ELSE'S.
 
 **Automation:** `scripts/tools/bump-dep.sh <module-pattern> <version>` does the mechanical sweep (see below). The verification loop stays manual — it is where the mistakes hide.
 
@@ -25,6 +25,13 @@ GOWORK=off go mod tidy && GOWORK=off go build ./... && GOWORK=off go vet ./...
 
 ## Verification discipline
 
+- **Render-touching bumps run the fast e2e slice BEFORE the push** (2026-11-21,
+  the §g.1 process fix): `nix run .#e2e-fast-slice` — the ~3-minute chromium
+  slice over loginpage-golden + admin-behavior + setup-bundle console guards.
+  It is REQUIRED for any templ-components family bump that touches
+  render output; the full battery stays the shipped-state gate (the v1.27.2
+  accent sweep shipped once without it and cost the next session a full
+  triage). Screenshots churn byte-wise — judge by verdicts, not bytes.
 - **Assert absence, never sample presence.** After the sweep:
   `grep -rE '<dep>.*v<old-version>' --include=go.mod .` must print NOTHING.
   (A regex like `[a-z/-]+` that lacks digits silently misses `oauth2`-style names — write the digit-safe pattern.)

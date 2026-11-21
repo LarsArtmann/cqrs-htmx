@@ -120,6 +120,11 @@ Realtime (SSE)? -> Use Broadcaster/SSEStream on ANY path. (WebSocket was removed
 Persistence? -> Pass *sql.DB or use NewSQLiteEventSourcedSetup on Path B/C.
 ```
 
+FLEET DEFAULT (owner ruling 2026-11-21): a NEW Go HTTP service starts on the
+go-appkit preset spine (scaffold: `github.com/LarsArtmann/go-service-template`);
+the cqrs-htmx Path-A shape composes ON TOP — `RunWithAppkit` (setup/v4) is the
+canonical wiring, and the appkit preset/README shows the spine-first variant.
+
 ## Path 0 -- Building blocks only (no App)
 
 Many consumers use cqrs-htmx purely for its middleware, SSE building blocks, and error mapping -- without the `App` command/query pipeline.

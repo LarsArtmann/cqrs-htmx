@@ -24,6 +24,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -49,6 +51,55 @@ const (
 	adminEmail  = "admin@demo.dev"
 	adminUserID = "01JXSUPERADMIN001"
 )
+
+// tcAutoFitGridStyle is the exact inline style attribute the templ-components
+// auto-fit grid carries for MinColWidth "190px" (the users/tenants list
+// grids; the library documents the inline style as a deliberate exemption).
+// Under a nonce CSP the attribute is blocked, so this demo's security layer
+// grants CSP's sanctioned narrow carve-out: 'unsafe-hashes' + its exact
+// sha256, computed at runtime from the constant — an upstream width change
+// fails loudly in the console guard instead of silently carrying a stale
+// allowance. (docs/guides/production-readiness.md § 10; never widen to
+// 'unsafe-inline'. A Config.CSPBuilder knob on the panel itself is the
+// train-gated durable fix — TODO_LIST, harvested §f9.)
+const tcAutoFitGridStyle = "--tc-grid-min:190px;"
+
+func gridCarveOutCSP() func(nonce string) string {
+	sum := sha256.Sum256([]byte(tcAutoFitGridStyle))
+	styleHash := base64.StdEncoding.EncodeToString(sum[:])
+	return func(nonce string) string {
+		return "default-src 'self'; script-src 'self' 'nonce-" + nonce + "'; " +
+			"style-src 'self' 'nonce-" + nonce + "' 'unsafe-hashes' 'sha256-" + styleHash + "'; " +
+			"img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+	}
+}
+
+// adminSecurity is the panel's security layer rebuilt with gridCarveOutCSP:
+// the same three entries as cqrshtmx.RecommendedSecurityStack (recovery,
+// security headers, per-request CSP nonce), differing only in the CSP
+// builder — the documented consumer pattern (setup-demo's demoSecurity twin).
+func adminSecurity() func(http.Handler) http.Handler {
+	securityCfg := httputil.DefaultSecurityHeadersConfig()
+	securityCfg.PermissionsPolicy = cqrshtmx.RecommendedPermissionsPolicy
+
+	stack := httputil.NewMiddlewareStack()
+	for _, entry := range []struct {
+		name       string
+		middleware func(http.Handler) http.Handler
+	}{
+		{httputil.MiddlewareRecovery, cqrshtmx.RecoveryMiddleware},
+		{httputil.MiddlewareSecurityHeaders, httputil.SecurityHeaders(securityCfg)},
+		{httputil.MiddlewareNonce, httputil.Nonce(httputil.NonceConfig{Size: 0, CSPBuilder: gridCarveOutCSP()})},
+	} {
+		if err := stack.Add(entry.name, entry.middleware); err != nil {
+			panic(err) // impossible by construction: distinct well-known names, recovery first
+		}
+	}
+	if err := stack.Validate(); err != nil {
+		panic(err) // impossible by construction: recovery-first ordering holds
+	}
+	return stack.Middleware()
+}
 
 // 18930 avoids clashing with unrelated services on well-known dev ports
 // (e.g. 8097, which is used by a different project on this machine).
@@ -140,12 +191,14 @@ func main() {
 	}
 
 	// 4. Wire routes. The panel sits behind session middleware + CSRF + the
-	//    panel's recommended middleware (recovery + security headers). This is
-	//    the production-ready wiring pattern.
+	//    demo's security layer (adminSecurity — the recommended stack rebuilt
+	//    with the auto-fit-grid CSP carve-out, the setup-demo pattern; see the
+	//    tcAutoFitGridStyle comment and production-readiness § 10). The
+	//    tenant-admin mount gains the same layer it previously lacked.
 	mux := http.NewServeMux()
 	sessionMW := usermgmt.NewSessionMiddleware(svc, cookieName)
 	csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{})
-	panelMW := panel.Middleware()
+	securityMW := adminSecurity()
 
 	// ACK + idempotency middleware: rejects duplicate commands (409) before
 	// they reach the panel, then broadcasts the command ACK over SSE after each
@@ -153,8 +206,8 @@ func main() {
 	// and prevents double-execution on retry.
 	ackMW := ackMiddleware(broadcaster, idemStore)
 
-	mux.Handle("/admin/", ackMW(sessionMW(csrfMW(panelMW(http.StripPrefix("/admin", panel.Handler()))))))
-	mux.Handle("/tenant-admin/", sessionMW(csrfMW(http.StripPrefix("/tenant-admin", tenantPanel.Handler()))))
+	mux.Handle("/admin/", securityMW(ackMW(sessionMW(csrfMW(http.StripPrefix("/admin", panel.Handler()))))))
+	mux.Handle("/tenant-admin/", securityMW(sessionMW(csrfMW(http.StripPrefix("/tenant-admin", tenantPanel.Handler())))))
 
 	// The JSON directory search (QUERY ladder, both rungs) + its served spec.
 	// requireSession is the GATE — NewSessionMiddleware only enriches the
