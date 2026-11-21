@@ -1,6 +1,6 @@
 # SUPERB plan: Stripe billing bounded context v2 — self-review-hardened
 
-> **SUPERSEDED 2026-11-20 for execution order and task decomposition** by the [v3 execution plan](2026-11-20_20-25_SUPERB-stripe-billing-v3-execution-plan.md). This file stays authoritative for the design (D1–D13 anchors, §2 deltas) and for the S00 decision evidence — the v3 plan cites it rather than restating it. Read this file for *why the domain looks like this*, the v3 plan for *what to build next and in what order*.
+> **SUPERSEDED 2026-11-20 for execution order and task decomposition** by the [v3 execution plan](2026-11-20_20-25_SUPERB-stripe-billing-v3-execution-plan.md). This file stays authoritative for the design (D1–D13 anchors, §2 deltas) and for the S00 decision evidence — the v3 plan cites it rather than restating it. Read this file for *why the domain looks like this*, the v3 plan for *what to build next and in what order*. The pinned domain contract (inherited D-set + deltas D14–D19) is now [ADR 0066](../adr/0066-billing-domain-design.md) (2026-11-21); consumers are named in the [M01 decision record](../decisions/2026-11-21_02-00_m01-first-consumer-and-plan-catalog.md).
 
 **Created:** 2026-10-24 18:15 CEST
 **Status:** PLAN — proposed, NOT started. **Not the active thread** ([CURRENT_FOCUS.md](../../CURRENT_FOCUS.md) unchanged; owner-gated like everything in this lane).
