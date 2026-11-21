@@ -765,7 +765,17 @@ Full example with the API-key body and the safe-default contract: `dashboardui/R
 
 ### Recipe 3: the HTMX flash error contract (credit: audiblesync)
 
-Two-path error handling in a raw handler: HTMX clients get a 200 with retarget headers so the flash partial renders inline; plain clients get the real status:
+Two-path error handling: HTMX clients get a 200 with retarget headers so the flash region renders inline; plain clients get the real mapped status. **The pattern shipped as an API** — `httperr.FlashErrorHandler` classifies via `MapError`, retargets the configured region on the HTMX path (200 + the redacted error text as the body), and answers the real status elsewhere:
+
+```go
+app, err := cqrshtmx.New(cqrshtmx.Config{
+    ErrorHandler: httperr.FlashErrorHandler("#flash"),
+})
+```
+
+An empty target falls back to `httperr.DefaultFlashTarget` (`#flash`); the swap is always `DefaultFlashSwap` (`innerHTML`).
+
+For full control of the flash body (a templ partial instead of the redacted text), hand-roll the same branch — the shipped handler exists because every consumer reinvented exactly this shape:
 
 ```go
 func (s *server) flashError(w http.ResponseWriter, r *http.Request, err error, status int) {
@@ -780,7 +790,7 @@ func (s *server) flashError(w http.ResponseWriter, r *http.Request, err error, s
 }
 ```
 
-`htmx.HeaderRetarget`/`HeaderReswap` are the typed constants (`htmx/htmx.go:27-28`, since v4.16.0) — never hand-write `"Hx-Retarget"`.
+`htmx.HeaderRetarget`/`HeaderReswap` are the typed constants (`htmx/htmx.go:27-28`, since v4.16.0) — never hand-write `"Hx-Retarget"`. The 200-on-HTMX branch is deliberate: an error status makes htmx ignore the swap options and swap nothing.
 
 ### Recipe 4: metaengine → dashboardui, which SSE surface (credit: invoices, CV)
 
