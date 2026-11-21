@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.18.0] - 2026-11-21
+
 ### Added
 
 - **Events filter rides the QUERY fallback ladder (RFC 10008, master-plan f.32, 2026-11-18).** The events browser's filter form now submits via the `cqrs-query` htmx extension (`hx-ext="cqrs-query"` + `hx-post` + `hx-query=""` + `hx-trigger="submit"`): browsers that speak the native QUERY method hit `QUERY /events/search` directly; everything else POSTs the same urlencoded body and the extension auto-downgrades (or a `X-HTTP-Method-Override` header is rewritten by the dashboard's `MethodOverrideMiddleware`, mounted inside `routes()` per ADR-0064). All three rungs answer ONE handler — `eventsSearchHandler` parses the criteria with `url.ParseQuery` (the ext upgrades the METHOD, not the body encoding), enforces a 64 KB body cap, and re-renders the same HTMX partial the GET form renders — pinned byte-identical across rungs by `TestEventsSearch_LadderParity`. `GET /events` stays the bookmarkable URL-params form; `/-/ext/cqrs-query.js` is served as a new asset route and loaded by the layout after htmx.js. Route gating follows `Capabilities.HasEventRead` like the rest of the Events panel; invalid bodies (oversized, malformed percent-encoding) answer 400 refuse-don't-guess. The route-walking manifest test gained a never-ending-route policy (stream routes are skipped from live probes, every probe is deadline-bounded) after a probe at the SSE endpoint hung the suite at the package wall-clock timeout.

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.18.0] - 2026-11-21
+
 ### Added
 
 - **User search rides the HTTP QUERY ladder (RFC 10008).** The users panel's search was GET-only; complex criteria (name + status + page) had to squeeze into URL params. New routes: `QUERY /users/search` (the native body-carrying read) and `POST /users/search` (the fallback twin) register the SAME handler, so every rung of the fallback ladder answers byte-identically; `MethodOverrideMiddleware` is wired into the panel's own stack, so a POST + `X-HTTP-Method-Override: QUERY` reaches the native rung (only QUERY is an override target — never an unsafe verb). The search input upgrades Enter-submits to native QUERY via the embedded `cqrs-query` extension (served at `/-/ext/cqrs-query.js`, auto-downgrading only when an intermediary refuses the verb) and fires the POST twin on live typing; the GET route stays the bookmarkable rung the filter chips and history navigate. The criteria ride one shared data path with the GET route (`usersSearchData`), so the rungs cannot drift on filtering, pagination, or enrichment. Pinned by `user_search_test.go` (ladder byte-parity across QUERY/POST/override/legacy-override, body criteria parity with URL params, oversized + malformed body 400s, anonymous 401, extension-script asset posture, rendered ladder attributes) and the e2e chromium ladder tests (request-method assertions: Enter → native QUERY, typing → POST twin).

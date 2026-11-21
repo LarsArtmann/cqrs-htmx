@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.1.0] - 2026-11-21
+
 ## [v4.0.0] - 2026-11-07
 
 First tagged release of the optional Huma v2 adapter (demand signal [cqrs-htmx#41](https://github.com/LarsArtmann/cqrs-htmx/issues/41), built 2026-11-06).

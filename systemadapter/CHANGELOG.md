@@ -4,6 +4,8 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ## [Unreleased]
 
+## [v4.14.0] - 2026-11-21
+
 ### Fixed
 
 - **The tenant-deletion cascade deriver no longer builds its TenantID from the display form (T04, 2026-11-17).** `tenant_deletion_deriver.go` read `evt.StreamID().String()` — the PREFIXED display form — while membership rows key tenants by the bare form (`MemberAddedPayload.TenantID` stores `tenantID.Get()`), so for real ULID tenants the cascade's per-member lookup matched NOTHING and deleting a tenant would silently strand every member. Fixed to `.Get()`; the two remaining slog sites are pinned as display surfaces in the gate allowlist, and both fixture sets (systemadapter + gfl-usermgmt helpers) now seed bare IDs so the display form cannot re-enter an identity position without reddening — the GFL suite had stayed green over the dead path precisely because its fixtures mirrored the bug's shape (gotcha 64).
