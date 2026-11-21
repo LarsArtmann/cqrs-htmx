@@ -14,8 +14,8 @@ func errorCode(t *testing.T, err error) string {
 		t.Fatal("expected an error, got nil")
 	}
 
-	var coded errorfamily.Coded
-	if !errors.As(err, &coded) {
+	coded, ok := errors.AsType[errorfamily.Coded](err)
+	if !ok {
 		t.Fatalf("error %v carries no code", err)
 	}
 
