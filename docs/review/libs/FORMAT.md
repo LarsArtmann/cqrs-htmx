@@ -87,3 +87,21 @@ smell — the derivation must move WITH the inventory.
 5. Wire the receipts: TODO fleet row, research README series row, corpus
    ledger sentence (measure AFTER the last edit), and the index footer link
    to this file.
+
+## Cross-repo errata (the convention, est. 2026-11-21)
+
+When a review in `docs/review/libs/` turns out to be WRONG about a consumer
+repo — a mis-quoted symbol, a stale license row, a finding the consumer
+already fixed — the erratum is written IN THE CONSUMER'S REPO, not here: a
+dated edit to the consumer's copy of its review file (or its STACK/docs
+notes), citing a replayable receipt (tag, commit, `go list -m` output, or a
+gate run) for every corrected claim, and linking back to this repo's review
+series so the correction is discoverable from both ends. The home copy here
+stays as-written (it is the historical audit record); the consumer repo's
+dated erratum is the authoritative correction. Reason: a correction that
+only lives in this repo is invisible to whoever works in the consumer repo
+next, and a correction that silently rewrites this repo's audit files
+destroys the evidence chain the next refresh ritual re-verifies against
+(cross-repo precedents: audiblesync `d2b1909`, business-networking
+`6cb0c7f`, dnsblockd `2bc28ed6`, go-taskqueue `0d0a647d` — all landed
+2026-11-21 during the fleet-presentation-fixes wave).
