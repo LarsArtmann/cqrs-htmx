@@ -134,5 +134,29 @@ grep -q "CONSUMER BUILD FAILED (hermetic): fixture" "$tree/out.txt" || ok=1
 report $ok "F4 --consumers failing build exits 5 and names the module (got $cons_rc)"
 rm -rf "$tree"
 
+# F5 unpublished require (no tags at all) -> exit 1, UNPUBLISHED named.
+# §f45 (2026-11-21): the demonstrated red — a nested require pointing at a
+# version no tag carries must FAIL the gate, the exact leg that guards the
+# nested-hotfix rule (the oauth2 v4.13.1 class).
+build_tree 'github.com/larsartmann/go-fixture-fake/nested/v4 v9.9.9'
+seed_tags go-fixture-fake v0.1.0
+run_gate --strict-lag 0
+ok=0
+[ "$gate_rc" -eq 1 ] || ok=1
+grep -q "UNPUBLISHED: github.com/larsartmann/go-fixture-fake/nested/v4@v9.9.9 (no published tags at all)" "$tree/out.txt" || ok=1
+report $ok "F5 unpublished require (zero tags) exits 1 and names the require (got $gate_rc)"
+rm -rf "$tree"
+
+# F6 require above the published max -> exit 1 (the stale-training-window
+# class: the require names a version the module has not cut yet).
+build_tree 'github.com/larsartmann/go-fixture-fake/nested/v4 v2.0.0'
+seed_tags go-fixture-fake v0.1.0 nested/v1.0.0
+run_gate --strict-lag 0
+ok=0
+[ "$gate_rc" -eq 1 ] || ok=1
+grep -q "UNPUBLISHED: github.com/larsartmann/go-fixture-fake/nested/v4@v2.0.0 > published v1.0.0" "$tree/out.txt" || ok=1
+report $ok "F6 require above published max exits 1 (got $gate_rc)"
+rm -rf "$tree"
+
 echo "== $pass passed, $fail failed"
 [ "$fail" -eq 0 ]
