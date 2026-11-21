@@ -151,6 +151,9 @@ for i in "${!reports[@]}"; do
   if [ ! -f "$successor_path" ]; then
     successor_path="$ARCHIVE_DIR/$(basename "$successor")"
   fi
+  if [ ! -f "$successor_path" ] && [ -f "$STATUS_DIR/$(basename "$successor")" ]; then
+    successor_path="$STATUS_DIR/$(basename "$successor")"
+  fi
   if [ ! -f "$successor_path" ]; then
     echo "✗ archive-status: successor not found for $report: $successor" >&2
     stale=$((stale + 1))

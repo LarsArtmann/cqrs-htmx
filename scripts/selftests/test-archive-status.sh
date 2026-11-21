@@ -202,5 +202,21 @@ else
   bad "13-fix-moved-links-dry-run" "rc=$rc $out"
 fi
 
+# 4b. an archived/ successor is a SIBLING link, never ../ — the prefix wins
+# over the -f probe because an earlier line of the same pass has already
+# moved the successor into docs/status/archived/ (round-48 live defect).
+R="$WORK/case4b"
+make_repo "$R"
+printf '2026-10-01_00-00_old.md\t2026-10-02_00-00_new.md\tre-covers the old arc\n2026-10-01_00-01_anchored.md\tarchived/2026-10-01_00-00_old.md\tcarries the anchored series verdicts\n' >"$WORK/spec4b.tsv"
+out=$(run "$R" --apply --date 2026-10-24 "$WORK/spec4b.tsv")
+rc=$?
+if [ "$rc" -eq 0 ]; then ok "4b-apply-exit"; else bad "4b-apply-exit" "rc=$rc $out"; fi
+if grep -q '(2026-10-01_00-00_old\.md)' "$R/docs/status/archived/2026-10-01_00-01_anchored.md" && ! grep -q '(\.\./2026-10-01_00-00_old\.md)' "$R/docs/status/archived/2026-10-01_00-01_anchored.md"; then
+  ok "4b-archived-successor-sibling-link"
+else
+  bad "4b-archived-successor-sibling-link" "$(grep '00-00_old' "$R/docs/status/archived/2026-10-01_00-01_anchored.md")"
+fi
+if grep -q '(\.\./2026-10-02_00-00_new\.md)' "$R/docs/status/archived/2026-10-01_00-00_old.md"; then ok "4b-live-successor-still-parent"; else bad "4b-live-successor-still-parent" "$(grep successor "$R/docs/status/archived/2026-10-01_00-00_old.md")"; fi
+
 echo "archive-status self-test: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]
