@@ -6,7 +6,7 @@ go 1.27.3
 require (
 	github.com/a-h/templ v0.3.1118
 	github.com/dustin/go-humanize v1.1.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.18.1
+	github.com/larsartmann/cqrs-htmx/v4 v4.19.0
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1
@@ -38,7 +38,6 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/bits-and-blooms/bitset v1.29.0 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.10.4 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/ebitengine/purego v0.11.3 // indirect
