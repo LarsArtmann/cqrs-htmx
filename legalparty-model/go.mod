@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
-	github.com/larsartmann/go-branded-id v0.7.1
+	github.com/larsartmann/go-branded-id v0.8.0
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0

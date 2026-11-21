@@ -105,3 +105,20 @@ destroys the evidence chain the next refresh ritual re-verifies against
 (cross-repo precedents: audiblesync `d2b1909`, business-networking
 `6cb0c7f`, dnsblockd `2bc28ed6`, go-taskqueue `0d0a647d` — all landed
 2026-11-21 during the fleet-presentation-fixes wave).
+
+The same freeze rule governs the HTML-series audits' own verify blocks
+(precedent set 2026-11-21, the fleet-audit deliverable's replay decision):
+a verify block's inline annotations are the audit-time evidence — a replay
+re-runs the block VERBATIM, moves the replay receipt's date, and records
+the new truth there, never by rewriting the annotations in place. The
+receipt's contrast ("the query now returns X where the annotation says Y")
+is what makes the replay legible; rewriting the annotation erases the
+before-state and falsifies the receipt. Next-refresh rule: re-run the
+block, update the receipt, touch nothing above it.
+
+Non-adopters: a consumer review that records a NON-adoption decision cites
+the exact line of this repo it rejected (today that is README's fit-test
+paragraph), so the next refresh ritual can check whether the objection
+still holds instead of re-deriving why the repo said no. A non-adoption
+without a citable objection line is an opinion, and the refresh treats it
+as one: re-ask, don't re-verify.

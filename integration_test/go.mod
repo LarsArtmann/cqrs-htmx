@@ -94,7 +94,7 @@ require (
 	github.com/knadh/koanf/v2 v2.4.1 // indirect
 	github.com/larsartmann/go-appkit v0.12.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
-	github.com/larsartmann/go-branded-id v0.7.1 // indirect
+	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect

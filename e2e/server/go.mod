@@ -70,7 +70,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
-	github.com/larsartmann/go-branded-id v0.7.1 // indirect
+	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.15.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
