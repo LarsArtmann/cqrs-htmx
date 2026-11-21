@@ -1,5 +1,9 @@
 # SUPERB Fleet-Presentation Plan + Train-Alignment War — Status Report
 
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-21_13-15_pareto-plan-closeout-self-review_status.md`](../2026-11-21_13-15_pareto-plan-closeout-self-review_status.md), which the closeout report carries the plan's P14-P18 completion and the self-review the alignment report's waves fed; its four open §f items (the execution-log fill, P04 README license line, P10 skill recipes, P13 bridge guide) are receipted DONE in the round-48 drain row. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
 > **2026-11-18 07:01 CET · scope-first.** Subject: the session that (1) wrote
 > the SUPERB fleet-presentation-fixes pareto plan, then (2) fought the
 > release-train lag blocking the user-ordered push — three upstream tag waves

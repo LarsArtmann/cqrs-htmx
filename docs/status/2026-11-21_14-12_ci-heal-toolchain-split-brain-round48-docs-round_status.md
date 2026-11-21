@@ -59,7 +59,7 @@
 12. [owner] §g.2 of 08-45 — the migration D1/D2 contradiction (W3/W4 unblock).
 13. [owner] §g.1 of 20-47 — the NixOS system templ repin.
 14. [owner] §g.3 of 20-47 — K2 multi-instance follow-up.
-15. [owner] Fleet-cache hygiene probe of `cache.home.lan/*`.
+15. [owner] Fleet-cache hygiene probe of `cache.home.lan/*` (prune/provenance, gotcha 10's mechanism; represented in CURRENT_FOCUS, routed in the drain row for the matcher).
 16. e2e sync offline-reads posture (raise the 30s ceiling or document the retry).
 17. coverage-gate receipt on the current tree (the last full receipt pre-dates today's trains).
 18. v4.19.0 wave planning (the QUERY W4/W5 receipts ride it).
@@ -72,8 +72,8 @@
 25. [lane] legalparty-model M03 / family train.
 26. [lane] webphone C27 family-pin sweep.
 27. C28 dispatch-gate consumer waves (inventories pre-staged).
-28. [owner] The five usermgmt API asks filing decision.
-29. [owner] go-cqrs-lite `event.New` pooled-encode ask.
+28. [owner] The five usermgmt API asks filing decision (upstream-asks row (h), batched per the adminui D2 recommendation).
+29. [owner] go-cqrs-lite `event.New` pooled-encode ask (the A20 upstream ask (g)).
 30. [watch] go-datastar#31 deterministic signals ordering (`NewSignalsPatch` marshal instability).
 31. [watch] httputil#48 + go-cqrs-lite#117 maintainer cadence.
 32. [owner] K3 templ-components popover evidence pack — DONE-by-action: PR#101 merged; strike stale K3 mentions at the next annotate pass.
@@ -94,7 +94,7 @@
 47. Harden archive-status against silently-truncated specs (rc must reflect dropped lines — the T12-class silent-acceptance this session worked around).
 48. Add a release-train dated-hold mechanism (a holds file the strict-lag gate honors) so deliberate downgrades do not need `--no-verify` pushes [owner].
 49. The 20-47 report's remaining owner-verdict tails (§g.1/§g.3 surface there).
-50. TODO hygiene gate self-test after every new TODO batch (this session's standing practice).
+50. TODO hygiene gate self-test after every new TODO batch (this session's standing practice; `.#test-check-todo-hygiene`).
 
 ## g) TWO QUESTIONS I CAN NOT FIGURE OUT MYSELF
 

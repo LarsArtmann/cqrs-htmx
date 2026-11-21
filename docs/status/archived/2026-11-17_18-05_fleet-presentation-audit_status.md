@@ -1,7 +1,7 @@
 # Fleet Presentation Audit Session — Status Report
 
 > **ANNOTATED 2026-11-21** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-21 (round-23 (2026-11-21)).**
-> The next session in the same arc is [`2026-11-18_07-01_fleet-plan-and-train-alignment_status.md`](../2026-11-18_07-01_fleet-plan-and-train-alignment_status.md), which fleet-plan lineage continues; audit actions executed and ledgered.
+> The next session in the same arc is [`2026-11-18_07-01_fleet-plan-and-train-alignment_status.md`](2026-11-18_07-01_fleet-plan-and-train-alignment_status.md), which fleet-plan lineage continues; audit actions executed and ledgered.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 > **2026-11-17 18:05 CET · scope-first, self-critical.** Subject: the session
