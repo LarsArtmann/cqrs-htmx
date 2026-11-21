@@ -98,6 +98,21 @@ until a downstream audit replayed them as ERRATA. A CHANGELOG claim without a
 symbol-level receipt is a lie the next consumer audit bills back to this
 repo.
 
+**The nested re-tag reminder (§f20 mechanized, 2026-11-21 — P01's rule):**
+after sweeping or bumping a dependency whose release carries a SECURITY or
+API fix, run
+
+```sh
+bash scripts/checks/check-nested-retag-reminder.sh <dep-module-path> <fix-iso-date>
+```
+
+It prints one `RE-TAG REMINDER` per nested module whose latest tag predates
+the fix date (or that never got a tag at all) and still requires the dep
+directly — the exact shape that stranded oauth2 importers behind the root
+train for three weeks (oauth2 v4.13.1, 2026-11-21). Exit 1 = reminders;
+advisory — the caller decides whether the train blocks. Self-test:
+`scripts/selftests/test-check-nested-retag-reminder.sh` (5 cases, offline).
+
 ## 5. Go-appkit fold-in reminder (separate decision, ADR-001)
 
 Not part of this train. Precondition: push the go-appkit wave cut at

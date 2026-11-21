@@ -51,7 +51,10 @@ GIT_COMMITTER_DATE="2026-11-01T00:00:00" git tag -a usermgmt/totp/v4.12.1 -m t
 echo "== test-check-nested-retag-reminder.sh"
 
 # F1 the stranded class: oauth2's tag predates the fix -> reminder, exit 1.
-out=$(cd "$tree" && git config --global --add safe.directory "$tree" >/dev/null 2>&1; REPO_ROOT_OVERRIDE="$tree" bash "$GATE" github.com/larsartmann/go-jose/v4 2026-10-28)
+out=$(
+  cd "$tree" && git config --global --add safe.directory "$tree" >/dev/null 2>&1
+  REPO_ROOT_OVERRIDE="$tree" bash "$GATE" github.com/larsartmann/go-jose/v4 2026-10-28
+)
 rc=$?
 ok=0
 [ "$rc" -eq 1 ] || ok=1
@@ -75,7 +78,9 @@ ok=0
 echo "$out" | grep -q "usermgmt/webauthn requires.*but has NEVER been tagged" || ok=1
 report $ok "F2 never-tagged nested module reminds (got rc=$rc)"
 
-# F3 clean tree: fix date before every tag -> exit 0 with the green line.
+# F3 clean tree: drop the never-tagged module (F2's fixture), fix date
+# before every remaining tag -> exit 0 with the green line.
+rm -rf usermgmt/webauthn
 out=$(cd "$tree" && REPO_ROOT_OVERRIDE="$tree" bash "$GATE" github.com/larsartmann/go-jose/v4 2026-10-01)
 rc=$?
 ok=0
@@ -84,8 +89,12 @@ echo "$out" | grep -q "every nested module requiring.*is tagged at or after" || 
 report $ok "F3 all tags at/after the fix date exits 0 (got rc=$rc)"
 
 # F4 usage errors -> exit 2.
-(cd "$tree" && REPO_ROOT_OVERRIDE="$tree" bash "$GATE" only-one-arg >/dev/null 2>&1); [ $? -eq 2 ]; report $? "F4 missing arg exits 2"
-(cd "$tree" && REPO_ROOT_OVERRIDE="$tree" bash "$GATE" github.com/x/y not-a-date >/dev/null 2>&1); [ $? -eq 2 ]; report $? "F4 bad date exits 2"
+(cd "$tree" && REPO_ROOT_OVERRIDE="$tree" bash "$GATE" only-one-arg >/dev/null 2>&1)
+[ $? -eq 2 ]
+report $? "F4 missing arg exits 2"
+(cd "$tree" && REPO_ROOT_OVERRIDE="$tree" bash "$GATE" github.com/x/y not-a-date >/dev/null 2>&1)
+[ $? -eq 2 ]
+report $? "F4 bad date exits 2"
 
 echo "== $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

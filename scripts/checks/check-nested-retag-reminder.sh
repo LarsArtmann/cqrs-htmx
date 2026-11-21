@@ -37,16 +37,22 @@ fi
 cd "$REPO_ROOT"
 
 reminders=0
-# Every nested module = a directory with its own go.mod below the root
-# (examples and e2e are consumers, never published, so they cannot strand
-# anyone — the "published" set is everything git tags name).
+escaped_dep=${dep//./\\.}
+# Every nested module = a directory with its own go.mod below the root,
+# excluding the never-published workspace-only dirs (examples, integration_test
+# and e2e are consumers/test scaffolding, never pinned by consumers — the
+# "published" set is everything git tags name).
 while IFS= read -r gomod; do
-  moddir="${gomod#./}"
-  moddir="${moddir%/go.mod}"
+  case $gomod in
+  ./examples/* | ./integration_test/* | ./e2e/*) continue ;;
+  esac
+  moddir="$(dirname "$gomod")"
+  moddir="${moddir#./}"
   [[ $moddir == "." ]] && continue # the root module has no nested tag to strand
 
-  # Direct require only (tab-indented inside require blocks or single-line).
-  if ! grep -Eq "^[[:space:]]*${dep//\//\\/}[[:space:]]+v[0-9]+\.[0-9]+\.[0-9]+" "$gomod"; then
+  # Direct require in either form: block body (tab + path) or single-line
+  # ("require path version").
+  if ! grep -Eq "^[[:space:]]*(require[[:space:]]+)?${escaped_dep}[[:space:]]+v[0-9]+\.[0-9]+\.[0-9]+" "$gomod" 2>/dev/null; then
     continue
   fi
 
