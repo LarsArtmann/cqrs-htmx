@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/templ-components/htmx v1.27.2
 	github.com/larsartmann/templ-components/icons v1.27.2
 	github.com/larsartmann/templ-components/utils v1.27.2
-	github.com/onsi/ginkgo/v2 v2.33.1
+	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
 )
 
@@ -37,6 +37,8 @@ require (
 	github.com/Microsoft/go-winio v0.6.4 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
+	github.com/bits-and-blooms/bitset v1.29.0 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.10.4 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/ebitengine/purego v0.11.3 // indirect
@@ -46,12 +48,12 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.25 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-playground/form/v4 v4.5.0 // indirect
+	github.com/go-playground/form/v4 v4.5.1 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 // indirect
+	github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.20.3 // indirect
@@ -71,6 +73,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.9.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
@@ -82,6 +85,7 @@ require (
 	github.com/larsartmann/go-etag/server v0.6.2 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-idempotency v0.6.0 // indirect
+	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
@@ -119,6 +123,7 @@ require (
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
+	modernc.org/libc v1.80.1 // indirect
 )
 
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning

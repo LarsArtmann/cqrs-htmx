@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/bmatcuk/doublestar/v4 v4.10.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/go-playground/form/v4 v4.5.1 // indirect
 	github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b // indirect

@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/integration_test
 
-go 1.27.4
+go 1.27.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.17.0
@@ -49,7 +49,7 @@ require (
 	github.com/a-h/templ v0.3.1118 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.29.0 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.10.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
@@ -184,7 +184,8 @@ require (
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/libc v1.80.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261104224025-d1e00e9f33ab // indirect
+	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
