@@ -123,9 +123,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.61.1 // indirect
 )
-
-// systemadapter is replaced until the family train publishes the tag carrying
-// the tenant-deletion deriver (gfl-usermgmt is never tagged; the replace
-// keeps hermetic GOWORK=off builds resolving the in-repo cascade so the
-// generated tenant-deletion scenario pins the real deriver).
-replace github.com/larsartmann/cqrs-htmx/systemadapter/v4 => ../systemadapter

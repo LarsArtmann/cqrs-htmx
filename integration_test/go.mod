@@ -188,8 +188,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-// dashboardui is replaced until the family train publishes the tags carrying
-// FromSystem + systembridge (integration_test is never tagged; the replace
-// keeps hermetic GOWORK=off builds resolving the in-repo source).
-replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../dashboardui
