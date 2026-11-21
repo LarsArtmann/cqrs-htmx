@@ -150,8 +150,8 @@ github.com/larsartmann/cqrs-htmx/adminui/v4 v4.18.0 h1:lQQEUSSdfsUFW5NxR4GslAZub
 github.com/larsartmann/cqrs-htmx/adminui/v4 v4.18.0/go.mod h1:4UrE/y4G9t78YVyF2RYGasyoAzKlAqZpSrPFj/YS5jA=
 github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.0 h1:pAK115RBbkb9SIm7AZZ9ko5vhtMhio7i2s8LVeitxz8=
 github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.0/go.mod h1:vhcy3FTdH7kQ9puGmvpZj82SfsBJcz1KLEJh8xQITbw=
-github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2 h1:BfADIwPeTMNMb3Kg0HR+4rchnKw63aOy1TU6kWbzQb0=
-github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2/go.mod h1:vUoN1Emr9w1v7A3xfVioTZznfQ0CQt4Xz7SyP0FwcWo=
+github.com/larsartmann/cqrs-htmx/datastar/v4 v4.13.0 h1:zubmh50uAbYcJkxakRgEAUQy8UQFlLDP5DnXYp/0K7w=
+github.com/larsartmann/cqrs-htmx/datastar/v4 v4.13.0/go.mod h1:8Z6PdD02CQ0dMMupCQBIP82oXsukTQg0DZR4JI3D5Bg=
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0 h1:QY2w8+6nvwNj2+94rIUC2O+g/AqQcTzKzHaSzyorOMI=
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0/go.mod h1:doK+997hNuauf3Akaxn5zHwUEVhYh6FCvvoPCXRK92s=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.0 h1:NiHyx5oITPxmG+9gbTTql4ot7H2JsgM5HMYFYIKGpMc=
@@ -228,6 +228,8 @@ github.com/larsartmann/go-datastar v0.7.0 h1:PE//9bGCdGdVdCdL8AdtRYJYlkl3Yq+On6F
 github.com/larsartmann/go-datastar v0.7.0/go.mod h1:bbE8MTwWiO4ECbKyKBlFm4jwW6lV4rLD+rNlqI2tlWk=
 github.com/larsartmann/go-datastar/broadcast v0.7.0 h1:G2v/lWlGk5Hl+cUgTjYGZTWzrN9p2hKSDR44v6c1lPs=
 github.com/larsartmann/go-datastar/broadcast v0.7.0/go.mod h1:lLuYFpYIJd9Tn9CCr8QVvjhe2u/S6K495z5Jv1JrZ3M=
+github.com/larsartmann/go-datastar/datastartest v0.7.0 h1:mzGUhnZsK88TzVXp5VtOuIztAHdpRdYpraL+jZlXU+g=
+github.com/larsartmann/go-datastar/datastartest v0.7.0/go.mod h1:j7kMD6vwCZ59ZcFVLyEjr4xlZHWf+cBlTepGBZbFsHs=
 github.com/larsartmann/go-datastar/static v0.8.0 h1:pncsjORsZ3tPFBf3eX8HN5IJcxQtxQgz9ngwNVPEO88=
 github.com/larsartmann/go-datastar/static v0.8.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=

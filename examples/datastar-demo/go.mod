@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/datastar-demo
 go 1.27.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
@@ -17,15 +17,12 @@ require (
 
 require (
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
-	github.com/gkampitakis/go-snaps v0.5.25 // indirect
-	github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-datastar/static v0.8.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.2 // indirect
 	github.com/larsartmann/go-etag/server v0.6.2 // indirect
@@ -33,10 +30,7 @@ require (
 	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/go-sse/ssetest v0.5.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.34.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/mod v0.43.0 // indirect
-	golang.org/x/sync v0.25.0 // indirect
-	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 )
