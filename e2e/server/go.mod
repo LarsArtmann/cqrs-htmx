@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.0

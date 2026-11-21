@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/dashboard-demo
 go 1.27.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
@@ -20,7 +20,6 @@ require (
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1118 // indirect
-	github.com/bits-and-blooms/bitset v1.29.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
@@ -49,7 +48,6 @@ require (
 	github.com/larsartmann/go-etag/server v0.6.2 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-idempotency v0.6.0 // indirect
-	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/larsartmann/templ-components v1.27.2 // indirect
@@ -76,6 +74,5 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/libc v1.80.1 // indirect
 	modernc.org/sqlite v1.61.1 // indirect
 )
