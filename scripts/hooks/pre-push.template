@@ -56,12 +56,17 @@ fi
 # detection. Offline-safe: tidy -diff never writes, and a member whose
 # resolution needs the network reports as drift of the resolution kind
 # (fix locally, then push with --no-verify + a named justification if truly
-# network-blocked).
+# network-blocked). A tree WITHOUT go.work (the install-git-hooks fixture,
+# T12) skips the leg: the gate's rc=2 means ABSENT or broken go.work, and
+# absent is the fixture's designed shape — but a PRESENT go.work that the
+# gate calls broken still fails the push.
 tidy_rc=0
-bash "$ROOT/scripts/checks/check-go-mod-tidy.sh" || tidy_rc=$?
-if [ "$tidy_rc" -ne 0 ]; then
-  echo "pre-push: go-mod-tidy gate FAILED (rc=$tidy_rc) — run 'go mod tidy' in the named module(s), commit, re-push." >&2
-  exit "$tidy_rc"
+if [ -f "$ROOT/go.work" ]; then
+  bash "$ROOT/scripts/checks/check-go-mod-tidy.sh" || tidy_rc=$?
+  if [ "$tidy_rc" -ne 0 ]; then
+    echo "pre-push: go-mod-tidy gate FAILED (rc=$tidy_rc) — run 'go mod tidy' in the named module(s), commit, re-push." >&2
+    exit "$tidy_rc"
+  fi
 fi
 
 echo "pre-push: CI-parity gates green (release-train strict + version-drift --strict + go-mod-tidy hermetic)."
