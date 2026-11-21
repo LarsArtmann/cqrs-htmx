@@ -232,8 +232,15 @@ test("QUERY ladder: Enter upgrades the search to the native QUERY method", async
   // trigger to the native RFC 10008 QUERY verb (the method assertion is the
   // point: adminui ships the ladder, not just a GET search). The response
   // fragment must scope to #users-table and carry the filtered rows.
+  // The fill's debounce (input changed delay:350ms) schedules the POST twin
+  // against the SAME URL this assertion matches — under load its response can
+  // beat the Enter QUERY's and waitForResponse would hand back the twin (the
+  // 2026-11-21 slice flake, three reds one cause). Settle the debounce BEFORE
+  // pressing Enter so the only in-flight /users/search request is the
+  // Enter-triggered one.
   const input = page.locator('input[name="q"]');
   await input.fill("team1");
+  await page.waitForTimeout(600); // the 350ms debounce + request
   const [queryResponse] = await Promise.all([
     page.waitForResponse((r) => r.url().includes("/admin/users/search")),
     input.press("Enter"),

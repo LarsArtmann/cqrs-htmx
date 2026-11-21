@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-11-21 (harvested the 03-09 e2e-green/CSP session's §f: four new P2 rows — adminui CSP carve-out, tidy-diff pre-push leg, fast e2e slice, sync load-flake posture; the composite-bill carryover resolved: cqrs-lint shadow binary retired, branching-flow re-pinned 212 → 220, gotcha 68 written) · 31 Go modules · open items only.
+**Updated:** 2026-11-21 (harvested the 03-09 e2e-green/CSP session's §f into four new P2 rows; the composite-bill carryover resolved — see the CHANGELOG Housekeeping receipt) · 31 Go modules · open items only.
 
 > Current thread: [CURRENT_FOCUS.md](CURRENT_FOCUS.md). History lives in [CHANGELOG.md](CHANGELOG.md); session reports in `docs/status/`.
 
