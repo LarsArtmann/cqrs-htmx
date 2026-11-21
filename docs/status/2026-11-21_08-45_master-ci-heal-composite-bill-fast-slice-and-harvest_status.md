@@ -89,7 +89,7 @@
 31. C28 dispatch-gate consumer waves (existing L5 row (b); inventories pre-staged).
 32. [owner] The five usermgmt API asks filing decision (existing upstream-asks row (h)).
 33. [owner] go-cqrs-lite `event.New` pooled-encode ask (existing upstream-asks row (g)).
-34. [watch] go-datastar#31 deterministic signals ordering (existing P2 row).
+34. [watch] go-datastar#31 deterministic signals ordering (`NewSignalsPatch` marshal instability; existing P2 row).
 35. [watch] httputil#48 + go-cqrs-lite#117 maintainer cadence (existing rows).
 36. [owner] K3 templ-components popover evidence pack — DONE-by-action: PR#101 filed and merged (verify state, then strike the stale K3 mention wherever it lingers).
 37. Fleet libs report-count gate re-run after the next `docs/review/libs` refresh (baseline 22, green today).
