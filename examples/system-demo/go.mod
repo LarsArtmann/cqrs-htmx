@@ -37,7 +37,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.4.1 // indirect
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0 // indirect
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
@@ -106,7 +106,6 @@ require (
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261104224025-d1e00e9f33ab // indirect
 	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect

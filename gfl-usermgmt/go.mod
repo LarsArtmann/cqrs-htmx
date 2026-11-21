@@ -43,7 +43,7 @@ require (
 	github.com/knadh/koanf/v2 v2.4.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0 // indirect
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
