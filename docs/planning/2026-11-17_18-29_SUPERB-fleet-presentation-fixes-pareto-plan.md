@@ -312,3 +312,110 @@ K1/K2 per decisions D2/D4.
 - **Strict train gate re-verified GREEN (2026-11-20 evening): 0 unpublished /
   0 train lag** across 1049 internal requires — the alignment receipts above
   are the difference between the 48-lag red and this green.
+
+### Execution: P01–P18 (2026-11-21, overnight → morning session)
+
+Owner answers opened the gates: K1 = blanket execute (plan default D2
+stands — oauth2 hotfix tag), K2 = cross-repo push approved with risk
+judgment. The window ran beside FOUR concurrent sibling sessions
+(legalparty-model, dashboardui accent tokens, templ v1.27.2 alignment,
+third-party go.mod bumps) — gotcha 47 protocol throughout: surgical
+staging, no sibling-file touches, content-verify in HEAD after every
+daemon interleave.
+
+- **P01 (K1 exercised):** `usermgmt/oauth2/v4.13.1` cut ON the published
+  `v4.18.1` train commit `1f041a2c` (`git tag -s <name> "v4.18.1^{}"` — the
+  first cut nested a tag; always dereference with `^{}`), peel verified ==
+  target, pushed. Strict train gate after: **0 unpublished / 0 train lag /
+  1063 requires** (verified twice). CHANGELOG Fixed entry + consumer sweep
+  recipe landed (`d7780d58` interleave — the daemon swept my staged hunk
+  into a sibling commit after a SQLITE_BUSY hook race; content verified in
+  HEAD per gotcha 47).
+- **P02:** closure sweep receipts — `usermgmt/webauthn/v4.13.0` and
+  `usermgmt/totp/v4.12.1` carry NO go-jose in their module closures
+  (go.sum grep at each tag: zero matches); no companion patch tags; receipt
+  folded into P01's CHANGELOG entry.
+- **P03:** skill Discoverability bullet (`htmx.HeaderRetarget`/`HeaderReswap`
+  since root v4.16.0, `e1bc0095` — the plan's "in v4.18.1" premise was
+  stale, erratum noted here) + Response-builder `Retarget()` cross-link.
+- **P04:** README license disambiguation — the badge-row license line +
+  expanded § License ("MIT; each sibling repo's LICENSE is authoritative").
+- **P05:** dashboardui README "Runs without usermgmt" receipt (go.mod
+  citation `grep -c usermgmt dashboardui/go.mod` = 0) + headless/API-key
+  mounting example + version-currency link back to the README anchor.
+- **P06+P07 (K2 exercised):** cross-repo errata landed in all four consumer
+  repos: audiblesync `d2b1909` (pushed — carried the wiring-label
+  conformance fix its stack-drift hook demanded), business-networking
+  `6cb0c7f` (pushed; carried 4 landed sibling commits — acceptable
+  collateral), dnsblockd `2bc28ed6` (pushed; receipt replayed from
+  dnsblockd's own clone: `go-jose v4.1.6` at the new tag), go-taskqueue
+  `0d0a647d` (committed locally, **push HELD**: branch 92 ahead with an
+  active sibling session and 8 dirty Go files — 91 commits beside active
+  dirty work is not acceptable collateral; owner question §g).
+- **P08:** `scripts/checks/dep-footprint.sh` (shellcheck-green, executable)
+  + the README "Dependency footprint" table (17 published module rows).
+- **P09:** README § Versioning "Consuming nested modules (the release-train
+  mechanics)" — the 4-rule consumer table + nested→root tag mapping.
+- **P10:** SKILL.md "Standalone module recipes (consumer-invented)" — four
+  recipes with verbatim-stable titles (additive-only contract noted in the
+  section preamble; consumer reviews cite them by name).
+- **P11:** the changelog receipt rule — `docs/runbooks/release-next-train-prep.md`
+  §4 (the dnsblockd case study) + `docs/runbooks/dependency-train-bump.md`
+  footprint-regeneration rule + `check-release-train.sh` usage-block naming
+  the rule (comment-only; self-test 5/5).
+- **P12:** `httperr.FlashErrorHandler(target)` shipped additive — the
+  two-path contract (HTMX → 200 + `HX-Retarget`/`HX-Reswap` to the flash
+  region with the REDACTED text body via `SafeDetail` after `MapError`
+  classification; non-HTMX → the real mapped status with the
+  `DefaultErrorHandler` redaction rules), `DefaultFlashTarget`/`DefaultFlashSwap`
+  constants, typed header constants on the wire. Six `TestFlash*` tests
+  green under `-race`; `check-module-layers` green; workspace build/vet
+  green; golangci-lint **0 issues** (16 findings caught and fixed — gci
+  import grouping, golines 120-col, wsl/nlreturn blank-line rules, one
+  unparam). CHANGELOG [Unreleased] Added entry (P12.5) + skill recipe 3
+  rewritten to lead with the shipped API, hand-rolled form kept as the
+  full-control escape hatch (P12.6); snippets gate 48 fences, claims gate
+  228 symbols. Landed across daemon commits `8272eae3`/`1e5b8376` (the
+  lint-fix pass) — verify-before-write caught the redaction draft bug
+  (unconditional `SafeDetail` would have redacted every body; fix =
+  classify first, then redact).
+- **P13 (D8 exercised):** the bridge doc proved thinner than a guide —
+  metaengine's DX surface already owns collection-value SSE end to end
+  (`metaengine/v4/dx.go`: `NewWatcher[V]`/`WatchTyped[V]`/`ServeSSE[V]`/
+  `SSEReplay[V]`) and `docs/guides/leveraging-system-metaengine.md` had
+  zero ServeSSE/Watcher mentions to bridge FROM. Recorded as a ROADMAP row
+  ("Upstream Capability Exploitation" §, demand-gated on an invoice/CV-class
+  signal) instead of a forced artifact; skill recipe 4 carries the
+  two-stack choice.
+- **P14:** TODO_LIST P1 row refreshed with the P01–P13 execution state +
+  the three owner questions pointer; ROADMAP gained the dated
+  "Fleet presentation-audit routing" subsection carrying §f items 26/39/43/48
+  as trigger/idea rows; `check-todo-hygiene` green (87 rows, 0 dead).
+- **P15:** `docs/review/libs/FORMAT.md` gained "Cross-repo errata (the
+  convention, est. 2026-11-21)" — consumer-repo-written, dated,
+  replayable-receipt-cited, link-back convention naming the four 2026-11-21
+  precedents; docs-links green.
+- **P16:** `#review-<repo>` anchors on all 21 evidence-table rows (incl.
+  the case-sensitive cv/CV pair); Chromium probe verified 6 sampled anchors
+  resolve; FULL-PAGE render regenerated
+  `2026-11-17_docs-marketing-skill-fleet-audit.render.png` (1440×9517,
+  1.6 MB vs the former viewport-only 148 KB); the adopter-arithmetic
+  sentence re-verified TRUE against the table (8 of nine at 75–100;
+  PapDashboard 6/100). Recipe: e2e/node_modules Playwright +
+  PLAYWRIGHT_BROWSERS_PATH=/mnt/buildcache/playwright + the nixpkgs lib
+  forest as LD_LIBRARY_PATH (gotcha 66 class — the headless shell dies on
+  `libglib-2.0.so.0` without it).
+- **P17:** the deliverable's verify block re-run verbatim; every annotated
+  output either matched (F5 = 0, fit-test line unchanged, 7 quoting
+  reviews) or showed the landed fix as the new truth (F2 → v4.13.1, F3 →
+  constants + dated erratum, F1 → errata in both consumer repos). Dated
+  replay receipt + next-refresh trigger written into the deliverable
+  below the block.
+- **P18:** this execution log; the docs battery re-run (corpus ratchet
+  re-trued LAST after all edits, tail baseline, links, snippets, claims,
+  todo-hygiene); `check-release-train --refresh-cache --strict-lag 0`
+  pre-push; final commit; push with the pre-push hook receipt
+  (release-train strict + version-drift strict). Three owner questions
+  remain open (§g of the 03-15 status report): go-taskqueue push policy,
+  FlashErrorHandler API-shape veto window (D5), and the cross-repo
+  sweep-commit convention.
