@@ -106,7 +106,7 @@ Ranked by impact; effort S (<30min) / M (30min–2h) / L (>2h). Items 1–10 are
 | 34 | Verify the oauth2 sweep recipe actually resolves v4.1.6+ in a throwaway consumer module after #1 lands | High | S | Quality |
 | 35 | Draft the dnsblockd-facing erratum text for its review's F2 row once v4.13.1 exists | Medium | S | Documentation |
 | 36 | Check whether nested modules usermgmt/webauthn or usermgmt/totp carry go-jose at all before writing #11's sweep (may be a no-op) | Medium | S | Quality |
-| 37 | Capture a fresh full-page render receipt (current PNG is viewport-only; fullPage would show all findings) | Low | S | Tooling |
+| 37 | Capture a fresh full-page render receipt (current PNG is viewport-only; fullPage would show all findings) | Low | S | Tooling | <!-- resolved 2026-11-21: done — P16 regenerated the receipt as a 1440x9517 fullPage PNG (palette-compressed 1.6 MB -> 654 KB under the binary guard), and the recipe is codified as the .#render-receipt flake app (docs/runbooks/render-receipt.md); also resolves §f62 below |
 | 38 | Add the report's "How to verify" block to a replay schedule (the B10 lesson: replay catches rot within a day) | Medium | S | Process |
 | 39 | Consider recording e-1/e-2 in `references/lessons.md` (crush-config repo) as cross-project lessons — they generalize | Low | S | Process |
 | 40 | Next presentation-audit refresh trigger: after the next family train lands, re-verify F2/F3 receipts and move the audit date | Medium | S | Process |
