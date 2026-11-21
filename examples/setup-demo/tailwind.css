@@ -18,3 +18,22 @@
    and every dark: utility — the library's and loginpage's own — follows
    the class instead of prefers-color-scheme. */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* ADR-0049 (templ-components v1.27.2): library components emit accent-*
+   classes for the brand slot (the login page's buttons). This demo keeps
+   the stock look, so the ramp carries Tailwind's literal blue defaults —
+   the same values the blue-* sites the library replaced rendered — per
+   the upstream starter block (cmd/tc/_sources/starter/custom.css). */
+@theme {
+  --color-accent-50: oklch(97% 0.014 254.604);
+  --color-accent-100: oklch(93.2% 0.032 255.585);
+  --color-accent-200: oklch(88.2% 0.059 254.128);
+  --color-accent-300: oklch(80.9% 0.105 251.813);
+  --color-accent-400: oklch(70.7% 0.165 254.624);
+  --color-accent-500: oklch(62.3% 0.214 259.815);
+  --color-accent-600: oklch(54.6% 0.245 262.881);
+  --color-accent-700: oklch(48.8% 0.243 264.376);
+  --color-accent-800: oklch(42.4% 0.199 265.638);
+  --color-accent-900: oklch(37.9% 0.146 265.522);
+  --color-accent-950: oklch(28.2% 0.091 267.935);
+}

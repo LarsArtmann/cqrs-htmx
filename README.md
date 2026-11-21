@@ -7,6 +7,8 @@
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
 [![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](docs/goth-stack.md)
 
+> **License:** MIT — this repo's [LICENSE](LICENSE) is authoritative for cqrs-htmx. Each sibling LarsArtmann repository carries its own LICENSE file; verify per repo before relying on a license assumption.
+
 **CQRS + event sourcing for server-rendered Go apps — wired to HTTP and HTMX in one declarative line per endpoint.**
 
 ```bash
@@ -559,4 +561,4 @@ A pre-push hook enforces CI parity at the push boundary (release-train strict + 
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE). Note that the LarsArtmann fleet is many repositories: each sibling repo (go-cqrs-lite, httputil, templ-components, …) carries its own LICENSE, which is authoritative for that repo — verify per repo instead of assuming this repo's license applies fleet-wide.

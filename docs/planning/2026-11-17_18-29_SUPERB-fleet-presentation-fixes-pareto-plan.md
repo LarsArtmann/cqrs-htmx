@@ -3,7 +3,7 @@
 > **2026-11-17 18:29 CET · input:** the fleet presentation audit
 > ([`../research/2026-11-17_docs-marketing-skill-fleet-audit.html`](../research/2026-11-17_docs-marketing-skill-fleet-audit.html)
 > — 21 fleet reviews read, 10 findings, 50 §f items) plus its status report
-> ([`../status/2026-11-17_18-05_fleet-presentation-audit_status.md`](../status/2026-11-17_18-05_fleet-presentation-audit_status.md)).
+> ([`../status/2026-11-17_18-05_fleet-presentation-audit_status.md`](../status/archived/2026-11-17_18-05_fleet-presentation-audit_status.md)).
 > Method: `pareto-planning` skill, Step 0 first. Goal: correct every wrong or
 > stranded signal consumers act on today, then ship the additions that convert
 > parked adopters. NO Verschlimmbessern: every task carries a verify bar; the

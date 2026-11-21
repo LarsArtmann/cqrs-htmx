@@ -17,6 +17,11 @@ bash scripts/checks/check-docs-tail-budget.sh --ratchet && bash scripts/checks/c
 > `PREFLIGHT_EXPECTED_BRANCH=master bash scripts/tools/preflight-tree-check.sh` — it aborts
 > on a dirty tree / foreign in-flight commits and WARNS on a sibling's branch or a
 > dependency sweep in flight (round-45 M17).
+> Sibling-lane input check: a sibling session may have modified shared gate inputs —
+> `flake.lock`, gate baselines under `scripts/checks/*.baseline*` and `docs/analysis/`,
+> configs — before your run. `nix run` consumes the WORKING TREE's flake.lock, so a green
+> local run under modified flake inputs is NOT a CI-parity receipt (20-25 report §f25/§f26);
+> diff those inputs before trusting a verdict you did not produce.
 > origin/master`) — after the fetch above.
 
 ## What is loaded automatically (and what is not)

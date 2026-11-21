@@ -650,6 +650,8 @@ cqrshtmx.NewResponse(w, r).
     Apply()                        // writes all headers -- call once
 ```
 
+Not using the builder? Set the typed constants directly on raw handlers — `htmx.HeaderRetarget` / `htmx.HeaderReswap` (see the Discoverability notes below); the `Response.Retarget()` method itself writes the same header.
+
 ### WriteJSON: buffered encoding
 
 ```go
@@ -727,6 +729,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 
 ### Discoverability notes (APIs that are easy to miss)
 
+- **`htmx.HeaderRetarget` / `htmx.HeaderReswap`** (`htmx/htmx.go:27-28`, constants added `e1bc0095`, first shipped in root v4.16.0) -- typed constants for the `Hx-Retarget`/`Hx-Reswap` response headers, alongside all 18 `Header*` constants in the same const block. Raw handlers should set these instead of hand-written strings: `w.Header().Set(htmx.HeaderRetarget, "#flash")` — import `github.com/larsartmann/cqrs-htmx/v4/htmx`. The raw-string form is retired; migrate by replacing the literal `"Hx-Retarget"`/`"Hx-Reswap"` with the constants (same wire bytes, compile-checked names).
 - **`CSRFResponseHeaderMiddleware`** -- sets the CSRF token in a response header (`X-CSRF-Token`) so HTMX can pick it up via `hx-headers`. The middleware trio is: `CSRFMiddleware` (validates) + `CSRFResponseHeaderMiddleware` (exposes token) + `app.Middleware()` (sets context). If you use CSRF with HTMX, you need all three.
 - **`CSRFTestToken(mw)`** -- test helper that extracts a valid CSRF token through your middleware chain. nosurf uses token masking (the cookie value is NOT the valid header token); this helper handles the dance.
 - **`ContextEnrichmentMiddleware(nil)`** -- nil extractor = auto-generate ULID request IDs. This is the zero-config path; `app.Middleware()` wraps this.

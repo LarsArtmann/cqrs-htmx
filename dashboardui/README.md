@@ -100,6 +100,49 @@ systems merge with the usual first-wins rule. Engines without a native stream
 reader get a journal-derived one, so the aggregates panel lights up
 everywhere. Guide: `docs/guides/leveraging-system-metaengine.md`.
 
+### Runs without usermgmt (identity-free mounting)
+
+This dashboard has **no user-management dependency** — `dashboardui/go.mod`
+requires only the root module (v4.18.1), go-cqrs-lite introspection modules,
+and templ; zero `usermgmt` requires (verified 2026-11-21). The sibling
+[adminui](../adminui/README.md) is the identity-operations panel (users,
+tenants, members over a `*usermgmt.Service`); dashboardui is event-store
+observability and mounts wherever a `*http.ServeMux` exists — services,
+jobs, internal tools, air-gapped boxes — with no session middleware, no
+Casbin, and no user system in the binary at all.
+
+For an unauthenticated network surface, gate it yourself — `Config.Authorizer`
+is a plain `func(*http.Request) error`, so an API key is four lines, and
+`ReadOnly` removes the write endpoints entirely:
+
+```go
+cfg, err := dashboardui.Autodetect(store)
+if err != nil {
+    log.Fatal(err)
+}
+cfg.Title = "Ops: event store"
+cfg.BasePath = "/ops/events"
+cfg.ReadOnly = true // no projection reset / DLQ requeue endpoints are mounted
+cfg.Authorizer = func(r *http.Request) error {
+    if r.Header.Get("X-Ops-Key") != os.Getenv("OPS_DASHBOARD_KEY") {
+        return errors.New("bad ops key") // ANY non-nil error answers 403 "forbidden"
+    }
+    return nil
+}
+
+dash, err := dashboardui.New(cfg)
+if err != nil {
+    log.Fatal(err)
+}
+dash.Mount(mux, "/ops/events/")
+```
+
+The `Authorizer` contract (see `guard` in `dashboard.go`): a non-nil error
+maps to a plain 403, and the `ActorAuthorizer` variant additionally injects
+an `Actor` into the request context for audit attribution. With
+`ReadOnly=false` and no `Authorizer`, `New` boots with a loud warning and
+write actions answer 403 — the safe default is visible, not silent.
+
 ### Embedded (your app shell, our panels)
 
 Set `Config.Layout` and the dashboard stops owning the document. Every

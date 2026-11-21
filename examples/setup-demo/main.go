@@ -12,6 +12,8 @@ package main
 import (
 	"context"
 	_ "embed" // //go:embed for appCSS
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,6 +24,7 @@ import (
 
 	"github.com/larsartmann/httputil"
 
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
@@ -81,6 +84,12 @@ func run() error {
 		// Cross-link the dashboard from the admin sidebar: both panels are
 		// mounted at their default paths, one click apart via "Event store".
 		AdminDashboardURL: "/dashboard/",
+		// The demo owns its security layer so the CSP can carry the
+		// 'unsafe-hashes' carve-out the library's auto-fit grid needs (see
+		// demoCSP below). DisableSecurityMiddleware + the rebuilt chain in
+		// ExtraMiddleware is the documented consumer pattern for exactly this.
+		DisableSecurityMiddleware: true,
+		ExtraMiddleware:           []func(http.Handler) http.Handler{demoSecurity()},
 	})
 	if err != nil {
 		return fmt.Errorf("setup.New: %w", err)
@@ -168,6 +177,55 @@ func run() error {
 	)
 
 	return bundle.RunHandler(ctx, addr, bundle.Handler(mux))
+}
+
+// tcAutoFitGridStyle is the exact inline style attribute the templ-components
+// auto-fit grid carries for MinColWidth "190px" (the dashboard overview grid;
+// the library documents the inline style as a deliberate exemption, the same
+// shape as its chart/heatmap width properties). Under a nonce CSP the
+// attribute is blocked — rendering survives (dashboardui redefines the
+// variable in its stylesheet) but the browser logs a CSP console error.
+const tcAutoFitGridStyle = "--tc-grid-min:190px;"
+
+// demoCSP mirrors the recommended CSP and adds CSP's sanctioned carve-out
+// for that one documented attribute: 'unsafe-hashes' + its exact sha256.
+// This is narrower than 'unsafe-inline' — every OTHER inline style stays
+// blocked. The hash is computed from the constant, so a width change
+// upstream fails loudly (the console error returns and the battery's
+// console guard reddens) instead of silently carrying a stale allowance.
+func demoCSP(nonce string) string {
+	sum := sha256.Sum256([]byte(tcAutoFitGridStyle))
+	styleHash := base64.StdEncoding.EncodeToString(sum[:])
+	return "default-src 'self'; script-src 'self' 'nonce-" + nonce + "'; " +
+		"style-src 'self' 'nonce-" + nonce + "' 'unsafe-hashes' 'sha256-" + styleHash + "'; " +
+		"img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+}
+
+// demoSecurity is the bundle's security layer rebuilt with demoCSP: the same
+// three entries as cqrshtmx.RecommendedSecurityStack (recovery, security
+// headers, per-request CSP nonce), differing only in the CSP builder.
+func demoSecurity() func(http.Handler) http.Handler {
+	securityCfg := httputil.DefaultSecurityHeadersConfig()
+	securityCfg.PermissionsPolicy = cqrshtmx.RecommendedPermissionsPolicy
+
+	stack := httputil.NewMiddlewareStack()
+	for _, entry := range []struct {
+		name       string
+		middleware func(http.Handler) http.Handler
+	}{
+		{httputil.MiddlewareRecovery, cqrshtmx.RecoveryMiddleware},
+		{httputil.MiddlewareSecurityHeaders, httputil.SecurityHeaders(securityCfg)},
+		{httputil.MiddlewareNonce, httputil.Nonce(httputil.NonceConfig{Size: 0, CSPBuilder: demoCSP})},
+	} {
+		if err := stack.Add(entry.name, entry.middleware); err != nil {
+			log.Fatalf("demo security stack: %v", err)
+		}
+	}
+	if err := stack.Validate(); err != nil {
+		log.Fatalf("demo security stack: %v", err)
+	}
+
+	return stack.Middleware()
 }
 
 // dsDemoPage is the minimal DataStar client for /ds-demo: the SDK connects
