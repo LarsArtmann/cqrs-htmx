@@ -5,7 +5,7 @@ go 1.27.3
 require (
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.0
-	github.com/larsartmann/cqrs-htmx/health/v4 v4.14.0
+	github.com/larsartmann/cqrs-htmx/health/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0
@@ -127,7 +127,6 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/pandatix/go-abnf v0.5.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/philhofer/fwd v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
