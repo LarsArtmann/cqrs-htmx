@@ -68,7 +68,7 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect

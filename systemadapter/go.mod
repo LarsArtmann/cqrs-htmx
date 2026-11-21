@@ -4,7 +4,7 @@ module github.com/larsartmann/cqrs-htmx/systemadapter/v4
 go 1.27.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1

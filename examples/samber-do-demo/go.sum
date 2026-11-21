@@ -158,8 +158,8 @@ github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2 h1:3lDV2rVsUuDEuoTEqSp+/Bhv
 github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2/go.mod h1:99hcati192nm2vm20eRxxYi3+TyVo042RWsfJh+hmUI=
 github.com/larsartmann/cqrs-htmx/health/v4 v4.14.0 h1:35r8XNWsjNVOwl1o8Op73+r5aP5aXcWrS+MovikoZEU=
 github.com/larsartmann/cqrs-htmx/health/v4 v4.14.0/go.mod h1:o8BRu8d9jcyq3vl5y0R5BxbQWFajTweE8NnyT89tqhs=
-github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0 h1:XVlKJKJtu/eGBYwd2iXcy8i1oo000HP5MRl74hkIFSQ=
-github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0/go.mod h1:ZhFF62zs4GExrzp998BeZmmDOqPoYjnOxXQVYc/ZaBo=
+github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0 h1:QY2w8+6nvwNj2+94rIUC2O+g/AqQcTzKzHaSzyorOMI=
+github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0/go.mod h1:doK+997hNuauf3Akaxn5zHwUEVhYh6FCvvoPCXRK92s=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1 h1:50h3ypO0I346KBzghWNWTixhB6CAQfQpk2gnG4HDQUY=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1/go.mod h1:84IPSUojaxGSlhIkJhzTM3Jt1XmRCutvZznlop/uocY=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0 h1:iQs47Vx2rRi3elhC0RFf1S+yUe5hcJcyfnZ8ikJlgHI=

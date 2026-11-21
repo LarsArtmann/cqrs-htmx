@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/gfl-usermgmt
 go 1.27.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
