@@ -1,5 +1,9 @@
 # cqrs-lint release train v4.22.0 → v4.22.2 + gate escalation — Closure Status Report
 
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-18_23-40_ci-closeout-verdicts-gotcha67-hook-poison-war_status.md`](2026-11-18_23-40_ci-closeout-verdicts-gotcha67-hook-poison-war_status.md), which the closeout report holds the train's final verdicts (v4.22.2 --scope=module, per-depth tag patterns) and the gotcha-67 hook-poison war the train report opened. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
 **Session:** 2026-11-17 ~19:00–22:25 CET · single-session scope: execute the release train the 18-06 incident-closure report left as its tail (tag the go-cqrs-lite toolspec fix, bump BuildFlow, retire the shadow binary, sweep V003), decide the three §g owner questions, and land the gate-posture escalation.
 
 ## Scope line

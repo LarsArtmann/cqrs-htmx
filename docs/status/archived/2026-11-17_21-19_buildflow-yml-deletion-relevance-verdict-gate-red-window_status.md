@@ -1,5 +1,9 @@
 # .buildflow.yml deletion relevance verdict — and the gate-red window it opened
 
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-17_22-25_buildflow-cqrslint-train-v4-22-0-to-v4-22-2-and-gate-escalation.md`](2026-11-17_22-25_buildflow-cqrslint-train-v4-22-0-to-v4-22-2-and-gate-escalation.md), which the v4.22.x train + gate-escalation report carries the verdict's ask to landing: BuildFlow pinned v4.22.2 with the gate floor guard + zero-findings posture the 21-19 red window demanded. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
 **Date:** 2026-11-17 21:19 CET · **Session:** single-thread, master, tree carries one foreign change: uncommitted working-tree `D .buildflow.yml`.
 **Mission as given:** "see what is still relevant for us!" on the pasted `git diff` of the deleted `.buildflow.yml` — then this owner-mandated status update + self-review.
 

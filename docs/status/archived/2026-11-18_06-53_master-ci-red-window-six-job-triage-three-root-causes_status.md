@@ -1,5 +1,9 @@
 # Master CI red window — six jobs triaged, five root causes fixed, three landed
 
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-21_08-45_master-ci-heal-composite-bill-fast-slice-and-harvest_status.md`](../2026-11-21_08-45_master-ci-heal-composite-bill-fast-slice-and-harvest_status.md), which the 08-45 report receipts the same master-CI root-cause classes healed (corpus/tail ratchet re-trues, the cqrs-lint shadow-binary class retired, the lint-leg verdict) and adds gotcha 68 for the transient class the triage named. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
 **Date:** 2026-11-18 06:53 CET · **Session:** single-thread continuation of the 07-20 handoff, resumed under the owner's blanket GET-SHIT-DONE directive · **Module count:** 30 (`go.work`)
 
 **Mission as given:** execute the whole handoff todo list; the first item (`push-and-watch` on the `b8a0a00d` train) exploded into a six-job CI red window that the handoff believed green. This session: triage it, fix the root causes, verify.

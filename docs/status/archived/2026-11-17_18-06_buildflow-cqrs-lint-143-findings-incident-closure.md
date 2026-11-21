@@ -1,7 +1,7 @@
 # BuildFlow cqrs-lint 143-Findings Incident — Closure Status Report
 
 > **ANNOTATED 2026-11-21** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-21 (round-23 (2026-11-21)).**
-> The next session in the same arc is [`2026-11-17_22-25_buildflow-cqrslint-train-v4-22-0-to-v4-22-2-and-gate-escalation.md`](../2026-11-17_22-25_buildflow-cqrslint-train-v4-22-0-to-v4-22-2-and-gate-escalation.md), which incident closed per AGENTS; the train + gate escalation report is the successor.
+> The next session in the same arc is [`2026-11-17_22-25_buildflow-cqrslint-train-v4-22-0-to-v4-22-2-and-gate-escalation.md`](2026-11-17_22-25_buildflow-cqrslint-train-v4-22-0-to-v4-22-2-and-gate-escalation.md), which incident closed per AGENTS; the train + gate escalation report is the successor.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Session:** 2026-11-17 ~15:53–18:06 CET · single-session scope: the `buildflow -s cqrs-lint --format finding` run that showed 143 findings behind a green canonical gate, plus the timing-regression and preflight-warning tails of the same run.

@@ -1,5 +1,9 @@
 # g1/g2/g3 execution + go-cqrs-lite CI triage + verification battery (11-10 session)
 
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-18_23-40_ci-closeout-verdicts-gotcha67-hook-poison-war_status.md`](2026-11-18_23-40_ci-closeout-verdicts-gotcha67-hook-poison-war_status.md), which the closeout report carries the g1/g2/g3 execution verdicts (v4.22 train landed, CI triage fixes, the verification battery state) this execution report opened. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
 **Session:** 2026-11-18 ~05:35–11:10 CET · **Scope:** resume the 22-25 train-closure report's §g owner questions (g1/g2/g3) with the owner's blanket "execute the whole list" directive; triage the go-cqrs-lite master CI red window discovered at state verification; run the standard receipt battery. Three repos touched: go-cqrs-lite (2 fixes pushed), cqrs-htmx (gate + docs + baseline), BuildFlow (doctor fix committed, not pushed). Active sibling sessions observed throughout (overnight CI-triage + fleet-alignment reports, bump-dep sweeps landing mid-session as 53-file daemon blobs).
 
 ## a) Fully done

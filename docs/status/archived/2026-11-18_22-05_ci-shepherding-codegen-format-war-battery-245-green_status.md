@@ -1,6 +1,10 @@
 # Status — e2e forest completed + battery 245 green, CI shepherding, codegen-format toggle named, K2 + go-datastar#31 landed
 
-**Filed:** 2026-11-18 22:05 · **Session:** the continuation of the 14-26 report's session under the renewed GET-SHIT-DONE directive · **Canonical prior report:** [`2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md`](2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md) (its §b/§c are now annotated done-at; this report covers what happened SINCE it was filed) · **Scope line:** master is at `7800f5d8` (pushed), CI run `44397175316` IN PROGRESS on it, the local full e2e battery is 245/245 green on both engines, and the ONE remaining CI red-class (the adminui templ codegen-drift toggle) is root-caused to a format war between two canonical forms — the fix is pushed and the verdict is the in-flight run.
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-18_23-40_ci-closeout-verdicts-gotcha67-hook-poison-war_status.md`](2026-11-18_23-40_ci-closeout-verdicts-gotcha67-hook-poison-war_status.md), which the closeout report records the battery-245 verdicts and the codegen/format-war outcome the shepherding pass ran green. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
+**Filed:** 2026-11-18 22:05 · **Session:** the continuation of the 14-26 report's session under the renewed GET-SHIT-DONE directive · **Canonical prior report:** [`2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md`](../2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md) (its §b/§c are now annotated done-at; this report covers what happened SINCE it was filed) · **Scope line:** master is at `7800f5d8` (pushed), CI run `44397175316` IN PROGRESS on it, the local full e2e battery is 245/245 green on both engines, and the ONE remaining CI red-class (the adminui templ codegen-drift toggle) is root-caused to a format war between two canonical forms — the fix is pushed and the verdict is the in-flight run.
 
 ## a) Fully done (verified this stretch)
 

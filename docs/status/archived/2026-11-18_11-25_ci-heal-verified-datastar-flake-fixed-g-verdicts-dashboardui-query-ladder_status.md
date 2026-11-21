@@ -1,5 +1,9 @@
 # Session report — CI-heal verification, the datastar flake's true root cause, §g verdicts, and the dashboardui QUERY ladder
 
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-21_08-45_master-ci-heal-composite-bill-fast-slice-and-harvest_status.md`](../2026-11-21_08-45_master-ci-heal-composite-bill-fast-slice-and-harvest_status.md), which the 08-45 report closes the QUERY-ladder red class this heal report verified (debounce-twin race root-caused, test settles the debounce) and receipts the datastar/G-verdict landings via the fleet rows. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
 **Date:** 2026-11-18 11:25 CET · **Session:** execution of the owner's blanket GET-SHIT-DONE directive over the 06-53 report's next-steps list · **Tree:** 30-module workspace, master at `7e2991d3`, **16 commits ahead of origin, NOTHING pushed**
 
 **Mission as given:** execute the whole handoff todo list — push + CI watch, gotchas 41/62/63, PR #101, CHANGELOGs, §g verdicts, f.32/f.33, TODO harvest, CURRENT_FOCUS, K2/K4 waves, close-out. The session executed in that order until the tree itself became contested (three live sibling sessions) and one self-inflicted test regression stopped the dashboardui suite.

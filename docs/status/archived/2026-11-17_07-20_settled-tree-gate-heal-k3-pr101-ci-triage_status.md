@@ -1,7 +1,7 @@
 # Settled-tree gate heal, K3 send, CI triage, and the T04 production-bug catch
 
 > **ANNOTATED 2026-11-21** — ~~every open item in this report is resolved~~ **ARCHIVED 2026-11-21 (round-23 (2026-11-21)).**
-> The next session in the same arc is [`2026-11-18_06-53_master-ci-red-window-six-job-triage-three-root-causes_status.md`](../2026-11-18_06-53_master-ci-red-window-six-job-triage-three-root-causes_status.md), which heal settled and absorbed by the CI-triage lineage; K3 watch carried on TODO_LIST.
+> The next session in the same arc is [`2026-11-18_06-53_master-ci-red-window-six-job-triage-three-root-causes_status.md`](2026-11-18_06-53_master-ci-red-window-six-job-triage-three-root-causes_status.md), which heal settled and absorbed by the CI-triage lineage; K3 watch carried on TODO_LIST.
 > Nothing here is a live work item: it is kept as the session's evidence.
 
 **Date:** 2026-11-17 07:20 CET · **Session:** the 2026-11-15→17 continuation executing the owner's "GET SHIT DONE! The WHOLE TODO LIST!" directive on the handoff's 10-step list; one overnight interruption (the session cut at ~09:04 on 2026-11-16 mid-edit, resumed 2026-11-17 07:0x) · **One concurrent sibling session** (the GFL/T04/T07 lane, last authored commit `15ffaeb3` 11-15 14:49; my streamid/deriver fixes touched its committed files under the accepted-collision rule — verified no in-flight edits at edit time).

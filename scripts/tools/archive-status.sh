@@ -198,12 +198,23 @@ for i in "${!reports[@]}"; do
   reason="${reasons[$i]}"
   verdict="${verdicts[$i]}"
   # Both the blockquote and the manifest row live in docs/status/archived/, so a
-  # live successor is one level up; an archived successor is a sibling.
-  if [ -f "$STATUS_DIR/$successor" ]; then
-    successor_rel="../$(basename "$successor")"
-  else
-    successor_rel="$(basename "$successor")"
-  fi
+  # live successor is one level up; an archived successor is a sibling. The
+  # archived/ prefix wins over the -f probe: by the time a later spec line
+  # names it, an earlier line of the SAME pass has already moved it into
+  # docs/status/archived/, so the file exists at both depths and only the
+  # prefix tells the truth.
+  case "$successor" in
+    archived/*)
+      successor_rel="$(basename "$successor")"
+      ;;
+    *)
+      if [ -f "$STATUS_DIR/$successor" ]; then
+        successor_rel="../$(basename "$successor")"
+      else
+        successor_rel="$(basename "$successor")"
+      fi
+      ;;
+  esac
 
   if ! git -C "$ROOT" mv "docs/status/$report" "docs/status/archived/$report"; then
     echo "✗ archive-status: git mv failed for $report" >&2

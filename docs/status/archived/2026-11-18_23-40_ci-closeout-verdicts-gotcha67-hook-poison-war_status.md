@@ -1,5 +1,9 @@
 # Status report — CI close-out verdicts, gotcha 67, the hook-poison templ war (2026-11-18 23:40)
 
+> **ANNOTATED 2026-11-21** — ~~this report~~ **SUPERSEDED** by [`2026-11-21_08-45_master-ci-heal-composite-bill-fast-slice-and-harvest_status.md`](../2026-11-21_08-45_master-ci-heal-composite-bill-fast-slice-and-harvest_status.md), which the 08-45 report receipts the standing closeout state: the hook-layering fix (template of truth + installer --force), the tidy gate live in the pre-push hook, the e2e battery green legs, and the current master-CI posture. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-21 (round-48).**
+
 **Scope line — what this report VERIFIED:** CI run `44397985522` on `5321c847` (gh run view: all 21 jobs, success), CI run `44411702775` on `468641b1` (gh run watch --exit-status, rc 0), the push `5321c847..468641b1` (pre-push receipt: release-train strict + version-drift strict green), the canonical templ form (final `nix run .#gen` printed updates=0, tree clean), the local doc gates (corpus ratchet at 62,612, tail budget, todo hygiene 86 rows 0 violations, docs freshness PASS, docs-gates annotate CLEAN at 0 findings), and the templ-components release state (gh pr view 101: MERGED 2026-11-17; gh release list: v1.27.0 from 2026-11-04 predates the merge). **What it did NOT verify:** the erraudit strict TOTAL (advisory sweep deferred — 7 sibling crush sessions alive, load ~52 on 32 cores, gotcha 51), a local `check-modules` composite run (deferred same reason; CI's checks job carries both verdicts green on HEAD), the identity of whichever sibling session's hook re-poisoned the templ tree the second time (log evidence proves the mechanism, not the actor), the e2e battery (not rerun — nothing e2e-relevant changed this session), and PR #101's merge content at byte level (state checked, diff not re-read).
 
 ## a) FULLY DONE
