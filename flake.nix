@@ -3189,6 +3189,60 @@
                 );
               };
 
+            render-receipt =
+              # §f48 codified (2026-11-21): the hand-proven render recipe as
+              # one command — an HTML report renders to a fullPage receipt PNG
+              # through the Playwright-managed chromium (protocol-matched,
+              # nix lib forest via E2E_BROWSER_LIBS; a system chromium skews
+              # OLDER than the driver and fails every launch, gotcha 66).
+              # Exit 3 + the quantize recipe when the PNG exceeds the 1 MiB
+              # binary-guard limit (hit live 2026-11-21: a 1.6 MB render PNG
+              # reddened the checks job's binary guard).
+              {
+                type = "app";
+                meta.description = "Render an HTML report to a fullPage receipt PNG (Playwright-managed chromium + nix lib forest; binary-guard aware)";
+                program = pkgs.lib.getExe (
+                  pkgs.writeShellApplication {
+                    name = "render-receipt";
+                    runtimeInputs = [
+                      pkgs.nodejs
+                      pkgs.findutils
+                      pkgs.coreutils
+                    ];
+                    text = ''
+                      INPUT="''${1:?usage: nix run .#render-receipt -- <input.html> <output.png> [width]}"
+                      OUTPUT="''${2:?usage: nix run .#render-receipt -- <input.html> <output.png> [width]}"
+                      WIDTH="''${3:-1440}"
+
+                      # Absolute BEFORE the cd into e2e/ — the renderer resolves
+                      # its arguments against its own CWD.
+                      INPUT="$(realpath "$INPUT")"
+                      OUTPUT="$(realpath "$OUTPUT")"
+
+                      REPO_ROOT="''${BUILD_ROOT:-$(pwd)}"
+                      if [ ! -f "$REPO_ROOT/e2e/render-receipt.mjs" ]; then
+                        echo "FAIL: $REPO_ROOT/e2e/render-receipt.mjs not found (run from the repo root, or set BUILD_ROOT)" >&2
+                        exit 1
+                      fi
+
+                      CH_HOME="''${PLAYWRIGHT_BROWSERS_PATH:-/mnt/buildcache/playwright}"
+                      CHROME_BIN="$(find "$CH_HOME" "$HOME/.cache/ms-playwright" -maxdepth 4 -path '*/chromium-*/chrome-linux*/chrome' -type f 2>/dev/null | sort -V | tail -1 || true)"
+                      if [ -z "$CHROME_BIN" ]; then
+                        echo "FAIL: no Playwright-managed chromium found (looked in $CH_HOME and ~/.cache/ms-playwright)" >&2
+                        echo "      provision it with: (cd e2e && PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 PLAYWRIGHT_BROWSERS_PATH=$CH_HOME ./node_modules/.bin/playwright install chromium)" >&2
+                        exit 1
+                      fi
+                      echo "==> chromium: $CHROME_BIN"
+
+                      cd "$REPO_ROOT/e2e"
+                      E2E_BROWSER_PATH="$CHROME_BIN" \
+                        E2E_BROWSER_LIBS="${playwrightBrowserLibs}/lib" \
+                        node render-receipt.mjs "$INPUT" "$OUTPUT" "$WIDTH"
+                    '';
+                  }
+                );
+              };
+
             check-require-tags = {
               type = "app";
               meta.description = "Detect zero pseudo-versions + verify every internal require resolves to a PUBLISHED tag (strict locally, advisory under CI)";

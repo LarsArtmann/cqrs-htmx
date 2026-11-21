@@ -50,7 +50,7 @@ try {
 
   if (bytes > 1048576) {
     console.warn(`WARN: ${bytes} bytes exceeds the 1 MiB binary-guard limit — quantize before committing:`);
-    console.warn(`  python3 -c "from PIL import Image; im = Image.open(${JSON.stringify(output)}).convert('RGB').quantize(256, dither=Image.Dither.NONE); im.save(${JSON.stringify(output)})"`);
+    console.warn(`  nix shell nixpkgs#imagemagick -c magick ${JSON.stringify(output)} -colors 256 -dither None ${JSON.stringify(output)}`);
     process.exit(3);
   }
 } finally {

@@ -6,6 +6,13 @@ user-invocable: true
 
 # Using cqrs-htmx superbly
 
+> **Editing contract (for maintainers, not consumers):** section titles in
+> this file are citable surfaces — fleet reviews quote them verbatim
+> (audiblesync, go-taskqueue, dnsblockd, business-networking). Renaming or
+> moving an existing section is a breaking change to those citations; ADD
+> new sections, never retitle. A rename requires a dated erratum in every
+> repo that cites the old title (the FORMAT.md cross-repo errata rule).
+
 cqrs-htmx is a **Go library** (not an app) that wires [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) CQRS dispatch to `net/http` with first-class HTMX support, plus an event-sourced user-management submodule and a ready-made admin dashboard. Consumers import it; there is no "main app" to run except the examples.
 
 It is framework-agnostic: it works with `net/http`, Chi, Gin, etc. and never picks your router for you.
@@ -721,7 +728,7 @@ Same caching as `htmx.ScriptHandler` (ETag, `Cache-Control: 1yr immutable`, 304)
 
 ## Standalone module recipes (consumer-invented)
 
-These four patterns were invented by fleet consumers, verified, and recorded here so the next adopter starts from the proven shape. **This section is additive-only**: existing titles are cited verbatim in consumer reviews (audiblesync, go-taskqueue, dnsblockd) — new recipes append, existing ones never rename or move.
+These four patterns were invented by fleet consumers, verified, and recorded here so the next adopter starts from the proven shape. **This section is additive-only** (one instance of the file-wide editing contract above): existing titles are cited verbatim in consumer reviews (audiblesync, go-taskqueue, dnsblockd) — new recipes append, existing ones never rename or move.
 
 ### Recipe 1: oauth2 without usermgmt (credit: dnsblockd)
 
