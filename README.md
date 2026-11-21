@@ -348,6 +348,30 @@ Independent Go modules under one repo — import only what you use.
 
 Dependency direction is strict: identity-model is the pure domain source of truth; usermgmt re-exports it; the root module never imports usermgmt; UI modules sit on top; nothing depends on the UI/setup/bridge modules.
 
+### Dependency footprint
+
+Generated 2026-11-21 by `scripts/checks/dep-footprint.sh` — **never hand-edit these numbers**; regenerate and paste whenever any go.mod changes (a release-checklist step). `direct` = non-indirect requires in the module's go.mod; `closure` = the module graph build list (`GOWORK=off go list -m all` line count); `go` = the module's go directive. The script measures all 32 module directories in the repo (examples and test scaffolding included); this table shows the published modules.
+
+| Module             | direct | closure | go floor |
+| ------------------ | ------ | ------- | -------- |
+| root               | 19     | 78      | 1.27.3   |
+| identity-model     | 8      | 59      | 1.27.3   |
+| usermgmt           | 30     | 245     | 1.27.3   |
+| usermgmt/webauthn  | 2      | 24      | 1.27     |
+| usermgmt/totp      | 2      | 9       | 1.27     |
+| usermgmt/oauth2    | 4      | 6       | 1.27     |
+| adminui            | 12     | 230     | 1.27.3   |
+| dashboardui        | 25     | 231     | 1.27.3   |
+| loginpage          | 7      | 230     | 1.27.3   |
+| setup              | 24     | 272     | 1.27.3   |
+| datastar           | 7      | 64      | 1.27.3   |
+| huma               | 6      | 120     | 1.27.3   |
+| health             | 6      | 103     | 1.27.3   |
+| auditlog           | 4      | 86      | 1.27     |
+| systemadapter      | 22     | 247     | 1.27.3   |
+| legalparty-model   | 9      | 74      | 1.27.3   |
+| gfl-usermgmt       | 7      | 242     | 1.27.3   |
+
 ### Subpackages in the root module
 
 The root module is not one flat package. Four packages sit beside `cqrshtmx`, each

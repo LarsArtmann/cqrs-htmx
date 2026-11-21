@@ -41,6 +41,13 @@ revision`. bump-dep now pre-flights every module it is about to bump via
 - **Capture exit codes without pipes:** `cmd > /tmp/<repo>-sweep-$$-$(date +%s).log 2>&1; echo $?` — `PIPESTATUS` is broken in mvdan/sh, and a redirect through a nonexistent dir silently skips the command and the rc lies.
 - **No `set -e` in batch loops** — use explicit `rc=$?` checks after every module.
 - **Mirror CI flags before pushing:** `nix run .#check-release-train -- --refresh-cache --strict-lag 0` (CI enforces strict-lag; the local advisory mode exits 0 on train lag).
+- **Regenerate the README dependency-footprint table in the SAME train.** Any
+  go.mod change (bumps, new requires) invalidates the README "Dependency
+  footprint" table — the numbers are generated, never hand-maintained:
+  `bash scripts/checks/dep-footprint.sh`, paste the published-module rows into
+  the README table, and update the table's "generated" date in the same commit
+  as the sweep. A stale table is a wrong consumer signal (the fleet-audit F4
+  class).
 - **`go work sync` policy:** NEVER run repo-wide `go work sync` during a sweep — it rewrites every member's go.mod from workspace state and can re-introduce versions you just removed, or bump unrelated requires (the "toolchain tug-of-war" class). The sweep script edits go.mod files directly; the workspace resolves via go.work `use` directives anyway. `go work sync` is only acceptable in a dedicated, tree-clean, single-purpose change where the diff is reviewed module by module.
 
 ## Failure classes seen in the wild
