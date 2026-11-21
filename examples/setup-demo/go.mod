@@ -45,7 +45,7 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.18.0 // indirect
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.0 // indirect
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.18.0 // indirect
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.0 // indirect
 	github.com/larsartmann/go-appkit v0.12.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
