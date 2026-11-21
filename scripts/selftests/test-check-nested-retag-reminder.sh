@@ -19,7 +19,7 @@ report() {
 
 tree=$(mktemp -d)
 trap 'rm -rf "$tree"' EXIT
-cd "$tree"
+cd "$tree" || exit 1
 git init -q .
 git config user.email t@t.dev
 git config user.name t
@@ -90,11 +90,11 @@ report $ok "F3 all tags at/after the fix date exits 0 (got rc=$rc)"
 
 # F4 usage errors -> exit 2.
 (cd "$tree" && REPO_ROOT_OVERRIDE="$tree" bash "$GATE" only-one-arg >/dev/null 2>&1)
-[ $? -eq 2 ]
-report $? "F4 missing arg exits 2"
+rc=$?
+if [ "$rc" -eq 2 ]; then report 0 "F4 missing arg exits 2"; else report 1 "F4 missing arg exits 2 (got $rc)"; fi
 (cd "$tree" && REPO_ROOT_OVERRIDE="$tree" bash "$GATE" github.com/x/y not-a-date >/dev/null 2>&1)
-[ $? -eq 2 ]
-report $? "F4 bad date exits 2"
+rc=$?
+if [ "$rc" -eq 2 ]; then report 0 "F4 bad date exits 2"; else report 1 "F4 bad date exits 2 (got $rc)"; fi
 
 echo "== $pass passed, $fail failed"
 [ "$fail" -eq 0 ]
