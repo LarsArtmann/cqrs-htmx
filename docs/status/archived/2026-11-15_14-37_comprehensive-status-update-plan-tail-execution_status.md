@@ -1,6 +1,6 @@
 # Comprehensive status update — plan-tail execution session (the brutal self-review)
 
-> **ANNOTATED 2026-11-17** — ~~this report~~ **SUPERSEDED** by [`2026-11-17_07-20_settled-tree-gate-heal-k3-pr101-ci-triage_status.md`](../2026-11-17_07-20_settled-tree-gate-heal-k3-pr101-ci-triage_status.md), which Plan-tail execution superseded by the 2026-11-17 continuation close-out (successor lineage named in both headers); tail-budget compensation for the 21-19 report. Strike depth:
+> **ANNOTATED 2026-11-17** — ~~this report~~ **SUPERSEDED** by [`2026-11-17_07-20_settled-tree-gate-heal-k3-pr101-ci-triage_status.md`](2026-11-17_07-20_settled-tree-gate-heal-k3-pr101-ci-triage_status.md), which Plan-tail execution superseded by the 2026-11-17 continuation close-out (successor lineage named in both headers); tail-budget compensation for the 21-19 report. Strike depth:
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-17 (round-23 (2026-11-17)).**
 
