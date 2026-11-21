@@ -128,6 +128,18 @@ type Config struct {
 	// makes the pair one click apart. Empty (the default) hides the entry.
 	// For anything more than one link, prefer [Config.ExtraNav].
 	DashboardURL string
+
+	// CSPBuilder builds the Content-Security-Policy that [Handler.Middleware]
+	// serves, replacing the recommended default (self + per-request nonce,
+	// img-src data:). The canonical use is CSP's narrow hash carve-out for a
+	// documented inline style attribute a dependency renders (e.g. the
+	// templ-components auto-fit grid's `--tc-grid-min` width): grant
+	// 'unsafe-hashes' plus that exact sha256, never 'unsafe-inline'. When nil
+	// (the default), the panel serves the same policy as
+	// [cqrshtmx.RecommendedSecurityMiddleware]. Only [Handler.Middleware] is
+	// affected — consumers wrapping the panel in their own security layer are
+	// unchanged.
+	CSPBuilder cqrshtmx.CSPBuilder
 }
 
 // NavEntry is one consumer-owned sidebar navigation entry, appended after

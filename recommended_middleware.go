@@ -7,6 +7,13 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
+// CSPBuilder turns a generated per-request nonce into a full
+// Content-Security-Policy header value. It matches the field shape
+// httputil.NonceConfig.CSPBuilder uses, so a builder written for the
+// recommended stack drops straight into a hand-rolled Nonce config too —
+// one vocabulary for every CSP customization in the family.
+type CSPBuilder func(nonce string) string
+
 // RecommendedPermissionsPolicy is a Permissions-Policy header value that
 // disables browser features commonly unnecessary in server-rendered web apps
 // (geolocation, microphone, camera, payment, USB). Use it as a starting point
@@ -41,8 +48,20 @@ const RecommendedPermissionsPolicy = "geolocation=(), microphone=(), camera=(), 
 //
 // To extend the chain with the stack's guardrails (duplicate-name detection,
 // recovery-first validation), start from [RecommendedSecurityStack] instead.
+// To change the Content-Security-Policy itself (a hash carve-out for a
+// library's documented inline style, a stricter directive set), use
+// [RecommendedSecurityMiddlewareWithCSP].
 func RecommendedSecurityMiddleware() func(http.Handler) http.Handler {
-	stack, err := RecommendedSecurityStack()
+	return RecommendedSecurityMiddlewareWithCSP(nil)
+}
+
+// RecommendedSecurityMiddlewareWithCSP is [RecommendedSecurityMiddleware] with
+// the Content-Security-Policy built by csp instead of the default. A nil csp
+// is exactly [RecommendedSecurityMiddleware]. The builder receives the
+// generated per-request nonce and returns the full header value; see
+// [recommendedCSP] for the default's shape (self + nonce, img-src data:).
+func RecommendedSecurityMiddlewareWithCSP(csp CSPBuilder) func(http.Handler) http.Handler {
+	stack, err := RecommendedSecurityStackWithCSP(csp)
 	if err != nil {
 		// Unreachable by construction: the stack below adds three distinct
 		// well-known names with recovery first, so Add cannot collide and
@@ -85,6 +104,27 @@ func RecommendedSecurityMiddleware() func(http.Handler) http.Handler {
 // The stack is safe to extend while an earlier Build is serving; see
 // httputil.MiddlewareStack.
 func RecommendedSecurityStack() (*httputil.MiddlewareStack, error) {
+	return RecommendedSecurityStackWithCSP(nil)
+}
+
+// RecommendedSecurityStackWithCSP is [RecommendedSecurityStack] with the
+// Content-Security-Policy built by csp instead of the default. A nil csp is
+// exactly [RecommendedSecurityStack]. Everything else is unchanged: the same
+// three entries (recovery, security headers, per-request CSP nonce), the same
+// duplicate-name and recovery-first guardrails, the same extension pattern —
+// only the CSP header value differs. The canonical consumer is a panel
+// mount whose rendered markup needs CSP's narrow hash carve-out for a
+// documented inline style attribute (see the adminui Config.CSPBuilder
+// knob, which feeds this function):
+//
+//	stack, err := cqrshtmx.RecommendedSecurityStackWithCSP(func(nonce string) string {
+//		return "default-src 'self'; script-src 'self' 'nonce-" + nonce + "'; " +
+//			"style-src 'self' 'nonce-" + nonce + "' 'unsafe-hashes' 'sha256-...'; ..."
+//	})
+func RecommendedSecurityStackWithCSP(csp CSPBuilder) (*httputil.MiddlewareStack, error) {
+	if csp == nil {
+		csp = recommendedCSP
+	}
 	securityCfg := httputil.DefaultSecurityHeadersConfig()
 	securityCfg.PermissionsPolicy = RecommendedPermissionsPolicy
 
@@ -94,7 +134,7 @@ func RecommendedSecurityStack() (*httputil.MiddlewareStack, error) {
 	}{
 		{httputil.MiddlewareRecovery, RecoveryMiddleware},
 		{httputil.MiddlewareSecurityHeaders, httputil.SecurityHeaders(securityCfg)},
-		{httputil.MiddlewareNonce, httputil.Nonce(httputil.NonceConfig{Size: 0, CSPBuilder: recommendedCSP})},
+		{httputil.MiddlewareNonce, httputil.Nonce(httputil.NonceConfig{Size: 0, CSPBuilder: csp})},
 	}
 
 	stack := httputil.NewMiddlewareStack()

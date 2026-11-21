@@ -242,7 +242,9 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 // Permissions-Policy), per-request CSP nonce, and panic recovery.
 //
 // It delegates to [cqrshtmx.RecommendedSecurityMiddleware] so that the panel
-// has the same security posture as dashboardui.
+// has the same security posture as dashboardui. When [Config.CSPBuilder] is
+// set, the CSP header is built by that builder instead — the same chain,
+// only the policy differs.
 //
 // Wrap it around the panel — and compose your session and CSRF middleware:
 //
@@ -252,5 +254,5 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 // This is optional: the panel works without it, but recovery + security
 // headers are recommended for any production deployment.
 func (h *Handler) Middleware() func(http.Handler) http.Handler {
-	return cqrshtmx.RecommendedSecurityMiddleware()
+	return cqrshtmx.RecommendedSecurityMiddlewareWithCSP(h.config.CSPBuilder)
 }

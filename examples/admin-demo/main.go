@@ -55,13 +55,12 @@ const (
 // tcAutoFitGridStyle is the exact inline style attribute the templ-components
 // auto-fit grid carries for MinColWidth "190px" (the users/tenants list
 // grids; the library documents the inline style as a deliberate exemption).
-// Under a nonce CSP the attribute is blocked, so this demo's security layer
+// Under a nonce CSP the attribute is blocked, so the panel's security layer
 // grants CSP's sanctioned narrow carve-out: 'unsafe-hashes' + its exact
 // sha256, computed at runtime from the constant — an upstream width change
 // fails loudly in the console guard instead of silently carrying a stale
 // allowance. (docs/guides/production-readiness.md § 10; never widen to
-// 'unsafe-inline'. A Config.CSPBuilder knob on the panel itself is the
-// train-gated durable fix — TODO_LIST, harvested §f9.)
+// 'unsafe-inline'.)
 const tcAutoFitGridStyle = "--tc-grid-min:190px;"
 
 func gridCarveOutCSP() func(nonce string) string {
@@ -72,33 +71,6 @@ func gridCarveOutCSP() func(nonce string) string {
 			"style-src 'self' 'nonce-" + nonce + "' 'unsafe-hashes' 'sha256-" + styleHash + "'; " +
 			"img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
 	}
-}
-
-// adminSecurity is the panel's security layer rebuilt with gridCarveOutCSP:
-// the same three entries as cqrshtmx.RecommendedSecurityStack (recovery,
-// security headers, per-request CSP nonce), differing only in the CSP
-// builder — the documented consumer pattern (setup-demo's demoSecurity twin).
-func adminSecurity() func(http.Handler) http.Handler {
-	securityCfg := httputil.DefaultSecurityHeadersConfig()
-	securityCfg.PermissionsPolicy = cqrshtmx.RecommendedPermissionsPolicy
-
-	stack := httputil.NewMiddlewareStack()
-	for _, entry := range []struct {
-		name       string
-		middleware func(http.Handler) http.Handler
-	}{
-		{httputil.MiddlewareRecovery, cqrshtmx.RecoveryMiddleware},
-		{httputil.MiddlewareSecurityHeaders, httputil.SecurityHeaders(securityCfg)},
-		{httputil.MiddlewareNonce, httputil.Nonce(httputil.NonceConfig{Size: 0, CSPBuilder: gridCarveOutCSP()})},
-	} {
-		if err := stack.Add(entry.name, entry.middleware); err != nil {
-			panic(err) // impossible by construction: distinct well-known names, recovery first
-		}
-	}
-	if err := stack.Validate(); err != nil {
-		panic(err) // impossible by construction: recovery-first ordering holds
-	}
-	return stack.Middleware()
 }
 
 // 18930 avoids clashing with unrelated services on well-known dev ports
@@ -164,6 +136,10 @@ func main() {
 		AccentColor: "#0ea5e9",
 		LogoutURL:   "/dev-logout",
 		SSEURL:      "/admin/-/events",
+		// The panel's own Middleware() serves the auto-fit-grid carve-out
+		// (recovery + security headers + nonce, custom CSP builder) — no
+		// hand-rebuilt stack needed.
+		CSPBuilder: gridCarveOutCSP(),
 		// Consumer-owned nav entries: hrefs render verbatim (no BasePath
 		// prefix), so sibling surfaces stay reachable from the sidebar.
 		ExtraNav: []adminui.NavEntry{
@@ -179,26 +155,25 @@ func main() {
 	// lens (members + tenant dashboard). Alice holds the owner role in acme,
 	// so the default role-based authorizer admits her without custom wiring.
 	tenantPanel, err := adminui.New(adminui.Config{ //nolint:exhaustruct // demo uses sensible defaults
-		Service:   svc,
-		Title:     "Acme Admin",
-		BasePath:  "/tenant-admin",
-		Mode:      adminui.ModeTenantAdmin,
-		TenantID:  identitymodel.NewTenantID("acme"),
-		LogoutURL: "/dev-logout",
+		Service:    svc,
+		Title:      "Acme Admin",
+		BasePath:   "/tenant-admin",
+		Mode:       adminui.ModeTenantAdmin,
+		TenantID:   identitymodel.NewTenantID("acme"),
+		LogoutURL:  "/dev-logout",
+		CSPBuilder: gridCarveOutCSP(),
 	})
 	if err != nil {
 		log.Fatalf("adminui.New (tenant): %v", err)
 	}
 
-	// 4. Wire routes. The panel sits behind session middleware + CSRF + the
-	//    demo's security layer (adminSecurity — the recommended stack rebuilt
-	//    with the auto-fit-grid CSP carve-out, the setup-demo pattern; see the
-	//    tcAutoFitGridStyle comment and production-readiness § 10). The
-	//    tenant-admin mount gains the same layer it previously lacked.
+	// 4. Wire routes. Each panel carries its own security layer via
+	//    panel.Middleware() (recovery + security headers + the CSP carve-out
+	//    from Config.CSPBuilder), behind session + CSRF middleware. The
+	//    tenant-admin mount gets the same treatment.
 	mux := http.NewServeMux()
 	sessionMW := usermgmt.NewSessionMiddleware(svc, cookieName)
 	csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{})
-	securityMW := adminSecurity()
 
 	// ACK + idempotency middleware: rejects duplicate commands (409) before
 	// they reach the panel, then broadcasts the command ACK over SSE after each
@@ -206,8 +181,8 @@ func main() {
 	// and prevents double-execution on retry.
 	ackMW := ackMiddleware(broadcaster, idemStore)
 
-	mux.Handle("/admin/", securityMW(ackMW(sessionMW(csrfMW(http.StripPrefix("/admin", panel.Handler()))))))
-	mux.Handle("/tenant-admin/", securityMW(sessionMW(csrfMW(http.StripPrefix("/tenant-admin", tenantPanel.Handler())))))
+	mux.Handle("/admin/", panel.Middleware()(ackMW(sessionMW(csrfMW(http.StripPrefix("/admin", panel.Handler()))))))
+	mux.Handle("/tenant-admin/", tenantPanel.Middleware()(sessionMW(csrfMW(http.StripPrefix("/tenant-admin", tenantPanel.Handler())))))
 
 	// The JSON directory search (QUERY ladder, both rungs) + its served spec.
 	// requireSession is the GATE — NewSessionMiddleware only enriches the
