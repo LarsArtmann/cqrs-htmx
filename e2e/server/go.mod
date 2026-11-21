@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/e2e/server
 go 1.27.3
 
 require (
-	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.15.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.0
