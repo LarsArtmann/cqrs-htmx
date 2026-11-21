@@ -44,7 +44,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0 // indirect
-	github.com/larsartmann/cqrs-htmx/v4 v4.18.1 // indirect
+	github.com/larsartmann/cqrs-htmx/v4 v4.19.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.15.0 // indirect

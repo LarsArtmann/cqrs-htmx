@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/setup/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.18.1
+	github.com/larsartmann/cqrs-htmx/v4 v4.19.0
 	github.com/larsartmann/go-sse v0.7.0
 	github.com/larsartmann/httputil v1.9.0
 )

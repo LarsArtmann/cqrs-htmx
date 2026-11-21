@@ -164,8 +164,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1 h1:50h3ypO0I346KBzghWN
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1/go.mod h1:84IPSUojaxGSlhIkJhzTM3Jt1XmRCutvZznlop/uocY=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0 h1:iQs47Vx2rRi3elhC0RFf1S+yUe5hcJcyfnZ8ikJlgHI=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0/go.mod h1:HHVEsEEqQGV7MWW+IZAILriol5mN9IPzvEPHOP7SJ0Q=
-github.com/larsartmann/cqrs-htmx/v4 v4.18.1 h1:1HsNJjKhfvGYF9KeBgNgsGoNbrYY5IiPn76TeMpqdW0=
-github.com/larsartmann/cqrs-htmx/v4 v4.18.1/go.mod h1:Q57Br9qw8iT7rjN3mT4cNxDp4r96ZOyg4nLMHU8OZKY=
+github.com/larsartmann/cqrs-htmx/v4 v4.19.0 h1:sOkuB6/wwaZGCv2PJkZ/n40z94qFf5nFruJXceShWXU=
+github.com/larsartmann/cqrs-htmx/v4 v4.19.0/go.mod h1:dTUnbl89xEk9OY7Qmx6wWZt+ejMRH5g4j1QGQV4cxK8=
 github.com/larsartmann/go-atomic-write v0.6.2 h1:lUHfOGTd+27+8pZxz+htSkbKSFVwwrQGS0tPoZ36B9U=
 github.com/larsartmann/go-atomic-write v0.6.2/go.mod h1:rIkglf/MmsaEMMWykVE6wFwvDHtfcYm5t2qb4m9C+VU=
 github.com/larsartmann/go-branded-id v0.8.0 h1:ih8Va3I2PNEU/+OES8GWU+P0BLhcKqeculL1jJaBqwY=
