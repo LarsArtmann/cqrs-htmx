@@ -18,7 +18,7 @@
 12. **CURRENT_FOCUS trued; owner questions recorded, not re-asked.** The stale carryover line rewritten (erraudit done 364 ×3, composite resolved, archive still owed at tail 20); the 03-09 report's §g.2 (gate retry-tolerance) and §g.3 (the migration D1/D2 contradiction) added to Waiting-on-owner per the no-re-ask directive; §g.1 answered by action (the agents-notes receipts section).
 13. **The 20-47 report's §g.2 and §f5 annotated done** (`cc7f3bfd` — the true-1118 landing; §a3 already carried the full inline resolution; both open forms struck with the gotcha-10/67(e) pointers).
 14. **The go-appkit treadmill wave swept and pushed.** Strict train gate red on push (4 requires at v0.12.0, v0.13.0 published — gotcha 39's tail-grows-while-you-sweep): `bump-dep 'larsartmann/go-appkit$' v0.13.0 --commit --lint` — all four consumers' tidy+verify+build+vet+lint legs green; the sweep commit died in the hook (load starvation) and rode daemon captures (`769ad2cb` + `d5adf8ef` — the second also carrying a sibling's go.work 1.27.4 floor bump, theirs not mine); `--refresh-cache --strict-lag 0` → **0/0/1063**; pushed green.
-15. **The docs-gates battery's annotate leg driven to CLEAN.** Two rule-F findings (my 03-09 report's "`git restore`ed", the sibling 01-49 report's quoted plural form) reworded; `docs-annotate: 222 file(s), 1514 struck item(s), 0 finding(s)`; re-true + push `d7e9d744`.
+15. **The docs-gates battery's annotate leg driven to CLEAN.** Two rule-F findings (the glued-suffix form of `git restore` in my 03-09 report, the sibling 01-49 report's quoted plural form) reworded; `docs-annotate: 222 file(s), 1514 struck item(s), 0 finding(s)`; re-true + push `d7e9d744`.
 
 ## b) PARTIALLY DONE
 
