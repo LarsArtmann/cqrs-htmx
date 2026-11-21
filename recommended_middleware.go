@@ -125,6 +125,7 @@ func RecommendedSecurityStackWithCSP(csp CSPBuilder) (*httputil.MiddlewareStack,
 	if csp == nil {
 		csp = recommendedCSP
 	}
+
 	securityCfg := httputil.DefaultSecurityHeadersConfig()
 	securityCfg.PermissionsPolicy = RecommendedPermissionsPolicy
 

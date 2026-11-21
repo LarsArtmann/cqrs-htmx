@@ -169,6 +169,7 @@ func TestRecommendedSecurityStack_RejectsDuplicateNames(t *testing.T) {
 // default chain.
 func TestRecommendedSecurityStackWithCSP_CustomBuilderAndNilDefault(t *testing.T) {
 	const hashAllowance = "'unsafe-hashes' 'sha256-abc='"
+
 	builder := cqrshtmx.CSPBuilder(func(nonce string) string {
 		return "default-src 'self'; script-src 'self' 'nonce-" + nonce +
 			"'; style-src 'self' 'nonce-" + nonce + "' " + hashAllowance
