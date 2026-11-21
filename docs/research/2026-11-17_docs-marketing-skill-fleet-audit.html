@@ -1545,7 +1545,17 @@ rg -l "not for you" ~/projects/*/docs/review/libs/cqrs-htmx.md | wc -l   # 5+</c
             <code>usermgmt/oauth2/v4.13.1</code> (the patch-tag cut the audit
             demanded &mdash; P01); F3's constants resolve at
             <code>v4.18.1:htmx/htmx.go:27-28</code> and audiblesync's
-            &ldquo;no constants&rdquo; row carries its dated erratum; F5 still
+            &ldquo;no constants&rdquo; row carries its dated erratum; the
+            false-negative mechanism was confirmed 2026-11-21 (replay
+            addendum): the constants ship ONLY in the <code>htmx</code>
+            subpackage &mdash; the root façade aliases just three
+            <code>Header*</code> symbols and has never carried
+            <code>HeaderRetarget</code>/<code>HeaderReswap</code> (grep at
+            v4.17.0/v4.18.1/master: zero everywhere) &mdash; so a root-surface
+            lookup saw a true absence; no <code>go doc</code> cache or
+            ordering was involved. The skill's direct-import note (recipe 3
+            era) is the fix, and ADR-0062 makes it the standing answer;
+            F5 still
             reads <code>0</code> (dashboardui's usermgmt-free closure stands);
             the skill standalone/FinishLoginWithToken grep now hits (recipe 1
             shipped); the fit-test line is unchanged and 7 consumer reviews

@@ -42,6 +42,55 @@
           # natively, so the 2026-10/11 overrideAttrs patch-forward block
           # (1.27.1 -> 1.27.2 -> 1.27.3 while nixpkgs trailed) is retired.
           goPkg = pkgs.go_1_27;
+          playwrightBrowserLibs = pkgs.runCommand "playwright-browser-libs" { } ''
+            mkdir -p $out/lib
+            for p in ${
+              toString (
+                with pkgs;
+                [
+                  gtk3
+                  cups.lib
+                  expat
+                  libgbm
+                  udev
+                  alsa-lib
+                  dbus.lib
+                  dbus-glib
+                  atk
+                  at-spi2-atk
+                  cairo
+                  pango.out
+                  gdk-pixbuf
+                  glib.out
+                  freetype
+                  fontconfig.lib
+                  libxkbcommon
+                  libdrm
+                  mesa
+                  libX11
+                  libXcomposite
+                  libXdamage
+                  libXext
+                  libXfixes
+                  libXrandr
+                  libXt
+                  libxcb
+                  libXi
+                  nss
+                  nspr
+                  libXcursor
+                  libXrender
+                  stdenv.cc.cc.lib
+                ]
+              )
+            }; do
+              if [ -d "$p/lib" ]; then
+                for f in "$p"/lib/*.so*; do
+                  ln -sfn "$f" $out/lib/ 2>/dev/null || true
+                done
+              fi
+            done
+          '';
 
           goEnv = ''
             export GOWORK=off
@@ -3029,57 +3078,6 @@
               # forest: chromium additionally needs nss/nspr (hit live
               # 2026-11-08: chromium died on libnspr4.so without them);
               # firefox tolerates the extra entries.
-              let
-                playwrightBrowserLibs = pkgs.runCommand "playwright-browser-libs" { } ''
-                  mkdir -p $out/lib
-                  for p in ${
-                    toString (
-                      with pkgs;
-                      [
-                        gtk3
-                        cups.lib
-                        expat
-                        libgbm
-                        udev
-                        alsa-lib
-                        dbus.lib
-                        dbus-glib
-                        atk
-                        at-spi2-atk
-                        cairo
-                        pango.out
-                        gdk-pixbuf
-                        glib.out
-                        freetype
-                        fontconfig.lib
-                        libxkbcommon
-                        libdrm
-                        mesa
-                        libX11
-                        libXcomposite
-                        libXdamage
-                        libXext
-                        libXfixes
-                        libXrandr
-                        libXt
-                        libxcb
-                        libXi
-                        nss
-                        nspr
-                        libXcursor
-                        libXrender
-                        stdenv.cc.cc.lib
-                      ]
-                    )
-                  }; do
-                    if [ -d "$p/lib" ]; then
-                      for f in "$p"/lib/*.so*; do
-                        ln -sfn "$f" $out/lib/ 2>/dev/null || true
-                      done
-                    fi
-                  done
-                '';
-              in
               {
                 type = "app";
                 meta.description = "Run the Playwright battery on BOTH engines: the cached Playwright chromium + firefox builds (with the nixpkgs lib forest)";
