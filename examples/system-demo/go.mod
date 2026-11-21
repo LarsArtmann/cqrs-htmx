@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0
-	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.9.1
@@ -48,6 +48,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0 // indirect

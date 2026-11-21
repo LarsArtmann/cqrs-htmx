@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.0
 	github.com/larsartmann/cqrs-htmx/setup/v4 v4.18.0
-	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.0
@@ -100,6 +100,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
