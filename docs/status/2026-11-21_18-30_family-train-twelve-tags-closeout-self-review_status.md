@@ -51,12 +51,12 @@
 
 1. **[owner] The fleet-floor train** — the moment nixpkgs ships go ≥ 1.27.4 (row 21's recipe; check with `nix eval nixpkgs#go.version` on a fresh rev first).
 2. **[owner] go-taskqueue erratum push timing** (close-out Q1) — unchanged.
-3. Confirm the `bdca5fbc` CI verdict: green except module-architecture's receipted red.
+3. Confirm the `bdca5fbc` CI verdict: green except module-architecture's receipted red. <!-- resolved 2026-11-21 19:3x: done superseded — bdca5fbc's run was cancelled by the newer push; the terminal verdict landed on the successor commits: run 44934008164 = 18 green, module-architecture the only failure (the receipted appkit hold); the root-size red healed same-hour by the baseline bump -->
 4. **[owner] The release-dance helper** (14-12 §f43) — now with extra evidence: releases have been dark since 09-30 while 30+ tags shipped.
 5. Batch the missing GH releases for the Oct/Nov trains (oauth2 v4.13.1 is the pattern).
 6. Re-run the full check-modules composite for the one-green receipt — now possible except the strict train step (the hold).
 7. coverage-gate receipt on the post-train tree.
-8. [watch] metaengine B18: aligned today (treadmill worst-lag 1 = appkit only) — the ROADMAP bridge row and the §f12 spike wait on nothing anymore except demand.
+8. [watch] metaengine B18: aligned today (treadmill worst-lag 1 = appkit only) — the ROADMAP bridge row and the §f12 spike wait on nothing anymore except demand. <!-- fresh:skip -->
 9. [watch] templ-components PR#101 release → sweep + retire adminui's vendored popover CSS same-change.
 10. [watch] go-cqrs-lite#113 kv constructor → bump + delete usermgmt's view-cache adapter.
 11. [owner] M2M D1–D4 / adminui D1–D3 per-row (unchanged).

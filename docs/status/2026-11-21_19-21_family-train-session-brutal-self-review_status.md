@@ -46,7 +46,7 @@
 4. **I created the root v4.19.0 tag without `--dry-run`** (verify-tag's rehearsal mode) — it created a real tag I then had to delete. Rehearse-then-cut was the documented pattern; I skipped the rehearsal on the most important tag of the day.
 5. **The corpus baseline raced its own commit twice** (daemon swept the bump mid-hook; ref-lock failures). Recoverable, but the ordering is now obvious: land the one-line baseline bump FIRST, alone, before any hook-heavy work.
 6. **~10 minutes lost to a ghost.** bump-dep's "another sweep appears LIVE (pid N)" warnings during my sequential loop were my own loop's stamps — I attributed them to a sibling and waited two idle cycles. One `ps -p N` would have settled it immediately.
-7. **The render-receipt recipe shipped half-proven:** the quantize recipe pointed at PIL, which the ambient python3 does not have (the 14-12 sibling's environment had it) — caught in my own self-test, fixed with the verified ImageMagick one-liner. And the first live render failed on relative paths (the wrapper `cd`s into e2e/ before args resolve). Both fixed and re-proven, but "prove the recipe, then codify it" is the order I skipped.
+7. **The render-receipt recipe shipped half-proven:** the quantize recipe pointed at PIL, which the ambient python3 does not have (the 14-12 sibling's environment had it) — caught in my own self-test, fixed with the verified ImageMagick one-liner. And the first live render failed on relative paths (the wrapper changes directory into e2e/ before args resolve). Both fixed and re-proven, but "prove the recipe, then codify it" is the order I skipped.
 8. **Shellcheck missed on my own new script.** I ran the self-test but not `check-shellcheck.sh` on `test-check-nested-retag-reminder.sh` before pushing — CI's checks job caught SC2164/SC2319. The gate exists LOCALLY; the CI-parity legs exist precisely so CI is never the first to see my findings. Same class: the root-size ratchet (+41 LOC from the knob) surfaced in CI, not locally — I added root API and never ran the one gate whose number my change moves.
 
 ## e) WHAT WE SHOULD IMPROVE
@@ -66,7 +66,7 @@
 2. **[owner] The dated-hold mechanism** (`release-train-holds.tsv`) — first-class deliberate holds; un-blocks push-and-watch + wave-tag under any future hold.
 3. **[owner] go-taskqueue erratum `0d0a647d` push timing** (carried since the pareto close-out).
 4. **[owner] Release cadence** — restore per-train GH releases (backfill the Oct/Nov trains, then one release per train going forward), or ratify tags-only/pkg.go.dev as the surface and retire the release step from the helper design.
-5. Confirm the tip CI run (`258d9b3b`+) holds the 18-green/1-named-red posture after the baseline bump.
+5. Confirm the tip CI run (`258d9b3b`+) holds the 18-green/1-named-red posture after the baseline bump. <!-- resolved 2026-11-21 19:3x: done — run 44934008164 concluded 18 green / module-architecture the only failure (the receipted appkit hold) -->
 6. **The one-green check-modules composite receipt** — re-run post-train; every leg should pass except the strict train step (the hold).
 7. **coverage-gate receipt on the post-train tree** (the knob's root/adminui code is unmeasured).
 8. **§f34**: verify the oauth2 consumer-sweep recipe in a throwaway consumer module.
@@ -75,7 +75,7 @@
 11. **[watch] templ-components PR#101 release** → sweep + retire adminui's vendored popover CSS same-change.
 12. **[watch] go-cqrs-lite#113 kv constructor** → bump + delete usermgmt's view-cache adapter.
 13. **[watch] storage v4.12.0 StateShape tag** → flip the sentinel test.
-14. **[watch] metaengine B18** — aligned today; the ROADMAP bridge row + the §f12 spike wait only on demand.
+14. **[watch] metaengine B18** — aligned today; the ROADMAP bridge row + the §f12 spike wait only on demand. <!-- fresh:skip -->
 15. **[owner] M2M D1–D4** per-row surfacing (packets pre-staged).
 16. **[owner] adminui D1–D3** per-row surfacing.
 17. **The legalparty lane M03 / family train** (lane-owned; go-legalparty extraction landed this window).
