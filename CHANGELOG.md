@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Housekeeping
+
+- **The 2026-11-21 family train landed end to end: twelve tags, 1070 requires swept, the hermetic window closed (2026-11-21 evening).** Tags cut and pushed in dependency order — identity-model/v4.18.0, root v4.19.0, datastar/v4.13.0, auditlog/v4.13.0, health/v4.15.0, huma/v4.1.0, usermgmt/v4.21.0, adminui/v4.18.0, dashboardui/v4.18.0, loginpage/v4.19.0, setup/v4.18.0, systemadapter/v4.14.0 — every one through verify-tag's guards and remote-verified (peeled audit 240/240); the whole `--no-verify` push set carries the same named justification (the 4-entry appkit hold, fleet-floor row). Consumer sweeps landed all 11 module families (85 internal lags → the receipted 4), both sibling-local replaces the train unblocked are stripped (gfl-usermgmt → systemadapter v4.14.0's deriver; integration_test → dashboardui v4.18.0's FromSystem/systembridge — both symbol-verified at the tags first), and the CHANGELOG receipt rule replayed at tag level (FlashErrorHandler, CSPBuilder, Retryable, NewFromJSON, the event-catalog artifact, and the tenant-deletion deriver all resolve at their tags). Proxy-verified: root v4.19.0 and the nested tags resolve on proxy.golang.org. Post-train hermetic battery: route-postures, adminui + admin-demo lint, integration_test tests, and the module-isolation examples leg all green — the pre-tag lockstep reds (5 CI jobs) healed.
+
 ## [v4.19.0] - 2026-11-21
 
 ### Housekeeping
