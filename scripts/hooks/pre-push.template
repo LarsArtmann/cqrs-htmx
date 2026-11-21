@@ -50,4 +50,18 @@ elif [ "$drift_rc" -ne 0 ]; then
   exit "$drift_rc"
 fi
 
-echo "pre-push: CI-parity gates green (release-train strict + version-drift --strict)."
+# go.mod/go.sum drift detector (2026-11-21): hermetic `go mod tidy -diff` per
+# go.work member. The seven-job CI red that day was a mid-flight go.sum whose
+# missing go.mod-hash entries workspace mode masked locally — this leg dies at
+# detection. Offline-safe: tidy -diff never writes, and a member whose
+# resolution needs the network reports as drift of the resolution kind
+# (fix locally, then push with --no-verify + a named justification if truly
+# network-blocked).
+tidy_rc=0
+bash "$ROOT/scripts/checks/check-go-mod-tidy.sh" || tidy_rc=$?
+if [ "$tidy_rc" -ne 0 ]; then
+  echo "pre-push: go-mod-tidy gate FAILED (rc=$tidy_rc) — run 'go mod tidy' in the named module(s), commit, re-push." >&2
+  exit "$tidy_rc"
+fi
+
+echo "pre-push: CI-parity gates green (release-train strict + version-drift --strict + go-mod-tidy hermetic)."
