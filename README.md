@@ -76,6 +76,7 @@ Every Go backend that combines CQRS + HTMX ends up writing the same glue, endpoi
 
 This library handles all of it — and if your endpoint doesn't need all of it, you opt out piece by piece. Every layer (auth, CSRF, rate limit, HTMX) is a middleware or a `HandlerOption` you choose to apply.
 
+<!-- fleet-quote-count: 7 consumer reviews quote this line (exact grep: rg -l "not for you" ~/projects/*/docs/review/libs/cqrs-htmx.md; re-derived 2026-11-21) -->
 **If you are not using go-cqrs-lite**, this library is not for you — it is the HTMX/HTTP binding for that specific CQRS core, not a generic web framework.
 
 ## What you get
@@ -526,6 +527,7 @@ Each runs with `go run .` from its directory and opens on a documented port.
 - [setup vs Hand-Wiring](docs/guides/setup-vs-hand-wiring.md) — which integration path, with tradeoffs
 - [Production Readiness Guide](docs/guides/production-readiness.md) — the single checklist for going to production
 - [Leveraging go-cqrs-lite](docs/guides/leveraging-go-cqrs-lite.md) — dispatch middleware, OTel/Prometheus, signing/encryption, sagas, schema evolution
+- [Fleet Presentation Audit](docs/research/2026-11-17_docs-marketing-skill-fleet-audit.html) — the 2026-11-17 cross-repo audit that drove the license/footprint/versioning tables and the consumer errata wave (self-audit of this repo's own review row included)
 
 **Identity & auth**
 

@@ -118,6 +118,10 @@ OpenAPI-first JSON API (Huma v2)? -> huma/v4 adapter over YOUR dispatchers (Path
                                     same pipeline stages inside typed operations, Huma owns the schema.
 Realtime (SSE)? -> Use Broadcaster/SSEStream on ANY path. (WebSocket was removed in v5 — see ADR 0046.)
 Persistence? -> Pass *sql.DB or use NewSQLiteEventSourcedSetup on Path B/C.
+Event-store observability over your OWN go-cqrs-lite core (no usermgmt accounts)?
+           -> PATH D: dashboardui mounted over your store + bus. dashboardui's closure
+              carries ZERO usermgmt requires (F5, verified) — direct imports only
+              (ADR-0062) made this a first-class adoption shape, not a blessed accident.
 ```
 
 FLEET DEFAULT (owner ruling 2026-11-21): a NEW Go HTTP service starts on the

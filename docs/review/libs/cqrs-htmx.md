@@ -75,4 +75,5 @@ nix run .#check-release-train -- --refresh-cache --strict-lag 0                 
 ## Prior reports
 
 - Prior self-audit 2026-11-05 (superseded by this refresh): 12 rows, 83 count / ~92 effective — both of its recommendations have since landed (partial-render showcase in `examples/basic`; the OpenAPI builder-form receipt was already the sync-demo).
+- [2026-11-17 fleet presentation audit](../../research/2026-11-17_docs-marketing-skill-fleet-audit.html) (this repo is one of its 21 reviews; its §f harvest drove the license/footprint/versioning tables and the 2026-11-21 fix wave) — replay receipt lives in that deliverable.
 - [2026-09-17 setup deep dive](../../research/2026-09-17_setup-deep-dive.html); [2026-10-04 templ-components series](../../research/2026-10-04_templ-components-deep-dive.html); [2026-11-03 go-cqrs-lite deep dive](../../research/2026-11-03_go-cqrs-lite-deep-dive.html); [.agents/skills/cqrs-htmx/SKILL.md](../../../.agents/skills/cqrs-htmx/SKILL.md) consumer map.

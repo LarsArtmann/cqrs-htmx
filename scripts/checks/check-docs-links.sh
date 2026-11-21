@@ -2,6 +2,10 @@
 # check-docs-links.sh — Verify all file-path links in markdown files resolve correctly
 #
 # Scans all .md files for relative file links and checks they exist.
+# Boundary (documented 2026-11-21): HTML files (docs/research/*.html, the
+# audit deliverables) are OUT OF SCOPE — their anchors are browser-resolved
+# and no gate checks cross-file hrefs from HTML; the archive-status app is
+# the only writer that validates its own emitted links.
 # Filters out:
 #   - URLs (http://, https://, mailto:)
 #   - Links inside fenced code blocks (``` ... ```)
