@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.18.0
 	github.com/larsartmann/cqrs-htmx/setup/v4 v4.17.0
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.13.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.13.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.20.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0
