@@ -4,7 +4,7 @@
 > supersession verdict (round-18 precedent for series-internal reports); nothing here is a
 > unique open item. **ARCHIVED 2026-11-21 (round-48).**
 
-**Filed:** 2026-11-18 22:05 · **Session:** the continuation of the 14-26 report's session under the renewed GET-SHIT-DONE directive · **Canonical prior report:** [`2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md`](../2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md) (its §b/§c are now annotated done-at; this report covers what happened SINCE it was filed) · **Scope line:** master is at `7800f5d8` (pushed), CI run `44397175316` IN PROGRESS on it, the local full e2e battery is 245/245 green on both engines, and the ONE remaining CI red-class (the adminui templ codegen-drift toggle) is root-caused to a format war between two canonical forms — the fix is pushed and the verdict is the in-flight run.
+**Filed:** 2026-11-18 22:05 · **Session:** the continuation of the 14-26 report's session under the renewed GET-SHIT-DONE directive · **Canonical prior report:** [`2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md`](2026-11-18_14-26_e2e-browser-cache-poisoning-heal-sse-hang-fix-migration-w13-w14_status.md) (its §b/§c are now annotated done-at; this report covers what happened SINCE it was filed) · **Scope line:** master is at `7800f5d8` (pushed), CI run `44397175316` IN PROGRESS on it, the local full e2e battery is 245/245 green on both engines, and the ONE remaining CI red-class (the adminui templ codegen-drift toggle) is root-caused to a format war between two canonical forms — the fix is pushed and the verdict is the in-flight run.
 
 ## a) Fully done (verified this stretch)
 

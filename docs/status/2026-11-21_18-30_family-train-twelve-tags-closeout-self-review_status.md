@@ -37,7 +37,7 @@
 
 1. **I followed the release-train gate's fix recipe verbatim once, nearly re-creating the split-brain** — no: I *nearly* did; I checked the precondition first (nixpkgs go version) and re-healed instead. The real miss: **my first tag batch trusted `tail -1` of piped push output** — five "PUSHED" lines were lies (the pre-push hook raced/blocked; "Everything up-to-date" masked it). Caught by the remote-presence re-check; the retry loop now verifies each tag on origin before declaring victory. Lesson: a push receipt is the REMOTE's answer, never the local command's exit.
 2. **bump-dep's "another sweep appears LIVE" warnings were ghost stamps from my own sequential loop** — I first attributed them to a sibling and waited two idle cycles. The pids were my own prior invocations' stamps. Cost: ~10 minutes; no damage (the interleave guard held).
-3. **The render-receipt app's first live test failed on relative paths** (`ERR_FILE_NOT_FOUND` — the wrapper `cd`s into e2e/ before the script resolves its args) and the quantize recipe shipped pointing at PIL, which the ambient python3 lacks. Both fixed and re-proven (realpath before cd; ImageMagick one-liner).
+3. **The render-receipt app's first live test failed on relative paths** (`ERR_FILE_NOT_FOUND` — the wrapper changes directory into e2e/ before the script resolves its args) and the quantize recipe shipped pointing at PIL, which the ambient python3 lacks. Both fixed and re-proven (realpath before cd; ImageMagick one-liner).
 4. **The corpus baseline raced its own commit twice** (daemon swept the bump mid-hook, the ref lock failed) — both times the content landed in the daemon's heuristic commit; verified in HEAD each time, no repair needed.
 
 ## e) IMPROVEMENTS PROCESSED
