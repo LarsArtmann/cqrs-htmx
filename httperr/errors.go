@@ -492,12 +492,14 @@ func FlashErrorHandler(target string) func(http.ResponseWriter, *http.Request, e
 
 	return func(w http.ResponseWriter, r *http.Request, err error) {
 		status := MapError(err)
+
 		if htmx.IsRequest(r) {
 			w.Header().Set(htmx.HeaderRetarget, target)
 			w.Header().Set(htmx.HeaderReswap, DefaultFlashSwap)
 			w.Header().Set("Content-Type", hx.ContentTypePlain)
 			w.WriteHeader(http.StatusOK)
 			hx.WriteAllString(w, SafeDetail(err, status, false))
+
 			return
 		}
 
