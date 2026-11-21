@@ -203,14 +203,20 @@ else
 fi
 
 # 4b. an archived/ successor is a SIBLING link, never ../ — the prefix wins
-# over the -f probe because an earlier line of the same pass has already
-# moved the successor into docs/status/archived/ (round-48 live defect).
+# over the -f probe. Two sequential passes reproduce the live defect's shape:
+# pass B names a successor that pass A already moved, so the file exists at
+# BOTH depths and only the archived/ prefix tells the truth (the in-process
+# link healer cannot rescue a ../ link written by a previous invocation).
 R="$WORK/case4b"
 make_repo "$R"
-printf '2026-10-01_00-00_old.md\t2026-10-02_00-00_new.md\tre-covers the old arc\n2026-10-01_00-01_anchored.md\tarchived/2026-10-01_00-00_old.md\tcarries the anchored series verdicts\n' >"$WORK/spec4b.tsv"
-out=$(run "$R" --apply --date 2026-10-24 "$WORK/spec4b.tsv")
+printf '2026-10-01_00-00_old.md\t2026-10-02_00-00_new.md\tre-covers the old arc\n' >"$WORK/spec4b-a.tsv"
+printf '2026-10-01_00-01_anchored.md\tarchived/2026-10-01_00-00_old.md\tcarries the anchored series verdicts\n' >"$WORK/spec4b-b.tsv"
+out=$(run "$R" --apply --date 2026-10-24 "$WORK/spec4b-a.tsv")
 rc=$?
-if [ "$rc" -eq 0 ]; then ok "4b-apply-exit"; else bad "4b-apply-exit" "rc=$rc $out"; fi
+if [ "$rc" -eq 0 ]; then ok "4b-pass-a-exit"; else bad "4b-pass-a-exit" "rc=$rc $out"; fi
+out=$(run "$R" --apply --date 2026-10-24 "$WORK/spec4b-b.tsv")
+rc=$?
+if [ "$rc" -eq 0 ]; then ok "4b-pass-b-exit"; else bad "4b-pass-b-exit" "rc=$rc $out"; fi
 if grep -q '(2026-10-01_00-00_old\.md)' "$R/docs/status/archived/2026-10-01_00-01_anchored.md" && ! grep -q '(\.\./2026-10-01_00-00_old\.md)' "$R/docs/status/archived/2026-10-01_00-01_anchored.md"; then
   ok "4b-archived-successor-sibling-link"
 else
