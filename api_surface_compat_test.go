@@ -39,7 +39,10 @@ var (
 // Recommended middleware chains.
 var (
 	_ func() func(http.Handler) http.Handler                                   = cqrshtmx.RecommendedSecurityMiddleware
+	_ func(cqrshtmx.CSPBuilder) func(http.Handler) http.Handler                = cqrshtmx.RecommendedSecurityMiddlewareWithCSP
 	_ func() (*httputil.MiddlewareStack, error)                                = cqrshtmx.RecommendedSecurityStack
+	_ func(cqrshtmx.CSPBuilder) (*httputil.MiddlewareStack, error)             = cqrshtmx.RecommendedSecurityStackWithCSP
+	_ cqrshtmx.CSPBuilder                                                      = func(nonce string) string { return nonce }
 	_ func(http.Handler) http.Handler                                          = cqrshtmx.RecoveryMiddleware
 	_ func(...func(http.Handler) http.Handler) func(http.Handler) http.Handler = cqrshtmx.Chain
 )

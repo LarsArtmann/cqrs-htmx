@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -159,6 +160,59 @@ func TestRecommendedSecurityStack_RejectsDuplicateNames(t *testing.T) {
 	// where a consumer wraps the recommended chain in their own recovery.
 	if err := stack.Add(httputil.MiddlewareRecovery, cqrshtmx.RecoveryMiddleware); err == nil {
 		t.Fatal("duplicate Add(recovery) succeeded — baseline names must be reserved")
+	}
+}
+
+// A custom CSP builder changes ONLY the Content-Security-Policy header: every
+// other baseline header stays byte-identical to the default chain, the real
+// generated nonce still reaches the builder, and a nil builder is exactly the
+// default chain.
+func TestRecommendedSecurityStackWithCSP_CustomBuilderAndNilDefault(t *testing.T) {
+	const hashAllowance = "'unsafe-hashes' 'sha256-abc='"
+	builder := cqrshtmx.CSPBuilder(func(nonce string) string {
+		return "default-src 'self'; script-src 'self' 'nonce-" + nonce +
+			"'; style-src 'self' 'nonce-" + nonce + "' " + hashAllowance
+	})
+
+	stack, err := cqrshtmx.RecommendedSecurityStackWithCSP(builder)
+	if err != nil {
+		t.Fatalf("RecommendedSecurityStackWithCSP: %v", err)
+	}
+
+	custom := canonicalHeaders(t, stack.Middleware())
+	if !strings.Contains(custom["Content-Security-Policy"], hashAllowance) {
+		t.Errorf("custom CSP lost the hash allowance: %q", custom["Content-Security-Policy"])
+	}
+
+	if !noncePattern.MatchString(custom["Content-Security-Policy"]) {
+		t.Errorf("custom CSP carries no generated nonce: %q", custom["Content-Security-Policy"])
+	}
+
+	// Only the CSP differs; the other baseline headers are untouched.
+	deflt := canonicalHeaders(t, cqrshtmx.RecommendedSecurityMiddleware())
+	for _, name := range []string{"X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy", "Permissions-Policy"} {
+		if custom[name] != deflt[name] {
+			t.Errorf("header %q drifted under a custom CSP builder: %q != default %q", name, custom[name], deflt[name])
+		}
+	}
+
+	// The classic form answers identically to the stack form.
+	fromClassic := canonicalHeaders(t, cqrshtmx.RecommendedSecurityMiddlewareWithCSP(builder))
+	if stripNonce(fromClassic["Content-Security-Policy"]) != stripNonce(custom["Content-Security-Policy"]) {
+		t.Errorf("middleware form CSP differs beyond the nonce:\nclassic: %s\nstack:   %s",
+			fromClassic["Content-Security-Policy"], custom["Content-Security-Policy"])
+	}
+
+	// A nil builder is exactly the default chain.
+	nilStack, err := cqrshtmx.RecommendedSecurityStackWithCSP(nil)
+	if err != nil {
+		t.Fatalf("RecommendedSecurityStackWithCSP(nil): %v", err)
+	}
+
+	nilHeaders := canonicalHeaders(t, nilStack.Middleware())
+	if stripNonce(nilHeaders["Content-Security-Policy"]) != stripNonce(deflt["Content-Security-Policy"]) {
+		t.Errorf("nil builder is not the default CSP:\nnil:     %s\ndefault: %s",
+			nilHeaders["Content-Security-Policy"], deflt["Content-Security-Policy"])
 	}
 }
 
