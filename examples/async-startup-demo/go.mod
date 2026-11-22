@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/async-startup-demo
 
-go 1.27.3
+go 1.27.4
 
 require github.com/larsartmann/cqrs-htmx/setup/v4 v4.18.0
 
@@ -42,7 +42,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.0 // indirect
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.0 // indirect
-	github.com/larsartmann/go-appkit v0.12.0 // indirect
+	github.com/larsartmann/go-appkit v0.13.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.15.0 // indirect
