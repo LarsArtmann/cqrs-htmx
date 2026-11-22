@@ -865,7 +865,7 @@
             inventories, adoption recommendations. Every version claim verified
             against <code>git ls-remote</code> / <code>for-each-ref</code> on
             2026-11-22; every usage claim re-derived by grep from the
-            32-module workspace. The third refresh of the series: eight days
+            31-module workspace (plus the root). The third refresh of the series: eight days
             and 412 commits of drift since 2026-11-14 re-verified receipt by
             receipt, one NEW library audited (go-business-rules), and the
             version tail swept fully current &mdash; 39/39 go-cqrs-lite trains
@@ -1006,12 +1006,13 @@
         <div class="issue issue-nice">
           <span class="severity severity-nice">Nice to have</span>
           <h3>Docs truth pass: ROADMAP deriver row + module-count lines lag the tree</h3>
-          <div class="where">ROADMAP.md:76 says deriver &ldquo;not a fit&rdquo; vs the shipped ADR-0154 wiring &middot; AGENTS says 30 / TODO says 31 vs derived 32 modules</div>
+          <div class="where">ROADMAP.md:76 says deriver &ldquo;not a fit&rdquo; vs the shipped ADR-0154 wiring &middot; AGENTS says 30; go.work lists 31 sub-modules plus the root</div>
           <p>
             Both refreshed reports this round tripped over the same stale
             docs: the ROADMAP's deriver objection was retired by real
             adoption (deep-dive row 29 flipped N/A&rarr;leveraged), and the
-            workspace grew to 32 modules while the prose counts lag.
+            AGENTS module count still says 30 while <code>go.work</code>
+            lists 31 sub-modules plus the root.
             Minor, but they mislead the next reader.
           </p>
           <div class="callout callout-solution">
@@ -1089,7 +1090,7 @@
           refresh. "Score" is the count-rubric headline from each report (see
           per-report derivations; impact-weighted readings noted where they
           differ). Grades are <strong>repo-consumer level</strong> &mdash;
-          one consumer with 32 modules; the
+          one consumer with 31 modules plus the root; the
           <a href="#matrix">per-module matrix</a> shows how adoption
           actually distributes.
         </p>
@@ -1332,7 +1333,7 @@
           <div class="migration-num">4</div>
           <div class="migration-content">
             <h4>Docs truth pass + the standing holds</h4>
-            <p>True the ROADMAP deriver row (retired by ADR-0154 wiring) and the 30/31&rarr;32 module-count mentions. Standing receipted holds, unchanged: the go-appkit v0.13.0 one-train recipe when nixpkgs ships Go 1.27.4 (TODO fleet-floor row); go-cqrs-lite flightrecorder stays the last deep-dive miss.</p>
+            <p>True the ROADMAP deriver row (retired by ADR-0154 wiring) and the AGENTS module count. Standing receipted holds, unchanged: the go-appkit v0.13.0 one-train recipe when nixpkgs ships Go 1.27.4 (TODO fleet-floor row); go-cqrs-lite flightrecorder stays the last deep-dive miss.</p>
           </div>
         </div>
 
@@ -1341,7 +1342,7 @@
         <p>
           Prod import files (non-test) per library per module, 2026-11-22
           census (nearest-go.mod attribution; quote-anchored import match).
-          cqrs-htmx is a 32-module workspace: a library can be deeply adopted
+          cqrs-htmx is a 31-module workspace: a library can be deeply adopted
           by one module while a sibling never touches it &mdash; the
           per-library scores above grade the repo as one consumer, this table
           shows the distribution. templ-components is the one library already

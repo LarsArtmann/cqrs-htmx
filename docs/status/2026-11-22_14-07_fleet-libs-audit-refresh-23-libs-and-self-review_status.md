@@ -233,4 +233,4 @@ Result: 5 of 5 core checks PASS (four stat cards in one row showing 23 / 14 / 9 
 
 Not re-checked: the render after the two caption edits was not eyeballed again by a vision model. The change is two caption strings; the HTML parses clean and the count gate is green.
 
-This addendum supersedes (b) item 5 and (f) item 12, which still say the verdict was pending. Corpus re-pinned for this addendum: CORPUS_PLACEHOLDER lines.
+This addendum supersedes (b) item 5 and (f) item 12, which still say the verdict was pending. Corpus re-pinned for this addendum: 66051 lines.
