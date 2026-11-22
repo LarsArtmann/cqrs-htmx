@@ -60,6 +60,6 @@ sed -n '105,109p' setup/sse.go   # datastarHandler — the session gate (receipt
 
 ## Prior reports
 
-- 2026-11-14 (prior state of this file): 93/100 · "v0.7.0 lockstep = latest" version line; this pass trues the per-module trains (static v0.8.0, own tag line since 2026-11-17), re-derives the stale `setup/sse.go:105-112` receipt (file shrank to 110 lines → `:105-109`), and confirms the guide's stale v1.0.3 quote healed — score unchanged, no row flips.
+- 2026-11-14 (prior state of this file): 93/100 · "v0.7.0 lockstep = latest" version line; this pass trues the per-module trains (static v0.8.0, own tag line since 2026-11-17), re-derives the stale setup/sse.go 105-112 receipt (file shrank to 110 lines → `setup/sse.go:105-109`), and confirms the guide's stale v1.0.3 quote healed — score unchanged, no row flips.
 - [2026-11-07 DataStar client-side deep dive](../../research/2026-11-07_datastar-client-side-deep-dive.html) (client-side; JS SDK v1.0.4 studied against the then-embedded v1.0.3; demo `data-on:load` defect found+fixed same-session; ADR-0050 Tier-4 M11–M14) — see also [research series row 34](../../research/README.md).
 - Guides: [datastar-integration.md](../../guides/datastar-integration.md), [sse-and-datastar.md](../../guides/sse-and-datastar.md).
