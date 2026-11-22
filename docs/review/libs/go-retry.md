@@ -29,7 +29,7 @@ A non-CQRS retry need inside the library itself (e.g. an HTTP client helper with
 
 ```bash
 rg -n 'larsartmann/go-retry' --type go -g '!scripts/**' . | wc -l          # 0
-rg -n 'backoff|Backoff' -g '*.go' -g '!*_test.go' -g '!scripts/**' . | rg -v 'WithBackoff|ProjectionStatusBackoff|// '   # empty — only WithBackoff params, comments, status strings remain outside the filter
+rg -n 'backoff|Backoff' -g '*.go' -g '!*_test.go' -g '!scripts/**' . | rg -v 'WithBackoff|ProjectionStatusBackoff|// '   # 4 lines, no retry logic: backoffMin/Max consts feeding WithBackoff (projections.go:20-21) + projection worker-status literals (usermgmt/es_projection_setup.go:264, dashboardui/core/overview.go:92)
 rg -n 'CommandRetry' docs/guides/leveraging-go-cqrs-lite.md | head -3      # :15,:40,:60 — the canonical dispatch-middleware recipe
 rg -n 'go-retry' ~/projects/go-cqrs-lite/middleware/v4/go.mod             # :18 — v0.9.0, the transitive pin
 git -C ~/projects/go-retry ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1   # v0.9.0
