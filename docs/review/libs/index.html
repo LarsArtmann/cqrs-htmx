@@ -889,7 +889,7 @@
           </div>
           <div class="stat-card">
             <div class="stat-value">84.8</div>
-            <div class="stat-label">Used-fleet count-rubric avg &middot; 13 numeric scores (was 84.6)</div>
+            <div class="stat-label">Used-fleet count-rubric avg &middot; 13 numeric scores &middot; like-for-like 86.3 &rarr; 84.8 on the 11-14 vs 11-22 scores (the prior published 84.6 is not reproducible)</div>
           </div>
         </div>
 
@@ -910,7 +910,7 @@
         </div>
 
         <div class="card card-solution">
-          <h4>Two upstream loops closed INTO this refresh &mdash; and one aged into a chore</h4>
+          <h4>Two audit findings became upstream fact this cycle</h4>
           <p>
             <strong>templ-components PR #101</strong> (the popover
             <code>position-area</code> fix filed FROM this repo's e2e red,
@@ -1029,9 +1029,9 @@
             <div class="text">
               <strong>Refresh discipline held at receipt level</strong>
               <span>412 commits of drift re-verified citation by citation:
-              every stale line receipt re-derived, two inventory corrections
-              landed (go-etag module map 4&rarr;6, self-audit 15&rarr;19
-              rows), and every verify block replayed green against today's
+              every stale line receipt re-derived, one inventory correction
+              landed (go-etag module map 4&rarr;6) beside one inventory growth
+              (self-audit 15&rarr;19 rows), and every verify block replayed green against today's
               tree &mdash; the series stays re-derivable, not folkloric.</span>
             </div>
           </div>
@@ -1294,7 +1294,7 @@
 
         <!-- ASCII Diagram -->
         <h2 id="posture">Dependency Posture</h2>
-        <div class="dep-tree"><span class="root">go-cqrs-lite</span> ── foundation (424 prod files, 39 trains, 0 lag)
+        <div class="dep-tree"><span class="root">go-cqrs-lite</span> ── foundation (181 prod + 243 test import files, 39 trains, 0 lag)
 ├── <span class="ok">cqrs-htmx root</span> ── HTTP/HTMX face (self 86/~94, htmx 2.0.11 + 4.0.1 embedded, root v4.19.0)
 │   ├── <span class="ok">httputil v1.9.0</span> + <span class="ok">server_timing</span> (wind-down, zero alias uses)
 │   ├── <span class="ok">go-sse</span> ── realtime + DropStats &middot; <span class="ok">go-etag</span> ── conditional requests (6-module map trued)
