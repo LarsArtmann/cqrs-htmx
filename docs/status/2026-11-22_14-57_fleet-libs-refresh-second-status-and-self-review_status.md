@@ -119,17 +119,17 @@ A brainstorm with routing applied: "where" names the living-doc home this pass g
 | 2 | Independent QC pass over the 23 reports: read each, content-check citations, recount scores, replay every verify block, add provenance lines | High | M | Quality | new TODO row |
 | 3 | Series gates under `scripts/checks/`: citation sweep, import census, sub-module coverage, score recompute | High | M | Tooling | new TODO row |
 | 4 | Gate the unpushed wave: `check-modules` at HEAD, the BuildFlow format check over the hand-edited markdown, the workspace test suite | High | M | Quality | new TODO row |
-| 5 | Archive round: 16 live reports, budget 3, cadence threshold 15 | High | M | Cleanup | new TODO row |
+| 5 | Archive round, overdue per the docs-gates cadence gate: 16 live reports, budget 3, threshold 15 | High | M | Cleanup | new TODO row |
 | 6 | idemtest drills in usermgmt (closes the library-policy finding; 80 to about 90) | High | S | Quality | TODO row 31 (1) |
 | 7 | Run the library-policy scanner over the workspace | High | S | Quality | new TODO row |
 | 8 | Push and CI-watch the unpushed commits; decide squash versus heuristic commits | High | S | Release | question 1 |
-| 9 | File the upstream hygiene findings in the library repos | High | M | Documentation | question 2 |
+| 9 | File the upstream hygiene findings in the library repos (go-sse CHANGELOG gap, go-cqrs-lite sqlstore pin skew, four never-tagged go-error-family modules) | High | M | Documentation | question 2 |
 | 10 | Propose the templ-components grid-variable CSP fix upstream | High | M | Bug | question 2 |
 | 11 | Series conventions: fleet-average rule in `FORMAT.md`, matrix from one census rule, index verify appendix, delta column | Medium | S | Documentation | new TODO row |
-| 12 | "Fix once upstream" view in the index | Medium | S | Documentation | same new row |
+| 12 | "Fix once upstream" view in the index: a per-finding ledger of local fixes, upstream asks and consumer patterns | Medium | S | Documentation | same new row |
 | 13 | Retire or slim the vendored adminui popover band block | Medium | S | Cleanup | TODO row 31 (2) |
 | 14 | Mount one flash region in adminui for `httperr.FlashErrorHandler` | Medium | S | Feature | TODO row 31 (6) |
-| 15 | Attach go-etag metrics over the five ETag handlers | Medium | S | Feature | TODO row 31 (5) |
+| 15 | Attach go-etag metrics over the five ETag handlers (cache-effectiveness counters) | Medium | S | Feature | TODO row 31 (5) |
 | 16 | Adopt projectionhost `WithFlightRecorder` (external go-flightrecorder v0.2.1) | Medium | M | Feature | new TODO row |
 | 17 | True `ROADMAP.md:76` (deriver "not a fit" versus shipped wiring) | Medium | S | Documentation | TODO row 31 (3) |
 | 18 | Split TODO row 31 into per-item rows; give the backlog one home (rows 30, 31, index plan) | Medium | M | Documentation | new TODO row |
@@ -141,20 +141,20 @@ A brainstorm with routing applied: "where" names the living-doc home this pass g
 | 24 | At the next go-health-dashboard bump, verify the bridge forwards the OIDC and ops options | Medium | S | Feature | ROADMAP |
 | 25 | Record a verdict for the grid-variable CSP allowance per surface | Medium | S | Documentation | ROADMAP |
 | 26 | Record the dead-subagent and provider-failover lessons in the skill runbook and the cross-project lessons file | Medium | S | Tooling | not a project row (owner-gated global memory) |
-| 27 | Generate the version-truth table by script for the next run | Medium | S | Tooling | skill runbook |
+| 27 | Generate the version-truth table by script for the next run | Medium | S | Tooling | new TODO row |
 | 28 | Status-report discipline: harvest and run the battery in the same turn | Medium | S | Process | done this pass; skill rule |
 | 29 | Evaluate templ-components Sparkline and Bar for dashboardui | Low | S | Feature | ROADMAP |
 | 30 | Replace the literal SSE buffer sizing with `DefaultSubscriberBuffer` | Low | S | Cleanup | ROADMAP |
 | 31 | Consume or record N/A for the go-datastar static version constants | Low | S | Cleanup | ROADMAP |
 | 32 | Add the two cosmetic N/A rows (go-health `tools/doanalyzerv2`, templ-components `website`) | Low | S | Documentation | ROADMAP |
 | 33 | Third vision pass after the caption edits; then contrast, badge, scrollspy and shape-baseline nits | Low | S | Documentation | ROADMAP |
-| 34 | Derive the module count in the freshness gate | Low | S | Documentation | ROADMAP |
+| 34 | Derive the module count in the freshness gate, from the go.work member list | Low | S | Documentation | ROADMAP |
 | 35 | Human eyeball of `index.render.png` (B10.4) | Low | S | Documentation | TODO row 31 |
 | 36 | Decide whether the series grows to the six pinned, unaudited LarsArtmann repos | Low | S | Documentation | ROADMAP open question |
 | 37 | Clarify the 413 versus 415 re-export wording in AGENTS | Low | S | Documentation | declined: the AGENTS figure carries its 2026-11-06 measurement date |
 | 38 | Restore the two dropped overlay details (open-findings count, browser version) | Low | S | Documentation | declined: the research README row carries the audit |
 | 39 | Drop to two concurrent subagents at the first rate-limit signal | Low | S | Process | skill runbook |
-| 40 | Render the index once, after the last text edit | Low | S | Process | skill runbook |
+| 40 | Render the index once, after the last text edit (each render is a 1.4 MB history blob) | Low | S | Process | new TODO row |
 
 ## g) Questions I can not answer myself
 
