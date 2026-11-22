@@ -58,7 +58,7 @@ v0.6.0 pinned (root go.mod:19 direct; huma/setup/loginpage/systemadapter/e2e ind
 
 ```bash
 cat idempotency.go   # every alias delegates 1:1 upstream
-rg -n 'go-idempotency' --type go -g '!scripts/**' . | grep -v _test    # idempotency.go:6 · doc.go:10 · admin-demo/main.go:42 · usermgmt/service_core.go:15 · usermgmt/command_idempotency.go:11
+rg -n 'go-idempotency' --type go -g '!scripts/**' . | grep -v _test    # 9 lines: idempotency.go:6,9,16,23,39 · doc.go:10 · admin-demo/main.go:42 · usermgmt/service_core.go:15 · usermgmt/command_idempotency.go:11
 rg -c 'idemtest' --type go . | wc -l                                    # 0 — row 8, the policy gap (library-policy/policies/ecosystem.go:102 demands it)
 rg -n 'DisableCommandIdempotency|IdempotencyStore' usermgmt/service_factory.go | head -2   # :254 (default mount), :259 (store injection)
 git -C ~/projects/go-idempotency ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1                     # v0.6.0
