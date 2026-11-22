@@ -70,13 +70,13 @@ Family trains since the 2026-11-14 audit (root was v4.18.1, usermgmt v4.20.0): *
 
 ```bash
 # Every command below was run green during the 2026-11-22 audit (rg/git only).
-rg -n 'RenderPartialOrFull|OOBHTML' examples/basic/main.go                       # :9 doc + :391-393 showcase (row 8)
-rg -n 'QUERY /api/items/search|QueryTyped' examples/basic/main.go                # :329, :361 (row 13)
+rg -n 'RenderPartialOrFull|OOBHTML' examples/basic/main.go                       # :9 doc · :391-393 showcase · :399 call site (row 8)
+rg -n 'QUERY /api/items/search|QueryTyped' examples/basic/main.go                # :329 QUERY · :361 QueryTyped (+ decoder twins :363/:387) (row 13)
 rg -n 'users/search' adminui/routes.go                                           # :212 QUERY + :217 POST twin (row 13 panel)
 rg -n 'MethodQuery\+" /api/users/search"|OpenAPISpecHandler' examples/admin-demo/main.go   # :191 QUERY rung + :128 spec handler (rows 9/13)
 rg -n 'FileInput' adminui/users.templ                                            # :41 — templ-components file input in the import form
 rg -n 'func FlashErrorHandler' httperr/errors.go                                 # :488 (row 17 — shipped; internal mounts: none yet)
-rg -n 'CSPBuilder' adminui/config.go adminui/handler.go examples/admin-demo/main.go | head -3   # :132 knob · :257 wiring · :142/:164 adoption (row 16)
+rg -n 'CSPBuilder' adminui/config.go adminui/handler.go examples/admin-demo/main.go   # config.go:132/:142 knob · handler.go:245/:257 wiring · main.go:142/:164 adoption (row 16)
 rg -n 'func NewAPITokenMiddleware|func RequireBot' usermgmt/api_token_middleware.go   # :45, :87 (row 14)
 rg -n 'func CommandPostures' usermgmt/command_postures.go                        # :42 — 21 commands (row 15)
 rg -c 'cqrshtmx\.(CSRF|RateLimiter|ServerTiming|SecurityHeaders)' adminui dashboardui loginpage setup usermgmt examples -g '*.go'   # no output (exit 1) = 0 façade uses (row 10)
