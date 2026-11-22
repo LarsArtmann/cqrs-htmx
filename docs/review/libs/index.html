@@ -1078,7 +1078,7 @@
           </div>
         </div>
 
-        <!-- The 22 Libraries -->
+        <!-- The 23 Libraries -->
         <h2 id="libraries">The 23 Libraries</h2>
         <p>
           Ordered by count-rubric score (descending, ties alphabetical), then
@@ -1337,12 +1337,13 @@
                 <!-- Per-module adoption matrix -->
         <h2 id="matrix">Per-Module Adoption Matrix</h2>
         <p>
-          Prod import files (non-test) per library per module. cqrs-htmx is a
-          29-module workspace: a library can be deeply adopted by one module
-          while a sibling never touches it &mdash; the per-library scores
-          above grade the repo as one consumer, this table shows the
-          distribution. templ-components is the one library already graded
-          per-module by its series (97/94/95).
+          Prod import files (non-test) per library per module, 2026-11-22
+          census (nearest-go.mod attribution; quote-anchored import match).
+          cqrs-htmx is a 32-module workspace: a library can be deeply adopted
+          by one module while a sibling never touches it &mdash; the
+          per-library scores above grade the repo as one consumer, this table
+          shows the distribution. templ-components is the one library already
+          graded per-module by its series (97/94/95).
         </p>
         <div class="card card-problem">
           <h4>Reading caveat &mdash; aggregation can hide asymmetry</h4>
@@ -1353,39 +1354,39 @@
             1 file each, deliberately: UI panels ride the consumer's
             middleware stack rather than mounting CSRF/rate-limiting
             themselves (library principle); (2) <strong>go-codec</strong> is
-            usermgmt-led (the CBOR payloads live there) with dashboardui/
-            identity-model behind it and the UI modules at zero &mdash;
-            correct architecture, visible only here; (3) <strong>adminui's
-            thin go-error-family count (4 files)</strong> is delegation to
-            root's <code>httperr</code> mapping, not neglect; (4)
-            <strong>go-cqrs-lite's adminui count (1 file)</strong> is the
-            alias-free re-export layer &mdash; adminui consumes cqrs-htmx
-            surfaces, not raw trains.
+            usermgmt-led (the CBOR payloads live there) with the new
+            legalparty-model now second and the UI modules at zero &mdash;
+            correct architecture, visible only here; (3)
+            <strong>adminui's thin go-error-family count (5 files)</strong>
+            is delegation to root's <code>httperr</code> mapping, not
+            neglect; (4) <strong>go-cqrs-lite's adminui count (1 file)</strong>
+            is the alias-free re-export layer &mdash; adminui consumes
+            cqrs-htmx surfaces, not raw trains.
           </p>
         </div>
         <table>
           <thead>
             <tr>
               <th>Library</th>
-              <th>Per-module prod import files (2026-11-14 census)</th>
+              <th>Per-module prod import files (2026-11-22 census)</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>go-cqrs-lite</td>
-              <td>usermgmt 64 &middot; dashboardui 30 &middot; root 30 &middot; systemadapter 12 &middot; identity-model 11 &middot; examples 14 &middot; setup 4 &middot; e2e 4 &middot; adminui 1 &middot; datastar 1</td>
+              <td>usermgmt 65 &middot; dashboardui 30 &middot; root 25 &middot; examples 16 &middot; systemadapter 13 &middot; identity-model 11 &middot; legalparty-model 6 &middot; huma 4 &middot; setup 4 &middot; e2e 4 &middot; adminui 1 &middot; gfl-usermgmt 1 &middot; datastar 1</td>
             </tr>
             <tr>
               <td>go-error-family</td>
-              <td>usermgmt 54 &middot; root 37 &middot; identity-model 15 &middot; dashboardui 11 &middot; setup 8 &middot; examples 7 &middot; adminui 4 &middot; authztest 3 &middot; e2e 2 &middot; loginpage/systemadapter/health/auditlog 1 each</td>
+              <td>usermgmt 52 &middot; root 35 &middot; identity-model 15 &middot; legalparty-model 11 &middot; dashboardui 11 &middot; examples 8 &middot; setup 8 &middot; adminui 5 &middot; huma 3 &middot; systemadapter 2 &middot; e2e 2 &middot; auditlog/health/loginpage + the 3 auth-strategy modules 1 each</td>
             </tr>
             <tr>
               <td>httputil</td>
-              <td>root 10 (3 deprecated re-export files) &middot; examples 10 &middot; usermgmt 3 &middot; setup 3 &middot; dashboardui 2 &middot; adminui 1 &middot; loginpage 1 &middot; e2e 1 &nbsp;(server_timing: root 2 &middot; examples 1)</td>
+              <td>root 12 (incl. deprecated re-export files) &middot; examples 10 &middot; usermgmt 3 &middot; setup 3 &middot; dashboardui 2 &middot; adminui 1 &middot; loginpage 1 &middot; e2e 1 &nbsp;(server_timing: root 2 &middot; examples 1)</td>
             </tr>
             <tr>
               <td>go-sse</td>
-              <td>root 5 &middot; examples 3 &middot; datastar 2 &middot; setup 2 &middot; dashboardui 1 &middot; e2e 1</td>
+              <td>root 10 (5 surface files + transport/cmd) &middot; examples 3 &middot; setup 2 &middot; datastar 2 &middot; e2e 1 &middot; dashboardui 1</td>
             </tr>
             <tr>
               <td>templ-components</td>
@@ -1393,11 +1394,11 @@
             </tr>
             <tr>
               <td>go-datastar</td>
-              <td>setup 2 &middot; datastar 2 (adapter) &middot; examples 1 &nbsp;(broadcast + static in lockstep v0.7.0)</td>
+              <td>setup 2 (broadcast) &middot; datastar 1+ (adapter; root + subpackage imports) &middot; examples 1 &nbsp;(root/broadcast/datastartest v0.7.0, static v0.8.0 own train)</td>
             </tr>
             <tr>
               <td>go-codec</td>
-              <td>usermgmt 10 &middot; dashboardui 3 &middot; root 2 &middot; identity-model 1</td>
+              <td>usermgmt 10 &middot; dashboardui 3 &middot; legalparty-model 2 &middot; root 1 &middot; identity-model 1</td>
             </tr>
             <tr>
               <td>go-etag</td>
@@ -1405,11 +1406,11 @@
             </tr>
             <tr>
               <td>go-idempotency</td>
-              <td>root 2 (deprecated alias layer) &middot; examples 1</td>
+              <td>root 2 (deprecated alias layer) &middot; usermgmt 2 (K2 default guard, prod upstream imports) &middot; examples 1</td>
             </tr>
             <tr>
               <td>go-health</td>
-              <td>health 2 &middot; examples 2 &middot; e2e 1</td>
+              <td>health 2 &middot; examples 2</td>
             </tr>
             <tr>
               <td>go-health-dashboard</td>
@@ -1420,22 +1421,21 @@
               <td>setup 2</td>
             </tr>
             <tr>
-              <td>go-retry / go-atomic-write / go-filewatcher / go-daemon / go-output / go-credentials-store / cmdguard / httputil-endpoints</td>
+              <td>go-business-rules / go-retry / go-atomic-write / go-filewatcher / go-daemon / go-output / go-credentials-store / cmdguard / httputil-endpoints</td>
               <td>0 everywhere (transitive or not adopted &mdash; see their reports)</td>
             </tr>
           </tbody>
         </table>
 
         <footer class="footer">
-          Generated 2026-11-14 (supersedes 2026-11-05) &middot;
-          library-deep-dive methodology &middot; every version claim verified
-          via git ls-remote / for-each-ref &middot; per-library reports live in
+          Generated 2026-11-22 (supersedes 2026-11-14) &middot;
+          library-deep-dive methodology (5 sub-agent groups, QC-sampled) &middot; every version claim verified
+          via git ls-remote / for-each-ref + the treadmill gate &middot; per-library reports live in
           this directory &middot; report conventions:
           <a href="FORMAT.md">FORMAT.md</a> &middot; supersedes
           docs/LIBRARY_INTEGRATIONS.md
           (2026-05-13) &middot; render trace:
-          <a href="index.render.png">index.render.png</a> (headless Chromium
-          152, 2026-11-14)
+          <a href="index.render.png">index.render.png</a> (headless render, 2026-11-22)
         </footer>
       </main>
     </div>
