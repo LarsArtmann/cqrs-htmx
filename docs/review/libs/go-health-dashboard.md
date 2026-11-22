@@ -21,7 +21,7 @@ Real-time health dashboard over go-health, DataStar-SSE powered: status banners,
 
 | #   | Capability                                          | Status                                    | Evidence / reason                                                                                                                                                                                                            |
 | --- | --------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | One-call mount (`New`, `Dashboard`, routes)         | 🟢 Fully leveraged                        | `health/dashboard.go` + README map + e2e mount (`e2e/server/bridges.go:60`)                                                                                                                                                  |
+| 1   | One-call mount (`New`, `Dashboard`, routes)         | 🟢 Fully leveraged                        | `health/dashboard.go` + README map + e2e mount (`e2e/server/bridges.go:68`, full route set `:78-91`)                                                                                                                          |
 | 2   | Branding (`WithTitle`)                              | 🟢 Fully leveraged                        | exposed through the bridge signature                                                                                                                                                                                         |
 | 3   | CSP-safe serving (`WithNonce`/`WithNonceExtractor`) | 🟢 Fully leveraged (was 🔴 at 2026-11-05) | bridge passes options through (`dashboard.go:11`); `TestNewDashboard_ForwardsCSPNonceOptions` pins fixed-nonce (`:28-31`), per-request extraction (`:50-53`), and the `RecommendedCSP` header pairing (`:44`); README :75-88 |
 | 4   | Rate limiting (`WithRateLimit`)                     | ⚪ N/A                                    | consumers wrap the mux; a library bridge should not double-rate-limit                                                                                                                                                        |
@@ -51,7 +51,7 @@ cat health/dashboard.go                                     # NewDashboard forwa
 # census over bridge + examples: Dashboard 5, WithTitle 2, WithNonce 1,
 # WithNonceExtractor 1, RecommendedCSP 1, New 1, Option 1
 rg -oN 'healthdashboard\.[A-Z][A-Za-z0-9]*' health examples -g '*.go' | sed 's/.*://' | sort | uniq -c
-rg -n 'WithRoutes|WithEmbeddedDatastarSDK' e2e/server/bridges.go   # :78, :92 — fullest option consumer
+rg -n 'WithRoutes|WithEmbeddedDatastarSDK' e2e/server/bridges.go   # :65 (doc), :78, :92 — fullest option consumer
 # substance of the pinned bump: e3a0e9d (nonce stamping), d15fcb6 (NixOS)
 git -C ~/projects/go-health-dashboard log --oneline v0.13.2..v0.13.3 | grep -v 'auto-commit' | grep -v chore
 git -C ~/projects/go-health-dashboard ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1   # v0.13.3

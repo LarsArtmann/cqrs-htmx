@@ -19,9 +19,9 @@ Long-lived daemon building blocks over unix domain sockets: `SocketServer` lifec
 2. **Redundant overlaps**: SSE framing is served by go-sse (server-side, where cqrs-htmx lives — `ParseSSEData` is a client-side parser); flight recording already enters the graph via `go-flightrecorder` (go-cqrs-lite otel stack); content negotiation is handled per-contract in root handlers.
 3. **Library principle**: pulling a unix-socket daemon framework into consumer graphs to use none of it is exactly the dependency tax cqrs-htmx refuses.
 
-## The one worthwhile note — delivered and grown a seam since
+## The one worthwhile note — delivered; wiring verified richer than last cited
 
-The 2026-11-05 report recommended a "running under systemd" note pointing consumers at sd_notify helpers around `setup.Run`. It landed — and grew: [docs/guides/production-readiness.md](../../guides/production-readiness.md) §9 "systemd Readiness Signals" (`:108`) now wires `daemon.SdNotify(false, daemon.SdNotifyReady)` (`:119`) and `SdNotifyStopping` (`:123`) through **three** hook seams via `github.com/coreos/go-systemd/v22/daemon` (`:114`) — `Config.AppkitStartHooks` (`setup/config.go:364`), `Config.AppkitDrainHooks` (`:372`), and `Config.AppkitShutdownHooks` (`:381`, a seam added since the 2026-11-14 audit). Still no go-daemon import needed, ever. Nothing outstanding here.
+The 2026-11-05 report recommended a "running under systemd" note pointing consumers at sd_notify helpers around `setup.Run`. It landed: [docs/guides/production-readiness.md](../../guides/production-readiness.md) §9 "systemd Readiness Signals" (`:108`) wires `daemon.SdNotify(false, daemon.SdNotifyReady)` (`:119`) and `SdNotifyStopping` (`:123`) through **three** hook seams via `github.com/coreos/go-systemd/v22/daemon` (`:114`) — `Config.AppkitStartHooks` (`setup/config.go:364`), `Config.AppkitDrainHooks` (`:372`), and `Config.AppkitShutdownHooks` (`:381`) — the third seam existed already at the 2026-11-14 audit but was under-cited there as two. Receipts re-verified line-exact against today's tree; still no go-daemon import needed, ever. Nothing outstanding here.
 
 Upstream drift since the tag (HEAD `b6af9f1`, 2026-11-18): the CHANGELOG `[Unreleased]` section adds `JSONv2Codec` and injectable negotiation codecs (`WithJSONCodec`/`WithCBORCodec`, CHANGELOG.md:12-17) — content-negotiation depth that does not touch the non-adoption logic (cqrs-htmx negotiates per-contract in root handlers). And v0.4.0's standalone sd_notify API (`NotifyReady`/`NotifyStopping` without a `SocketServer`) would technically replace the guide's two-line coreos wrappers — but importing a unix-socket daemon framework for two no-op-aware constants remains worse than the two lines; the flip trigger is untouched.
 
@@ -38,5 +38,5 @@ rg -n 'JSONv2Codec' ~/projects/go-daemon/CHANGELOG.md | head -1      # :12 — [
 
 ## Prior reports
 
-- 2026-11-14 (prior state of this file): correctly-not-adopted, no score (this report's convention) · flip triggers re-hold — §9 now wires three seams (`AppkitShutdownHooks` at `setup/config.go:381` is new); upstream `[Unreleased]` at HEAD `b6af9f1` (2026-11-18) adds negotiation codecs only.
+- 2026-11-14 (prior state of this file): correctly-not-adopted, no score (this report's convention) · flip triggers re-hold — §9's three-seam wiring (`AppkitShutdownHooks`, `setup/config.go:381`) already existed, under-cited as two; upstream `[Unreleased]` at HEAD `b6af9f1` (2026-11-18) adds negotiation codecs only.
 - 2026-11-05 (superseded by this refresh) — same verdict; its open item (systemd docs note) shipped 2026-11-06.

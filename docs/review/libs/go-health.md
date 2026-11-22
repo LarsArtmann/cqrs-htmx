@@ -54,7 +54,7 @@ Only opportunistically: `WithEvaluationHook` (audit integration) and the metrics
 # symbol census over the bridge + examples (top rows: WithHealthRecorder 8,
 # New 7, CheckDetail 6, Probe 10 — matches the census paragraph above)
 rg -oN 'gohealth\.[A-Z][A-Za-z0-9]*' health examples -g '*.go' | sed 's/.*://' | sort | uniq -c | sort -rn
-rg -n 'WithHealthRecorder' health/README.md | head -2   # :24 — refused-at-NewProbe note
+rg -n 'refused' health/README.md | head -1                    # :24 — WithHealthRecorder refused-at-NewProbe note
 (cd health && go test -cover ./...)                       # 100.0% (threshold 90, coverage-thresholds.tsv:22)
 git -C ~/projects/go-health ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1   # v0.10.0
 rg -n 'AsyncStartup' AGENTS.md | head -1                 # :70 — the /health-under-AsyncStartup line
