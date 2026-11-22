@@ -218,3 +218,19 @@ A brainstorm, ranked roughly by impact. "Routed" says where it already lives.
 Not run, by decision to wait for your instructions: `nix run .#check-modules`, the docs-gates battery, any formatter, any `go test`, CI.
 
 **Tail note.** I raised `TAIL_BASELINE` from 15 to 16 rather than archive a report. The gate's own instruction is to archive before adding. Sixteen live reports against a budget of three is the next docs-health round's first job ((f) item 9).
+
+## Addendum (2026-11-22 14:4x): vision pass 2 on the re-rendered index
+
+Result: 5 of 5 core checks PASS (four stat cards in one row showing 23 / 14 / 9 / 84.8; the long caption wrapped inside its card; no literal entity text; the contents list complete and in document order; the hero names 23 libraries and 412 commits).
+
+| Defect it found | Action |
+| --- | --- |
+| The arrow in the 84.8 caption rendered as a plus at caption size ("86.3 + 84.8", reads as a sum) | Fixed: caption reworded to "like-for-like down from 86.3 on 11-14"; index re-rendered (1488 x 7604) and the receipt image replaced |
+| Card 1 caption broke as "+GO-" (reads like "+60") | Fixed: now "go-business-rules added" |
+| Contents list highlights "Module Matrix" while the page is at the top | Not fixed: the scroll spy lights the last intersecting section, and every section intersects in a full-page capture. Pre-existing; (f) item 43 |
+| Caption contrast about 3.6 to 4.1:1, below 4.5:1 for small text | Not fixed: a shared fleet template token; (f) item 43 |
+| Hero shapes sit about 15 px off a common baseline at full width | Not fixed: template; (f) item 43 |
+
+Not re-checked: the render after the two caption edits was not eyeballed again by a vision model. The change is two caption strings; the HTML parses clean and the count gate is green.
+
+This addendum supersedes (b) item 5 and (f) item 12, which still say the verdict was pending. Corpus re-pinned for this addendum: CORPUS_PLACEHOLDER lines.
