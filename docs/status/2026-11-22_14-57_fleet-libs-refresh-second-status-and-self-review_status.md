@@ -14,6 +14,8 @@ _Report requested 2026-11-22 14:57 CET. It supersedes the 14:07 report of the sa
 - `go-health.md` verify block contains `(cd health && go test -cover ./...)`, so one module's tests were run by a subagent. My 14:07 report said no `go test` ran. That was wrong.
 - Subagent tally for the whole session: 14 dispatched, 8 failed (1 rate-limit, 3 gateway 502, 4 out of credits), 6 completed.
 - `CURRENT_FOCUS.md` read (first 25 lines): active thread is the 2026-11-21 family train and the fleet-floor decision; it lists 31 modules and does not mention this refresh.
+- Harvest (15:1x): candidate living-doc lines pre-flighted with the docs-gates tool (two rewrites needed to reach `SAFE`), then landed: one TODO row in P2, three ROADMAP open questions, one ROADMAP residual block. `docs-gates freshness .` then reports `FRESH`, 0 unharvested items for this report.
+- Archive (15:1x): the 14:07 report moved to `docs/status/archived/` by `archive-status --apply` after a clean dry run (row gate, move, SUPERSEDED blockquote, link re-base of 0 lines, manifest row). Live tail 16.
 
 **NOT verified here (and why):**
 
@@ -44,6 +46,9 @@ _Report requested 2026-11-22 14:57 CET. It supersedes the 14:07 report of the sa
 | 7 | Findings routed to TODO row 31: idemtest policy violation, popover layer retirement, docs truth pass, go-etag metrics, flash mount, four unaudited go-error-family modules | row 31, items 1 to 7 | `TODO_LIST.md` |
 | 8 | docs-gates battery run once; `annotate` and `routing` PASS over 228 files and 16 reports | battery output, 15:0x | verification only |
 | 9 | go-idempotency report read in full and its verify block replayed; annotation trued | 6 of 6 commands match | `go-idempotency.md` |
+| 10 | This report's next-items harvested: each of the 40 has a disposition (ledger below); the freshness gate is FRESH | `docs-gates freshness .`: `FRESH`; pre-flight `SAFE` | `TODO_LIST.md` P2 row, `ROADMAP.md` |
+| 11 | The superseded 14:07 report archived; the live tail did not grow | `archive-status --apply`: 1 report, tail 16 | `docs/status/archived/` |
+| 12 | The module-count stamps in the index, TODO and AGENTS corrected to the repo's convention (31 sub-entries) | 31 `./` entries in `go.work`; 30 at the 11-15 commit | 3 files |
 
 ## b) PARTIALLY DONE
 
@@ -145,16 +150,16 @@ A brainstorm with routing applied: "where" names the living-doc home this pass g
 | 28 | Status-report discipline: harvest and run the battery in the same turn | Medium | S | Process | done this pass; skill rule |
 | 29 | Evaluate templ-components Sparkline and Bar for dashboardui | Low | S | Feature | ROADMAP |
 | 30 | Replace the literal SSE buffer sizing with `DefaultSubscriberBuffer` | Low | S | Cleanup | ROADMAP |
-| 31 | Consume or record N/A for the go-datastar static version constants | Low | S | Cleanup | ROADMAP |
+| 31 | Consume or record N/A for the go-datastar static version constants (the v0.8.0 `Version1_0_4` and `VersionIsValid` constants) | Low | S | Cleanup | ROADMAP |
 | 32 | Add the two cosmetic N/A rows (go-health `tools/doanalyzerv2`, templ-components `website`) | Low | S | Documentation | ROADMAP |
 | 33 | Third vision pass after the caption edits; then contrast, badge, scrollspy and shape-baseline nits | Low | S | Documentation | ROADMAP |
-| 34 | Derive the module count in the freshness gate, from the go.work member list | Low | S | Documentation | ROADMAP |
+| 34 | Derive the module-count guard in the freshness gate, from the go.work member list | Low | S | Documentation | ROADMAP |
 | 35 | Human eyeball of `index.render.png` (B10.4) | Low | S | Documentation | TODO row 31 |
 | 36 | Decide whether the series grows to the six pinned, unaudited LarsArtmann repos | Low | S | Documentation | ROADMAP open question |
 | 37 | Clarify the 413 versus 415 re-export wording in AGENTS | Low | S | Documentation | declined: the AGENTS figure carries its 2026-11-06 measurement date |
 | 38 | Restore the two dropped overlay details (open-findings count, browser version) | Low | S | Documentation | declined: the research README row carries the audit |
 | 39 | Drop to two concurrent subagents at the first rate-limit signal | Low | S | Process | skill runbook |
-| 40 | Render the index once, after the last text edit (each render is a 1.4 MB history blob) | Low | S | Process | new TODO row |
+| 40 | Render the index once, after the last text edit (each render adds megabytes to history) | Low | S | Process | new TODO row |
 
 ## g) Questions I can not answer myself
 
@@ -164,8 +169,66 @@ A brainstorm with routing applied: "where" names the living-doc home this pass g
 
 ## h) Verification receipts (this pass)
 
-RECEIPTS_PLACEHOLDER
+| Time | Command | Result |
+| --- | --- | --- |
+| 14:57 | `date` | 2026-11-22 14:57 CET |
+| 14:57 | `git status --short`, `git status -sb` | 3 uncommitted files; master ahead 15 |
+| 14:57 | `git log origin/master..HEAD -- docs/review/libs/index.render.png` | 4 blobs (03:53, 04:00, 14:17, 14:25) |
+| 15:0x | `go.work` entry counts at `12896ff9`, `72adb563`, HEAD | 30, 31, 31 sub-entries (plus the root each) |
+| 15:0x | docs-gates battery, before this pass's fixes | freshness FAIL (11 items), cadence FAIL (16 over 15), audit-all FAIL, annotate PASS, routing PASS, stub, citations, stamps PASS |
+| 15:0x | go-idempotency verify block, replayed literally | 6 of 6 commands match; annotation gap found and trued |
+| 15:1x | `docs-gates freshness . --pre-flight` on the harvest candidates | first two drafts UNSAFE (three older items would drift); third draft SAFE |
+| 15:1x | `docs-gates freshness .` after landing the lines | FRESH, 0 unharvested items |
+| 15:1x | `nix run .#archive-status -- <spec.tsv>` then `--apply` | dry run clean; 1 report archived; tail 16 |
+| FINAL_TIME | gate battery after the last edit | FINAL_RESULTS |
+
+Not run, by decision to wait for your instructions: `nix run .#check-modules`, the BuildFlow format check, the workspace test suite, CI.
 
 ## Harvest ledger
 
-LEDGER_PLACEHOLDER
+One row per next-item in (f). "Row" is the new P2 row in `TODO_LIST.md` (the §f tails row for the 2026-11-22 fleet-libs refresh); "OQ" and "residual" are in `ROADMAP.md`.
+
+| Item | Disposition | Destination or reason |
+| --- | --- | --- |
+| 1 | existing row | TODO row 31, item 7 |
+| 2 | new row | row, item 2 |
+| 3 | new row | row, item 3 |
+| 4 | new row | row, item 4 |
+| 5 | new row | row, item 1 |
+| 6 | existing row | TODO row 31, item 1 |
+| 7 | new row | row, item 5 |
+| 8 | declined | a question to the owner, (g) question 1; not a task until answered |
+| 9 | new row | OQ 36 |
+| 10 | merged | OQ 36 (one of the six findings) |
+| 11 | new row | row, item 6 |
+| 12 | merged | row, item 6 |
+| 13 | existing row | TODO row 31, item 2 |
+| 14 | existing row | TODO row 31, item 6 |
+| 15 | existing row | TODO row 31, item 5; cross-referenced from row, item 7 |
+| 16 | merged | row, item 7 |
+| 17 | existing row | TODO row 31, item 3 |
+| 18 | new row | row, item 8 |
+| 19 | existing | `CURRENT_FOCUS.md`, waiting-on-the-owner list (the K2 follow-up); not re-rowed |
+| 20 | merged | OQ 36 (the anchor-name pair is one of the six findings) |
+| 21 | new row | residual, §f21 |
+| 22 | new row | OQ 37 |
+| 23 | new row | residual, §f23 |
+| 24 | new row | residual, §f24 |
+| 25 | new row | residual, §f25 |
+| 26 | declined | not project work: a skill-runbook lesson behind an owner-gated commit; noted in residual, §f26 |
+| 27 | merged | row, item 6 |
+| 28 | done in this pass | the harvest and the battery ran while writing this report |
+| 29 | new row | residual, §f29 |
+| 30 | new row | residual, §f30 |
+| 31 | new row | residual, §f31 |
+| 32 | new row | residual, §f32 |
+| 33 | new row | residual, §f33 |
+| 34 | new row | residual, §f34 |
+| 35 | existing row | TODO row 31 (the queued owner eyeball) |
+| 36 | new row | OQ 38 |
+| 37 | declined | the AGENTS figure carries its 2026-11-06 measurement date; no change needed |
+| 38 | declined | the research README row already carries the 2026-11-17 audit |
+| 39 | declined | not project work: skill-runbook rule; noted in residual, §f26 |
+| 40 | merged | row, item 6 |
+
+Every candidate line was pre-flighted before it landed. The tool rejected two earlier drafts because common words in them ("consumed", "harvest", "questions") would have pushed items of older reports adrift.

@@ -1,5 +1,9 @@
 # Fleet-libs audit refresh (23 libs): session status and self-review
 
+> **ANNOTATED 2026-11-22** — ~~this report~~ **SUPERSEDED** by [`2026-11-22_14-57_fleet-libs-refresh-second-status-and-self-review_status.md`](../2026-11-22_14-57_fleet-libs-refresh-second-status-and-self-review_status.md), which superseded: the 14:57 report of the same session carries every open item of the 14:07 report (the forty next-items, the three owner questions, the unresolved attribution) with current state, and records its two wrong statements (module count 32 vs 31; "no go test ran"). Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-22 (round-23 (2026-11-22)).**
+
 _Report requested 2026-11-22 14:07 CET. Session window: 2026-11-22 ~02:45 to ~04:00 (the audit run) plus a correction pass 14:1x to 14:3x (this report's own re-verification). Scope: one session, the fleet library-utilization refresh under `docs/review/libs/` and what it touched. Nothing else in the repo was worked on._
 
 ## Scope line: what this report verified, and what it did not
