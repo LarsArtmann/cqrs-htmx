@@ -203,6 +203,11 @@ func TestLegalFormClass_Predicate(t *testing.T) {
 		{LegalFormPartnership, true, true},
 		{LegalFormPublicBody, false, true},
 		{LegalFormNonProfit, false, true},
+		// Values that never passed ParseLegalFormClass must allow nothing
+		// (go-legalparty v0.1.1 aligned AllowsLEI with
+		// RequiresRegistryAnchor on unknown input).
+		{LegalFormClass(""), false, false},
+		{LegalFormClass("corp"), false, false},
 	}
 
 	for _, tt := range tests {
