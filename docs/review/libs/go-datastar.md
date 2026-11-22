@@ -51,7 +51,7 @@ Both 2026-11-14 cheap wins are DONE (2026-11-15, B3): (1) the demo uses `ScriptT
 ```bash
 rg -n 'go-datastar' --glob 'go.mod' . | grep -v indirect   # direct pins: root+broadcast+datastartest v0.7.0 (datastar/, demo) · broadcast v0.7.0 (setup, integration_test)
 git -C ~/projects/go-datastar ls-remote --tags origin | grep -v '\^{}' | sed 's#.*refs/tags/##' | grep -cE '^(v0\.7\.0|broadcast/v0\.7\.0|datastartest/v0\.7\.0|static/v0\.8\.0)$'   # 4 — each module's latest tag present (static on its own v0.8.0 train)
-rg -n 'const Version|Version1_0_4' ~/projects/go-datastar/static/static.go   # :21 Version = "1.0.4" · :34 Version1_0_4 = Version — v0.8.0 constants, JS still v1.0.4
+rg -n 'const Version|Version1_0_4' ~/projects/go-datastar/static/static.go   # :21 Version = "1.0.4" · :30 Version1_0_4 doc comment (:34 the const) — v0.8.0 constants, JS still v1.0.4
 rg -n 'ScriptTagVersioned|ETagFor|WithHeartbeatDisabled' --glob '*.go' . | wc -l   # 3 — demo splice (main.go:350) + doc comments (B3, 2026-11-15)
 rg -c 'Deprecated' datastar/broadcaster.go                # 6 alias shims, removal bundled with v5
 rg -n 'NewBroadcasterFromHub' setup/sse.go integration_test/datastar_route_split_test.go   # setup/sse.go:60 + test :27-28
