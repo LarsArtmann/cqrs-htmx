@@ -52,7 +52,7 @@ Core adoption is maximal and all named stretch items remain done. The one open t
 
 ```bash
 rg -oN 'errorfamily\.[A-Z][A-Za-z0-9]*' --type go -g '!scripts/**' . | sed 's/.*://' | sort | uniq -c | sort -rn | head -20   # incl. tests: NewRejection 260 · Wrapf 128 · WrapInfrastructure 127 · WrapTransient 105 · Classify 88 · NewTransient 75 · Newf 49 · NewInfrastructure 47
-rg -oN 'errorfamily\.[A-Z][A-Za-z0-9]*' --type go -g '!*_test.go' -g '!examples/**' -g '!e2e/**' -g '!scripts/**' -g '!integration_test/**' . | sed 's/.*://' | sort | uniq -c | sort -rn | head -12   # prod: 194 · 119 · 114 · 100 · 53 · 46 · 44 · 39 · 37 · 31 · 15 · 9
+rg -oN 'errorfamily\.[A-Z][A-Za-z0-9]*' --type go -g '!*_test.go' -g '!examples/**' -g '!e2e/**' -g '!scripts/**' -g '!integration_test/**' . | sed 's/.*://' | sort | uniq -c | sort -rn | head -12   # prod: 194 · 119 · 114 · 100 · 53 · 46 · 44 · 39 · 37 · 31 · 27(Rejection) · 15(NewConflict)
 for s in WrapOnce Audience NewRegistry RegisterTemplate TemplateForCode; do printf '%s: ' "$s"; rg -c "errorfamily\.$s" --type go . | wc -l; done   # all print 0 (httperr has its OWN Audience type)
 rg -n 'errorfamily\.LogErrorContext' --type go -g '!*_test.go' .                                                             # 4 lines: handler.go:45,71 (comments) + calls handler.go:77, huma/register.go:196
 rg -n 'errors\.New\(|fmt\.Errorf\(' --type go -g '!*_test.go' -g '!examples/**' -g '!e2e/**' -g '!scripts/**' . | wc -l      # 9, all openapi/validate.go (scanner-exempt)

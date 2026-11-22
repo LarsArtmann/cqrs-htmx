@@ -1,13 +1,13 @@
 # go-credentials-store Adoption Report (NOT adopted — correctly; it is a sibling application)
 
-> Audit date: 2026-11-14 · Method: library-deep-dive (fleet series, [index](index.html))
+> Audit date: 2026-11-22 (prior: 2026-11-14) · Method: library-deep-dive (fleet series, [index](index.html))
 > Library: `github.com/larsartmann/go-credentials-store` v0.4.3 · Checkout: `/home/lars/projects/go-credentials-store`
 
 ## Verdict
 
 | Direct usage       | Transitive | Latest                       | Verdict                                               |
 | ------------------ | ---------- | ---------------------------- | ----------------------------------------------------- |
-| **0 import sites** | no         | v0.4.3 (verified 2026-11-14) | **Correctly not adopted — category error, not a gap** |
+| **0 import sites** | no         | v0.4.3 (verified 2026-11-22) | **Correctly not adopted — category error, not a gap** |
 
 ## What it is
 
@@ -21,16 +21,17 @@ An event-sourced, encrypted-at-rest credentials vault for **personal infrastruct
 
 ## Flip conditions
 
-None realistic. If cqrs-htmx ever needed a "bot credentials" feature, the honest shape would be an event-sourced aggregate inside identity-model, not an import of a vault app.
+None realistic. If cqrs-htmx ever needed a "bot credentials" feature, the honest shape would be an event-sourced aggregate inside identity-model, not an import of a vault app. Upstream check (2026-11-22): v0.4.3 (tagged 2026-11-13) remains latest; the checkout's `[Unreleased]` section carries only the already-shipped templ-wave bookkeeping plus "Nothing yet" entries — nothing that changes the calculus. (Its v0.4.3 notes show it raising cmdguard to v5.1.0 and templ to v0.3.1100 — consumer-side dependency waves, irrelevant here.)
 
 ## How to verify
 
 ```bash
 rg -n 'go-credentials-store' --type go -g '!scripts/**' . | wc -l   # 0
-rg -n 'system.New|metaengine' ~/projects/go-credentials-store/README.md | head -3
-git -C ~/projects/go-credentials-store for-each-ref --sort=-v:refname --format='%(refname:short)' refs/tags | head -1   # v0.4.3 (2026-11-13)
+rg -n 'system\.New|metaengine' ~/projects/go-credentials-store/README.md | head -3   # e.g. :14 "`system` composition root + `metaengine` read models"
+git -C ~/projects/go-credentials-store ls-remote --tags --sort=-v:refname origin | grep -v '\^{}' | head -1   # v0.4.3 (2026-11-13)
 ```
 
 ## Prior reports
 
 - 2026-11-05 (superseded by this refresh) — same verdict, then at v0.3.1.
+- 2026-11-14 (prior state of this file): not-adopted verdict, no score (not-adopted convention) · delta: verdict unchanged at v0.4.3; README receipt re-derived (:14); upstream `[Unreleased]` inert.
