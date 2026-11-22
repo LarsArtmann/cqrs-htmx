@@ -51,7 +51,7 @@ Nearly maxed. Three residual nits, none urgent: (1) root's `DropStats.Snapshot()
 ```bash
 rg -oN '\bsse\.[A-Z][A-Za-z0-9]*' --type go -g '!scripts/**' . | sed 's/.*://' | sort | uniq -c | sort -rn | head -16   # Event ×263 · NewEventID ×77 · NewStream ×38 · NewBroadcaster ×33 · EventID ×29 · Broadcaster ×23 · EventStore ×19 …
 rg -n 'WithOnDrop|BroadcasterHealth' --type go -g '!scripts/**' . | grep -v _test   # exactly 3 hits: sse_drop_stats.go:43,61 · sse_broadcaster.go:52 — the DropStats wiring
-rg -n 'DropStats|SSEDrops' setup/sse.go setup/sse_hub_stats.go setup/setup.go setup/bundle.go dashboardui/dashboard.go | head -8   # :26-27 · :301 (gate :299) · :251 · :74-75 — the wiring map
+rg -n 'DropStats|SSEDrops' setup/sse.go setup/sse_hub_stats.go setup/setup.go setup/bundle.go dashboardui/dashboard.go | head -8   # :26-27 · sse_hub_stats :23,:27 · setup.go:299 (gate; assignment :301) · bundle.go:81 … (:251 Close warning, dashboard :74-75 below the cut) — the wiring map
 rg -n 'ReplayFiltered|stream\.Heartbeat' transport/serve.go                          # :366 / :498
 rg -n 'func HubReadinessCheck' readiness.go                                          # :170
 git -C ~/projects/go-sse ls-remote --tags origin                     | grep -v '\^{}' | awk '{print $2}' | sed 's|refs/tags/||' | grep -v / | sort -V | tail -1   # v0.7.0 (root stream latest)
