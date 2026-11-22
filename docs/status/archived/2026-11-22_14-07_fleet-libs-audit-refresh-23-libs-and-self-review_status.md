@@ -141,10 +141,10 @@ A brainstorm, ranked roughly by impact. "Routed" says where it already lives.
 | 6 | Sub-module coverage gate for the fleet series | High | S | Tooling | no |
 | 7 | Score-recompute gate (status column versus stated score) | High | S | Tooling | no |
 | 8 | Push the unpushed commits and run `.#push-and-watch`; nothing has seen CI | High | S | Release | question 1 |
-| 9 | Archive round: the live status tail is 16 against a budget of 3 | High | M | Cleanup | no |
+| 9 | Archive round: the live status tail is 16 against a budget of 3 **→ routed to the 2026-11-22 §f-tails TODO row, item 1** | High | M | Cleanup | no |
 | 10 | idemtest drills in usermgmt (closes the library-policy finding; 80 to about 90) | High | S | Quality | TODO row 31 (1) |
 | 11 | Run the library-policy scanner over this repo for other rule violations | High | S | Quality | no |
-| 12 | File the upstream hygiene findings in the library repos | High | M | Documentation | question 2 |
+| 12 | File the upstream hygiene findings in the library repos **→ routed to ROADMAP open question 36** | High | M | Documentation | question 2 |
 | 13 | Propose an upstream fix for templ-components' `--tc-grid-min` inline-style emission (every CSP consumer adds an allowance) | High | M | Bug | question 2 |
 | 14 | Replay all 23 verify blocks literally and stamp the replay date | Medium | M | Quality | no |
 | 15 | Write the fleet-average rule into `FORMAT.md` and restate 11-14 under it | Medium | S | Documentation | no |
@@ -152,10 +152,10 @@ A brainstorm, ranked roughly by impact. "Routed" says where it already lives.
 | 17 | Add a "fix once upstream" view to the index: each finding tagged local, upstream or consumer-pattern | Medium | S | Documentation | no |
 | 18 | Retire or slim the vendored adminui popover band block; true the header comment; run the visualtest | Medium | S | Cleanup | TODO row 31 (2) |
 | 19 | Mount one flash region in adminui for `httperr.FlashErrorHandler` | Medium | S | Feature | TODO row 31 (6) |
-| 20 | Attach go-etag metrics over the five ETag handlers with the OTel ask | Medium | S | Feature | TODO row 31 (5) |
+| 20 | Attach go-etag metrics over the five ETag handlers with the OTel ask **→ routed to TODO row 31 item 5 and the 2026-11-22 §f-tails row, item 7** | Medium | S | Feature | TODO row 31 (5) |
 | 21 | Adopt projectionhost `WithFlightRecorder` (external go-flightrecorder v0.2.1), the last deep-dive miss | Medium | M | Feature | TODO row 30 |
 | 22 | True `ROADMAP.md:76` (deriver "not a fit" versus shipped wiring) | Medium | S | Documentation | TODO row 31 (3) |
-| 23 | True module counts (AGENTS 30, TODO 31; `go.work` has 32) and derive them in the freshness gate | Medium | S | Documentation | TODO row 31 (3) |
+| 23 | True module counts (AGENTS 30, TODO 31; `go.work` has 32) and derive them in the freshness gate **→ routed, AGENTS count trued 2026-11-22; the gate derivation is ROADMAP residual §f34** | Medium | S | Documentation | TODO row 31 (3) |
 | 24 | Verify formatter conformance of the hand-edited markdown via BuildFlow | Medium | S | Quality | no |
 | 25 | Run the docs-gates battery | Medium | S | Quality | no |
 | 26 | Decide whether usermgmt's default guard should wrap `middleware.CommandIdempotency` (one dedup implementation fleet-wide) | Medium | M | Architecture | owner gate K2 |
@@ -170,10 +170,10 @@ A brainstorm, ranked roughly by impact. "Routed" says where it already lives.
 | 35 | Record the dead-subagent lesson in the library-deep-dive runbook and the cross-project lessons file | Medium | S | Tooling | owner (global memory) |
 | 36 | Record provider failover facts for fleet runs (three concurrent starts rate-limited; hyper has no credits; Gemini prepayment depleted; the synthetic vision model works) | Medium | S | Tooling | no |
 | 37 | Generate the version-truth table by script for the next run | Medium | S | Tooling | no |
-| 38 | Consolidate TODO rows 30 and 31 and the index action plan into one home | Low | M | Documentation | no |
+| 38 | Consolidate TODO rows 30 and 31 and the index action plan into one home **→ routed to the 2026-11-22 §f-tails TODO row, item 8** | Low | M | Documentation | no |
 | 39 | Evaluate templ-components v1.27.1 Sparkline and Bar for dashboardui | Low | S | Feature | no |
 | 40 | Replace the literal SSE buffer sizing with `DefaultSubscriberBuffer` | Low | S | Cleanup | no |
-| 41 | Consume or record N/A for the go-datastar static version constants | Low | S | Cleanup | no |
+| 41 | Consume or record N/A for the go-datastar static version constants **→ routed to ROADMAP residual §f31** | Low | S | Cleanup | no |
 | 42 | Add the two cosmetic N/A rows (go-health `tools/doanalyzerv2`, templ-components `website`) | Low | S | Documentation | no |
 | 43 | Finish vision pass 2 on the re-render; then the contrast, badge and scrollspy nits | Low | S | Documentation | no |
 | 44 | Clarify the index delta column (httputil shows +4 against the index, "unchanged" against its report) | Low | S | Documentation | no |
