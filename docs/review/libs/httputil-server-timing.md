@@ -47,7 +47,7 @@ rg -n 'ServerTimingMiddleware|MeasureServerTiming' --type go -g '!*_test.go' . |
 rg -n 'servertiming\.' app.go                                  # :380 WrapServerTiming inside applyServerTiming (the :17 import line has no dot)
 git -C ~/projects/httputil for-each-ref --sort=-v:refname refs/tags | grep server_timing | head -1   # server_timing/v1.0.3 (local)
 git -C ~/projects/httputil log --oneline server_timing/v1.0.3..HEAD -- server_timing/ | wc -l        # 0 — no submodule drift past the tag
-git -C ~/projects/httputil ls-remote --tags origin 'refs/tags/server_timing/*' | grep -v '\^{}' | sort -V | tail -1   # refs/tags/server_timing/v1.0.3 (remote = local; older v0.x entries are pre-split legacy)
+git -C ~/projects/httputil ls-remote --tags origin 'refs/tags/server_timing/*' | grep -v '\^{}' | awk '{print $2}' | sort -t/ -k3 -V | tail -1   # refs/tags/server_timing/v1.0.3 (remote = local; older v0.x entries are pre-split legacy — sort the ref column, not the hash-first line)
 ```
 
 ## Prior reports

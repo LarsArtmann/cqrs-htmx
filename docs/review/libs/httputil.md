@@ -70,7 +70,7 @@ Yes — and the 2026-11-14 file's one TODO (wire `ExpectNotModifiedDynamic`) shi
 
 ## Issues / open items
 
-- **Minor — go1.27.4 build floor.** The library's [Unreleased] security guidance (CVE-2026-97054 in `http.MaxBytesReader`) says build on go1.27.4+; this repo's `go` directive is `1.27.3`, and it calls `http.MaxBytesReader` directly (sync_push.go:188, adminui/handler_import.go:40). CI's security job already pins `go-version: 1.27.4` (TODO_LIST.md row: revert to `go-version-file` once the ADR-0003 fleet nixpkgs rev ships Go ≥ 1.27.4 — that row owns this). Flip trigger: nixpkgs go1.27.4 packaging (upstream verified it absent as of 2026-11-14).
+- **Minor — go1.27.4 build floor.** The library's [Unreleased] security guidance (CVE-2026-97054 in `http.MaxBytesReader`) says build on go1.27.4+; this repo's `go` directive is `1.27.3`, and it calls `http.MaxBytesReader` directly (sync_push.go:188, adminui/handler_import.go:40). CI's security job already pins `go-version: 1.27.4` (ci.yml:1203; TODO_LIST.md row 21 owns this — the floor decision is now coupled to the go-appkit train, per that row's 2026-11-21 addenda). Flip trigger: nixpkgs go1.27.4 packaging — still unmet as of the 2026-11-21 probe recorded in the TODO row (nixpkgs-unstable HEAD `680275f0` ships go 1.27.3; the 11-21 evening re-heal reverted a premature sweep).
 
 ## How to verify
 
@@ -82,7 +82,7 @@ rg -n 'ExpectNotModifiedDynamic' httpspec_etag_test.go                 # :26 doc
 rg -n 'MethodQuery' adminui/routes.go dashboardui/routes.go            # adminui/routes.go:212 /users/search · dashboardui/routes.go:196 — QUERY safe-list load-bearing
 rg -n 'CSPBuilder' recommended_middleware.go adminui/config.go | head -6   # recommended_middleware.go:15,63 · adminui/config.go:132,142 — the 2026-11-21 knob
 git -C ~/projects/httputil ls-remote --tags origin | grep -v '\^{}' | awk '{print $2}' | sed 's|refs/tags/||' | sort -V | tail -1   # v1.9.0
-git -C ~/projects/httputil show v1.9.0:csrf.go | grep -n 'methodQuery' # 48 (const) · 639 (ExemptFunc) · 816 (isUnsafeCSRFMethod) — QUERY safe-list at the tag
+git -C ~/projects/httputil show v1.9.0:csrf.go | grep -n 'methodQuery' # 45 (doc) · 48 (const) · 639 (ExemptFunc) · 816 (isUnsafeCSRFMethod) — QUERY safe-list at the tag
 ```
 
 ## Prior reports
