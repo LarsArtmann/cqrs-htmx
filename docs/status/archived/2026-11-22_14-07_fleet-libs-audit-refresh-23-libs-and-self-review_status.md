@@ -144,7 +144,7 @@ A brainstorm, ranked roughly by impact. "Routed" says where it already lives.
 | 9 | Archive round: the live status tail is 16 against a budget of 3 **→ routed to the 2026-11-22 §f-tails TODO row, item 1** | High | M | Cleanup | no |
 | 10 | idemtest drills in usermgmt (closes the library-policy finding; 80 to about 90) | High | S | Quality | TODO row 31 (1) |
 | 11 | Run the library-policy scanner over this repo for other rule violations | High | S | Quality | no |
-| 12 | File the upstream hygiene findings in the library repos **→ routed to ROADMAP open question 36** | High | M | Documentation | question 2 |
+| 12 | File the upstream hygiene findings in the library repos **→ routed to ROADMAP open question 36 (the `idempotency/sqlstore` pin skew, the go-sse CHANGELOG gap, the never-tagged go-error-family modules)** | High | M | Documentation | question 2 |
 | 13 | Propose an upstream fix for templ-components' `--tc-grid-min` inline-style emission (every CSP consumer adds an allowance) | High | M | Bug | question 2 |
 | 14 | Replay all 23 verify blocks literally and stamp the replay date | Medium | M | Quality | no |
 | 15 | Write the fleet-average rule into `FORMAT.md` and restate 11-14 under it | Medium | S | Documentation | no |
@@ -173,7 +173,7 @@ A brainstorm, ranked roughly by impact. "Routed" says where it already lives.
 | 38 | Consolidate TODO rows 30 and 31 and the index action plan into one home **→ routed to the 2026-11-22 §f-tails TODO row, item 8** | Low | M | Documentation | no |
 | 39 | Evaluate templ-components v1.27.1 Sparkline and Bar for dashboardui | Low | S | Feature | no |
 | 40 | Replace the literal SSE buffer sizing with `DefaultSubscriberBuffer` | Low | S | Cleanup | no |
-| 41 | Consume or record N/A for the go-datastar static version constants **→ routed to ROADMAP residual §f31** | Low | S | Cleanup | no |
+| 41 | Consume or record N/A for the go-datastar static version constants **→ routed to ROADMAP residual §f31 (the `Version1_0_4` and `VersionIsValid` constants)** | Low | S | Cleanup | no |
 | 42 | Add the two cosmetic N/A rows (go-health `tools/doanalyzerv2`, templ-components `website`) | Low | S | Documentation | no |
 | 43 | Finish vision pass 2 on the re-render; then the contrast, badge and scrollspy nits | Low | S | Documentation | no |
 | 44 | Clarify the index delta column (httputil shows +4 against the index, "unchanged" against its report) | Low | S | Documentation | no |
