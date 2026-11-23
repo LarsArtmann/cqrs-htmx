@@ -68,7 +68,7 @@ require (
 	github.com/larsartmann/go-etag/server v0.6.2 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect
-	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
+	github.com/larsartmann/go-sqlitestore v0.1.2 // indirect
 	github.com/larsartmann/templ-components v1.27.2 // indirect
 	github.com/larsartmann/templ-components/errorpage v1.27.2 // indirect
 	github.com/larsartmann/templ-components/htmx v1.27.2 // indirect
