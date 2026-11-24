@@ -425,6 +425,23 @@ func (h *Handler) superAdminTenantRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, why: "tenant detail exposes membership rosters",
 		},
 		{
+			method:  http.MethodGet,
+			pattern: "/tenants/{id}/roster.csv",
+			panel:   panelTenants,
+			guarded: h.tenantRosterCSV,
+			mode:    routeModeSuperAdmin,
+			why:     "the roster export carries the tenant's full membership list (read access mirrors GET /tenants/{id})",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/tenants/{id}/transfer",
+			panel:   panelTenants,
+			guarded: h.tenantTransferOwnership,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "ownership transfer grants owner to one member and demotes the prior owner — tenant-shaping authority",
+		},
+		{
 			method: http.MethodPost, pattern: "/tenants/{id}/suspend", panel: panelTenants, guarded: h.tenantSuspend,
 			mode: routeModeSuperAdmin, write: true, why: "suspending a tenant disables every member of it",
 		},
@@ -500,6 +517,14 @@ func (h *Handler) tenantAdminRoutes() []routeSpec {
 		{
 			method: http.MethodGet, pattern: patternMembers, panel: panelMembers, guarded: h.membersIndex,
 			mode: routeModeTenantAdmin, why: "the member roster is tenant-internal",
+		},
+		{
+			method:  http.MethodGet,
+			pattern: "/members/roster.csv",
+			panel:   panelMembers,
+			guarded: h.membersRosterCSV,
+			mode:    routeModeTenantAdmin,
+			why:     "the roster export carries the scoped tenant's full membership list (read access mirrors GET /members)",
 		},
 		{
 			method: http.MethodPost, pattern: patternMembers, panel: panelMembers, guarded: h.membersAdd,
