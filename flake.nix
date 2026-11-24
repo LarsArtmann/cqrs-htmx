@@ -1264,6 +1264,8 @@
                       bash bash scripts/selftests/test-check-session-route-wrappers.sh
                       bash bash scripts/checks/check-permission-surface.sh
                       bash bash scripts/selftests/test-check-permission-surface.sh
+                      bash bash scripts/checks/check-adminui-surface.sh
+                      bash bash scripts/selftests/test-check-adminui-surface.sh
                       bash bash scripts/checks/check-permission-maturity.sh --ratchet
                       bash bash scripts/selftests/test-check-permission-maturity.sh
                       bash bash scripts/selftests/test-check-policy-rows.sh
@@ -1347,6 +1349,8 @@
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
                         "permission-surface:bash scripts/checks/check-permission-surface.sh"
                         "permission-surface-self-test:bash scripts/selftests/test-check-permission-surface.sh"
+                        "adminui-surface:bash scripts/checks/check-adminui-surface.sh"
+                        "adminui-surface-self-test:bash scripts/selftests/test-check-adminui-surface.sh"
                         "permission-maturity:bash scripts/checks/check-permission-maturity.sh --ratchet"
                         "permission-maturity-self-test:bash scripts/selftests/test-check-permission-maturity.sh"
                         "policy-rows-self-test:bash scripts/selftests/test-check-policy-rows.sh"
@@ -2149,6 +2153,43 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-permission-surface.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            check-adminui-surface = {
+              type = "app";
+              meta.description = "Surface-parity gate for the adminui panel: route table <-> mux, nav hrefs, and templ href/hx/action literals all resolve against the routes.go routeSpec table";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-adminui-surface";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gnused
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-adminui-surface.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-adminui-surface = {
+              type = "app";
+              meta.description = "Fixture self-test for check-adminui-surface.sh (clean tree passes; planted mux/nav/templ violations fail)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-adminui-surface";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-adminui-surface.sh
                   '';
                 }
               );

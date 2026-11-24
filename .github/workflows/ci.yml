@@ -802,6 +802,15 @@ jobs:
       - name: Permission surface self-test
         run: bash scripts/selftests/test-check-permission-surface.sh
 
+      # adminui routeSpec table parity: mux registrations, nav hrefs, and templ
+      # href/hx/action literals must all resolve against the route table
+      # (T27/F197); fixture self-test plants one violation per parity leg.
+      - name: Adminui surface check
+        run: bash scripts/checks/check-adminui-surface.sh
+
+      - name: Adminui surface self-test
+        run: bash scripts/selftests/test-check-adminui-surface.sh
+
       # docs/PERMISSIONS.md is the inventory of record: a service's declared
       # authorization level may only improve.
       - name: Permission maturity ratchet
