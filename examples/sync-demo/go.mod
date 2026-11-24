@@ -1,12 +1,12 @@
 module github.com/larsartmann/cqrs-htmx/examples/sync-demo
 
-go 1.27.3
+go 1.27
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.19.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
+	github.com/larsartmann/cqrs-htmx/v4 v4.19.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
 )

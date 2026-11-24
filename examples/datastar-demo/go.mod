@@ -1,12 +1,12 @@
 module github.com/larsartmann/cqrs-htmx/examples/datastar-demo
 
-go 1.27.3
+go 1.27
 
 require (
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-datastar v0.7.0
 	github.com/larsartmann/go-datastar/broadcast v0.7.0

@@ -1,17 +1,17 @@
 //cqrs-lint:ignore(E003) identity-model is intentionally a cohesive pure-domain package (IDs, events, commands, fold); splitting would break usermgmt's alias/re-export architecture
 module github.com/larsartmann/cqrs-htmx/v4
 
-go 1.27.3
+go 1.27
 
 require (
 	github.com/casbin/casbin/v3 v3.11.0
 	github.com/go-playground/form/v4 v4.5.1
 	github.com/larsartmann/go-codec v0.3.4
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (record/v4 trails event/command; detector compares one module's max — cqrs-lint 4.8.1 anchors the finding on the block's first family require)
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
@@ -42,7 +42,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.2 // indirect
 	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
