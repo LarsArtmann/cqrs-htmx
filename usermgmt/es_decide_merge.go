@@ -27,7 +27,16 @@ type mergeAdoption struct {
 }
 
 func newMergeAdoption(aggID id.StreamID, state UserState, version event.Version) *mergeAdoption {
-	return &mergeAdoption{aggID: aggID, state: state, version: version}
+	return &mergeAdoption{
+		aggID:           aggID,
+		state:           state,
+		version:         version,
+		events:          nil,
+		credentialIDs:   nil,
+		accounts:        nil,
+		totpAdopted:     false,
+		verifiedAdopted: false,
+	}
 }
 
 func (a *mergeAdoption) emit(eventType event.Type, enc codec.Codec, payload any, what string) error {
