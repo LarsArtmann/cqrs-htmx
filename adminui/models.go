@@ -157,21 +157,19 @@ func roleDescriptions(role identitymodel.Role) string {
 
 // tenantTransferGrantOnlyConfirm is the confirm variant for a tenant with NO
 // current owner: the action grants ownership without a demotion, and the
-// confirm says so rather than implying a two-sided handover.
-func tenantTransferGrantOnlyConfirm(targetName string) string {
-	return "Grant ownership to " + targetName +
-		"? This tenant currently has no owner, so nobody will be demoted."
+// confirm says so rather than implying a two-sided handover. Labels flow
+// through the merged table (f#19): the verb form lives in defaultLabels.
+func tenantTransferGrantOnlyConfirm(labels map[string]string, targetName string) string {
+	return labelf(labels, labelConfirmTenTransferGrantBody, targetName)
 }
 
 // tenantTransferConfirm composes the transfer confirm for ONE pairing
 // (F163): the current owner and the receiving member are both NAMED — ids
 // alone would make an irreversible authority move a lookup exercise. The
-// text also states the two-sided effect. (T16 batch-3: interpolated confirm
-// bodies composed in Go helpers stay hardcoded English.)
-func tenantTransferConfirm(priorName, targetName string) string {
-	return "Transfer ownership from " + priorName + " to " + targetName + "? " +
-		targetName + " gains the owner role and keeps their other roles; " +
-		priorName + " loses owner but keeps any other roles they hold."
+// text also states the two-sided effect. (f#19: the sentence moved into the
+// label table with %s verbs; both sides interpolate through it.)
+func tenantTransferConfirm(labels map[string]string, priorName, targetName string) string {
+	return labelf(labels, labelConfirmTenTransferBody, priorName, targetName, targetName, priorName)
 }
 
 // statCard is one metric tile on the dashboard. Tone and Href are optional
@@ -691,10 +689,10 @@ func holdsAdminTier(roles []identitymodel.Role) bool {
 // memberRemoveConfirm builds the roster remove confirm text, escalating like
 // the passkey case when the member holds the tenant's ONLY admin-tier role:
 // the admin is about to leave a tenant nobody can administer.
-func memberRemoveConfirm(d tenantDetailData, m memberRow) string {
-	msg := "Remove " + m.displayName() + " from this tenant?"
+func memberRemoveConfirm(labels map[string]string, d tenantDetailData, m memberRow) string {
+	msg := labelf(labels, labelConfirmMemberRemoveBody, m.displayName())
 	if holdsAdminTier(m.Roles) && d.AdminTierCount <= 1 {
-		msg += " They hold the only admin or owner role here — the tenant would be left without an admin."
+		msg += " " + label(labels, labelConfirmLastAdminHere)
 	}
 	return msg
 }
@@ -702,10 +700,10 @@ func memberRemoveConfirm(d tenantDetailData, m memberRow) string {
 // tenantRevokeConfirm builds the user-page revoke confirm text with the same
 // last-admin escalation, keyed on the per-tenant admin-tier counts the
 // handler computed for the visible rows.
-func tenantRevokeConfirm(d userDetailData, access tenantAccessRow) string {
-	msg := "Remove " + d.User.Email + " from " + access.Name + "? They lose the roles they hold there."
+func tenantRevokeConfirm(labels map[string]string, d userDetailData, access tenantAccessRow) string {
+	msg := labelf(labels, labelConfirmTenantRevokeBody, d.User.Email, access.Name)
 	if holdsAdminTier(access.Roles) && d.TenantAdminCounts[access.TenantID] <= 1 {
-		msg += " They hold the only admin or owner role there — the tenant would be left without an admin."
+		msg += " " + label(labels, labelConfirmLastAdminThere)
 	}
 	return msg
 }
@@ -725,12 +723,8 @@ func roleDistributionSummary(dist []roleCount) string {
 // already escalates its confirm; changing that member's ROLES can leave the
 // tenant just as unadministrable, and the count of admin-tier holders is
 // named so the admin knows exactly how thin the margin is.
-func lastAdminDowngradeCopy(adminTierCount int) string {
-	return fmt.Sprintf(
-		"Only %d member(s) hold admin or owner in this tenant, and this change would leave it with zero — "+
-			"the last admin cannot be downgraded. Grant admin or owner to another member first.",
-		adminTierCount,
-	)
+func lastAdminDowngradeCopy(labels map[string]string, adminTierCount int) string {
+	return labelf(labels, labelConfirmLastAdminDowngrade, adminTierCount)
 }
 
 // lastAdminDowngradeRefused is the server-side refusal toast for the same
@@ -746,10 +740,10 @@ func lastAdminDowngradeRefusalMessage() string {
 // escalating when the member holds the tenant's ONLY admin-tier role: a
 // checkbox change that drops admin/owner strands the tenant exactly like a
 // removal would.
-func memberRoleChangeConfirm(d tenantDetailData, m memberRow) string {
-	msg := "Change the roles of " + m.displayName() + " in this tenant?"
+func memberRoleChangeConfirm(labels map[string]string, d tenantDetailData, m memberRow) string {
+	msg := labelf(labels, labelConfirmMemberRolesBody, m.displayName())
 	if holdsAdminTier(m.Roles) && d.AdminTierCount <= 1 {
-		msg += " " + lastAdminDowngradeCopy(1)
+		msg += " " + lastAdminDowngradeCopy(labels, 1)
 	}
 	return msg
 }
@@ -757,10 +751,10 @@ func memberRoleChangeConfirm(d tenantDetailData, m memberRow) string {
 // tenantRoleChangeConfirm builds the user-page role-change confirm text with
 // the same downgrade escalation, keyed on the per-tenant admin-tier counts
 // the handler computed for the visible rows.
-func tenantRoleChangeConfirm(d userDetailData, access tenantAccessRow) string {
-	msg := "Change " + d.User.Email + "'s roles in " + access.Name + "?"
+func tenantRoleChangeConfirm(labels map[string]string, d userDetailData, access tenantAccessRow) string {
+	msg := labelf(labels, labelConfirmTenantRolesBody, d.User.Email, access.Name)
 	if holdsAdminTier(access.Roles) && d.TenantAdminCounts[access.TenantID] <= 1 {
-		msg += " " + lastAdminDowngradeCopy(d.TenantAdminCounts[access.TenantID])
+		msg += " " + lastAdminDowngradeCopy(labels, d.TenantAdminCounts[access.TenantID])
 	}
 	return msg
 }
@@ -768,47 +762,43 @@ func tenantRoleChangeConfirm(d userDetailData, access tenantAccessRow) string {
 // tenantSuspendConfirm builds the suspend confirm text with the impact
 // spelled out: the admin is about to cut access for a known number of
 // people, and "some members" would hide the blast radius.
-func tenantSuspendConfirm(d tenantDetailData) string {
-	return fmt.Sprintf("Suspend this tenant? Its %d member(s) lose access until it is reactivated.", d.TotalMembers)
+func tenantSuspendConfirm(labels map[string]string, d tenantDetailData) string {
+	return labelf(labels, labelConfirmTenSuspendBody, d.TotalMembers)
 }
 
 // tenantDeleteConfirm builds the delete confirm text with the same impact
 // truth: deletion revokes every membership, and the admin should see how
 // many before confirming something irreversible.
-func tenantDeleteConfirm(d tenantDetailData) string {
-	return fmt.Sprintf("Delete this tenant and revoke its %d membership(s)? This cannot be undone.", d.TotalMembers)
+func tenantDeleteConfirm(labels map[string]string, d tenantDetailData) string {
+	return labelf(labels, labelConfirmTenDeleteBody, d.TotalMembers)
 }
 
 // removeCredentialConfirm builds the passkey-removal confirm text: removing
 // the user's last passkey leaves them dependent on linked OAuth2 providers
 // (or locked out entirely), and the admin deserves to know which world they
 // are choosing.
-func removeCredentialConfirm(d userDetailData, cred identitymodel.WebAuthnCredential) string {
+func removeCredentialConfirm(labels map[string]string, d userDetailData, cred identitymodel.WebAuthnCredential) string {
 	name := cred.Name
 	if name == "" {
 		name = "this passkey"
 	}
 	if len(d.User.Credentials) == 1 && len(d.User.ExternalAccounts) == 0 {
-		return "Remove " + name + "? It is the user's ONLY way to sign in — they will be " +
-			"locked out until a passkey is re-enrolled or a provider is linked. This cannot be undone lightly."
+		return labelf(labels, labelConfirmUsersPasskeyOnlyBody, name)
 	}
 	if len(d.User.Credentials) == 1 {
-		return "Remove " + name + "? It is the user's last passkey — afterwards they can only " +
-			"sign in via a linked OAuth2 provider."
+		return labelf(labels, labelConfirmUsersPasskeyLastBody, name)
 	}
-	return "Remove " + name + "? The user can no longer sign in with it."
+	return labelf(labels, labelConfirmUsersPasskeyBody, name)
 }
 
 // revokeRolesConfirm builds the platform-role revocation confirm text. When
 // the admin is revoking their own access, the warning escalates: the panel
 // itself becomes unreachable for them.
-func revokeRolesConfirm(d userDetailData) string {
+func revokeRolesConfirm(labels map[string]string, d userDetailData) string {
 	if d.IsSelf {
-		return "Revoke YOUR OWN platform roles? You will lock yourself out of this panel " +
-			"until another admin re-grants them."
+		return label(labels, labelConfirmUsersRevokeSelfBody)
 	}
-	return "Revoke all platform roles for " + d.User.Email +
-		"? They lose admin-panel access until re-granted."
+	return labelf(labels, labelConfirmUsersRevokeBody, d.User.Email)
 }
 
 // userFilterChip is one rendered status chip on the users index.

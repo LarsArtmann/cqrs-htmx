@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"fmt"
 	"maps"
 	"regexp"
 	"slices"
@@ -219,6 +220,40 @@ const (
 	labelFormMemberEmail          = "form.member.email"
 	labelFormMemberRole           = "form.member.role"
 	labelFormOwnership            = "form.member.ownership"
+
+	// Batch-3 interpolation pack (f#19): confirm bodies, escalation
+	// suffixes, and aria labels that EMBED VALUES (user email, tenant name,
+	// passkey name, member counts). The defaults carry the %s/%d verb form;
+	// labelf interpolates through the merged table exactly like label
+	// resolves static keys. Values are byte-identical to the strings the
+	// handlers/templates composed by concatenation before this pack.
+	labelConfirmUsersDeleteBody      = "confirm.users.delete.body"
+	labelConfirmUsersEmailBody       = "confirm.users.change_email.body"
+	labelConfirmUsersRestoreBody     = "confirm.users.restore_passkey.body"
+	labelConfirmUsersPasskeyBody     = "confirm.users.remove_passkey.body"
+	labelConfirmUsersPasskeyLastBody = "confirm.users.remove_passkey.last.body"
+	labelConfirmUsersPasskeyOnlyBody = "confirm.users.remove_passkey.only.body"
+	labelConfirmUsersRevokeSelfBody  = "confirm.users.revoke_roles.self.body"
+	labelConfirmUsersRevokeBody      = "confirm.users.revoke_roles.body"
+	labelConfirmUsersUnlinkBody      = "confirm.users.unlink.body"
+	labelConfirmTenSuspendBody       = "confirm.tenants.suspend.body"
+	labelConfirmTenDeleteBody        = "confirm.tenants.delete.body"
+	labelConfirmTenTransferBody      = "confirm.tenants.transfer.body"
+	labelConfirmTenTransferGrantBody = "confirm.tenants.transfer.grant_only.body"
+	labelConfirmMemberRemoveBody     = "confirm.members.remove.body"
+	labelConfirmMemberRolesBody      = "confirm.members.change_roles.body"
+	labelConfirmTenantRevokeBody     = "confirm.tenant_access.revoke.body"
+	labelConfirmTenantRolesBody      = "confirm.tenant_access.change_roles.body"
+	labelConfirmLastAdminHere        = "confirm.last_admin.only_holder_here"
+	labelConfirmLastAdminThere       = "confirm.last_admin.only_holder_there"
+	labelConfirmLastAdminDowngrade   = "confirm.last_admin.downgrade"
+	labelAriaSortBy                  = "aria.users.sort_by"
+	labelAriaSelectRow               = "aria.users.select_row"
+	labelAriaRevokeAccess            = "aria.users.revoke_access"
+	labelAriaSetRolesIn              = "aria.users.set_roles_in"
+	labelAriaSetRolesFor             = "aria.members.set_roles_for"
+	labelAriaMemberRemove            = "aria.members.remove"
+	labelAriaSparkline               = "aria.dashboard.registrations"
 )
 
 // defaultLabels is the display table: the single source for every covered
@@ -422,6 +457,37 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelFormMemberEmail:          "Add member email",
 	labelFormMemberRole:           "Role", //nolint:goconst // display value shared by design
 	labelFormOwnership:            "Ownership:",
+
+	labelConfirmUsersDeleteBody:      "Delete user %s? This cannot be undone.",
+	labelConfirmUsersEmailBody:       "Change this user's email? OAuth providers match by email — the user may lose linked access until re-linked.",
+	labelConfirmUsersRestoreBody:     "Restore a passkey from backup JSON? The uploaded credential becomes a trusted sign-in factor immediately — restore it only from a backup you control.",
+	labelConfirmUsersPasskeyBody:     "Remove %s? The user can no longer sign in with it.",
+	labelConfirmUsersPasskeyLastBody: "Remove %s? It is the user's last passkey — afterwards they can only sign in via a linked OAuth2 provider.",
+	labelConfirmUsersPasskeyOnlyBody: "Remove %s? It is the user's ONLY way to sign in — they will be " +
+		"locked out until a passkey is re-enrolled or a provider is linked. This cannot be undone lightly.",
+	labelConfirmUsersRevokeSelfBody: "Revoke YOUR OWN platform roles? You will lock yourself out of this panel " +
+		"until another admin re-grants them.",
+	labelConfirmUsersRevokeBody:      "Revoke all platform roles for %s? They lose admin-panel access until re-granted.",
+	labelConfirmUsersUnlinkBody:      "Unlink %s from %s? The account can be linked again later.",
+	labelConfirmTenSuspendBody:       "Suspend this tenant? Its %d member(s) lose access until it is reactivated.",
+	labelConfirmTenDeleteBody:        "Delete this tenant and revoke its %d membership(s)? This cannot be undone.",
+	labelConfirmTenTransferBody:      "Transfer ownership from %s to %s? %s gains the owner role and keeps their other roles; %s loses owner but keeps any other roles they hold.",
+	labelConfirmTenTransferGrantBody: "Grant ownership to %s? This tenant currently has no owner, so nobody will be demoted.",
+	labelConfirmMemberRemoveBody:     "Remove %s from this tenant?",
+	labelConfirmMemberRolesBody:      "Change the roles of %s in this tenant?",
+	labelConfirmTenantRevokeBody:     "Remove %s from %s? They lose the roles they hold there.",
+	labelConfirmTenantRolesBody:      "Change %s's roles in %s?",
+	labelConfirmLastAdminHere:        "They hold the only admin or owner role here — the tenant would be left without an admin.",
+	labelConfirmLastAdminThere:       "They hold the only admin or owner role there — the tenant would be left without an admin.",
+	labelConfirmLastAdminDowngrade:   "Only %d member(s) hold admin or owner in this tenant, and this change would leave it with zero — " +
+		"the last admin cannot be downgraded. Grant admin or owner to another member first.",
+	labelAriaSortBy:       "Sort by %s",
+	labelAriaSelectRow:    "Select %s",
+	labelAriaRevokeAccess: "Revoke access to %s",
+	labelAriaSetRolesIn:   "Set roles in %s",
+	labelAriaSetRolesFor:  "Set roles for %s",
+	labelAriaMemberRemove: "Remove %s from this tenant",
+	labelAriaSparkline:    "%d registrations over %d days",
 }
 
 // label resolves one display string from a merged label table. The fallback
@@ -433,6 +499,25 @@ func label(labels map[string]string, key string) string {
 		return s
 	}
 	return key
+}
+
+// labelf resolves one display string and interpolates the args into it —
+// label() when no args are given, fmt.Sprintf through the resolved string
+// otherwise. The f#19 interpolation seam for confirm bodies and aria labels
+// that embed values (user email, tenant name, member counts): the TABLE
+// carries the verb form ("Delete user %s? This cannot be undone.") so a
+// consumer override controls the whole sentence, values included.
+//
+// Honest failure modes, both visible rather than silent: an unknown key
+// renders the key itself (same contract as label), and an override that
+// drops a verb renders fmt's %!(EXTRA…) marker — ugly, but it names the
+// arity mistake at the exact surface that made it.
+func labelf(labels map[string]string, key string, args ...any) string {
+	s := label(labels, key)
+	if len(args) == 0 {
+		return s
+	}
+	return fmt.Sprintf(s, args...)
 }
 
 // mergeLabels copies the default table and applies the consumer's overrides
@@ -547,6 +632,13 @@ func htmlLangAttrs(p pageData) templ.Attributes {
 // hardcoded strings, for the covered set.
 func (p pageData) label(key string) string {
 	return label(p.Labels, key)
+}
+
+// labelf is the page-method form of [labelf]: it resolves and interpolates
+// through the page's merged table. Templ components call p.labelf(key,
+// args…) exactly where they called string concatenation before f#19.
+func (p pageData) labelf(key string, args ...any) string {
+	return labelf(p.Labels, key, args...)
 }
 
 // date renders a date in the page locale's shape and location. Per render:

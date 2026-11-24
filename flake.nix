@@ -738,7 +738,7 @@
 
             bench-adminui = goApp {
               name = "run-bench-adminui";
-              description = "ADVISORY: run the adminui 200-user page render benchmark (BenchmarkUsersPageRender) and print a benchstat comparison vs docs/benchmarks/adminui-baseline.raw.txt. Same load guard as bench-spike (BENCH_MAX_LOAD, default cores/4; 0 disables) — concurrent load makes ns/op garbage. Exit code reflects only whether the bench RAN, not the comparison (advisory by design: the adminui bench is a directional instrument, not a release gate). --save-baseline [path] re-pins the baseline with a load1 context header; re-pin ONLY on an idle machine (bench canon). Env: BENCH_COUNT, BENCHTIME, BENCH_MAX_LOAD.";
+              description = "ADVISORY: run the adminui 200-user page render benchmark (BenchmarkUsersPageRender) and print a benchstat comparison vs docs/benchmarks/adminui-baseline.raw.txt. Same load guard as bench-spike (BENCH_MAX_LOAD, default cores/4; 0 disables) — concurrent load makes ns/op garbage. A load refusal is a SKIP (exit 0, loud marker — the advisory composite stays green); a bench that cannot run (compile error) exits 1. --save-baseline [path] re-pins the baseline with a load1 context header; re-pin ONLY on an idle machine (bench canon). Env: BENCH_COUNT, BENCHTIME, BENCH_MAX_LOAD. Logic lives in scripts/tools/bench-adminui.sh (the check-modules advisory record runs the same script).";
               runtimeInputs = [
                 benchstat
                 pkgs.git
@@ -747,58 +747,7 @@
                 pkgs.gnugrep
               ];
               text = ''
-                baseline="docs/benchmarks/adminui-baseline.raw.txt"
-                count="''${BENCH_COUNT:-5}"
-                benchtime="''${BENCHTIME:-2s}"
-
-                # shellcheck disable=SC1091
-                source scripts/lib/go-cache-env.sh
-
-                cores="$(nproc)"
-                max_load="''${BENCH_MAX_LOAD:-$((cores / 4))}"
-                load1="$(cut -d' ' -f1 /proc/loadavg)"
-                if [ "$max_load" != "0" ]; then
-                  ok="$(awk -v l="$load1" -v m="$max_load" 'BEGIN{print (l < m) ? 1 : 0}')"
-                  if [ "$ok" != "1" ]; then
-                    echo "bench-adminui: 1-min load $load1 >= BENCH_MAX_LOAD $max_load (cores=$cores) — refusing to measure." >&2
-                    echo "  Wait for a quiet machine, or override: BENCH_MAX_LOAD=<n> (0 disables the guard)." >&2
-                    exit 2
-                  fi
-                  echo "bench-adminui: load $load1 (max $max_load, cores $cores) — OK"
-                fi
-
-                bench_args=(
-                  -run xxx
-                  -bench "^BenchmarkUsersPageRender$"
-                  -benchtime="$benchtime"
-                  -benchmem
-                  -count="$count"
-                  -timeout=120s
-                )
-
-                if [ "''${1:-}" = "--save-baseline" ]; then
-                  out="''${2:-$baseline}"
-                  echo "== bench-adminui: pinning baseline to $out ($count x $benchtime) =="
-                  { echo "load1: $load1"; (cd adminui && go test "''${bench_args[@]}" .); } | tee "$out"
-                  echo "Saved $out — commit it in the same change as any bench-path edit."
-                  exit 0
-                fi
-
-                current="$(mktemp /tmp/bench-adminui-current.XXXXXX)"
-                trap 'rm -f "$current"' EXIT
-
-                echo "== bench-adminui: $count x $benchtime (ADVISORY) =="
-                (cd adminui && go test "''${bench_args[@]}" .) | tee "$current"
-
-                if [ -f "$baseline" ]; then
-                  echo
-                  echo "== benchstat: baseline -> current =="
-                  benchstat "$baseline" "$current" || true
-                else
-                  echo "bench-adminui: no baseline at $baseline (advisory run only)."
-                  echo "  Pin one on an idle machine: nix run .#bench-adminui -- --save-baseline" >&2
-                fi
-                echo "bench-adminui: OK (advisory — no verdict gate)"
+                bash scripts/tools/bench-adminui.sh "$@"
               '';
             };
 
@@ -1416,6 +1365,7 @@
                         "templ-codegen-staged-self-test:bash scripts/selftests/test-check-templ-codegen-staged.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                       "erraudit-strict-advisory:bash scripts/checks/erraudit-inventory.sh --strict"
+                      "bench-adminui-advisory:bash scripts/tools/bench-adminui.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                         "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"

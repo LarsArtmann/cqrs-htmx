@@ -271,13 +271,13 @@ templ newUserAction(p pageData, d usersListData) {
 // no server round-trip. aria-sort carries the live state (the URL-carried
 // server sort from T03 seeds it on render and stays the bookmarkable
 // default); the indicator span is textContent-updated by admin.js.
-templ userSortableHeader(key, label, aria string) {
+templ userSortableHeader(p pageData, key, label, aria string) {
 	<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white" aria-sort={ aria }>
 		<button
 			type="button"
 			data-sort-key={ key }
 			class="inline-flex items-center gap-1 py-1 hover:text-blue-600 dark:hover:text-blue-400"
-			aria-label={ "Sort by " + label }
+			aria-label={ p.labelf(labelAriaSortBy, label) }
 		>
 			{ label }
 			<span data-sort-indicator aria-hidden="true"></span>
@@ -325,11 +325,11 @@ templ usersTableContent(p pageData, d usersListData, sort ...string) {
 						<th scope="col" class="w-10 px-3 py-2">
 							<input type="checkbox" data-bulk-select-all class="h-4 w-4" aria-label={ p.label(labelAriaBulkSelectAll) }/>
 						</th>
-						@userSortableHeader("email", p.label(labelHeaderUser), userHeaderAria(pagerSortOf(sort), "email"))
+						@userSortableHeader(p, "email", p.label(labelHeaderUser), userHeaderAria(pagerSortOf(sort), "email"))
 						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderAccess) }</th>
 						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderStatus) }</th>
 						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderLastSeen) }</th>
-						@userSortableHeader("created", p.label(labelHeaderCreated), userHeaderAria(pagerSortOf(sort), "created"))
+						@userSortableHeader(p, "created", p.label(labelHeaderCreated), userHeaderAria(pagerSortOf(sort), "created"))
 						<th scope="col" class="px-4 py-2 text-end font-semibold text-gray-900 dark:text-white"><span class="sr-only">Actions</span></th>
 					</tr>
 				</thead>
@@ -354,7 +354,7 @@ templ usersRows(p pageData, d usersListData) {
 			// T19 F137: the row checkbox — value is the user id, name "ids" so
 			// the bulk POST receives one form value per checked row.
 			<td class="w-10 px-3 py-2">
-				<input type="checkbox" name="ids" value={ row.User.ID.Get().String() } data-bulk-row class="h-4 w-4" aria-label={ "Select " + row.User.Email }/>
+				<input type="checkbox" name="ids" value={ row.User.ID.Get().String() } data-bulk-row class="h-4 w-4" aria-label={ p.labelf(labelAriaSelectRow, row.User.Email) }/>
 			</td>
 			<td class="px-4 py-2">
 				<a class="flex no-underline" href={ d.BasePath + "/users/" + row.User.ID.Get().String() }>
@@ -673,8 +673,8 @@ templ userDetailContent(p pageData, d userDetailData) {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
-					"data-confirm":       "Delete user " + d.User.Email + "? This cannot be undone.",
-					"data-confirm-title": "Delete user",
+					"data-confirm":       p.labelf(labelConfirmUsersDeleteBody, d.User.Email),
+					"data-confirm-title": p.label(labelConfirmUsersDelete),
 					"hx-disabled-elt":    "this",
 				}},
 			})
@@ -767,8 +767,8 @@ templ profileEditCard(p pageData, d userDetailData) {
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"data-confirm":       "Change this user's email? OAuth providers match by email — the user may lose linked access until re-linked.",
-					"data-confirm-title": "Change email",
+					"data-confirm":       p.label(labelConfirmUsersEmailBody),
+					"data-confirm-title": p.label(labelConfirmUsersEmail),
 				}},
 			})
 		</form>
@@ -830,8 +830,8 @@ templ credentialRestoreCard(p pageData, d userDetailData) {
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("key"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"data-confirm":       "Restore a passkey from backup JSON? The uploaded credential becomes a trusted sign-in factor immediately — restore it only from a backup you control.",
-						"data-confirm-title": "Restore credential",
+						"data-confirm":       p.label(labelConfirmUsersRestoreBody),
+						"data-confirm-title": p.label(labelActionRestoreCredential),
 						"hx-disabled-elt":    "this",
 					}},
 				})
@@ -870,8 +870,8 @@ templ credentialRows(d userDetailData) {
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/credentials/" + base64.RawURLEncoding.EncodeToString(c.ID) + "/delete",
-						"data-confirm":       removeCredentialConfirm(d, c),
-						"data-confirm-title": "Remove passkey",
+						"data-confirm":       removeCredentialConfirm(p.Labels, d, c),
+						"data-confirm-title": p.label(labelConfirmUsersPasskey),
 						"hx-disabled-elt":    "this",
 					}},
 				})
@@ -995,8 +995,8 @@ templ platformAccessCard(p pageData, d userDetailData) {
 						Size:    display.ButtonSizeSM,
 						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 							"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/roles/revoke",
-							"data-confirm":       revokeRolesConfirm(d),
-							"data-confirm-title": "Revoke platform roles",
+							"data-confirm":       revokeRolesConfirm(p.Labels, d),
+							"data-confirm-title": p.label(labelConfirmUsersRoles),
 							"hx-disabled-elt":    "this",
 						}},
 					})
@@ -1098,7 +1098,7 @@ templ tenantAccessCard(p pageData, d userDetailData) {
 			@display.Table(display.TableProps{
 				Headers:     []string{"Tenant", "Roles", ""},
 				Hover:       true,
-				Body:        tenantAccessRows(d),
+				Body:        tenantAccessRows(p, d),
 				Flush:       true,
 				CellPadding: display.TableCellPaddingCompact,
 			})
@@ -1136,7 +1136,7 @@ templ tenantAccessCard(p pageData, d userDetailData) {
 	}
 }
 
-templ tenantAccessRows(d userDetailData) {
+templ tenantAccessRows(p pageData, d userDetailData) {
 	for _, access := range d.TenantAccess {
 		<tr>
 			<td class="px-4 py-2">
@@ -1151,7 +1151,7 @@ templ tenantAccessRows(d userDetailData) {
 						@roleBadge(string(r))
 					}
 					<form class="flex items-center gap-1.5" hx-post={ d.UpdateTenantBase + "/" + access.TenantID }>
-						@roleCheckboxGroup(d.AssignableRoles, access.Roles, "Set roles in " + access.Name)
+						@roleCheckboxGroup(d.AssignableRoles, access.Roles, p.labelf(labelAriaSetRolesIn, access.Name))
 						// Downgrade escalation (T12), same contract as the roster's
 						// role-change confirm: dropping the tenant's only admin-tier
 						// role is refused server-side, so the dialog says so first.
@@ -1161,8 +1161,8 @@ templ tenantAccessRows(d userDetailData) {
 							Size:     display.ButtonSizeSM,
 							Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
 							BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-								"data-confirm":       tenantRoleChangeConfirm(d, access),
-								"data-confirm-title": "Change roles",
+								"data-confirm":       tenantRoleChangeConfirm(p.Labels, d, access),
+								"data-confirm-title": p.label(labelConfirmTenantRoles),
 							}},
 						})
 					</form>
@@ -1176,10 +1176,10 @@ templ tenantAccessRows(d userDetailData) {
 					// Icon-only button: name it for screen readers (axe
 					// button-name, first adminui a11y sweep 2026-11-14).
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"aria-label":         "Revoke access to " + access.Name,
+						"aria-label":         p.labelf(labelAriaRevokeAccess, access.Name),
 						"hx-post":            d.RemoveTenantBase + "/" + access.TenantID + "/delete",
-						"data-confirm":       tenantRevokeConfirm(d, access),
-						"data-confirm-title": "Revoke tenant access",
+						"data-confirm":       tenantRevokeConfirm(p.Labels, d, access),
+						"data-confirm-title": p.label(labelConfirmTenantRevoke),
 						"hx-disabled-elt":    "this",
 					}},
 				})
@@ -1247,8 +1247,8 @@ templ externalAccountRows(p pageData, d userDetailData) {
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
-						"data-confirm":       "Unlink " + ea.Provider + " from " + d.User.Email + "? The account can be linked again later.",
-						"data-confirm-title": "Unlink account",
+						"data-confirm":       p.labelf(labelConfirmUsersUnlinkBody, ea.Provider, d.User.Email),
+						"data-confirm-title": p.label(labelConfirmUsersUnlink),
 						"hx-disabled-elt":    "this",
 					}},
 				})
