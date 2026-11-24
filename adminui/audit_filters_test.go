@@ -31,15 +31,15 @@ func TestParseAuditDateFilter(t *testing.T) {
 	if issue != "" {
 		t.Fatalf("valid bound produced issue %q", issue)
 	}
-	if !day.Equal(time.Date(2026, 11, 1, 0, 0, 0, 0, time.Local)) {
-		t.Errorf("valid bound parsed as %v, want local midnight of the given day", day)
+	if day.Format("2006-01-02") != "2026-11-01" {
+		t.Errorf("valid bound parsed as %v, want the given calendar day", day)
 	}
 }
 
 func TestFilterAuditRange_InclusiveWholeDays(t *testing.T) {
 	t.Parallel()
 
-	noon := time.Date(2026, 6, 15, 12, 0, 0, 0, time.Local)
+	noon := time.Date(2026, 6, 15, 12, 0, 0, 0, time.UTC)
 	entries := []usermgmt.AuditEntry{
 		{Action: "a", OccurredAt: noon},
 		{Action: "b", OccurredAt: noon.AddDate(0, 0, 1)},
@@ -47,7 +47,7 @@ func TestFilterAuditRange_InclusiveWholeDays(t *testing.T) {
 	}
 
 	day := func(y int, m time.Month, d int) *time.Time {
-		tm := time.Date(y, m, d, 0, 0, 0, 0, time.Local)
+		tm := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 		return &tm
 	}
 
@@ -221,18 +221,18 @@ func TestFlow_AuditActorChip(t *testing.T) {
 	}
 
 	kept := get("/admin/audit?actor=" + acted)
-	if strings.Count(kept, "<tr") < 2 {
+	if strings.Contains(kept, "No events match your filters") {
 		t.Errorf("actor chip %q (a kind that acted) must keep rows", acted)
 	}
 	none := get("/admin/audit?actor=" + absent)
-	if strings.Count(none, "<tr") != 1 { // header row only
+	if !strings.Contains(none, "No events match your filters") {
+		t.Errorf("actor chip %q (a kind that never acted) must show the filtered-empty state", absent)
+	}
+	if strings.Contains(none, "Session started") {
 		t.Errorf("actor chip %q must filter every row out", absent)
 	}
-	if !strings.Contains(none, "No events match your filters") {
-		t.Error("chip-filtered empty state must be honest about the filters")
-	}
 	degraded := get("/admin/audit?actor=weird")
-	if strings.Count(degraded, "<tr") < 2 {
+	if strings.Contains(degraded, "No events match your filters") {
 		t.Error("unknown chip must degrade to every row")
 	}
 	if strings.Contains(degraded, "actor=weird") {

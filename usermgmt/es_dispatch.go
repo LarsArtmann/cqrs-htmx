@@ -235,6 +235,16 @@ func RegisterCommands(
 		)
 	}
 
+	return registerMergeCommands(dispatcher, repo)
+}
+
+// registerMergeCommands wires the two identity-merge commands. It is split
+// from RegisterCommands so that function stays inside the maintainability
+// budget; a failure is wrapped like every other registration failure.
+func registerMergeCommands(
+	dispatcher *command.Dispatcher,
+	repo *decider.Repository[UserState],
+) error {
 	if err := command.RegisterTyped(
 		dispatcher, cmdMergeUsers,
 		func(ctx context.Context, c *identitymodel.MergeUsersCmd) error {
