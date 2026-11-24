@@ -3356,7 +3356,7 @@ func tenantAccessCard(d userDetailData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = suggestCombobox("admin-grant-tenant-input", "text", "tenant", "", "Pick a tenant", "", tenantOptionsJSON(d.TenantOptions)).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = suggestCombobox("admin-grant-tenant-input", "text", "tenant", "", "Pick a tenant", "Tenant", "", tenantOptionsJSON(d.TenantOptions)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

@@ -1089,3 +1089,161 @@
   });
 })();
 // ============================ end T20 prefs block ============================
+
+// ==========================================================================
+// T08 F051/F052 — type-ahead directory combobox (append-only block).
+// ==========================================================================
+(function () {
+  "use strict";
+
+  var DEBOUNCE_MS = 200;   // keystroke burst coalescing (plan band: 150–250ms)
+  var MIN_QUERY_LEN = 2;   // one character is a mistake, not a browse intent
+
+  function wrap(input) {
+    var w = input.closest("[data-suggest]");
+    return w && w.contains(input) ? w : null;
+  }
+  function listbox(input) {
+    var w = wrap(input);
+    return w ? w.querySelector("[data-suggest-list]") : null;
+  }
+
+  // --- options: fetched (data-suggest-src) or local (data-suggest-options) ---
+  function localOptions(input) {
+    var w = wrap(input);
+    if (!w || !w.hasAttribute("data-suggest-options")) return [];
+    try {
+      var parsed = JSON.parse(w.getAttribute("data-suggest-options"));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  var fetchTimer = null;
+  function scheduleFill(input) {
+    if (fetchTimer) clearTimeout(fetchTimer);
+    fetchTimer = setTimeout(function () { fill(input); }, DEBOUNCE_MS);
+  }
+
+  function fill(input) {
+    var q = input.value.trim();
+    var lb = listbox(input);
+    if (!lb) return;
+    if (q.length < MIN_QUERY_LEN) { close(input); return; } // honest empty-query refusal, mirrored client-side
+
+    var source = wrap(input) && wrap(input).getAttribute("data-suggest-src");
+    if (source) {
+      fetch(source + "?q=" + encodeURIComponent(q), {
+        headers: { "Accept": "application/json" }
+      })
+        .then(function (res) { return res.ok ? res.json() : []; })
+        .then(function (rows) { render(input, lb, rows); })
+        .catch(function () { close(input); });
+    } else {
+      var needle = q.toLowerCase();
+      var rows = localOptions(input).filter(function (o) {
+        return (o.value + " " + (o.label || "")).toLowerCase().indexOf(needle) === 0;
+      });
+      render(input, lb, rows);
+    }
+  }
+
+  function render(input, lb, rows) {
+    var base = input.id || "admin-suggest";
+    lb.innerHTML = "";
+    if (!rows.length) { close(input); return; }
+    rows.forEach(function (row, i) {
+      var li = document.createElement("li");
+      li.id = base + "-opt-" + i;
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", "false");
+      li.setAttribute("data-suggest-value", row.value);
+      li.textContent = row.label && row.label !== row.value ? row.label + " (" + row.value + ")" : row.value;
+      lb.appendChild(li);
+    });
+    lb.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    setActive(input, lb, 0);
+  }
+
+  function options(lb) {
+    return lb ? Array.prototype.slice.call(lb.querySelectorAll("[role='option']")) : [];
+  }
+
+  function setActive(input, lb, index) {
+    var opts = options(lb);
+    if (!opts.length) return;
+    index = Math.max(0, Math.min(index, opts.length - 1));
+    opts.forEach(function (o, i) {
+      o.setAttribute("aria-selected", i === index ? "true" : "false");
+    });
+    input.setAttribute("aria-activedescendant", opts[index].id);
+    lb.dataset.activeIndex = String(index);
+  }
+
+  function activeIndex(lb) {
+    return parseInt(lb && lb.dataset.activeIndex || "0", 10) || 0;
+  }
+
+  function pick(input, option) {
+    input.value = option.getAttribute("data-suggest-value");
+    close(input);
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    input.focus();
+  }
+
+  function close(input) {
+    var lb = listbox(input);
+    if (lb) { lb.hidden = true; lb.innerHTML = ""; delete lb.dataset.activeIndex; }
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+  }
+
+  // --- document-delegated events (gotcha 57: no per-element wiring, no
+  // inline handlers, CSP-safe) ---
+  document.addEventListener("input", function (e) {
+    var input = e.target.closest && e.target.closest("[data-suggest-input]");
+    if (!input || !wrap(input)) return;
+    scheduleFill(input);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    var input = e.target.closest && e.target.closest("[data-suggest-input]");
+    if (!input || !wrap(input)) return;
+    var lb = listbox(input);
+    var open = lb && !lb.hidden;
+    if (e.key === "Escape" && open) {
+      close(input);
+      e.preventDefault();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      if (!open) { fill(input); e.preventDefault(); return; }
+      setActive(input, lb, activeIndex(lb) + (e.key === "ArrowDown" ? 1 : -1));
+      e.preventDefault();
+      return;
+    }
+    if (e.key === "Enter" && open) {
+      var opts = options(lb);
+      var chosen = opts[activeIndex(lb)];
+      if (chosen) pick(input, chosen);
+      e.preventDefault(); // Enter picks; the form submits on the next Enter
+    }
+  });
+
+  document.addEventListener("mousedown", function (e) {
+    var option = e.target.closest && e.target.closest("[role='option']");
+    if (!option) return;
+    var lb = option.closest("[data-suggest-list]");
+    var input = lb && document.getElementById(lb.getAttribute("aria-controls-target") || lb.id.replace(/-listbox$/, ""));
+    // mousedown (not click) so the input keeps focus through the pick
+    if (input && wrap(input)) { pick(input, option); e.preventDefault(); }
+  });
+
+  document.addEventListener("focusout", function (e) {
+    var input = e.target.closest && e.target.closest("[data-suggest-input]");
+    if (input && wrap(input)) close(input);
+  });
+})();
+// ============================ end T08 suggest block ============================

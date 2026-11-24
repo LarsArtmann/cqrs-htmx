@@ -47,7 +47,10 @@ func TestUserDetail_TenantAccessCard(t *testing.T) {
 		">acme<",           // its slug
 		"owner",            // the role held there
 		"Grant access",
-		"Choose tenant…",
+		// T08: the grant candidate list rides the combobox, not a select —
+		// the options ship as JSON and admin.js filters per keystroke.
+		`data-suggest-options`,
+		`acme`,
 		"/users/" + member.User.ID.Get().String() + "/tenants/acme/delete",
 	} {
 		if !strings.Contains(body, want) {

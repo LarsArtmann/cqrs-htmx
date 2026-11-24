@@ -1117,7 +1117,7 @@ templ tenantAccessCard(d userDetailData) {
 					// ships once as JSON and admin.js filters per keystroke.
 					<div class="max-w-[220px]">
 						<label for="admin-grant-tenant-input" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tenant</label>
-						@suggestCombobox("admin-grant-tenant-input", "text", "tenant", "", "Pick a tenant", "", tenantOptionsJSON(d.TenantOptions))
+						@suggestCombobox("admin-grant-tenant-input", "text", "tenant", "", "Pick a tenant", "Tenant", "", tenantOptionsJSON(d.TenantOptions))
 					</div>
 					@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
 					@display.Button(display.ButtonProps{

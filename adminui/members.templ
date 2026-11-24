@@ -3,7 +3,6 @@ package adminui
 import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
-	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/utils"
 )
@@ -75,7 +74,7 @@ templ membersCard(p pageData, d tenantDetailData) {
 				// T08 F053: the type-ahead combobox replaces the 200-email
 				// datalist — the directory is asked per keystroke
 				// (/users/suggest), never shipped with the page.
-				@suggestCombobox("admin-member-email-input", "email", "email", d.AddMemberEmail, "user@example.com", "Add member email", d.BasePath+"/users/suggest", "")
+				@suggestCombobox("admin-member-email-input", "email", "email", d.AddMemberEmail, "user@example.com", "Add member email", d.SuggestURL, "")
 				@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
 				// display.Button with the Children slot (#405): LoadingButton content
 				// (label swap + spinner) inside the library's Primary+SM classes.

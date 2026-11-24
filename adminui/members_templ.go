@@ -12,7 +12,6 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
-	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/utils"
 )
@@ -157,7 +156,7 @@ func membersCard(p pageData, d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.AddMemberURL).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 74, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 73, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -167,7 +166,7 @@ func membersCard(p pageData, d tenantDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = suggestCombobox("admin-member-email-input", "email", "email", d.AddMemberEmail, "user@example.com", "Add member email", d.BasePath+"/users/suggest", "").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = suggestCombobox("admin-member-email-input", "email", "email", d.AddMemberEmail, "user@example.com", "Add member email", d.SuggestURL, "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -204,7 +203,7 @@ func membersCard(p pageData, d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.TransferURL).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 98, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 97, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
@@ -217,7 +216,7 @@ func membersCard(p pageData, d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.label(labelActionTransferOwner)).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 100, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 99, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
@@ -235,7 +234,7 @@ func membersCard(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templruntime.NewAttributeExpression(c.Email).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 103, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 102, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 				if templ_7745c5c3_Err != nil {
@@ -248,7 +247,7 @@ func membersCard(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.NewAttributeExpression(c.ConfirmBody).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 103, Col: 65}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 102, Col: 65}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 				if templ_7745c5c3_Err != nil {
@@ -261,7 +260,7 @@ func membersCard(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(c.Email)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 103, Col: 77}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 102, Col: 77}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -336,7 +335,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.UserDetailBase + m.Actor.Raw()).ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 129, Col: 112}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 128, Col: 112}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 				if templ_7745c5c3_Err != nil {
@@ -349,7 +348,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(m.displayName())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 129, Col: 132}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 128, Col: 132}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -367,7 +366,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(m.displayName())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 131, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 130, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -422,7 +421,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 134, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 133, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -477,7 +476,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(m.Actor.PrefixedString())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 137, Col: 95}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 136, Col: 95}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -505,7 +504,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.UpdateRoleBase + "/" + m.Actor.PrefixedString()).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 147, Col: 104}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 146, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 			if templ_7745c5c3_Err != nil {
@@ -544,7 +543,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.dateTime(m.AddedAt)).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 168, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 167, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 				if templ_7745c5c3_Err != nil {
@@ -612,7 +611,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(m.AddedBy)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 175, Col: 111}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 174, Col: 111}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {

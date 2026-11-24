@@ -525,6 +525,13 @@ type tenantDetailData struct {
 	// directory, and a link to a route that does not exist is a lie.
 	UserDetailBase string
 
+	// SuggestURL is the type-ahead endpoint the add-member combobox fetches
+	// (T08): the super-admin "/users/suggest". Empty in tenant-admin mode —
+	// that mode serves no user directory, and a fetch to an absent route is
+	// the same lie as a detail link to one. With no URL (and no local
+	// options) the combobox degrades to a plain input.
+	SuggestURL string
+
 	// AddMemberError is the inline guidance shown when the last add attempt
 	// named no known account. AddMemberEmail preserves what was typed so the
 	// admin can correct it instead of retyping from scratch.

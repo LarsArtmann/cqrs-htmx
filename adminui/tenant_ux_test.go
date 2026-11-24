@@ -141,11 +141,11 @@ func TestTenantsIndex_SearchAndMemberCounts(t *testing.T) {
 	}
 }
 
-// TestMembersCard_AddMemberAutocomplete pins the add-member affordances: the
-// directory feeds a datalist so an admin picks a person, and the role control
-// is an unchecked checkbox group — nothing can silently default to the first
-// role, and none checked is refused by the handler.
-func TestMembersCard_AddMemberAutocomplete(t *testing.T) {
+// TestMembersCard_AddMemberCombobox pins the add-member affordances (T08):
+// the field is a combobox (combobox roles + the listbox region it controls)
+// fed per keystroke by /users/suggest — no datalist, no directory shipped
+// with the page — and the role control is an unchecked checkbox group.
+func TestMembersCard_AddMemberCombobox(t *testing.T) {
 	t.Parallel()
 
 	user := mustUser(t, "admin@example.com")
@@ -158,14 +158,17 @@ func TestMembersCard_AddMemberAutocomplete(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/acme", nil))
 	body := rec.Body.String()
 
-	if !strings.Contains(body, `list="admin-member-emails"`) {
-		t.Error("add-member input should point at the directory datalist")
+	if !strings.Contains(body, `role="combobox"`) {
+		t.Error("add-member input should carry combobox semantics")
 	}
-	if !strings.Contains(body, `<datalist id="admin-member-emails">`) {
-		t.Error("expected the directory datalist")
+	if !strings.Contains(body, `role="listbox"`) {
+		t.Error("the combobox should control a listbox region")
 	}
-	if !strings.Contains(body, `value="known@acme.com"`) {
-		t.Error("datalist should carry directory emails")
+	if !strings.Contains(body, "users/suggest") {
+		t.Error("the combobox should point its fetches at /users/suggest")
+	}
+	if strings.Contains(body, "<datalist") || strings.Contains(body, `list="admin-member-emails"`) {
+		t.Error("the 200-email datalist must be retired (T08 F053)")
 	}
 	if !strings.Contains(body, `role="group"`) || !strings.Contains(body, `name="roles"`) {
 		t.Error("role control should be a named checkbox group")
@@ -179,10 +182,11 @@ func TestMembersCard_AddMemberAutocomplete(t *testing.T) {
 	}
 }
 
-// TestMembersCard_ExistingMembersNotSuggested proves the add-member
-// autocomplete stops offering people who are already in the tenant: a duplicate
-// add is refused by the decider, so suggesting one is a dead end.
-func TestMembersCard_ExistingMembersNotSuggested(t *testing.T) {
+// TestMembersCard_SuggestEndpointFeedsTheField proves the combobox's backend
+// contract (T08): the suggest endpoint answers directory-wide per keystroke —
+// including existing members — and the duplicate add remains the members
+// POST's honest refusal, exactly as it was under the datalist.
+func TestMembersCard_SuggestEndpointFeedsTheField(t *testing.T) {
 	t.Parallel()
 
 	user := mustUser(t, "admin@example.com")
@@ -190,27 +194,22 @@ func TestMembersCard_ExistingMembersNotSuggested(t *testing.T) {
 
 	tenant := mustCreateTenant(t, svc, "acme")
 	member := mustRegister(t, svc, "u-in", "in@acme.com")
-	outsider := mustRegister(t, svc, "u-out", "out@acme.com")
-	_ = outsider
+	_ = mustRegister(t, svc, "u-out", "out@acme.com")
 	mustAddMember(t, svc, member.User.ID, tenant.ID, identitymodel.RoleUser)
 
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/acme", nil))
-	body := rec.Body.String()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/suggest?q=out", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /users/suggest: status %d", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), `"out@acme.com"`) {
+		t.Errorf("suggest should offer the non-member, got: %s", rec.Body.String())
+	}
 
-	// Scope to the add-member datalist: the T22 transfer select legitimately
-	// offers existing members (they must be members to RECEIVE ownership),
-	// so a page-global value assertion would false-positive on it.
-	start, end := strings.Index(body, "<datalist"), strings.Index(body, "</datalist>")
-	if start < 0 || end < 0 || end < start {
-		t.Fatalf("add-member datalist not found on the tenant detail page")
-	}
-	dl := body[start:end]
-	if strings.Contains(dl, `value="in@acme.com"`) {
-		t.Error("an existing member must not be suggested for a duplicate add")
-	}
-	if !strings.Contains(dl, `value="out@acme.com"`) {
-		t.Error("a non-member must still be suggested")
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/suggest?q=in@", nil))
+	if !strings.Contains(rec.Body.String(), `"in@acme.com"`) {
+		t.Error("suggest is directory-wide; the members POST is the duplicate gate")
 	}
 }
 
