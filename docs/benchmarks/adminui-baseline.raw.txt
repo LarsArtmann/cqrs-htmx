@@ -1,0 +1,13 @@
+# adminui render benchmark — raw baseline (F217, T30)
+# Date: 2026-11-24 · Go bench raw output, second of two consecutive runs (first run discarded as warm-up).
+# Advisory: captured on a shared development machine; another agent was building concurrently, so treat absolute numbers as indicative, not machine-pinned gospel.
+# Scenario: GET /users full page, 200-row page (PageSize=200) over a real in-memory usermgmt service seeded with 200 users + 1 tenant, per-render authz snapshot + 30s last-seen TTL cache active.
+# Command: GOEXPERIMENT=jsonv2 go test ./adminui/ -run XXX -bench BenchmarkUsersPageRender -benchtime=2s -count=1
+
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/cqrs-htmx/adminui/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkUsersPageRender-32    	    1110	   2477881 ns/op	       403.6 req/s	 2127930 B/op	   18756 allocs/op
+PASS
+ok  	github.com/larsartmann/cqrs-htmx/adminui/v4	2.834s

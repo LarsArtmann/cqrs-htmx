@@ -285,6 +285,23 @@ full request duration in **milliseconds**. Browser DevTools shows it under Netwo
 Timing; `curl -i` shows it on the wire. appkit's default gives you the one `total`
 metric — anything finer is spans you add yourself.
 
+### Render performance
+
+The directory pages are the panel's hot path, and they are measured: `BenchmarkUsersPageRender`
+(`users_render_bench_test.go`) renders a full 200-row users page against a real in-memory
+service and reports ns/op, allocations, and a req/s metric (`b.Loop`, per-request logging
+suppressed for the run). Each render builds its authorization facts in ONE
+`GroupPolicies()` pass plus one `AllTenants()` pass (hierarchy rows filtered the same way
+`usermgmt.HasAdminGrant` filters them, so a seeded role hierarchy cannot manufacture
+admins), and the last-seen column's audit-window scan is memoized for 30 seconds — a
+burst of renders pays one scan, not one per render. The raw baseline capture lives in
+[`docs/benchmarks/adminui-baseline.raw.txt`](../docs/benchmarks/adminui-baseline.raw.txt)
+(advisory: captured on a shared machine). Before and after any render-path change, re-run:
+
+```sh
+GOEXPERIMENT=jsonv2 go test ./adminui/ -run XXX -bench BenchmarkUsersPageRender -benchtime=2s
+```
+
 ## Configuration
 
 | Field          | Purpose                                                                                                                                                                                                 | Default    |
