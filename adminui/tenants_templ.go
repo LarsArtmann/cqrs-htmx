@@ -756,10 +756,10 @@ func tenantNewContent(p pageData, basePath string) templ.Component {
 					Attrs: templ.Attributes{"data-slug-suggest": ""},
 				},
 				Name:        "name",
-				Label:       "Tenant slug",
+				Label:       p.label(labelFormTenantSlug),
 				Placeholder: "acme-corp",
 				Required:    true,
-				HelpText:    "A unique, URL-safe identifier. It cannot be changed later.",
+				HelpText:    p.label(labelFormTenantSlugHelp),
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -771,9 +771,9 @@ func tenantNewContent(p pageData, basePath string) templ.Component {
 			templ_7745c5c3_Err = forms.Input(forms.InputProps{
 				BaseProps:   utils.BaseProps{ID: "display_name"},
 				Name:        "display_name",
-				Label:       "Display name",
+				Label:       p.label(labelFormTenantDisplayName),
 				Placeholder: "Acme Corporation",
-				HelpText:    "Optional. Shown in the panel instead of the slug.",
+				HelpText:    p.label(labelFormTenantDisplayNameHelp),
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

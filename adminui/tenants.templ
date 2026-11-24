@@ -202,19 +202,19 @@ templ tenantNewContent(p pageData, basePath string) {
 							Attrs: templ.Attributes{"data-slug-suggest": ""},
 						},
 						Name:        "name",
-						Label:       "Tenant slug",
+						Label:       p.label(labelFormTenantSlug),
 						Placeholder: "acme-corp",
 						Required:    true,
-						HelpText:    "A unique, URL-safe identifier. It cannot be changed later.",
+						HelpText:    p.label(labelFormTenantSlugHelp),
 					})
 				</div>
 				<div class="mb-4">
 					@forms.Input(forms.InputProps{
 						BaseProps:   utils.BaseProps{ID: "display_name"},
 						Name:        "display_name",
-						Label:       "Display name",
+						Label:       p.label(labelFormTenantDisplayName),
 						Placeholder: "Acme Corporation",
-						HelpText:    "Optional. Shown in the panel instead of the slug.",
+						HelpText:    p.label(labelFormTenantDisplayNameHelp),
 					})
 				</div>
 				<div class="flex gap-2.5">

@@ -185,7 +185,7 @@ func TestSelfServiceCard_NoSignOutConfiguredIsHonest(t *testing.T) {
 		BasePath: "/admin",
 		IsSelf:   true,
 	}
-	html := renderComponent(t, selfServiceCard(d))
+	html := renderComponent(t, selfServiceCard(testPageData(), d))
 	if !strings.Contains(html, signOutAbsentCopy()) {
 		t.Error("expected the honest no-sign-out copy")
 	}

@@ -1313,6 +1313,8 @@
                       bash bash scripts/selftests/test-check-todo-hygiene.sh
                       bash bash scripts/checks/check-conflict-markers.sh
                       bash bash scripts/selftests/test-check-conflict-markers.sh
+                      bash bash scripts/checks/check-debug-files.sh
+                      bash bash scripts/selftests/test-check-debug-files.sh
                       bash bash scripts/checks/check-root-size.sh
                       bash bash scripts/selftests/test-check-root-size.sh
                       bash bash scripts/checks/check-root-clusters.sh
@@ -1395,6 +1397,8 @@
                         "todo-hygiene-self-test:bash scripts/selftests/test-check-todo-hygiene.sh"
                         "conflict-markers:bash scripts/checks/check-conflict-markers.sh"
                         "conflict-markers-self-test:bash scripts/selftests/test-check-conflict-markers.sh"
+                        "debug-files:bash scripts/checks/check-debug-files.sh"
+                        "debug-files-self-test:bash scripts/selftests/test-check-debug-files.sh"
                         "root-size:bash scripts/checks/check-root-size.sh"
                         "root-size-self-test:bash scripts/selftests/test-check-root-size.sh"
                         "root-clusters:bash scripts/checks/check-root-clusters.sh"
@@ -2044,6 +2048,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-conflict-markers.sh
+                  '';
+                }
+              );
+            };
+
+            check-debug-files = {
+              type = "app";
+              meta.description = "Refuse a committed zz_* debug/scratch file (the daemon sweeps the tree continuously, so a scratch that outlives its edit cycle gets committed unseen; one was observed mid-session 2026-11-24)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-debug-files";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-debug-files.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-debug-files = {
+              type = "app";
+              meta.description = "Fixture self-test for check-debug-files.sh (9 cases: clean/tracked scratch/nested scratch/mid-basename zz passes/untracked passes/--staged remnant/--staged clean/non-repo/unknown arg)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-debug-files";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-debug-files.sh
                   '';
                 }
               );

@@ -193,7 +193,7 @@ templ usersContent(p pageData, d usersListData, sort string) {
 		<div id="users-table">
 			@usersTableContent(p, d, sort)
 		</div>
-		@usersBulkBar(d)
+		@usersBulkBar(p, d)
 		<div id="bulk-outcome" class="mt-4"></div>
 	</form>
 }

@@ -74,8 +74,8 @@ templ membersCard(p pageData, d tenantDetailData) {
 				// T08 F053: the type-ahead combobox replaces the 200-email
 				// datalist — the directory is asked per keystroke
 				// (/users/suggest), never shipped with the page.
-				@suggestCombobox("admin-member-email-input", "email", "email", d.AddMemberEmail, "user@example.com", "Add member email", d.SuggestURL, "")
-				@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
+				@suggestCombobox("admin-member-email-input", "email", "email", d.AddMemberEmail, "user@example.com", p.label(labelFormMemberEmail), d.SuggestURL, "")
+				@roleCheckboxGroup(d.AssignableRoles, nil, p.label(labelFormMemberRole))
 				// display.Button with the Children slot (#405): LoadingButton content
 				// (label swap + spinner) inside the library's Primary+SM classes.
 				@display.Button(display.ButtonProps{
@@ -95,7 +95,7 @@ templ membersCard(p pageData, d tenantDetailData) {
 		// pairing the admin picked.
 		<div class="border-t border-gray-200 pt-4 mt-4">
 			<form class="flex flex-wrap items-center gap-2" hx-post={ d.TransferURL } data-transfer-confirm>
-				<div class="text-sm text-gray-600 dark:text-gray-400">Ownership:</div>
+				<div class="text-sm text-gray-600 dark:text-gray-400">{ p.label(labelFormOwnership) }</div>
 				<select name="email" required aria-label={ p.label(labelActionTransferOwner) }
 					class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
 					for _, c := range d.TransferCandidates {
