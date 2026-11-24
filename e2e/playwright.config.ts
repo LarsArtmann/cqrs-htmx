@@ -10,6 +10,31 @@ import path from "node:path";
 // 65 rows because the published adminui predates pagination).
 const GOWORK = path.resolve(__dirname, "../go.work");
 
+// WebKit zip-cache wrapper bypass (T28, hit live 2026-11-24). BOTH launch
+// wrappers on a cached webkit tree REBUILD LD_LIBRARY_PATH for the browser
+// child: the cache's pw_run.sh joins bundle-internal dirs ONLY (it never
+// appends when exec'ing the zip bundle), and the zip's own top-level
+// MiniBrowser is a shell wrapper that hard-overwrites
+// (`export LD_LIBRARY_PATH="${MYDIR}/lib:${MYDIR}/sys/lib"`). Either way an
+// E2E_WEBKIT_LIBS injection via launchOptions.env is clobbered before the
+// real ELF (minibrowser-wpe/bin/MiniBrowser) loads — first launch died on
+// libatk-1.0.so.0 with the lib forest already in LD_LIBRARY_PATH. Fix:
+// detect the recognizable cache layout, exec the real ELF directly, and
+// inject the bundle's own lib dirs alongside E2E_WEBKIT_LIBS plus the two
+// WEBKIT_* vars the wrapper would have set (WEBKIT_EXEC_PATH for the
+// WPEWebProcess/WPEGPUProcess/WPENetworkProcess helpers,
+// WEBKIT_INJECTED_BUNDLE_PATH for the injected bundle).
+const wkRaw = process.env.E2E_WEBKIT_PATH || "";
+const wkBundle = (() => {
+  if (!wkRaw) return "";
+  for (const p of [path.dirname(wkRaw), wkRaw.replace(/\/pw_run\.sh$/, "")]) {
+    const cand = path.join(p, "minibrowser-wpe");
+    if (fs.existsSync(path.join(cand, "bin", "MiniBrowser"))) return cand;
+  }
+  return "";
+})();
+const wkExec = wkBundle ? path.join(wkBundle, "bin", "MiniBrowser") : wkRaw;
+
 // The workspace toolchain floor (go.work's `go` directive), derived from the
 // single source of truth so a floor bump (e.g. a stdlib security release)
 // never leaves a stale literal here — the 2026-10-11 1.27.2 bump broke the
@@ -158,22 +183,49 @@ export default defineConfig({
               // rejects the combination outright).
               deviceScaleFactor: undefined,
               launchOptions: {
-                executablePath: process.env.E2E_WEBKIT_PATH || undefined,
-                // The prebuilt webkit needs a nixpkgs lib forest on NixOS
-                // (FHS expectations), injected per-launch exactly like the
-                // firefox forest: a runner-wide LD_LIBRARY_PATH would
-                // poison the chromium children (gotcha: the 2026-11-08
-                // libnspr4 poisoning).
-                ...(process.env.E2E_WEBKIT_LIBS
+                executablePath: wkExec || undefined,
+                ...(wkBundle
                   ? {
+                      // Zip-cache layout detected: exec the real ELF with
+                      // the bundle env the wrappers would have set, and
+                      // PREPEND E2E_WEBKIT_LIBS (the nixpkgs lib forest) so
+                      // it wins over the bundle's own copies of the same
+                      // sonames (see the wrapper-bypass note at the top).
                       env: {
                         ...process.env,
-                        LD_LIBRARY_PATH: [process.env.E2E_WEBKIT_LIBS, process.env.LD_LIBRARY_PATH]
+                        WEBKIT_EXEC_PATH: path.join(wkBundle, "bin"),
+                        WEBKIT_INJECTED_BUNDLE_PATH: path.join(wkBundle, "lib"),
+                        LD_LIBRARY_PATH: [
+                          process.env.E2E_WEBKIT_LIBS,
+                          path.join(wkBundle, "lib"),
+                          path.join(wkBundle, "sys", "lib"),
+                          process.env.LD_LIBRARY_PATH,
+                        ]
                           .filter(Boolean)
                           .join(":"),
                       },
                     }
-                  : {}),
+                  : {
+                      // No recognizable cache layout (a bare ELF path, or
+                      // CI's registry-resolved build): the plain per-launch
+                      // lib-forest injection, scoped to THIS engine exactly
+                      // like the firefox forest (a runner-wide
+                      // LD_LIBRARY_PATH would poison the chromium children
+                      // — gotcha: the 2026-11-08 libnspr4 poisoning).
+                      ...(process.env.E2E_WEBKIT_LIBS
+                        ? {
+                            env: {
+                              ...process.env,
+                              LD_LIBRARY_PATH: [
+                                process.env.E2E_WEBKIT_LIBS,
+                                process.env.LD_LIBRARY_PATH,
+                              ]
+                                .filter(Boolean)
+                                .join(":"),
+                            },
+                          }
+                        : {}),
+                    }),
               },
             },
           },
