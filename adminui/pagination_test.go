@@ -100,7 +100,7 @@ func TestPageBounds(t *testing.T) {
 			wantCurrent:    3,
 		},
 		{
-			name:           "pageSize zero falls back to listPageSize",
+			name:           "pageSize zero falls back to DefaultPageSize",
 			page:           1,
 			total:          80,
 			pageSize:       0,
@@ -206,5 +206,108 @@ func TestPanel_UsersPagination(t *testing.T) {
 	body := combined.Body.String()
 	if !strings.Contains(body, "pager5") {
 		t.Error("search+page: filtered rows should still render")
+	}
+}
+
+// TestConfig_PageSizeClamped pins the Config.PageSize bounds: unset keeps the
+// historical default, and anything outside MinPageSize..MaxListRows (10..200)
+// snaps to the nearest boundary at New — a mistuned config must not shrink a
+// page below the pager's design or balloon a single render.
+func TestConfig_PageSizeClamped(t *testing.T) {
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	tests := []struct {
+		name string
+		in   int
+		want int
+	}{
+		{"unset keeps the default", 0, DefaultPageSize},
+		{"below the floor snaps to it", 3, MinPageSize},
+		{"exactly the floor", MinPageSize, MinPageSize},
+		{"in range unchanged", 75, 75},
+		{"at the ceiling", MaxListRows, MaxListRows},
+		{"above the ceiling snaps to it", 5000, MaxListRows},
+		{"negative snaps to the floor", -20, MinPageSize},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			panel, err := New(Config{Service: svc, PageSize: tt.in})
+			if err != nil {
+				t.Fatalf("New(PageSize=%d): %v", tt.in, err)
+			}
+			if got := panel.config.PageSize; got != tt.want {
+				t.Errorf("PageSize %d resolved to %d, want %d", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestPanel_PageSizeShapesList pins the Config.PageSize knob end-to-end
+// through the users list: a page size of 10 splits an 11-user directory into
+// two pages (10 rows, then the page=2 footer links the rest), while the
+// default keeps the same directory on a single 50-row page — the knob changes
+// rendering, the default changes nothing.
+func TestPanel_PageSizeShapesList(t *testing.T) {
+	ctx := context.Background()
+	user := mustUser(t, "admin@example.com")
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	// Seed 11 users: one page at the default 50, two pages at PageSize 10.
+	for i := range 11 {
+		email := fmt.Sprintf("size%02d@p.dev", i)
+		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
+			ID:    identitymodel.SyntheticUserID("seed-" + email),
+			Email: email,
+		}); err != nil {
+			t.Fatalf("register %s: %v", email, err)
+		}
+	}
+	panelFor := func(t *testing.T, pageSize int) http.Handler {
+		t.Helper()
+		panel, err := New(Config{Service: svc, PageSize: pageSize, Authorizer: RequireAuthenticated()})
+		if err != nil {
+			t.Fatalf("New(PageSize=%d): %v", pageSize, err)
+		}
+		mux := http.NewServeMux()
+		mw := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next.ServeHTTP(w, r.WithContext(usermgmt.WithUser(r.Context(), user)))
+			})
+		}
+		mux.Handle("/admin/", mw(http.StripPrefix("/admin", panel.Handler())))
+		return mux
+	}
+	rows := func(body string) int {
+		return strings.Count(body, `<a class="flex no-underline" href="/admin/users/`)
+	}
+
+	small := panelFor(t, 10)
+	rec := httptest.NewRecorder()
+	small.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("PageSize=10 page 1: status %d, body %s", rec.Code, rec.Body.String())
+	}
+	if got := rows(rec.Body.String()); got != 10 {
+		t.Errorf("PageSize=10 page 1: %d rows, want 10", got)
+	}
+	if !strings.Contains(rec.Body.String(), "page=2") {
+		t.Error("PageSize=10: pagination footer should link to page 2")
+	}
+
+	def := panelFor(t, 0) // 0 → the DefaultPageSize fallback
+	rec2 := httptest.NewRecorder()
+	def.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/admin/users", nil))
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("default page: status %d", rec2.Code)
+	}
+	if got := rows(rec2.Body.String()); got != 11 {
+		t.Errorf("default page size: %d rows on one page, want 11", got)
+	}
+	if strings.Contains(rec2.Body.String(), "page=2") {
+		t.Error("default page size: 11 users must stay on one page")
 	}
 }
