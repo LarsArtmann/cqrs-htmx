@@ -378,7 +378,7 @@ GOEXPERIMENT=jsonv2 go test ./adminui/ -run XXX -bench BenchmarkUsersPageRender 
 | `AccentColor`  | Highlight color (CSS literal: #hex, rgb()/hsl(), or named; validated at `New`).                                                                                                                         | indigo     |
 | `Authorizer`   | Access-control function.                                                                                                                                                                                | role-based |
 | `LogoutURL`    | "Sign out" link target. Empty hides the link.                                                                                                                                                           | —          |
-| `SSEURL`       | SSE endpoint for the live sync indicator.                                                                                                                                                               | disabled   |
+| `SSEURL`       | SSE endpoint for the live sync indicator AND the live-updates refresh trigger: when set, the layout carries `data-sse-url` and admin.js refreshes the stats region + visible lists on sync-client events. The panel itself opens no SSE connection. | disabled   |
 | `SSEHubStats`  | Source for two dashboard cards: live SSE subscribers + lifetime slow-consumer drops (amber when nonzero). Nil adds nothing; `setup` wires it automatically when its shared SSE/DataStar hub is enabled. | —          |
 | `ExtraNav`     | Consumer-owned sidebar entries appended after the built-ins. Hrefs render                                                                                                                               | —          |
 |                | VERBATIM (no `BasePath` prefix) — point at sibling surfaces (`/dashboard`,                                                                                                                              |            |
@@ -485,6 +485,111 @@ panel, err := adminui.New(adminui.Config{
 ```
 
 Scope honesty: if you need full localization (plural rules, per-locale formatting, translated audit-action vocabulary), you need a real i18n framework — this seam is the rename/reword/lang-dir escape hatch, and it stays that size on purpose.
+
+## Live updates (SSE-triggered refresh)
+
+Set `Config.SSEURL` and the panel gains event-driven freshness on top of the
+stats region's 30s poll:
+
+- The layout body carries `data-sse-url`. **The panel never opens an SSE
+  connection itself** — include the root module's `sync/sync-client.js` (or
+  your own EventSource bridge) and let it own the connection. The panel only
+  REACTS: admin.js listens (document-delegated, CSP-safe — no inline
+  handlers) for the `cqrshtmx:sync-events` event the sync client dispatches.
+- On such an event it coalesces bursts (one refresh per quiet 300ms) and
+  refreshes the dashboard stats region (`div[hx-get$="/partials/stats"]`,
+  `outerHTML`) plus any visible list region — `#users-table`,
+  `#tenants-table`, `#members-directory-table`, `#audit-panel` — via
+  `htmx.ajax` against the CURRENT location, so search/filter/sort/page
+  selections survive.
+- `GET /partials/stats` carries a content-derived ETag and answers a matching
+  `If-None-Match` with `304`, so refreshes that find nothing changed transfer
+  nothing (the wall-clock "Updated HH:MM:SS" stamp is excluded from the tag
+  on purpose — hashing it would make the 304 path unreachable).
+- With `SSEURL` unset (the default) none of this wiring registers; the
+  panel's behavior is byte-identical to the pre-live-updates panel.
+
+## ADR-lite: idiomorph on tables (closed — not adopted) and hx-boost (closed — not adopted)
+
+**Idiomorph-on-tables (F176/F177).** Spike:
+`docs/spikes/2026-11-24_adminui-idiomorph-tables/` (headless-chromium
+harness; 200-row users-shaped table, 50 swap rounds of one mutated cell + a
+per-row focused button). Measured: innerHTML rebuilt 20,000 nodes added +
+20,000 removed (~400/round) and kept keyboard focus 0/50 rounds;
+idiomorph.morph made zero childList mutations (in-place patching) and kept
+focus 50/50 — the K-T24 focus-retention measurement "wins". **Verdict:
+still not adopted.** The panel never swaps a focused row: list refreshes
+replace whole regions, and the only in-region focus paths (audit date form,
+pager) are already covered by the `data-focus-restore` contract from the
+accessibility work. Against that, morph costs ~7x per swap in the harness
+(~6.9ms vs ~0.9ms per 200-row swap — still small, but real) and adds a
+runtime dependency to a deliberately dependency-free asset. Revisit only if
+a future feature puts persistent focus (e.g. inline row editing) inside a
+swapped list. Idiomorph remains a NOT a dependency of this module.
+
+**hx-boost (F178).** Evaluated against gotcha-57 discipline (element-bound
+JS dies with the pre-swap DOM; `docs/review/libs/templ-components.md`,
+AGENTS.md gotcha 57) and the dashboardui boost-inheritance incident: the
+layout boost wrapper carries `hx-target`/`hx-select` for `#main-content`,
+htmx resolves BOTH through the ancestor chain, and an unpinned ajax element
+inside the wrapper selects `#main-content` out of a partial that has none —
+the page blanks (dashboardui's overview-blanking bug, guarded there by
+`boost_guard_test.go`). This panel's runtime JS is already document-delegated
+(CSRF hook, focus restore, keyboard nav, sync refresh — all document-level
+listeners), so the gotcha-57 half of the risk is already paid. But the
+inheritance trap means every future ajax element needs its own pinned
+hx-target/hx-select forever, for a benefit (full-page fetch interception)
+this panel does not need — its navigation is ordinary links and htmx swaps.
+**Verdict: closed — not adopted.** Plain navigation plus targeted swaps is
+the right default here; hx-boost would add a standing foot-gun for no
+feature the panel uses.
+
+## Cross-linking the CQRS dashboard (DashboardURL) and the projection-health strip
+
+The admin panel answers *people and activity* questions (who is locked out,
+who holds which roles, what happened in the audit window). Its sibling
+[dashboardui](../dashboardui/) answers *event-store* questions (journal
+contents, projection health, time travel). `Config.DashboardURL` cross-links
+the two so the pair is one click apart.
+
+### The sidebar entry
+
+Set `Config.DashboardURL` to your dashboardui mount path and the sidebar
+gains an **Event store** entry (database glyph; the href renders verbatim —
+no `BasePath` prefix, so it may point at another host or mount). Empty (the
+default) hides the entry. Under `setup`, the bundle-level
+`AdminDashboardURL` wires the same seam: empty auto-wires the dashboard's
+mount path when the dashboard panel is enabled, a custom value is used
+verbatim, and `"-"` suppresses the entry. For more than one cross link,
+prefer `Config.ExtraNav`.
+
+### Deep links worth pointing at
+
+dashboardui routes that answer the questions admins ask right after looking
+at the admin panel:
+
+| dashboardui route | What it answers |
+| --- | --- |
+| `/` (overview) | Projection-health strip: every projection's status badge, checkpoint, processed/errors/restarts counts, and lag — polled every 10 s in place, so a stuck projection is visible without a reload |
+| `/projections/{name}` | One projection in depth: checkpoint, lag, last error, DLQ link, and the reset action |
+| `/aggregates/{type}/{id}` | The full event timeline for one aggregate (the admin panel's user/tenant detail names IDs; this is where their history lives) |
+| `/events/{id}` | One event's payload and metadata |
+| `/dead-letters/{projection}/{eventID}` | A poisoned event and its replay action |
+
+The projection names in those URLs are the projection `Name()` values your
+wiring registers (the admin panel's own read models register as
+`user-read-model`, `audit-log`, and `casbin-projection` — see the
+[health](../health/) module for probing the same facts over JSON).
+
+### Which strip answers which question
+
+- The **admin stats partial** (this panel, polled) covers people-metrics:
+  registrations, adoption, operators, login failures — with an ETag/304 so
+  a poll that sees no change transfers nothing (see [Live
+  updates](#live-updates-sse-triggered-refresh)).
+- The **dashboardui projection-health strip** covers pipeline metrics:
+  lag, checkpoints, errors, DLQ depth. Keep both mounted; neither
+  subsumes the other.
 
 ## Project layout
 

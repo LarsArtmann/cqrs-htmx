@@ -554,3 +554,120 @@ dialog.tc-modal[open] {
     opacity: 1;
   }
 }
+
+/* ---------- T25 visual pack (F181–F186) ---------- */
+
+/* F186: skip-to-content link. Off-canvas until focused, then the first
+   visible element top-left — the standard keyboard bypass for the sidebar
+   chrome. Focus styling keeps >= 3:1 against the surface. */
+.admin-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  z-index: 100;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.admin-skip-link:focus {
+  left: 8px;
+}
+
+/* F182: sticky table heads. Applied to the users list's thead (the scroll
+   region is the page); the constant hairline shadow under the header row
+   keeps it reading as floating above the body while rows scroll under it
+   (a scroll-position-triggered shadow needs JS; the hairline is the
+   honest CSS-only stand-in). */
+.admin-sticky-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.admin-sticky-head th {
+  box-shadow: 0 1px 0 var(--border);
+}
+
+/* F183: deterministic avatar palette — six FIXED pairs, same contract as
+   avatarColorClass (util.go): id → stable class, white text >= 4.5:1 on
+   every swatch, in light AND dark mode. Unlayered CSS wins over the
+   library's bg utilities, so the override needs no !important. */
+.admin-avatar-c0 { background-color: #4f46e5; color: #ffffff; }
+.admin-avatar-c1 { background-color: #0e7490; color: #ffffff; }
+.admin-avatar-c2 { background-color: #15803d; color: #ffffff; }
+.admin-avatar-c3 { background-color: #b45309; color: #ffffff; }
+.admin-avatar-c4 { background-color: #be185d; color: #ffffff; }
+.admin-avatar-c5 { background-color: #6d28d9; color: #ffffff; }
+
+/* F185: print stylesheet for the detail pages — hide the chrome (sidebar,
+   topbar, toggle buttons, actions, sync bar, skip link) and let the
+   identity + definition cards print on white. Forms and buttons are inert
+   on paper, so they go too. */
+@media print {
+  .admin-sidebar,
+  .admin-scrim,
+  .admin-toggle,
+  .admin-skip-link,
+  .sync-bar,
+  button,
+  select,
+  input[type="checkbox"],
+  form {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+  }
+}
+
+/* ---------- Users-list display prefs (T20 F148/F149) ----------
+   The prefs toolbar (users.templ usersPrefsBar) never touches the table
+   markup — the rows/thead belong to the bulk/visual agent's region. Instead
+   admin.js toggles these classes on the #users-table CONTAINER and the
+   stylesheet hides the matching column POSITIONALLY:
+
+     column 2 = Access / tenant-count cell ↔ .admin-cols-hide-access
+     column 4 = Last seen cell             ↔ .admin-cols-hide-lastseen
+
+   If the users thead ever reorders, only these rules move. Density shrinks
+   cell padding under .admin-density-compact on the same container. Motion
+   rules follow the reduced-motion guards above (none needed here: display
+   flips are instant). */
+#users-table.admin-cols-hide-access table tr > *:nth-child(2),
+#users-table.admin-cols-hide-access table thead th:nth-child(2),
+#users-table.admin-cols-hide-access table tbody td:nth-child(2) {
+  display: none;
+}
+#users-table.admin-cols-hide-lastseen table tr > *:nth-child(4),
+#users-table.admin-cols-hide-lastseen table thead th:nth-child(4),
+#users-table.admin-cols-hide-lastseen table tbody td:nth-child(4) {
+  display: none;
+}
+#users-table.admin-density-compact table td,
+#users-table.admin-density-compact table th {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+/* ---------- Command palette (T18 F131) ----------
+   The dialog reuses the library's tc-overlay/tc-modal animation profile; the
+   only adminui-owned style is the active-result highlight (data attribute
+   toggled by admin.js — no runtime class assembly). */
+#admin-palette [data-palette-active="true"] {
+  background-color: var(--surface-2);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  #admin-palette,
+  #admin-palette::backdrop {
+    transition: none;
+  }
+}
+#admin-palette [data-palette-hidden="true"] {
+  display: none;
+}

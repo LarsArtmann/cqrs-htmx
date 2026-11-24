@@ -23,6 +23,10 @@ templ Layout(p pageData, content templ.Component) {
 		HeadContent:   headExtras(p),
 		Footer:        pageFoot(p),
 	}) {
+		// T25 F186: skip-to-content link (first Tab stop, visible on focus)
+		// and the focusable anchor it targets, ahead of the app shell.
+		<a href="#admin-content" class="admin-skip-link">{ p.label(labelChromeSkip) }</a>
+		<span id="admin-content" tabindex="-1"></span>
 		@layout.AppShell(layout.AppShellProps{
 			BaseProps:      utils.BaseProps{Class: "admin-shell"},
 			Sidebar:        sidebar(p),
@@ -40,6 +44,13 @@ templ headExtras(p pageData) {
 	if p.CSRFMeta != "" {
 		@templ.Raw(p.CSRFMeta)
 	}
+	// T25 F181: the panel's favicon (inline-SVG asset, served from the same
+	// embedded asset set as the CSS/JS) and the theme-color metas — the two
+	// colors are the panel's own surface tokens (--bg light/dark), so the
+	// browser chrome follows the panel in either scheme.
+	<link rel="icon" type="image/svg+xml" href={ p.BasePath + "/-/favicon.svg" }/>
+	<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)"/>
+	<meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)"/>
 	// htmx injects its default indicator stylesheet at DOMContentLoaded
 	// unless includeIndicatorStyles is false; the injected <style> carries
 	// no nonce, so under a nonce CSP (e.g. the setup bundle's) the browser
@@ -233,6 +244,13 @@ templ pageFoot(p pageData) {
 	// Shared confirm dialog for destructive actions (filled dynamically by
 	// admin.js from data-confirm/data-confirm-title on the triggering button).
 	@confirmModal(p)
+	// T18 F131: the command palette. A NATIVE <dialog> (top layer, focus trap,
+	// Escape-to-close all come from the platform — no focus-trap script), so
+	// it is CSP-safe with no inline handlers. It renders empty: admin.js
+	// builds the link index at OPEN time from the page's own DOM (the
+	// data-palette contract documented on paletteDialogItems), so the palette
+	// never needs a server endpoint and never shows a stale item list.
+	@paletteDialog(p)
 	if p.SSEURL != "" {
 		// sync-client.js must load before admin.js: it registers htmx:beforeRequest
 		// and htmx:sendError listeners that admin.js's CSRF config depends on being
@@ -273,4 +291,67 @@ func accentStyleTag(p pageData) string {
 		nonceAttr = ` nonce="` + nonce + `"`
 	}
 	return `<style` + nonceAttr + `>:root{--accent:` + p.Accent + `}</style>`
+}
+
+// paletteDialog is the command palette shell (T18 F131/F134): a native
+// <dialog> (CSP-safe: the classes reuse the vendored tc-overlay/tc-modal
+// animation profile the library already ships, no inline script), holding a
+// search input, a results listbox admin.js fills at open time, and a
+// collapsed shortcut-help section toggled by the "?" key (F134's help lives
+// HERE, not on a separate overlay page). The list starts with a single
+// hidden empty-state row; the real index is rebuilt from the DOM on every
+// open (palette index contract, admin.js T18 block):
+//
+//	data-palette-label + data-palette-href  — explicit entries (future regions)
+//	.admin-sidebar-scope nav a[href]         — panel pages
+//	#users-table / #tenants-table /
+//	#members-directory-table tbody tr        — the CURRENT page's rows
+//	#audit-panel a[href]                     — the audit filter chips
+templ paletteDialog(p pageData) {
+	<dialog
+		id="admin-palette"
+		class="tc-overlay tc-modal mt-[12vh] mb-auto h-fit w-[calc(100%-2rem)] max-w-lg rounded-xl bg-white p-0 shadow-xl dark:bg-gray-900"
+		aria-label={ p.label(labelChromePalette) }
+	>
+		<div class="border-gray-200 border-b dark:border-gray-700">
+			<input
+				type="text"
+				id="admin-palette-input"
+				class="w-full bg-transparent px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-hidden dark:text-white dark:placeholder:text-gray-500"
+				role="combobox"
+				aria-expanded="true"
+				aria-controls="admin-palette-list"
+				aria-autocomplete="list"
+				autocomplete="off"
+				placeholder={ p.label(labelChromePalettePH) }
+				aria-label={ p.label(labelChromePalettePH) }
+				data-palette-input
+			/>
+		</div>
+		<div
+			id="admin-palette-list"
+			role="listbox"
+			aria-label={ p.label(labelChromePalette) }
+			class="max-h-[50vh] overflow-y-auto overscroll-contain p-2"
+			data-palette-list
+		>
+			<div class="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400" data-palette-empty data-palette-hidden="true">
+				{ p.label(labelChromePaletteEmpty) }
+			</div>
+		</div>
+		<div
+			id="admin-palette-help"
+			class="hidden border-t border-gray-200 px-4 py-3 text-xs text-gray-600 dark:border-gray-700 dark:text-gray-400"
+			data-palette-help
+		>
+			<p class="mb-1.5 font-semibold text-gray-900 dark:text-white">{ p.label(labelChromePaletteHelpTitle) }</p>
+			<ul class="space-y-1">
+				<li><kbd class="font-mono">Ctrl/Cmd K</kbd> — { p.label(labelChromePaletteHelpOpen) }</li>
+				<li><kbd class="font-mono">?</kbd> — { p.label(labelChromePaletteHelpHelp) }</li>
+				<li><kbd class="font-mono">↑ ↓</kbd> — { p.label(labelChromePaletteHelpNav) }</li>
+				<li><kbd class="font-mono">Enter</kbd> — { p.label(labelChromePaletteHelpJump) }</li>
+				<li><kbd class="font-mono">Esc</kbd> — { p.label(labelChromePaletteHelpClose) }</li>
+			</ul>
+		</div>
+	</dialog>
 }

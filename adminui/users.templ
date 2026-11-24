@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
@@ -171,14 +172,30 @@ templ usersContent(p pageData, d usersListData, sort string) {
 		})
 	</div>
 	@userFilterChips(d, sort)
+	// T20 F146–F149: saved views + display prefs (FILTER-BAR region — the
+	// table rows/thead belong to the concurrent bulk/visual agent). The bar
+	// is a client-only toolbar shell: admin.js owns the namespaced
+	// localStorage store, renders the saved-view list, applies presets as
+	// URL navigation, and persists the column-visibility + density choices.
+	@usersPrefsBar(p, d)
 	// T17 F124/F125: the skeleton is the search wire's hx-indicator — hidden
 	// in every server response (.htmx-indicator CSS), shown only while the
 	// FIRST in-flight swap loads rows, then removed by admin.js so an
 	// already-loaded window never flashes it again.
 	@usersSkeleton()
-	<div id="users-table">
-		@usersTableContent(p, d, sort)
-	</div>
+	// T19 F137/F138: ONE bulk form wraps the table region, so the row
+	// checkboxes and the select-all ride the same POST. The bulk bar (hidden
+	// until admin.js sees a checked row) and the outcome target live INSIDE
+	// the form but OUTSIDE #users-table, so a search/filter/pager swap that
+	// replaces the table's rows never erases the outcome panel — the panel
+	// stays until the next action replaces it.
+	<form id="users-bulk-form" data-bulk-confirm hx-post={ d.BasePath + "/users/bulk" } hx-target="#bulk-outcome" hx-swap="innerHTML">
+		<div id="users-table">
+			@usersTableContent(p, d, sort)
+		</div>
+		@usersBulkBar(d)
+		<div id="bulk-outcome" class="mt-4"></div>
+	</form>
 }
 
 // userFilterChips renders the status chips (verified / unverified / MFA /
@@ -200,6 +217,8 @@ templ userFilterChips(d usersListData, sort string) {
 		@userSortLink(d, sort, "display", "Display name")
 		<span class="text-gray-300" aria-hidden="true">/</span>
 		@userSortLink(d, sort, "created", "Created")
+		<span class="text-gray-300" aria-hidden="true">/</span>
+		@userSortLink(d, sort, "recent", "Recently active")
 	</div>
 }
 
@@ -296,8 +315,16 @@ templ usersTableContent(p pageData, d usersListData, sort ...string) {
 		// unchanged. Only the User and Created columns are client-sortable.
 		<div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700" role="region" tabindex="0">
 			<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-				<thead class="bg-gray-50 dark:bg-gray-800">
+				// T25 F182: sticky head inside the scroll region; the hairline
+				// shadow (tailwind.css) keeps the header row read as floating
+				// over the body while scrolled.
+				<thead class="admin-sticky-head bg-gray-50 dark:bg-gray-800">
 					<tr>
+						// T19 F137: the select-all checkbox. Indeterminate state is
+						// client-owned (admin.js) — the server only seeds unchecked.
+						<th scope="col" class="w-10 px-3 py-2">
+							<input type="checkbox" data-bulk-select-all class="h-4 w-4" aria-label="Select all users on this page"/>
+						</th>
 						@userSortableHeader("email", p.label(labelHeaderUser), userHeaderAria(pagerSortOf(sort), "email"))
 						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderAccess) }</th>
 						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderStatus) }</th>
@@ -324,10 +351,17 @@ templ usersTableContent(p pageData, d usersListData, sort ...string) {
 templ usersRows(p pageData, d usersListData) {
 	for i, row := range d.Users {
 		<tr class={ templ.KV("bg-gray-50 dark:bg-gray-800/50", i%2 == 1), "hover:bg-gray-100 dark:hover:bg-gray-800" } data-sort-email={ strings.ToLower(row.User.Email) } data-sort-display={ strings.ToLower(row.User.DisplayName) } data-sort-created={ strconv.FormatInt(row.User.CreatedAt.Unix(), 10) }>
+			// T19 F137: the row checkbox — value is the user id, name "ids" so
+			// the bulk POST receives one form value per checked row.
+			<td class="w-10 px-3 py-2">
+				<input type="checkbox" name="ids" value={ row.User.ID.Get().String() } data-bulk-row class="h-4 w-4" aria-label={ "Select " + row.User.Email }/>
+			</td>
 			<td class="px-4 py-2">
 				<a class="flex no-underline" href={ d.BasePath + "/users/" + row.User.ID.Get().String() }>
 					<div class="flex items-center gap-2.5">
-						@display.Avatar(display.AvatarProps{Initials: initials(row.User.Email), Size: display.AvatarSizeSM})
+						// T25 F183: deterministic avatar color — the id hashes into
+						// a FIXED palette class, stable across renders.
+						@display.Avatar(display.AvatarProps{Initials: initials(row.User.Email), Size: display.AvatarSizeSM, BaseProps: utils.BaseProps{Class: avatarColorClass(row.User.ID.Get().String())}})
 						<div>
 							<div class="font-medium text-gray-900">{ row.User.Email }</div>
 							if row.User.DisplayName != "" {
@@ -395,6 +429,109 @@ templ userAccessCell(row userRow, basePath string) {
 			<span class="text-sm text-gray-600 dark:text-gray-400" aria-hidden="true">—</span>
 		}
 	</div>
+}
+
+// usersBulkBar is the selection toolbar (T19 F137). Hidden until admin.js
+// counts a checked row; the export link's href is recomputed client-side
+// from the checked ids (data-export-base is the server-owned constant, the
+// ids param is client state — the server never guesses a selection).
+templ usersBulkBar(d usersListData) {
+	<div id="users-bulk-bar" hidden class="my-4 flex flex-wrap items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 dark:border-gray-700 dark:bg-gray-800">
+		<span id="bulk-count" class="text-sm font-medium text-gray-700 dark:text-gray-200"></span>
+		@display.Button(display.ButtonProps{
+			Text:    "Resend verification",
+			Type:    display.ButtonHTMLSubmit,
+			Variant: display.ButtonSecondary,
+			Size:    display.ButtonSizeSM,
+			BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+				"name":  "action",
+				"value": "resend",
+			}},
+		})
+		<span class="flex items-center gap-1.5">
+			<label class="text-sm text-gray-600 dark:text-gray-300" for="bulk-role">Role</label>
+			<select id="bulk-role" name="roles" class="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
+				for _, role := range identitymodel.AdminRoles() {
+					<option value={ string(role) }>{ string(role) }</option>
+				}
+			</select>
+			@display.Button(display.ButtonProps{
+				Text:    "Grant role",
+				Type:    display.ButtonHTMLSubmit,
+				Variant: display.ButtonSecondary,
+				Size:    display.ButtonSizeSM,
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"name":  "action",
+					"value": "grant",
+				}},
+			})
+		</span>
+		<a
+			id="bulk-export-csv"
+			class="text-sm text-gray-600 no-underline hover:underline dark:text-gray-300"
+			href={ d.BasePath + "/users/export.ids.csv" }
+			data-export-base={ d.BasePath + "/users/export.ids.csv" }
+		>Export selection (CSV)</a>
+	</div>
+}
+
+// bulkRefusalPanel is the honest no-op answer: the admin clicked an action
+// that cannot run (no selection, unknown action, no role) — nothing was
+// dispatched, and the panel says exactly that.
+templ bulkRefusalPanel(message string) {
+	@feedback.Alert(feedback.AlertProps{
+		Type:    feedback.FeedbackWarning,
+		Title:   "Nothing was sent",
+		Message: message,
+	})
+}
+
+// bulkOutcomePanel is the per-row outcome report (T19 F140), the
+// import-result panel pattern: exact counts up top, then one line per row —
+// ok (with what happened) or refused (with the reason) — bounded to a
+// readable window the counts stay exact through.
+templ bulkOutcomePanel(action string, outcomes []bulkOutcome) {
+	{{ ok, failed := countBulkOutcomes(outcomes) }}
+	if failed == 0 {
+		@feedback.Alert(feedback.AlertProps{
+			Type:    feedback.FeedbackSuccess,
+			Title:   "Bulk action complete",
+			Message: fmt.Sprintf("%d of %d succeeded.", ok, len(outcomes)),
+		})
+	} else {
+		@feedback.Alert(feedback.AlertProps{
+			Type:    feedback.FeedbackWarning,
+			Title:   "Bulk action finished with refusals",
+			Message: fmt.Sprintf("%d succeeded, %d refused — each refused row names its reason below.", ok, failed),
+		})
+	}
+	<ul class="mt-2 list-inside list-disc text-xs text-gray-600 dark:text-gray-300">
+		for _, o := range visibleBulkOutcomes(outcomes) {
+			<li>
+				<span class="font-medium">{ bulkOutcomeLabel(o) }</span>
+				if o.OK {
+					<span class="text-green-700 dark:text-green-400">{ bulkOutcomeOKText(action) }.</span>
+				} else {
+					<span class="text-red-700 dark:text-red-400">{ o.Reason }.</span>
+				}
+			</li>
+		}
+		if remainingBulkOutcomes(outcomes) > 0 {
+			<li>… and { strconv.Itoa(remainingBulkOutcomes(outcomes)) } more</li>
+		}
+	</ul>
+}
+
+// bulkOutcomeLabel names the row by email when known, falling back to a
+// truncated id — a refusal for a deleted user still names WHICH row.
+func bulkOutcomeLabel(o bulkOutcome) string {
+	if o.Email != "" {
+		return o.Email
+	}
+	if len(o.ID) > 12 {
+		return o.ID[:12] + "…"
+	}
+	return o.ID
 }
 
 // userNewPage is the create-user form. Register is the Service's public
@@ -515,6 +652,7 @@ templ userDetailContent(p pageData, d userDetailData) {
 	// that cannot exist. Dead cards never render — not even as empty states.
 	if d.AuthMethods.HasWebAuthn {
 		@passkeysCard(d)
+		@credentialRestoreCard(d)
 	}
 	if d.AuthMethods.HasOAuth2 {
 			@externalAccountsCard(p, d)
@@ -661,6 +799,44 @@ templ passkeysCard(d userDetailData) {
 				CellPadding: display.TableCellPaddingCompact,
 			})
 		}
+	}
+}
+
+// credentialRestoreCard wires the F170 backup-JSON restore (POST
+// /users/{id}/credentials/restore): a restored credential becomes a trusted
+// sign-in factor immediately, so the confirm carries the escalation copy
+// pinned in handler_credential_restore_test.go — the card inherits the
+// contract, not a paraphrase. Renders only where the deployment can serve
+// WebAuthn at all (same probe gate as the Passkeys card).
+templ credentialRestoreCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:   "Restore a passkey from backup",
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		<form class="px-4 py-3 space-y-2" method="post" action={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/credentials/restore" } data-dirty-guard>
+			<label class="block text-sm text-gray-500" for="credential-backup-json">Paste the credential backup JSON (exported from the user's own account page)</label>
+			<textarea
+				id="credential-backup-json"
+				name="backup"
+				rows="4"
+				class={ "block w-full rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-xs " + metadataTextClass }
+				placeholder={ `{ "id": "…", "public_key": "…", … }` }
+				spellcheck="false"
+			/>
+			<div class="flex justify-end">
+				@display.Button(display.ButtonProps{
+					Text:    "Restore credential",
+					Variant: display.ButtonDanger,
+					Size:    display.ButtonSizeSM,
+					Icon:    icon("key"),
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"data-confirm":       "Restore a passkey from backup JSON? The uploaded credential becomes a trusted sign-in factor immediately — restore it only from a backup you control.",
+						"data-confirm-title": "Restore credential",
+						"hx-disabled-elt":    "this",
+					}},
+				})
+			</div>
+		</form>
 	}
 }
 
@@ -1078,4 +1254,79 @@ templ externalAccountRows(p pageData, d userDetailData) {
 			</td>
 		</tr>
 	}
+}
+
+// usersPrefsBar is the saved-views + display-prefs toolbar (T20 F146–F149),
+// rendered in the users list FILTER BAR only — never inside #users-table
+// (that region, its rows and its thead, belong to the bulk/visual agent).
+//
+// Column-visibility contract (F148): the toggles do NOT touch the table
+// markup. admin.js toggles a class on the #users-table CONTAINER —
+// admin-cols-hide-access / admin-cols-hide-lastseen — and the stylesheet
+// hides the matching COLUMN by position:
+//
+//	column 2 (Access / tenant-count roles cell) ↔ admin-cols-hide-access
+//	column 4 (Last seen cell)                  ↔ admin-cols-hide-lastseen
+//
+// If the concurrent agent reorders the users thead, ONLY these two
+// positional rules need re-pointing; the template and JS stay untouched.
+//
+// Density contract (F149): the toggle flips admin-density-compact on the
+// same container; the stylesheet shrinks cell padding under it.
+//
+// Preset contract (F147): a preset serializes ONLY the list URL query
+// (q/filter/sort/page — window.location.search on the users list). Apply
+// navigates to /users?<query>; there is no server state and nothing is
+// stored outside the namespaced localStorage key admin.js owns.
+templ usersPrefsBar(p pageData, d usersListData) {
+	<div
+		class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800/50"
+		data-users-prefs
+		data-prefs-base={ d.BasePath + "/users" }
+	>
+		<span class="font-semibold text-gray-900 dark:text-white">{ p.label(labelPrefsTitle) }</span>
+		<span class="flex items-center gap-1.5">
+			<label class="sr-only" for="users-preset-name">{ p.label(labelPrefsPresetName) }</label>
+			<input
+				type="text"
+				id="users-preset-name"
+				data-prefs-name
+				placeholder={ p.label(labelPrefsPresetName) }
+				autocomplete="off"
+				class="w-36 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+			/>
+			<button
+				type="button"
+				data-prefs-save
+				class="rounded-md border border-gray-300 bg-white px-2 py-1 font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+			>{ p.label(labelPrefsSave) }</button>
+		</span>
+		<span class="flex items-center gap-1.5" data-prefs-presets>
+			<span class="text-gray-600 dark:text-gray-400">{ p.label(labelPrefsNoPresets) }</span>
+		</span>
+		<span class="flex items-center gap-1.5">
+			<span class="text-gray-600 dark:text-gray-400">{ p.label(labelPrefsColumns) }</span>
+			<button
+				type="button"
+				data-prefs-col="access"
+				aria-pressed="false"
+				class="rounded-full border border-gray-300 px-2 py-0.5 font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+			>{ p.label(labelPrefsColAccess) }</button>
+			<button
+				type="button"
+				data-prefs-col="lastseen"
+				aria-pressed="false"
+				class="rounded-full border border-gray-300 px-2 py-0.5 font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+			>{ p.label(labelPrefsColLastSeen) }</button>
+		</span>
+		<span class="flex items-center gap-1.5">
+			<span class="text-gray-600 dark:text-gray-400">{ p.label(labelPrefsDensity) }</span>
+			<button
+				type="button"
+				data-prefs-density
+				aria-pressed="false"
+				class="rounded-md border border-gray-300 px-2 py-0.5 font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+			>{ p.label(labelPrefsDensityCompact) }</button>
+		</span>
+	</div>
 }

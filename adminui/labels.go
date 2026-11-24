@@ -24,19 +24,41 @@ import (
 // the strings the templates hardcoded before the seam, so a default-config
 // render is byte-identical to the pre-seam output.
 const (
-	labelNavDashboard   = "nav.dashboard"
-	labelNavUsers       = "nav.users"
-	labelNavTenants     = "nav.tenants"
-	labelNavMembers     = "nav.members"
-	labelNavAudit       = "nav.audit"
-	labelNavEventStore  = "nav.event_store"
-	labelChromeSections = "chrome.admin_sections"
-	labelChromeMenu     = "chrome.menu"
-	labelChromeSynced   = "chrome.synced"
-	labelChromeSignOut  = "chrome.sign_out"
-	labelChromeTheme    = "chrome.theme_toggle"
-	labelChromeReadOnly = "chrome.read_only"
-	labelChromeFooter   = "chrome.footer"
+	labelNavDashboard            = "nav.dashboard"
+	labelNavUsers                = "nav.users"
+	labelNavTenants              = "nav.tenants"
+	labelNavMembers              = "nav.members"
+	labelNavAudit                = "nav.audit"
+	labelNavEventStore           = "nav.event_store"
+	labelChromeSections          = "chrome.admin_sections"
+	labelChromeMenu              = "chrome.menu"
+	labelChromeSynced            = "chrome.synced"
+	labelChromeSignOut           = "chrome.sign_out"
+	labelChromeTheme             = "chrome.theme_toggle"
+	labelChromeReadOnly          = "chrome.read_only"
+	labelChromeFooter            = "chrome.footer"
+	labelChromeSkip              = "chrome.skip_to_content"
+	labelChromePalette           = "chrome.palette"
+	labelChromePalettePH         = "chrome.palette_placeholder"
+	labelChromePaletteEmpty      = "chrome.palette_empty"
+	labelChromePaletteHelpTitle  = "chrome.palette_help_title"
+	labelChromePaletteHelpOpen   = "chrome.palette_help_open"
+	labelChromePaletteHelpHelp   = "chrome.palette_help_help"
+	labelChromePaletteHelpNav    = "chrome.palette_help_nav"
+	labelChromePaletteHelpJump   = "chrome.palette_help_jump"
+	labelChromePaletteHelpClose  = "chrome.palette_help_close"
+	labelPrefsTitle              = "prefs.title"
+	labelPrefsSave               = "prefs.save"
+	labelPrefsPresetName         = "prefs.preset_name"
+	labelPrefsApply              = "prefs.apply"
+	labelPrefsDelete             = "prefs.delete"
+	labelPrefsColumns            = "prefs.columns"
+	labelPrefsColAccess          = "prefs.col_access"
+	labelPrefsColLastSeen        = "prefs.col_last_seen"
+	labelPrefsDensity            = "prefs.density"
+	labelPrefsDensityCompact     = "prefs.density_compact"
+	labelPrefsDensityComfortable = "prefs.density_comfortable"
+	labelPrefsNoPresets          = "prefs.no_presets"
 
 	labelConfirmTitle  = "confirm.title"
 	labelConfirmBody   = "confirm.body"
@@ -174,19 +196,41 @@ const (
 //
 //nolint:gochecknoglobals // immutable display lookup table, read-only after init (same posture as auditLabels)
 var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, not credentials
-	labelNavDashboard:   "Dashboard",
-	labelNavUsers:       "Users",   //nolint:goconst // display value shared by design
-	labelNavTenants:     "Tenants", //nolint:goconst // display value shared by design
-	labelNavMembers:     "Members", //nolint:goconst // display value shared by design
-	labelNavAudit:       "Audit log",
-	labelNavEventStore:  "Event store",
-	labelChromeSections: "Admin sections",
-	labelChromeMenu:     "Menu",
-	labelChromeSynced:   "Synced",
-	labelChromeSignOut:  "Sign out",
-	labelChromeTheme:    "Toggle theme",
-	labelChromeReadOnly: "Read-only",
-	labelChromeFooter:   "cqrs-htmx admin",
+	labelNavDashboard:            "Dashboard",
+	labelNavUsers:                "Users",   //nolint:goconst // display value shared by design
+	labelNavTenants:              "Tenants", //nolint:goconst // display value shared by design
+	labelNavMembers:              "Members", //nolint:goconst // display value shared by design
+	labelNavAudit:                "Audit log",
+	labelNavEventStore:           "Event store",
+	labelChromeSections:          "Admin sections",
+	labelChromeMenu:              "Menu",
+	labelChromeSynced:            "Synced",
+	labelChromeSignOut:           "Sign out",
+	labelChromeTheme:             "Toggle theme",
+	labelChromeReadOnly:          "Read-only",
+	labelChromeFooter:            "cqrs-htmx admin",
+	labelChromeSkip:              "Skip to content",
+	labelChromePalette:           "Command palette",
+	labelChromePalettePH:         "Jump to a page, user, tenant…",
+	labelChromePaletteEmpty:      "No results found.",
+	labelChromePaletteHelpTitle:  "Keyboard shortcuts",
+	labelChromePaletteHelpOpen:   "open the palette",
+	labelChromePaletteHelpHelp:   "toggle this help",
+	labelChromePaletteHelpNav:    "move through results",
+	labelChromePaletteHelpJump:   "jump to the selected item",
+	labelChromePaletteHelpClose:  "close the palette",
+	labelPrefsTitle:              "Views & display",
+	labelPrefsSave:               "Save view",
+	labelPrefsPresetName:         "View name",
+	labelPrefsApply:              "Apply view",
+	labelPrefsDelete:             "Delete view",
+	labelPrefsColumns:            "Columns:",
+	labelPrefsColAccess:          "Access / tenants",
+	labelPrefsColLastSeen:        "Last seen",
+	labelPrefsDensity:            "Density:",
+	labelPrefsDensityCompact:     "Compact",
+	labelPrefsDensityComfortable: "Comfortable",
+	labelPrefsNoPresets:          "No saved views yet.",
 
 	labelConfirmTitle:  "Are you sure?",
 	labelConfirmBody:   "This action cannot be undone.",

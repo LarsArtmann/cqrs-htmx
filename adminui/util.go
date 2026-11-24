@@ -2,11 +2,13 @@ package adminui
 
 import (
 	"cmp"
+	"hash/fnv"
 	"net/http"
 	"net/url"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
@@ -136,7 +138,7 @@ func listPageURL(base, search string) string {
 // silently reorder the list into something nobody asked for.
 func parseUserSort(raw string) string {
 	switch raw {
-	case "email", "display", "created":
+	case "email", "display", "created", userSortRecent:
 		return raw
 	}
 	return ""
@@ -175,6 +177,43 @@ func sortUsers(users []*identitymodel.User, sort string) {
 	slices.SortFunc(users, func(a, b *identitymodel.User) int {
 		return compareUsers(a, b, sort)
 	})
+}
+
+// userSortRecent is the recently-active ordering key (T25 F184): the
+// last-seen column's own order, descending. It is NOT a compareUsers key —
+// lastSeen lives in the handler's audit-window index, not on the user — so
+// sortUsersByLastSeen applies it and compareUsers keeps falling through to
+// the id tiebreak if one ever reaches it.
+const userSortRecent = "recent"
+
+// sortUsersByLastSeen orders most-recently-active first. A user with no
+// recorded activity in the audit window sorts LAST (the honest reading of
+// "no data": an evicted window is not proof of inactivity, but it is also
+// not proof of activity), and equal timestamps tiebreak to the id so a page
+// break never reshuffles rows.
+func sortUsersByLastSeen(users []*identitymodel.User, lastSeen map[string]time.Time) {
+	slices.SortFunc(users, func(a, b *identitymodel.User) int {
+		aa, bb := lastSeen[a.ID.Get().String()], lastSeen[b.ID.Get().String()]
+		if c := bb.Compare(aa); c != 0 { // descending: later first
+			return c
+		}
+		return strings.Compare(a.ID.Get().String(), b.ID.Get().String())
+	})
+}
+
+// avatarPaletteSize is the fixed avatar color palette (T25 F183): six
+// classes in tailwind.css, each a fixed light-independent pair with white
+// text at >= 4.5:1. Deterministic: the same id always lands on the same
+// class, so a user's avatar color is stable across pages, sessions, and
+// renders — never random per request.
+const avatarPaletteSize = 6
+
+// avatarColorClass hashes the user id into the fixed palette. FNV-1a: cheap,
+// stable across processes, no dependency on map iteration or randomness.
+func avatarColorClass(id string) string {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(id))
+	return "admin-avatar-c" + strconv.Itoa(int(h.Sum32()%avatarPaletteSize))
 }
 
 // userListURL builds a users-list URL carrying the current search, status

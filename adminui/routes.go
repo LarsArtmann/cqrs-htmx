@@ -129,6 +129,10 @@ func (h *Handler) sharedRoutes() []routeSpec {
 			mode: routeModeBoth, why: "static script, no data",
 		},
 		{
+			method: http.MethodGet, pattern: "/-/favicon.svg", panel: panelAssets, asset: h.adminFavicon,
+			mode: routeModeBoth, why: "static favicon, no data",
+		},
+		{
 			method: http.MethodGet, pattern: "/-/htmx.js", panel: panelAssets, asset: htmxScriptHandler(),
 			mode: routeModeBoth, why: "vendored HTMX, no data",
 		},
@@ -249,6 +253,14 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, write: true, why: "bulk import creates accounts from the uploaded file",
 		},
 		{
+			// T19 F138: the bulk bar's write route. It acts on the selected
+			// users ONE ROW AT A TIME and reports every row's outcome (F140)
+			// — never a batch-shaped answer that hides which rows failed.
+			method: http.MethodPost, pattern: "/users/bulk", panel: panelUsers, guarded: h.userBulk,
+			mode: routeModeSuperAdmin, write: true,
+			why: "bulk actions act on each selected user's account individually, reporting every outcome",
+		},
+		{
 			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,
 			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
 		},
@@ -294,6 +306,25 @@ func (h *Handler) superAdminUserExportRoutes() []routeSpec {
 			guarded: h.userExportFilteredJSON,
 			mode:    routeModeSuperAdmin,
 			why:     "the filtered export carries the matched users' public profiles",
+		},
+		{
+			// T19 F139: the selection export. The checked ids travel as a
+			// query param, so a NEW route (not a param on the filtered one)
+			// keeps the filtered export's q/filter/sort vocabulary honest.
+			method:  http.MethodGet,
+			pattern: "/users/export.ids.csv",
+			panel:   panelUsers,
+			guarded: h.userExportIDsCSV,
+			mode:    routeModeSuperAdmin,
+			why:     "the selection export carries the checked users' public profiles",
+		},
+		{
+			method:  http.MethodGet,
+			pattern: "/users/export.ids.json",
+			panel:   panelUsers,
+			guarded: h.userExportIDsJSON,
+			mode:    routeModeSuperAdmin,
+			why:     "the selection export carries the checked users' public profiles",
 		},
 	}
 }

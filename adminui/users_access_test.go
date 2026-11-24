@@ -57,7 +57,18 @@ func TestUsersIndex_AccessColumn(t *testing.T) {
 	// A user with no platform role and no tenant reads as a quiet dash, not a
 	// blank cell that could mean "still loading".
 	plain := renderUsersIndex(t, h, "/admin/users?q=plain")
-	if strings.Contains(plain, "super_admin") {
+	// T19: the page's bulk bar legitimately lists the grantable roles in its
+	// select, so the pin is scoped to the plain user's TABLE ROW — the badge
+	// must not appear in the row's access cell.
+	at := strings.Index(plain, "plain@example.com")
+	if at < 0 {
+		t.Fatal("plain user row missing from the page")
+	}
+	plainRow := plain[at:]
+	if end := strings.Index(plainRow, "</tr>"); end >= 0 {
+		plainRow = plainRow[:end]
+	}
+	if strings.Contains(plainRow, "super_admin") {
 		t.Error("plain user must not inherit another user's role badge")
 	}
 	if !strings.Contains(plain, "—") {

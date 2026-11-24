@@ -133,7 +133,14 @@ func (h *Handler) usersIndexData(
 	if filter == userFilterAdmin {
 		matched = h.filterPlatformAdmins(matched, az)
 	}
-	sortUsers(matched, sort)
+	// T25 F184: "recent" orders by the last-seen index (descending), not by
+	// any field on the user — applied BEFORE the page window like every
+	// other sort so the order spans pages.
+	if sort == userSortRecent {
+		sortUsersByLastSeen(matched, h.lastSeenIndex())
+	} else {
+		sortUsers(matched, sort)
+	}
 	return h.assembleUsersList(matched, q, filter, page, az)
 }
 
@@ -184,7 +191,11 @@ func (h *Handler) exportFiltered(w http.ResponseWriter, r *http.Request, format 
 	if filter == userFilterAdmin {
 		matched = h.filterPlatformAdmins(matched, newRenderAuthz(context.Background(), h.config.Service))
 	}
-	sortUsers(matched, sort)
+	if sort == userSortRecent {
+		sortUsersByLastSeen(matched, h.lastSeenIndex())
+	} else {
+		sortUsers(matched, sort)
+	}
 
 	name := "users-export-filtered." + string(format)
 	w.Header().Set("Content-Type", exportContentType(format))

@@ -77,6 +77,11 @@ Every term below should mean the **same thing** to everyone who reads it.
 | RegisterResolver   | The registry port resolving a RegisterRef into RegistryFacts; implemented by opencorporates (X-API-TOKEN auth, ODbL attribution mandatory)                 | legalparty-model                          |
 | BillTo             | The per-tenant link naming which LegalParty receives the tenant's invoices; one stream per tenant, keyed by the tenant ID (issue #45) | legalparty-model |
 | BillToRedirected   | The event recording that a tenant's bills now go to another legal party; the previous party stays journaled for retention  | legalparty-model |
+| Membership Directory | The super-admin page listing every membership across all tenants (tenant, member, roles, joined) with tenant/role chips and search — resolved per-tenant over one AllTenants() pass; an upstream ask records the batched-listing gap | adminui module |
+| Read-Only Mode     | The opt-in `Config.ReadOnly` posture that skips every `write:true` routeSpec row at registration — writes answer 405 to privileged callers, the manifest reflects the absence, and the sidebar carries a notice chip; zero behavior change when unset | adminui module |
+| Ownership Transfer | The one-confirm sequencing of two durable commands — grant the owner role to the target, then demote the prior owner — with mid-sequence honesty ("Y STILL HOLDS the owner role"); the panel grants FIRST so a failed demotion leaves two owners, the safe direction | adminui module |
+| Credential Restore | Re-enrolling a user's passkey from exported backup JSON through the published `AddCredential` — no browser ceremony needed because `WebAuthnCredential` is fully JSON-tagged; the confirm names the restored credential "a trusted sign-in factor" | adminui module |
+| Label Table        | The panel's display-string seam: one `defaultLabels` table + a `Config.Labels` override map; unknown override keys are REJECTED at construction (an accepted-but-inert override would hide a typo forever); deliberately not a translation engine — no locale files, no pluralization | adminui module |
 
 ## Entities
 

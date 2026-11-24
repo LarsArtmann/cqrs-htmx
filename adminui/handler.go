@@ -22,11 +22,12 @@ import (
 // [usermgmt.NewSessionMiddleware]). Requests without an authenticated user, or
 // users that fail [Config.Authorizer], receive 401/403.
 type Handler struct {
-	config   Config
-	nav      []navItem
-	adminCSS http.Handler
-	adminJS  http.Handler
-	table    []routeSpec
+	config       Config
+	nav          []navItem
+	adminCSS     http.Handler
+	adminJS      http.Handler
+	adminFavicon http.Handler
+	table        []routeSpec
 	// labels is the merged display table (defaults + Config.Labels
 	// overrides), built once at [New] and attached to every pageData at
 	// h.page — the single display source for the covered string set.
@@ -64,12 +65,18 @@ func New(config Config) (*Handler, error) {
 		return nil, err
 	}
 
+	adminFavicon, err := newAssetHandler(assetsFS, "favicon.svg", "image/svg+xml")
+	if err != nil {
+		return nil, err
+	}
+
 	h := &Handler{ //nolint:exhaustruct // table is built and validated immediately below
-		config:   config,
-		labels:   mergeLabels(config.Labels),
-		adminCSS: adminCSS,
-		adminJS:  adminJS,
-		clock:    time.Now,
+		config:       config,
+		labels:       mergeLabels(config.Labels),
+		adminCSS:     adminCSS,
+		adminJS:      adminJS,
+		adminFavicon: adminFavicon,
+		clock:        time.Now,
 	}
 	h.nav = buildNav(config, h.labels)
 	h.table = h.buildRouteTable()

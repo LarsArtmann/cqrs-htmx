@@ -515,3 +515,577 @@
   });
   // =================== end T17 client pack A block ===================
 })();
+
+// ==========================================================================
+// T19 F137/F141 — bulk select + actions (BULK block; append-only).
+// ==========================================================================
+// Contract: row checkboxes (input[data-bulk-row]) + one select-all
+// (input[data-bulk-select-all]) drive a server-rendered bulk bar
+// (#users-bulk-bar) that stays hidden until at least one row is checked.
+// Everything here is document-delegated (gotcha 57: the form and the rows
+// are re-rendered by every list swap, so element-bound JS would die) and
+// CSP-safe (no inline handlers, no eval).
+(function () {
+  "use strict";
+
+  function bulkForm() {
+    return document.getElementById("users-bulk-form");
+  }
+  function bulkRows() {
+    var form = bulkForm();
+    if (!form) return [];
+    return Array.prototype.slice.call(form.querySelectorAll("input[data-bulk-row]"));
+  }
+  function checkedRows() {
+    return bulkRows().filter(function (cb) {
+      return cb.checked;
+    });
+  }
+
+  // One state pass per change: bar visibility, count text, select-all
+  // checked/indeterminate, and the selection export link's ids param.
+  function updateBulkState() {
+    var form = bulkForm();
+    if (!form) return;
+    var rows = bulkRows();
+    var checked = checkedRows();
+    var bar = document.getElementById("users-bulk-bar");
+    if (bar) bar.hidden = checked.length === 0;
+    var count = document.getElementById("bulk-count");
+    if (count) {
+      count.textContent = checked.length === 0
+        ? ""
+        : checked.length + " of " + rows.length + " on this page selected";
+    }
+    var selectAll = form.querySelector("input[data-bulk-select-all]");
+    if (selectAll) {
+      selectAll.checked = checked.length > 0 && checked.length === rows.length;
+      // Indeterminate ONLY when the selection is partial — the honest
+      // three-state ("some, not all") the checkbox vocabulary exists for.
+      selectAll.indeterminate = checked.length > 0 && checked.length < rows.length;
+    }
+    var exportLink = document.getElementById("bulk-export-csv");
+    if (exportLink) {
+      var base = exportLink.getAttribute("data-export-base") || exportLink.getAttribute("href");
+      if (checked.length === 0) {
+        exportLink.setAttribute("href", base);
+      } else {
+        var ids = checked.map(function (cb) {
+          return cb.value;
+        });
+        exportLink.setAttribute("href", base + "?ids=" + encodeURIComponent(ids.join(",")));
+      }
+    }
+  }
+
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    if (!t || !t.matches) return;
+    if (t.matches("input[data-bulk-row]")) updateBulkState();
+  });
+
+  // Select-all on CLICK (not change): setting every row programmatically
+  // from the change handler would re-enter change events per row.
+  document.addEventListener("click", function (e) {
+    var all = e.target.closest && e.target.closest("input[data-bulk-select-all]");
+    if (!all) return;
+    var want = all.checked;
+    bulkRows().forEach(function (cb) {
+      cb.checked = want;
+    });
+    updateBulkState();
+  });
+
+  // F141: the escalation confirm NAMES THE COUNT. Composed at submit time
+  // (capture, before htmx's htmx:confirm reads data-confirm) onto the FORM
+  // — htmx's confirm elt for a form-submitted request is the form — using
+  // the submitter's action value, so the dialog always describes the exact
+  // action + selection it is about to run (the T22 transfer pattern).
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (!form.matches || !form.matches("form[data-bulk-confirm]")) return;
+    var checked = checkedRows();
+    if (checked.length === 0) return; // server refusal panel handles honesty
+    var submitter = e.submitter;
+    var action = submitter && submitter.value ? submitter.value : "";
+    var roleSelect = form.querySelector("select[name='roles']");
+    var role = roleSelect && roleSelect.value ? roleSelect.value : "selected";
+    var n = checked.length;
+    var msg;
+    if (action === "grant") {
+      msg =
+        "Grant the " + role + " role to " + n + " user" + (n === 1 ? "" : "s") +
+        "? Each user's outcome is reported individually.";
+    } else {
+      msg =
+        "Send the verification email to " + n + " user" + (n === 1 ? "" : "s") +
+        "? Each send is reported individually.";
+    }
+    form.setAttribute("data-confirm", msg);
+    form.setAttribute("data-confirm-title", "Confirm bulk action");
+  }, true);
+
+  // Keep the bar/state honest after any swap that re-rendered the rows
+  // (a search or pager swap resets the selection server-side).
+  document.addEventListener("htmx:afterSwap", function (e) {
+    var target = e.detail && e.detail.target;
+    if (target && (target.id === "users-table" || target.closest && target.closest("#users-table"))) {
+      updateBulkState();
+    }
+  });
+
+  // Initial pass (no-JS default: the bar stays hidden).
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", updateBulkState);
+  } else {
+    updateBulkState();
+  }
+})();
+
+// ==========================================================================
+// T18 F131–F134 — COMMAND PALETTE (append-only block).
+// ==========================================================================
+// The palette dialog (#admin-palette) is server-rendered EMPTY by layout.templ
+// (paletteDialog): this block builds the link index at OPEN time from the
+// page's own DOM — no server endpoint, never stale. Index contract:
+//
+//   data-palette-label + data-palette-href     explicit entries (future regions)
+//   .admin-sidebar-scope nav a[href]           panel pages
+//   #users-table / #tenants-table /
+//   #members-directory-table tbody tr          the CURRENT page's rows
+//   #audit-panel a[href]                       the audit filter chips
+//
+// Row entries reuse attributes earlier tasks already render (the first
+// anchor per row + data-sort-email when present) — templates need no new
+// markup for their rows to be jump targets.
+//
+// Everything is document-delegated (gotcha 57) and CSP-safe (no inline
+// handlers; navigation via location.href on Enter). The fuzzy filter is a
+// case-insensitive subsequence match scored by position, so "ada" hits
+// "Ada Lovelace" and "jloe" hits "Jane Loe".
+(function () {
+  "use strict";
+
+  var PALETTE_ID = "admin-palette";
+  var PALETTE_INPUT_ID = "admin-palette-input";
+  var PALETTE_LIST_ID = "admin-palette-list";
+
+  // Fuzzy score: -1 = no match. Subsequence match; higher is better.
+  function fuzzyScore(needle, haystack) {
+    needle = needle.toLowerCase();
+    haystack = haystack.toLowerCase();
+    if (!needle) return 0;
+    var score = 0;
+    var idx = 0;
+    var streak = 0;
+    for (var i = 0; i < needle.length; i++) {
+      var ch = needle[i];
+      var found = haystack.indexOf(ch, idx);
+      if (found === -1) return -1;
+      streak = found === idx ? streak + 1 : 1;
+      score += 10 - Math.min(found - idx, 9) + streak;
+      idx = found + 1;
+    }
+    return score;
+  }
+
+  // One palette entry builder: label + href + group.
+  function entry(label, href, group) {
+    if (!label || !href) return null;
+    return { label: label.trim(), href: href, group: group };
+  }
+
+  function rowEntries(container, group) {
+    var out = [];
+    if (!container) return out;
+    var rows = container.querySelectorAll("tbody tr");
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var a = row.querySelector("a[href]");
+      if (!a) continue;
+      var label = row.getAttribute("data-sort-email") || a.textContent;
+      var item = entry(label, a.getAttribute("href"), group);
+      if (item) out.push(item);
+    }
+    return out;
+  }
+
+  // Build the index fresh on every open (F132).
+  function buildIndex() {
+    var items = [];
+    // Explicit extension contract first (future regions opt in with attrs).
+    var explicit = document.querySelectorAll("[data-palette-label][data-palette-href]");
+    for (var i = 0; i < explicit.length; i++) {
+      var el = explicit[i];
+      var item = entry(el.getAttribute("data-palette-label"), el.getAttribute("data-palette-href"), "More");
+      if (item) items.push(item);
+    }
+    // Pages: the sidebar's nav links (de-duplicated by href).
+    var seen = {};
+    var nav = document.querySelectorAll(".admin-sidebar-scope nav a[href], .admin-sidebar-scope a[href]");
+    for (var n = 0; n < nav.length; n++) {
+      var href = nav[n].getAttribute("href");
+      if (href && !seen[href]) {
+        seen[href] = true;
+        var navItem = entry(nav[n].textContent, href, "Pages");
+        if (navItem) items.push(navItem);
+      }
+    }
+    // Current page rows + audit filters.
+    items = items.concat(
+      rowEntries(document.getElementById("users-table"), "Users on this page"),
+      rowEntries(document.getElementById("tenants-table"), "Tenants on this page"),
+      rowEntries(document.getElementById("members-directory-table"), "Members on this page")
+    );
+    var audit = document.getElementById("audit-panel");
+    if (audit) {
+      var chips = audit.querySelectorAll("a[href]");
+      for (var c = 0; c < chips.length; c++) {
+        var chip = entry("Audit filter: " + chips[c].textContent, chips[c].getAttribute("href"), "Audit filters");
+        if (chip) items.push(chip);
+      }
+    }
+    return items;
+  }
+
+  // Render the filtered list into the dialog's listbox.
+  var active = null;
+  function setActive(dialog, opt) {
+    if (active) active.removeAttribute("data-palette-active");
+    active = opt;
+    if (active) {
+      active.setAttribute("data-palette-active", "true");
+      dialog.querySelector("input").setAttribute("aria-activedescendant", active.id);
+      if (typeof active.scrollIntoView === "function") active.scrollIntoView({ block: "nearest" });
+    } else {
+      dialog.querySelector("input").removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function renderResults(dialog, items) {
+    var list = dialog.querySelector("[data-palette-list]");
+    var empty = dialog.querySelector("[data-palette-empty]");
+    // Drop previous results (keep the empty-state row for re-use).
+    var stale = list.querySelectorAll("[data-palette-option]");
+    for (var i = 0; i < stale.length; i++) stale[i].remove();
+    var any = items.length > 0;
+    if (empty) empty.setAttribute("data-palette-hidden", any ? "true" : "false");
+    for (var k = 0; k < items.length; k++) {
+      var opt = document.createElement("div");
+      opt.id = "admin-palette-opt-" + k;
+      opt.setAttribute("role", "option");
+      opt.setAttribute("data-palette-option", "true");
+      opt.setAttribute("data-palette-href", items[k].href);
+      opt.tabIndex = -1;
+      opt.className =
+        "flex cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800";
+      var label = document.createElement("span");
+      label.textContent = items[k].label;
+      var group = document.createElement("span");
+      group.className = "text-xs text-gray-500 dark:text-gray-400";
+      group.textContent = items[k].group;
+      opt.appendChild(label);
+      opt.appendChild(group);
+      list.appendChild(opt);
+    }
+    setActive(dialog, list.querySelector("[data-palette-option]"));
+  }
+
+  function visibleOptions(dialog) {
+    return Array.prototype.slice.call(dialog.querySelectorAll("[data-palette-option]"));
+  }
+
+  function openPalette(dialog) {
+    if (!dialog || typeof dialog.showModal !== "function") return;
+    var input = document.getElementById(PALETTE_INPUT_ID);
+    renderResults(dialog, buildIndex());
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+    dialog.showModal();
+  }
+
+  function jump(href) {
+    var dlg = document.getElementById(PALETTE_ID);
+    if (dlg) dlg.close();
+    window.location.href = href;
+  }
+
+  document.addEventListener("keydown", function (e) {
+    var dialog = document.getElementById(PALETTE_ID);
+    if (!dialog) return;
+    // F134: Ctrl/Cmd+K opens the palette from anywhere.
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      if (!dialog.open) openPalette(dialog);
+      else dialog.close();
+      return;
+    }
+    if (!dialog.open) return;
+    var input = document.getElementById(PALETTE_INPUT_ID);
+    // F134: "?" toggles the shortcut-help section (only when not typing text
+    // that contains it — plain "?" keystroke).
+    if (e.key === "?" && e.target === input) {
+      e.preventDefault();
+      var help = dialog.querySelector("[data-palette-help]");
+      if (help) help.classList.toggle("hidden");
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      var opts = visibleOptions(dialog);
+      if (opts.length === 0) return;
+      e.preventDefault();
+      var current = opts.indexOf(active);
+      var next;
+      if (current === -1) next = e.key === "ArrowDown" ? 0 : opts.length - 1;
+      else next = e.key === "ArrowDown" ? Math.min(current + 1, opts.length - 1) : Math.max(current - 1, 0);
+      setActive(dialog, opts[next]);
+      return;
+    }
+    // F133: Enter jumps to the active result.
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (active) jump(active.getAttribute("data-palette-href"));
+    }
+  });
+
+  document.addEventListener("input", function (e) {
+    var t = e.target;
+    if (!t.matches || !t.matches("[data-palette-input]")) return;
+    var dialog = document.getElementById(PALETTE_ID);
+    if (!dialog) return;
+    var items = buildIndex();
+    var q = t.value.trim();
+    if (q !== "") {
+      var scored = [];
+      for (var i = 0; i < items.length; i++) {
+        var s = fuzzyScore(q, items[i].label);
+        if (s >= 0) scored.push({ score: s, item: items[i] });
+      }
+      scored.sort(function (a, b) {
+        return b.score - a.score;
+      });
+      items = [];
+      for (var k = 0; k < scored.length; k++) items.push(scored[k].item);
+    }
+    renderResults(dialog, items);
+  });
+
+  // Click (and the backdrop, which the browser reports as a click on the
+  // dialog itself) + close handling. Enter-jump and click-select converge on
+  // jump(); closing the dialog clears the active option so a reopen starts
+  // fresh.
+  document.addEventListener("click", function (e) {
+    var dialog = document.getElementById(PALETTE_ID);
+    if (!dialog) return;
+    if (e.target === dialog) {
+      dialog.close();
+      return;
+    }
+    var opt = e.target.closest && e.target.closest("[data-palette-option]");
+    if (opt) jump(opt.getAttribute("data-palette-href"));
+  });
+  document.addEventListener("close", function (e) {
+    if (e.target && e.target.id === PALETTE_ID) setActive(e.target, null);
+  }, true);
+})();
+// ============================ end T18 palette block ============================
+
+// ==========================================================================
+// T20 F146–F149 — SAVED VIEWS + DISPLAY PREFS (append-only block).
+// ==========================================================================
+// Client-only persistence for the users list: no server endpoint, no server
+// state. One namespaced, versioned localStorage key holds everything:
+//
+//   key:    "cqrshtmx:adminui:users-prefs:v1"
+//   value:  {"version":1,"presets":[{"name":...,"query":"q=..&filter=.."}],
+//            "hidden":["access","lastseen"],"density":"compact"}
+//
+// Preset contract (F147): a preset serializes the list URL query string
+// (q/filter/sort/page — window.location.search at save time). Apply
+// navigates to the list base URL + "?" + query (navigation IS the refresh;
+// the server URL builder remains the single source of truth for what a view
+// means). Column visibility (F148) toggles the classes
+// admin-cols-hide-access / admin-cols-hide-lastseen on the #users-table
+// container — the stylesheet hides the matching column POSITIONALLY; the
+// table markup is never touched (it belongs to the concurrent rows agent).
+// Density (F149) toggles admin-density-compact on the same container.
+(function () {
+  "use strict";
+
+  var STORE_KEY = "cqrshtmx:adminui:users-prefs:v1";
+  var STORE_VERSION = 1;
+  var TABLE_ID = "users-table";
+  var COL_CLASSES = { access: "admin-cols-hide-access", lastseen: "admin-cols-hide-lastseen" };
+
+  function readStore() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return { version: STORE_VERSION, presets: [], hidden: [], density: "comfortable" };
+      var parsed = JSON.parse(raw);
+      if (!parsed || parsed.version !== STORE_VERSION) {
+        return { version: STORE_VERSION, presets: [], hidden: [], density: "comfortable" };
+      }
+      return parsed;
+    } catch (err) {
+      // Corrupt or blocked storage degrades to defaults — never to a crash.
+      return { version: STORE_VERSION, presets: [], hidden: [], density: "comfortable" };
+    }
+  }
+
+  function writeStore(store) {
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
+    } catch (err) {
+      // Storage full/blocked: the panel keeps working, persistence is lost.
+    }
+  }
+
+  function applyPrefs(store) {
+    var table = document.getElementById(TABLE_ID);
+    if (!table) return;
+    for (var col in COL_CLASSES) {
+      if (Object.prototype.hasOwnProperty.call(COL_CLASSES, col)) {
+        table.classList.toggle(COL_CLASSES[col], store.hidden.indexOf(col) !== -1);
+        var btn = document.querySelector('[data-prefs-col="' + col + '"]');
+        if (btn) btn.setAttribute("aria-pressed", store.hidden.indexOf(col) !== -1 ? "true" : "false");
+      }
+    }
+    var compact = store.density === "compact";
+    table.classList.toggle("admin-density-compact", compact);
+    var dens = document.querySelector("[data-prefs-density]");
+    if (dens) {
+      dens.setAttribute("aria-pressed", compact ? "true" : "false");
+      dens.textContent = compact ? "Comfortable" : "Compact";
+    }
+  }
+
+  function renderPresets(store) {
+    var host = document.querySelector("[data-prefs-presets]");
+    if (!host) return;
+    while (host.firstChild) host.removeChild(host.firstChild);
+    if (store.presets.length === 0) {
+      var none = document.createElement("span");
+      none.className = "text-gray-600 dark:text-gray-400";
+      none.setAttribute("data-prefs-empty", "true");
+      none.textContent = "No saved views yet.";
+      host.appendChild(none);
+      return;
+    }
+    for (var i = 0; i < store.presets.length; i++) {
+      (function (preset) {
+        var apply = document.createElement("button");
+        apply.type = "button";
+        apply.setAttribute("data-prefs-apply", preset.name);
+        apply.setAttribute(
+          "class",
+          "rounded-full bg-gray-900 px-2.5 py-0.5 font-medium text-white dark:bg-white dark:text-gray-900"
+        );
+        apply.textContent = preset.name;
+        apply.title = "Apply view: " + preset.query;
+        var del = document.createElement("button");
+        del.type = "button";
+        del.setAttribute("data-prefs-delete", preset.name);
+        del.setAttribute(
+          "aria-label",
+          "Delete view " + preset.name
+        );
+        del.setAttribute(
+          "class",
+          "rounded-full border border-gray-300 px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+        );
+        del.textContent = "×";
+        host.appendChild(apply);
+        host.appendChild(del);
+      })(store.presets[i]);
+    }
+  }
+
+  function currentQuery() {
+    // The preset IS the URL query (q/filter/sort/page) — nothing else.
+    return window.location.search.replace(/^\?/, "");
+  }
+
+  function applyPreset(base, query) {
+    window.location.href = base + (query ? "?" + query : "");
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var bar = document.querySelector("[data-users-prefs]");
+    if (!bar) return;
+    var store = readStore();
+    applyPrefs(store);
+    renderPresets(store);
+  });
+
+  // Save: name from the input; empty name ignored honestly.
+  document.addEventListener("click", function (e) {
+    var save = e.target.closest && e.target.closest("[data-prefs-save]");
+    if (save) {
+      var nameInput = document.querySelector("[data-prefs-name]");
+      var name = nameInput ? nameInput.value.trim() : "";
+      if (!name) return;
+      var store = readStore();
+      var query = currentQuery();
+      var replaced = false;
+      for (var i = 0; i < store.presets.length; i++) {
+        if (store.presets[i].name === name) {
+          store.presets[i].query = query;
+          replaced = true;
+        }
+      }
+      if (!replaced) store.presets.push({ name: name, query: query });
+      writeStore(store);
+      renderPresets(store);
+      if (nameInput) nameInput.value = "";
+      return;
+    }
+    var del = e.target.closest && e.target.closest("[data-prefs-delete]");
+    if (del) {
+      var name2 = del.getAttribute("data-prefs-delete");
+      var store2 = readStore();
+      store2.presets = store2.presets.filter(function (p) {
+        return p.name !== name2;
+      });
+      writeStore(store2);
+      renderPresets(store2);
+      return;
+    }
+    var apply = e.target.closest && e.target.closest("[data-prefs-apply]");
+    if (apply) {
+      var bar = apply.closest("[data-users-prefs]");
+      var base = bar ? bar.getAttribute("data-prefs-base") : "/users";
+      var name3 = apply.getAttribute("data-prefs-apply");
+      var store3 = readStore();
+      for (var k = 0; k < store3.presets.length; k++) {
+        if (store3.presets[k].name === name3) {
+          applyPreset(base, store3.presets[k].query);
+          return;
+        }
+      }
+      return;
+    }
+    // Column visibility (F148): toggle the container class, persist.
+    var colBtn = e.target.closest && e.target.closest("[data-prefs-col]");
+    if (colBtn) {
+      var col = colBtn.getAttribute("data-prefs-col");
+      var store4 = readStore();
+      var idx = store4.hidden.indexOf(col);
+      if (idx === -1) store4.hidden.push(col);
+      else store4.hidden.splice(idx, 1);
+      writeStore(store4);
+      applyPrefs(store4);
+      return;
+    }
+    // Density (F149).
+    var densBtn = e.target.closest && e.target.closest("[data-prefs-density]");
+    if (densBtn) {
+      var store5 = readStore();
+      store5.density = store5.density === "compact" ? "comfortable" : "compact";
+      writeStore(store5);
+      applyPrefs(store5);
+    }
+  });
+})();
+// ============================ end T20 prefs block ============================

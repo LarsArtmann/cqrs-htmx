@@ -9,7 +9,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
 )
 
-//go:embed assets/admin-tw.css assets/admin.js
+//go:embed assets/admin-tw.css assets/admin.js assets/favicon.svg
 var assetsFS embed.FS
 
 // newAssetHandler reads an embedded asset once and returns a handler serving
