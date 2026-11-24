@@ -129,6 +129,151 @@ func listPageURL(base, search string) string {
 	return base + "?" + url.Values{"q": []string{search}}.Encode()
 }
 
+// parseUserSort normalizes the users list ordering. The vocabulary is
+// "email", "display", "created"; anything else — including empty — degrades
+// to "" ("" = the directory's stable order), the same unknown-value
+// degradation the tenants sort uses, so a hand-edited URL cannot crash or
+// silently reorder the list into something nobody asked for.
+func parseUserSort(raw string) string {
+	switch raw {
+	case "email", "display", "created":
+		return raw
+	}
+	return ""
+}
+
+// compareUsers orders two directory entries by the chosen sort key, breaking
+// every tie by user id so equal keys render in a stable order (a page break
+// must not reshuffle rows between requests). Pure: no handler state, no
+// clock — same inputs, same order. An unknown or empty sort key compares by
+// id only, preserving the directory's read-model order.
+func compareUsers(a, b *identitymodel.User, sort string) int {
+	switch sort {
+	case "email":
+		if c := strings.Compare(strings.ToLower(a.Email), strings.ToLower(b.Email)); c != 0 {
+			return c
+		}
+	case "display":
+		if c := strings.Compare(strings.ToLower(a.DisplayName), strings.ToLower(b.DisplayName)); c != 0 {
+			return c
+		}
+	case "created":
+		if c := a.CreatedAt.Compare(b.CreatedAt); c != 0 {
+			return c
+		}
+	}
+	return strings.Compare(a.ID.Get().String(), b.ID.Get().String())
+}
+
+// sortUsers orders the matched users in place by the parsed sort key. An
+// empty key is a no-op: the default view stays exactly the order the read
+// model has always reported.
+func sortUsers(users []*identitymodel.User, sort string) {
+	if sort == "" {
+		return
+	}
+	slices.SortFunc(users, func(a, b *identitymodel.User) int {
+		return compareUsers(a, b, sort)
+	})
+}
+
+// userListURL builds a users-list URL carrying the current search, status
+// chip, and ordering (defaults omitted, so the plain /users URL stays
+// canonical) — the tenants' tenantListURL pattern. base is the full path the
+// link targets ("/users", an export route), so chips, sort toggles, the
+// pager, and the filtered-export buttons share one builder and can never
+// drift on which state survives a click.
+func userListURL(base string, d usersListData, filter userFilter, sort string) string {
+	params := url.Values{}
+	if d.Search != "" {
+		params.Set("q", d.Search)
+	}
+	if filter != userFilterNone {
+		params.Set("filter", string(filter))
+	}
+	if sort != "" {
+		params.Set("sort", sort)
+	}
+	if len(params) == 0 {
+		return base
+	}
+	return base + "?" + params.Encode()
+}
+
+// userChipWithSort re-arms a chip's href with the active ordering, so
+// toggling a status chip keeps the sort (the chip row is built by
+// userFilterChipsList in models.go, whose vocabulary predates sort; the href
+// is state, not identity, so appending the param here keeps one chip table).
+func userChipWithSort(chip userFilterChip, sort string) userFilterChip {
+	if sort == "" {
+		return chip
+	}
+	sep := "?"
+	if strings.Contains(chip.Href, "?") {
+		sep = "&"
+	}
+	chip.Href += sep + "sort=" + sort
+	return chip
+}
+
+// pagerWindow cuts a 1 … 4 5 6 … N window for a pager: three page numbers
+// centered on current (clamped into range), the first and last page always
+// present, and ellipsis markers where numbers were dropped. Pure: same
+// (page, total), same window. total < 1 yields no window (the pager renders
+// nothing on an empty or single-page list).
+func pagerWindow(page, total int) []pagerStep {
+	if total < 1 {
+		return nil
+	}
+	current := min(max(page, 1), total)
+	if total <= 3 {
+		steps := make([]pagerStep, 0, total)
+		for p := 1; p <= total; p++ {
+			steps = append(steps, pagerStep{Page: p, Ellipsis: false})
+		}
+		return steps
+	}
+	start := max(current-1, 1)
+	end := start + 2
+	if end > total {
+		end = total
+		start = end - 2
+	}
+	steps := make([]pagerStep, 0, 7)
+	if start > 1 {
+		steps = append(steps, pagerStep{Page: 1, Ellipsis: false}, pagerStep{Page: 0, Ellipsis: true})
+	}
+	for p := start; p <= end; p++ {
+		steps = append(steps, pagerStep{Page: p, Ellipsis: false})
+	}
+	if end < total {
+		steps = append(steps, pagerStep{Page: 0, Ellipsis: true}, pagerStep{Page: total, Ellipsis: false})
+	}
+	return steps
+}
+
+// pagerStep is one slot of a pager window: a page number to link, or an
+// ellipsis marker standing for dropped numbers.
+type pagerStep struct {
+	Page     int
+	Ellipsis bool
+}
+
+// pagerPageURL stamps the requested page onto a pager base URL, replacing
+// any existing page param and keeping every other query param intact (the
+// pagination component's own pageURL contract, so the windowed pager stays
+// state-preserving).
+func pagerPageURL(base string, page int) string {
+	u, err := url.Parse(base)
+	if err != nil {
+		return base + "?page=" + strconv.Itoa(page)
+	}
+	q := u.Query()
+	q.Set("page", strconv.Itoa(page))
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
 // parseRolesForm reads the multi-value `roles` checkbox field, trims each
 // entry, deduplicates, and validates every value against AssignableRoles().
 // A membership may hold several roles; none checked or an unknown value

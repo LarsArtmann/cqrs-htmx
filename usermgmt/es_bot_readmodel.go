@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
@@ -88,7 +89,7 @@ func (m *BotReadModel) handleBotDeleted(aggID id.StreamID, _ event.Event) error 
 // handleBotTransferred moves a bot to its new owner. The token and scopes
 // stay with the bot: only who it belongs to changes.
 func (m *BotReadModel) handleBotTransferred(aggID id.StreamID, evt event.Event) error {
-	p, err := unmarshalPayload[BotTransferredPayload](evt)
+	p, err := unmarshalPayload[identitymodel.BotTransferredPayload](evt)
 	if err != nil {
 		return errorfamily.WrapCorruption(
 			err, "usermgmt.bot_readmodel.decode_failed",

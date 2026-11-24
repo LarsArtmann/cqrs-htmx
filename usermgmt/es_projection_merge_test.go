@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -57,8 +58,9 @@ func TestCasbinProjection_UserMergedIntoRemovesEveryGrant(t *testing.T) {
 
 	loser := newUserStream(t)
 	survivor := newUserStream(t)
+	member := newUserStream(t)
 	tenant := NewTenantID("01JXCASBINMERGE00000000000A")
-	actor := ActorIDFromUser(loser.userID())
+	actor := ActorIDFromUser(member.userID())
 
 	// Grants the projection itself derives: the loser's own registration
 	// roles (subject = raw stream ID) and a tenant membership (subject =
@@ -95,7 +97,7 @@ func TestCasbinProjection_UserMergedIntoRemovesEveryGrant(t *testing.T) {
 		t.Errorf("loser raw-subject grants after merge = %v, want none", got)
 	}
 	if got := len(groupRowsFor(t, authz, actor.String())); got != 1 {
-		t.Errorf("actor-spelled membership rows after merge = %d, want 1 (removed by RemoveMember, not by the retirement)", got)
+		t.Errorf("member actor grants after merge = %d, want 1 (removed by RemoveMember, not by the retirement)", got)
 	}
 
 	// Re-delivery stays the no-op the at-least-once drain needs.
@@ -137,12 +139,14 @@ func TestCasbinProjection_TenantMergedIntoClearsDomain(t *testing.T) {
 	if err := proj.Handle(t.Context(), member); err != nil {
 		t.Fatalf("Handle MemberAdded: %v", err)
 	}
-	if got := len(groupRowsInDomain(t, authz, loserRaw)); got != 1 {
-		t.Fatalf("domain grants before merge = %d, want 1", got)
+	// The domain holds the member's grant plus the mirrored role-hierarchy
+	// edges; what matters is that the member has exactly one grant there.
+	if got := len(groupRowsFor(t, authz, actor.String())); got != 1 {
+		t.Fatalf("member grants before merge = %d, want 1", got)
 	}
 
 	mergedInto := makeEventFor(t, eventTenantMergedInto, 1, mergedAwayStream,
-		aggregateTypeTenant, TenantMergedIntoPayload{
+		aggregateTypeTenant, identitymodel.TenantMergedIntoPayload{
 			SchemaVersion: currentSchemaVersion,
 			SurvivorID:    NewTenantID(survivorRaw),
 			Reason:        "dedupe",
@@ -153,6 +157,9 @@ func TestCasbinProjection_TenantMergedIntoClearsDomain(t *testing.T) {
 
 	if got := groupRowsInDomain(t, authz, loserRaw); len(got) != 0 {
 		t.Errorf("domain grants after tenant merge = %v, want none", got)
+	}
+	if got := groupRowsFor(t, authz, actor.String()); len(got) != 0 {
+		t.Errorf("member grants survived the tenant merge: %v", got)
 	}
 }
 
@@ -175,7 +182,7 @@ func TestBotReadModel_TransferMovesTheBot(t *testing.T) {
 	}
 
 	transferred := makeEventFor(t, eventBotTransferred, 2, botStream, aggregateTypeBot,
-		BotTransferredPayload{
+		identitymodel.BotTransferredPayload{
 			SchemaVersion: currentSchemaVersion,
 			OwnerID:       newOwner,
 			Reason:        "merge",
@@ -207,7 +214,7 @@ func TestBotReadModel_TransferMovesTheBot(t *testing.T) {
 	// A transfer for a stream with no row is a no-op, and re-delivery keeps
 	// the last owner.
 	unknown := makeEventFor(t, eventBotTransferred, 1, id.NewStreamID(), aggregateTypeBot,
-		BotTransferredPayload{SchemaVersion: currentSchemaVersion, OwnerID: oldOwner})
+		identitymodel.BotTransferredPayload{SchemaVersion: currentSchemaVersion, OwnerID: oldOwner})
 	if err := m.Handle(t.Context(), unknown); err != nil {
 		t.Fatalf("Handle BotTransferred for unknown bot: %v", err)
 	}
@@ -236,7 +243,7 @@ func TestSQLBotReadModel_TransferSurvivesRestart(t *testing.T) {
 			OwnerID:       oldOwner,
 			TokenHash:     []byte("hash-restart"),
 		}),
-		makeEventFor(t, eventBotTransferred, 2, botStream, aggregateTypeBot, BotTransferredPayload{
+		makeEventFor(t, eventBotTransferred, 2, botStream, aggregateTypeBot, identitymodel.BotTransferredPayload{
 			SchemaVersion: currentSchemaVersion,
 			OwnerID:       newOwner,
 			Reason:        "merge",
