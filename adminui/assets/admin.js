@@ -109,6 +109,57 @@
     if (!row.hasAttribute("tabindex")) row.setAttribute("tabindex", "-1");
     row.focus();
   }
+  document.addEventListener("keydown", function (e) {
+    // "/" focuses the list search — unless the user is already typing.
+    if (
+      e.key === "/" &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      !isTypingTarget(document.activeElement)
+    ) {
+      var search = listSearchInput();
+      if (search) {
+        e.preventDefault();
+        search.focus();
+      }
+      return;
+    }
+    // Escape in the search clears it and re-runs the (htmx) search.
+    if (
+      e.key === "Escape" &&
+      isTypingTarget(document.activeElement) &&
+      document.activeElement.type === "search"
+    ) {
+      var box = document.activeElement;
+      if (box.value !== "") {
+        box.value = "";
+        // Fire input so htmx's own trigger map (and any debounced listener)
+        // sees the clear, then submit the wrapping form as the no-JS path.
+        box.dispatchEvent(new Event("input", { bubbles: true }));
+        var form = box.closest("form");
+        if (form && typeof form.requestSubmit === "function") form.requestSubmit();
+      }
+      return;
+    }
+    // Arrow keys walk the list rows once focus is on a row or in the search.
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      var active = document.activeElement;
+      var onRow = active && active.tagName === "TR";
+      var inSearch = isTypingTarget(active) && active.type === "search";
+      if (!onRow && !inSearch) return;
+      var rows = listRows();
+      if (rows.length === 0) return;
+      e.preventDefault();
+      var current = rows.indexOf(active);
+      if (current === -1) {
+        focusRow(rows, e.key === "ArrowDown" ? 0 : rows.length - 1);
+        return;
+      }
+      focusRow(rows, e.key === "ArrowDown" ? current + 1 : current - 1);
+    }
+  });
+
   // --- Toasts: bridge adminui:toast HX-Trigger events to templ-components tcShowToast ---
   // tcShowToast is provided by feedback.ToastContainer (rendered server-side).
   document.addEventListener("adminui:toast", function (e) {

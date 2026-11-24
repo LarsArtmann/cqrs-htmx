@@ -3,7 +3,10 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -170,8 +173,20 @@ func buildSQLTenantReadModel(
 }
 
 func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error {
+	if evt.Type() == eventTenantMergedInto {
+		if err := m.retireTenantToSQL(ctx, evt.StreamID(), evt); err != nil {
+			return err
+		}
+		return m.TenantReadModel.Handle(ctx, evt)
+	}
 	if err := m.TenantReadModel.Handle(ctx, evt); err != nil {
 		return err
+	}
+	// A retired stream owns no row. Its next event is one the journal holds
+	// before the merge, delivered again after a hydrate; the pointer-following
+	// FindByID would write the survivor under the loser's key.
+	if m.Retired(evt.StreamID()) {
+		return nil
 	}
 	aggID := evt.StreamID()
 	tid := NewTenantID(aggID.Get())
@@ -194,6 +209,55 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	}
 	return upsertView(ctx, m.store, tid, view,
 		"usermgmt.sql_readmodel.tenant_upsert", "upsert tenant view")
+}
+
+// retireTenantToSQL writes the soft tombstone of the stream TenantMergedInto
+// retires: the row keeps the retired tenant's own snapshot, Deleted set, and
+// its Data carries merged_into, so a restart rebuilds the pointer (the tenant
+// spelling of the user model's D19). A re-delivered retirement finds the
+// tombstone already written and stays the no-op the fold promises.
+func (m *SQLTenantReadModel) retireTenantToSQL(ctx context.Context, aggID id.StreamID, evt event.Event) error {
+	p, err := unmarshalPayload[identitymodel.TenantMergedIntoPayload](evt)
+	if err != nil {
+		return errorfamily.WrapCorruption(
+			err, "usermgmt.sql_readmodel.tenant_retire_decode", "decode TenantMergedInto",
+		).WithContextAny("agg_id", aggID)
+	}
+	tid := NewTenantID(aggID.Get())
+	retired, ok := m.tenantRow(aggID)
+	if !ok {
+		view, getErr := m.store.Get(ctx, tid)
+		switch {
+		case errors.Is(getErr, kv.ErrNotFound):
+			retired = &Tenant{ID: tid} // a pointer-only tombstone (the D23 shape)
+		case getErr != nil:
+			return errorfamily.WrapTransient(
+				getErr, "usermgmt.sql_readmodel.tenant_retire_get", "read tenant view before writing its tombstone",
+			).WithContextAny("agg_id", aggID)
+		case view.Deleted:
+			return nil // already a tombstone: the re-delivered retirement is a no-op
+		default:
+			fromStore, unmarshalErr := unmarshalViewJSON[Tenant](
+				view.Data, "usermgmt.sql_readmodel.tenant_retire_unmarshal", "unmarshal tenant view data")
+			if unmarshalErr != nil {
+				return unmarshalErr
+			}
+			retired = &fromStore
+		}
+	}
+	retired.MergedInto = p.SurvivorID
+	retired.Deleted = true
+	data, marshalErr := marshalViewJSON(
+		*retired, "usermgmt.sql_readmodel.tenant_retire_marshal", "marshal tenant tombstone")
+	if marshalErr != nil {
+		return marshalErr.WithContextAny("agg_id", aggID)
+	}
+	view := TenantView{
+		Name: retired.Name, DisplayName: retired.DisplayName,
+		Deleted: true, Data: data,
+	}
+	return upsertView(ctx, m.store, tid, view,
+		"usermgmt.sql_readmodel.tenant_retire", "write merged tenant tombstone")
 }
 
 func (m *SQLTenantReadModel) FindByNameSQL(ctx context.Context, name string) ([]*TenantView, error) {

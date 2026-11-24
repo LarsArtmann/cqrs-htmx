@@ -625,6 +625,10 @@ func TestReadModels_HandleEveryDeclaredEventType(t *testing.T) {
 			model := NewBotReadModel()
 			return unhandledEventTypes(model.EventTypes(), &model.readModelCore)
 		}},
+		{"tenant", func() []event.Type {
+			model := NewTenantReadModel()
+			return unhandledEventTypes(model.EventTypes(), &model.readModelCore)
+		}},
 	}
 
 	for _, tt := range tests {

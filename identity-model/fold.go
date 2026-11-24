@@ -3,6 +3,7 @@ package identitymodel
 import (
 	"bytes"
 	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -106,6 +107,15 @@ func (s TenantState) IsMerged() bool {
 // IsActive reports whether the tenant exists and is not suspended or deleted.
 func (s TenantState) IsActive() bool {
 	return s.Exists() && !s.Suspended
+}
+
+// NormalizeTenantName folds a tenant name to its comparison form: trimmed and
+// lowercased. Two tenants whose names differ only in case or surrounding
+// whitespace are the same name to a human, which is exactly how duplicate
+// tenants come to exist (issue #47); the normalized form is what the
+// opt-in uniqueness check and the duplicates report compare.
+func NormalizeTenantName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
 }
 
 // IsValid enforces struct-level invariants.

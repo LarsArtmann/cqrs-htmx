@@ -423,7 +423,9 @@ func (m *SQLMembershipReadModel) Hydrate(ctx context.Context) error {
 	return nil
 }
 
-// Hydrate rebuilds the tenants map from the SQL view store.
+// Hydrate rebuilds the tenants map from the SQL view store. A tombstone row
+// (merged away) is not live: its Data carries merged_into, so the pointer
+// map keeps its trace and the live map stays without it.
 func (m *SQLTenantReadModel) Hydrate(ctx context.Context) error {
 	views, err := m.store.Scan(ctx, nil)
 	if err != nil {
@@ -432,6 +434,7 @@ func (m *SQLTenantReadModel) Hydrate(ctx context.Context) error {
 	}
 
 	tenants := make(map[id.StreamID]*Tenant, len(views))
+	mergedInto := make(map[id.StreamID]id.StreamID)
 
 	for _, view := range views {
 		tenant, err := unmarshalViewJSON[Tenant](
@@ -448,11 +451,24 @@ func (m *SQLTenantReadModel) Hydrate(ctx context.Context) error {
 			return err
 		}
 
+		if !tenant.MergedInto.IsZero() {
+			survivor, err := hydrateStreamID(
+				tenant.MergedInto.Get(),
+				"usermgmt.sql_readmodel.tenant_hydrate_merged_into", "parse survivor id from view",
+			)
+			if err != nil {
+				return err
+			}
+			mergedInto[aggID] = survivor
+			continue
+		}
+
 		tenants[aggID] = &tenant
 	}
 
 	m.mu.Lock()
 	m.tenants = tenants
+	m.mergedInto = mergedInto
 	m.mu.Unlock()
 
 	return nil
