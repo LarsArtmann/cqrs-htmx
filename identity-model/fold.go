@@ -43,6 +43,13 @@ func (s UserState) IsActive() bool {
 	return s.Exists() && !s.Deleted
 }
 
+// HasCredential reports whether the user holds a credential with the given ID.
+func (s UserState) HasCredential(credentialID []byte) bool {
+	return slices.ContainsFunc(s.Credentials, func(cred WebAuthnCredential) bool {
+		return bytes.Equal(cred.ID, credentialID)
+	})
+}
+
 // IsMerged reports whether this user was merged into another one, in which
 // case [UserState.MergedInto] names the survivor.
 func (s UserState) IsMerged() bool {
