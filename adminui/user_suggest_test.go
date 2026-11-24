@@ -230,3 +230,33 @@ func TestSuggest_JSWired(t *testing.T) {
 		}
 	}
 }
+
+// TestUsersList_TwoRolesOneTenant proves the access column counts DOMAINS,
+// not policy rows (T08-adjacent fix): one membership granted two roles used
+// to read "2 tenants" because each role appended the same domain to the
+// render cache.
+func TestUsersList_TwoRolesOneTenant(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	user := mustUser(t, "admin@example.com")
+	h, svc := newTestPanel(t, user)
+	tenant := mustCreateTenant(t, svc, "acme")
+	member := mustRegister(t, svc, "u-multi", "multi@example.com")
+	mustAddMember(t, svc, member.User.ID, tenant.ID, identitymodel.RoleUser)
+
+	// Add a second role to the SAME membership: the badge must stay "1 tenant".
+	if _, err := svc.Dispatch(ctx, usermgmt.NewAddMemberToTenant(
+		identitymodel.ActorIDFromUser(member.User.ID), member.User.ID, tenant.ID, identitymodel.RoleViewer,
+	)); err != nil {
+		t.Fatalf("add second role: %v", err)
+	}
+
+	body := renderUsersIndex(t, h, "/admin/users?q=multi@example.com")
+	if strings.Contains(body, "2 tenants") {
+		t.Error("two roles in one tenant must not read as '2 tenants'")
+	}
+	if !strings.Contains(body, "1 tenant") {
+		t.Error("expected the '1 tenant' badge")
+	}
+}
