@@ -30,7 +30,6 @@ require (
 	github.com/go-playground/form/v4 v4.5.1 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jackc/pgx/v5 v5.12.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -74,5 +73,4 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/sqlite v1.61.1 // indirect
 )
