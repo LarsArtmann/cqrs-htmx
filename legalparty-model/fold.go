@@ -123,7 +123,7 @@ func (s BillToState) Exists() bool { return s.Opened }
 
 // FoldBillTo reconstructs a bill-to link's state from its events.
 func FoldBillTo(state BillToState, evt event.Event) (BillToState, error) {
-	switch event.Type(evt.Type()) {
+	switch evt.Type() {
 	case EventBillToOpened:
 		p, err := UnmarshalPayload[BillToOpenedPayload](evt)
 		if err != nil {

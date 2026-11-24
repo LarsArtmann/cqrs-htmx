@@ -14,7 +14,15 @@ func billToTestParty(n byte) LegalPartyID {
 	return NewLegalPartyID("01MBILLTOPARTY0000000000000" + string(rune('0'+n)))
 }
 
-var billToTestActor = identitymodel.ActorIDFromUser(identitymodel.NewUserID("01MBILLTOUSER000000000000001")) //nolint:gochecknoglobals // fixed fixture
+func billToTestActorOf() identitymodel.ActorID {
+	userID, err := identitymodel.ParseUserID("01M46000000000000000000SU1")
+	if err != nil {
+		panic("billToTestActor fixture: " + err.Error())
+	}
+	return identitymodel.ActorIDFromUser(userID)
+}
+
+var billToTestActor = billToTestActorOf()
 
 // TestLegalForm_RoundTrip pins the LegalFormClass vocabulary through JSON:
 // every class survives an encode/decode cycle unchanged.
@@ -25,6 +33,13 @@ func TestLegalForm_RoundTrip(t *testing.T) {
 	} {
 		profile := validBillToProfile(t)
 		profile.LegalForm = class
+		if class.RequiresRegistryAnchor() {
+			ref, err := NewRegisterRef("de", "HRB 1")
+			if err != nil {
+				t.Fatalf("NewRegisterRef: %v", err)
+			}
+			profile.Register = &ref
+		}
 
 		raw, err := json.Marshal(profile)
 		if err != nil {
@@ -48,10 +63,10 @@ func TestLegalForm_RoundTrip(t *testing.T) {
 // line of defence against hand-written payloads.
 func TestLegalForm_DecodeUnknownValueRejected(t *testing.T) {
 	raw := `{
-		"legal_name": "Muster GmbH",
+		"legal_name": "Erika Muster",
 		"legal_form": "corporation",
 		"country": "DE",
-		"registered_address": {"street": "Hauptstr. 1", "postal_code": "10115", "locality": "Berlin", "country": "DE"}
+		"registered_address": {"street_address": "Hauptstr. 1", "postal_code": "10115", "locality": "Berlin", "country": "DE"}
 	}`
 	var profile LegalPartyProfile
 	if err := json.Unmarshal([]byte(raw), &profile); err != nil {
@@ -131,7 +146,7 @@ func TestBillTo_Guards(t *testing.T) {
 	opened := foldBillToAll(t, BillToState{}, mustBillToEvents(t, openEvents, openErr))
 	closeEvents, closeErr := DecideCloseBillTo(aggID, "done", billToTestActor, at)(opened, 1)
 	closed := foldBillToAll(t, opened, mustBillToEvents(t, closeEvents, closeErr))
-	bot := identitymodel.ActorIDFromBot(identitymodel.BotID("01MBILLTOBOT0000000000000001"))
+	bot := identitymodel.ActorIDFromBot(identitymodel.NewBotID("bot-1"))
 
 	if _, err := open(opened, 1); err == nil || !strings.Contains(err.Error(), "already_exists") {
 		t.Errorf("duplicate open = %v, want already_exists", err)
@@ -200,10 +215,10 @@ func eventTypesOf(events []event.Event) []string {
 func validBillToProfile(t *testing.T) LegalPartyProfile {
 	t.Helper()
 	raw := `{
-		"legal_name": "Muster GmbH",
-		"legal_form": "legal_entity",
+		"legal_name": "Erika Muster",
+		"legal_form": "natural_person",
 		"country": "DE",
-		"registered_address": {"street": "Hauptstr. 1", "postal_code": "10115", "locality": "Berlin", "country": "DE"}
+		"registered_address": {"street_address": "Hauptstr. 1", "postal_code": "10115", "locality": "Berlin", "country": "DE"}
 	}`
 	var profile LegalPartyProfile
 	if err := json.Unmarshal([]byte(raw), &profile); err != nil {

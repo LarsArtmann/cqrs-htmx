@@ -110,16 +110,21 @@ func (c *CloseBillToCmd) Reason() string                  { return c.reason }
 func (c *CloseBillToCmd) ClosedBy() identitymodel.ActorID { return c.closedBy }
 
 // DeriveBillToStreamID builds the bill-to stream ID for a tenant: the
-// tenant key IS the aggregate ID, so there is exactly one link per tenant
-// by construction.
+// tenant key IS the aggregate ID (parsed verbatim, never hashed), so there
+// is exactly one link per tenant by construction and the payload's TenantID
+// can round-trip the key from the stream itself.
 func DeriveBillToStreamID(tenantID string) id.StreamID {
-	return id.DeriveStreamID(string(AggregateTypeBillTo), tenantID, "billing")
+	parsed, err := id.ParseStreamID(tenantID)
+	if err != nil {
+		return id.StreamID{}
+	}
+	return parsed
 }
 
 // BillToDecider returns the Decider for the BillTo aggregate.
 func BillToDecider() decider.Decider[BillToState] {
 	return decider.Decider[BillToState]{
-		Initial: BillToState{},
+		Initial: BillToState{}, //nolint:exhaustruct // zero-value is correct for aggregate initial state
 		Apply:   FoldBillTo,
 	}
 }
@@ -219,6 +224,8 @@ func DecideRedirectBillTo(
 
 // DecideCloseBillTo closes a tenant's billing link: it must be open, the
 // reason is required, and closure is terminal.
+//
+//nolint:dupl // parallel lifecycle close guard to DecideCloseLegalParty; a shared generic would obscure the two payload types
 func DecideCloseBillTo(
 	aggID id.StreamID, reason string, closedBy identitymodel.ActorID, closedAt time.Time,
 ) func(BillToState, event.Version) ([]event.Event, error) {
