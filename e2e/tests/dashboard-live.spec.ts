@@ -110,6 +110,16 @@ test("time travel: the slider updates the display while dragging and navigates o
   await expect(page).toHaveURL(/\/time-travel\/User\/[^\s]+\?v=1$/);
   await expect(page.locator(".page-subtitle", { hasText: "Viewing version 1 of 2" })).toBeVisible();
   await expect(page.locator("#version-slider")).toHaveValue("1");
+
+  // The step row (v1) carries its payload expanded inline — the point of the
+  // time-travel table is seeing WHAT changed at each version, not just event
+  // types and timestamps. The htmx swap re-rendered it server-side.
+  const stepDetails = page.locator("tr.step-row details.payload-details");
+  await expect(stepDetails).toBeVisible();
+  await expect(stepDetails).toHaveAttribute("open", "");
+  await expect(stepDetails.locator("pre code")).toContainText(`"seq": "1"`);
+  // Exactly one highlighted step row after the swap.
+  await expect(page.locator("tr.step-row")).toHaveCount(1);
 });
 
 test("console guard: no console or page errors during live feed and time travel", async ({

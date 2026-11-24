@@ -81,7 +81,9 @@ var _ = Describe("the time-travel detail page", func() {
 
 	It("drives the slider through htmx so a version change is a partial swap, not a reload", func() {
 		// The ID segment is StreamID display-form (branded-kind prefix — gotcha 25).
-		Expect(html).To(ContainSubstring(`hx-get="/dashboard/time-travel/user/StreamMarker:01HW8STREAMID000000000000000"`))
+		Expect(
+			html,
+		).To(ContainSubstring(`hx-get="/dashboard/time-travel/user/StreamMarker:01HW8STREAMID000000000000000"`))
 		Expect(html).To(ContainSubstring(`hx-trigger="change"`))
 		Expect(html).To(ContainSubstring(`hx-target="#main-content"`))
 		Expect(html).To(ContainSubstring(`hx-select="#main-content"`))
