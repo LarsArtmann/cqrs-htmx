@@ -19,10 +19,16 @@ import (
 func newCacheTestPanel(t *testing.T) (*Handler, *usermgmt.Service, []*identitymodel.User) {
 	t.Helper()
 	ctx := context.Background()
-	user := mustUser(t, "admin@example.com")
-	h, svc := newTestPanel(t, user)
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	h, err := New(Config{Service: svc, Authorizer: RequireAuthenticated()})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
 
-	users := []*identitymodel.User{user}
+	users := []*identitymodel.User{mustUser(t, "admin@example.com")}
 	for _, email := range []string{"ada@example.com", "bob@example.com", "carol@example.com"} {
 		resp, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID:    identitymodel.SyntheticUserID("u-" + email),
@@ -189,10 +195,15 @@ func TestLastSeenIndex_TTLCache(t *testing.T) {
 		t.Errorf("within TTL: map rebuilt (%d entries), want cached %d", len(got), len(first))
 	}
 
-	// Past the TTL: the map must include the new activity.
+	// Past the TTL: the map must include the new activity (keyed by the
+	// user's canonical id, which the synthetic registration id maps to).
 	now = now.Add(31 * time.Second)
+	late, ok := svc.ReadModel().FindByEmail("late@example.com")
+	if !ok {
+		t.Fatal("late user missing from read model")
+	}
 	got := h.lastSeenIndex()
-	if _, ok := got["u-late@example.com"]; !ok {
+	if _, ok := got[late.ID.Get().String()]; !ok {
 		t.Error("past TTL: cache did not pick up new audit activity")
 	}
 }
@@ -260,11 +271,22 @@ func TestTenantMemberCounts_BoundedToScope(t *testing.T) {
 	}
 }
 
+// serveAs wraps a panel the way a consumer mounts it: session middleware
+// injecting the user into the request context.
+func serveAs(h *Handler, user *identitymodel.User) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("/admin/", http.StripPrefix("/admin", h.Handler()))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mux.ServeHTTP(w, r.WithContext(usermgmt.WithUser(r.Context(), user)))
+	})
+}
+
 // TestUsersIndexData_RendersWithCaches renders the users page through the
 // full handler with the caches in place — the golden-path smoke the cache
 // wave must not regress.
 func TestUsersIndexData_RendersWithCaches(t *testing.T) {
-	httpPanel := h.Handler()
+	h, _, _ := newCacheTestPanel(t)
+	httpPanel := serveAs(h, mustUser(t, "admin@example.com"))
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/admin/users?filter=admin", nil)

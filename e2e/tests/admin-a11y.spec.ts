@@ -22,20 +22,41 @@ test.describe.configure({ mode: "serial" });
 
 const ADMIN = "http://localhost:18930";
 
-const ACCEPTED = new Set<string>([
-  // color-contrast — first adminui sweep baseline (2026-11-14): ~12 serious
-  // findings are PRE-EXISTING panel chrome, not this wave's markup —
-  // accent-tinted brand elements (white-on-blue active nav / buttons /
-  // avatar tile) and neutral gray-400 metadata hints (slugs, member hints,
-  // the trigger email). The wave's own additions were fixed to gray-600 and
-  // the user-menu accessible name was fixed to derive from content; the
-  // remaining chrome contrast debt is a deliberate design pass (accent
-  // palette + metadata ramp), tracked for the next adminui polish wave.
-  // Accepting by ID is coarse (it would mask new contrast regressions on
-  // these pages too) — the follow-up design pass should shrink this entry
-  // to per-node scoping or delete it.
-  "color-contrast",
-]);
+/**
+ * The ACCEPTED ledger. Since T15's contrast design pass (F106-F108: the
+ * metadata ramp tokens — light-mode metadata text to the gray-600 floor,
+ * decorative symbol spans ("|" separators, "—" placeholders) aria-hidden,
+ * the disabled-pager ramp to gray-600) the coarse whole-rule
+ * "color-contrast" entry from the 2026-11-14 baseline is REMOVED: the
+ * re-sweep proved the pass fixed every serious contrast finding it covered.
+ * Entries are per-node scoped: a violation is excused only when ALL of its
+ * nodes match a listed selector, so new contrast regressions anywhere else
+ * still fail the sweep.
+ */
+const ACCEPTED: Array<{ id: string; why: string; nodes: string[] }> = [];
+
+/** A serious violation survives the ledger only if ALL its nodes are covered. */
+function unexpectedViolations(
+  serious: Array<{ id: string; impact?: string; nodes: Array<{ target: string[] }> }>,
+): Array<{ id: string; impact?: string; nodes: Array<{ target: string[] }> }> {
+  return serious.filter((v) => {
+    const entry = ACCEPTED.find((e) => e.id === v.id);
+    if (!entry) return true;
+    const targets = v.nodes.map((n) => n.target.join(" "));
+    return targets.some((t) => !entry.nodes.some((sel) => t.includes(sel)));
+  });
+}
+
+function summarize(
+  violations: Array<{ id: string; impact?: string; nodes: Array<{ target: string[] }> }>,
+): string {
+  return violations
+    .map(
+      (v) =>
+        `${v.id} (${v.impact}): ${v.nodes.length} node(s), e.g. ${v.nodes[0]?.target.join(" ")}`,
+    )
+    .join("; ");
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto(`${ADMIN}/dev-login`, { waitUntil: "load" });
@@ -89,9 +110,14 @@ async function seedTenantAndUser(page: Page, stamp: number): Promise<{ userPath:
 }
 
 // 1. axe sweeps over the touched adminui surfaces.
+// T15 F104/F105 extend the sweep to the audit page, the panel dashboard
+// (the adminui surface at "/"), and the super-admin import form.
 const AXE_PAGES: Array<{ name: string; url: string }> = [
   { name: "tenants list", url: "/admin/tenants" },
   { name: "users list", url: "/admin/users" },
+  { name: "audit page", url: "/admin/audit" },
+  { name: "panel dashboard", url: "/" },
+  { name: "import form", url: "/admin/users/import" },
 ];
 
 for (const { name, url } of AXE_PAGES) {
@@ -106,18 +132,11 @@ for (const { name, url } of AXE_PAGES) {
     const serious = results.violations.filter((v) =>
       ["critical", "serious"].includes(v.impact ?? ""),
     );
-    const unexpected = serious.filter((v) => !ACCEPTED.has(v.id));
+    const unexpected = unexpectedViolations(serious);
     if (unexpected.length > 0) {
-      const summary = unexpected
-        .map(
-          (v) =>
-            `${v.id} (${v.impact}): ${v.nodes.length} node(s), e.g. ${v.nodes[0]?.target.join(" ")}`,
-        )
-        .join("; ");
-      test.info().annotations.push({ type: "axe findings", description: summary });
+      test.info().annotations.push({ type: "axe findings", description: summarize(unexpected) });
     }
     expect(unexpected, `axe critical/serious violations on ${name}`).toEqual([]);
-    void ACCEPTED;
   });
 }
 
@@ -137,18 +156,14 @@ test("axe sweep (adminui): tenant detail and user detail", async ({ page }, test
     const serious = results.violations.filter((v) =>
       ["critical", "serious"].includes(v.impact ?? ""),
     );
-    const unexpected = serious.filter((v) => !ACCEPTED.has(v.id));
+    const unexpected = unexpectedViolations(serious);
     if (unexpected.length > 0) {
-      const summary = unexpected
-        .map(
-          (v) =>
-            `${v.id} (${v.impact}): ${v.nodes.length} node(s), e.g. ${v.nodes[0]?.target.join(" ")}`,
-        )
-        .join("; ");
-      testInfo.annotations.push({ type: `axe findings (${name})`, description: summary });
+      testInfo.annotations.push({
+        type: `axe findings (${name})`,
+        description: summarize(unexpected),
+      });
     }
     expect(unexpected, `axe critical/serious violations on ${name}`).toEqual([]);
-    void ACCEPTED;
   }
 });
 
