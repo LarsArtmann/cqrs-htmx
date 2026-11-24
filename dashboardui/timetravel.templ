@@ -61,17 +61,17 @@ templ timeTravelIndexPage(p pageData, listings []listing.StreamListing, page pag
 templ timeTravelDetailPage(
 	p pageData,
 	ref id.StreamRef,
-	events []event.Event,
+	rows []timeTravelRow,
 	currentVersion event.Version,
 	maxVersion event.Version,
 ) {
-	@layout(p, timeTravelDetailContent(p, ref, events, currentVersion, maxVersion))
+	@layout(p, timeTravelDetailContent(p, ref, rows, currentVersion, maxVersion))
 }
 
 templ timeTravelDetailContent(
 	p pageData,
 	ref id.StreamRef,
-	events []event.Event,
+	rows []timeTravelRow,
 	currentVersion event.Version,
 	maxVersion event.Version,
 ) {
@@ -83,6 +83,7 @@ templ timeTravelDetailContent(
 		<div class="panel-title">Version</div>
 		<input
 			type="range"
+			name="v"
 			min="1"
 			max={ strconv.Itoa(maxVersion.Int()) }
 			value={ strconv.Itoa(currentVersion.Int()) }
@@ -90,11 +91,16 @@ templ timeTravelDetailContent(
 			id="version-slider"
 			aria-label="Select version"
 			aria-valuetext={ fmt.Sprintf("Version %d of %d", currentVersion.Int(), maxVersion.Int()) }
-			data-nav-base={ p.BasePath + "/time-travel/" + string(ref.Type) + "/" + ref.ID.String() + "?v=" }
-			data-slider-display="slider-version-display"
+			hx-get={ p.BasePath + "/time-travel/" + string(ref.Type) + "/" + ref.ID.String() }
+			hx-trigger="change"
+			hx-target="#main-content"
+			hx-select="#main-content"
+			hx-swap="outerHTML"
+			hx-push-url="true"
+			hx-sync="this:replace"
 		/>
 		<div class="version-display section-gap">
-			Viewing version <strong id="slider-version-display">{ strconv.Itoa(currentVersion.Int()) }</strong> of <strong>{ strconv.Itoa(maxVersion.Int()) }</strong> <span class="muted">(use ← → arrow keys)</span>
+			Viewing version <strong id="slider-version-display">{ strconv.Itoa(currentVersion.Int()) }</strong> of <strong>{ strconv.Itoa(maxVersion.Int()) }</strong> <span class="muted">(use ← → arrow keys — the event at this version is expanded below)</span>
 		</div>
 		<div class="filter-bar">
 			if currentVersion > event.Version(1) {
@@ -130,16 +136,22 @@ templ timeTravelDetailContent(
 	</div>
 	<h3>Events Through Version { strconv.Itoa(currentVersion.Int()) }</h3>
 	@rawDataTable(
-		plainHeaders("Version", "Type", "Occurred At"),
+		plainHeaders("Version", "Type", "Occurred At", "Payload"),
 		"",
-		timeTravelRows(p.BasePath, events),
+		timeTravelRows(p.BasePath, rows),
 	)
 }
 
-templ timeTravelRows(basePath string, events []event.Event) {
-	for _, evt := range events {
-		<tr>
-			@eventTimelineCells(basePath, evt)
+templ timeTravelRows(basePath string, rows []timeTravelRow) {
+	for _, row := range rows {
+		<tr class={ row.rowClass() }>
+			@eventTimelineCells(basePath, row.evt)
+			<td class="cell-payload">
+				<details class="payload-details" attrs={ templ.Attributes{"open": row.isStep} }>
+					<summary>payload if row.isStep { @badge("this step", display.BadgeNeutral) }</summary>
+					<pre class="code-block payload-pre"><code>{ row.payload }</code></pre>
+				</details>
+			</td>
 		</tr>
 	}
 }

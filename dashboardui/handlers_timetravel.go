@@ -28,6 +28,42 @@ func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Reques
 	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", timeTravelIndexPage)
 }
 
+// timeTravelRow is one rendered row of the time-travel event table: the
+// event, its display-ready payload, and whether it is the STEP the selected
+// version represents (the last event the view includes — the delta that got
+// the aggregate from v-1 to v).
+type timeTravelRow struct {
+	evt     event.Event
+	payload string
+	isStep  bool
+}
+
+// rowClass returns the row's CSS class; the step row is visually
+// highlighted and its payload expanded.
+func (r timeTravelRow) rowClass() string {
+	if r.isStep {
+		return "step-row"
+	}
+
+	return ""
+}
+
+// buildTimeTravelRows renders every event's payload for inline display so a
+// version inspection shows WHAT happened at each step, not just event types
+// and timestamps.
+func buildTimeTravelRows(config Config, events []event.Event, currentVersion event.Version) []timeTravelRow {
+	rows := make([]timeTravelRow, len(events))
+	for i, evt := range events {
+		rows[i] = timeTravelRow{
+			evt:     evt,
+			payload: string(payloadBytes(config, evt)),
+			isStep:  evt.Version() == currentVersion,
+		}
+	}
+
+	return rows
+}
+
 func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Request) {
 	ref, allEvents, ok := d.loadStreamFromRequest(w, r)
 	if !ok {
@@ -81,7 +117,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	renderPage(w, r, timeTravelDetailPage(
 		p,
 		ref,
-		eventsToVersion,
+		buildTimeTravelRows(d.config, eventsToVersion, requestedVersion),
 		requestedVersion,
 		maxVersion,
 	))
