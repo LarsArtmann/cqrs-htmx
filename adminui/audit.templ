@@ -1,37 +1,70 @@
 package adminui
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/utils"
 	"github.com/larsartmann/templ-components/utils/wire"
 )
 
-templ auditPage(p pageData, d auditData) {
+templ auditPage(p pageData, d auditView) {
 	@Layout(p, auditContent(d))
 }
 
-templ auditContent(d auditData) {
+templ auditContent(d auditView) {
 	@display.PageHeader(display.PageHeaderProps{Title: "Audit log"})
-	<div class="mb-4 flex items-center gap-2">
+	<div id="audit-panel">
+		@auditPanelContent(d)
+	</div>
+}
+
+// auditPanelContent is the audit page's swap region: the filter bar and the
+// table ride every swap together, so a narrowed view always re-renders the
+// filters that produced it — a stale filter bar is a lying filter bar. The
+// omnibox's wired typing request bakes the non-q filters into its URL and the
+// Enter-submit includes the date/actor fields, so neither HTMX path can
+// silently drop an active filter; the pager and chip links carry the full
+// filter set as plain URLs.
+templ auditPanelContent(d auditView) {
+	@auditFilterBar(d)
+	@auditTableContent(d)
+	@auditWindowCaption(d.Window)
+}
+
+// auditFilterBar renders the omnibox, the inclusive from/to date range, the
+// actor-kind chips, and — when a filter input could not be applied — the
+// honest issue strip. Every input re-renders with the value it was given, so
+// the visible state always matches the state that produced the table.
+templ auditFilterBar(d auditView) {
+	<div class="mb-4 flex flex-wrap items-center gap-2">
 		// The omnibox filters across action, actor email, and aggregate id
-		// (see filterAuditEntries) — one input instead of three, and the
-		// form-level hx-get/hx-trigger makes Enter-submits swap like typing.
+		// (see filterAuditEntries) — one input instead of three. The form-level
+		// hx-get/hx-trigger makes Enter-submits swap like typing; hx-include
+		// carries the date bounds and the active actor chip along so an
+		// Enter-submit cannot silently drop them.
 		@forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
 			Placeholder: "Search actions, people, aggregates\u2026",
 			Action:      d.BasePath + "/audit",
 			DebounceMS:  350,
-			Wire:        &wire.Action{URL: d.BasePath + "/audit", Target: "#audit-table"},
+			Wire: &wire.Action{
+				URL:    auditFilterURL(d.BasePath+"/audit", "", d.From, d.To, d.Actor),
+				Target: "#audit-panel",
+			},
 			BaseProps: utils.BaseProps{
 				AriaLabel: "Search audit log",
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",
-					"hx-get":       d.BasePath + "/audit",
+					"hx-get":       auditFilterURL(d.BasePath+"/audit", "", d.From, d.To, d.Actor),
+					"hx-include":   "#audit-date-from, #audit-date-to, #audit-actor-hidden",
 					"hx-trigger":   "submit",
-					"hx-target":    "#audit-table",
+					"hx-target":    "#audit-panel",
 					"hx-swap":      "innerHTML",
 					"hx-push-url":  "true",
 					"hx-indicator": "#audit-search-spinner",
@@ -41,17 +74,78 @@ templ auditContent(d auditData) {
 		<span id="audit-search-spinner" class="htmx-indicator text-gray-400">
 			@spinnerSM()
 		</span>
+		// The inclusive date range: date-only bounds (YYYY-MM-DD), each bound
+		// counting its whole day. The hidden q/actor fields keep the other
+		// filters alive through a native (no-JS) submit too.
+		<form
+			method="get"
+			action={ d.BasePath + "/audit" }
+			class="flex items-center gap-1.5"
+			hx-get={ d.BasePath + "/audit" }
+			hx-trigger="submit"
+			hx-target="#audit-panel"
+			hx-swap="innerHTML"
+			hx-push-url="true"
+		>
+			<input type="hidden" name="q" value={ d.Search }>
+			<input type="hidden" id="audit-actor-hidden" name="actor" value={ d.Actor }>
+			<label for="audit-date-from" class="text-xs font-medium text-gray-600">From</label>
+			<input type="date" id="audit-date-from" name="from" value={ d.From } class={ auditDateInputClass() }>
+			<label for="audit-date-to" class="text-xs font-medium text-gray-600">To</label>
+			<input type="date" id="audit-date-to" name="to" value={ d.To } class={ auditDateInputClass() }>
+			@display.Button(display.ButtonProps{
+				Text:    "Apply dates",
+				Type:    display.ButtonHTMLSubmit,
+				Variant: display.ButtonSecondary,
+				Size:    display.ButtonSizeSM,
+			})
+		</form>
 	</div>
-	<div id="audit-table">
-		@auditTableContent(d)
+	// Actor-kind chips: the values are the audit entries' own actor-kind
+	// spelling (user/bot/system/service); the active chip toggles OFF, the
+	// others toggle ON, both keeping q and the date range.
+	<div class="mb-4 flex flex-wrap items-center gap-1.5">
+		for _, chip := range auditActorChipList(d) {
+			if chip.Active {
+				<a
+					class="rounded-full bg-gray-900 px-2.5 py-1 text-xs font-medium text-white no-underline dark:bg-white dark:text-gray-900"
+					href={ chip.Href }
+					aria-current="true"
+				>{ chip.Label }</a>
+			} else {
+				<a
+					class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 no-underline hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+					href={ chip.Href }
+				>{ chip.Label }</a>
+			}
+		}
 	</div>
+	if len(d.Issues) > 0 {
+		// A refused filter is announced, never silently dropped.
+		<div class="mb-4">
+			@feedback.Alert(feedback.AlertProps{
+				Type:    feedback.FeedbackError,
+				Title:   "Some filters were ignored",
+				Message: strings.Join(d.Issues, " "),
+			})
+		</div>
+	}
 }
 
-templ auditTableContent(d auditData) {
+// auditWindowCaption is the retention-honesty note: what the in-memory audit
+// window can and cannot show. It renders from the projection's own facts, so
+// the numbers cannot drift from the data the table reads.
+templ auditWindowCaption(w auditWindowFacts) {
+	if w.hasFacts() {
+		<p class="mt-3 text-xs text-gray-500">{ auditWindowCaptionText(w) }</p>
+	}
+}
+
+templ auditTableContent(d auditView) {
 	if len(d.Entries) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
-			if d.Search != "" {
-				@empty("audit", "No events match your search", "No recorded action matches the search term.", "Clear search", d.BasePath+"/audit")
+			if auditFiltersActive(d) {
+				@empty("audit", "No events match your filters", "No recorded action matches the active filters.", "Clear filters", d.BasePath+"/audit")
 			} else {
 				@empty("audit", "No audit events", "User and tenant changes will be recorded here.", "", "")
 			}
@@ -68,17 +162,23 @@ templ auditTableContent(d auditData) {
 			})
 		}
 		@listNote(len(d.Entries), d.Total)
-		@listPager(listPageURL(d.BasePath+"/audit", d.Search), d.Page, d.TotalPages)
+		@listPager(auditListURL(d.BasePath+"/audit", d), d.Page, d.TotalPages)
 	}
 }
 
-templ auditRows(d auditData) {
+templ auditRows(d auditView) {
 	for _, e := range d.Entries {
 		<tr>
 			<td class="px-4 py-2">
 				@badge(auditLabel(e.Action), auditActionBadge(e.Action))
 				if e.Detail != "" {
 					<span class="ml-1 text-xs text-gray-400">{ e.Detail }</span>
+				}
+				{{ change, hasChange := auditChangeFor(e) }}
+				if hasChange {
+					<span class="ml-2">@auditDiff(change)</span>
+				} else if auditChangeApplies(e.Action) {
+					<span class="ml-2">@auditChangeNote()</span>
 				}
 			</td>
 			<td class="px-4 py-2">
@@ -91,6 +191,77 @@ templ auditRows(d auditData) {
 			<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.Get() }</td>
 			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
 				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
+			</td>
+		</tr>
+	}
+}
+
+// auditDiff renders one before/after pair: the old value struck through, the
+// new value bold. The single display source for change diffs — the
+// extraction and the emphasis classes live in audit_labels.go, this
+// component is the one markup every audit surface renders them through.
+templ auditDiff(c auditChange) {
+	<span>
+		<s class={ auditDiffOldClass }>{ c.Old }</s>
+		{ " → " }
+		<strong class={ auditDiffNewClass }>{ c.New }</strong>
+	</span>
+}
+
+// auditChangeNote is what renders while the audit window records no old/new
+// values for a profile-change entry: an honest note, never a fabricated
+// diff.
+templ auditChangeNote() {
+	<span class="text-xs text-gray-400" title="The audit window records this change but not its old and new values">values not recorded</span>
+}
+
+// userActivityFragment is the load-more response for the user detail
+// activity card: the next timeline rows in the card's column shape, then
+// either the next load-more row (replacing the clicked one, so appended rows
+// land directly under the existing ones) or the honest end-of-window note.
+templ userActivityFragment(d userActivityPage) {
+	for _, e := range d.Entries {
+		<tr>
+			<td class="px-4 py-2">
+				@badge(auditLabel(e.Action), auditActionBadge(e.Action))
+				{{ change, hasChange := auditChangeFor(e) }}
+				if hasChange {
+					<span class="ml-2">@auditDiff(change)</span>
+				} else if auditChangeApplies(e.Action) {
+					<span class="ml-2">@auditChangeNote()</span>
+				}
+			</td>
+			<td class="px-4 py-2">
+				if e.Email != "" {
+					<span class="font-medium">{ e.Email }</span>
+				} else {
+					<span class="text-gray-400">—</span>
+				}
+			</td>
+			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
+				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
+			</td>
+		</tr>
+	}
+	if d.Done {
+		<tr id="user-activity-more">
+			<td colspan="3" class="px-4 py-2 text-xs text-gray-400">
+				All { strconv.Itoa(d.Total) } events in the audit window are shown.
+			</td>
+		</tr>
+	} else {
+		<tr id="user-activity-more">
+			<td colspan="3" class="px-4 py-2">
+				@display.Button(display.ButtonProps{
+					Text:    "Load more",
+					Variant: display.ButtonSecondary,
+					Size:    display.ButtonSizeSM,
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-get":    userActivityURL(d.BasePath, d.UserID, d.NextSkip),
+						"hx-target": "#user-activity-more",
+						"hx-swap":   "outerHTML",
+					}},
+				})
 			</td>
 		</tr>
 	}

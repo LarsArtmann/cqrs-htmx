@@ -221,11 +221,14 @@ func TestDecideMergeUsers_Guards(t *testing.T) {
 			wantCode:      "usermgmt.merge_users.no_contributions",
 		},
 		{
-			name:          "contribution without a user ID",
-			state:         existingState(),
-			contributions: []identitymodel.MergeContribution{contributionFor(GenerateUserID()), contributionFor(UserID{})},
-			wantFamily:    errorfamily.Rejection,
-			wantCode:      "usermgmt.merge_users.invalid_contribution",
+			name:  "contribution without a user ID",
+			state: existingState(),
+			contributions: []identitymodel.MergeContribution{
+				contributionFor(GenerateUserID()),
+				contributionFor(UserID{}),
+			},
+			wantFamily: errorfamily.Rejection,
+			wantCode:   "usermgmt.merge_users.invalid_contribution",
 		},
 		{
 			name:          "survivor merged into itself",
@@ -287,72 +290,133 @@ func TestDecideMergeUsers_AdoptsInOrderOnOneAppend(t *testing.T) {
 	if got := mergeEventEncodings(events); !slices.Equal(got, wantEncodings) {
 		t.Errorf("encodings = %v, want %v", got, wantEncodings)
 	}
+	requireOnSurvivorStream(t, events, aggID)
+
+	requireAdoptedCredential(t, events[0], "loser-cred-a", "key-a", true)
+	requireCredentialKeepsItsFields(t, events[0])
+	requireAdoptedCredential(t, events[1], "loser-cred-b", "key-b", false)
+	requireAdoptedAccount(t, events[2], "github", "loser-subject-1")
+	requireAccountKeepsItsProfile(t, events[2])
+	requireAdoptedAccount(t, events[3], "google", "loser-subject-2")
+	requireAdoptedTOTP(t, events[4])
+	requireAdoptedVerification(t, events[5])
+	requireMergeRecord(t, events[6], loserID)
+}
+
+// requireOnSurvivorStream checks that every event lands on the survivor's
+// stream at schema version 1.
+func requireOnSurvivorStream(t *testing.T, events []event.Event, aggID id.StreamID) {
+	t.Helper()
 	for i, evt := range events {
-		if evt.AggregateID().Get() != aggID.Get() {
-			t.Errorf("event %d lands on stream %q, want the survivor stream %q", i, evt.AggregateID().Get(), aggID.Get())
+		if evt.StreamID().Get() != aggID.Get() {
+			t.Errorf("event %d lands on stream %q, want the survivor stream %q", i, evt.StreamID().Get(), aggID.Get())
 		}
 		if evt.SchemaVersion() != event.SchemaVersion(1) {
 			t.Errorf("event %d schema version = %v, want 1", i, evt.SchemaVersion())
 		}
 	}
+}
 
-	first, err := unmarshalPayload[CredentialAddedPayload](events[0])
+// requireAdoptedCredential decodes a CredentialAdded event and checks which
+// credential it carries.
+func requireAdoptedCredential(t *testing.T, evt event.Event, wantID, wantKey string, wantVerified bool) {
+	t.Helper()
+	got, err := unmarshalPayload[CredentialAddedPayload](evt)
 	if err != nil {
-		t.Fatalf("decode CredentialAdded: %v", err)
+		t.Fatalf("decode %s: %v", evt.Type(), err)
 	}
-	if string(first.ID) != "loser-cred-a" || string(first.PublicKey) != "key-a" || !first.UserVerified {
-		t.Errorf("first adopted credential = %+v, want loser-cred-a (user verified)", first)
+	if string(got.ID) != wantID || string(got.PublicKey) != wantKey || got.UserVerified != wantVerified {
+		t.Errorf("%s carries credential %s (verified %t), want %s (verified %t)",
+			evt.Type(), got.ID, got.UserVerified, wantID, wantVerified)
 	}
-	if !slices.Equal(first.Transports, []string{"internal"}) || !slices.Equal(first.AAGUID, []byte{1, 2}) ||
-		first.SignCount != 7 || first.AttestationType != "none" || first.Name != "passkey loser-cred-a" {
-		t.Errorf("first adopted credential lost fields: %+v", first)
-	}
-	second, err := unmarshalPayload[CredentialAddedPayload](events[1])
-	if err != nil {
-		t.Fatalf("decode CredentialAdded: %v", err)
-	}
-	if string(second.ID) != "loser-cred-b" || second.UserVerified {
-		t.Errorf("second adopted credential = %+v, want loser-cred-b (not user verified)", second)
-	}
+}
 
-	account, err := unmarshalPayload[ExternalAccountLinkedPayload](events[2])
+// requireCredentialKeepsItsFields checks that an adopted credential arrives
+// with every field the loser's credential held.
+func requireCredentialKeepsItsFields(t *testing.T, evt event.Event) {
+	t.Helper()
+	got, err := unmarshalPayload[CredentialAddedPayload](evt)
 	if err != nil {
-		t.Fatalf("decode ExternalAccountLinked: %v", err)
+		t.Fatalf("decode %s: %v", evt.Type(), err)
 	}
-	if account.Provider != "github" || account.Subject != "loser-subject-1" ||
-		account.Email != mergeSurvivorEmail || account.DisplayName != "Lars" {
-		t.Errorf("first adopted account = %+v", account)
+	if !slices.Equal(got.Transports, []string{"internal"}) || !slices.Equal(got.AAGUID, []byte{1, 2}) ||
+		got.SignCount != 7 || got.AttestationType != "none" || got.Name != "passkey loser-cred-a" {
+		t.Errorf("adopted credential lost fields: %+v", got)
 	}
-	account, err = unmarshalPayload[ExternalAccountLinkedPayload](events[3])
-	if err != nil {
-		t.Fatalf("decode ExternalAccountLinked: %v", err)
-	}
-	if account.Provider != "google" || account.Subject != "loser-subject-2" {
-		t.Errorf("second adopted account = %+v", account)
-	}
+}
 
-	totp, err := unmarshalPayload[TOTPEnabledPayload](events[4])
+// requireAdoptedAccount decodes an ExternalAccountLinked event and checks
+// which provider subject it carries.
+func requireAdoptedAccount(t *testing.T, evt event.Event, wantProvider, wantSubject string) {
+	t.Helper()
+	got, err := unmarshalPayload[ExternalAccountLinkedPayload](evt)
 	if err != nil {
-		t.Fatalf("decode TOTPEnabled: %v", err)
+		t.Fatalf("decode %s: %v", evt.Type(), err)
 	}
-	if !bytes.Equal(totp.Secret, []byte("loser-totp-secret")) {
-		t.Errorf("TOTP secret = %q, want the loser's", totp.Secret)
+	if got.Provider != wantProvider || got.Subject != wantSubject {
+		t.Errorf(
+			"%s carries account %s/%s, want %s/%s",
+			evt.Type(),
+			got.Provider,
+			got.Subject,
+			wantProvider,
+			wantSubject,
+		)
 	}
+}
 
-	verified, err := unmarshalPayload[EmailVerifiedPayload](events[5])
+// requireAccountKeepsItsProfile checks that an adopted external account
+// arrives with the profile the loser's account held.
+func requireAccountKeepsItsProfile(t *testing.T, evt event.Event) {
+	t.Helper()
+	got, err := unmarshalPayload[ExternalAccountLinkedPayload](evt)
 	if err != nil {
-		t.Fatalf("decode EmailVerified: %v", err)
+		t.Fatalf("decode %s: %v", evt.Type(), err)
 	}
-	if verified.Email != mergeSurvivorEmail {
-		t.Errorf("EmailVerified email = %q, want the survivor's %q", verified.Email, mergeSurvivorEmail)
+	if got.Email != mergeSurvivorEmail || got.DisplayName != "Lars" {
+		t.Errorf("adopted account profile = %q / %q, want %q / %q",
+			got.Email, got.DisplayName, mergeSurvivorEmail, "Lars")
 	}
+}
 
-	merged, err := unmarshalPayload[identitymodel.UserMergedPayload](events[6])
+func requireAdoptedTOTP(t *testing.T, evt event.Event) {
+	t.Helper()
+	got, err := unmarshalPayload[TOTPEnabledPayload](evt)
 	if err != nil {
-		t.Fatalf("decode UserMerged: %v", err)
+		t.Fatalf("decode %s: %v", evt.Type(), err)
 	}
-	if !slices.Equal(merged.LoserIDs, []UserID{loserID}) || merged.Reason != mergeReason {
-		t.Errorf("UserMerged = %+v, want loser %s and reason %q", merged, loserID, mergeReason)
+	if !bytes.Equal(got.Secret, []byte("loser-totp-secret")) {
+		t.Errorf("TOTP secret = %q, want the loser's", got.Secret)
+	}
+}
+
+func requireAdoptedVerification(t *testing.T, evt event.Event) {
+	t.Helper()
+	got, err := unmarshalPayload[EmailVerifiedPayload](evt)
+	if err != nil {
+		t.Fatalf("decode %s: %v", evt.Type(), err)
+	}
+	if got.Email != mergeSurvivorEmail {
+		t.Errorf("EmailVerified email = %q, want the survivor's %q", got.Email, mergeSurvivorEmail)
+	}
+}
+
+// requireMergeRecord decodes the UserMerged event and checks which losers it
+// names.
+func requireMergeRecord(t *testing.T, evt event.Event, wantLosers ...UserID) {
+	t.Helper()
+	got, err := unmarshalPayload[identitymodel.UserMergedPayload](evt)
+	if err != nil {
+		t.Fatalf("decode %s: %v", evt.Type(), err)
+	}
+	if !slices.Equal(got.LoserIDs, wantLosers) || got.Reason != mergeReason {
+		t.Errorf(
+			"UserMerged names %v with reason %q, want %v with reason %q",
+			got.LoserIDs,
+			got.Reason,
+			wantLosers,
+			mergeReason,
+		)
 	}
 }
 
@@ -415,12 +479,16 @@ func TestDecideMergeUsers_RetryWithSameContributionsIsNoop(t *testing.T) {
 	}
 	state := replayUser(t, mergeSurvivor(), first)
 
-	again, err := decide(state, event.Version(4+event.Version(len(first))))
+	again, err := decide(state, 4+event.Version(len(first)))
 	if err != nil {
 		t.Fatalf("retry: %v", err)
 	}
 	if len(again) != 0 {
-		t.Fatalf("retry emitted %d events (%v); UserMerged must appear exactly once per merge", len(again), mergeEventTypes(again))
+		t.Fatalf(
+			"retry emitted %d events (%v); UserMerged must appear exactly once per merge",
+			len(again),
+			mergeEventTypes(again),
+		)
 	}
 }
 
@@ -466,9 +534,18 @@ func TestDecideMergeUsers_TwoLosersShareOneUserMerged(t *testing.T) {
 	aggID := mergeStream(t, survivorID)
 
 	contributions := []identitymodel.MergeContribution{
-		{UserID: firstLoser, Credentials: []identitymodel.WebAuthnCredential{mergeCredential("cred-1", "key-1", false)}},
-		{UserID: secondLoser, Credentials: []identitymodel.WebAuthnCredential{mergeCredential("cred-2", "key-2", false)}},
-		{UserID: firstLoser, Credentials: []identitymodel.WebAuthnCredential{mergeCredential("cred-1", "key-1", false)}},
+		{
+			UserID:      firstLoser,
+			Credentials: []identitymodel.WebAuthnCredential{mergeCredential("cred-1", "key-1", false)},
+		},
+		{
+			UserID:      secondLoser,
+			Credentials: []identitymodel.WebAuthnCredential{mergeCredential("cred-2", "key-2", false)},
+		},
+		{
+			UserID:      firstLoser,
+			Credentials: []identitymodel.WebAuthnCredential{mergeCredential("cred-1", "key-1", false)},
+		},
 	}
 	events, err := decideMergeUsers(aggID, contributions, mergeReason)(mergeSurvivor(), event.Version(0))
 	if err != nil {
@@ -562,7 +639,12 @@ func TestDecideMergeUsers_EmailVerificationNeedsTheSameEmail(t *testing.T) {
 				t.Fatalf("decideMergeUsers: %v", err)
 			}
 			if got, want := mergeEventTypes(events), []event.Type{eventUserMerged}; !slices.Equal(got, want) {
-				t.Fatalf("events = %v, want %v: verification of %q proves nothing about the survivor's email", got, want, tt.email)
+				t.Fatalf(
+					"events = %v, want %v: verification of %q proves nothing about the survivor's email",
+					got,
+					want,
+					tt.email,
+				)
 			}
 		})
 	}
@@ -687,8 +769,8 @@ func TestDecideMergeUserInto_TombstonesTheLoserOnce(t *testing.T) {
 	if events[0].Encoding() != codec.EncodingJSON {
 		t.Errorf("encoding = %v, want JSON", events[0].Encoding())
 	}
-	if events[0].AggregateID().Get() != aggID.Get() {
-		t.Errorf("event lands on stream %q, want the loser stream %q", events[0].AggregateID().Get(), aggID.Get())
+	if events[0].StreamID().Get() != aggID.Get() {
+		t.Errorf("event lands on stream %q, want the loser stream %q", events[0].StreamID().Get(), aggID.Get())
 	}
 	payload, err := unmarshalPayload[identitymodel.UserMergedIntoPayload](events[0])
 	if err != nil {

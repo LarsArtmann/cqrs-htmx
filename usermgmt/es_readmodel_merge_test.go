@@ -215,9 +215,24 @@ func assertMergedScenario(t *testing.T, m *UserReadModel, survivor, distinct, du
 		t.Errorf("AllUsers() = %v, want only the survivor %v", got, want)
 	}
 
-	assertAnswers(t, "FindByID(survivor)", func() (*User, bool) { return m.FindByID(survivor.aggID) }, survivor.userID())
-	assertAnswers(t, "FindByID(distinct loser)", func() (*User, bool) { return m.FindByID(distinct.aggID) }, survivor.userID())
-	assertAnswers(t, "FindByID(duplicate loser)", func() (*User, bool) { return m.FindByID(duplicate.aggID) }, survivor.userID())
+	assertAnswers(
+		t,
+		"FindByID(survivor)",
+		func() (*User, bool) { return m.FindByID(survivor.aggID) },
+		survivor.userID(),
+	)
+	assertAnswers(
+		t,
+		"FindByID(distinct loser)",
+		func() (*User, bool) { return m.FindByID(distinct.aggID) },
+		survivor.userID(),
+	)
+	assertAnswers(
+		t,
+		"FindByID(duplicate loser)",
+		func() (*User, bool) { return m.FindByID(duplicate.aggID) },
+		survivor.userID(),
+	)
 	assertAnswers(t, "FindByUserID(distinct loser)", func() (*User, bool) {
 		return m.FindByUserID(distinct.userID())
 	}, survivor.userID())
@@ -324,7 +339,12 @@ func TestUserReadModel_Merge_KeepFirstMappingFollowsItsOwner(t *testing.T) {
 		assertAnswers(t, "FindByExternalAccount", func() (*User, bool) {
 			return m.FindByExternalAccount("pocket-id", "subject-dupe")
 		}, newer.userID())
-		assertAnswers(t, "FindByID(retired owner)", func() (*User, bool) { return m.FindByID(older.aggID) }, newer.userID())
+		assertAnswers(
+			t,
+			"FindByID(retired owner)",
+			func() (*User, bool) { return m.FindByID(older.aggID) },
+			newer.userID(),
+		)
 	})
 
 	t.Run("duplicate merged away", func(t *testing.T) {
@@ -337,7 +357,12 @@ func TestUserReadModel_Merge_KeepFirstMappingFollowsItsOwner(t *testing.T) {
 		assertAnswers(t, "FindByExternalAccount", func() (*User, bool) {
 			return m.FindByExternalAccount("pocket-id", "subject-dupe")
 		}, older.userID())
-		assertAnswers(t, "FindByID(retired duplicate)", func() (*User, bool) { return m.FindByID(newer.aggID) }, older.userID())
+		assertAnswers(
+			t,
+			"FindByID(retired duplicate)",
+			func() (*User, bool) { return m.FindByID(newer.aggID) },
+			older.userID(),
+		)
 	})
 }
 
@@ -359,7 +384,12 @@ func TestUserReadModel_Merge_FollowsATransitiveChain(t *testing.T) {
 		t.Errorf("Count() = %d, want 1", got)
 	}
 	for label, stream := range map[string]*userStream{"first": first, "second": second, "third": third} {
-		assertAnswers(t, "FindByID("+label+")", func() (*User, bool) { return m.FindByID(stream.aggID) }, third.userID())
+		assertAnswers(
+			t,
+			"FindByID("+label+")",
+			func() (*User, bool) { return m.FindByID(stream.aggID) },
+			third.userID(),
+		)
 	}
 	for _, email := range []string{"first@example.com", "second@example.com", "third@example.com"} {
 		assertAnswers(t, "FindByEmail("+email+")", func() (*User, bool) {
@@ -397,7 +427,10 @@ func TestUserReadModel_Merge_PointerCycleAnswersNotFound(t *testing.T) {
 		failures := make([]string, 0)
 		for label, aggID := range map[string]id.StreamID{"first": first.aggID, "second": second.aggID} {
 			if got := m.resolve(aggID); !got.IsZero() {
-				failures = append(failures, fmt.Sprintf("resolve(%s) = %s, want zero: no stream on a cycle is live", label, got.Get()))
+				failures = append(
+					failures,
+					fmt.Sprintf("resolve(%s) = %s, want zero: no stream on a cycle is live", label, got.Get()),
+				)
 			}
 			if user, ok := m.FindByID(aggID); ok || user != nil {
 				failures = append(failures, fmt.Sprintf("FindByID(%s) answered with a user, want not found", label))
@@ -447,7 +480,14 @@ func TestUserReadModel_Merge_RedeliveredMergeEventsChangeNothing(t *testing.T) {
 	if len(after) != 1 || len(before) != 1 {
 		t.Fatalf("len(AllUsers()) = %d before and %d after re-delivery, want 1", len(before), len(after))
 	}
-	if got, want := userIDStrings(after[0].MergedUserIDs), userIDStrings(before[0].MergedUserIDs); !slices.Equal(got, want) {
+	if got, want := userIDStrings(
+		after[0].MergedUserIDs,
+	), userIDStrings(
+		before[0].MergedUserIDs,
+	); !slices.Equal(
+		got,
+		want,
+	) {
 		t.Errorf("MergedUserIDs = %v after re-delivery, want %v listed once each", got, want)
 	}
 	if got, want := len(m.mergedInto), 2; got != want {
@@ -510,7 +550,11 @@ func TestUserReadModel_Merge_RetiredStreamStaysRetired(t *testing.T) {
 	applyEvents(t, m, registration, link)
 
 	if got, want := userIDs(m.AllUsers()), []string{survivor.aggID.Get()}; !slices.Equal(got, want) {
-		t.Errorf("AllUsers() = %v, want only the survivor %v: a re-delivered event resurrected the retired row", got, want)
+		t.Errorf(
+			"AllUsers() = %v, want only the survivor %v: a re-delivered event resurrected the retired row",
+			got,
+			want,
+		)
 	}
 	assertAnswers(t, "FindByID(loser)", func() (*User, bool) { return m.FindByID(loser.aggID) }, survivor.userID())
 	// The retired stream's subject stays resolvable and names the survivor.

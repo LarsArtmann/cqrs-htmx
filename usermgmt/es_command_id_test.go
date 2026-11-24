@@ -40,7 +40,10 @@ func TestAllCommandsHaveNonZeroID(t *testing.T) {
 		{"DisableTOTP", NewDisableTOTPCmd(aggID)},
 		{"LinkExternalAccount", NewLinkExternalAccountCmd(aggID, "google", "sub123", "user@test.com", "Test")},
 		{"UnlinkExternalAccount", NewUnlinkExternalAccountCmd(aggID, "google", "sub123")},
-		{"MergeUsers", identitymodel.NewMergeUsersCmd(aggID, []identitymodel.MergeContribution{{UserID: userID}}, "duplicates")},
+		{
+			"MergeUsers",
+			identitymodel.NewMergeUsersCmd(aggID, []identitymodel.MergeContribution{{UserID: userID}}, "duplicates"),
+		},
 		{"MergeUserInto", identitymodel.NewMergeUserIntoCmd(aggID, userID, "duplicates")},
 
 		// Membership commands (3)

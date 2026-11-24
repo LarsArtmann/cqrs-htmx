@@ -247,6 +247,11 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
 		},
 		{
+			method: http.MethodGet, pattern: "/users/{id}/activity", panel: panelUsers, guarded: h.userActivity,
+			mode: routeModeSuperAdmin,
+			why:  "the per-user activity tail pages the audit window for one user's stream",
+		},
+		{
 			method: http.MethodPost, pattern: "/users/{id}/delete", panel: panelUsers, guarded: h.userDelete,
 			mode: routeModeSuperAdmin, write: true, why: "deleting users is platform-admin territory",
 		},

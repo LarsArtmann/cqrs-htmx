@@ -57,6 +57,36 @@ type auditWindowFacts struct {
 // without an audit log at all).
 func (w auditWindowFacts) hasFacts() bool { return w.Limit > 0 }
 
+// auditWindowCaptionText builds the retention-honesty caption in the audit
+// window's own vocabulary: what the window holds, what has rolled off, and
+// where the durable record lives.
+func auditWindowCaptionText(w auditWindowFacts) string {
+	var b strings.Builder
+	b.WriteString("Audit window holds ")
+	b.WriteString(strconv.Itoa(w.Holds))
+	b.WriteString(" entries")
+	if w.Dropped > 0 {
+		b.WriteString(" · ")
+		b.WriteString(strconv.Itoa(w.Dropped))
+		b.WriteString(" older entries have rolled off")
+	}
+	b.WriteString(" · the journal keeps the full history.")
+	return b.String()
+}
+
+// auditFiltersActive reports whether any filter narrows the view — the empty
+// state distinguishes "nothing recorded at all" from "nothing matches the
+// active filters" instead of pretending the window is empty.
+func auditFiltersActive(d auditView) bool {
+	return d.Search != "" || d.From != "" || d.To != "" || d.Actor != ""
+}
+
+// auditDateInputClass is the class string for the from/to date inputs — the
+// same input styling the omnibox uses, minus the search glyph's end padding.
+func auditDateInputClass() string {
+	return "block w-full max-w-[10rem] rounded-md border-0 py-1.5 ps-3 pe-3 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500"
+}
+
 // auditIndex renders the audit log. In tenant-admin mode the log is global
 // (usermgmt's AuditLog records user events only); future per-tenant scoping
 // can filter by aggregate.

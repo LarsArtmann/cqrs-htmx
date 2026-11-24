@@ -65,6 +65,7 @@ func TestRoutes_ManifestGolden(t *testing.T) {
 		"GET /users/export.csv role Users",
 		"GET /users/export.json role Users",
 		"GET /users/{id} role Users",
+		"GET /users/{id}/activity role Users",
 		"POST /users/{id}/delete role Users",
 		"POST /users/{id}/display-name role Users",
 		"POST /users/{id}/email role Users",

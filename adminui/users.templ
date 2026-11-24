@@ -665,6 +665,25 @@ templ userTimelineRows(d userDetailData) {
 			</td>
 		</tr>
 	}
+	if d.Timeline.Total > len(d.Timeline.Entries) {
+		// Load-more trigger: the response fragment replaces THIS row, so the
+		// next chunk of the user's timeline appends directly under the
+		// existing rows (GET /users/{id}/activity, the audit-window tail).
+		<tr id="user-activity-more">
+			<td colspan="3" class="px-4 py-2">
+				@display.Button(display.ButtonProps{
+					Text:    "Load more",
+					Variant: display.ButtonSecondary,
+					Size:    display.ButtonSizeSM,
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"hx-get":    userActivityURL(d.BasePath, d.User.ID.Get().String(), len(d.Timeline.Entries)),
+						"hx-target": "#user-activity-more",
+						"hx-swap":   "outerHTML",
+					}},
+				})
+			</td>
+		</tr>
+	}
 }
 
 templ userDetailAvatar(d userDetailData) {

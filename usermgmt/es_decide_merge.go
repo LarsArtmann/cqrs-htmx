@@ -165,37 +165,57 @@ func unmergedLosers(state UserState, contributions []identitymodel.MergeContribu
 	return losers
 }
 
+// requireLiveSurvivor refuses a stream that cannot absorb another identity:
+// one that was never registered, one that was merged away itself (it names
+// the survivor it points at, so the caller sees the real identity), and one
+// that was deleted.
+func requireLiveSurvivor(state UserState) error {
+	if err := requireExists(state, "merge_users"); err != nil {
+		return err
+	}
+	if state.IsMerged() {
+		return errorfamily.NewConflict("usermgmt.merge_users.survivor_merged",
+			"a merged-away user cannot be the survivor of another merge").
+			WithContext("merged_into", state.MergedInto.Get().String())
+	}
+	if state.Deleted {
+		return errorfamily.NewRejection("usermgmt.merge_users.deleted",
+			"cannot merge into a deleted user")
+	}
+	return nil
+}
+
+// requireOtherContributors refuses a contribution that names no user or names
+// the survivor itself.
+func requireOtherContributors(aggID id.StreamID, contributions []identitymodel.MergeContribution) error {
+	for _, contribution := range contributions {
+		switch {
+		case contribution.UserID.IsZero():
+			return errorfamily.NewRejection("usermgmt.merge_users.invalid_contribution",
+				"contribution user ID is required")
+		case contribution.UserID.Get().String() == aggID.Get():
+			return errorfamily.NewRejection("usermgmt.merge_users.self_merge",
+				"a user cannot be merged into itself")
+		}
+	}
+	return nil
+}
+
 func decideMergeUsers(
 	aggID id.StreamID,
 	contributions []identitymodel.MergeContribution,
 	reason string,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
-		if err := requireExists(state, "merge_users"); err != nil {
+		if err := requireLiveSurvivor(state); err != nil {
 			return nil, err
-		}
-		if state.IsMerged() {
-			return nil, errorfamily.NewConflict("usermgmt.merge_users.survivor_merged",
-				"a merged-away user cannot be the survivor of another merge").
-				WithContext("merged_into", state.MergedInto.Get().String())
-		}
-		if state.Deleted {
-			return nil, errorfamily.NewRejection("usermgmt.merge_users.deleted",
-				"cannot merge into a deleted user")
 		}
 		if len(contributions) == 0 {
 			return nil, errorfamily.NewRejection("usermgmt.merge_users.no_contributions",
 				"a merge needs at least one contribution")
 		}
-		for _, contribution := range contributions {
-			switch {
-			case contribution.UserID.IsZero():
-				return nil, errorfamily.NewRejection("usermgmt.merge_users.invalid_contribution",
-					"contribution user ID is required")
-			case contribution.UserID.Get().String() == aggID.Get():
-				return nil, errorfamily.NewRejection("usermgmt.merge_users.self_merge",
-					"a user cannot be merged into itself")
-			}
+		if err := requireOtherContributors(aggID, contributions); err != nil {
+			return nil, err
 		}
 
 		adoption := newMergeAdoption(aggID, state, version)
