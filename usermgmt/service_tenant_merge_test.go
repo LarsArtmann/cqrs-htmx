@@ -176,8 +176,6 @@ func requireTenantServiceError(t *testing.T, err error, family errorfamily.Famil
 // TestService_UniqueTenantNames covers the D5 knob: off by default, on it
 // refuses normalized-name collisions and releases the name on delete.
 func TestService_UniqueTenantNames(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("off by default", func(t *testing.T) {
 		ctx := context.Background()
 		svc := setupTestService(t)
@@ -194,6 +192,7 @@ func TestService_UniqueTenantNames(t *testing.T) {
 			t.Fatalf("NewService: %v", err)
 		}
 		t.Cleanup(svc.Stop)
+		ctx := context.Background()
 		existing := createTenantTestTenant(ctx, t, svc, 0, "Acme Corp")
 
 		ef := requireTenantServiceError(t, createTenantErr(ctx, svc, tenantTestID(1), " acme corp "),
@@ -213,6 +212,7 @@ func TestService_UniqueTenantNames(t *testing.T) {
 			t.Fatalf("NewService: %v", err)
 		}
 		t.Cleanup(svc.Stop)
+		ctx := context.Background()
 		createTenantTestTenant(ctx, t, svc, 0, "Acme Corp")
 		if err := svc.DeleteTenant(ctx, tenantTestID(0), "cleanup"); err != nil {
 			t.Fatalf("DeleteTenant: %v", err)

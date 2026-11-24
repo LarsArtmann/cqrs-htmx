@@ -206,6 +206,7 @@ func (h *Handler) superAdminRoutes() []routeSpec {
 		h.superAdminTenantRoutes(),
 		h.superAdminTenantMemberRoutes(),
 		h.superAdminMembersDirectoryRoutes(),
+		h.superAdminMergeRoutes(),
 	)
 }
 

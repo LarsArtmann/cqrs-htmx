@@ -1,0 +1,221 @@
+package adminui
+
+import (
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/navigation"
+	"github.com/larsartmann/templ-components/utils"
+)
+
+// userDuplicatesData renders one page of the duplicate-users report: every
+// cluster of live rows a human would call one person, each with a merge form.
+type userDuplicatesData struct {
+	Groups   []userDuplicateGroup
+	BasePath string
+}
+
+// userDuplicateGroup is one cluster with the survivor choices the admin can
+// merge its rows into.
+type userDuplicateGroup struct {
+	Key     string
+	Account string
+	Rows    []duplicateUserRow
+}
+
+// duplicateUserRow is one candidate row of a cluster: the user plus the
+// survivor options that are NOT this row (a user cannot merge into itself).
+type duplicateUserRow struct {
+	User     *identitymodel.User
+	Survivor []*identitymodel.User
+}
+
+// tenantDuplicatesData renders the duplicate-tenants report with merge and
+// rename forms per row.
+type tenantDuplicatesData struct {
+	Groups   []usermgmt.DuplicateTenantGroup
+	BasePath string
+}
+
+templ userDuplicatesPage(p pageData, d userDuplicatesData) {
+	@Layout(p, userDuplicatesContent(d))
+}
+
+templ userDuplicatesContent(d userDuplicatesData) {
+	@display.PageHeader(display.PageHeaderProps{
+		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
+			{Text: "Users", Href: d.BasePath + "/users"},
+			{Text: "Duplicates"},
+		}}),
+		Title: "Duplicate users",
+	})
+	if len(d.Groups) == 0 {
+		@display.Card(display.CardProps{}) {
+			<p class={ "text-sm " + metadataTextClass }>No duplicate users: every email and external account belongs to one live row.</p>
+		}
+	} else {
+		for _, group := range d.Groups {
+			@duplicateUserGroupCard(d, group)
+		}
+	}
+}
+
+templ duplicateUserGroupCard(d userDuplicatesData, group userDuplicateGroup) {
+	<div class="mb-6">
+		@display.Card(display.CardProps{Title: duplicateGroupTitle(group)}) {
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm">
+					<thead>
+						<tr class={ "text-left " + metadataTextXSClass }>
+							<th class="px-4 py-2 font-medium">User</th>
+							<th class="px-4 py-2 font-medium">Created</th>
+							<th class="px-4 py-2 font-medium">Merge into</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, row := range group.Rows {
+							@duplicateUserRowTR(d, row)
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	</div>
+}
+
+templ duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) {
+	<tr class="border-t border-gray-100 dark:border-gray-800">
+		<td class="px-4 py-2">
+			<a class="flex no-underline" href={ d.BasePath + "/users/" + row.User.ID.Get().String() }>
+				<div class="flex items-center gap-2.5">
+					@display.Avatar(display.AvatarProps{Initials: initials(row.User.Email), Size: display.AvatarSizeSM})
+					<div>
+						<div class="font-medium text-gray-900">{ row.User.Email }</div>
+						<div class={ "text-xs " + metadataTextXSClass }>{ row.User.ID.Get().String() }</div>
+					</div>
+				</div>
+			</a>
+		</td>
+		<td class={ "px-4 py-2 " + metadataTextClass }>{ row.User.CreatedAt.Format("2006-01-02 15:04") }</td>
+		<td class="px-4 py-2">
+			<form class="flex flex-wrap items-center gap-2" hx-post={ d.BasePath + "/users/" + row.User.ID.Get().String() + "/merge" } hx-target="this">
+				<select name="survivor" class="input" aria-label="Survivor">
+					for _, survivor := range row.Survivor {
+						<option value={ survivor.ID.Get().String() }>{ survivor.Email }</option>
+					}
+				</select>
+				<input type="text" name="reason" placeholder="reason" class="input" aria-label="Reason"/>
+				@display.Button(display.ButtonProps{
+					Text:    "Merge",
+					Type:    display.ButtonHTMLSubmit,
+					Variant: display.ButtonDanger,
+					BaseProps: utils.BaseProps{
+						Attrs: templ.Attributes{"hx-post": templ.SafeURL(d.BasePath + "/users/" + row.User.ID.Get().String() + "/merge")},
+					},
+				})
+			</form>
+		</td>
+	</tr>
+}
+
+templ tenantDuplicatesPage(p pageData, d tenantDuplicatesData) {
+	@Layout(p, tenantDuplicatesContent(d))
+}
+
+templ tenantDuplicatesContent(d tenantDuplicatesData) {
+	@display.PageHeader(display.PageHeaderProps{
+		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
+			{Text: "Tenants", Href: d.BasePath + "/tenants"},
+			{Text: "Duplicates"},
+		}}),
+		Title: "Duplicate tenants",
+	})
+	if len(d.Groups) == 0 {
+		@display.Card(display.CardProps{}) {
+			<p class={ "text-sm " + metadataTextClass }>No duplicate tenants: every normalized name belongs to one live tenant.</p>
+		}
+	} else {
+		for _, group := range d.Groups {
+			@duplicateTenantGroupCard(d, group)
+		}
+	}
+}
+
+templ duplicateTenantGroupCard(d tenantDuplicatesData, group usermgmt.DuplicateTenantGroup) {
+	<div class="mb-6">
+		@display.Card(display.CardProps{Title: "Name: " + group.NormalizedName}) {
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm">
+					<thead>
+						<tr class={ "text-left " + metadataTextXSClass }>
+							<th class="px-4 py-2 font-medium">Tenant</th>
+							<th class="px-4 py-2 font-medium">Rename</th>
+							<th class="px-4 py-2 font-medium">Merge into</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, tenant := range group.Tenants {
+							@duplicateTenantRowTR(d, group, tenant)
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	</div>
+}
+
+templ duplicateTenantRowTR(
+	d tenantDuplicatesData,
+	group usermgmt.DuplicateTenantGroup,
+	tenant *usermgmt.Tenant,
+) {
+	<tr class="border-t border-gray-100 dark:border-gray-800">
+		<td class="px-4 py-2">
+			<a class="no-underline" href={ d.BasePath + "/tenants/" + tenant.ID.Get() }>
+				<div class="font-medium text-gray-900">{ tenant.Name }</div>
+				<div class={ "text-xs " + metadataTextXSClass }>{ tenant.ID.Get() }</div>
+			</a>
+		</td>
+		<td class="px-4 py-2">
+			<form class="flex flex-wrap items-center gap-2" hx-post={ d.BasePath + "/tenants/" + tenant.ID.Get() + "/rename" } hx-target="this">
+				<input
+					type="text"
+					name="display_name"
+					placeholder={ tenant.DisplayName }
+					class="input"
+					aria-label="New display name"
+				/>
+				@display.Button(display.ButtonProps{
+					Text:    "Rename",
+					Type:    display.ButtonHTMLSubmit,
+					Variant: display.ButtonSecondary,
+				})
+			</form>
+		</td>
+		<td class="px-4 py-2">
+			<form class="flex flex-wrap items-center gap-2" hx-post={ d.BasePath + "/tenants/" + tenant.ID.Get() + "/merge" } hx-target="this">
+				<select name="survivor" class="input" aria-label="Survivor">
+					for _, other := range group.Tenants {
+						if other.ID.Get() != tenant.ID.Get() {
+							<option value={ other.ID.Get() }>{ other.Name }</option>
+						}
+					}
+				</select>
+				<input type="text" name="reason" placeholder="reason" class="input" aria-label="Reason"/>
+				@display.Button(display.ButtonProps{
+					Text:    "Merge",
+					Type:    display.ButtonHTMLSubmit,
+					Variant: display.ButtonDanger,
+				})
+			</form>
+		</td>
+	</tr>
+}
+
+// duplicateGroupTitle names what makes the cluster one person.
+func duplicateGroupTitle(group userDuplicateGroup) string {
+	if group.Account != "" {
+		return "External account: " + group.Account
+	}
+	return "Email: " + group.Key
+}

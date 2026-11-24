@@ -221,6 +221,8 @@ func statCardView(c statCard) templ.Component {
 			Icon:      icons.Name(c.Icon),
 			Tone:      c.Tone,
 			Href:      c.Href,
+			Change:    c.Change,
+			Trend:     c.Trend,
 			BaseProps: utils.BaseProps{Class: statCardClass(c.Href)},
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -339,7 +341,7 @@ func copyableID(id string) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 103, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 105, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -520,7 +522,7 @@ func listPager(baseURL string, page, totalPages int) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 158, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 160, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -533,7 +535,7 @@ func listPager(baseURL string, page, totalPages int) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(totalPages))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 160, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 162, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -565,7 +567,7 @@ func listPager(baseURL string, page, totalPages int) templ.Component {
 					var templ_7745c5c3_Var20 string
 					templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(step.Page))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 178, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 180, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 					if templ_7745c5c3_Err != nil {
@@ -583,7 +585,7 @@ func listPager(baseURL string, page, totalPages int) templ.Component {
 					var templ_7745c5c3_Var21 string
 					templ_7745c5c3_Var21, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.SafeURL(pagerPageURL(baseURL, step.Page))).ResolveURL(ctx)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 183, Col: 65}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 185, Col: 65}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 					if templ_7745c5c3_Err != nil {
@@ -596,7 +598,7 @@ func listPager(baseURL string, page, totalPages int) templ.Component {
 					var templ_7745c5c3_Var22 string
 					templ_7745c5c3_Var22, templ_7745c5c3_Err = templruntime.NewAttributeExpression("pager-page-" + strconv.Itoa(step.Page)).Resolve(ctx)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 185, Col: 71}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 187, Col: 71}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22)
 					if templ_7745c5c3_Err != nil {
@@ -609,7 +611,7 @@ func listPager(baseURL string, page, totalPages int) templ.Component {
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(step.Page))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 186, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 188, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {
@@ -666,7 +668,7 @@ func pagerMobileButton(enabled bool, href, restoreID, text string) templ.Compone
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.SafeURL(href)).ResolveURL(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 207, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 209, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25)
 			if templ_7745c5c3_Err != nil {
@@ -679,7 +681,7 @@ func pagerMobileButton(enabled bool, href, restoreID, text string) templ.Compone
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templruntime.NewAttributeExpression(restoreID).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 209, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 211, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var26)
 			if templ_7745c5c3_Err != nil {
@@ -692,7 +694,7 @@ func pagerMobileButton(enabled bool, href, restoreID, text string) templ.Compone
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 210, Col: 9}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 212, Col: 9}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -746,7 +748,7 @@ func pagerMobileButton(enabled bool, href, restoreID, text string) templ.Compone
 			var templ_7745c5c3_Var30 string
 			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 212, Col: 224}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 214, Col: 224}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 			if templ_7745c5c3_Err != nil {
@@ -796,7 +798,7 @@ func pagerArrow(enabled bool, href, roundedClass, restoreID, ariaLabel, srText s
 				var templ_7745c5c3_Var32 string
 				templ_7745c5c3_Var32, templ_7745c5c3_Err = templruntime.NewAttributeExpression(templ.SafeURL(href)).ResolveURL(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 225, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 227, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var32)
 				if templ_7745c5c3_Err != nil {
@@ -827,7 +829,7 @@ func pagerArrow(enabled bool, href, roundedClass, restoreID, ariaLabel, srText s
 				var templ_7745c5c3_Var35 string
 				templ_7745c5c3_Var35, templ_7745c5c3_Err = templruntime.NewAttributeExpression(ariaLabel).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 227, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 229, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35)
 				if templ_7745c5c3_Err != nil {
@@ -840,7 +842,7 @@ func pagerArrow(enabled bool, href, roundedClass, restoreID, ariaLabel, srText s
 				var templ_7745c5c3_Var36 string
 				templ_7745c5c3_Var36, templ_7745c5c3_Err = templruntime.NewAttributeExpression(restoreID).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 228, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 230, Col: 33}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36)
 				if templ_7745c5c3_Err != nil {
@@ -867,7 +869,7 @@ func pagerArrow(enabled bool, href, roundedClass, restoreID, ariaLabel, srText s
 			var templ_7745c5c3_Var37 string
 			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(srText)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 230, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 232, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
@@ -915,7 +917,7 @@ func pagerArrow(enabled bool, href, roundedClass, restoreID, ariaLabel, srText s
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templruntime.NewAttributeExpression(restoreID).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 234, Col: 244}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 236, Col: 244}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var40)
 				if templ_7745c5c3_Err != nil {
@@ -942,7 +944,7 @@ func pagerArrow(enabled bool, href, roundedClass, restoreID, ariaLabel, srText s
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(srText)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 235, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 237, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 			if templ_7745c5c3_Err != nil {

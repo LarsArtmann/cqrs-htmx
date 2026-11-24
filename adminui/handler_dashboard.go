@@ -360,12 +360,14 @@ func loginFailureCard(entries []usermgmt.AuditEntry) statCard {
 	if failures >= loginFailureAttentionThreshold {
 		tone = display.StatToneYellow
 	}
+	change, trend := deltaChange(auditSplitDelta(entries, loginFailureMatch))
 	return statCard{
 		Label:  "Login failures",
 		Value:  strconv.Itoa(failures),
 		Icon:   iconDrops,
 		Tone:   tone,
-		Change: deltaChange(auditSplitDelta(entries, loginFailureMatch)),
+		Change: change,
+		Trend:  trend,
 	}
 }
 
