@@ -35,7 +35,7 @@ func TestParseUserSort(t *testing.T) {
 func sortUser(id, email, display string, created time.Time) *identitymodel.User {
 	u := &identitymodel.User{
 		ID:          identitymodel.SyntheticUserID(id),
-		Email:       identitymodel.Email(email),
+		Email:       email,
 		DisplayName: display,
 		CreatedAt:   created,
 	}
@@ -113,29 +113,8 @@ func sortHarness(t *testing.T) (http.Handler, *usermgmt.Service) {
 	return panelWithPageSize(t, user, svc, 50), svc
 }
 
-// orderOf returns the email order as the rendered page lists the rows.
-func orderOf(t *testing.T, body string, emails []string) []string {
-	t.Helper()
-	rendered := make([]string, 0, len(emails))
-	rest := body
-	for _, email := range emails {
-		idx := strings.Index(rest, ">"+email+"<")
-		if idx < 0 {
-			t.Fatalf("page does not mention %s at all", email)
-		}
-		rendered = append(rendered, email)
-		rest = rest[idx+len(email):]
-	}
-	// Any of the emails appearing BEFORE the first extracted one means the
-	// render order differs from the walked order.
-	for _, email := range emails {
-		if strings.Contains(rest, ">"+email+"<") {
-			continue // still ahead in the remainder is fine (walked past)
-		}
-	}
-	return rendered
-}
-
+// orderOf reports the email order as the rendered page lists the rows —
+// the positions of each row's email text must be strictly increasing.
 func assertRowOrder(t *testing.T, body string, want ...string) {
 	t.Helper()
 	pos := -1
@@ -173,27 +152,18 @@ func TestPanel_UsersSortOrders(t *testing.T) {
 	assertRowOrder(t, get("?sort=email"), "alice@x.dev", "bea@x.dev", "carol@x.dev")
 	// Display-name order is a third permutation (and case-insensitive).
 	assertRowOrder(t, get("?sort=display"), "bea@x.dev", "carol@x.dev", "alice@x.dev")
-	_ = orderOf // keeps the helper referenced alongside assertRowOrder
 }
 
 func TestPanel_UsersSortUnknownDegrades(t *testing.T) {
 	t.Parallel()
 	h, _ := sortHarness(t)
 
-	get := func(query string) int {
-		t.Helper()
+	body := func(query string) string {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users"+query, nil))
 		if rec.Code != http.StatusOK {
 			t.Fatalf("GET %s: status %d", query, rec.Code)
 		}
-		return rec.Code
-	}
-
-	_ = get("?sort=wibble")
-	body := func(query string) string {
-		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users"+query, nil))
 		return rec.Body.String()
 	}
 	// An unknown value must render exactly the default order (degrade, not

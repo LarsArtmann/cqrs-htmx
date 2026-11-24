@@ -2,8 +2,8 @@ package adminui
 
 import (
 	"encoding/csv"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"encoding/json/v2/jsontext"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +15,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // auditDateLayout is the date-only wire format of the from/to filters. Dates
@@ -422,9 +423,9 @@ func writeAuditJSON(w io.Writer, entries []usermgmt.AuditEntry, filters auditExp
 // auditExportDoc is the JSON export envelope: what the window can honestly
 // claim, what narrowed the file, and the entries themselves.
 type auditExportDoc struct {
-	Window  auditWindowFacts     `json:"window,omitzero"`
-	Filters auditExportFilters   `json:"filters"`
-	Count   int                  `json:"count"`
+	Window  auditWindowFacts      `json:"window,omitzero"`
+	Filters auditExportFilters    `json:"filters"`
+	Count   int                   `json:"count"`
 	Entries []usermgmt.AuditEntry `json:"entries"`
 }
 

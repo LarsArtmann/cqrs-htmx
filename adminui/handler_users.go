@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/csv"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
-	"encoding/json/v2/jsontext"
 	"fmt"
 	"io"
 	"net/http"
@@ -138,7 +138,7 @@ func writeUsersJSON(w io.Writer, users []*identitymodel.User) error {
 	for _, u := range users {
 		export = append(export, usermgmt.ExportUser{
 			ID:               u.ID,
-			Email:            u.Email,
+			Email:            usermgmt.Email(u.Email),
 			DisplayName:      u.DisplayName,
 			EmailVerified:    u.EmailVerified,
 			TOTPEnabled:      u.TOTPEnabled,
