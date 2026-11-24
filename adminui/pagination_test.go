@@ -158,6 +158,78 @@ func TestListPageURL(t *testing.T) {
 	}
 }
 
+// TestPagerWindow pins the pager's windowing: three pages around the current
+// one, first and last always present, ellipsis markers where numbers were
+// dropped, out-of-range pages clamped, and tiny lists rendered in full.
+func TestPagerWindow(t *testing.T) {
+	tests := []struct {
+		name        string
+		page, total int
+		want        []pagerStep
+	}{
+		{"no pages at all", 1, 0, nil},
+		{"negative total", 1, -3, nil},
+		{"single page", 1, 1, []pagerStep{{Page: 1, Ellipsis: false}}},
+		{"three pages render in full", 2, 3, []pagerStep{
+			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
+		}},
+		{"first page of many", 1, 10, []pagerStep{
+			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
+			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+		}},
+		{"second page still hugs the start", 2, 10, []pagerStep{
+			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
+			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+		}},
+		{"middle page is the 1 … 4 5 6 … N shape", 5, 10, []pagerStep{
+			{Page: 1, Ellipsis: false}, {Page: 0, Ellipsis: true},
+			{Page: 4, Ellipsis: false}, {Page: 5, Ellipsis: false}, {Page: 6, Ellipsis: false},
+			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+		}},
+		{"last page hugs the end", 10, 10, []pagerStep{
+			{Page: 1, Ellipsis: false}, {Page: 0, Ellipsis: true},
+			{Page: 8, Ellipsis: false}, {Page: 9, Ellipsis: false}, {Page: 10, Ellipsis: false},
+		}},
+		{"beyond range clamps to last", 99, 10, []pagerStep{
+			{Page: 1, Ellipsis: false}, {Page: 0, Ellipsis: true},
+			{Page: 8, Ellipsis: false}, {Page: 9, Ellipsis: false}, {Page: 10, Ellipsis: false},
+		}},
+		{"before range clamps to first", 0, 10, []pagerStep{
+			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
+			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := pagerWindow(tt.page, tt.total)
+			if len(got) != len(tt.want) {
+				t.Fatalf("pagerWindow(%d, %d): got %d steps, want %d: %+v", tt.page, tt.total, len(got), len(tt.want), got)
+			}
+			for i := range got {
+				if got[i] != (pagerStep{Page: tt.want[i].Page, Ellipsis: tt.want[i].Ellipsis}) {
+					t.Fatalf("pagerWindow(%d, %d)[%d] = %+v, want %+v", tt.page, tt.total, i, got[i], tt.want[i])
+				}
+			}
+		})
+	}
+}
+
+// TestPagerPageURL_PreservesState pins the state-preserving href contract:
+// stamping the page keeps every other query param and replaces an existing
+// page value rather than appending a second one.
+func TestPagerPageURL_PreservesState(t *testing.T) {
+	if got := pagerPageURL("/admin/users", 2); got != "/admin/users?page=2" {
+		t.Errorf("bare base: got %q, want /admin/users?page=2", got)
+	}
+	if got := pagerPageURL("/admin/users?filter=mfa&q=a&sort=created", 2); got != "/admin/users?filter=mfa&page=2&q=a&sort=created" {
+		t.Errorf("full state: got %q", got)
+	}
+	if got := pagerPageURL("/admin/users?page=5&q=a", 7); got != "/admin/users?page=7&q=a" {
+		t.Errorf("existing page replaced: got %q", got)
+	}
+}
+
 // TestPanel_UsersPagination seeds more users than one page and verifies the
 // page window, the pagination footer, clamping beyond the last page, and the
 // search+page combination (Phase 3 M053–M059).
@@ -309,5 +381,97 @@ func TestPanel_PageSizeShapesList(t *testing.T) {
 	}
 	if strings.Contains(rec2.Body.String(), "page=2") {
 		t.Error("default page size: 11 users must stay on one page")
+	}
+}
+
+// seedDirectory registers n users with sortable ids so the row order is
+// deterministic (the read model orders by CreatedAt, then id).
+func seedDirectory(t *testing.T, svc *usermgmt.Service, n int, prefix string) {
+	t.Helper()
+	for i := range n {
+		email := fmt.Sprintf("%s%02d@p.dev", prefix, i)
+		if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
+			ID:    identitymodel.SyntheticUserID(prefix + fmt.Sprintf("%03d", i)),
+			Email: email,
+		}); err != nil {
+			t.Fatalf("register %s: %v", email, err)
+		}
+	}
+}
+
+// panelWithPageSize builds a panel at the given page size over svc (the
+// TestPanel_PageSizeShapesList harness, extracted for the windowing tests).
+func panelWithPageSize(t *testing.T, user *identitymodel.User, svc *usermgmt.Service, pageSize int) http.Handler {
+	t.Helper()
+	panel, err := New(Config{Service: svc, PageSize: pageSize, Authorizer: RequireAuthenticated()})
+	if err != nil {
+		t.Fatalf("New(PageSize=%d): %v", pageSize, err)
+	}
+	mux := http.NewServeMux()
+	mw := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			next.ServeHTTP(w, r.WithContext(usermgmt.WithUser(r.Context(), user)))
+		})
+	}
+	mux.Handle("/admin/", mw(http.StripPrefix("/admin", panel.Handler())))
+	return mux
+}
+
+// TestPanel_PagerWindowThroughPartial drives the windowing through the HTMX
+// partial: a four-page list on page 2 renders 1 2 3 … 4 (first/last always
+// linked, the dropped numbers an ellipsis, the current one marked), and the
+// windowed links keep every other query param intact.
+func TestPanel_PagerWindowThroughPartial(t *testing.T) {
+	t.Parallel()
+
+	user := mustUser(t, "admin@example.com")
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	seedDirectory(t, svc, 35, "win")
+	h := panelWithPageSize(t, user, svc, 10)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/users?sort=email&page=2", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("partial page 2: status %d", rec.Code)
+	}
+	body := rec.Body.String()
+
+	for _, want := range []string{
+		"page=1", "page=3", "page=4", // first, neighbor, last — never dropped
+		"page=2", // the current page's neighbors include itself in the window
+		"…",      // the dropped middle numbers
+		"sort=email",
+		"aria-current=\"page\"",
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("windowed partial missing %q", want)
+		}
+	}
+	if strings.Contains(body, "page=5") {
+		t.Error("four-page list must not link a page 5")
+	}
+
+	// A two-page list renders every number and no ellipsis at all.
+	svc2, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	seedDirectory(t, svc2, 12, "two")
+	h2 := panelWithPageSize(t, user, svc2, 10)
+
+	req2 := httptest.NewRequest(http.MethodGet, "/admin/users?page=1", nil)
+	req2.Header.Set("HX-Request", "true")
+	rec2 := httptest.NewRecorder()
+	h2.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("partial page 1: status %d", rec2.Code)
+	}
+	if strings.Contains(rec2.Body.String(), "…") {
+		t.Error("a two-page window has nothing to elide")
 	}
 }
