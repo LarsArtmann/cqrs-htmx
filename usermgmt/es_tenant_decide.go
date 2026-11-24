@@ -337,16 +337,16 @@ func decideMergeTenantInto(
 				"tenant was already merged into another tenant",
 			).WithContext("merged_into", state.MergedInto.Get())
 		}
-		if !state.Exists() {
-			return nil, errorfamily.NewRejection(
-				"usermgmt.tenant_merge_into.not_found",
-				"tenant does not exist",
-			)
-		}
 		if state.Deleted {
 			return nil, errorfamily.NewConflict(
 				"usermgmt.tenant_merge_into.deleted",
 				"only a live tenant can be merged away",
+			)
+		}
+		if !state.Exists() {
+			return nil, errorfamily.NewRejection(
+				"usermgmt.tenant_merge_into.not_found",
+				"tenant does not exist",
 			)
 		}
 		if survivorID.IsZero() {
