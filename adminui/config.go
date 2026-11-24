@@ -150,6 +150,35 @@ type Config struct {
 	// For anything more than one link, prefer [Config.ExtraNav].
 	DashboardURL string
 
+	// Labels overrides display strings from the panel's label table by KEY —
+	// see labels.go for the full inventory (nav, chrome, confirm dialogs,
+	// empty states, page headers, table headers, primary actions). An
+	// override REPLACES the table value for a known key; an UNKNOWN key is
+	// REJECTED at [New]: an accepted-but-inert override would hide a typo
+	// forever, because the page would silently render the default string
+	// with no signal that the override never landed. This seam is
+	// deliberately NOT a translation engine — no locale files, no
+	// pluralization — it is one table plus an override map for deployments
+	// that need to rename or reword the covered set. Nil (the default)
+	// leaves every label at its table value.
+	Labels map[string]string
+
+	// Locale sets the panel's language tag, rendered as the <html lang>
+	// attribute and used to pick date shapes (see localeDateLayouts). Must be
+	// a BCP-47-shaped tag ("en", "de", "pt-BR"); anything else is rejected at
+	// [New]. Empty (the default) renders lang="en". The date-shape table is
+	// deliberately tiny (the "en" default keeps the historical shapes, "de"
+	// ships its dotted day-first shape, everything else falls back to ISO) —
+	// this seam is not a locale/formatting engine.
+	Locale string
+
+	// Dir sets the writing direction rendered as the <html dir> attribute.
+	// Only "ltr" and "rtl" are valid; anything else is rejected at [New].
+	// Empty (the default) renders dir="ltr". The layout is not mirrored
+	// automatically — rtl is a starting point for a right-to-left deployment,
+	// not a full bi-directional design.
+	Dir string
+
 	// CSPBuilder builds the Content-Security-Policy that [Handler.Middleware]
 	// serves, replacing the recommended default (self + per-request nonce,
 	// img-src data:). The canonical use is CSP's narrow hash carve-out for a
@@ -208,6 +237,21 @@ func (config Config) withDefaults() (Config, error) {
 		return config, errConfig(
 			"Config.AccentColor must be a CSS color literal (#hex, rgb()/rgba()/hsl()/hsla() with numeric components, or a named color); got " + config.AccentColor,
 		)
+	}
+	if err := validateLabels(config.Labels); err != nil {
+		return config, err
+	}
+	if err := validateLocale(config.Locale); err != nil {
+		return config, err
+	}
+	if err := validateDir(config.Dir); err != nil {
+		return config, err
+	}
+	if config.Locale == "" {
+		config.Locale = "en"
+	}
+	if config.Dir == "" {
+		config.Dir = dirLTR
 	}
 	if config.Mode == ModeTenantAdmin && config.TenantID.Get() == "" {
 		return config, errConfig("Config.TenantID is required for ModeTenantAdmin")

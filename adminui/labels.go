@@ -1,0 +1,437 @@
+package adminui
+
+import (
+	"regexp"
+	"slices"
+	"strings"
+	"time"
+
+	"github.com/a-h/templ"
+)
+
+// The i18n seam (plan T16, F114–F120): a MINIMAL override mechanism, not a
+// translation engine. One display-label table (the single source for the
+// covered string set — nav, chrome, confirms, empty states, page headers,
+// table headers, primary actions), a consumer override map merged at [New],
+// honest fallback (an unknown key renders the KEY ITSELF, never blank),
+// lang/dir attributes, and locale-aware date shapes. No locale files, no
+// pluralization system, no message-format machinery: if a deployment needs
+// those, it needs a real i18n framework, and this seam is deliberately not
+// one.
+
+// Label keys for the covered set. Keys are namespaced by surface so an
+// override config reads like an inventory; the DEFAULT VALUES are exactly
+// the strings the templates hardcoded before the seam, so a default-config
+// render is byte-identical to the pre-seam output.
+const (
+	labelNavDashboard   = "nav.dashboard"
+	labelNavUsers       = "nav.users"
+	labelNavTenants     = "nav.tenants"
+	labelNavMembers     = "nav.members"
+	labelNavAudit       = "nav.audit"
+	labelNavEventStore  = "nav.event_store"
+	labelChromeSections = "chrome.admin_sections"
+	labelChromeMenu     = "chrome.menu"
+	labelChromeSynced   = "chrome.synced"
+	labelChromeSignOut  = "chrome.sign_out"
+	labelChromeTheme    = "chrome.theme_toggle"
+	labelChromeReadOnly = "chrome.read_only"
+	labelChromeFooter   = "chrome.footer"
+
+	labelConfirmTitle  = "confirm.title"
+	labelConfirmBody   = "confirm.body"
+	labelConfirmCancel = "confirm.cancel"
+	labelConfirmOK     = "confirm.ok"
+
+	labelEmptyUsersSearchTitle  = "empty.users.search.title"
+	labelEmptyUsersSearchHint   = "empty.users.search.hint"
+	labelEmptyUsersSearchAction = "empty.users.search.action"
+	labelEmptyUsersNoneTitle    = "empty.users.none.title"
+	labelEmptyUsersNoneHint     = "empty.users.none.hint"
+	labelEmptyUsersNoneAction   = "empty.users.none.action"
+
+	labelEmptyTenantsSearchTitle  = "empty.tenants.search.title"
+	labelEmptyTenantsSearchHint   = "empty.tenants.search.hint"
+	labelEmptyTenantsSearchAction = "empty.tenants.search.action"
+	labelEmptyTenantsNoneTitle    = "empty.tenants.none.title"
+	labelEmptyTenantsNoneHint     = "empty.tenants.none.hint"
+	labelEmptyTenantsNoneAction   = "empty.tenants.none.action"
+
+	labelEmptyMembersTitle = "empty.members.title"
+	labelEmptyMembersHint  = "empty.members.hint"
+
+	labelEmptyAuditSearchTitle  = "empty.audit.search.title"
+	labelEmptyAuditSearchHint   = "empty.audit.search.hint"
+	labelEmptyAuditSearchAction = "empty.audit.search.action"
+	labelEmptyAuditNoneTitle    = "empty.audit.none.title"
+	labelEmptyAuditNoneHint     = "empty.audit.none.hint"
+
+	labelEmptyActivityTitle = "empty.activity.title"
+	labelEmptyActivityHint  = "empty.activity.hint"
+
+	labelEmptyDirectoryNoneTitle    = "empty.directory.none.title"
+	labelEmptyDirectoryNoneHint     = "empty.directory.none.hint"
+	labelEmptyDirectoryNoneAction   = "empty.directory.none.action"
+	labelEmptyDirectorySearchTitle  = "empty.directory.search.title"
+	labelEmptyDirectorySearchHint   = "empty.directory.search.hint"
+	labelEmptyDirectorySearchAction = "empty.directory.search.action"
+
+	labelPageUsers           = "page.users"
+	labelPageTenants         = "page.tenants"
+	labelPageMembers         = "page.members"
+	labelPageAudit           = "page.audit"
+	labelPageImportUsers     = "page.import_users"
+	labelPageDirectory       = "page.membership_directory"
+	labelPageDirectorySub    = "page.membership_directory.subtitle"
+	labelCardRecentActivity  = "card.recent_activity"
+	labelBannerNoAdminGrant  = "banner.no_admin_grant.lead"
+	labelBannerNoAdminBody   = "banner.no_admin_grant.body"
+	labelSparkNoRegistrars   = "sparkline.no_registrations"
+	labelDetailNoActivity    = "detail.no_activity"
+	labelDetailNoExternals   = "detail.no_external_accounts"
+	labelDetailNoPasskeysPre = "detail.no_passkeys.prefix"
+
+	labelHeaderUser      = "header.users.user"
+	labelHeaderAccess    = "header.users.access"
+	labelHeaderStatus    = "header.status"
+	labelHeaderLastSeen  = "header.users.last_seen"
+	labelHeaderCreated   = "header.users.created"
+	labelHeaderTenant    = "header.tenant"
+	labelHeaderMembers   = "header.members_count"
+	labelHeaderMember    = "header.member"
+	labelHeaderRoles     = "header.roles"
+	labelHeaderAdded     = "header.added"
+	labelHeaderJoined    = "header.joined"
+	labelHeaderAction    = "header.action"
+	labelHeaderWho       = "header.who"
+	labelHeaderWhen      = "header.when"
+	labelHeaderAggregate = "header.aggregate"
+
+	labelActionNewUser      = "action.new_user"
+	labelActionImportUsers  = "action.import_users"
+	labelActionExportCSV    = "action.export_csv"
+	labelActionExportFCsv   = "action.export_filtered_csv"
+	labelActionExportFJson  = "action.export_filtered_json"
+	labelActionNewTenant    = "action.new_tenant"
+	labelActionCreateUser   = "action.create_user"
+	labelActionCreateTenant = "action.create_tenant"
+	labelActionBackUsers    = "action.back_to_users"
+	labelActionBrowse       = "action.browse_tenants"
+
+	labelChipAll       = "chip.all"
+	labelChipActive    = "chip.active"
+	labelChipSuspended = "chip.suspended"
+	labelChipDeleted   = "chip.deleted"
+	labelSortWord      = "label.sort"
+	labelSortName      = "label.name"
+
+	labelSearchTenantsPH   = "search.tenants.placeholder"
+	labelSearchTenantsAria = "search.tenants.aria"
+	labelSearchUsersPH     = "search.users.placeholder"
+	labelSearchUsersAria   = "search.users.aria"
+	labelSearchAuditPH     = "search.audit.placeholder"
+	labelSearchAuditAria   = "search.audit.aria"
+	labelSearchDirPH       = "search.directory.placeholder"
+	labelSearchDirAria     = "search.directory.aria"
+
+	labelConfirmUsersDelete      = "confirm.users.delete"
+	labelConfirmUsersEmail       = "confirm.users.change_email"
+	labelConfirmUsersPasskey     = "confirm.users.remove_passkey"
+	labelConfirmUsersRoles       = "confirm.users.revoke_platform_roles"
+	labelConfirmTenantRoles      = "confirm.tenant_access.change_roles"
+	labelConfirmTenantRevoke     = "confirm.tenant_access.revoke"
+	labelConfirmUsersUnlink      = "confirm.users.unlink_account"
+	labelConfirmTenReactivate    = "confirm.tenants.reactivate"
+	labelConfirmTenReactivateBod = "confirm.tenants.reactivate.body"
+	labelConfirmTenSuspend       = "confirm.tenants.suspend"
+	labelConfirmTenDelete        = "confirm.tenants.delete"
+	labelConfirmMemberRoles      = "confirm.members.change_roles"
+	labelConfirmMemberRemove     = "confirm.members.remove"
+)
+
+// defaultLabels is the display table: the single source for every covered
+// string. Immutable after init; label() falls back to the raw key for
+// anything unmapped, so a typo renders the key itself — visible, honest,
+// never blank.
+//
+//nolint:gochecknoglobals // immutable display lookup table, read-only after init (same posture as auditLabels)
+var defaultLabels = map[string]string{
+	labelNavDashboard:   "Dashboard",
+	labelNavUsers:       "Users",
+	labelNavTenants:     "Tenants",
+	labelNavMembers:     "Members",
+	labelNavAudit:       "Audit log",
+	labelNavEventStore:  "Event store",
+	labelChromeSections: "Admin sections",
+	labelChromeMenu:     "Menu",
+	labelChromeSynced:   "Synced",
+	labelChromeSignOut:  "Sign out",
+	labelChromeTheme:    "Toggle theme",
+	labelChromeReadOnly: "Read-only",
+	labelChromeFooter:   "cqrs-htmx admin",
+
+	labelConfirmTitle:  "Are you sure?",
+	labelConfirmBody:   "This action cannot be undone.",
+	labelConfirmCancel: "Cancel",
+	labelConfirmOK:     "Confirm",
+
+	labelEmptyUsersSearchTitle:  "No users match your search",
+	labelEmptyUsersSearchHint:   "No registered user matches the search term.",
+	labelEmptyUsersSearchAction: "Clear search",
+	labelEmptyUsersNoneTitle:    "No users yet",
+	labelEmptyUsersNoneHint:     "Registered users will appear here.",
+	labelEmptyUsersNoneAction:   "Create the first user",
+
+	labelEmptyTenantsSearchTitle:  "No tenants match your search",
+	labelEmptyTenantsSearchHint:   "No tenant name or slug matches the search term.",
+	labelEmptyTenantsSearchAction: "Clear search",
+	labelEmptyTenantsNoneTitle:    "No tenants yet",
+	labelEmptyTenantsNoneHint:     "Create a tenant to scope roles and memberships.",
+	labelEmptyTenantsNoneAction:   "New tenant",
+
+	labelEmptyMembersTitle: "No members",
+	labelEmptyMembersHint:  "Add a person below to grant tenant access.",
+
+	labelEmptyAuditSearchTitle:  "No events match your filters",
+	labelEmptyAuditSearchHint:   "No recorded action matches the active filters.",
+	labelEmptyAuditSearchAction: "Clear filters",
+	labelEmptyAuditNoneTitle:    "No audit events",
+	labelEmptyAuditNoneHint:     "User and tenant changes will be recorded here.",
+
+	labelEmptyActivityTitle: "No activity yet",
+	labelEmptyActivityHint:  "User and tenant events will appear here.",
+
+	labelEmptyDirectoryNoneTitle:    "No memberships yet",
+	labelEmptyDirectoryNoneHint:     "No one has been added to any tenant. Add a member from a tenant's page to see them here.",
+	labelEmptyDirectoryNoneAction:   "Browse tenants",
+	labelEmptyDirectorySearchTitle:  "No memberships match your filters",
+	labelEmptyDirectorySearchHint:   "No membership matches the current search and filter chips.",
+	labelEmptyDirectorySearchAction: "Clear filters",
+
+	labelPageUsers:          "Users",
+	labelPageTenants:        "Tenants",
+	labelPageMembers:        "Members",
+	labelPageAudit:          "Audit log",
+	labelPageImportUsers:    "Import users",
+	labelPageDirectory:      "Membership directory",
+	labelPageDirectorySub:   "Every membership across every tenant",
+	labelCardRecentActivity: "Recent activity",
+	labelBannerNoAdminGrant: "No admin grant exists.",
+	labelBannerNoAdminBody: "Nobody holds super_admin or admin in the global domain — you are seeing this " +
+		"via a custom authorizer. Grant platform roles from a user's detail page before the last door closes.",
+	labelSparkNoRegistrars:   "No registrations recorded in the audit window yet.",
+	labelDetailNoActivity:    "No recorded activity yet.",
+	labelDetailNoExternals:   "No external accounts linked.",
+	labelDetailNoPasskeysPre: "No passkeys enrolled. The user signs in via a linked provider or enrolls",
+
+	labelHeaderUser:      "User",
+	labelHeaderAccess:    "Access",
+	labelHeaderStatus:    "Status",
+	labelHeaderLastSeen:  "Last seen",
+	labelHeaderCreated:   "Created",
+	labelHeaderTenant:    "Tenant",
+	labelHeaderMembers:   "Members",
+	labelHeaderMember:    "Member",
+	labelHeaderRoles:     "Roles",
+	labelHeaderAdded:     "Added",
+	labelHeaderJoined:    "Joined",
+	labelHeaderAction:    "Action",
+	labelHeaderWho:       "Who",
+	labelHeaderWhen:      "When",
+	labelHeaderAggregate: "Aggregate",
+
+	labelActionNewUser:      "New user",
+	labelActionImportUsers:  "Import users",
+	labelActionExportCSV:    "Export CSV",
+	labelActionExportFCsv:   "Export filtered CSV",
+	labelActionExportFJson:  "Export filtered JSON",
+	labelActionNewTenant:    "New tenant",
+	labelActionCreateUser:   "Create user",
+	labelActionCreateTenant: "Create tenant",
+	labelActionBackUsers:    "Back to users",
+	labelActionBrowse:       "Browse tenants",
+
+	labelChipAll:       "All",
+	labelChipActive:    "Active",
+	labelChipSuspended: "Suspended",
+	labelChipDeleted:   "Deleted",
+	labelSortWord:      "Sort",
+	labelSortName:      "Name",
+
+	labelSearchTenantsPH:   "Search tenants…",
+	labelSearchTenantsAria: "Search tenants",
+	labelSearchUsersPH:     "Search users…",
+	labelSearchUsersAria:   "Search users",
+	labelSearchAuditPH:     "Search actions, people, aggregates…",
+	labelSearchAuditAria:   "Search audit log",
+	labelSearchDirPH:       "Search email or name…",
+	labelSearchDirAria:     "Search the directory",
+
+	labelConfirmUsersDelete:      "Delete user",
+	labelConfirmUsersEmail:       "Change email",
+	labelConfirmUsersPasskey:     "Remove passkey",
+	labelConfirmUsersRoles:       "Revoke platform roles",
+	labelConfirmTenantRoles:      "Change roles",
+	labelConfirmTenantRevoke:     "Revoke tenant access",
+	labelConfirmUsersUnlink:      "Unlink account",
+	labelConfirmTenReactivate:    "Reactivate tenant",
+	labelConfirmTenReactivateBod: "Reactivate this tenant? Members regain access immediately.",
+	labelConfirmTenSuspend:       "Suspend tenant",
+	labelConfirmTenDelete:        "Delete tenant",
+	labelConfirmMemberRoles:      "Change roles",
+	labelConfirmMemberRemove:     "Remove member",
+}
+
+// label resolves one display string from a merged label table. The fallback
+// is the KEY ITSELF: an unmapped key must stay visible (a blank button or
+// header is a silent lie about the surface), so missing overrides and
+// untranslated keys degrade to the table key text, never to "".
+func label(labels map[string]string, key string) string {
+	if s, ok := labels[key]; ok {
+		return s
+	}
+	return key
+}
+
+// mergeLabels copies the default table and applies the consumer's overrides
+// on top. Unknown keys were already rejected at [New] (validateLabels), so
+// every entry here replaces a real table value — an override can never be
+// silently inert.
+func mergeLabels(overrides map[string]string) map[string]string {
+	merged := make(map[string]string, len(defaultLabels)+len(overrides))
+	for k, v := range defaultLabels {
+		merged[k] = v
+	}
+	for k, v := range overrides {
+		merged[k] = v
+	}
+	return merged
+}
+
+// validateLabels rejects override keys that are not in the table. Honest by
+// rejection: an accepted-but-inert override would hide a typo from the
+// consumer forever (the page renders the default string and nothing tells
+// them). Rejection at [New] names every unknown key.
+func validateLabels(overrides map[string]string) error {
+	if len(overrides) == 0 {
+		return nil
+	}
+	unknown := make([]string, 0, len(overrides))
+	for k := range overrides {
+		if _, ok := defaultLabels[k]; !ok {
+			unknown = append(unknown, k)
+		}
+	}
+	if len(unknown) == 0 {
+		return nil
+	}
+	slices.Sort(unknown)
+	return errConfig(
+		"Config.Labels contains keys that are not in the label table (overrides must name existing keys): " +
+			strings.Join(unknown, ", "),
+	)
+}
+
+// localeDateLayouts returns the (date, dateTime) layouts for a locale.
+// HONEST SCOPE: this is a tiny shape table, not a locale engine. The default
+// locale ("en", also the empty-locale default) keeps the exact shapes the
+// templates hardcoded before the seam, so goldens do not churn unless a
+// Locale is configured; "de" ships its true day-first dotted shape; every
+// other locale falls back to the unambiguous ISO shape rather than a wrong
+// guess. New locales with genuinely different shapes are added as table rows.
+func localeDateLayouts(locale string) (date, dateTime string) {
+	lang := localeLanguage(locale)
+	switch lang {
+	case "en", "":
+		return "Jan 2, 2006", "Jan 2, 2006 15:04 MST"
+	case "de":
+		return "02.01.2006", "02.01.2006 15:04"
+	default:
+		return "2006-01-02", "2006-01-02 15:04"
+	}
+}
+
+// localeLanguage extracts the primary language subtag ("de-AT" → "de").
+func localeLanguage(locale string) string {
+	if i := strings.IndexByte(locale, '-'); i > 0 {
+		return strings.ToLower(locale[:i])
+	}
+	return strings.ToLower(locale)
+}
+
+// localeRegex validates Config.Locale as a BCP-47-shaped tag (primary
+// subtag plus optional script/region subtags). Templ escapes attribute
+// values anyway; the validation exists so a nonsense Locale fails at [New]
+// instead of shipping a lying lang attribute to browsers and screen readers.
+var localeRegex = regexp.MustCompile(`^[A-Za-z]{2,8}(-[A-Za-z0-9]{2,8})*$`)
+
+// validateLocale admits the empty default (→ "en"), any well-formed language
+// tag, and nothing else.
+func validateLocale(locale string) error {
+	if locale == "" || localeRegex.MatchString(locale) {
+		return nil
+	}
+	return errConfig(
+		"Config.Locale must be a BCP-47 language tag (e.g. \"en\", \"de\", \"pt-BR\"); got " + locale,
+	)
+}
+
+// dirLTR / dirRTL are the only writing directions the panel ships; both the
+// attribute value and the CSS logical-property layout assume one of them.
+const (
+	dirLTR = "ltr"
+	dirRTL = "rtl"
+)
+
+// validateDir admits the empty default (→ ltr) and the two honest values.
+func validateDir(dir string) error {
+	switch dir {
+	case "", dirLTR, dirRTL:
+		return nil
+	default:
+		return errConfig(
+			`Config.Dir must be "ltr" or "rtl"; got ` + dir,
+		)
+	}
+}
+
+// htmlLangAttrs builds the <html>-level lang/dir attributes from the page
+// state. Always present: a lang attribute is an accessibility baseline (WCAG
+// 3.1.1), and dir defaults to ltr so the layout never depends on the
+// browser's guess.
+func htmlLangAttrs(p pageData) templ.Attributes {
+	return templ.Attributes{"lang": p.Lang, "dir": p.Dir}
+}
+
+// label resolves one display string through the page's merged label table.
+// The page components read labels ONLY via this method (or the free
+// label(p.Labels, key) inside sub-components that take the map) — never as
+// hardcoded strings, for the covered set.
+func (p pageData) label(key string) string {
+	return label(p.Labels, key)
+}
+
+// date renders a date in the page locale's shape and location. Per render:
+// the location comes from the render's clock (never time.Local spelled
+// literally — gosmopolitan bans it, and the render seam keeps tests
+// deterministic).
+func (p pageData) date(t time.Time) string {
+	dateLayout, _ := localeDateLayouts(p.Lang)
+	return t.In(p.loc()).Format(dateLayout)
+}
+
+// dateTime renders a date+time like [pageData.date], keeping the timezone
+// suffix in the default locale's shape.
+func (p pageData) dateTime(t time.Time) string {
+	_, dateTimeLayout := localeDateLayouts(p.Lang)
+	return t.In(p.loc()).Format(dateTimeLayout)
+}
+
+// loc returns the render's location, defaulting to the process clock's
+// location when unset (defensive — h.page always sets it).
+func (p pageData) loc() *time.Location {
+	if p.Loc != nil {
+		return p.Loc
+	}
+	return time.Now().Location()
+}

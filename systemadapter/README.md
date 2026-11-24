@@ -94,3 +94,16 @@ only while migrating.
 - Declarative projections (canonical how-to): `docs/guides/declarative-projections.md`
 - system/metaengine deep dive: `docs/guides/leveraging-system-metaengine.md`
 - Runnable proof: `examples/system-demo/`
+
+## Identity-merge vocabulary (2026-11-24, cqrs-htmx #46/#47)
+
+`DomainConfig()` registers all 27 commands (the merge six:
+MergeUsers/MergeUserInto/RenameTenant/MergeTenants/MergeTenantInto/
+TransferBot), `EventTypeDecoder()` maps all 33 event types, and
+`EventSchemas()` declares the 30-event envelope universe. The declarative
+projections follow the merge semantics: `UserMergedInto` removes the user
+AND policy rows, `TenantMergedInto` removes the tenant row, `TenantRenamed`
+updates the display name, `BotTransferred` moves the owner. NOTE: the
+declarative path has no `Service.MergeUsers` orchestration — consumers
+drive the roster moves (bot transfer, membership union) themselves before
+the tombstone, the way the declarative tests demonstrate.

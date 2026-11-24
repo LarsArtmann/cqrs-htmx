@@ -447,3 +447,20 @@ adminui/
 
 The panel is a leaf module: it depends on `cqrs-htmx/v4` (root) and
 `cqrs-htmx/usermgmt/v4`, and nothing depends on it.
+
+## Duplicate reconciliation (2026-11-24, cqrs-htmx #46/#47)
+
+The panel ships two report pages and their write surfaces for consolidating
+duplicate identities:
+
+- `GET /users/duplicates` — `Service.DuplicateUsers` clusters (shared email,
+  shared external account); each row posts `POST /users/{id}/merge` with a
+  survivor picker (the path user merges INTO the form survivor).
+- `GET /tenants/duplicates` — `Service.DuplicateTenants` clusters (normalized
+  name); each row carries a rename form (`POST /tenants/{id}/rename`,
+  `display_name`) and a merge form (`POST /tenants/{id}/merge`, survivor).
+
+Every route is super-admin, role-gated, and pinned in the route manifest.
+Merging is terminal: the confirm burden sits with the report's clarity
+(survivor options exclude the row itself; a row can never merge into
+itself).

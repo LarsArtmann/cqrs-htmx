@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Identity merge vocabulary (cqrs-htmx #46/#47).** Six events (`UserMerged`, `UserMergedInto`, `TenantRenamed`, `TenantMerged`, `TenantMergedInto`, `BotTransferred`) and six commands (`MergeUsers`, `MergeUserInto`, `RenameTenant`, `MergeTenants`, `MergeTenantInto`, `TransferBot`) with payloads, folds (`MergedInto`/`MergedUserIDs`/`MergedTenantIDs` state), `MergeContribution` (the authenticators a loser hands its survivor), and `NormalizeTenantName` (trim + lowercase comparison for the duplicates report and opt-in uniqueness). Terminal identities stay terminal: merged streams answer typed conflicts naming the survivor.
+
 ## [v4.18.0] - 2026-11-21
 
 ## [v4.17.0] - 2026-11-07

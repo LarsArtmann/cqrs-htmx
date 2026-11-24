@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Identity merge and tenant rename/merge (cqrs-htmx #46/#47).** `Service.MergeUsers` folds duplicate users into a survivor end to end: typed validation (survivor_required, no_losers, self_merge, duplicate_loser, loser_not_found), terminal conflicts (survivor_merged and deleted-loser with named context, loser_merged naming the other survivor, third-party external-account conflict naming both rows), one atomic `MergeUsers` command that adopts credentials/external accounts/TOTP/verified-email proof as ordinary lifecycle events, membership role-set union (survivor add/update first, loser removal after), bot transfer, session revocation, and loser tombstones LAST — every step idempotent, so a failed merge is re-run, never left half-dead. `Service.RenameTenant`/`MergeTenants` are the tenant twins (roster move + tombstone last). `Service.DuplicateUsers`/`DuplicateTenants` report the clusters (email, external account, normalized tenant name) and `ServiceConfig.UniqueTenantNames` is the opt-in creation guard. Read models follow merge pointers (`Retired`, `MergeTarget`, pointer-following `FindByID`); the SQL layer keeps tombstones (pointer in Data) and rebuilds them on hydrate; the Casbin projection clears grants on both merge events; the bot read model moves owners.
+
 ## [v4.21.0] - 2026-11-21
 
 ### Added

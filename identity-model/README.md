@@ -85,3 +85,27 @@ model (ADR-0044), not an infrastructure afterthought.
 - **Event fold functions are pure**: `FoldUser`, `FoldMembership`, `FoldTenant`,
   `FoldBot` are pure functions with no side effects — perfect for testing and
   event-sourcing replay.
+
+## Identity merge vocabulary (2026-11-24, cqrs-htmx #46/#47)
+
+The domain gained six events and six commands for consolidating duplicate
+identities — the vocabulary `usermgmt.Service.MergeUsers`/`MergeTenants`
+orchestrates:
+
+- **User**: `UserMerged` (survivor side — records the absorbed losers after
+  the ordinary adoption events), `UserMergedInto` (loser tombstone, terminal;
+  `UserState.MergedInto` names the survivor, `MergedUserIDs` lists what a
+  survivor absorbed), commands `MergeUsers`/`MergeUserInto`.
+- **Tenant**: `TenantRenamed` (label moves, ID never does — it is the stream,
+  the Casbin domain, and every tenant-scoped key), `TenantMerged`/
+  `TenantMergedInto` (the tenant twins of the user pair), commands
+  `RenameTenant`/`MergeTenants`/`MergeTenantInto`. `NormalizeTenantName`
+  (trim + lowercase) is the comparison the duplicates report and the opt-in
+  uniqueness guard use.
+- **Bot**: `BotTransferred` moves a bot to a new owner keeping its ID and
+  token hash, command `TransferBot`.
+
+`MergeContribution` is what one merged-away user hands its survivor:
+authenticators and email-ownership proof, adopted as ordinary lifecycle
+events on the survivor's stream (see the cqrs-htmx ADR for the merge
+design).

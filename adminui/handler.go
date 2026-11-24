@@ -27,6 +27,10 @@ type Handler struct {
 	adminCSS http.Handler
 	adminJS  http.Handler
 	table    []routeSpec
+	// labels is the merged display table (defaults + Config.Labels
+	// overrides), built once at [New] and attached to every pageData at
+	// h.page — the single display source for the covered string set.
+	labels map[string]string
 
 	// lastSeenIndex TTL cache: the derived last-activity map is rebuilt at
 	// most once per [lastSeenTTL] instead of once per render. Guarded by
@@ -63,6 +67,7 @@ func New(config Config) (*Handler, error) {
 	h := &Handler{ //nolint:exhaustruct // table is built and validated immediately below
 		config:   config,
 		nav:      buildNav(config),
+		labels:   mergeLabels(config.Labels),
 		adminCSS: adminCSS,
 		adminJS:  adminJS,
 		clock:    time.Now,
@@ -83,17 +88,17 @@ func buildNav(config Config) []navItem {
 	var nav []navItem
 	if config.Mode == ModeTenantAdmin {
 		nav = []navItem{
-			{Href: "/", Label: "Dashboard", Icon: iconDashboard},
-			{Href: "/members", Label: "Members", Icon: iconMembers},
-			{Href: "/audit", Label: "Audit log", Icon: iconAudit},
+			{Href: "/", Label: label(config.Labels, labelNavDashboard), Icon: iconDashboard},
+			{Href: "/members", Label: label(config.Labels, labelNavMembers), Icon: iconMembers},
+			{Href: "/audit", Label: label(config.Labels, labelNavAudit), Icon: iconAudit},
 		}
 	} else {
 		nav = []navItem{
-			{Href: "/", Label: "Dashboard", Icon: iconDashboard},
-			{Href: patternUsers, Label: "Users", Icon: iconUsers},
-			{Href: "/tenants", Label: "Tenants", Icon: iconTenants},
-			{Href: patternMembers, Label: "Members", Icon: iconMembers},
-			{Href: "/audit", Label: "Audit log", Icon: iconAudit},
+			{Href: "/", Label: label(config.Labels, labelNavDashboard), Icon: iconDashboard},
+			{Href: patternUsers, Label: label(config.Labels, labelNavUsers), Icon: iconUsers},
+			{Href: "/tenants", Label: label(config.Labels, labelNavTenants), Icon: iconTenants},
+			{Href: patternMembers, Label: label(config.Labels, labelNavMembers), Icon: iconMembers},
+			{Href: "/audit", Label: label(config.Labels, labelNavAudit), Icon: iconAudit},
 		}
 	}
 	for _, entry := range config.ExtraNav {
@@ -107,7 +112,7 @@ func buildNav(config Config) []navItem {
 		// CircleStack (the database glyph), not Chart: the built-in Dashboard
 		// entry already uses Chart, and two sidebar items must not share an icon.
 		nav = append(nav, navItem{
-			Href: config.DashboardURL, Label: "Event store", Icon: string(icons.CircleStack), Verbatim: true,
+			Href: config.DashboardURL, Label: label(config.Labels, labelNavEventStore), Icon: string(icons.CircleStack), Verbatim: true,
 		})
 	}
 	return nav
@@ -134,6 +139,10 @@ func (h *Handler) page(title, active string, user *identitymodel.User, r *http.R
 		CSRFToken: httputil.CSRFTokenFormField(r),
 		CSRFMeta:  httputil.CSRFTokenHTMLMeta(r),
 		Nonce:     h.nonce(r),
+		Labels:    h.labels,
+		Lang:      h.config.Locale,
+		Dir:       h.config.Dir,
+		Loc:       h.clock().Location(),
 	}
 	p.ReadOnly = h.config.ReadOnly
 	// The tenant switcher is a super-admin affordance: ModeTenantAdmin is

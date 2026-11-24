@@ -4,6 +4,10 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ## [Unreleased]
 
+### Added
+
+- **Identity-merge wiring (cqrs-htmx #46/#47).** All 27 commands registered (merge six included), 33-event decoder, 30-event schema universe, declarative projections following the merge semantics (loser rows and policies removed, rename/transfer applied, survivor records the absorbed).
+
 ## [v4.14.0] - 2026-11-21
 
 ### Fixed

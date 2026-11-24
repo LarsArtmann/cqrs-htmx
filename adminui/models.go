@@ -65,6 +65,21 @@ type pageData struct {
 	// [Config.ReadOnly] at page build; false (the default) renders the footer
 	// unchanged.
 	ReadOnly bool
+	// Labels is the page's merged display-label table (defaults +
+	// [Config.Labels] overrides, merged once at [New]). Templates read the
+	// covered string set ONLY through p.label(key) / label(p.Labels, key) —
+	// never hardcoded — so an override re-words every covered surface at
+	// once. An unmapped key renders the key itself, never blank.
+	Labels map[string]string
+	// Lang is the BCP-47 tag rendered as the <html lang> attribute (default
+	// "en") and the key that picks the date shapes for p.date/p.dateTime.
+	Lang string
+	// Dir is the writing direction rendered as the <html dir> attribute
+	// ("ltr" default, "rtl" supported).
+	Dir string
+	// Loc is the render's time location backing p.date/p.dateTime. Set from
+	// the render clock's location — never time.Local spelled literally.
+	Loc *time.Location
 }
 
 // tenantSwitchOption is one entry of the header tenant switcher: a LIVE

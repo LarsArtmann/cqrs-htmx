@@ -120,13 +120,13 @@ for doc in "${DOCS[@]}"; do
     # grouped block — the re-export and sentinel files declare
     # "Name = other.Pkg.Name" or "Name SomeType = value" on their own line.
     if [ "$dir" = "." ]; then
-      if ! grep -qE "(func|type|const|var)[[:space:]]+(method[[:space:]]+\([^)]*\)[[:space:]]+)?$name\b" "${search[@]}" 2>/dev/null &&
+      if ! grep -qE "(func|type|const|var)[[:space:]]+(\([^)]*\)[[:space:]]+)?$name\b" "${search[@]}" 2>/dev/null &&
         ! grep -qE "^[[:space:]]*$name([[:space:]]+[A-Za-z0-9_.*]+)?[[:space:]]*=[^=]" "${search[@]}" 2>/dev/null; then
         echo "✗ skill-claims: $doc names $sym but no declaration '$name' exists in the root package" >&2
         fail=1
       fi
     else
-      if ! grep -rqE "(func|type|const|var)[[:space:]]+(method[[:space:]]+\([^)]*\)[[:space:]]+)?$name\b" \
+      if ! grep -rqE "(func|type|const|var)[[:space:]]+(\([^)]*\)[[:space:]]+)?$name\b" \
         "${search_args[@]}" 2>/dev/null &&
         ! grep -rqE "^[[:space:]]*$name([[:space:]]+[A-Za-z0-9_.*]+)?[[:space:]]*=[^=]" \
           "${search_args[@]}" 2>/dev/null; then
