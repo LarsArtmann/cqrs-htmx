@@ -46,7 +46,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.18.1 // indirect
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.18.1 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.1 // indirect
-	github.com/larsartmann/go-appkit v0.13.0 // indirect
+	github.com/larsartmann/go-appkit v0.13.1 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.15.1 // indirect

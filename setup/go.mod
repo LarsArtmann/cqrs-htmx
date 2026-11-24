@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.19.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.1
-	github.com/larsartmann/go-appkit v0.13.0
+	github.com/larsartmann/go-appkit v0.13.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0

@@ -220,8 +220,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0 h1:l/ZL4GmWl/wvj3c
 github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.13.0/go.mod h1:onl1VTxg+6wHrnxtzOUzzbgr5GSnGSvDJ8/jVbxAQyk=
 github.com/larsartmann/cqrs-htmx/v4 v4.19.1 h1:u4YY6f5ac80z2AcHUEM5gSd8chiHGiBGJO9/LFPuc+4=
 github.com/larsartmann/cqrs-htmx/v4 v4.19.1/go.mod h1:RAUelVslR9FSQxi5KMmS/Di4TPC2D/2iAbaleA0eYSQ=
-github.com/larsartmann/go-appkit v0.13.0 h1:0y7pBXX3f9lFiuYwlgZxaqrwTQCbme4ad7oUahpQMHs=
-github.com/larsartmann/go-appkit v0.13.0/go.mod h1:VyBAPoVmON4rW6TZ9aBXQmlZ2sNF23286J/lmprkVf0=
+github.com/larsartmann/go-appkit v0.13.1 h1:kmKucyICV5L6GAU2ZcprarfS4qRGnNmp1J7mwDMXscU=
+github.com/larsartmann/go-appkit v0.13.1/go.mod h1:I3p2Fn1OmjFaG9Eepeu9MmUfzByS7vlBNj7u0GAJQxw=
 github.com/larsartmann/go-atomic-write v0.7.0 h1:SSnclXDZybKrooR3WRwTSlCSajdnh1ZRpIOqIOPv3DA=
 github.com/larsartmann/go-atomic-write v0.7.0/go.mod h1:rIkglf/MmsaEMMWykVE6wFwvDHtfcYm5t2qb4m9C+VU=
 github.com/larsartmann/go-branded-id v0.8.0 h1:ih8Va3I2PNEU/+OES8GWU+P0BLhcKqeculL1jJaBqwY=
