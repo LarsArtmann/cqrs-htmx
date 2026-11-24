@@ -334,6 +334,52 @@
     ]
   },
   {
+    "type": "UserMerged",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "Duplicate users were merged into this survivor; their authenticators were adopted as ordinary credential and external-account events on this stream",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "loser_ids",
+        "type": "[]ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "UserMergedInto",
+    "aggregate": "User",
+    "schemaVersion": 2,
+    "description": "This user was merged into another user (tombstone); the payload names the surviving user",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "survivor_id",
+        "type": "ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
     "type": "MemberAdded",
     "aggregate": "Membership",
     "schemaVersion": 2,
@@ -495,6 +541,70 @@
     ]
   },
   {
+    "type": "TenantRenamed",
+    "aggregate": "Tenant",
+    "schemaVersion": 2,
+    "description": "A tenant display name changed; the tenant ID stays",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "display_name",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TenantMerged",
+    "aggregate": "Tenant",
+    "schemaVersion": 2,
+    "description": "Duplicate tenants were merged into this surviving tenant",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "loser_ids",
+        "type": "[]ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "TenantMergedInto",
+    "aggregate": "Tenant",
+    "schemaVersion": 2,
+    "description": "This tenant was merged into another tenant (tombstone); the payload names the surviving tenant",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "survivor_id",
+        "type": "ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
     "type": "BotRegistered",
     "aggregate": "Bot",
     "schemaVersion": 2,
@@ -536,6 +646,29 @@
       {
         "name": "schema_version",
         "type": "int",
+        "required": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "type": "BotTransferred",
+    "aggregate": "Bot",
+    "schemaVersion": 2,
+    "description": "A bot was transferred to a new owner; its ID and token hash are unchanged",
+    "payloadFields": [
+      {
+        "name": "schema_version",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "owner_id",
+        "type": "ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]",
         "required": true
       },
       {

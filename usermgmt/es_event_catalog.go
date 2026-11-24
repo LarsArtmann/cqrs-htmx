@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// DefaultEventCatalog builds a eventcatalog.Catalog populated with all 27
+// DefaultEventCatalog builds a eventcatalog.Catalog populated with all 33
 // event types across the five aggregates (User, Membership, Tenant, Bot,
 // Auth). It is the GENERATOR for the served artifact: its rendered JSON is
 // committed as event-catalog.json, the serving path
@@ -147,6 +147,20 @@ var eventCatalogSpecs = []eventCatalogSpec{ //nolint:gochecknoglobals // single-
 		schema:      catalog.SchemaFromType[identitymodel.ExternalAccountUnlinkedPayload],
 		fields:      payloadFieldsFrom[identitymodel.ExternalAccountUnlinkedPayload],
 	},
+	{
+		eventType:   identitymodel.EventUserMerged,
+		aggregate:   identitymodel.AggregateTypeUser,
+		description: "Duplicate users were merged into this survivor; their authenticators were adopted as ordinary credential and external-account events on this stream",
+		schema:      catalog.SchemaFromType[identitymodel.UserMergedPayload],
+		fields:      payloadFieldsFrom[identitymodel.UserMergedPayload],
+	},
+	{
+		eventType:   identitymodel.EventUserMergedInto,
+		aggregate:   identitymodel.AggregateTypeUser,
+		description: "This user was merged into another user (tombstone); the payload names the surviving user",
+		schema:      catalog.SchemaFromType[identitymodel.UserMergedIntoPayload],
+		fields:      payloadFieldsFrom[identitymodel.UserMergedIntoPayload],
+	},
 
 	// Membership events
 	{
@@ -200,6 +214,27 @@ var eventCatalogSpecs = []eventCatalogSpec{ //nolint:gochecknoglobals // single-
 		schema:      catalog.SchemaFromType[identitymodel.TenantDeletedPayload],
 		fields:      payloadFieldsFrom[identitymodel.TenantDeletedPayload],
 	},
+	{
+		eventType:   identitymodel.EventTenantRenamed,
+		aggregate:   identitymodel.AggregateTypeTenant,
+		description: "A tenant display name changed; the tenant ID stays",
+		schema:      catalog.SchemaFromType[identitymodel.TenantRenamedPayload],
+		fields:      payloadFieldsFrom[identitymodel.TenantRenamedPayload],
+	},
+	{
+		eventType:   identitymodel.EventTenantMerged,
+		aggregate:   identitymodel.AggregateTypeTenant,
+		description: "Duplicate tenants were merged into this surviving tenant",
+		schema:      catalog.SchemaFromType[identitymodel.TenantMergedPayload],
+		fields:      payloadFieldsFrom[identitymodel.TenantMergedPayload],
+	},
+	{
+		eventType:   identitymodel.EventTenantMergedInto,
+		aggregate:   identitymodel.AggregateTypeTenant,
+		description: "This tenant was merged into another tenant (tombstone); the payload names the surviving tenant",
+		schema:      catalog.SchemaFromType[identitymodel.TenantMergedIntoPayload],
+		fields:      payloadFieldsFrom[identitymodel.TenantMergedIntoPayload],
+	},
 
 	// Bot events
 	{
@@ -215,6 +250,13 @@ var eventCatalogSpecs = []eventCatalogSpec{ //nolint:gochecknoglobals // single-
 		description: "A bot was deleted with an optional reason",
 		schema:      catalog.SchemaFromType[identitymodel.BotDeletedPayload],
 		fields:      payloadFieldsFrom[identitymodel.BotDeletedPayload],
+	},
+	{
+		eventType:   identitymodel.EventBotTransferred,
+		aggregate:   identitymodel.AggregateTypeBot,
+		description: "A bot was transferred to a new owner; its ID and token hash are unchanged",
+		schema:      catalog.SchemaFromType[identitymodel.BotTransferredPayload],
+		fields:      payloadFieldsFrom[identitymodel.BotTransferredPayload],
 	},
 
 	// Auth audit events (dedicated Auth streams; cqrs-htmx#23, #25)

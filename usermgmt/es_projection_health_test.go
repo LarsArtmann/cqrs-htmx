@@ -12,8 +12,8 @@ func TestDefaultEventCatalog_HasAllEvents(t *testing.T) {
 	catalog := usermgmt.DefaultEventCatalog()
 	events := catalog.Events()
 
-	if len(events) != 27 {
-		t.Errorf("catalog has %d events, want exactly 27", len(events))
+	if len(events) != 33 {
+		t.Errorf("catalog has %d events, want exactly 33", len(events))
 	}
 
 	seen := make(map[string]bool)

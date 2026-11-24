@@ -26,6 +26,8 @@ var (
 	eventTOTPDisabled            = identitymodel.EventTOTPDisabled
 	eventExternalAccountLinked   = identitymodel.EventExternalAccountLinked
 	eventExternalAccountUnlinked = identitymodel.EventExternalAccountUnlinked
+	eventUserMerged              = identitymodel.EventUserMerged
+	eventUserMergedInto          = identitymodel.EventUserMergedInto
 
 	eventLoginSucceeded     = identitymodel.EventLoginSucceeded
 	eventLoginFailed        = identitymodel.EventLoginFailed
@@ -44,9 +46,13 @@ var (
 	eventTenantSuspended   = identitymodel.EventTenantSuspended
 	eventTenantReactivated = identitymodel.EventTenantReactivated
 	eventTenantDeleted     = identitymodel.EventTenantDeleted
+	eventTenantRenamed     = identitymodel.EventTenantRenamed
+	eventTenantMerged      = identitymodel.EventTenantMerged
+	eventTenantMergedInto  = identitymodel.EventTenantMergedInto
 
-	eventBotRegistered = identitymodel.EventBotRegistered
-	eventBotDeleted    = identitymodel.EventBotDeleted
+	eventBotRegistered  = identitymodel.EventBotRegistered
+	eventBotDeleted     = identitymodel.EventBotDeleted
+	eventBotTransferred = identitymodel.EventBotTransferred
 
 	cmdRegisterUser          = identitymodel.CmdRegisterUser
 	cmdChangeEmail           = identitymodel.CmdChangeEmail
@@ -60,6 +66,8 @@ var (
 	cmdDisableTOTP           = identitymodel.CmdDisableTOTP
 	cmdLinkExternalAccount   = identitymodel.CmdLinkExternalAccount
 	cmdUnlinkExternalAccount = identitymodel.CmdUnlinkExternalAccount
+	cmdMergeUsers            = identitymodel.CmdMergeUsers
+	cmdMergeUserInto         = identitymodel.CmdMergeUserInto
 
 	cmdAddMember         = identitymodel.CmdAddMember
 	cmdUpdateMemberRoles = identitymodel.CmdUpdateMemberRoles
@@ -69,9 +77,13 @@ var (
 	cmdSuspendTenant    = identitymodel.CmdSuspendTenant
 	cmdReactivateTenant = identitymodel.CmdReactivateTenant
 	cmdDeleteTenant     = identitymodel.CmdDeleteTenant
+	cmdRenameTenant     = identitymodel.CmdRenameTenant
+	cmdMergeTenants     = identitymodel.CmdMergeTenants
+	cmdMergeTenantInto  = identitymodel.CmdMergeTenantInto
 
 	cmdRegisterBot = identitymodel.CmdRegisterBot
 	cmdDeleteBot   = identitymodel.CmdDeleteBot
+	cmdTransferBot = identitymodel.CmdTransferBot
 )
 
 var allUserEventTypes = []event.Type{
@@ -88,6 +100,8 @@ var allUserEventTypes = []event.Type{
 	eventTOTPDisabled,
 	eventExternalAccountLinked,
 	eventExternalAccountUnlinked,
+	eventUserMerged,
+	eventUserMergedInto,
 }
 
 var allMembershipEventTypes = []event.Type{
@@ -101,11 +115,15 @@ var allTenantEventTypes = []event.Type{
 	eventTenantSuspended,
 	eventTenantReactivated,
 	eventTenantDeleted,
+	eventTenantRenamed,
+	eventTenantMerged,
+	eventTenantMergedInto,
 }
 
 var allBotEventTypes = []event.Type{
 	eventBotRegistered,
 	eventBotDeleted,
+	eventBotTransferred,
 }
 
 // allAuthEventTypes lists the auth audit event types (LoginSucceeded,
