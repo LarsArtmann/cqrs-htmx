@@ -246,9 +246,9 @@ func TestUsersList_TwoRolesOneTenant(t *testing.T) {
 	mustAddMember(t, svc, member.User.ID, tenant.ID, identitymodel.RoleUser)
 
 	// Add a second role to the SAME membership: the badge must stay "1 tenant".
-	if _, err := svc.Dispatch(ctx, usermgmt.NewAddMemberToTenant(
-		identitymodel.ActorIDFromUser(member.User.ID), member.User.ID, tenant.ID, identitymodel.RoleViewer,
-	)); err != nil {
+	if err := svc.UpdateMemberRoles(ctx, identitymodel.ActorIDFromUser(member.User.ID), tenant.ID,
+		[]identitymodel.Role{identitymodel.RoleUser, identitymodel.RoleViewer},
+	); err != nil {
 		t.Fatalf("add second role: %v", err)
 	}
 
