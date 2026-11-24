@@ -23,6 +23,8 @@
 #       route-family suffix ("/delete" of d.BasePath + id + "/delete");
 #       "#..." anchors pass. A typo'd href fails here with file:line
 #       instead of 404ing in the demo.
+#   (d) README freshness: the source-table row count stated in
+#       adminui/README.md must equal the scan (the 61-vs-67 drift class).
 #
 # The Go goldens (routes_manifest_test.go, check-route-postures.sh) pin
 # behavior; this gate pins the parity text so a drift fails without a build.
@@ -235,6 +237,22 @@ for f in "$PKG"/*.templ; do
     done < <(printf '%s' "$body" | grep -oE '"[^"]*"' | tr -d '"' | sort -u)
   done < <(grep -nE "$attr_re|$attr_map_re" "$f")
 done
+
+# --- (d) README route-count freshness: the stated source-table count must ---
+# equal the scan this gate just performed, or the README lies about the
+# surface it documents (the 61-vs-67 drift class the T08 landing trued by
+# hand; this check mechanizes that re-truing).
+readme="$PKG/README.md"
+if [ ! -f "$readme" ]; then
+  err "adminui/README.md missing — the route-count freshness check needs it"
+else
+  stated="$(grep -oE 'source table has \*\*[0-9]+ rows\*\*' "$readme" | head -1 | grep -oE '[0-9]+')"
+  if [ -z "$stated" ]; then
+    err "README route-count sentence not found — expected 'The source table has **N rows**' in adminui/README.md"
+  elif [ "$stated" -ne "$rows" ]; then
+    err "README claims $stated source-table rows but routes.go scans to $rows — true the README count in the same commit as the route change"
+  fi
+fi
 
 # --- false-green guards (a sweep that verifies nothing must fail) ------------
 

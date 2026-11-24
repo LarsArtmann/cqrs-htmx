@@ -62,7 +62,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
-	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-codec v0.3.4 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	//cqrs-lint:ignore(V006) v4.0.0 IS the latest published tag for commandlifecycle/projections; per-module release cadences differ
@@ -107,7 +107,7 @@ require (
 	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.2 // indirect
-	github.com/tidwall/sjson v1.2.5 // indirect
+	github.com/tidwall/sjson v1.2.6 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.etcd.io/bbolt v1.5.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
