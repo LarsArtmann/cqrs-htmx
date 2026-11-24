@@ -85,6 +85,27 @@ type ExternalAccountUnlinkedPayload struct {
 	Subject       string `json:"subject"`
 }
 
+// UserMergedPayload is recorded on the SURVIVOR's stream when duplicate user
+// identities are consolidated into it. Whatever each loser contributed
+// (credentials, external accounts, TOTP, email verification) precedes this
+// event on the same stream as ordinary CredentialAdded /
+// ExternalAccountLinked / TOTPEnabled / EmailVerified events, so every
+// existing projection adopts the assets without merge-specific code.
+type UserMergedPayload struct {
+	SchemaVersion int      `json:"schema_version"`
+	LoserIDs      []UserID `json:"loser_ids"`
+	Reason        string   `json:"reason"`
+}
+
+// UserMergedIntoPayload is the tombstone recorded on a merged-away user's
+// stream. The stream is terminal afterwards and SurvivorID is the pointer
+// every lookup follows back to the surviving identity.
+type UserMergedIntoPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	SurvivorID    UserID `json:"survivor_id"`
+	Reason        string `json:"reason"`
+}
+
 // --- Membership event payloads ---
 
 type MemberAddedPayload struct {
@@ -131,6 +152,34 @@ type TenantDeletedPayload struct {
 	Reason        string `json:"reason"`
 }
 
+// TenantRenamedPayload changes a tenant's human label. The tenant ID never
+// moves: it is the stream identity, the Casbin domain and the key of every
+// tenant-scoped row, which is exactly why a typo is fixed by this event and
+// not by delete-and-recreate.
+type TenantRenamedPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	DisplayName   string `json:"display_name"`
+}
+
+// TenantMergedPayload is recorded on the SURVIVING tenant's stream when
+// duplicate tenants are consolidated into it. Memberships move through
+// ordinary MemberAdded / MemberRolesChanged events on the survivor's
+// membership streams, so the roster needs no merge-specific projection.
+type TenantMergedPayload struct {
+	SchemaVersion int        `json:"schema_version"`
+	LoserIDs      []TenantID `json:"loser_ids"`
+	Reason        string     `json:"reason"`
+}
+
+// TenantMergedIntoPayload is the tombstone recorded on a merged-away
+// tenant's stream. The stream is terminal afterwards and SurvivorID is the
+// pointer every lookup follows back to the surviving tenant.
+type TenantMergedIntoPayload struct {
+	SchemaVersion int      `json:"schema_version"`
+	SurvivorID    TenantID `json:"survivor_id"`
+	Reason        string   `json:"reason"`
+}
+
 // --- Bot event payloads ---
 
 type BotRegisteredPayload struct {
@@ -143,6 +192,14 @@ type BotRegisteredPayload struct {
 
 type BotDeletedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
+	Reason        string `json:"reason"`
+}
+
+// BotTransferredPayload moves a bot to a new owner. The bot keeps its ID and
+// its token hash, so integrations keep working across a user merge.
+type BotTransferredPayload struct {
+	SchemaVersion int    `json:"schema_version"`
+	OwnerID       UserID `json:"owner_id"`
 	Reason        string `json:"reason"`
 }
 

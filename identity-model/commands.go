@@ -198,6 +198,79 @@ func NewUnlinkExternalAccountCmd(
 func (c *UnlinkExternalAccountCmd) Provider() string { return c.provider }
 func (c *UnlinkExternalAccountCmd) Subject() string  { return c.subject }
 
+// MergeContribution is what one merged-away user hands to the survivor of a
+// merge: the authenticators and proof of email ownership it accumulated on
+// its own stream. The survivor's decider decides what is adopted.
+type MergeContribution struct {
+	UserID           UserID
+	Email            string
+	EmailVerified    bool
+	TOTPSecret       []byte
+	Credentials      []WebAuthnCredential
+	ExternalAccounts []ExternalAccount
+}
+
+// Clone returns a deep copy whose slice fields share no memory with c.
+func (c MergeContribution) Clone() MergeContribution {
+	cp := c
+	cp.TOTPSecret = append([]byte(nil), c.TOTPSecret...)
+	cp.Credentials = make([]WebAuthnCredential, len(c.Credentials))
+	for i, cred := range c.Credentials {
+		cp.Credentials[i] = cred.Clone()
+	}
+	cp.ExternalAccounts = append([]ExternalAccount(nil), c.ExternalAccounts...)
+	return cp
+}
+
+func cloneMergeContributions(in []MergeContribution) []MergeContribution {
+	out := make([]MergeContribution, len(in))
+	for i, contribution := range in {
+		out[i] = contribution.Clone()
+	}
+	return out
+}
+
+// MergeUsersCmd folds duplicate users into the survivor stream it targets.
+// One decision adopts every contribution the survivor does not already hold
+// and then records a single UserMerged event, so the survivor side of a
+// merge is atomic.
+type MergeUsersCmd struct {
+	reasonedCommand
+	contributions []MergeContribution
+}
+
+func NewMergeUsersCmd(
+	aggID id.StreamID, contributions []MergeContribution, reason string,
+) *MergeUsersCmd {
+	return &MergeUsersCmd{
+		reasonedCommand: newReasonedCommand(CmdMergeUsers, aggID, reason),
+		contributions:   cloneMergeContributions(contributions),
+	}
+}
+
+// Contributions returns a deep copy (S38f): the TOTP secret and public keys
+// are credential material that must not be mutable through the accessor.
+func (c *MergeUsersCmd) Contributions() []MergeContribution {
+	return cloneMergeContributions(c.contributions)
+}
+
+// MergeUserIntoCmd tombstones the user stream it targets as merged into
+// SurvivorID. It is the last step of a merge: until it lands the user is
+// still live, so a failed merge is retried rather than left half-dead.
+type MergeUserIntoCmd struct {
+	reasonedCommand
+	survivorID UserID
+}
+
+func NewMergeUserIntoCmd(aggID id.StreamID, survivorID UserID, reason string) *MergeUserIntoCmd {
+	return &MergeUserIntoCmd{
+		reasonedCommand: newReasonedCommand(CmdMergeUserInto, aggID, reason),
+		survivorID:      survivorID,
+	}
+}
+
+func (c *MergeUserIntoCmd) SurvivorID() UserID { return c.survivorID }
+
 // --- Membership commands ---
 
 // DeriveMembershipID constructs a deterministic AggregateID for a membership.
@@ -301,6 +374,56 @@ func NewDeleteTenantCmd(aggID id.StreamID, reason string) *DeleteTenantCmd {
 	return &DeleteTenantCmd{reasonedCommand: newReasonedCommand(CmdDeleteTenant, aggID, reason)}
 }
 
+// RenameTenantCmd changes the display name of the tenant stream it targets.
+// The tenant ID is untouched.
+type RenameTenantCmd struct {
+	*command.BasicCommand
+	displayName string
+}
+
+func NewRenameTenantCmd(aggID id.StreamID, displayName string) *RenameTenantCmd {
+	return &RenameTenantCmd{
+		BasicCommand: mustCommand(CmdRenameTenant, aggID),
+		displayName:  displayName,
+	}
+}
+
+func (c *RenameTenantCmd) DisplayName() string { return c.displayName }
+
+// MergeTenantsCmd records on the surviving tenant's stream that the listed
+// tenants were consolidated into it.
+type MergeTenantsCmd struct {
+	reasonedCommand
+	loserIDs []TenantID
+}
+
+func NewMergeTenantsCmd(aggID id.StreamID, loserIDs []TenantID, reason string) *MergeTenantsCmd {
+	return &MergeTenantsCmd{
+		reasonedCommand: newReasonedCommand(CmdMergeTenants, aggID, reason),
+		loserIDs:       slices.Clone(loserIDs),
+	}
+}
+
+// LoserIDs returns a copy (S38f): mutating the returned slice must not write
+// through to the command.
+func (c *MergeTenantsCmd) LoserIDs() []TenantID { return slices.Clone(c.loserIDs) }
+
+// MergeTenantIntoCmd tombstones the tenant stream it targets as merged into
+// SurvivorID. It is the last step of a merge, after the roster has moved.
+type MergeTenantIntoCmd struct {
+	reasonedCommand
+	survivorID TenantID
+}
+
+func NewMergeTenantIntoCmd(aggID id.StreamID, survivorID TenantID, reason string) *MergeTenantIntoCmd {
+	return &MergeTenantIntoCmd{
+		reasonedCommand: newReasonedCommand(CmdMergeTenantInto, aggID, reason),
+		survivorID:      survivorID,
+	}
+}
+
+func (c *MergeTenantIntoCmd) SurvivorID() TenantID { return c.survivorID }
+
 // --- Bot commands ---
 
 type RegisterBotCmd struct {
@@ -340,6 +463,22 @@ type DeleteBotCmd struct {
 func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
 	return &DeleteBotCmd{reasonedCommand: newReasonedCommand(CmdDeleteBot, aggID, reason)}
 }
+
+// TransferBotCmd moves the bot stream it targets to a new owner. The bot ID
+// and token hash stay, so API tokens survive the merge of their owner.
+type TransferBotCmd struct {
+	reasonedCommand
+	ownerID UserID
+}
+
+func NewTransferBotCmd(aggID id.StreamID, ownerID UserID, reason string) *TransferBotCmd {
+	return &TransferBotCmd{
+		reasonedCommand: newReasonedCommand(CmdTransferBot, aggID, reason),
+		ownerID:       ownerID,
+	}
+}
+
+func (c *TransferBotCmd) OwnerID() UserID { return c.ownerID }
 
 // reasonedCommand is the shared base for commands that carry a human-readable
 // reason (deletions, suspensions). Embedding it gives the command the standard

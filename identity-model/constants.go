@@ -25,6 +25,8 @@ const (
 	EventTOTPDisabled            event.Type = "TOTPDisabled"
 	EventExternalAccountLinked   event.Type = "ExternalAccountLinked"
 	EventExternalAccountUnlinked event.Type = "ExternalAccountUnlinked"
+	EventUserMerged              event.Type = "UserMerged"
+	EventUserMergedInto          event.Type = "UserMergedInto"
 
 	EventLoginSucceeded     event.Type = "LoginSucceeded"
 	EventLoginFailed        event.Type = "LoginFailed"
@@ -41,9 +43,13 @@ const (
 	EventTenantSuspended   event.Type = "TenantSuspended"
 	EventTenantReactivated event.Type = "TenantReactivated"
 	EventTenantDeleted     event.Type = "TenantDeleted"
+	EventTenantRenamed     event.Type = "TenantRenamed"
+	EventTenantMerged      event.Type = "TenantMerged"
+	EventTenantMergedInto  event.Type = "TenantMergedInto"
 
-	EventBotRegistered event.Type = "BotRegistered"
-	EventBotDeleted    event.Type = "BotDeleted"
+	EventBotRegistered  event.Type = "BotRegistered"
+	EventBotDeleted     event.Type = "BotDeleted"
+	EventBotTransferred event.Type = "BotTransferred"
 
 	CmdRegisterUser          command.Type = "RegisterUser"
 	CmdChangeEmail           command.Type = "ChangeEmail"
@@ -57,6 +63,8 @@ const (
 	CmdDisableTOTP           command.Type = "DisableTOTP"
 	CmdLinkExternalAccount   command.Type = "LinkExternalAccount"
 	CmdUnlinkExternalAccount command.Type = "UnlinkExternalAccount"
+	CmdMergeUsers            command.Type = "MergeUsers"
+	CmdMergeUserInto         command.Type = "MergeUserInto"
 
 	CmdAddMember         command.Type = "AddMember"
 	CmdUpdateMemberRoles command.Type = "UpdateMemberRoles"
@@ -66,9 +74,13 @@ const (
 	CmdSuspendTenant    command.Type = "SuspendTenant"
 	CmdReactivateTenant command.Type = "ReactivateTenant"
 	CmdDeleteTenant     command.Type = "DeleteTenant"
+	CmdRenameTenant      command.Type = "RenameTenant"
+	CmdMergeTenants      command.Type = "MergeTenants"
+	CmdMergeTenantInto   command.Type = "MergeTenantInto"
 
-	CmdRegisterBot command.Type = "RegisterBot"
-	CmdDeleteBot   command.Type = "DeleteBot"
+	CmdRegisterBot  command.Type = "RegisterBot"
+	CmdDeleteBot    command.Type = "DeleteBot"
+	CmdTransferBot  command.Type = "TransferBot"
 )
 
 const CurrentSchemaVersion = 2
