@@ -96,8 +96,10 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 // mode): the tenant-admin counterpart of the super-admin
 // /tenants/{id}/roster.csv, sharing its writer and wire shape. Access
 // mirrors GET /members exactly — the roster this mode can already see.
+// The download filename carries the tenant id and the -export token, the
+// same convention as every other export route (f#45 unification).
 func (h *Handler) membersRosterCSV(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
-	h.writeRosterCSV(w, r, h.config.TenantID, "roster.csv")
+	h.writeRosterCSV(w, r, h.config.TenantID, "roster-export-"+h.config.TenantID.Get()+".csv")
 }
 
 // membersAdd handles "add member" in tenant-admin mode (tenant from config).

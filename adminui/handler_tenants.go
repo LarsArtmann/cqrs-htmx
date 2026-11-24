@@ -323,7 +323,7 @@ func (h *Handler) tenantRosterCSV(w http.ResponseWriter, r *http.Request, _ *ide
 		h.writeErrorPage(w, r, http.StatusNotFound, "Tenant not found", "No tenant with this id exists.")
 		return
 	}
-	h.writeRosterCSV(w, r, tenantID, "roster-"+tenantID.Get()+".csv")
+	h.writeRosterCSV(w, r, tenantID, "roster-export-"+tenantID.Get()+".csv")
 }
 
 // writeRosterCSV is the shared roster export body (F156). The wire shape:

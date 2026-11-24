@@ -456,6 +456,18 @@ GOEXPERIMENT=jsonv2 go test ./adminui/ -run XXX -bench BenchmarkUsersPageRender 
   theme. No-JS degrades to light. Rides the templ-components library's
   `layout.ThemeToggle` + `layout.ThemeScript`.
 
+### Keyboard shortcuts
+
+| Keys            | Where                        | Action                              |
+| --------------- | ---------------------------- | ----------------------------------- |
+| `Ctrl/Cmd + K`  | anywhere                     | Open (or close) the command palette |
+| `?`             | palette input focused        | Toggle the in-palette shortcut help |
+| `/`             | list pages, not typing       | Focus the list search box           |
+| `Esc`           | in the list search           | Clear the search and re-run it      |
+| `Esc`           | palette or dialog open       | Close it                            |
+| `↑` / `↓`       | list, palette, or combobox   | Move through rows and options       |
+| `Enter`         | palette or combobox option   | Choose it                           |
+
 ## Run the demo
 
 ```bash
