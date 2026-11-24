@@ -28,6 +28,7 @@ func authzPolicyLookup() metaengine.QueryDecl[system.LookupInput[string], Policy
 		updateMemberPolicy(),
 		removeMemberPolicy(),
 		removeUserPolicy(),
+		removeMergedUserPolicy(),
 		metaengine.Volume(10_000),
 	)
 }
@@ -40,6 +41,7 @@ func authzPolicyScan() metaengine.QueryDecl[system.ScanInput, PolicyEntry] {
 		updateMemberPolicy(),
 		removeMemberPolicy(),
 		removeUserPolicy(),
+		removeMergedUserPolicy(),
 		metaengine.FilterOnField[PolicyEntry]("Subject", metaengine.FilterEq),
 		metaengine.FilterOnField[PolicyEntry]("Domain", metaengine.FilterEq),
 		metaengine.Volume(10_000),
@@ -105,6 +107,14 @@ func removeMemberPolicy() metaengine.Fold {
 func removeUserPolicy() metaengine.Fold {
 	return metaengine.OnRecordTyped(string(identitymodel.EventUserDeleted),
 		projectionadapter.EventWithID[identitymodel.UserDeletedPayload]{},
+		metaengine.Remove[PolicyEntry]())
+}
+
+// removeMergedUserPolicy drops a merged-away user's policy entries: the
+// identity is terminal, its grants must not outlive it.
+func removeMergedUserPolicy() metaengine.Fold {
+	return metaengine.OnRecordTyped(string(identitymodel.EventUserMergedInto),
+		projectionadapter.EventWithID[identitymodel.UserMergedIntoPayload]{},
 		metaengine.Remove[PolicyEntry]())
 }
 

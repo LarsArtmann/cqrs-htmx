@@ -891,3 +891,103 @@ func TestDeclarative_SQLite_AuthzPolicies(t *testing.T) {
 
 // Missing-key lookups must report system.ErrNotFound, and scan-style lookups
 // must return an empty result with a nil error — never a zero-value row.
+
+// TestDeclarative_UserMergeSequence proves the merge vocabulary on the
+// declarative path: the survivor's view records what it absorbed, the
+// merged-away user's view is gone, and a bot follows its owner.
+func TestDeclarative_UserMergeSequence(t *testing.T) {
+	ctx, sys := startDeclarativeSystem(t)
+
+	survivorID, loserID := id.NewStreamID(), id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		survivorID, "keep@example.com", "", nil,
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		loserID, "dup@example.com", "", nil,
+	)))
+	botID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterBotCmd(
+		botID, "loser-bot", identitymodel.NewUserID(loserID.Get()), []byte{1, 2}, nil,
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewMergeUsersCmd(
+		survivorID,
+		[]identitymodel.MergeContribution{{
+			UserID:      identitymodel.NewUserID(loserID.Get()),
+			Email:       "dup@example.com",
+			Credentials: nil,
+		}},
+		"declarative merge test",
+	)))
+	// The declarative path has no Service.MergeUsers orchestration: the
+	// consumer drives the roster moves themselves — here the bot transfer.
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewTransferBotCmd(
+		botID, identitymodel.NewUserID(survivorID.Get()), "declarative merge test",
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewMergeUserIntoCmd(
+		loserID, identitymodel.NewUserID(survivorID.Get()), "declarative merge test",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		survivor, err := systemadapter.FindUserByID(ctx, sys, survivorID.Get())
+		if err != nil {
+			return err
+		}
+		if len(survivor.MergedUserIDs) != 1 || survivor.MergedUserIDs[0] != loserID.Get() {
+			return fmt.Errorf("MergedUserIDs = %v, want the loser", survivor.MergedUserIDs)
+		}
+		if _, err := systemadapter.FindUserByID(ctx, sys, loserID.Get()); err == nil {
+			return errors.New("merged-away user still answers FindUserByID")
+		}
+		bot, err := systemadapter.FindBotByID(ctx, sys, botID.Get())
+		if err != nil {
+			return err
+		}
+		if bot.OwnerID != survivorID.Get() {
+			return fmt.Errorf("bot owner = %s, want the survivor", bot.OwnerID)
+		}
+		return nil
+	})
+}
+
+// TestDeclarative_TenantRenameAndMerge proves the tenant merge vocabulary on
+// the declarative path: rename lands, the loser's view is gone, and the
+// survivor records what it absorbed.
+func TestDeclarative_TenantRenameAndMerge(t *testing.T) {
+	ctx, sys := startDeclarativeSystem(t)
+
+	survivorID, loserID := id.NewStreamID(), id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
+		survivorID, "acme", "Acme",
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
+		loserID, "acme-corp", "Acme Corp",
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRenameTenantCmd(
+		survivorID, "Acme Incorporated",
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewMergeTenantsCmd(
+		survivorID, []identitymodel.TenantID{identitymodel.NewTenantID(loserID.Get())}, "duplicate",
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewMergeTenantIntoCmd(
+		loserID, identitymodel.NewTenantID(survivorID.Get()), "duplicate",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		survivor, err := systemadapter.FindTenantByID(ctx, sys, survivorID.Get())
+		if err != nil {
+			return err
+		}
+		if survivor.DisplayName != "Acme Incorporated" {
+			return fmt.Errorf("DisplayName = %q, want the renamed label", survivor.DisplayName)
+		}
+		if len(survivor.MergedTenantIDs) != 1 || survivor.MergedTenantIDs[0] != loserID.Get() {
+			return fmt.Errorf("MergedTenantIDs = %v, want the loser", survivor.MergedTenantIDs)
+		}
+		if _, err := systemadapter.FindTenantByID(ctx, sys, loserID.Get()); err == nil {
+			return errors.New("merged-away tenant still answers FindTenantByID")
+		}
+		return nil
+	})
+}

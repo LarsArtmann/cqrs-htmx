@@ -580,13 +580,18 @@ func validateRouteTable(table []routeSpec) error {
 }
 
 // registerRoutes serves the table on mux — the ONLY registration path, so a
-// route outside the table cannot exist.
+// route outside the table cannot exist. In ReadOnly mode the write:true rows
+// are skipped HERE, at registration: the write handlers never mount, so a
+// mutating request falls through to the method catch-all and answers 405 —
+// the refusal is structural (no route exists to reach), not a runtime check.
 func (h *Handler) registerRoutes(mux *http.ServeMux) {
 	for _, spec := range h.table {
 		if !spec.mode.servesIn(h.config.Mode) {
 			continue
 		}
-
+		if h.config.ReadOnly && spec.write {
+			continue
+		}
 		if spec.guarded != nil {
 			mux.Handle(spec.registration(), h.guard(spec.guarded))
 			continue
@@ -604,11 +609,17 @@ func (h *Handler) registerRoutes(mux *http.ServeMux) {
 //
 // Use it for consumer-side routing decisions: reverse-proxy allowlists,
 // policy engines, upgrade diffing, or feeding [authztest.Undeclared].
+//
+// ReadOnly reflects too: the write:true rows are absent, so an allowlist or
+// matrix built from this manifest never names a route this instance refuses.
 func (h *Handler) Routes() []Route {
 	rows := make([]Route, 0, len(h.table))
 
 	for _, spec := range h.table {
 		if !spec.mode.servesIn(h.config.Mode) {
+			continue
+		}
+		if h.config.ReadOnly && spec.write {
 			continue
 		}
 

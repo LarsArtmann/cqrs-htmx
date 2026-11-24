@@ -85,6 +85,19 @@ type Config struct {
 	// design nor balloon a single render.
 	PageSize int
 
+	// ReadOnly mounts the panel without its write routes. Every route-table
+	// row marked write:true (creation, deletion, role grants, tenant
+	// lifecycle, merges) is skipped at registration, so a mutating request
+	// finds no POST route and the mux's method catch-all answers 405 — the
+	// refusal is structural, not a check a handler can forget. The manifest
+	// ([Handler.Routes]) reflects the same skip, so a reverse-proxy
+	// allowlist built from it never names a route this instance refuses,
+	// and the sidebar renders a "Read-only" notice chip instead of implying
+	// the write forms are live. Reads (lists, detail pages, exports, the
+	// audit trail) are unaffected. Zero value (the default) mounts the full
+	// surface: existing consumers change nothing.
+	ReadOnly bool
+
 	// Authorizer decides whether the authenticated user may use the panel.
 	// Return a non-nil error to deny access (HTTP 403). When nil, a default
 	// role-based authorizer is used — see [defaultAuthorizer]. Override this to

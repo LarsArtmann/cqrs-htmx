@@ -135,6 +135,7 @@ func (h *Handler) page(title, active string, user *identitymodel.User, r *http.R
 		CSRFMeta:  httputil.CSRFTokenHTMLMeta(r),
 		Nonce:     h.nonce(r),
 	}
+	p.ReadOnly = h.config.ReadOnly
 	// The tenant switcher is a super-admin affordance: ModeTenantAdmin is
 	// scoped to exactly one tenant by construction, so a switcher there would
 	// offer a navigation that does not exist.

@@ -161,7 +161,7 @@ func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
 	}
 }
 
-func TestEventTypeDecoder_All27EventTypesRegistered(t *testing.T) {
+func TestEventTypeDecoder_All33EventTypesRegistered(t *testing.T) {
 	decoder := systemadapter.EventTypeDecoder()
 
 	expectedTypes := []string{
@@ -178,6 +178,8 @@ func TestEventTypeDecoder_All27EventTypesRegistered(t *testing.T) {
 		string(identitymodel.EventTOTPDisabled),
 		string(identitymodel.EventExternalAccountLinked),
 		string(identitymodel.EventExternalAccountUnlinked),
+		string(identitymodel.EventUserMerged),
+		string(identitymodel.EventUserMergedInto),
 		string(identitymodel.EventMemberAdded),
 		string(identitymodel.EventMemberRolesChanged),
 		string(identitymodel.EventMemberRemoved),
@@ -185,8 +187,12 @@ func TestEventTypeDecoder_All27EventTypesRegistered(t *testing.T) {
 		string(identitymodel.EventTenantSuspended),
 		string(identitymodel.EventTenantReactivated),
 		string(identitymodel.EventTenantDeleted),
+		string(identitymodel.EventTenantRenamed),
+		string(identitymodel.EventTenantMerged),
+		string(identitymodel.EventTenantMergedInto),
 		string(identitymodel.EventBotRegistered),
 		string(identitymodel.EventBotDeleted),
+		string(identitymodel.EventBotTransferred),
 		string(identitymodel.EventLoginSucceeded),
 		string(identitymodel.EventLoginFailed),
 		string(identitymodel.EventRegistrationClosed),

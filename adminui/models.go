@@ -61,6 +61,10 @@ type pageData struct {
 	// CurrentTenantID marks the switcher entry matching the tenant being
 	// viewed. Empty (every page except tenant detail) marks nothing.
 	CurrentTenantID string
+	// ReadOnly renders the sidebar footer's "Read-only" notice chip. Set from
+	// [Config.ReadOnly] at page build; false (the default) renders the footer
+	// unchanged.
+	ReadOnly bool
 }
 
 // tenantSwitchOption is one entry of the header tenant switcher: a LIVE

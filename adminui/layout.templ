@@ -65,7 +65,7 @@ templ sidebar(p pageData) {
 		BaseProps: utils.BaseProps{Class: "admin-sidebar-scope", AriaLabel: "Admin sections"},
 		Brand:     brandMark(p),
 		Items:     sidebarItems(p),
-		Footer:    sidebarFooter(),
+		Footer:    sidebarFooter(p),
 	})
 }
 
@@ -76,7 +76,15 @@ templ brandMark(p pageData) {
 	</span>
 }
 
-templ sidebarFooter() {
+templ sidebarFooter(p pageData) {
+	if p.ReadOnly {
+		// Read-only notice chip: the panel is mounted without its write
+		// routes ([Config.ReadOnly]), so the chrome must not imply the
+		// creation/deletion forms it still renders are live.
+		<span class="admin-readonly-chip inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300">
+			Read-only
+		</span>
+	}
 	<span class="text-xs text-gray-600 dark:text-gray-400">cqrs-htmx admin</span>
 }
 

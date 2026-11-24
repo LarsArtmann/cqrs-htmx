@@ -32,6 +32,8 @@ var wantCommands = []string{
 	string(identitymodel.CmdDisableTOTP),
 	string(identitymodel.CmdLinkExternalAccount),
 	string(identitymodel.CmdUnlinkExternalAccount),
+	string(identitymodel.CmdMergeUsers),
+	string(identitymodel.CmdMergeUserInto),
 	string(identitymodel.CmdAddMember),
 	string(identitymodel.CmdUpdateMemberRoles),
 	string(identitymodel.CmdRemoveMember),
@@ -39,8 +41,12 @@ var wantCommands = []string{
 	string(identitymodel.CmdSuspendTenant),
 	string(identitymodel.CmdReactivateTenant),
 	string(identitymodel.CmdDeleteTenant),
+	string(identitymodel.CmdRenameTenant),
+	string(identitymodel.CmdMergeTenants),
+	string(identitymodel.CmdMergeTenantInto),
 	string(identitymodel.CmdRegisterBot),
 	string(identitymodel.CmdDeleteBot),
+	string(identitymodel.CmdTransferBot),
 }
 
 func TestArchitectureCatalog_CommandInventory(t *testing.T) {
@@ -48,7 +54,7 @@ func TestArchitectureCatalog_CommandInventory(t *testing.T) {
 }
 
 func TestArchitectureCatalog_EventInventory(t *testing.T) {
-	want := make([]string, 0, 27)
+	want := make([]string, 0, 33)
 	for _, schema := range EventSchemas() {
 		want = append(want, string(schema.Type()))
 	}
