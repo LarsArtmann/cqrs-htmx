@@ -146,6 +146,10 @@ const (
 	labelActionCreateTenant = "action.create_tenant"
 	labelActionBackUsers    = "action.back_to_users"
 	labelActionBrowse       = "action.browse_tenants"
+	labelActionCopyJSON     = "action.copy_json"
+	labelActionCopyJSONOk   = "action.copy_json_ok"
+	labelActionCopyJSONErr  = "action.copy_json_err"
+	labelActionCopyJSONNa   = "action.copy_json_unavailable"
 
 	labelChipAll       = "chip.all"
 	labelChipActive    = "chip.active"
@@ -388,6 +392,10 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelActionCreateTenant: "Create tenant",
 	labelActionBackUsers:    "Back to users",
 	labelActionBrowse:       "Browse tenants",
+	labelActionCopyJSON:     "Copy as JSON",
+	labelActionCopyJSONOk:   "User copied as JSON.",
+	labelActionCopyJSONErr:  "Clipboard unavailable or denied — nothing was copied.",
+	labelActionCopyJSONNa:   "Snapshot unavailable — nothing was copied.",
 
 	labelChipAll:       "All",
 	labelChipActive:    "Active",
