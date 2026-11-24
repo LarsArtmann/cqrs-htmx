@@ -7,6 +7,7 @@ import (
 	"sort"
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
@@ -23,6 +24,10 @@ type UserReadModel struct {
 	emails map[string]id.StreamID
 	//cqrs-lint:ignore(P011) bounded by finite user count; in-memory dev/test default
 	externalAccounts map[externalAccountKey]id.StreamID
+	// mergedInto maps each merged-away user's stream to the survivor it points
+	// at. Merged-away rows leave `users`, so this is the only trace they keep.
+	//cqrs-lint:ignore(P011) bounded by finite user count; in-memory dev/test default
+	mergedInto map[id.StreamID]id.StreamID
 }
 
 // externalAccountKey is the composite key for the global provider+subject → user index.
@@ -48,10 +53,13 @@ func NewUserReadModel() *UserReadModel {
 			eventTOTPDisabled:            (*UserReadModel).handleTOTPDisabled,
 			eventExternalAccountLinked:   (*UserReadModel).handleExternalAccountLinked,
 			eventExternalAccountUnlinked: (*UserReadModel).handleExternalAccountUnlinked,
+			eventUserMerged:              (*UserReadModel).handleUserMerged,
+			eventUserMergedInto:          (*UserReadModel).handleUserMergedInto,
 		},
 		users:            make(map[id.StreamID]*User),
 		emails:           make(map[string]id.StreamID),
 		externalAccounts: make(map[externalAccountKey]id.StreamID),
+		mergedInto:       make(map[id.StreamID]id.StreamID),
 	}
 }
 
@@ -209,21 +217,79 @@ func (m *UserReadModel) handleCredentialUsed(_ id.StreamID, evt event.Event) err
 }
 
 func (m *UserReadModel) handleUserDeleted(aggID id.StreamID, _ event.Event) error {
-	if u, ok := m.users[aggID]; ok {
-		// Guarded eviction: under keep-first, a deleted duplicate must not
-		// remove the original user's email / external-account mapping.
-		if m.emails[u.Email] == aggID {
-			delete(m.emails, u.Email)
-		}
-		for _, ea := range u.ExternalAccounts {
-			key := externalAccountKey{provider: ea.Provider, subject: ea.Subject}
-			if m.externalAccounts[key] == aggID {
-				delete(m.externalAccounts, key)
-			}
-		}
-	}
+	// Guarded eviction: under keep-first, a deleted duplicate must not remove
+	// the original user's email / external-account mapping. Only entries that
+	// resolve to this stream go, including aliases it inherited from merges.
+	m.evict(m.emails, aggID)
+	m.evict(m.externalAccounts, aggID)
 	delete(m.users, aggID)
 	return nil
+}
+
+// handleUserMerged records on the survivor which identities it absorbed.
+// The adopted assets arrive as ordinary lifecycle events before this one.
+func (m *UserReadModel) handleUserMerged(_ id.StreamID, evt event.Event) error {
+	aggID := evt.StreamID()
+	p, err := decodePayload[identitymodel.UserMergedPayload](evt, "UserMerged")
+	if err != nil {
+		return err
+	}
+	u, ok := m.users[aggID]
+	if !ok {
+		return nil
+	}
+	for _, loser := range p.LoserIDs {
+		if !slices.Contains(u.MergedUserIDs, loser) {
+			u.MergedUserIDs = append(u.MergedUserIDs, loser)
+		}
+	}
+	u.UpdatedAt = evt.OccurredAt()
+	return nil
+}
+
+// handleUserMergedInto retires the stream the event lands on in favour of
+// its survivor. Every index entry that resolved to the retired stream now
+// resolves to the survivor, so a merged ID, email or external subject keeps
+// answering with the surviving identity.
+func (m *UserReadModel) handleUserMergedInto(aggID id.StreamID, evt event.Event) error {
+	p, err := decodePayload[identitymodel.UserMergedIntoPayload](evt, "UserMergedInto")
+	if err != nil {
+		return err
+	}
+	survivor, err := aggIDFromUser(p.SurvivorID)
+	if err != nil {
+		return err
+	}
+	m.repoint(m.emails, aggID, survivor)
+	m.repoint(m.externalAccounts, aggID, survivor)
+	delete(m.users, aggID)
+	m.mergedInto[aggID] = survivor
+	return nil
+}
+
+// repoint moves every index entry owned by one stream to another.
+func repoint[K comparable](index map[K]id.StreamID, from, to id.StreamID) {
+	for key, owner := range index {
+		if owner == from {
+			index[key] = to
+		}
+	}
+}
+
+// evict removes every index entry owned by one stream.
+func evict[K comparable](index map[K]id.StreamID, owner id.StreamID) {
+	for key, candidate := range index {
+		if candidate == owner {
+			delete(index, key)
+		}
+	}
+}
+
+// mergeChainLimit bounds how many pointers one lookup follows. A chain is
+// at most as long as the pointer map, so a longer walk means the pointers
+// formed a cycle; the walk stops instead of spinning.
+func (m *UserReadModel) mergeChainLimit() int {
+	return len(m.mergedInto) + 1
 }
 
 func (m *UserReadModel) handleEmailVerified(aggID id.StreamID, evt event.Event) error {
@@ -315,11 +381,7 @@ func (m *UserReadModel) handleExternalAccountUnlinked(_ id.StreamID, evt event.E
 func (m *UserReadModel) FindByID(aggID id.StreamID) (*User, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	u, ok := m.users[aggID]
-	if !ok {
-		return nil, false
-	}
-	return u.Clone(), true
+	return m.live(m.resolve(aggID))
 }
 
 func (m *UserReadModel) FindByEmail(email string) (*User, bool) {
@@ -329,7 +391,7 @@ func (m *UserReadModel) FindByEmail(email string) (*User, bool) {
 	if !ok {
 		return nil, false
 	}
-	return m.users[aggID].Clone(), true
+	return m.live(m.resolve(aggID))
 }
 
 // FindByExternalAccount looks up a user by their linked provider+subject pair.
@@ -342,7 +404,34 @@ func (m *UserReadModel) FindByExternalAccount(provider, subject string) (*User, 
 	if !ok {
 		return nil, false
 	}
-	return m.users[aggID].Clone(), true
+	return m.live(m.resolve(aggID))
+}
+
+// resolve follows the merge chain from a stream to the live survivor at its
+// end; a stream that was not merged away answers with itself. The walk is
+// bounded: a chain longer than the pointer map is a cycle, and every stream on
+// a cycle is merged away, so the caller's row lookup answers not-found there.
+// Callers hold at least a read lock.
+func (m *UserReadModel) resolve(aggID id.StreamID) id.StreamID {
+	for range m.mergeChainLimit() {
+		survivor, merged := m.mergedInto[aggID]
+		if !merged {
+			break
+		}
+		aggID = survivor
+	}
+	return aggID
+}
+
+// live returns a copy of the live user on aggID. Callers hold at least a read
+// lock. A missing row answers not-found rather than a nil user, so an index
+// entry that outlived its row can never leak a nil clone.
+func (m *UserReadModel) live(aggID id.StreamID) (*User, bool) {
+	u, ok := m.users[aggID]
+	if !ok {
+		return nil, false
+	}
+	return u.Clone(), true
 }
 
 func (m *UserReadModel) Count() int {

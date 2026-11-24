@@ -17,6 +17,11 @@ type User struct {
 	EmailVerified    bool                 `json:"email_verified"`
 	TOTPEnabled      bool                 `json:"totp_enabled"`
 	TOTPSecret       []byte               `json:"-"`
+	// MergedInto names the surviving identity when this user was merged into
+	// another one; zero on a live user. A merged-away identity is terminal.
+	MergedInto UserID `json:"merged_into,omitempty,omitzero"`
+	// MergedUserIDs lists the identities that were merged into this one.
+	MergedUserIDs []UserID `json:"merged_user_ids,omitempty"`
 	CreatedAt        time.Time            `json:"created_at"`
 	UpdatedAt        time.Time            `json:"updated_at"`
 }
@@ -46,6 +51,7 @@ func (u *User) Clone() *User {
 	cp.ExternalAccounts = make([]ExternalAccount, len(u.ExternalAccounts))
 	copy(cp.ExternalAccounts, u.ExternalAccounts)
 	cp.TOTPSecret = append([]byte(nil), u.TOTPSecret...)
+	cp.MergedUserIDs = slices.Clone(u.MergedUserIDs)
 	return &cp
 }
 
