@@ -33,9 +33,3 @@ func userCopyJSON(d userDetailData) string {
 	}
 	return string(b)
 }
-
-// clientPackSkeletonID is the DOM id of the users list's first-load skeleton
-// (T17 F124/F125). Server-rendered markup carries it hidden via the
-// .htmx-indicator convention; admin.js removes the node after the first
-// swap, so the skeleton can never reappear for already-loaded data.
-const clientPackSkeletonID = "users-skeleton"
