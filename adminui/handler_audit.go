@@ -163,7 +163,7 @@ func parseAuditDateFilter(raw, label string) (*time.Time, string) {
 	if err != nil {
 		return nil, label + " date is not a valid date — use YYYY-MM-DD; that bound was ignored."
 	}
-	return &day, nil
+	return &day, ""
 }
 
 // auditActorChips is the actor-kind chip vocabulary — exactly the spelling of
