@@ -55,6 +55,24 @@ templ membersCard(p pageData, d tenantDetailData) {
 				Flush:       true,
 				CellPadding: display.TableCellPaddingCompact,
 			})
+			// F157: the roster paginates like every other list; the caption
+			// quotes the FULL roster so a page never reads as the whole story.
+			@listNote(len(d.Members), d.TotalMembers)
+			@listPager(d.RosterURL, d.Page, d.TotalPages)
+		}
+		if d.RosterExportURL != "" {
+			// F156: the export carries the FULL roster, not the visible page —
+			// the link sits below the table so the page boundary never implies
+			// an export boundary.
+			<div class="mt-2">
+				@display.Button(display.ButtonProps{
+					Text:      p.label(labelActionExportRoster),
+					Href:      d.RosterExportURL,
+					Variant:   display.ButtonSecondary,
+					Size:      display.ButtonSizeSM,
+					BaseProps: utils.BaseProps{Class: classNoUnderline},
+				})
+			</div>
 		}
 		<div class="border-t border-gray-200 pt-4 mt-4">
 			<form class="flex flex-wrap items-center gap-2" hx-post={ d.AddMemberURL }>
@@ -83,6 +101,34 @@ templ membersCard(p pageData, d tenantDetailData) {
 					Variant:  display.ButtonPrimary,
 					Size:     display.ButtonSizeSM,
 					Children: htmx.LoadingButton("Add member", "Adding…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"})),
+				})
+			</form>
+		</div>
+	}
+	if d.TransferURL != "" {
+		// T22: ownership transfer under ONE confirm naming BOTH sides. The
+		// select carries, per candidate, the composed two-sided confirm body;
+		// admin.js copies the selected option's body onto the submit button's
+		// data-confirm at submit time, so the modal always names the exact
+		// pairing the admin picked.
+		<div class="border-t border-gray-200 pt-4 mt-4">
+			<form class="flex flex-wrap items-center gap-2" hx-post={ d.TransferURL } data-transfer-confirm>
+				<div class="text-sm text-gray-600 dark:text-gray-400">Ownership:</div>
+				<select name="email" required aria-label={ p.label(labelActionTransferOwner) }
+					class="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+					for _, c := range d.TransferCandidates {
+						<option value={ c.Email } data-confirm-body={ c.ConfirmBody }>{ c.Email }</option>
+					}
+				</select>
+				@display.Button(display.ButtonProps{
+					Type:     display.ButtonHTMLSubmit,
+					Variant:  display.ButtonSecondary,
+					Size:     display.ButtonSizeSM,
+					Children: htmx.LoadingButton(p.label(labelActionTransferOwner), "Transferring…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
+					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+						"data-confirm":       p.label(labelConfirmBody),
+						"data-confirm-title": p.label(labelConfirmTenTransfer),
+					}},
 				})
 			</form>
 		</div>

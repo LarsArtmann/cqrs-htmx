@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -357,7 +358,8 @@ func (h *Handler) tenantTransferOwnership(w http.ResponseWriter, r *http.Request
 	targetActor := identitymodel.ActorIDFromUser(target.ID)
 
 	members := h.tenantRoster(r.Context(), tenantID)
-	if refusal := transferRefusal(members, targetActor, email); refusal != "" {
+	targetRow, found := findMember(members, targetActor)
+	if refusal := transferRefusal(members, targetActor, email, found, targetRow); refusal != "" {
 		triggerToast(w, "err", refusal)
 		redirect(w, r, back)
 		return
@@ -374,7 +376,8 @@ func (h *Handler) tenantTransferOwnership(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	out := executeOwnershipTransfer(r.Context(), h.config.Service, tenantID, targetActor, prior)
+	out := executeOwnershipTransfer(r.Context(), h.config.Service, tenantID, targetActor, targetRow.Roles, prior)
+	out.TargetEmail = email
 	triggerToast(w, toastKindFor(out), ownershipOutcomeMessage(out))
 	redirect(w, r, back)
 }
@@ -387,8 +390,10 @@ func (h *Handler) tenantTransferOwnership(w http.ResponseWriter, r *http.Request
 //     themselves): the state it asks for already holds.
 //   - ambiguous prior: with two other owners the panel cannot pick which to
 //     demote, and guessing would silently strip the wrong owner.
-func transferRefusal(members []memberRow, target identitymodel.ActorID, email string) string {
-	targetRow, found := findMember(members, target)
+func transferRefusal(
+	members []memberRow, target identitymodel.ActorID, email string,
+	found bool, targetRow memberRow,
+) string {
 	if !found {
 		return email + " is not a member of this tenant. Add them as a member first. Nothing changed."
 	}
@@ -438,19 +443,16 @@ type transferOutcome struct {
 // tests can drive mid-sequence failures against a real service.
 func executeOwnershipTransfer(
 	ctx context.Context, svc *usermgmt.Service, tenantID identitymodel.TenantID,
-	target identitymodel.ActorID, prior *memberRow,
+	target identitymodel.ActorID, targetRoles []identitymodel.Role, prior *memberRow,
 ) transferOutcome {
 	out := transferOutcome{PriorExisted: prior != nil}
-	_ = tenantID
-	out.TargetEmail = ""
-	out.PriorEmail = ""
 	if prior != nil {
 		out.PriorEmail = prior.Email
 	}
 
 	// Grant: the target's EXISTING roles plus owner — GrantRoles replaces the
 	// role set, so granting bare [owner] would silently strip their roles.
-	if err := svc.GrantRoles(ctx, target, tenantID, appendRole(slices.Clone(targetRoles(target)), identitymodel.RoleOwner)); err != nil {
+	if err := svc.GrantRoles(ctx, target, tenantID, appendRole(slices.Clone(targetRoles), identitymodel.RoleOwner)); err != nil {
 		out.GrantErr = err
 		return out // nothing else dispatched: the failure is total, not partial
 	}
@@ -476,12 +478,37 @@ func executeOwnershipTransfer(
 	return out
 }
 
-// targetRoles returns the target's current roles from the roster snapshot;
-// GrantRoles validates against the decider, so an empty set never reaches it
-// (owner is always appended).
-func targetRoles(target identitymodel.ActorID) []identitymodel.Role {
-	_ = target
-	return nil
+// toastKindFor picks the toast severity from what landed: a partial state
+// (grant landed, demotion failed) must not render as a plain success.
+func toastKindFor(out transferOutcome) string {
+	if out.GrantErr != nil || out.DemoteErr != nil {
+		return "err"
+	}
+	return "ok"
+}
+
+// ownershipOutcomeMessage says EXACTLY what landed (F164) — including the
+// mid-sequence case: the grant succeeded, the demotion did not, and the
+// message names both sides plus the failure reason.
+func ownershipOutcomeMessage(out transferOutcome) string {
+	if out.GrantErr != nil {
+		return "Ownership transfer failed: " + actionErrorMessage(out.GrantErr) +
+			". Nothing changed."
+	}
+	if out.DemoteErr != nil {
+		return "Owner granted to " + out.TargetEmail + ", but demotion of " + out.PriorEmail +
+			" failed: " + actionErrorMessage(out.DemoteErr) + ". " + out.PriorEmail +
+			" STILL HOLDS the owner role."
+	}
+	if !out.PriorExisted {
+		return "Ownership granted to " + out.TargetEmail +
+			". This tenant had no prior owner to demote."
+	}
+	if out.PriorRemoved {
+		return "Ownership transferred to " + out.TargetEmail + ". " + out.PriorEmail +
+			" held no other role, so their membership was removed."
+	}
+	return "Ownership transferred to " + out.TargetEmail + ". " + out.PriorEmail + " demoted."
 }
 
 // appendRole adds role unless already present.

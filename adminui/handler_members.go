@@ -88,8 +88,11 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 	if t, err := h.config.Service.GetTenant(r.Context(), h.config.TenantID); err == nil {
 		tenant = t
 	}
-	memberships := h.config.Service.TenantMembers(r.Context(), h.config.TenantID)
-	members := toMemberRows(memberships, h.lookupUser)
+	allMembers := h.tenantRoster(r.Context(), h.config.TenantID)
+	total := len(allMembers)
+	// F157: the roster paginates beyond MaxListRows like every other list.
+	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), total, h.config.PageSize)
+	members := allMembers[offset : offset+limit]
 	addedBy := h.addedByIndex(r.Context(), h.config.TenantID, members)
 	for i := range members {
 		members[i].AddedBy = addedBy[members[i].Actor.PrefixedString()]
@@ -105,11 +108,25 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
 		UpdateRoleBase:   memberBase,
-		UserEmailOptions: h.memberEmailOptions(members),
+		UserEmailOptions: h.memberEmailOptions(allMembers),
+		TotalMembers:     total,
+		AdminTierCount:   countAdminTier(allMembers),
+		Page:             page,
+		TotalPages:       totalPages,
+		RosterURL:        memberBase,
+		RosterExportURL:  memberBase + "/roster.csv",
 	}
 	h.applyMemberError(r, &d)
 	p := h.page("Members", "/members", user, r)
 	renderPage(w, r, membersPage(p, d))
+}
+
+// membersRosterCSV streams the scoped tenant's full roster (F156, tenant
+// mode): the tenant-admin counterpart of the super-admin
+// /tenants/{id}/roster.csv, sharing its writer and wire shape. Access
+// mirrors GET /members exactly — the roster this mode can already see.
+func (h *Handler) membersRosterCSV(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	h.writeRosterCSV(w, r, h.config.TenantID, "roster.csv")
 }
 
 // membersAdd handles "add member" in tenant-admin mode (tenant from config).

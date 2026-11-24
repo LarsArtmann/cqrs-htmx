@@ -55,11 +55,18 @@ templ roleBadge(role string) {
 templ roleCheckboxGroup(assignable, current []identitymodel.Role, groupLabel string) {
 	<div class="flex flex-wrap items-center gap-x-3 gap-y-1" role="group" aria-label={ groupLabel }>
 		for _, role := range assignable {
+			// F153: each checkbox carries the role's description (roleDescriptions)
+			// as help text + a title tooltip, so the blast radius is visible
+			// before the grant, not after it.
 			@forms.Checkbox(forms.CheckboxProps{
-				Name:    "roles",
-				Value:   string(role),
-				Label:   string(role),
-				Checked: hasRole(current, role),
+				Name:     "roles",
+				Value:    string(role),
+				Label:    string(role),
+				Checked:  hasRole(current, role),
+				HelpText: roleDescriptions(role),
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"title": roleDescriptions(role),
+				}},
 			})
 		}
 	</div>

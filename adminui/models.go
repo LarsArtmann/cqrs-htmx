@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/a-h/templ"
 )
 
 // navItem is a single sidebar entry. Icon is a key resolved by the svgIcon
@@ -149,6 +150,14 @@ func roleDescriptions(role identitymodel.Role) string {
 		return "Read-only access to this tenant."
 	}
 	return ""
+}
+
+// tenantTransferGrantOnlyConfirm is the confirm variant for a tenant with NO
+// current owner: the action grants ownership without a demotion, and the
+// confirm says so rather than implying a two-sided handover.
+func tenantTransferGrantOnlyConfirm(targetName string) string {
+	return "Grant ownership to " + targetName +
+		"? This tenant currently has no owner, so nobody will be demoted."
 }
 
 // tenantTransferConfirm composes the transfer confirm for ONE pairing

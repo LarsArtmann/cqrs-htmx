@@ -237,4 +237,90 @@
     },
     true,
   );
+  // --- T22 F163: ownership-transfer confirm names BOTH sides ---
+  // The select carries, per candidate, a server-composed confirm body naming
+  // the prior owner and the receiver. On submit (capture, before htmx's own
+  // htmx:confirm reads the attribute), the selected option's body is copied
+  // onto the submit button's data-confirm — so the modal always describes
+  // the exact pairing the admin picked, never a generic warning.
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (!form.matches || !form.matches("form[data-transfer-confirm]")) return;
+    var select = form.querySelector("select[name='email']");
+    var button = form.querySelector("[data-confirm]");
+    if (!select || !button) return;
+    var opt = select.selectedOptions && select.selectedOptions[0];
+    var body = opt && opt.getAttribute("data-confirm-body");
+    if (body) button.setAttribute("data-confirm", body);
+  }, true);
+
+  // --- T21 F152: slug auto-suggest on the tenant-new form ---
+  // Typing the display name suggests a slug (lowercase, non-alphanumerics →
+  // dashes). The slug field stays freely editable; once the admin edits it
+  // by hand (data-slug-touched), the suggest NEVER overwrites their text.
+  // Document-delegated (gotcha 57): the form is server-rendered per page.
+  function slugify(value) {
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+  document.addEventListener("input", function (e) {
+    var target = e.target;
+    if (!target.matches || !target.matches("#display_name")) return;
+    var form = target.closest("form");
+    var slug = form && form.querySelector("[data-slug-suggest]");
+    if (!slug || slug.getAttribute("data-slug-touched") === "true") return;
+    slug.value = slugify(target.value);
+  });
+  document.addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.matches && t.matches("[data-slug-suggest]")) {
+      // Any direct edit in the slug field silences the suggester for good —
+      // no forced overwrite, ever.
+      t.setAttribute("data-slug-touched", "true");
+    }
+  });
+
+  // --- T21 F158: tenant-switcher in-dropdown search ---
+  // With many tenants the switcher dropdown gets a filter input, injected
+  // the first time it opens (only when the list is long enough to need it)
+  // and narrowing items by their data-tenant-search text. Client-side narrow
+  // of the server-rendered list only — never a second source of truth.
+  // The library renders the popover panel as "<ID>-menu" (dropdown_templ.go).
+  var SWITCHER_PANEL_ID = "admin-tenant-switcher-menu";
+  var SWITCHER_MIN_ITEMS = 8;
+  function wireSwitcherSearch() {
+    var panel = document.getElementById(SWITCHER_PANEL_ID);
+    if (!panel || panel.dataset.switcherSearchWired === "true") return;
+    var items = panel.querySelectorAll("[data-tenant-search]");
+    if (items.length < SWITCHER_MIN_ITEMS) return;
+    panel.dataset.switcherSearchWired = "true";
+    var input = document.createElement("input");
+    input.type = "search";
+    input.placeholder = "Filter tenants…";
+    input.setAttribute("aria-label", "Filter tenants");
+    input.className = "mx-3 my-2 block w-[calc(100%-1.5rem)] rounded-md border border-gray-300 px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100";
+    input.addEventListener("input", function () {
+      var needle = input.value.toLowerCase();
+      for (var i = 0; i < items.length; i++) {
+        var hit = items[i].getAttribute("data-tenant-search").indexOf(needle) !== -1;
+        items[i].style.display = hit ? "" : "none";
+      }
+    });
+    // Escape clears the filter (and closes via the popover's own light-dismiss).
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && input.value !== "") {
+        input.value = "";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+    panel.insertBefore(input, panel.firstChild);
+  }
+  document.addEventListener("toggle", function (e) {
+    // toggle fires on popover elements when they open/close (popover API).
+    if (e.target && e.target.id === SWITCHER_PANEL_ID && e.newState === "open") {
+      wireSwitcherSearch();
+    }
+  }, true);
 })();

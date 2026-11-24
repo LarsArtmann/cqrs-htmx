@@ -193,7 +193,14 @@ templ tenantNewContent(p pageData, basePath string) {
 			<form hx-post={ basePath + "/tenants" } hx-target="this">
 				<div class="mb-4">
 					@forms.Input(forms.InputProps{
-						BaseProps:   utils.BaseProps{ID: "name"},
+						BaseProps: utils.BaseProps{
+							ID: "name",
+							// F152: admin.js auto-suggests the slug from the display
+							// name; the field stays freely editable and the suggest
+							// never overwrites a manual edit (data-slug-suggest marks
+							// the target; the touched flag lives on the element).
+							Attrs: templ.Attributes{"data-slug-suggest": ""},
+						},
 						Name:        "name",
 						Label:       "Tenant slug",
 						Placeholder: "acme-corp",
@@ -232,6 +239,13 @@ templ tenantDetailPage(p pageData, d tenantDetailData) {
 }
 
 templ tenantDetailContent(p pageData, d tenantDetailData) {
+	// F155: a deleted tenant renders ONLY its tombstone. This branch is the
+	// second lock after the handler's: the live view below cannot render for
+	// tombstone data even if a future caller forgets the guard.
+	if d.Tombstone != nil {
+		@tenantTombstoneContent(p, d)
+		return
+	}
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
 			{Text: p.label(labelPageTenants), Href: d.BasePath + "/tenants"},
@@ -307,7 +321,7 @@ templ tenantMetaCard(d tenantDetailData) {
 				{Term: "Slug", Detail: d.Tenant.Name},
 				{Term: "Display name", Detail: d.Tenant.DisplayName},
 				{Term: "Status", DetailComponent: tenantStatusAction(d)},
-				{Term: "Members", Detail: strconv.Itoa(len(d.Members))},
+				{Term: "Members", Detail: strconv.Itoa(d.TotalMembers)},
 				{Term: "Roles", DetailComponent: roleDistributionDetail(d)},
 			},
 		})
@@ -350,4 +364,75 @@ templ tenantSuspendedBanner(d tenantDetailData) {
 			})
 		</div>
 	</div>
+}
+
+// tenantTombstonePage is the deleted tenant's read-only detail view (F154):
+// identity only, with deletion facts resolved from the audit window. No
+// members card, no actions — a deleted tenant has no live state to manage.
+templ tenantTombstonePage(p pageData, d tenantDetailData) {
+	@Layout(p, tenantTombstoneContent(p, d))
+}
+
+templ tenantTombstoneContent(p pageData, d tenantDetailData) {
+	@display.PageHeader(display.PageHeaderProps{
+		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
+			{Text: p.label(labelPageTenants), Href: d.BasePath + "/tenants"},
+			{Text: d.Tenant.DisplayName},
+		}}),
+		Title:    d.Tenant.DisplayName,
+		Subtitle: d.Tenant.Name,
+		Action:   tenantStatusAction(d),
+	})
+	<div class="mb-4">
+		@feedback.Alert(feedback.AlertProps{
+			Type:    feedback.FeedbackInfo,
+			Title:   p.label(labelTombstoneTitle),
+			Message: "This tenant is deleted. Its memberships were revoked; this page is a read-only record.",
+		})
+	</div>
+	<div class="max-w-[520px]">
+		@display.Card(display.CardProps{Title: "Tenant"}) {
+			@display.DefinitionList(display.DefinitionListProps{
+				Items: []display.DefinitionItem{
+					{Term: "Tenant ID", DetailComponent: copyableID(d.Tenant.ID.Get())},
+					{Term: "Slug", Detail: d.Tenant.Name},
+					{Term: "Display name", Detail: d.Tenant.DisplayName},
+					{Term: "Status", DetailComponent: tenantStatusAction(d)},
+					{Term: "Deleted", DetailComponent: tombstoneDeletedAt(p, d.Tombstone)},
+					{Term: "Deleted by", DetailComponent: tombstoneDeletedBy(p, d.Tombstone)},
+				},
+			})
+			if d.RosterExportURL != "" {
+				<div class="mt-4">
+					@display.Button(display.ButtonProps{
+						Text:      p.label(labelActionExportRoster),
+						Href:      d.RosterExportURL,
+						Variant:   display.ButtonSecondary,
+						Size:      display.ButtonSizeSM,
+						BaseProps: utils.BaseProps{Class: classNoUnderline},
+					})
+				</div>
+			}
+		}
+	</div>
+}
+
+// tombstoneDeletedAt renders the deletion time, or the honest "not recorded"
+// when the audit window no longer holds the TenantDeleted entry (F154).
+templ tombstoneDeletedAt(p pageData, tb *tenantTombstone) {
+	if tb.Recorded && !tb.DeletedAt.IsZero() {
+		<span title={ p.dateTime(tb.DeletedAt) }>{ p.date(tb.DeletedAt) }</span>
+	} else {
+		<span class={ metadataTextClass }>{ p.label(labelTombstoneNotRecorded) }</span>
+	}
+}
+
+// tombstoneDeletedBy renders the resolving actor (email when the directory
+// knows them), or "not recorded" for a pre-actor-chain or rotated-away entry.
+templ tombstoneDeletedBy(p pageData, tb *tenantTombstone) {
+	if tb.Recorded && tb.DeletedBy != "" {
+		<span>{ tb.DeletedBy }</span>
+	} else {
+		<span class={ metadataTextClass }>{ p.label(labelTombstoneNotRecorded) }</span>
+	}
 }
