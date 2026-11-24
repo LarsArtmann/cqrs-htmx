@@ -356,6 +356,15 @@ func (h *Handler) superAdminUserAccountRoutes() []routeSpec {
 		},
 		{
 			method:  http.MethodPost,
+			pattern: "/users/{id}/credentials/restore",
+			panel:   panelUsers,
+			guarded: h.userRestoreCredential,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "restoring a passkey from backup JSON re-grants an authentication factor",
+		},
+		{
+			method:  http.MethodPost,
 			pattern: "/users/{id}/resend-verification",
 			panel:   panelUsers,
 			guarded: h.userResendVerification,

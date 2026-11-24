@@ -94,7 +94,6 @@ func TestRoutes_ManifestGolden(t *testing.T) {
 		"POST /tenants/{id}/members/{actor}/delete role Tenants",
 		"POST /tenants/{id}/members/{actor} role Tenants",
 		"GET /members role Members",
-		"GET /members/roster.csv role Members",
 		"GET /users/duplicates role Users",
 		"POST /users/{id}/merge role Users",
 		"GET /tenants/duplicates role Tenants",
@@ -126,7 +125,7 @@ func TestRoutes_TenantModeManifest(t *testing.T) {
 	}
 
 	joined := manifestText(panel)
-	for _, want := range []string{"GET /members", "POST /members", "GET /audit", "GET /"} {
+	for _, want := range []string{"GET /members", "GET /members/roster.csv", "POST /members", "GET /audit", "GET /"} {
 		if !strings.Contains(joined, want+"\n") && !strings.HasSuffix(joined, want) {
 			t.Errorf("tenant manifest missing %q:\n%s", want, joined)
 		}

@@ -198,10 +198,18 @@ func TestMembersCard_ExistingMembersNotSuggested(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/acme", nil))
 	body := rec.Body.String()
 
-	if strings.Contains(body, `value="in@acme.com"`) {
+	// Scope to the add-member datalist: the T22 transfer select legitimately
+	// offers existing members (they must be members to RECEIVE ownership),
+	// so a page-global value assertion would false-positive on it.
+	start, end := strings.Index(body, "<datalist"), strings.Index(body, "</datalist>")
+	if start < 0 || end < 0 || end < start {
+		t.Fatalf("add-member datalist not found on the tenant detail page")
+	}
+	dl := body[start:end]
+	if strings.Contains(dl, `value="in@acme.com"`) {
 		t.Error("an existing member must not be suggested for a duplicate add")
 	}
-	if !strings.Contains(body, `value="out@acme.com"`) {
+	if !strings.Contains(dl, `value="out@acme.com"`) {
 		t.Error("a non-member must still be suggested")
 	}
 }
