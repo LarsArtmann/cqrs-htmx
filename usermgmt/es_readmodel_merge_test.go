@@ -621,6 +621,10 @@ func TestReadModels_HandleEveryDeclaredEventType(t *testing.T) {
 			model := NewMembershipReadModel()
 			return unhandledEventTypes(model.EventTypes(), &model.readModelCore)
 		}},
+		{"bot", func() []event.Type {
+			model := NewBotReadModel()
+			return unhandledEventTypes(model.EventTypes(), &model.readModelCore)
+		}},
 	}
 
 	for _, tt := range tests {

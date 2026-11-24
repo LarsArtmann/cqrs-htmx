@@ -37,8 +37,9 @@ func NewBotReadModel() *BotReadModel {
 	return &BotReadModel{
 		mu: sync.RWMutex{},
 		handlers: map[event.Type]eventHandler[*BotReadModel]{
-			eventBotRegistered: (*BotReadModel).handleBotRegistered,
-			eventBotDeleted:    (*BotReadModel).handleBotDeleted,
+			eventBotRegistered:  (*BotReadModel).handleBotRegistered,
+			eventBotDeleted:     (*BotReadModel).handleBotDeleted,
+			eventBotTransferred: (*BotReadModel).handleBotTransferred,
 		},
 		bots:        make(map[id.StreamID]*Bot),
 		byTokenHash: make(map[string]*Bot),
@@ -80,6 +81,22 @@ func (m *BotReadModel) handleBotRegistered(aggID id.StreamID, evt event.Event) e
 func (m *BotReadModel) handleBotDeleted(aggID id.StreamID, _ event.Event) error {
 	if bot, ok := m.botsDelete(aggID); ok {
 		delete(m.byTokenHash, string(bot.TokenHash))
+	}
+	return nil
+}
+
+// handleBotTransferred moves a bot to its new owner. The token and scopes
+// stay with the bot: only who it belongs to changes.
+func (m *BotReadModel) handleBotTransferred(aggID id.StreamID, evt event.Event) error {
+	p, err := unmarshalPayload[BotTransferredPayload](evt)
+	if err != nil {
+		return errorfamily.WrapCorruption(
+			err, "usermgmt.bot_readmodel.decode_failed",
+			"decode BotTransferred in read model",
+		).WithContextAny("agg_id", aggID)
+	}
+	if bot, ok := m.bots[aggID]; ok {
+		bot.OwnerID = p.OwnerID
 	}
 	return nil
 }

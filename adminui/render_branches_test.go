@@ -115,8 +115,6 @@ func TestPanel_RenderSuspendedTenant(t *testing.T) {
 	}
 }
 
-// TestPanel_UserDetailWithRoles exercises the ULID-format user-id path of the
-// user detail page (ParseUserID requires ULIDs for synthetic detail lookups).
 func TestPanel_UserDetailWithRoles(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()

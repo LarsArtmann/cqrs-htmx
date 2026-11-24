@@ -48,7 +48,9 @@ func (p *CasbinProjection) EventTypes() []event.Type {
 		eventMemberRolesChanged,
 		eventMemberRemoved,
 		eventTenantDeleted,
+		eventTenantMergedInto,
 		eventBotDeleted,
+		eventUserMergedInto,
 	}
 }
 
@@ -100,6 +102,19 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 			)
 		}
 
+	case eventUserMergedInto:
+		// The merged-away identity answers no authorization question any
+		// more: its own grants go, while the survivor's membership commands
+		// (dispatched by the service before this retirement) granted the
+		// survivor its own rows. Re-delivery is a no-op: the roles are gone.
+		if err := p.authz.RemoveAllRolesForUser(subject); err != nil {
+			return errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.casbin_projection.user_merge_failed",
+				"remove roles for merged user "+subject,
+			)
+		}
+
 	case eventCredentialAdded, eventCredentialRemoved,
 		eventExternalAccountLinked, eventExternalAccountUnlinked:
 		// Credentials and external accounts don't affect Casbin policies
@@ -114,6 +129,12 @@ func (p *CasbinProjection) Handle(_ context.Context, evt event.Event) error {
 		// removes every member's role assignment in the deleted tenant —
 		// RemoveAllRolesForUser(subject) removed nothing here (the tenant
 		// never appears as a grant subject; its members do).
+		return p.removeAllRolesForDomain(subject)
+
+	case eventTenantMergedInto:
+		// A merged-away tenant is terminal like a deleted one: the domain's
+		// grants die with it. The survivor tenant receives its own member
+		// commands; nothing carries over implicitly.
 		return p.removeAllRolesForDomain(subject)
 
 	case eventBotDeleted:
