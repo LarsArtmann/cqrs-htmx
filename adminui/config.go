@@ -213,6 +213,9 @@ type NavEntry struct {
 // withDefaults returns a copy of config with empty fields replaced by defaults and
 // validates the result.
 func (config Config) withDefaults() (Config, error) {
+	if config.Service == nil {
+		return config, errConfig("Config.Service is required")
+	}
 	config = config.applyBaseDefaults()
 	if config.AccentColor == "" {
 		config.AccentColor = DefaultAccentColor

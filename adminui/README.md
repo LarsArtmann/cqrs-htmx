@@ -432,6 +432,28 @@ cd examples/admin-demo && go run .
 Then open <http://localhost:8097/> — it signs you in as the demo admin and shows
 the panel with seeded data.
 
+## i18n: labels, locale, direction
+
+adminui ships a **minimal i18n seam** — deliberately not a translation engine (no locale files, no pluralization, no message-format machinery). Three config fields cover what most deployments actually need:
+
+- **`Config.Labels map[string]string`** overrides display strings by key from the panel's label table (`labels.go`: nav, chrome, confirm dialogs, empty states, page headers, table headers, primary actions — every covered string lives in ONE table that all surfaces read). An override **replaces** the table value for a known key; an **unknown key is rejected at `New`** — an accepted-but-inert override would hide a typo forever. Unknown keys in the table itself render the KEY text, never blank.
+- **`Config.Locale string`** (BCP-47 tag, e.g. `"de"`, `"pt-BR"`) sets the `<html lang>` attribute and picks the date shapes. The shape table is tiny by design: the default keeps the historical `en` shapes, `de` ships its dotted day-first shape, and everything else falls back to the unambiguous ISO shape rather than a wrong guess.
+- **`Config.Dir string`** (`"ltr"` default, `"rtl"`) sets the `<html dir>` attribute. Note: this is a starting point for right-to-left deployments, not an automatic mirror of the layout.
+
+```go
+panel, err := adminui.New(adminui.Config{
+    Service: svc,
+    Locale:  "de",
+    Dir:     "ltr",
+    Labels: map[string]string{
+        "nav.users":       "Benutzer",
+        "empty.users.none.title": "Noch keine Benutzer",
+    },
+})
+```
+
+Scope honesty: if you need full localization (plural rules, per-locale formatting, translated audit-action vocabulary), you need a real i18n framework — this seam is the rename/reword/lang-dir escape hatch, and it stays that size on purpose.
+
 ## Project layout
 
 ```

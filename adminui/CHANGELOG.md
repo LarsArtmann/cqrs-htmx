@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **i18n seam (labels, locale, direction, reduced motion).** The panel's display strings now live in one label table (`labels.go`; nav, chrome, confirm dialogs, empty states, page headers, table headers, primary actions) that every covered surface reads — `Config.Labels` overrides values by key (REPLACING table values; unknown keys are REJECTED at `New` so a typo can never hide behind an inert override), and an unmapped key renders the KEY text, never blank. `Config.Locale` (BCP-47) sets the `<html lang>` attribute and picks date shapes (`en` default keeps the historical shapes — default-config renders are unchanged; `de` ships its dotted day-first shape; other locales fall back to ISO), `Config.Dir` (`ltr` default, `rtl`) sets `<html dir>`; both validated at `New`. The templates receive the merged table via `pageData` (including inside HTMX-swapped fragments, which now render through the same table), and dates format through per-render locale/location helpers instead of raw `.Format` calls. `admin.js` mirrors `prefers-reduced-motion` onto a `<html>` class (plus CSS guards) so the sync pulse and other panel-owned animations freeze without a reload — toast and spinner animations were already stripped by their components' `motion-reduce:` classes. Pinned by `labels_test.go` (override replace, unknown-key rejection, key-text fallback at function and render level, lang/dir render, locale date shapes incl. location conversion, default-table legacy-string equality, merge immutability).
+
+### Added
+
 - **Duplicate reconciliation surfaces (cqrs-htmx #46/#47).** Two report pages (`GET /users/duplicates`, `GET /tenants/duplicates`) with merge forms (`POST /users/{id}/merge`, `POST /tenants/{id}/merge` — path identity INTO form survivor) and the tenant rename form (`POST /tenants/{id}/rename`); every route super-admin role-gated and manifest-pinned.
 
 ### Added
