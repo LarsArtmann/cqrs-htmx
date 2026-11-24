@@ -121,6 +121,54 @@ export default defineConfig({
           },
         ]
       : []),
+    // Cross-engine project (T28/F203+F204, 2026-11-24): present ONLY when a
+    // webkit executable is provided (E2E_WEBKIT_PATH — locally the pinned-
+    // driver webkit build from the browser cache plus its LD_LIBRARY_PATH
+    // forest, provisioned ONLY via the repo's own installer, gotcha 66;
+    // CI supplies the registry-installed build via E2E_WEBKIT=1). Absent
+    // env → absent project, so the chromium-only entry points stay
+    // unchanged. ADVISORY per kill point K-T28: this leg must never block —
+    // the CI step runs with continue-on-error, and the per-project
+    // testMatch scopes webkit to the admin smoke subset (the two most
+    // stable admin specs + the CSRF refusal proof), not the full battery.
+    ...(process.env.E2E_WEBKIT_PATH || process.env.E2E_WEBKIT
+      ? [
+          {
+            name: "webkit",
+            // WebKit has no CDP virtual authenticator (loginpage-webauthn
+            // is chromium-only) and the SharedWorker offline-sync suite is
+            // already firefox-scoped for real engine divergence — the
+            // smoke subset is the stable admin files only. Per-project
+            // testMatch keeps every other spec chromium/firefox-scoped.
+            testMatch: [
+              /admin-a11y\.spec\.ts/,
+              /admin-tenant-access\.spec\.ts/,
+              /admin-csrf\.spec\.ts/,
+            ],
+            use: {
+              ...devices["Desktop Safari"],
+              launchOptions: {
+                executablePath: process.env.E2E_WEBKIT_PATH || undefined,
+                // The prebuilt webkit needs a nixpkgs lib forest on NixOS
+                // (FHS expectations), injected per-launch exactly like the
+                // firefox forest: a runner-wide LD_LIBRARY_PATH would
+                // poison the chromium children (gotcha: the 2026-11-08
+                // libnspr4 poisoning).
+                ...(process.env.E2E_WEBKIT_LIBS
+                  ? {
+                      env: {
+                        ...process.env,
+                        LD_LIBRARY_PATH: [process.env.E2E_WEBKIT_LIBS, process.env.LD_LIBRARY_PATH]
+                          .filter(Boolean)
+                          .join(":"),
+                      },
+                    }
+                  : {}),
+              },
+            },
+          },
+        ]
+      : []),
   ],
 
   webServer: [

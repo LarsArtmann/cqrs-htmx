@@ -569,6 +569,25 @@ jobs:
       - name: Assert the battery ran everything it listed (firefox)
         run: bash scripts/checks/check-e2e-ran-count.sh e2e/pw-firefox-report.json
 
+      # Advisory WebKit leg (T28/F206, plan 2026-11-24). NEVER blocking —
+      # kill point K-T28: a WebKit failure must not redden CI while the
+      # leg is in observation. Installs webkit IN-STEP so a provisioning
+      # failure is advisory too (the blocking "Install Playwright
+      # browsers" line stays chromium+firefox), and mirrors the firefox
+      # lane's separate invocation: one webServer set backs every project
+      # in an invocation, so a fresh invocation gives webkit its own
+      # server set (gotcha 59). No ran-count gate while advisory.
+      - name: Run browser E2E battery (webkit, advisory)
+        run: |
+          bunx playwright install --with-deps webkit
+          bunx playwright test --project=webkit --reporter=line,json
+        working-directory: e2e
+        continue-on-error: true
+        env:
+          GOEXPERIMENT: jsonv2
+          E2E_WEBKIT: "1"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: pw-webkit-report.json
+
   mod-tidy:
     runs-on: ubuntu-latest
     steps:
