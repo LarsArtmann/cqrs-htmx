@@ -104,16 +104,25 @@ test.describe("dashboard DLQ count notice (ListNoteCount)", () => {
   }) => {
     await page.goto("/dashboard/dead-letters/demo-projection");
 
-    // Two deterministically seeded poison entries (e2e server seeds the
-    // in-memory DeadLetterStore directly — a failing handler would race).
-    await expect(page.locator("table tbody tr")).toHaveCount(2);
+    // Gotcha 59: the DLQ is shared server state. The two deterministically
+    // seeded poison entries (e2e/server seeds the in-memory DeadLetterStore
+    // directly — a failing handler would race) must still render, but an
+    // absolute table total would break the moment any other dead letter
+    // lands in the store, so the exact count is scoped to the seeded
+    // CONTENT, not the whole table.
+    await expect(
+      page.locator("table tbody tr", { hasText: "synthetic e2e poison event" }),
+    ).toHaveCount(2);
     await expect(page.getByText("synthetic e2e poison event").first()).toBeVisible();
 
     // The count notice is the destructive blast-radius signal under the
-    // table: role=status + named aria-label + exact pluralized text.
+    // table: role=status + named aria-label, and its count must equal the
+    // rows actually rendered — exact pluralized text relative to the store,
+    // not pinned to the seed size.
     const note = page.getByRole("status", { name: "Dead letter count" });
     await expect(note).toBeVisible();
-    await expect(note).toHaveText("Showing 2 items.");
+    const rowCount = await page.locator("table tbody tr").count();
+    await expect(note).toHaveText(`Showing ${rowCount} items.`);
   });
 
   test("dead-letters index page links the seeded projection", async ({ page }) => {

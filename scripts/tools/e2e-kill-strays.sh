@@ -11,12 +11,32 @@
 #   18923 e2e/server · 18930 admin-demo · 18931 datastar-demo
 #   18932 basic · 18933 setup-demo · 18940/18941 ad-hoc probes
 #
-# Usage: bash scripts/tools/e2e-kill-strays.sh   (from anywhere in the repo)
-# Exit:  0 all ports clear (after killing); 1 a port is STILL occupied.
+# Usage: bash scripts/tools/e2e-kill-strays.sh [--force]   (from anywhere in the repo)
+# Exit:  0 all ports clear (after killing); 1 a port is STILL occupied;
+#        3 a playwright battery appears LIVE (etiquette refusal, see below)
+#
+# Session etiquette (f#41, 2026-11-24): the battery ports are SHARED between
+# concurrent sessions on this worktree — killing the servers under another
+# session's live battery corrupts its run mid-flight (the gotcha-47 class,
+# hit twice during the 2026-11-24 dual-wave). When a `playwright test`
+# process is running, this script REFUSES by default; coordinate with the
+# other session first, then re-run with --force (or E2E_KILL_STRAYS_FORCE=1).
+# E2E_KILL_STRAYS_FAKE_LIVE=1 simulates a live battery for the offline
+# fixture self-test.
 
 set -uo pipefail
 
 PORTS="18923 18930 18931 18932 18933 18940 18941"
+
+if [ "${E2E_KILL_STRAYS_FORCE:-0}" != "1" ] && [ "${1:-}" != "--force" ]; then
+  live="$(pgrep -f 'playwright test' 2>/dev/null | grep -vx "$$" || true)"
+  if [ -n "$live" ] || [ "${E2E_KILL_STRAYS_FAKE_LIVE:-0}" = "1" ]; then
+    echo "✗ e2e-kill-strays: a playwright battery appears LIVE (pid(s): ${live:-simulated})" >&2
+    echo "  killing the battery servers would corrupt its run (shared-worktree etiquette)" >&2
+    echo "  coordinate with the other session first, then re-run with --force" >&2
+    exit 3
+  fi
+fi
 
 echo "==> e2e-kill-strays: clearing battery ports: $PORTS"
 

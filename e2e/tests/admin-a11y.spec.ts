@@ -12,6 +12,9 @@ import AxeBuilder from "@axe-core/playwright";
  *     grant form: every control is reachable by Tab and operable by
  *     Space/Enter — the checkbox group replaced two selects in M02, so the
  *     keyboard contract must be pinned on BOTH surfaces.
+ *  3. f#43: the command palette OPEN state (Ctrl/Cmd+K, the layout's only
+ *     trigger) — fails on CRITICAL findings only; non-critical ones attach
+ *     for the templ-components owner instead of failing the battery.
  *
  * Same recipe as admin-tenant-access.spec.ts: SERIAL mode, shared in-memory
  * seed, dev-login beforeEach, CSRF from the page meta, self-seeded tenant +
@@ -165,6 +168,54 @@ test("axe sweep (adminui): tenant detail and user detail", async ({ page }, test
     }
     expect(unexpected, `axe critical/serious violations on ${name}`).toEqual([]);
   }
+});
+
+test("axe sweep (adminui): command palette open", async ({ page }, testInfo) => {
+  await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
+  await page.waitForTimeout(400);
+
+  // f#43: audit the palette OPEN state. The layout renders the palette as a
+  // HIDDEN native <dialog id="admin-palette"> on every panel page, so the
+  // closed-page sweeps above never see its internals (the input/listbox and
+  // option rows are client-built at open time by admin.js). There is no
+  // topbar palette button in the current layout — Ctrl/Cmd+K is the only
+  // trigger (the admin.js T18 block) — so the keyboard path IS the open
+  // path; the saved-views/palette views spec pins the same recipe.
+  await page.keyboard.press("Control+k");
+  const dialog = page.locator("#admin-palette");
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#admin-palette-input")).toBeFocused();
+
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+
+  // Gate contract differs from the closed-page sweeps on purpose: fail only
+  // on CRITICAL. Pre-existing non-critical findings (likely library-rendered
+  // popover internals owned by templ-components) attach for triage instead
+  // of failing the battery.
+  const critical = results.violations.filter((v) => v.impact === "critical");
+  const nonCritical = results.violations.filter((v) => v.impact !== "critical");
+  if (nonCritical.length > 0) {
+    await testInfo.attach("axe-palette-open-non-critical.json", {
+      body: JSON.stringify(
+        nonCritical.map((v) => ({
+          id: v.id,
+          impact: v.impact,
+          nodes: v.nodes.map((n) => n.target.join(" ")),
+          summary: v.nodes[0]?.failureSummary ?? "",
+        })),
+        null,
+        2,
+      ),
+      contentType: "application/json",
+    });
+    testInfo.annotations.push({
+      type: "axe findings (palette open, non-critical)",
+      description: summarize(nonCritical),
+    });
+  }
+  expect(critical, "axe CRITICAL violations with the command palette open").toEqual([]);
 });
 
 // 2. T112: the role checkbox group is fully keyboard-operable on the user

@@ -133,8 +133,15 @@ test("online flush delivers queued command to server", async ({ page, context })
   await page.click('#add-form button[type="submit"]');
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
-  const before = await page.request.get("/api/debug/items");
-  expect((await before.json()).length).toBe(0);
+  // Gotcha 59: the items store is SHARED server state (one webServer backs
+  // every session and delivered commands are never pruned), so an absolute
+  // zero is wrong the moment any earlier session delivered anything. The
+  // leak this test exists to catch is OUR queued item reaching the server
+  // while offline — assert that by content, not by an empty store.
+  const beforeItems = (await (await page.request.get("/api/debug/items")).json()) as string[];
+  expect(beforeItems, "offline queue must not leak to the server").not.toContain(
+    "Delivered After Reconnect",
+  );
 
   await goOnline(page, context);
 
