@@ -73,6 +73,17 @@ Four issues are open on a repo whose live deployment carries nine user rows for 
 | D19 | The SQL tombstone is written before the in-memory removal and carries the pointer inside `Data` (`merged_into`), the loser's own snapshot and the merge time in `updated_at`. A failure of that write aborts `Handle` before memory changes, so the retry starts from the pre-merge state. |
 | D20 | `Hydrate` rebuilds the indexes as a replay in key order: every live and merged row claims its email and external accounts keep-first, then each merge re-points its row's entries to its survivor in merge-time order. A merged row's external account is claimed only while the survivor's live row still holds it (G5). When the survivor chain is dead, a live row created after the merge takes the entry over (the deleted-survivor release). |
 | D21 | `FindByEmailSQL` answers with live rows only: a merged row is replaced by the live view at the end of its chain, duplicates collapse. `FindByIDSQL` answers with the tombstone itself, `Tombstoned` true, so a caller can show what became of an identity. |
+| D22 | The SQL model keeps a retired stream out of its table, not only its tombstone: after the in-memory `Handle`, every event on a stream in the pointer map returns before `syncToSQL` (G9). Without this the pointer-following `FindByID` would write the survivor's row under the loser's key when the drain re-delivers pre-merge events after a hydrate. |
+| D23 | `storedUser` answers a pointer-only user (`&User{ID}`) when the store holds no row: a merge retirement for a stream that never registered still writes a tombstone carrying the pointer, so the restart rebuilds it. A stored row that is already a tombstone answers `live=false` and `retireToSQL` keeps the first snapshot (a re-delivered retirement is the no-op D18 promises). |
+
+### Accepted divergences of the hydrate path (R1 to R4, with G9)
+
+Finding **G9** (2026-11-24): a re-delivered pre-merge event on a retired stream reached `syncToSQL`, whose `FindByID` follows the merge pointer — writing the survivor's row under the loser's key and resurrecting the identity in the table. Fixed by D22; pinned by `TestSQLUserReadModel_Merge_RedeliveredEventsAfterHydrateStayRetired`.
+
+- **R1** — Key order approximates registration order. `Scan` orders rows by the user's ULID key; two registrations in the same millisecond across processes can arrive swapped, so the keep-first winner of a tie is whichever row the store sorts first. The event path has the same tie (it keeps whichever stream registered first with the projection host). Accepted: the tie is a sub-millisecond race and both answers are legitimate keep-first winners.
+- **R2** — A claimant's acquisition time is its registration/link time, not the moment the released entry became free. When a dead merge chain releases an email or subject, the hydrate hands it to the first live row that holds it with `CreatedAt`/`LinkedAt` after the merge; the event path hands it to whoever claimed first in wall-clock order. The two agree unless a claimant held the email before the merge without owning the index entry. Accepted: that state requires a third duplicate the event path also resolves arbitrarily.
+- **R3** — `MergeUserInto` without prior adoption loses the loser's external-account aliases at restart: the tombstone's snapshot lists the accounts, but the survivor's row never held them, so the G5 gate refuses to move them. The event path had already re-pointed the lookup to the survivor. Accepted: `Service.MergeUsers` always adopts first (D3); only a hand-crafted `MergeUserInto` hits this.
+- **R4** — `liveAfterMerge` stops at a chain end that is not a tombstone and not live: a pointer to a stream whose row is absent answers not-found rather than an error. The in-memory resolver does the same. Accepted: both spellings of "the survivor is gone" agree.
 
 ## 5. Pareto split
 
@@ -115,7 +126,7 @@ Deferred by constraint, not by choice: the cross-aggregate retention test and th
 | M24 | e2e specs for the admin merge and rename flows, or a recorded follow-up                                                             | 60  | medium   | M23 |
 | M25 | Review `git status` for foreign files, staged commits with detailed messages, pre-push hook, push, CI watch                            | 30  | critical | M23 |
 
-## 7. Detailed breakdown (max 12 minutes per micro-task, ALL tasks, sorted by importance)
+## 7. Detailed breakdown (max 12 minutes per micro-task, ALL tasks sorted by importance; 145 rows: 1 to 142 plus 42a/42b/42c)
 
 | #   | M   | Micro-task                                                                              | Min |
 | --- | --- | --------------------------------------------------------------------------------------- | --- |
@@ -312,3 +323,4 @@ nix run .#test
 | M04  | DONE   | `go test ./usermgmt/ -run 'MergeUsers\|MergeUserInto\|TransferBot\|UnmergedLosers' -count=1`: 33 subtests pass (guards, adoption order, versions 5 to 11, codecs, fold-through, retry no-op, late credential, two losers, TOTP and email gates, merge-into, transfer); `go vet ./usermgmt/` exit 0 |
 | M05  | PARTIAL | Registrations and postures landed; `TestCommandPostures_*` green. The bijection gate stays red until the three tenant commands register in M11 (`constants: 27 registrations: 24`). The two merge registrations moved into `registerMergeCommands` on 2026-11-24 to clear a `maintidx` warning; `TestCommandPostures_*` 3 PASS after the move |
 | M06  | DONE   | `go test ./usermgmt/ -run 'TestUserReadModel_Merge\|TestReadModels_HandleEveryDeclaredEventType' -count=1`: 17 PASS lines, 0 failures (re-run 2026-11-24 08:35 in the same command as the M04 and posture tests: 53 PASS lines in total); `es_readmodel_merge_test.go`. Decisions D15 to D18 |
+| M07  | DONE   | `go test ./usermgmt/ -run 'TestSQLUserReadModel_Merge' -count=1 -v`: 12 PASS (tombstone row, hydrate parity, unlink across restart, live-rows-only email lookup, view-cache copy, re-delivery stays retired, deleted-survivor release, transitive chain, keep-first both directions, pointer-only tombstone, re-delivered retirement keeps the first snapshot); full `go test ./usermgmt/ -count=1` green except the M23 tripwire. Decisions D19 to D23, divergences R1 to R4, finding G9 recorded above. Lint receipts in the M07 close-out |

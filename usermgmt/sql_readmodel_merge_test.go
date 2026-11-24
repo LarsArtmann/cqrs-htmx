@@ -15,14 +15,12 @@ import (
 // The in-memory contract these tests restart from lives in
 // es_readmodel_merge_test.go; both files share the userStream builders.
 
-// mergeTestBase timestamps every event in this file deterministically: a
+// mergeTestTime timestamps every event in this file deterministically: a
 // user's registration time is its stream's pinned time, and a tombstone's
 // UpdatedAt is its UserMergedInto time. One-minute gaps keep the RFC3339
 // (second-precision) view columns strictly ordered.
-var mergeTestBase = time.Date(2026, 3, 1, 9, 0, 0, 0, time.UTC)
-
 func mergeTestTime(minutes int) time.Time {
-	return mergeTestBase.Add(time.Duration(minutes) * time.Minute)
+	return time.Date(2026, 3, 1, 9, 0, 0, 0, time.UTC).Add(time.Duration(minutes) * time.Minute)
 }
 
 // mustSQLUserModel builds a SQLite-backed user read model over a fresh test DB.
