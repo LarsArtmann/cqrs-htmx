@@ -201,6 +201,7 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 		IsSelf:              user != nil && user.ID == shown.ID,
 		Timeline:            h.userTimeline(shown),
 		ConfiguredProviders: h.config.Service.ConfiguredOAuth2Providers(),
+		AuthMethods:         authMethodsFromService(h.config.Service),
 		UnlinkExternalBase:  userBase + "/external",
 		TenantAccess:        tenantAccess,
 		TenantOptions:       withoutTenantOptions(tenantSelectOptions(h.config.Service.AllTenants()), tenantAccess),

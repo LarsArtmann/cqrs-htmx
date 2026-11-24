@@ -66,10 +66,10 @@ the request context (placed there by [`usermgmt.NewSessionMiddleware`](../usermg
 or your own middleware). Requests without a user get `401`; users that fail
 [`Config.Authorizer`](config.go) get `403`.
 
-> **Security:** like authentication, **CSRF protection is the consumer's
-> responsibility**. The panel issues state-changing `POST` requests (delete user,
-> create/suspend/delete tenant). Wrap it with [`httputil.CSRFMiddleware`](https://pkg.go.dev/github.com/larsartmann/httputil#CSRFMiddleware)
-> (or your own) in production. The showcase demo omits it for simplicity.
+> **Security:** the panel ships no CSRF middleware of its own — protection comes from
+> the middleware you wrap it with. The [Security](#security) section below has the
+> verified CSRF, rate-limit, and session-cookie recipes. The showcase demo omits CSRF
+> for simplicity.
 
 The default authorizer checks roles:
 
@@ -80,6 +80,210 @@ The default authorizer checks roles:
 
 Override with your own `Config.Authorizer`, or use the helpers
 [`RequireAnyRole`](authz.go) and [`RequireAuthenticated`](authz.go).
+
+## Routes
+
+Every path the panel answers comes from one table in [`routes.go`](routes.go): the mux
+registration and the [`Handler.Routes()`](handler.go) manifest are both generated from
+those rows, so a route cannot exist outside the table. The source table has **46 rows**;
+a running instance serves the subset for its mode — **42 rows in `ModeSuperAdmin`**
+(every row below except the four tenant-admin Members rows) and **15 rows in
+`ModeTenantAdmin`** (the shared rows, Members, and the fallbacks; the Users and Tenants
+panels do not exist in that mode).
+
+Gate legend:
+
+- **public** — answered without a session (static assets, the method-refusal fallback);
+  `Routes()` reports these rows with posture `public`.
+- **role-gated** — behind the panel's guard: `401` without an authenticated user, `403`
+  when [`Config.Authorizer`](config.go) refuses (default checks in
+  [How auth works](#how-auth-works)). `Routes()` reports these rows with posture `role`
+  under the default authorizer; a custom authorizer can re-declare them `authenticated`
+  via `Config.AuthorizerPosture` (the `public`/`ungated` postures are rejected at `New`).
+  State-changing rows are marked *(write)*.
+
+| Method | Path                                        | Panel     | Mode         | Gate       | Purpose                                                                                            |
+| ------ | ------------------------------------------- | --------- | ------------ | ---------- | -------------------------------------------------------------------------------------------------- |
+| GET    | /-/admin-tw.css                             | Assets    | both         | public     | Embedded stylesheet (committed Tailwind v4 build); static, no data                                 |
+| GET    | /-/admin.js                                 | Assets    | both         | public     | Panel runtime JS — CSRF header injection, sidebar, toasts, theme toggle; static, no data           |
+| GET    | /-/htmx.js                                  | Assets    | both         | public     | Vendored HTMX; static, no data                                                                     |
+| GET    | /-/sync-worker.js                           | Assets    | both         | public     | Offline-sync SharedWorker; static, no data                                                         |
+| GET    | /-/sync-client.js                           | Assets    | both         | public     | Offline-sync client; static, no data                                                               |
+| GET    | /-/ext/cqrs-query.js                        | Assets    | both         | public     | Vendored HTMX QUERY extension; static, no data                                                     |
+| GET    | /                                           | Dashboard | both         | role-gated | The dashboard: counts, adoption ratios, recent activity — summarizes every identity in the system  |
+| GET    | /partials/stats                             | Dashboard | both         | role-gated | Dashboard stats partial (polled every 30s for the live counters)                                   |
+| GET    | /audit                                      | Audit log | both         | role-gated | The audit trail — names every actor and command; searchable and filterable                         |
+| GET    | /users                                      | Users     | super-admin  | role-gated | The user directory across every tenant: search, filter chips, access column                        |
+| QUERY  | /users/search                               | Users     | super-admin  | role-gated | Body-carrying search (RFC 10008 QUERY): a safe read whose criteria travel as a request body        |
+| POST   | /users/search                               | Users     | super-admin  | role-gated | The search fallback twin: byte-identical responses for clients that cannot send QUERY              |
+| GET    | /users/new                                  | Users     | super-admin  | role-gated | The create-user form                                                                               |
+| POST   | /users                                      | Users     | super-admin  | role-gated | Create a user *(write)*                                                                            |
+| GET    | /users/import                               | Users     | super-admin  | role-gated | The bulk-import form                                                                               |
+| POST   | /users/import                               | Users     | super-admin  | role-gated | Bulk CSV/JSON import: create accounts from the uploaded file *(write)*                             |
+| GET    | /users/export.csv                           | Users     | super-admin  | role-gated | Stream the whole directory as CSV (every user's public profile)                                    |
+| GET    | /users/export.json                          | Users     | super-admin  | role-gated | Stream the whole directory as JSON                                                                 |
+| GET    | /users/{id}                                 | Users     | super-admin  | role-gated | User detail: profile, credentials metadata, tenant access, per-user timeline                       |
+| POST   | /users/{id}/delete                          | Users     | super-admin  | role-gated | Delete a user *(write)*                                                                            |
+| POST   | /users/{id}/display-name                    | Users     | super-admin  | role-gated | Edit the display name *(write)*                                                                    |
+| POST   | /users/{id}/email                           | Users     | super-admin  | role-gated | Change the sign-in email *(write)*                                                                 |
+| POST   | /users/{id}/external/{provider}/unlink      | Users     | super-admin  | role-gated | Unlink an external account *(write)*                                                               |
+| POST   | /users/{id}/roles                           | Users     | super-admin  | role-gated | Grant platform roles — they decide who can reach this panel *(write)*                              |
+| POST   | /users/{id}/roles/revoke                    | Users     | super-admin  | role-gated | Revoke platform roles *(write)*                                                                    |
+| POST   | /users/{id}/credentials/{credential}/delete | Users     | super-admin  | role-gated | Remove a passkey/credential *(write)*                                                              |
+| POST   | /users/{id}/resend-verification             | Users     | super-admin  | role-gated | Resend the verification email *(write)*                                                            |
+| POST   | /users/{id}/tenants                         | Users     | super-admin  | role-gated | Grant the user access to a tenant *(write)*                                                        |
+| POST   | /users/{id}/tenants/{tenant}                | Users     | super-admin  | role-gated | Change the user's role in one tenant *(write)*                                                     |
+| POST   | /users/{id}/tenants/{tenant}/delete         | Users     | super-admin  | role-gated | Revoke the user's access to one tenant *(write)*                                                   |
+| GET    | /tenants                                    | Tenants   | super-admin  | role-gated | The tenant roster — the platform roster, with lifecycle filter chips and member counts             |
+| GET    | /tenants/new                                | Tenants   | super-admin  | role-gated | The create-tenant form                                                                             |
+| POST   | /tenants                                    | Tenants   | super-admin  | role-gated | Create a tenant *(write)*                                                                          |
+| GET    | /tenants/{id}                               | Tenants   | super-admin  | role-gated | Tenant detail: identity, status, member roster                                                     |
+| POST   | /tenants/{id}/suspend                       | Tenants   | super-admin  | role-gated | Suspend a tenant — disables every member of it *(write)*                                           |
+| POST   | /tenants/{id}/reactivate                    | Tenants   | super-admin  | role-gated | Reverse a platform suspension *(write)*                                                            |
+| POST   | /tenants/{id}/delete                        | Tenants   | super-admin  | role-gated | Delete a tenant — destroys its history *(write)*                                                   |
+| POST   | /tenants/{id}/members                       | Tenants   | super-admin  | role-gated | Add a member from the tenant detail view *(write)*                                                 |
+| POST   | /tenants/{id}/members/{actor}/delete        | Tenants   | super-admin  | role-gated | Remove a member *(write)*                                                                          |
+| POST   | /tenants/{id}/members/{actor}               | Tenants   | super-admin  | role-gated | Change a member's role inside the tenant *(write)*                                                 |
+| GET    | /members                                    | Members   | tenant-admin | role-gated | The member roster of `Config.TenantID` — tenant-internal                                           |
+| POST   | /members                                    | Members   | tenant-admin | role-gated | Add a member to the scoped tenant *(write)*                                                        |
+| POST   | /members/{actor}/delete                     | Members   | tenant-admin | role-gated | Remove a member *(write)*                                                                          |
+| POST   | /members/{actor}                            | Members   | tenant-admin | role-gated | Change a member's role *(write)*                                                                   |
+| GET    | /*                                          | Fallback  | both         | role-gated | Unknown pages stay behind the gate: the guarded 404 — the 404 page itself reveals the panel exists |
+| *      | /*                                          | Fallback  | both         | public     | Any unmatched method answers 405 regardless of caller — nothing to protect                         |
+
+Notes:
+
+- `QUERY` is RFC 10008's safe, body-carrying method. The same handler also answers a
+  wire `POST` carrying `X-HTTP-Method-Override: QUERY` — the rewrite runs inside the
+  panel's own stack, i.e. after the consumer's CSRF layer has validated the wire POST,
+  and only `QUERY` is an override target, never an unsafe verb.
+- `GET /` registers as an exact match (`GET /{$}`) so the dashboard root cannot shadow
+  any other route; the two fallbacks register as subtree roots.
+- The user-side tenant-access writes (`/users/{id}/tenants…`) and the tenant-side
+  membership writes (`/tenants/{id}/members…`, `/members…`) dispatch the same durable
+  commands — the admin starts wherever they are.
+
+**Freshness:** this table is pinned by [`routes_manifest_test.go`](routes_manifest_test.go) —
+`TestRoutes_ManifestGolden` asserts the 42 super-admin manifest rows (method, path,
+posture, panel) row-for-row, `TestRoutes_TenantModeManifest` pins the tenant-mode shape
+(Users/Tenants absent; Dashboard/Members/Audit present), and
+`TestRoutes_FallbackSemantics` pins the guarded 404, the methodless 405, the exact-match
+root, and the public assets. A new route fails the golden test — update this README
+table in the same commit. Check from `adminui/` with `go test -run TestRoutes .`.
+
+## Security
+
+The panel is auth-agnostic and ships no security middleware of its own — the recipes
+below are what wraps it. Under the recommended
+[setup/v4](../setup/README.md) stack, [`Bundle.Mount`](../setup/mount.go) composes the
+panel as `session(csrf(panel))` — session outermost, CSRF inside it, the panel
+innermost — and the outer security layer (headers, CSP nonce, panic recovery) comes
+from `Bundle.Middleware`. Self-hosting consumers replicate that ordering by hand.
+
+### CSRF
+
+The panel's state changes ride HTMX `POST`s (delete user, create/suspend/delete tenant,
+role grants, …), so CSRF protection belongs in the middleware wrapped around it. The
+knob is [`setup.Config.CSRF`](../setup/config.go) (`*httputil.CSRFConfig`), passed to
+[`httputil.CSRFMiddleware`](https://pkg.go.dev/github.com/larsartmann/httputil#CSRFMiddleware)
+verbatim and validated at mount time — every httputil knob is reachable
+(`TrustedOrigins`, `TrustedProxies`, cookie/header/field names, `SameSite`, `MaxAge`,
+`Domain`, `Path`). The default (`nil`) is the zero config: the CSRF cookie is issued
+without the `Secure` flag and setup logs a warning — fine for local HTTP dev only. On
+HTTPS set:
+
+```go
+setup.Config{CSRF: &httputil.CSRFConfig{Secure: true}}
+```
+
+The token dance inside the panel is automatic: page renders read the token from the
+request context (`httputil.CSRFTokenHTMLMeta`) and the layout emits
+`<meta name="csrf-token">` in the head when a CSRF middleware is active; the embedded
+`admin.js` hooks `htmx:configRequest` and attaches that token as `X-CSRF-Token` to
+every HTMX request (the double-submit pattern). Without an upstream CSRF middleware
+there is no meta tag and the script no-ops.
+
+### Rate limiting
+
+The panel does not rate-limit itself; wrap it with httputil's keyed limiter. (The root
+package's `cqrshtmx.RateLimiterMiddleware` and friends are deprecated aliases of these
+symbols — import `httputil` directly.) Limiter outermost, so the cheapest check runs
+before session lookup and CSRF validation:
+
+```go
+import (
+    "net/http"
+    "time"
+
+    "github.com/larsartmann/httputil"
+)
+
+adminLimiter := httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig{
+    Limit:        100,                                  // requests per window, per key
+    Window:       time.Minute,
+    KeyExtractor: httputil.KeyExtractorFromClientIP(), // X-Forwarded-For → X-Real-IP → RemoteAddr
+})
+
+mux.Handle("/admin/", adminLimiter(sessionMW(csrfMW(http.StripPrefix("/admin", panel.Handler())))))
+```
+
+Behavior (httputil v1.9.0): over-limit keys get `429` with `Retry-After` (custom
+response via `RejectionHandler`; observers via `OnAllowed`/`OnRejected`); `Burst`
+defaults to `Limit`; idle keys are evicted after a 10-minute `TTL`; `MaxKeys` caps
+tracked keys (zero = unbounded growth). `KeyExtractorFromClientIP` trusts
+`X-Forwarded-For`/`X-Real-IP` — a reverse proxy in front must strip or overwrite those
+headers, or a spoofed header buys a client fresh budgets; on a directly exposed
+listener use `httputil.KeyExtractorFromRemoteAddr()` instead. Note that setup's
+per-group rate limiters (`AuthHandlerConfig`) cover the `/auth/*` login ceremonies
+only — the panel needs the recipe above.
+
+### Session cookie flags
+
+The panel sets no cookies — the session cookie is written by your login stack (under
+`setup`, usermgmt's auth handler). That stack already does the right things (verified
+in [`usermgmt/http.go`](../usermgmt/http.go)): `HttpOnly: true` always, `Secure`
+defaulting to **true** (`HandlerConfig.Secure`, `nil` → true; downgrade only for local
+plain-HTTP dev), `SameSite=Strict`, and `Max-Age` defaulting to 86400 (24h, via
+`SessionMaxAge`).
+
+If you roll your own session cookie:
+
+- **`Secure`** — always in production (HTTPS-only transport).
+- **`HttpOnly`** — always; nothing in the panel's JS reads the session cookie (the only
+  cookie-adjacent script, `admin.js`, reads the CSRF meta tag, not cookies).
+- **`SameSite=Strict`** — the safest default for an admin surface; it is also what lets
+  setup's un-tokened `/auth/*` mutations (logout, credential deletion) stay
+  CSRF-safe. Use `Lax` only if users must land back in the panel from cross-site
+  top-level navigations.
+
+The CSRF cookie (`csrf_token`) is a separate cookie with its own flags (`SameSite=Lax`,
+`Secure=false` by default) — set `CSRFConfig.Secure` (and `SameSite` if needed) on
+HTTPS deployments.
+
+## Server-Timing
+
+The panel emits no `Server-Timing` header of its own. What exists today:
+
+- **Under `setup` + `RunWithAppkit`:** go-appkit (>= v0.10.0) mounts the W3C
+  Server-Timing middleware outermost in its default stack, so every response — panel
+  pages, HTMX partials, assets included — carries `Server-Timing: total;dur=<ms>`,
+  stamped at response commit and SSE-safe. The knob is
+  [`setup.Config.AppkitServerTiming`](../setup/config.go) (`*bool`, tri-state):
+  unset/`nil` = header on (appkit default), `&false` = the middleware is omitted
+  entirely, `&true` = same as unset. `RunWithAppkit`-only — `Bundle.Run` and
+  `Bundle.RunHandler` serve via httputil and never emit the header.
+- **Self-hosted:** wrap the panel with
+  [`httputil/server_timing`](https://pkg.go.dev/github.com/larsartmann/httputil/server_timing)'s
+  `ServerTimingMiddleware()` (or `WrapServerTiming`), and add finer-grained spans in
+  your own code with `MeasureServerTiming`.
+- The root package's `cqrshtmx.Config.ServerTiming` predicate does **not** affect the
+  panel: it gates Server-Timing on `App.Command()`/`App.Query()` handlers you wire
+  yourself, and the panel is plain `net/http`.
+
+Reading it: `Server-Timing: total;dur=12` names one metric, `total`, whose `dur` is the
+full request duration in **milliseconds**. Browser DevTools shows it under Network →
+Timing; `curl -i` shows it on the wire. appkit's default gives you the one `total`
+metric — anything finer is spans you add yourself.
 
 ## Configuration
 

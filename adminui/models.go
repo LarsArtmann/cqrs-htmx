@@ -198,6 +198,32 @@ func (r userRow) tenantCountLabel() string {
 	return strconv.Itoa(r.TenantCount) + " tenants"
 }
 
+// authMethods is the deployment's sign-in capability picture, probed from
+// the usermgmt Service, as it bears on the user detail page. A card for a
+// channel the deployment cannot offer is dead weight — it advertises actions
+// the user can never take — so the template gates the Passkeys, TOTP, and
+// External-accounts surfaces on these facts instead of always rendering an
+// honest-looking empty state for something that is structurally impossible.
+type authMethods struct {
+	HasWebAuthn bool     // a WebAuthn provider is configured (passkeys possible)
+	HasTOTP     bool     // a TOTP provider is configured (MFA possible)
+	HasOAuth2   bool     // an OAuth2 provider is configured (external links possible)
+	Providers   []string // configured OAuth2 provider names; nil when no OAuth2 or the provider cannot enumerate
+}
+
+// authMethodsFromService reads the Service's published capability probes.
+// It is the ONLY source of these facts: user data must not be inferred
+// backwards into capability (a user with zero passkeys says nothing about
+// whether passkeys are possible here).
+func authMethodsFromService(svc *usermgmt.Service) authMethods {
+	return authMethods{
+		HasWebAuthn: svc.HasWebAuthn(),
+		HasTOTP:     svc.HasTOTP(),
+		HasOAuth2:   svc.HasOAuth2(),
+		Providers:   svc.ConfiguredOAuth2Providers(),
+	}
+}
+
 // userDetailData drives a single user's page.
 type userDetailData struct {
 	User                *identitymodel.User
@@ -208,6 +234,11 @@ type userDetailData struct {
 	Timeline            userTimeline         // recent events about this user's stream
 	ConfiguredProviders []string             // OAuth2 providers configured on the Service (for the link/unlink card)
 	UnlinkExternalBase  string               // URL prefix for unlink POSTs: append "/{provider}/unlink"
+	// AuthMethods is the deployment capability picture (WebAuthn/TOTP/OAuth2
+	// configured) that gates the sign-in cards: a card for a channel the
+	// Service cannot serve never renders, rather than rendering an empty
+	// state that implies the user could fill it.
+	AuthMethods authMethods
 
 	// TenantAccess is the user's tenant memberships, resolved to tenant
 	// identity and ordered by tenant name. The user page is where an admin
@@ -231,6 +262,49 @@ type userDetailData struct {
 	AddTenantAccessURL string
 	UpdateTenantBase   string
 	RemoveTenantBase   string
+}
+
+// cannotSignIn is the lockout truth table: every sign-in path in usermgmt
+// starts from a WebAuthn credential, a linked external account, or TOTP — a
+// user holding none of the three is locked out of their own account and can
+// only be rescued by an admin-side action (supervised re-enrollment). This
+// is the first-class rescue signal the panel previously could not express:
+// it had to be re-derived per confirm dialog, and never appeared as a
+// standing state on the page.
+func cannotSignIn(u *identitymodel.User) bool {
+	return u != nil &&
+		len(u.Credentials) == 0 &&
+		len(u.ExternalAccounts) == 0 &&
+		!u.TOTPEnabled
+}
+
+// cannotSignInCopy is the lockout badge's escalation copy: the same
+// blast-radius language the last-passkey removal confirm uses ("locked out
+// until a passkey is re-enrolled or a provider is linked"), because the
+// badge is that confirm's warning made a standing fact about the account.
+func cannotSignInCopy() string {
+	return "No passkey, no linked provider, and no TOTP — this user has no way to " +
+		"sign in and is locked out of their account until a passkey is re-enrolled, " +
+		"a provider is linked, or TOTP is enabled."
+}
+
+// userDetailDefinitionItems builds the Details card rows. The TOTP row is
+// included only when the Service can do TOTP at all: an always-"Off" row for
+// a capability the deployment lacks reads as a setting someone could flip,
+// not as an absence.
+func userDetailDefinitionItems(d userDetailData) []display.DefinitionItem {
+	items := []display.DefinitionItem{
+		{Term: "User ID", DetailComponent: copyableID(d.User.ID.Get().String())},
+		{Term: "Email", Detail: d.User.Email},
+		{Term: "Verified", DetailComponent: verifiedDetail(d)},
+	}
+	if d.AuthMethods.HasTOTP {
+		items = append(items, display.DefinitionItem{
+			Term:            "TOTP MFA",
+			DetailComponent: totpBadge(d.User.TOTPEnabled),
+		})
+	}
+	return items
 }
 
 // tenantAccessRow is one resolved tenant membership on the user page. The
