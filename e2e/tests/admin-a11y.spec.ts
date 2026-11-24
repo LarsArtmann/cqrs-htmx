@@ -188,12 +188,24 @@ test("keyboard: the tenant grant form is reachable and operable without a mouse"
     .click();
   await page.waitForTimeout(400);
 
-  // Tab from the tenant select to the role checkboxes: the checkbox group is
-  // the FIRST roles control after the select, and every checkbox is in one
-  // Tab ring (native inputs — no tabindex traps).
-  const grantSelect = page.locator("form select[name='tenant']").first();
-  await grantSelect.selectOption(`e2e-a11y-${stamp}`);
-  await grantSelect.focus();
+  // T08: the grant control is a combobox now. Operate it entirely by
+  // keyboard — type the prefix, ArrowDown, Enter picks — then Tab onward to
+  // the role checkboxes: the checkbox group is the FIRST roles control after
+  // the combobox input, and every checkbox is in one Tab ring (native
+  // inputs — no tabindex traps).
+  const grantInput = page.locator("#admin-grant-tenant-input").first();
+  await grantInput.focus();
+  await page.keyboard.type(`e2e-a11y-${stamp}`);
+  // Wait for the OPTION, not just the popup: Enter must land while the
+  // listbox is open, or it falls through to a native form submit.
+  await expect(
+    page
+      .locator("#admin-grant-tenant-input-listbox [role=option]")
+      .first(),
+  ).toBeVisible({ timeout: 3000 });
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  expect(await grantInput.inputValue()).toBe(`e2e-a11y-${stamp}`);
 
   const reached: string[] = [];
   for (let i = 0; i < 8; i++) {
@@ -234,9 +246,17 @@ test("keyboard: the tenant grant form is reachable and operable without a mouse"
     .click();
   await page.waitForTimeout(400);
 
-  const sel = page.locator("form select[name='tenant']").first();
-  await sel.selectOption(`e2e-a11y-${stamp2}`);
-  await sel.focus();
+  const input2 = page.locator("#admin-grant-tenant-input").first();
+  await input2.focus();
+  await page.keyboard.type(`e2e-a11y-${stamp2}`);
+  await expect(
+    page
+      .locator("#admin-grant-tenant-input-listbox [role=option]")
+      .first(),
+  ).toBeVisible({ timeout: 3000 });
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  expect(await input2.inputValue()).toBe(`e2e-a11y-${stamp2}`);
   let toggled = 0;
   for (let i = 0; i < 6 && toggled < 2; i++) {
     await page.keyboard.press("Tab");

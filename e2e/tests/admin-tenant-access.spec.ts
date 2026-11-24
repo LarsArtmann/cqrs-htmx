@@ -99,13 +99,14 @@ test("tenant access: grant from the user page renders the row, badges and filter
   expect(badges).toContain("viewer");
   expect(badges).toContain("admin");
 
-  // The joined tenant left the grant select's options.
-  const options = await page
-    .locator("select[name='tenant'] option")
-    .evaluateAll((els) => els.map((el) => (el as HTMLOptionElement).value));
-  expect(options).not.toContain(`e2e-grant-${stamp}`);
-  // The disabled prompt carries value="" (its label is Choose tenant…).
-  expect(options).toContain("");
+  // T08: the grant control is a combobox; the joined tenant left the local
+  // option payload it filters.
+  const optionsJSON = await page
+    .locator("[data-suggest-options]")
+    .first()
+    .getAttribute("data-suggest-options");
+  const options = JSON.parse(optionsJSON ?? "[]") as Array<{ value: string }>;
+  expect(options.map((o) => o.value)).not.toContain(`e2e-grant-${stamp}`);
 
   // The tenant detail roster also names the person (cross-surface view).
   await page.goto(`${ADMIN}${tenantPath}`, { waitUntil: "load" });
