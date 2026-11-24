@@ -89,7 +89,7 @@ called when a worker exhausts its restart budget. Neither is a
 constructor error by design — startup drain failures surface through
 `ProjectionStatuses()` and this hook, never from `NewService`.
 
-## Published language (27 events / 21 commands)
+## Published language (33 events / 27 commands)
 
 The identity domain's events (`identity-model` constants; `DefaultEventCatalog()`
 serves every schema — see `docs/guides/event-catalog-guide.md`):
@@ -100,16 +100,27 @@ serves every schema — see `docs/guides/event-catalog-guide.md`):
 | User credential | `CredentialAdded`, `CredentialRemoved`, **`CredentialUsed`** (assertion state after each login: signature counter + UP/UV/backup flags — the clone-detection high-water mark, identity-model v4.14.0+)   |
 | Auth audit      | `LoginSucceeded`, `LoginFailed`, `RegistrationClosed`, `SessionStarted`, `SessionEnded` (own Auth-typed streams, best-effort append — the session pair closes the impersonation-forensics gap, ADR 0060) |
 | Membership      | `MemberAdded`, `MemberRolesChanged`, `MemberRemoved`                                                                                                                                                     |
-| Tenant          | `TenantCreated`, `TenantSuspended`, `TenantReactivated`, `TenantDeleted`                                                                                                                                 |
-| Bot             | `BotRegistered`, `BotDeleted`                                                                                                                                                                            |
+| User merge      | **`UserMerged`** (survivor side: adopted assets + recorded losers), **`UserMergedInto`** (loser tombstone, terminal) — the #46 identity-merge vocabulary                                                        |
+| Tenant          | `TenantCreated`, `TenantSuspended`, `TenantReactivated`, `TenantDeleted`, **`TenantRenamed`**, **`TenantMerged`**, **`TenantMergedInto`** (the #47 rename/merge vocabulary)                              |
+| Bot             | `BotRegistered`, `BotDeleted`, **`BotTransferred`** (owner moves, ID + token hash unchanged)                                                                                                             |
 
-Commands (21): `RegisterUser`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`,
+Commands (27): `RegisterUser`, `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`,
 `AddCredential`, `RemoveCredential`, `RecordCredentialUse`, `VerifyEmail`,
 `EnableTOTP`, `DisableTOTP`, `LinkExternalAccount`, `UnlinkExternalAccount`,
 `AddMember`, `UpdateMemberRoles`, `RemoveMember`, `CreateTenant`,
-`SuspendTenant`, `ReactivateTenant`, `DeleteTenant`, `RegisterBot`, `DeleteBot`.
-All 21 are registered both on the usermgmt dispatcher and in
+`SuspendTenant`, `ReactivateTenant`, `DeleteTenant`, `RegisterBot`, `DeleteBot`,
+plus the merge vocabulary: `MergeUsers`, `MergeUserInto`, `RenameTenant`,
+`MergeTenants`, `MergeTenantInto`, `TransferBot`.
+All 27 are registered both on the usermgmt dispatcher and in
 `systemadapter.DomainConfig()` for `system.New()` consumers.
+
+The service layer orchestrates the merges: `Service.MergeUsers` (validation,
+typed rejections, external-account conflict check, atomic adoption, membership
+role-union, bot transfer, session revocation, loser tombstones last —
+resumable and idempotent) and `Service.RenameTenant`/`MergeTenants`
+(the tenant twins), with `Service.DuplicateUsers`/`DuplicateTenants` feeding
+the admin panel's duplicates pages and `ServiceConfig.UniqueTenantNames`
+as the opt-in creation guard.
 
 ## Consuming domain events
 

@@ -75,6 +75,8 @@ Every term below should mean the **same thing** to everyone who reads it.
 | RegistryFacts      | Provenance-stamped snapshot of what an external registry says about a party; applied to the aggregate only through an explicit profile update, never silently | legalparty-model                        |
 | LEIResolver        | The registry port resolving a LEI into RegistryFacts; implemented by gleif (api.gleif.org, unauthenticated, CC BY 4.0 attribution)                         | legalparty-model                          |
 | RegisterResolver   | The registry port resolving a RegisterRef into RegistryFacts; implemented by opencorporates (X-API-TOKEN auth, ODbL attribution mandatory)                 | legalparty-model                          |
+| BillTo             | The per-tenant link naming which LegalParty receives the tenant's invoices; one stream per tenant, keyed by the tenant ID (issue #45) | legalparty-model |
+| BillToRedirected   | The event recording that a tenant's bills now go to another legal party; the previous party stays journaled for retention  | legalparty-model |
 
 ## Entities
 
@@ -132,6 +134,15 @@ Immutable records of domain changes.
 | LoginSucceeded          | An authentication attempt succeeded (auth-audit trail, 2026-10-19)                                                         | Auth audit |
 | LoginFailed             | An authentication attempt failed, with reason (auth-audit trail)                                                           | Auth audit |
 | RegistrationClosed      | A registration ceremony window was closed (auth-audit trail)                                                               | Auth audit |
+| UserMerged              | The survivor side of a user merge: assets adopted, losers recorded on the survivor's stream                                  | User       |
+| UserMergedInto          | The loser tombstone: this user stream was merged into a survivor and is terminal                                             | User       |
+| TenantRenamed           | A tenant's display name changed; the ID (stream, Casbin domain, every tenant-scoped key) never moves                          | Tenant     |
+| TenantMerged            | The survivor side of a tenant merge: the absorbed tenants recorded on the survivor's stream                                   | Tenant     |
+| TenantMergedInto        | The loser tombstone: this tenant stream was merged into a survivor and is terminal                                            | Tenant     |
+| BotTransferred          | A bot moved to a new owner, keeping its ID and token hash                                                                    | Bot        |
+| BillToOpened            | A tenant's billing link was created, naming the first legal party bills go to                                                | BillTo     |
+| BillToRedirected        | A tenant's bills now go to another legal party; the previous party stays journaled                                           | BillTo     |
+| BillToClosed            | A tenant's billing link closed (terminal, retained)                                                                          | BillTo     |
 
 ## Commands
 
@@ -160,6 +171,15 @@ Intents that trigger state changes.
 | DeleteTenant          | Delete a tenant (tombstone; cascades memberships)             | TenantDeleted           | Tenant     |
 | RegisterBot           | Register a bot with an API token for automated access         | BotRegistered           | Bot        |
 | DeleteBot             | Delete a bot (tombstone)                                      | BotDeleted              | Bot        |
+| MergeUsers            | Fold duplicate users into a survivor (adopt assets, record)   | CredentialAdded/ExternalAccountLinked/TOTPEnabled/EmailVerified/UserMerged | User |
+| MergeUserInto         | Tombstone a duplicate user as merged into a survivor (last)   | UserMergedInto          | User       |
+| RenameTenant          | Change a tenant's display name in place                       | TenantRenamed           | Tenant     |
+| MergeTenants          | Record absorbed tenants on the surviving tenant               | TenantMerged            | Tenant     |
+| MergeTenantInto       | Tombstone a tenant as merged into a survivor (last)           | TenantMergedInto        | Tenant     |
+| TransferBot           | Move a bot to a new owner (token and ID unchanged)            | BotTransferred          | Bot        |
+| OpenBillTo            | Open a tenant's bill-to link                                  | BillToOpened            | BillTo     |
+| RedirectBillTo        | Point a tenant's bills at another legal party                 | BillToRedirected        | BillTo     |
+| CloseBillTo           | Close a tenant's bill-to link (terminal)                      | BillToClosed            | BillTo     |
 
 ## Bounded Contexts
 

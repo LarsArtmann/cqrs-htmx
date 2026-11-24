@@ -107,3 +107,33 @@ Actor attribution rides event metadata through the fleet's standard actor-enrich
 - **No invoice aggregate here.** Invoices are the Stripe-billing lane's concern; when they land, their party reference type is `LegalPartyID` — the "invoice references a `LegalParty`, not a `User`" rule from #45 is then a compile-time fact.
 - **No projection/read model, no HTTP surface.** Like `identity-model`, this module declares the vocabulary and the decision logic; consumers wire projections and routes (see `systemadapter` for the `system.DomainConfig` pattern and a `metaengine.projectionadapter.TypeDecoder` example).
 - **Validation depth is documented, not universal**: VAT checksums run for DE (verified against the BMF/BZSt example `DE136695976` and the python-stdnum reference vectors); other jurisdictions are format-checked. Checksum-valid ≠ registered — verify registration via VIES separately.
+
+## The bill-to aggregate (issue #45)
+
+Beside the party aggregate, the module ships a second, smaller aggregate:
+**BillTo** — the link that answers "which legal party receives this
+tenant's invoices". One stream per tenant, keyed by the tenant ID itself
+(`DeriveBillToStreamID`), so there is exactly one link per tenant by
+construction and no join table.
+
+```go
+stream := legalparty.DeriveBillToStreamID("tenant-01M…")
+
+// open (the tenant's first billing link)
+DecideOpenBillTo(stream, partyID, actor, time.Now())
+
+// re-point bills at another party (the previous party stays journaled)
+DecideRedirectBillTo(stream, otherPartyID, "holding restructure", actor, time.Now())
+
+// terminal, retained (tax retention: closure never deletes anything)
+DecideCloseBillTo(stream, "tenant churned", actor, time.Now())
+```
+
+Lifecycle mirrors the party aggregate: the same human/system/service actor
+guard (`ErrBotActorForbidden` for bots and unattributed commands), typed
+rejections for malformed input (`party_required`, `redirect_reason_required`,
+`close_reason_required`), conflicts for state-machine violations
+(`already_exists`, `closed`), and `ErrBillToNotFound` / `ErrBillToClosed`
+sentinels. Redirecting to the party already named is an idempotent no-op.
+Events: `BillToOpened`, `BillToRedirected`, `BillToClosed` — commands:
+`OpenBillTo`, `RedirectBillTo`, `CloseBillTo`.

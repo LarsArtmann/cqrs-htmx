@@ -9,6 +9,7 @@
 
 ## Status Legend
 
+- [ ] **legalparty-model: cross-aggregate retention test (BillTo → LegalParty closure).** D9's recorded follow-up: when a BillTo stream points at a LegalParty that later closes, billing must refuse BEFORE the first invoice, not at dunning time. Test lands with the first legalparty-model tag (needs a released consumer harness); non-goal 6 of the 2026-11-24 plan.
 - [ ] **OPEN** — actionable, not yet started.
 - [~] **PARTIALLY DONE** — started but incomplete.
 
