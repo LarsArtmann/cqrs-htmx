@@ -3,6 +3,7 @@
   "events": [
     "BotDeleted",
     "BotRegistered",
+    "BotTransferred",
     "CredentialAdded",
     "CredentialRemoved",
     "CredentialUsed",
@@ -24,9 +25,14 @@
     "TOTPEnabled",
     "TenantCreated",
     "TenantDeleted",
+    "TenantMerged",
+    "TenantMergedInto",
     "TenantReactivated",
+    "TenantRenamed",
     "TenantSuspended",
     "UserDeleted",
+    "UserMerged",
+    "UserMergedInto",
     "UserRegistered"
   ]
 }

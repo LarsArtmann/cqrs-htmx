@@ -560,6 +560,17 @@ func (h *Handler) userUpdateTenantRole(w http.ResponseWriter, r *http.Request, _
 		redirect(w, r, back)
 		return
 	}
+	// Same guard the roster dispatches (doUpdateRole): the membership
+	// decider has no domain-level last-admin rule, so both write surfaces
+	// refuse a downgrade that would strand the sole admin-tier holder.
+	if h.lastAdminDowngradeRefused(
+		r.Context(), identitymodel.NewTenantID(tenantRaw),
+		identitymodel.ActorIDFromUser(target), roles,
+	) {
+		triggerToast(w, "err", lastAdminDowngradeRefusalMessage())
+		redirect(w, r, back)
+		return
+	}
 	if err := h.config.Service.UpdateMemberRoles(
 		r.Context(), identitymodel.ActorIDFromUser(target), identitymodel.NewTenantID(tenantRaw),
 		roles,

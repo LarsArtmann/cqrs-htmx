@@ -34,6 +34,8 @@ func identityModelEvents() []string {
 		string(identitymodel.EventTOTPDisabled),
 		string(identitymodel.EventExternalAccountLinked),
 		string(identitymodel.EventExternalAccountUnlinked),
+		string(identitymodel.EventUserMerged),
+		string(identitymodel.EventUserMergedInto),
 		string(identitymodel.EventLoginSucceeded),
 		string(identitymodel.EventLoginFailed),
 		string(identitymodel.EventRegistrationClosed),
@@ -46,8 +48,12 @@ func identityModelEvents() []string {
 		string(identitymodel.EventTenantSuspended),
 		string(identitymodel.EventTenantReactivated),
 		string(identitymodel.EventTenantDeleted),
+		string(identitymodel.EventTenantRenamed),
+		string(identitymodel.EventTenantMerged),
+		string(identitymodel.EventTenantMergedInto),
 		string(identitymodel.EventBotRegistered),
 		string(identitymodel.EventBotDeleted),
+		string(identitymodel.EventBotTransferred),
 	}
 
 	slices.Sort(events)

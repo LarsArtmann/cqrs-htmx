@@ -431,6 +431,37 @@ type tenantDetailData struct {
 	// AddMemberCreateHref is the "create this user first" escape hatch,
 	// rendered only when the panel serves user creation (super-admin mode).
 	AddMemberCreateHref string
+
+	// RoleDistribution answers "who holds which roles here" at a glance:
+	// one count per assignable role that at least one member holds, in
+	// AssignableRoles order. Empty when the roster is empty — the identity
+	// card renders a dash rather than a fabricated zero row.
+	RoleDistribution []roleCount
+}
+
+// roleCount is one row of the tenant identity card's role distribution: how
+// many members hold a given role in this tenant.
+type roleCount struct {
+	Role  identitymodel.Role
+	Count int
+}
+
+// roleDistribution counts, per assignable role, how many of members hold it.
+// Roles nobody holds are omitted: a list of zeros is not an answer.
+func roleDistribution(members []memberRow) []roleCount {
+	counts := make(map[identitymodel.Role]int, len(identitymodel.AssignableRoles()))
+	for _, m := range members {
+		for _, r := range m.Roles {
+			counts[r]++
+		}
+	}
+	dist := make([]roleCount, 0, len(counts))
+	for _, r := range identitymodel.AssignableRoles() {
+		if counts[r] > 0 {
+			dist = append(dist, roleCount{Role: r, Count: counts[r]})
+		}
+	}
+	return dist
 }
 
 // memberRow is a flattened membership for display. User actors are resolved
@@ -529,6 +560,51 @@ func tenantRevokeConfirm(d userDetailData, access tenantAccessRow) string {
 	msg := "Remove " + d.User.Email + " from " + access.Name + "? They lose the roles they hold there."
 	if holdsAdminTier(access.Roles) && d.TenantAdminCounts[access.TenantID] <= 1 {
 		msg += " They hold the only admin or owner role there — the tenant would be left without an admin."
+	}
+	return msg
+}
+
+// lastAdminDowngradeCopy is the shared escalation copy for the DOWNGRADE
+// half of the last-admin guard (T12): removal of the sole admin-tier member
+// already escalates its confirm; changing that member's ROLES can leave the
+// tenant just as unadministrable, and the count of admin-tier holders is
+// named so the admin knows exactly how thin the margin is.
+func lastAdminDowngradeCopy(adminTierCount int) string {
+	return fmt.Sprintf(
+		"Only %d member(s) hold admin or owner in this tenant, and this change would leave it with zero — "+
+			"the last admin cannot be downgraded. Grant admin or owner to another member first.",
+		adminTierCount,
+	)
+}
+
+// lastAdminDowngradeRefused is the server-side refusal toast for the same
+// guard: the decider (es_membership_decide.go decideUpdateMemberRoles) has no
+// domain-level last-admin rule, so the panel is the only guard — and it must
+// refuse, not just warn.
+func lastAdminDowngradeRefusalMessage() string {
+	return "Role update refused: the last admin cannot be downgraded in this tenant. " +
+		"Grant admin or owner to another member first."
+}
+
+// memberRoleChangeConfirm builds the roster role-change confirm text,
+// escalating when the member holds the tenant's ONLY admin-tier role: a
+// checkbox change that drops admin/owner strands the tenant exactly like a
+// removal would.
+func memberRoleChangeConfirm(d tenantDetailData, m memberRow) string {
+	msg := "Change the roles of " + m.displayName() + " in this tenant?"
+	if holdsAdminTier(m.Roles) && !anyOtherAdminTier(d.Members, m) {
+		msg += " " + lastAdminDowngradeCopy(1)
+	}
+	return msg
+}
+
+// tenantRoleChangeConfirm builds the user-page role-change confirm text with
+// the same downgrade escalation, keyed on the per-tenant admin-tier counts
+// the handler computed for the visible rows.
+func tenantRoleChangeConfirm(d userDetailData, access tenantAccessRow) string {
+	msg := "Change " + d.User.Email + "'s roles in " + access.Name + "?"
+	if holdsAdminTier(access.Roles) && d.TenantAdminCounts[access.TenantID] <= 1 {
+		msg += " " + lastAdminDowngradeCopy(d.TenantAdminCounts[access.TenantID])
 	}
 	return msg
 }

@@ -119,11 +119,17 @@ templ membersRows(d tenantDetailData) {
 						@roleCheckboxGroup(d.AssignableRoles, m.Roles, "Set roles for " + m.displayName())
 						// Same Children-slot pattern as the Add member submit (Secondary
 						// variant): LoadingButton shows "Saving…" while the POST runs.
+						// The confirm carries the downgrade escalation (T12): dropping
+						// the sole admin-tier role strands the tenant like a removal.
 						@display.Button(display.ButtonProps{
 							Type:     display.ButtonHTMLSubmit,
 							Variant:  display.ButtonSecondary,
 							Size:     display.ButtonSizeSM,
 							Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
+							BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+								"data-confirm":       memberRoleChangeConfirm(d, m),
+								"data-confirm-title": "Change roles",
+							}},
 						})
 					</form>
 				</div>

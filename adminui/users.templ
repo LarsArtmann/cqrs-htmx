@@ -818,11 +818,18 @@ templ tenantAccessRows(d userDetailData) {
 					}
 					<form class="flex items-center gap-1.5" hx-post={ d.UpdateTenantBase + "/" + access.TenantID }>
 						@roleCheckboxGroup(d.AssignableRoles, access.Roles, "Set roles in " + access.Name)
+						// Downgrade escalation (T12), same contract as the roster's
+						// role-change confirm: dropping the tenant's only admin-tier
+						// role is refused server-side, so the dialog says so first.
 						@display.Button(display.ButtonProps{
 							Type:     display.ButtonHTMLSubmit,
 							Variant:  display.ButtonSecondary,
 							Size:     display.ButtonSizeSM,
 							Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
+							BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+								"data-confirm":       tenantRoleChangeConfirm(d, access),
+								"data-confirm-title": "Change roles",
+							}},
 						})
 					</form>
 				</div>

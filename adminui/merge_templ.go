@@ -10,6 +10,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/navigation"
@@ -34,8 +35,8 @@ type userDuplicateGroup struct {
 // duplicateUserRow is one candidate row of a cluster: the user plus the
 // survivor options that are NOT this row (a user cannot merge into itself).
 type duplicateUserRow struct {
-	User     *usermgmt.User
-	Survivor []*usermgmt.User
+	User     *identitymodel.User
+	Survivor []*identitymodel.User
 }
 
 // tenantDuplicatesData renders the duplicate-tenants report with merge and
@@ -293,7 +294,7 @@ func duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) templ.Compon
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.BasePath + "/users/" + row.User.ID.Get().String()).ResolveURL(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 88, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 89, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
@@ -314,7 +315,7 @@ func duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) templ.Compon
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(row.User.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 92, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 93, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -367,7 +368,7 @@ func duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) templ.Compon
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(row.User.ID.Get().String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 93, Col: 82}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 94, Col: 82}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -420,7 +421,7 @@ func duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) templ.Compon
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(row.User.CreatedAt.Format("2006-01-02 15:04"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 98, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 99, Col: 96}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -433,7 +434,7 @@ func duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) templ.Compon
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.BasePath + "/users/" + row.User.ID.Get().String() + "/merge").Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 100, Col: 123}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 101, Col: 123}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 		if templ_7745c5c3_Err != nil {
@@ -451,7 +452,7 @@ func duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) templ.Compon
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templruntime.NewAttributeExpression(survivor.ID.Get().String()).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 103, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 104, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 			if templ_7745c5c3_Err != nil {
@@ -464,7 +465,7 @@ func duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) templ.Compon
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(survivor.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 103, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 104, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -750,7 +751,7 @@ func duplicateTenantRowTR(
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.BasePath + "/tenants/" + tenant.ID.Get()).ResolveURL(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 173, Col: 76}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 174, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var32)
 		if templ_7745c5c3_Err != nil {
@@ -763,7 +764,7 @@ func duplicateTenantRowTR(
 		var templ_7745c5c3_Var33 string
 		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(tenant.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 174, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 175, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 		if templ_7745c5c3_Err != nil {
@@ -816,7 +817,7 @@ func duplicateTenantRowTR(
 		var templ_7745c5c3_Var36 string
 		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(tenant.ID.Get())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 175, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 176, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 		if templ_7745c5c3_Err != nil {
@@ -829,7 +830,7 @@ func duplicateTenantRowTR(
 		var templ_7745c5c3_Var37 string
 		templ_7745c5c3_Var37, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.BasePath + "/tenants/" + tenant.ID.Get() + "/rename").Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 179, Col: 115}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 180, Col: 115}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var37)
 		if templ_7745c5c3_Err != nil {
@@ -842,7 +843,7 @@ func duplicateTenantRowTR(
 		var templ_7745c5c3_Var38 string
 		templ_7745c5c3_Var38, templ_7745c5c3_Err = templruntime.NewAttributeExpression(tenant.DisplayName).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 183, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 184, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var38)
 		if templ_7745c5c3_Err != nil {
@@ -867,7 +868,7 @@ func duplicateTenantRowTR(
 		var templ_7745c5c3_Var39 string
 		templ_7745c5c3_Var39, templ_7745c5c3_Err = templruntime.NewAttributeExpression(d.BasePath + "/tenants/" + tenant.ID.Get() + "/merge").Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 195, Col: 114}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 196, Col: 114}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var39)
 		if templ_7745c5c3_Err != nil {
@@ -886,7 +887,7 @@ func duplicateTenantRowTR(
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templruntime.NewAttributeExpression(other.ID.Get()).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 199, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 200, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var40)
 				if templ_7745c5c3_Err != nil {
@@ -899,7 +900,7 @@ func duplicateTenantRowTR(
 				var templ_7745c5c3_Var41 string
 				templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(other.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 199, Col: 52}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `merge.templ`, Line: 200, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 				if templ_7745c5c3_Err != nil {

@@ -1,0 +1,35 @@
+---
+id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member
+name: Deleting a tenant with a member removes the member
+version: 0.0.1
+summary: 'Scenario "Deleting a tenant with a member removes the member" of feature TenantLifecycle. Tags: tenant, membership, cascade.'
+steps:
+    - id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-0
+      title: Given a tenant named "acme"
+      next_step:
+        id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-1
+        label: And a member of the tenant with roles "admin"
+    - id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-1
+      title: And a member of the tenant with roles "admin"
+      next_step:
+        id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-2
+        label: When the tenant is deleted for "shutdown"
+    - id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-2
+      title: When the tenant is deleted for "shutdown"
+      next_step:
+        id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-3
+        label: Then events "TenantDeleted", "MemberRemoved" are emitted
+    - id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-3
+      title: Then events "TenantDeleted", "MemberRemoved" are emitted
+      next_step:
+        id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-4
+        label: And commands "DeleteTenant", "RemoveMember" are dispatched
+    - id: TenantLifecycle-deleting-a-tenant-with-a-member-removes-the-member-step-4
+      title: And commands "DeleteTenant", "RemoveMember" are dispatched
+---
+
+## Overview
+
+Scenario "Deleting a tenant with a member removes the member" of feature TenantLifecycle. Tags: tenant, membership, cascade.
+
+<NodeGraph />

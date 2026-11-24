@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"slices"
@@ -235,6 +236,34 @@ func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request,
 	h.doUpdateRole(w, r, tenantID, actor, back)
 }
 
+// lastAdminDowngradeRefused checks the DOWNGRADE half of the last-admin
+// guard: when the actor currently holds an admin-tier role (admin or owner),
+// the submitted role set drops it, and no OTHER member of the tenant holds
+// an admin-tier role, the change would strand the tenant without anyone able
+// to administer it. The membership decider
+// (usermgmt/es_membership_decide.go decideUpdateMemberRoles) has no
+// domain-level last-admin rule — it refuses only unknown memberships — so
+// this panel-side guard is the only refusal, and it must refuse (not warn)
+// on every surface that dispatches UpdateMemberRoles.
+func (h *Handler) lastAdminDowngradeRefused(
+	ctx context.Context, tenantID identitymodel.TenantID,
+	actor identitymodel.ActorID, roles []identitymodel.Role,
+) bool {
+	if holdsAdminTier(roles) {
+		return false // granting or keeping admin tier can never strand the tenant
+	}
+	adminTierCount, actorHoldsAdminTier := 0, false
+	for _, m := range h.config.Service.TenantMembers(ctx, tenantID) {
+		if holdsAdminTier(m.Roles) {
+			adminTierCount++
+		}
+		if m.ActorID.PrefixedString() == actor.PrefixedString() {
+			actorHoldsAdminTier = holdsAdminTier(m.Roles)
+		}
+	}
+	return actorHoldsAdminTier && adminTierCount <= 1
+}
+
 func (h *Handler) doUpdateRole(
 	w http.ResponseWriter, r *http.Request,
 	tenantID identitymodel.TenantID, actor identitymodel.ActorID, back string,
@@ -246,6 +275,11 @@ func (h *Handler) doUpdateRole(
 	roles, ok := parseRolesForm(r)
 	if !ok {
 		triggerToast(w, "err", "Pick at least one role")
+		redirect(w, r, back)
+		return
+	}
+	if h.lastAdminDowngradeRefused(r.Context(), tenantID, actor, roles) {
+		triggerToast(w, "err", lastAdminDowngradeRefusalMessage())
 		redirect(w, r, back)
 		return
 	}

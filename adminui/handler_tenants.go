@@ -129,6 +129,9 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		UserDetailBase:      h.config.BasePath + "/users/",
 		UserEmailOptions:    h.memberEmailOptions(members),
 		AddMemberCreateHref: h.config.BasePath + "/users/new",
+		// F080: the identity card answers "who holds which roles here" from
+		// the rows already resolved — no extra queries.
+		RoleDistribution: roleDistribution(members),
 	}
 	h.applyMemberError(r, &d)
 	p := h.page(tenant.DisplayName, "/tenants", user, r)
