@@ -328,7 +328,16 @@ func TestDashboard_TimeTravelDetailRenders(t *testing.T) {
 		"Viewing version 2 of 3",
 		"order.updated",
 		`aria-valuetext="Version 2 of 3"`,
-		`data-nav-base="/dashboard/time-travel/Order/` + aggID.String() + `?v="`,
+		`hx-get="/dashboard/time-travel/Order/` + aggID.String() + `"`,
+		`hx-trigger="change"`,
+		`hx-push-url="true"`,
+		`name="v"`,
+		// Payloads are visible inline; the step at v2 is highlighted and expanded.
+		`&quot;Step&quot;: 2`,
+		`class="step-row"`,
+		`<details class="payload-details" open="">`,
+		// Non-step rows carry the payload collapsed.
+		`<details class="payload-details">`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("time-travel detail page should contain %q", want)

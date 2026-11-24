@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/a-h/templ"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/templ-components/icons"
 )
@@ -46,6 +47,16 @@ func (r timeTravelRow) rowClass() string {
 	}
 
 	return ""
+}
+
+// attrs spreads the details element's conditional attributes: the step
+// row's payload is expanded on render.
+func (r timeTravelRow) attrs() templ.Attributes {
+	if r.isStep {
+		return templ.Attributes{"open": true}
+	}
+
+	return nil
 }
 
 // buildTimeTravelRows renders every event's payload for inline display so a

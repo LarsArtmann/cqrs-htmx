@@ -147,8 +147,13 @@ templ timeTravelRows(basePath string, rows []timeTravelRow) {
 		<tr class={ row.rowClass() }>
 			@eventTimelineCells(basePath, row.evt)
 			<td class="cell-payload">
-				<details class="payload-details" attrs={ templ.Attributes{"open": row.isStep} }>
-					<summary>payload if row.isStep { @badge("this step", display.BadgeNeutral) }</summary>
+				<details class="payload-details" { row.attrs()... }>
+					<summary>
+					payload
+					if row.isStep {
+						@badge("this step", display.BadgeNeutral)
+					}
+				</summary>
 					<pre class="code-block payload-pre"><code>{ row.payload }</code></pre>
 				</details>
 			</td>

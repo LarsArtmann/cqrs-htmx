@@ -147,6 +147,12 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .version-slider { width: 100%; max-width: 400px; accent-color: var(--accent); cursor: pointer; }
 .version-slider:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .version-display { font-size: 0.9rem; color: var(--muted); }
+tr.step-row { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.cell-payload { max-width: 460px; }
+.payload-details summary { cursor: pointer; color: var(--link); font-size: 0.85em; user-select: none; }
+.payload-details summary:hover { text-decoration: underline; }
+.payload-details[open] summary { margin-bottom: 8px; }
+.payload-pre { max-height: 16rem; overflow: auto; margin: 0; }
 
 /* ===== Filter bar ===== */
 .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
@@ -418,12 +424,16 @@ document.addEventListener("submit", function(e) {
 // onchange/oninput attributes, which nonce CSP blocks): update the version
 // display and aria-valuetext while dragging, navigate on release.
 //
-// DELEGATED at the document level on purpose: the app-layout wrapper boosts
-// navigation, and a boosted swap replaces the page DOM WITHOUT re-evaluating
-// dashboard.js — an element-bound listener attached at script load died with
-// the pre-swap DOM, so the slider only worked on direct detail loads (found
-// by the e2e battery 2026-11-07). Re-querying per event (like the keydown
-// handler below) makes the wiring survive every swap.
+// Time-travel version slider wiring (delegated at the document level on
+// purpose: the app-layout wrapper boosts navigation, and a boosted swap
+// replaces the page DOM WITHOUT re-evaluating dashboard.js — an element-bound
+// listener attached at script load died with the pre-swap DOM, so the slider
+// only worked on direct detail loads (found by the e2e battery 2026-11-07).
+// Re-querying per event (like the keydown handler below) makes the wiring
+// survive every swap. Navigation itself is NOT wired here: the slider carries
+// hx-get/hx-trigger="change" attributes, so htmx owns the request (partial
+// #main-content swap + hx-push-url keeps the ?v=N URL bookmarkable; no full
+// page reload per step).
 document.addEventListener("input", function(e) {
   var slider = e.target;
   if (!slider || slider.id !== "version-slider") return;
@@ -431,16 +441,11 @@ document.addEventListener("input", function(e) {
   if (display) display.textContent = slider.value;
   slider.setAttribute("aria-valuetext", "Version " + slider.value + " of " + slider.max);
 });
-document.addEventListener("change", function(e) {
-  var slider = e.target;
-  if (!slider || slider.id !== "version-slider") return;
-  if (slider.dataset.navBase) {
-    window.location.href = slider.dataset.navBase + slider.value;
-  }
-});
 
 // Keyboard navigation for the time-travel version slider: ArrowLeft/ArrowRight
-// anywhere on the page move the slider and navigate to the selected version.
+// anywhere on the page move the slider and navigate to the selected version
+// (the synthetic change event fires the slider's own hx-trigger="change",
+// which swaps #main-content via htmx instead of a full page reload).
 document.addEventListener("keydown", function(e) {
   var slider = document.getElementById("version-slider");
   if (!slider) return;
@@ -453,8 +458,9 @@ document.addEventListener("keydown", function(e) {
   var max = parseInt(slider.max, 10);
   if (newVal < min || newVal > max) return;
   slider.value = newVal;
-  // bubbles:true is load-bearing: the change wiring below is delegated at
-  // the document level, and a non-bubbling synthetic event never reaches it.
+  // bubbles:true is load-bearing: the synthetic event must be observable
+  // while it crosses the tree (htmx's element listener fires regardless,
+  // but keeping it bubbling preserves the historic delegated contract).
   slider.dispatchEvent(new Event("change", { bubbles: true }));
 });
 
