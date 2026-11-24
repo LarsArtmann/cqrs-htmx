@@ -3,6 +3,7 @@ package adminui
 import (
 	"context"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 
@@ -110,6 +111,15 @@ func TestUserGrantTenantAccess(t *testing.T) {
 		t.Errorf("expected owner role, got %v", members[0].Roles)
 	}
 
+	// A standing second admin-tier member (T12's last-admin downgrade guard
+	// refuses a role set that would strip the tenant's ONLY admin-tier role;
+	// with this member present, every replace-set step below stays legal).
+	second := mustRegister(t, svc, "u-2", "two@acme.com")
+	if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(second.User.ID), tenant.ID,
+		[]identitymodel.Role{identitymodel.RoleAdmin}); err != nil {
+		t.Fatal(err)
+	}
+
 	// A membership is ADDED once: re-granting the same tenant is refused with
 	// guidance instead of silently dispatching a doomed command.
 	rec = postForm(h, userBase+"/tenants", url.Values{"tenant": {"acme"}, "roles": {"viewer"}})
@@ -124,13 +134,14 @@ func TestUserGrantTenantAccess(t *testing.T) {
 		t.Errorf("role update redirect = %q, want %q", got, userBase)
 	}
 	members = svc.TenantMembers(ctx, tenant.ID)
-	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) ||
-		!members[0].HasRole(identitymodel.RoleAdmin) {
+	targetMember := memberRolesIn(t, svc, "acme", identitymodel.ActorIDFromUser(target.User.ID))
+	if len(members) != 2 || !slices.Contains(targetMember, identitymodel.RoleViewer) ||
+		!slices.Contains(targetMember, identitymodel.RoleAdmin) {
 		t.Fatalf("expected the role set to become viewer+admin, got %v (toast %q)",
-			members, rec.Header().Get("Hx-Trigger"))
+			targetMember, rec.Header().Get("Hx-Trigger"))
 	}
-	if members[0].HasRole(identitymodel.RoleOwner) {
-		t.Errorf("the grant-time owner role must be gone after the set replaces it, got %v", members[0].Roles)
+	if slices.Contains(targetMember, identitymodel.RoleOwner) {
+		t.Errorf("the grant-time owner role must be gone after the set replaces it, got %v", targetMember)
 	}
 
 	// Reducing to one role works the same way.
@@ -139,9 +150,9 @@ func TestUserGrantTenantAccess(t *testing.T) {
 		t.Errorf("reduce redirect = %q, want %q", got, userBase)
 	}
 	members = svc.TenantMembers(ctx, tenant.ID)
-	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) ||
-		members[0].HasRole(identitymodel.RoleAdmin) {
-		t.Fatalf("expected the role set to reduce to viewer, got %v", members)
+	targetMember = memberRolesIn(t, svc, "acme", identitymodel.ActorIDFromUser(target.User.ID))
+	if len(members) != 2 || len(targetMember) != 1 || targetMember[0] != identitymodel.RoleViewer {
+		t.Fatalf("expected the role set to reduce to viewer, got %v", targetMember)
 	}
 
 	// Clearing every checkbox is refused: a membership cannot be emptied into
@@ -151,8 +162,9 @@ func TestUserGrantTenantAccess(t *testing.T) {
 		t.Errorf("clearing all roles should be refused with a toast, got %q", rec.Header().Get("Hx-Trigger"))
 	}
 	members = svc.TenantMembers(ctx, tenant.ID)
-	if len(members) != 1 || !members[0].HasRole(identitymodel.RoleViewer) {
-		t.Fatalf("the refused clear must leave the membership untouched, got %v", members)
+	targetMember = memberRolesIn(t, svc, "acme", identitymodel.ActorIDFromUser(target.User.ID))
+	if len(members) != 2 || !slices.Equal(targetMember, []identitymodel.Role{identitymodel.RoleViewer}) {
+		t.Fatalf("the refused clear must leave the membership untouched, got %v", targetMember)
 	}
 }
 

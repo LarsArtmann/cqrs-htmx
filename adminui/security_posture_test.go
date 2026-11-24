@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/v4/authztest"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/authztest"
 )
 
 // This file wires [authztest.Suite] over the panel's own route table: every

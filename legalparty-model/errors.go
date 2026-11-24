@@ -27,4 +27,13 @@ var (
 	// registry cannot be reached or answered with a server-side failure.
 	ErrRegistryUnavailable error = errorfamily.NewTransient("legalparty.registry.unavailable",
 		"registry lookup failed; try again later")
+
+	// ErrBillToNotFound is returned when a bill-to command targets a link
+	// that was never opened on that tenant's stream.
+	ErrBillToNotFound error = errorfamily.NewRejection("legalparty.bill_to.not_found",
+		"no bill-to link exists for this tenant")
+	// ErrBillToClosed is returned when a command would change a closed
+	// (terminal) bill-to link.
+	ErrBillToClosed error = errorfamily.NewConflict("legalparty.bill_to.closed",
+		"this bill-to link is closed (terminal)")
 )

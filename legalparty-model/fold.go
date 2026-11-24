@@ -104,3 +104,55 @@ func FoldLegalParty(
 
 	return next, nil
 }
+
+// BillToState is the aggregate state of a tenant's bill-to link (issue #45,
+// D9): which legal party receives the tenant's invoices.
+type BillToState struct {
+	TenantID         string
+	LegalPartyID     LegalPartyID
+	Opened           bool
+	Closed           bool
+	CloseReason      string
+	OpenedAt         time.Time
+	LastRedirectedAt time.Time
+	ClosedAt         time.Time
+}
+
+// Exists reports whether the link has been opened.
+func (s BillToState) Exists() bool { return s.Opened }
+
+// FoldBillTo reconstructs a bill-to link's state from its events.
+func FoldBillTo(state BillToState, evt event.Event) (BillToState, error) {
+	switch event.Type(evt.Type()) {
+	case EventBillToOpened:
+		p, err := UnmarshalPayload[BillToOpenedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		state.TenantID = p.TenantID
+		state.LegalPartyID = p.LegalPartyID
+		state.Opened = true
+		state.OpenedAt = p.OpenedAt
+	case EventBillToRedirected:
+		p, err := UnmarshalPayload[BillToRedirectedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		state.LegalPartyID = p.LegalPartyID
+		state.LastRedirectedAt = p.RedirectedAt
+	case EventBillToClosed:
+		p, err := UnmarshalPayload[BillToClosedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		state.Closed = true
+		state.CloseReason = p.Reason
+		state.ClosedAt = p.ClosedAt
+	default:
+		return state, errorfamily.NewRejection(
+			"legalparty.bill_to.unknown_event",
+			"event "+string(evt.Type())+" is not part of the BillTo stream vocabulary",
+		)
+	}
+	return state, nil
+}

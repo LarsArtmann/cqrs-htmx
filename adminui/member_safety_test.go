@@ -49,9 +49,16 @@ func toastMessage(t *testing.T, rec *httptest.ResponseRecorder) string {
 	return tw.Message
 }
 
+// soleAdminFixture bundles the shared fixture's handles.
+type soleAdminFixture struct {
+	h       http.Handler
+	svc     *usermgmt.Service
+	ownerID identitymodel.UserID
+}
+
 // soleOwner is the shared fixture: a tenant whose ONLY admin-tier holder is
 // `owner` (one viewer keeps the roster non-trivial).
-func soleOwner(t *testing.T) (http.Handler, *usermgmt.Service, *usermgmt.Tenant, identitymodel.UserID, identitymodel.UserID) {
+func soleOwner(t *testing.T) soleAdminFixture {
 	t.Helper()
 	user := mustUser(t, "admin@example.com")
 	h, svc := newTestPanel(t, user)
@@ -66,7 +73,7 @@ func soleOwner(t *testing.T) (http.Handler, *usermgmt.Service, *usermgmt.Tenant,
 		[]identitymodel.Role{identitymodel.RoleViewer}); err != nil {
 		t.Fatal(err)
 	}
-	return h, svc, tenant, owner.User.ID, viewer.User.ID
+	return soleAdminFixture{h: h, svc: svc, ownerID: owner.User.ID}
 }
 
 // TestTenantRoleDistribution pins F080: the tenant detail identity card
@@ -76,7 +83,8 @@ func soleOwner(t *testing.T) (http.Handler, *usermgmt.Service, *usermgmt.Tenant,
 func TestTenantRoleDistribution(t *testing.T) {
 	t.Parallel()
 
-	h, svc, _, ownerID, viewerID := soleOwner(t)
+	fx := soleOwner(t)
+	h, svc, ownerID, viewerID := fx.h, fx.svc, fx.ownerID, fx.viewerID
 
 	body := getBody(t, h, "/admin/tenants/acme")
 	if !strings.Contains(body, "owner ×1") {
@@ -116,7 +124,8 @@ func TestTenantRoleDistribution(t *testing.T) {
 func TestLastAdminDowngradeRefused(t *testing.T) {
 	t.Parallel()
 
-	h, svc, tenant, ownerID, _ := soleOwner(t)
+	fx := soleOwner(t)
+	h, svc, ownerID := fx.h, fx.svc, fx.ownerID
 	actor := identitymodel.ActorIDFromUser(ownerID)
 	target := "/admin/tenants/acme/members/" + actor.PrefixedString()
 
@@ -127,10 +136,6 @@ func TestLastAdminDowngradeRefused(t *testing.T) {
 	if got := memberRolesIn(t, svc, "acme", actor); len(got) != 1 || got[0] != identitymodel.RoleOwner {
 		t.Errorf("refused downgrade must not change roles, got %v", got)
 	}
-	if tenant == nil {
-		t.Fatal("fixture tenant missing")
-	}
-
 	// Keeping admin-tier in the set is a legal change and must dispatch.
 	rec = postForm(h, target, url.Values{"roles": {"owner", "viewer"}})
 	if msg := toastMessage(t, rec); msg != "Tenant role updated" && msg != "Role updated" {
@@ -144,7 +149,8 @@ func TestLastAdminDowngradeRefused(t *testing.T) {
 func TestLastAdminDowngradeRefused_UserSurface(t *testing.T) {
 	t.Parallel()
 
-	h, svc, _, ownerID, _ := soleOwner(t)
+	fx := soleOwner(t)
+	h, svc, ownerID := fx.h, fx.svc, fx.ownerID
 	actor := identitymodel.ActorIDFromUser(ownerID)
 
 	rec := postForm(h, "/admin/users/"+ownerID.Get().String()+"/tenants/acme",
@@ -163,7 +169,8 @@ func TestLastAdminDowngradeRefused_UserSurface(t *testing.T) {
 func TestLastAdminDowngradeAllowedWithSecondAdmin(t *testing.T) {
 	t.Parallel()
 
-	h, svc, _, ownerID, _ := soleOwner(t)
+	fx := soleOwner(t)
+	h, svc, ownerID := fx.h, fx.svc, fx.ownerID
 	ctx := context.Background()
 	// Two extra admin-tier holders: demoting the owner leaves two, demoting
 	// one more via the user surface leaves one — every step stays legal, so
@@ -201,7 +208,8 @@ func TestLastAdminDowngradeAllowedWithSecondAdmin(t *testing.T) {
 func TestLastAdminDowngradeConfirmEscalates(t *testing.T) {
 	t.Parallel()
 
-	h, svc, _, ownerID, _ := soleOwner(t)
+	fx := soleOwner(t)
+	h, svc, ownerID := fx.h, fx.svc, fx.ownerID
 
 	roster := getBody(t, h, "/admin/tenants/acme")
 	if !strings.Contains(roster, "the last admin cannot be downgraded") {

@@ -57,6 +57,46 @@ func headersTestPanel(t *testing.T) http.Handler {
 	return panel.Middleware()(userInject(panel.Handler(), admin))
 }
 
+// assertSecurityHeaders asserts the header truth on one recorded response
+// and returns the CSP nonce ("" when the response carries no nonce CSP).
+func assertSecurityHeaders(t *testing.T, rec *httptest.ResponseRecorder) string {
+	t.Helper()
+
+	headers := rec.Header()
+	if got := headers.Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Errorf("X-Content-Type-Options = %q, want nosniff", got)
+	}
+	if got := headers.Get("X-Frame-Options"); got != "DENY" {
+		t.Errorf("X-Frame-Options = %q, want DENY", got)
+	}
+	if got := headers.Get("Referrer-Policy"); got != "strict-origin-when-cross-origin" {
+		t.Errorf("Referrer-Policy = %q, want strict-origin-when-cross-origin", got)
+	}
+	if got := headers.Get("Permissions-Policy"); !strings.Contains(got, "geolocation=()") {
+		t.Errorf("Permissions-Policy = %q, want the recommended feature lockdown", got)
+	}
+
+	csp := headers.Get("Content-Security-Policy")
+	nonce := cspNonce(csp)
+	if nonce == "" {
+		t.Fatalf("Content-Security-Policy = %q, want a per-request nonce", csp)
+	}
+	for _, fragment := range []string{"default-src 'self'", "img-src 'self' data:"} {
+		if !strings.Contains(csp, fragment) {
+			t.Errorf("CSP missing %q: %q", fragment, csp)
+		}
+	}
+
+	if got := headers.Get("Strict-Transport-Security"); got != "" {
+		t.Errorf(
+			"Strict-Transport-Security = %q: the panel's own chain does not set HSTS (TLS policy belongs to the deployment edge); update this pin and the README if that changes",
+			got,
+		)
+	}
+
+	return nonce
+}
+
 // cspNonce extracts the nonce value from a nonce-bearing CSP header.
 func cspNonce(csp string) string {
 	match := regexp.MustCompile(`'nonce-([^']+)'`).FindStringSubmatch(csp)
@@ -94,37 +134,7 @@ func TestHeaders_OnEveryResponseClass(t *testing.T) {
 				t.Fatalf("%s answered %d, want 200", class.path, rec.Code)
 			}
 
-			headers := rec.Header()
-			if got := headers.Get("X-Content-Type-Options"); got != "nosniff" {
-				t.Errorf("X-Content-Type-Options = %q, want nosniff", got)
-			}
-			if got := headers.Get("X-Frame-Options"); got != "DENY" {
-				t.Errorf("X-Frame-Options = %q, want DENY", got)
-			}
-			if got := headers.Get("Referrer-Policy"); got != "strict-origin-when-cross-origin" {
-				t.Errorf("Referrer-Policy = %q, want strict-origin-when-cross-origin", got)
-			}
-			if got := headers.Get("Permissions-Policy"); !strings.Contains(got, "geolocation=()") {
-				t.Errorf("Permissions-Policy = %q, want the recommended feature lockdown", got)
-			}
-
-			csp := headers.Get("Content-Security-Policy")
-			nonce := cspNonce(csp)
-			if nonce == "" {
-				t.Fatalf("Content-Security-Policy = %q, want a per-request nonce", csp)
-			}
-			for _, fragment := range []string{"default-src 'self'", "img-src 'self' data:"} {
-				if !strings.Contains(csp, fragment) {
-					t.Errorf("CSP missing %q: %q", fragment, csp)
-				}
-			}
-
-			if got := headers.Get("Strict-Transport-Security"); got != "" {
-				t.Errorf(
-					"Strict-Transport-Security = %q: the panel's own chain does not set HSTS (TLS policy belongs to the deployment edge); update this pin and the README if that changes",
-					got,
-				)
-			}
+			nonce := assertSecurityHeaders(t, rec)
 
 			// The nonce is not just in the header: the PAGE markup consumes
 			// it for its inline <style>/<script> tags. Partials are markup
