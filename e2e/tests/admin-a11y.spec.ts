@@ -1,5 +1,6 @@
 import { test, expect, Page, type TestInfo } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import type { Result as AxeResult } from "axe-core";
 
 /**
  * adminui accessibility gate (M11 of the 2026-11-14 SUPERB plan, T110-T113).
@@ -38,12 +39,8 @@ const ADMIN = "http://localhost:18930";
  */
 const ACCEPTED: Array<{ id: string; why: string; nodes: string[] }> = [];
 
-/** The slice of an axe violation the ledger and the honest attachments need. */
-type AxeViolation = {
-  id: string;
-  impact?: string | null;
-  nodes: Array<{ target: string[]; failureSummary?: string }>;
-};
+/** An axe violation, as the ledger and the honest attachments consume it. */
+type AxeViolation = AxeResult;
 
 /** A serious violation survives the ledger only if ALL its nodes are covered. */
 function unexpectedViolations(serious: AxeViolation[]): AxeViolation[] {
