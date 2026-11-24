@@ -1,6 +1,6 @@
 # SUPERB — Adminui Next Wave (Pareto Plan)
 
-**Date:** 2026-11-24 06:31 · **Author:** Crush · **Status:** plan of record for the adminui next wave
+**Date:** 2026-11-24 06:31 · **Author:** Crush · **Status:** plan of record for the adminui next wave · **Execution (2026-11-24 09:20): 9/32 coarse tasks DONE + verified, 3 in flight (T03–T05, T27-partial), 20 queued — see § Execution log**
 **Inputs:** the 2026-11-24 100-idea audit of `adminui/` (this session; every idea code-verified against `adminui/routes.go`, `config.go`, `handler_users.go`, `models.go`, the `usermgmt.Service` API surface, TODO_LIST rows, the a11y spec, and the e2e specs) · `adminui/CHANGELOG.md` (v4.18.0, 2026-11-21) · `TODO_LIST.md` owner rows D1–D3 and upstream asks (h)(1)–(5) · `docs/gotchas.md` #9/#52/#57/#60/#65/#67 · `e2e/tests/admin-a11y.spec.ts` ACCEPTED ledger.
 
 **Scope:** ALL 100 audited ideas, mapped 1:1 into 32 coarse tasks and 229 fine tasks. Owner-gated threads (D1 impersonation, D2 new-usermgmt-API permission, D3 wave priority, upstream asks (h)(1)–(5)) are prepared and packeted here, NEVER self-approved. Do not verschlimmbern: every task leaves the repo verifiably no worse (guardrails §8).
@@ -648,4 +648,29 @@ nix run github:Artmann-Technologies/docs-gates -- run .     # docs battery
 
 ## § Execution log
 
-(appended as tasks land; each entry: date, task IDs, receipts)
+(each entry: date, task IDs, receipts; appended as tasks land)
+
+### 2026-11-24 (execution session 06:31→09:20)
+
+| State | Task | Receipts |
+| --- | --- | --- |
+| **DONE** | T01 honest auth-state surface | `authMethods` from probes; Passkeys/External cards + stat tiles capability-gated; "Cannot sign in" badge + blast-radius copy; `userDetailDefinitionItems` refactor; supervised-enrollment note → packet. Tests: `user_auth_state_test.go` (253 lines: probe snapshot, cannot-sign-in truth table at helper + render level, badge-clears-after-AddCredential), `user_lifecycle_test.go` dead-card absence pins, `oauth_views_test.go` gate flipped. Suite green ×2. Probes verified at `usermgmt/service_auth_methods.go`; `display.BadgeError` is the danger constant (BadgeDanger does not exist in v1.27.2). |
+| **DONE** | T02 decision packet | `docs/decisions/2026-11-24_adminui-d1-d3-and-upstream-asks.md` (91 lines): verbatim D1–D3 + (h)(1)–(5); asks A–H with file:line evidence; recommendation blocks; TODO_LIST D-row pointer. Two upstream premises CORRECTED: F rename vocabulary exists in identity-model (glue missing), D lockout is an interface, not UserState fields. TODO hygiene clean (131 rows). |
+| **DONE** | T06 quick actions + page size | Quick-actions row INSIDE the polled region (parity by construction), super-admin only, links to the EXISTING `/users/new` + `/tenants/new` (routes already existed — zero route-table changes, manifest untouched). `Config.PageSize` clamp 10..200, adopted at all `pageBounds` sites. Tests: mode gates ×2 surfaces, clamp boundaries, page-size shaping. Suite green. |
+| **DONE** | T09 audit filter depth | Inclusive from/to range, actor-kind chips, honest issue strips (named input + ignored half; reversed range announced), filtered-vs-recorded empty states, retention caption from window facts; full filter preservation through pager/chips/swaps. |
+| **DONE** | T10 audit intelligence | `GET /users/{id}/activity` load-more (route-table row + manifest golden; fragment replaces its own trigger; honest end note; cursor-tamper degrade). Diff renderer shipped but renders honest "values not recorded": the audit projection carries NO old/new payload (Detail = login-failure classes only; payloads hold only NEW values) — upstream ask H evidence strengthened. Correlation column: data-blocked, honestly skipped. Orchestrator completed the crashed agent's work: fixed compile break, wrote the full test file, lint 9→0 (cyclop extraction, exhaustruct ×5, gochecknoglobals→func, goconst const, gosmopolitan→time.Now().Location()). |
+| **DONE** | T26 demo seeds | `examples/admin-demo/seed.go`: bots with show-once tokens (+TokenPepper), passkey+TOTP user (demo plays the authenticator, REAL login_failed/succeeded events), suspended/deleted tenants, role changes, locked-out mallory. Hermetic GOWORK=off build + workspace suite green. Honest skips: `LinkExternalAccount` absent at pin v4.21.0; `roles_updated` has no emitters at pin (role changes invisible on the audit page — documented). |
+| **DONE** | T28 e2e expansion | WebKit project FIXED (MiniBrowser wrapper clobbers LD_LIBRARY_PATH — config execs the real ELF with derived env); `e2e/webkit-forest.sh` (NixOS launch-libs forest from the flake pin, shellcheck clean); provisioning via the repo's own driver (webkit-2388, no copied trees). **First-ever webkit-green: 10/10 ×2.** CSRF refusal spec: token-less POST → 403 with live server-log evidence + paired success/in-page-fetch variants. CI advisory leg in place (continue-on-error). WebKit stays advisory (K-T28). |
+| **DONE (part)** | T29 docs truth pack | F209 README route table (46/46 vs routes.go, verified programmatically), F210 Security (setup csrf composition, rate-limit recipe, cookie flags), F212 Server-Timing (panel emits none; go-appkit under setup), F213 AUDIT: last-seen already honest everywhere; flagged adjacent unguarded RelativeTime renders (follow-up). **F211 deferred** until T14/T24 land (docs must not lie). |
+| **DONE** | T31 gated-surface UI specs | `docs/decisions/2026-11-24_adminui-gated-surface-ui-specs.md` (474 lines, paper only): §0 verified panel conventions; impersonation/bots/sessions+MFA-bypass+lockout/tenant specs; every dependency labeled `gated: needs <ask>`; A–H/D1–D3 mapping; packet pointer appended. |
+| **PARTIAL** | T27 gates + housekeeping | Gate scripts LANDED (`scripts/checks/check-adminui-surface.sh` + selftest — agent crashed ×3 on rate limits mid-task): coverage_gaps splits, flake app wiring, check-modules wiring, CI step diff, shellcheck receipt still PENDING. |
+| **IN FLIGHT** | T03+T04+T05 users cluster | Agent active (sort test files appearing in-tree). Verify + commit on report; lint constraints pre-seeded. |
+| **QUEUED** | T07+T30, T11, T12, T13, T14, T15, T16, T17, T18+T20, T19+T24, T21+T22, T23, T25, T29b, T32 | Dependency order per § Execution graph; dispatch after in-flight tasks land (provider rate limits force 1–2 concurrent). |
+
+**Operational receipts (session-level):**
+
+- Baselines: CORPUS 66291→67696→68742→69661; status TAIL 16→25 (both gate-green at each bump, same-commit rule).
+- Owner gates: D1–D3 + asks A–H packeted (T02), specs ready (T31) — UNSIGNED; nothing implemented against unpublished APIs.
+- **Push BLOCKED**: pre-push release-train gate reds on 33 fleet train lags (go-codec v0.3.3→v0.3.4 ~24 modules, go-atomic-write v0.6.2→v0.7.0 ×4, go-legalparty v0.2.0→v0.3.0) — pre-existing drift; the 3 bump-dep sweeps (§ fix recipe) are the unblock path.
+- Provider rate limits killed ~10 agent runs (3-concurrent unsustainable; even single agents died mid-work — the T09/T10 crash left adminui non-compiling until the orchestrator stabilized it). Working pattern: 1–2 concurrent + immediate retry.
+- Heavy gates (check-modules, coverage-gate, full e2e battery, docs battery) intentionally deferred to T32; per-task verification bars ran at every landing.
