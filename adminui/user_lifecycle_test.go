@@ -292,12 +292,31 @@ func TestRender_UserDetailLifecycleCards(t *testing.T) {
 		"Edit profile",
 		`hx-post="/admin/users/` + target.User.ID.Get().String() + `/display-name"`,
 		`hx-post="/admin/users/` + target.User.ID.Get().String() + `/email"`,
-		"Passkeys", "No passkeys enrolled",
 		"Platform access", `name="roles"`, "value=\"super_admin\"", "value=\"admin\"",
 		"Resend verification",
+		// The default test panel configures NO sign-in providers, and a
+		// freshly registered user holds no credential, no linked provider,
+		// and no TOTP — the lockout badge must say so, with the same
+		// blast-radius language the last-passkey confirm uses.
+		"Cannot sign in", "no way to", "locked out of their account",
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("user detail missing %q", want)
+		}
+	}
+
+	// Dead cards must NEVER render: without WebAuthn/TOTP/OAuth2 providers
+	// on the Service, the passkeys card, the external-accounts card and
+	// stat, and the TOTP details row would advertise sign-in channels the
+	// deployment cannot serve — so they are gated off entirely, not
+	// rendered as empty states.
+	for _, absent := range []string{
+		"Passkeys", "No passkeys enrolled", "Credentials",
+		"External accounts",
+		"TOTP MFA",
+	} {
+		if strings.Contains(body, absent) {
+			t.Errorf("dead card %q rendered without its provider configured", absent)
 		}
 	}
 

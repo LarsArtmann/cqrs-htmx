@@ -86,9 +86,12 @@ func TestExternalAccountsCard_EmptyState(t *testing.T) {
 	}
 }
 
-// TestPanel_UserDetailShowsExternalCard verifies the full page render includes
-// the external-accounts card heading for a registered user (empty state).
-func TestPanel_UserDetailShowsExternalCard(t *testing.T) {
+// TestPanel_UserDetailHidesExternalCard verifies the probe gate on the full
+// page render: a Service without an OAuth2 provider cannot serve provider
+// links at all, so the external-accounts card must not render — not even as
+// an empty state. The with-provider rendering is pinned by
+// TestAuthState_UserDetailShowsCards in user_auth_state_test.go.
+func TestPanel_UserDetailHidesExternalCard(t *testing.T) {
 	ctx := context.Background()
 	admin := mustUser(t, "admin@example.com")
 	h, svc := newTestPanel(t, admin)
@@ -105,11 +108,10 @@ func TestPanel_UserDetailShowsExternalCard(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/"+created.User.ID.Get().String(), nil))
 
 	body := rec.Body.String()
-	if !strings.Contains(body, "External accounts") {
-		t.Error("user detail page missing 'External accounts' card heading")
-	}
-	if !strings.Contains(body, "No external accounts linked.") {
-		t.Error("user detail page missing empty-state note for unlinked user")
+	for _, absent := range []string{"External accounts", "No external accounts linked."} {
+		if strings.Contains(body, absent) {
+			t.Errorf("external-accounts card rendered without an OAuth2 provider configured: %q", absent)
+		}
 	}
 }
 
