@@ -80,14 +80,13 @@ test("combobox: type, arrow, Enter picks, submit joins the member", async ({ pag
 
   await page.goto(`${ADMIN}${tenantPath}`, { waitUntil: "load" });
   await page.waitForTimeout(400);
-
   const input = page.locator("#admin-member-email-input");
   await expect(input).toHaveAttribute("role", "combobox");
   await expect(input).toHaveAttribute("aria-expanded", "false");
 
   // Type the prefix; the debounced fetch fills the listbox.
   await input.click();
-  await input.fill(`e2e-pick-${stamp.substring(0, 6)}`);
+  await input.fill(`e2e-pick-${String(stamp).substring(0, 6)}`);
   const listbox = page.locator("#admin-member-email-input-listbox");
   await expect(listbox).toBeVisible({ timeout: 3000 });
   await expect(input).toHaveAttribute("aria-expanded", "true");

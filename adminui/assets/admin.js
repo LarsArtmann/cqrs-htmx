@@ -1138,7 +1138,15 @@
         headers: { "Accept": "application/json" }
       })
         .then(function (res) { return res.ok ? res.json() : []; })
-        .then(function (rows) { render(input, lb, rows); })
+        .then(function (raw) {
+          // The endpoint answers {id, email, display_name}; the combobox
+          // contract is {value, label} — normalize here.
+          var rows = (Array.isArray(raw) ? raw : []).map(function (r) {
+            var value = r.email || r.value || "";
+            return { value: value, label: r.display_name || r.label || value };
+          });
+          render(input, lb, rows);
+        })
         .catch(function () { close(input); });
     } else {
       var needle = q.toLowerCase();
