@@ -174,14 +174,14 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		AddMemberCreateHref: h.config.BasePath + "/users/new",
 		// F080: the identity card answers "who holds which roles here" from
 		// the rows already resolved — no extra queries.
-		RoleDistribution: roleDistribution(allMembers),
-		TotalMembers:     total,
-		AdminTierCount:   countAdminTier(allMembers),
-		Page:             page,
-		TotalPages:       totalPages,
-		RosterURL:        h.config.BasePath + "/tenants/" + tenantID.Get(),
-		RosterExportURL:  h.config.BasePath + "/tenants/" + tenantID.Get() + "/roster.csv",
-		TransferURL:      h.config.BasePath + "/tenants/" + tenantID.Get() + "/transfer",
+		RoleDistribution:   roleDistribution(allMembers),
+		TotalMembers:       total,
+		AdminTierCount:     countAdminTier(allMembers),
+		Page:               page,
+		TotalPages:         totalPages,
+		RosterURL:          h.config.BasePath + "/tenants/" + tenantID.Get(),
+		RosterExportURL:    h.config.BasePath + "/tenants/" + tenantID.Get() + "/roster.csv",
+		TransferURL:        h.config.BasePath + "/tenants/" + tenantID.Get() + "/transfer",
 		TransferCandidates: transferCandidates(allMembers),
 	}
 	h.applyMemberError(r, &d)
@@ -475,7 +475,12 @@ func executeOwnershipTransfer(
 
 	// Grant: the target's EXISTING roles plus owner — GrantRoles replaces the
 	// role set, so granting bare [owner] would silently strip their roles.
-	if err := svc.GrantRoles(ctx, target, tenantID, appendRole(slices.Clone(targetRoles), identitymodel.RoleOwner)); err != nil {
+	if err := svc.GrantRoles(
+		ctx,
+		target,
+		tenantID,
+		appendRole(slices.Clone(targetRoles), identitymodel.RoleOwner),
+	); err != nil {
 		out.GrantErr = err
 		return out // nothing else dispatched: the failure is total, not partial
 	}

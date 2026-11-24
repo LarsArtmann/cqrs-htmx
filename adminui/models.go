@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
-	"github.com/a-h/templ"
 )
 
 // navItem is a single sidebar entry. Icon is a key resolved by the svgIcon
@@ -167,8 +167,8 @@ func tenantTransferGrantOnlyConfirm(targetName string) string {
 // bodies composed in Go helpers stay hardcoded English.)
 func tenantTransferConfirm(priorName, targetName string) string {
 	return "Transfer ownership from " + priorName + " to " + targetName + "? " +
-			targetName + " gains the owner role and keeps their other roles; " +
-			priorName + " loses owner but keeps any other roles they hold."
+		targetName + " gains the owner role and keeps their other roles; " +
+		priorName + " loses owner but keeps any other roles they hold."
 }
 
 // statCard is one metric tile on the dashboard. Tone and Href are optional
@@ -681,7 +681,6 @@ func holdsAdminTier(roles []identitymodel.Role) bool {
 	}
 	return false
 }
-
 
 // memberRemoveConfirm builds the roster remove confirm text, escalating like
 // the passkey case when the member holds the tenant's ONLY admin-tier role:

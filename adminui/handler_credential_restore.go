@@ -60,7 +60,7 @@ func (h *Handler) userRestoreCredential(w http.ResponseWriter, r *http.Request, 
 		redirect(w, r, back)
 		return
 	}
-	if err := h.config.Service.AddCredential(r.Context(), usermgmt.UserID(target), cred); err != nil {
+	if err := h.config.Service.AddCredential(r.Context(), target, cred); err != nil {
 		triggerToast(w, "err", "Credential restore failed: "+actionErrorMessage(err)+". Nothing restored.")
 		redirect(w, r, back)
 		return

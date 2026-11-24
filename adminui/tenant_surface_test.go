@@ -329,7 +329,11 @@ func TestTransferOwnership_Success(t *testing.T) {
 	mustAddMember(t, svc, target.User.ID, tenant.ID, identitymodel.RoleViewer)
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/admin/tenants/acme/transfer", strings.NewReader("email=target@acme.dev"))
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/admin/tenants/acme/transfer",
+		strings.NewReader("email=target@acme.dev"),
+	)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	h.ServeHTTP(rec, req)
 
@@ -371,7 +375,11 @@ func TestTransferOwnership_SelfTransferRefused(t *testing.T) {
 	mustAddMember(t, svc, owner.User.ID, tenant.ID, identitymodel.RoleOwner)
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/admin/tenants/acme/transfer", strings.NewReader("email=owner@acme.dev"))
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/admin/tenants/acme/transfer",
+		strings.NewReader("email=owner@acme.dev"),
+	)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	h.ServeHTTP(rec, req)
 
@@ -426,9 +434,12 @@ func TestTransferOwnership_MidSequenceFailureHonest(t *testing.T) {
 
 	// Roster snapshot taken BEFORE the prior owner's membership is removed
 	// out-of-band — the decider will refuse the demotion.
-	members := toMemberRows(svc.TenantMembers(context.Background(), tenant.ID), func(identitymodel.UserID) (*identitymodel.User, bool) {
-		return nil, false
-	})
+	members := toMemberRows(
+		svc.TenantMembers(context.Background(), tenant.ID),
+		func(identitymodel.UserID) (*identitymodel.User, bool) {
+			return nil, false
+		},
+	)
 	var prior *memberRow
 	var targetActor identitymodel.ActorID
 	var targetRoles []identitymodel.Role
@@ -488,9 +499,12 @@ func TestTransferOwnership_GrantOnlyWhenNoOwner(t *testing.T) {
 	target := mustRegister(t, svc, "t1", "t1@acme.dev")
 	mustAddMember(t, svc, target.User.ID, tenant.ID, identitymodel.RoleViewer)
 
-	members := toMemberRows(svc.TenantMembers(context.Background(), tenant.ID), func(identitymodel.UserID) (*identitymodel.User, bool) {
-		return nil, false
-	})
+	members := toMemberRows(
+		svc.TenantMembers(context.Background(), tenant.ID),
+		func(identitymodel.UserID) (*identitymodel.User, bool) {
+			return nil, false
+		},
+	)
 	out := executeOwnershipTransfer(
 		context.Background(), svc, tenant.ID,
 		members[0].Actor, members[0].Roles, nil,

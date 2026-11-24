@@ -85,9 +85,9 @@ Override with your own `Config.Authorizer`, or use the helpers
 
 Every path the panel answers comes from one table in [`routes.go`](routes.go): the mux
 registration and the [`Handler.Routes()`](handler.go) manifest are both generated from
-those rows, so a route cannot exist outside the table. The source table has **47 rows**;
-a running instance serves the subset for its mode — **43 rows in `ModeSuperAdmin`**
-(every row below except the four tenant-admin Members rows) and **15 rows in
+those rows, so a route cannot exist outside the table. The source table has **61 rows**;
+a running instance serves the subset for its mode — **56 rows in `ModeSuperAdmin`**
+(every row below except the five tenant-admin Members rows) and **18 rows in
 `ModeTenantAdmin`** (the shared rows, Members, and the fallbacks; the Users and Tenants
 panels do not exist in that mode).
 
@@ -130,6 +130,7 @@ Gate legend:
 | POST   | /users/{id}/roles                           | Users     | super-admin  | role-gated | Grant platform roles — they decide who can reach this panel *(write)*                              |
 | POST   | /users/{id}/roles/revoke                    | Users     | super-admin  | role-gated | Revoke platform roles *(write)*                                                                    |
 | POST   | /users/{id}/credentials/{credential}/delete | Users     | super-admin  | role-gated | Remove a passkey/credential *(write)*                                                              |
+| POST   | /users/{id}/credentials/restore             | Users     | super-admin  | role-gated | Restore a passkey from uploaded backup JSON *(write)*                                              |
 | POST   | /users/{id}/resend-verification             | Users     | super-admin  | role-gated | Resend the verification email *(write)*                                                            |
 | POST   | /users/{id}/tenants                         | Users     | super-admin  | role-gated | Grant the user access to a tenant *(write)*                                                        |
 | POST   | /users/{id}/tenants/{tenant}                | Users     | super-admin  | role-gated | Change the user's role in one tenant *(write)*                                                     |
@@ -138,6 +139,8 @@ Gate legend:
 | GET    | /tenants/new                                | Tenants   | super-admin  | role-gated | The create-tenant form                                                                             |
 | POST   | /tenants                                    | Tenants   | super-admin  | role-gated | Create a tenant *(write)*                                                                          |
 | GET    | /tenants/{id}                               | Tenants   | super-admin  | role-gated | Tenant detail: identity, status, member roster                                                     |
+| GET    | /tenants/{id}/roster.csv                    | Tenants   | super-admin  | role-gated | Export the tenant's FULL roster as CSV                                                             |
+| POST   | /tenants/{id}/transfer                      | Tenants   | super-admin  | role-gated | Transfer ownership: grant owner to one member, demote the prior owner *(write)*                    |
 | POST   | /tenants/{id}/suspend                       | Tenants   | super-admin  | role-gated | Suspend a tenant — disables every member of it *(write)*                                           |
 | POST   | /tenants/{id}/reactivate                    | Tenants   | super-admin  | role-gated | Reverse a platform suspension *(write)*                                                            |
 | POST   | /tenants/{id}/delete                        | Tenants   | super-admin  | role-gated | Delete a tenant — destroys its history *(write)*                                                   |
@@ -146,6 +149,7 @@ Gate legend:
 | POST   | /tenants/{id}/members/{actor}               | Tenants   | super-admin  | role-gated | Change a member's role inside the tenant *(write)*                                                 |
 | GET    | /members                                    | Members   | super-admin  | role-gated | Global membership directory — every membership across every tenant                                 |
 | GET    | /members                                    | Members   | tenant-admin | role-gated | The member roster of `Config.TenantID` — tenant-internal                                           |
+| GET    | /members/roster.csv                         | Members   | tenant-admin | role-gated | Export the scoped tenant's FULL roster as CSV                                                      |
 | POST   | /members                                    | Members   | tenant-admin | role-gated | Add a member to the scoped tenant *(write)*                                                        |
 | POST   | /members/{actor}/delete                     | Members   | tenant-admin | role-gated | Remove a member *(write)*                                                                          |
 | POST   | /members/{actor}                            | Members   | tenant-admin | role-gated | Change a member's role *(write)*                                                                   |
@@ -163,9 +167,26 @@ Notes:
 - The user-side tenant-access writes (`/users/{id}/tenants…`) and the tenant-side
   membership writes (`/tenants/{id}/members…`, `/members…`) dispatch the same durable
   commands — the admin starts wherever they are.
+- Ownership transfer (`POST /tenants/{id}/transfer`) is TWO durable commands under one
+  confirm — grant the owner role to the target, then demote the prior owner — sequenced
+  by the handler with mid-sequence failure honesty: a failed demotion leaves TWO owners
+  (the safe direction), and the toast says exactly what landed, naming both sides and
+  the failure reason. Design: docs/planning/2026-11-24_T22-ownership-transfer-design.md.
+- A DELETED tenant's detail route renders a read-only tombstone — identity plus
+  deleted-at/by resolved from the tenant's journal stream (the audit-log projection
+  subscribes only to user/auth events), with an honest "not recorded" when the actor
+  chain predates attribution. The live view never renders for a deleted tenant.
+- The roster paginates beyond `MaxListRows` like every other list (one page of rows,
+  full-roster counts for the captions and confirms), and both roster views export the
+  FULL roster as CSV (`/tenants/{id}/roster.csv` super-admin, `/members/roster.csv`
+  tenant-admin) — never just the visible page.
+- The create-tenant form auto-suggests the slug from the display name as you type
+  (editable field; a manual edit is never overwritten), the role checkboxes carry
+  per-role descriptions, and the tenant switcher gains an in-dropdown filter once the
+  live-tenant list is long enough to need it.
 
 **Freshness:** this table is pinned by [`routes_manifest_test.go`](routes_manifest_test.go) —
-`TestRoutes_ManifestGolden` asserts the 42 super-admin manifest rows (method, path,
+`TestRoutes_ManifestGolden` asserts the full super-admin manifest (method, path,
 posture, panel) row-for-row, `TestRoutes_TenantModeManifest` pins the tenant-mode shape
 (Users/Tenants absent; Dashboard/Members/Audit present), and
 `TestRoutes_FallbackSemantics` pins the guarded 404, the methodless 405, the exact-match
