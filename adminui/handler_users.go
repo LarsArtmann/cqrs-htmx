@@ -112,11 +112,20 @@ func (az *renderAuthz) tenantCountFor(id string) int {
 	if az == nil {
 		return 0
 	}
+	// One membership carrying several roles yields one GroupPolicies row PER
+	// ROLE in the same domain — count domains, not rows, or a two-role grant
+	// reads as "2 tenants".
+	seen := make(map[string]struct{}, len(az.tenantDomains[id]))
 	count := 0
 	for _, dom := range az.tenantDomains[id] {
-		if _, ok := az.tenantIDs[dom]; ok {
-			count++
+		if _, ok := az.tenantIDs[dom]; !ok {
+			continue
 		}
+		if _, dup := seen[dom]; dup {
+			continue
+		}
+		seen[dom] = struct{}{}
+		count++
 	}
 	return count
 }

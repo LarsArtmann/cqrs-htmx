@@ -155,7 +155,13 @@ test("tenant access: change roles via the checkbox group, then revoke", async ({
 
   // The last-admin escalation fires while this user is the sole admin-tier
   // holder of the tenant: the confirm dialog carries the blast radius.
-  const confirm = await roleRow.locator("button[data-confirm]").getAttribute("data-confirm");
+  // The row carries TWO data-confirm buttons since the T12 downgrade
+  // escalation landed on the per-row Set button too — the assertion targets
+  // the role-change confirm explicitly.
+  const confirm = await roleRow
+    .locator("form", { hasText: "Set roles" })
+    .locator("button[data-confirm]")
+    .getAttribute("data-confirm");
   expect(confirm).toContain("only admin or owner");
 
   // Revoke removes the row entirely.

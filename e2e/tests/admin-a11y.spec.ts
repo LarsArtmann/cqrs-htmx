@@ -239,6 +239,10 @@ test("keyboard: the tenant grant form is reachable and operable without a mouse"
   await seedTenantAndUser(page, stamp2);
   await page.goto(`${ADMIN}/admin/users?q=e2e-a11y-${stamp2}@acme.dev`, { waitUntil: "load" });
   await page.waitForTimeout(400);
+  page.on("request", (r) => {
+    if (r.url().includes("/tenants") && r.method() === "POST" && (r.postData() ?? "").includes("e2e-a11y"))
+      console.log("GRANT-POST", r.url(), r.postData());
+  });
   await page
     .locator("#users-table tbody tr", { hasText: `e2e-a11y-${stamp2}@acme.dev` })
     .locator("a")
@@ -289,5 +293,11 @@ test("keyboard: the tenant grant form is reachable and operable without a mouse"
   await page.waitForTimeout(400);
   const row = page.locator("#users-table tbody tr", { hasText: `e2e-a11y-${stamp2}@acme.dev` });
   await expect(row).toHaveCount(1);
+  console.log("ROW:", JSON.stringify(await row.innerText()));
+  await page.locator("#users-table tbody tr", { hasText: `e2e-a11y-${stamp2}@acme.dev` }).locator("a").first().click();
+  await page.waitForTimeout(400);
+  const card = page.locator("[data-sync-target]", { hasText: "Tenant access" }).first();
+  console.log("ACCESS:", JSON.stringify(await card.innerText()));
+  await page.goto(`${ADMIN}/admin/users?q=e2e-a11y-${stamp2}@acme.dev`, { waitUntil: "load" });
   expect(await row.innerText()).toContain("1 tenant");
 });
