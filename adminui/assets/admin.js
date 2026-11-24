@@ -488,9 +488,12 @@
 
   // --- F128: copy-row-as-JSON support action (user DETAIL page) ---
   // [data-copy-json] buttons carry the server-composed payload; the click
-  // bridges to the async Clipboard API and reports BOTH outcomes honestly
-  // through the existing adminui:toast bridge — success and explicit
-  // denial (no clipboard API at all, or the write promise rejected).
+  // bridges to the async Clipboard API and reports ALL outcomes honestly
+  // through the existing adminui:toast bridge — success, explicit denial
+  // (no clipboard API at all, or the write promise rejected), and the
+  // server-side empty-payload degrade: a failed marshal ships an EMPTY
+  // data-copy-json, and copying "{}" with a success toast would lie, so
+  // that path reports failure before the clipboard is ever touched.
   document.addEventListener("click", function (e) {
     var btn = e.target.closest && e.target.closest("[data-copy-json]");
     if (!btn) return;
@@ -500,6 +503,10 @@
     }
     var okMsg = btn.getAttribute("data-copy-ok") || "Copied.";
     var errMsg = btn.getAttribute("data-copy-err") || "Clipboard denied — nothing was copied.";
+    if (!payload) {
+      copyToast("err", btn.getAttribute("data-copy-empty") || "Snapshot unavailable — nothing was copied.");
+      return;
+    }
     if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
       navigator.clipboard.writeText(payload).then(
         function () {

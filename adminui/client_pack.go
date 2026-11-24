@@ -16,9 +16,11 @@ type userCopySnapshot struct {
 }
 
 // userCopyJSON marshals the snapshot. Marshal of this plain-string/bool
-// struct cannot fail in practice; the error arm degrades to an empty object
-// rather than shipping a half-written payload attribute. The timestamp is
-// UTC (gosmopolitan: no time.Local anywhere).
+// struct cannot fail in practice; the error arm degrades to an EMPTY payload
+// (never a half-written attribute), and the admin.js click handler treats an
+// empty payload as a failure — an honest error toast instead of a success
+// toast that copied "{}". The timestamp is UTC (gosmopolitan: no time.Local
+// anywhere).
 func userCopyJSON(d userDetailData) string {
 	snap := userCopySnapshot{
 		ID:          d.User.ID.Get().String(),
@@ -29,7 +31,7 @@ func userCopyJSON(d userDetailData) string {
 	}
 	b, err := json.Marshal(snap)
 	if err != nil {
-		return "{}"
+		return ""
 	}
 	return string(b)
 }
