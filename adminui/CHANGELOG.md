@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **The user detail page is honest about authentication state.** The panel rendered the Passkeys, TOTP, and External-accounts surfaces unconditionally, so a deployment without those providers showed dead cards — an empty state that implies an enrollment or link the user can never perform. The page now reads the Service's published capability probes (`HasWebAuthn`/`HasTOTP`/`HasOAuth2`, `ConfiguredOAuth2Providers`) into an `authMethods` snapshot and gates every sign-in surface on it: no WebAuthn provider, no Passkeys card (and no Credentials stat); no OAuth2 provider, no External-accounts card or stat; no TOTP provider, no "TOTP MFA" details row. Dead cards never render — not even as empty states. The same truth powers a first-class rescue signal the panel could not express before: a **"Cannot sign in" badge** (with the last-passkey confirm's blast-radius copy — "locked out of their account until a passkey is re-enrolled, a provider is linked, or TOTP is enabled") fires when a user holds no credential, no linked provider, and no TOTP, i.e. is locked out of their own account; it clears the moment any single channel exists. Pinned by `user_auth_state_test.go` (probe snapshot over bare vs provider-rich services, the cannot-sign-in truth table — credential-only / external-only / TOTP-only / none — at helper and render level, badge clears after a real `AddCredential`), the enriched `user_lifecycle_test.go` dead-card absence pins, and the flipped `oauth_views_test.go` external-card gate. Paper only: the supervised-enrollment rescue design (short-TTL one-time token satisfying owner-match without a session) is drafted for the owner in `docs/decisions/2026-11-24_adminui-supervised-enrollment-note.md`.
+
 ## [v4.18.0] - 2026-11-21
 
 ### Added
