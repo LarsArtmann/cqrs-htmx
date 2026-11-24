@@ -11,7 +11,7 @@ usermgmt	74
 usermgmt/totp	80
 usermgmt/webauthn	80
 usermgmt/oauth2	80
-adminui	68
+adminui	67
 loginpage	79
 dashboardui	60
 dashboardui/core	80

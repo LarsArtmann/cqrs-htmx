@@ -149,15 +149,16 @@ func TestS49_MemorySnapshotStore_RoundTripsStateShape(t *testing.T) {
 	require.Equal(t, "user@v2", loaded.StateShape, "memory store must round-trip the StateShape stamp")
 }
 
-// TestS49_SQLSnapshotStore_DropsStateShape_UpstreamGap pins the verified
-// verdict (S49, audited 2026-10-25 against go-cqrs-lite/storage v4.11.1):
-// the SQL snapshot store persists only (stream_type, stream_id, version,
-// state, created_at) — the StateShape stamp is silently dropped, which
-// degrades stamped snapshots to unstamped across restarts for SQL consumers.
-// The fix belongs upstream (schema + INSERT/SELECT column); this assertion
-// flips to Equal("user@v2") in the same family-bump change that adopts it.
-// Upstream ask routed to the W13 owner packet.
-func TestS49_SQLSnapshotStore_DropsStateShape_UpstreamGap(t *testing.T) {
+// TestS49_SQLSnapshotStore_PreservesStateShape pins the flipped verdict
+// (S49, audited 2026-10-25 against go-cqrs-lite/storage v4.11.1; flipped
+// 2026-11-24 after upstream shipped the fix in storage/v4 v4.11.2 —
+// go-cqrs-lite#117 resolved, source-verified at the tag: state_shape column +
+// INSERT bind + SELECT scan in eventstore/snapshot.go): the SQL snapshot
+// store round-trips the StateShape stamp, so stamped snapshots survive
+// restarts for SQL consumers. The original assertion was Empty (the drop);
+// this Equal form is the permanent preservation contract — a regression that
+// drops the stamp again fails here in the same change as the pin sweep.
+func TestS49_SQLSnapshotStore_PreservesStateShape(t *testing.T) {
 	t.Parallel()
 
 	db, err := sql.Open("sqlite", "file:s49_snapshots?mode=memory&cache=shared")
@@ -178,6 +179,6 @@ func TestS49_SQLSnapshotStore_DropsStateShape_UpstreamGap(t *testing.T) {
 	require.NotNil(t, loaded, "the SQL store must load the snapshot it saved")
 	require.Equal(t, snap.Version, loaded.Version)
 	require.Equal(t, snap.StreamID, loaded.StreamID)
-	require.Empty(t, loaded.StateShape,
-		"VERDICT CHANGE: upstream storage now round-trips StateShape — flip this assertion")
+	require.Equal(t, "user@v2", loaded.StateShape,
+		"the SQL store must round-trip the StateShape stamp — a drop here is the v4.11.1 regression class")
 }
