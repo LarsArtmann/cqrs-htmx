@@ -119,6 +119,26 @@ templ auditFilterBar(d auditView) {
 				>{ chip.Label }</a>
 			}
 		}
+		<span class="text-gray-300">|</span>
+		// Window exports: the buttons carry the CURRENT filter set
+		// (auditFilterURL is the one builder the pager and chips already
+		// share), so the downloaded file covers exactly what the list shows
+		// — the whole retained window when nothing is active, and the file's
+		// own header captions say so either way.
+		@display.Button(display.ButtonProps{
+			Text:      "Export CSV",
+			Href:      auditFilterURL(d.BasePath+"/audit/export.csv", d.Search, d.From, d.To, d.Actor),
+			Variant:   display.ButtonSecondary,
+			Size:      display.ButtonSizeSM,
+			BaseProps: utils.BaseProps{Class: classNoUnderline},
+		})
+		@display.Button(display.ButtonProps{
+			Text:      "Export JSON",
+			Href:      auditFilterURL(d.BasePath+"/audit/export.json", d.Search, d.From, d.To, d.Actor),
+			Variant:   display.ButtonSecondary,
+			Size:      display.ButtonSizeSM,
+			BaseProps: utils.BaseProps{Class: classNoUnderline},
+		})
 	</div>
 	if len(d.Issues) > 0 {
 		// A refused filter is announced, never silently dropped.

@@ -1,12 +1,14 @@
 package adminui
 
 import (
+	"strconv"
+
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
-	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
+	"github.com/larsartmann/templ-components/utils/svg"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
@@ -130,19 +132,104 @@ templ totpBadge(enabled bool) {
 }
 
 // listPager renders the pagination footer for a list page. baseURL must
-// already carry any active search query (build it with listPageURL) — the
-// component appends or replaces the page parameter. Links full-navigate:
-// browser history and back/forward stay honest (M058 decision). Renders
-// nothing on a single page.
+// already carry every active list-state param (build it with the list's URL
+// builder — listPageURL, tenantListURL, userListURL, auditListURL) — the
+// component stamps or replaces only the page parameter, so the state survives
+// every click. Pages render as a windowed strip (1 … 4 5 6 … N, via
+// pagerWindow): first/last always present, three pages around the current
+// one, ellipsis markers where numbers were dropped — a 40-page footer no
+// longer scrolls. Links full-navigate: browser history and back/forward stay
+// honest (M058 decision). Renders nothing on a single page. The markup and
+// classes mirror the library Pagination this replaces (its windowing was
+// fixed-width and its window math untestable from the panel; the pure
+// pagerWindow is).
 templ listPager(baseURL string, page, totalPages int) {
 	if totalPages > 1 {
 		<div class="mt-4">
-			@navigation.Pagination(navigation.PaginationProps{
-				CurrentPage: uint(page),
-				TotalPages:  uint(totalPages),
-				BaseURL:     baseURL,
-			})
+			<nav aria-label="Pagination" class="flex items-center justify-between">
+				<div class="flex flex-1 justify-between sm:hidden">
+					@pagerMobileButton(page > 1, pagerPageURL(baseURL, page-1), "Previous")
+					@pagerMobileButton(page < totalPages, pagerPageURL(baseURL, page+1), "Next")
+				</div>
+				<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+					<div>
+						<p class="text-sm text-gray-700 dark:text-gray-300">
+							Showing page
+							<span class="font-medium">{ strconv.Itoa(page) }</span>
+							of
+							<span class="font-medium">{ strconv.Itoa(totalPages) }</span>
+						</p>
+					</div>
+					<div>
+						<ol class="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
+							<li>
+								@pagerArrow(page > 1, pagerPageURL(baseURL, page-1), "rounded-s-md", "Previous page", "Previous", svg.PathArrowLeft)
+							</li>
+							for _, step := range pagerWindow(page, totalPages) {
+								if step.Ellipsis {
+									<li>
+										<span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-600">…</span>
+									</li>
+								} else if step.Page == page {
+									<li>
+										<span
+											aria-current="page"
+											class="relative z-10 inline-flex items-center bg-blue-600 dark:bg-blue-500 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500"
+										>{ strconv.Itoa(step.Page) }</span>
+									</li>
+								} else {
+									<li>
+										<a
+											href={ templ.SafeURL(pagerPageURL(baseURL, step.Page)) }
+											class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-200 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0"
+										>{ strconv.Itoa(step.Page) }</a>
+									</li>
+								}
+							}
+							<li>
+								@pagerArrow(page < totalPages, pagerPageURL(baseURL, page+1), "rounded-e-md", "Next page", "Next", svg.PathArrowRight)
+							</li>
+						</ol>
+					</div>
+				</div>
+			</nav>
 		</div>
+	}
+}
+
+// pagerMobileButton is the windowed pager's small-screen Previous/Next
+// control: an enabled link or a disabled span (the library Pagination's
+// mobile row markup).
+templ pagerMobileButton(enabled bool, href, text string) {
+	if enabled {
+		<a
+			href={ templ.SafeURL(href) }
+			class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+		>{ text }</a>
+	} else {
+		<span class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-500 cursor-not-allowed">{ text }</span>
+	}
+}
+
+// pagerArrow is the windowed pager's desktop Previous/Next chevron: an
+// enabled link or a disabled span (the library Pagination's arrow markup).
+// roundedClass is the complete border-radius utility (e.g. "rounded-s-md") —
+// passed as a literal so Tailwind's content scanner can detect it.
+templ pagerArrow(enabled bool, href, roundedClass, ariaLabel, srText string, path string) {
+	if enabled {
+		<a
+			href={ templ.SafeURL(href) }
+			class={ "relative inline-flex items-center px-2 py-2 text-gray-400 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0", roundedClass }
+			aria-label={ ariaLabel }
+		>
+			<span class="sr-only">{ srText }</span>
+			@svg.FillIcon("h-5 w-5", path, false)
+		</a>
+	} else {
+		<span class={ "relative inline-flex items-center px-2 py-2 text-gray-300 dark:text-gray-600 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 cursor-not-allowed", roundedClass } aria-disabled="true" tabindex="-1">
+			<span class="sr-only">{ srText }</span>
+			@svg.FillIcon("h-5 w-5", path, false)
+		</span>
 	}
 }
 

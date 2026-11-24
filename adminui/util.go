@@ -200,6 +200,17 @@ func userListURL(base string, d usersListData, filter userFilter, sort string) s
 	return base + "?" + params.Encode()
 }
 
+// pagerSortOf collapses the optional sort argument the users table component
+// takes into the wire value ("" when absent — the variadic keeps the search
+// twin's one-argument call compiling while the GET route threads the
+// ordering through; an unknown value degrades via parseUserSort).
+func pagerSortOf(sort []string) string {
+	if len(sort) == 0 {
+		return ""
+	}
+	return parseUserSort(sort[0])
+}
+
 // userChipWithSort re-arms a chip's href with the active ordering, so
 // toggling a status chip keeps the sort (the chip row is built by
 // userFilterChipsList in models.go, whose vocabulary predates sort; the href

@@ -1,6 +1,11 @@
 package adminui
 
 import (
+	"encoding/csv"
+	"encoding/json/v2"
+	"encoding/json/v2/jsontext"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -264,6 +269,163 @@ func auditFilterURL(base, search, from, to, actor string) string {
 		return base
 	}
 	return base + "?" + params.Encode()
+}
+
+// auditExportCSV / auditExportJSON stream the audit WINDOW's filtered
+// entries in the declared format — the same q/from/to/actor narrowing the
+// page applies (one filter order, filterAuditEntries → range → actor), over
+// the whole retained window, not just the visible page. The response leads
+// with an honest caption: the window's retention facts and the filter state
+// the file was narrowed by, so an exported file can be read without the
+// page next to it.
+func (h *Handler) auditExportCSV(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	h.auditExport(w, r, usermgmt.UserDataFormatCSV)
+}
+
+func (h *Handler) auditExportJSON(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	h.auditExport(w, r, usermgmt.UserDataFormatJSON)
+}
+
+func (h *Handler) auditExport(w http.ResponseWriter, r *http.Request, format usermgmt.UserDataFormat) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	fromRaw := strings.TrimSpace(r.URL.Query().Get("from"))
+	toRaw := strings.TrimSpace(r.URL.Query().Get("to"))
+	from, _ := parseAuditDateFilter(fromRaw, "From")
+	to, _ := parseAuditDateFilter(toRaw, "To")
+	// A reversed range narrows nothing (the page announces the issue; an
+	// export has no issue strip, so it simply exports un-date-narrowed).
+	if from != nil && to != nil && from.After(*to) {
+		from, to = nil, nil
+	}
+	actor := parseAuditActorChip(r.URL.Query().Get("actor"))
+
+	var window auditWindowFacts
+	var matched []usermgmt.AuditEntry
+	if al := h.config.Service.AuditLog(); al != nil {
+		all := al.Recent(al.Count())
+		resolveAuditEmails(h.config.Service, all)
+		matched = filterAuditActor(filterAuditRange(filterAuditEntries(all, q), from, to), actor)
+		window = auditWindowFacts{Holds: al.Count(), Limit: al.Limit(), Dropped: al.Dropped()}
+	}
+
+	filters := auditExportFilters{Q: q, From: fromRaw, To: toRaw, Actor: actor}
+	name := "audit-export." + string(format)
+	w.Header().Set("Content-Type", exportContentType(format))
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", name))
+
+	var err error
+	switch format {
+	case usermgmt.UserDataFormatCSV:
+		err = writeAuditCSV(w, matched, filters, window)
+	case usermgmt.UserDataFormatJSON:
+		err = writeAuditJSON(w, matched, filters, window)
+	}
+	if err != nil {
+		// Headers are already committed by the streaming write; the partial
+		// output is honest about failing rather than silently truncated.
+		triggerToast(w, "err", "Export failed: "+actionErrorMessage(err))
+	}
+}
+
+// auditExportFilters is the filter state an export was narrowed by, echoed
+// into the file so its scope is self-describing.
+type auditExportFilters struct {
+	Q     string `json:"q,omitzero"`
+	From  string `json:"from,omitzero"`
+	To    string `json:"to,omitzero"`
+	Actor string `json:"actor,omitzero"`
+}
+
+// active reports whether any filter narrowed the export (mirrors the page's
+// auditFiltersActive).
+func (f auditExportFilters) active() bool {
+	return f.Q != "" || f.From != "" || f.To != "" || f.Actor != ""
+}
+
+// describe renders the filter state as one human caption line; an unfiltered
+// export says so instead of staying quiet.
+func (f auditExportFilters) describe() string {
+	if !f.active() {
+		return "Filters: none — every entry the window retains."
+	}
+	var b strings.Builder
+	b.WriteString("Filters:")
+	if f.Q != "" {
+		b.WriteString(" q=" + f.Q)
+	}
+	if f.From != "" {
+		b.WriteString(" from=" + f.From)
+	}
+	if f.To != "" {
+		b.WriteString(" to=" + f.To)
+	}
+	if f.Actor != "" {
+		b.WriteString(" actor=" + f.Actor)
+	}
+	return b.String()
+}
+
+// writeAuditCSV streams the filtered entries as CSV led by "# " comment
+// lines: the window caption, the filter state, and the row count — a file
+// that says what it covers before the first data row.
+func writeAuditCSV(w io.Writer, entries []usermgmt.AuditEntry, filters auditExportFilters, window auditWindowFacts) error {
+	cw := csv.NewWriter(w)
+	caption := []string{
+		"Audit export — filtered view of the in-memory audit window.",
+		filters.describe(),
+	}
+	if window.hasFacts() {
+		caption = append(caption, auditWindowCaptionText(window))
+	}
+	caption = append(caption, strconv.Itoa(len(entries))+" entries exported.")
+	for _, line := range caption {
+		if err := cw.Write([]string{"# " + line}); err != nil {
+			return errorfamily.WrapTransient(err, "adminui.audit_export.csv_caption_failed", "write audit export caption")
+		}
+	}
+	if err := cw.Write([]string{"action", "actor_email", "aggregate_id", "occurred_at", "actor_kind", "detail"}); err != nil {
+		return errorfamily.WrapTransient(err, "adminui.audit_export.csv_header_failed", "write audit export header")
+	}
+	for _, e := range entries {
+		if err := cw.Write([]string{
+			e.Action,
+			e.Email,
+			e.AggregateID.Get(),
+			e.OccurredAt.Format(time.RFC3339),
+			e.ActorID.Kind().String(),
+			e.Detail,
+		}); err != nil {
+			return errorfamily.WrapTransient(err, "adminui.audit_export.csv_row_failed", "write audit export row")
+		}
+	}
+	cw.Flush()
+	return cw.Error()
+}
+
+// writeAuditJSON streams the filtered entries as one envelope object: the
+// window facts, the filter state, and the count travel WITH the entries, so
+// a reader can tell what the file covers without the page.
+func writeAuditJSON(w io.Writer, entries []usermgmt.AuditEntry, filters auditExportFilters, window auditWindowFacts) error {
+	doc := auditExportDoc{
+		Window:  window,
+		Filters: filters,
+		Count:   len(entries),
+		Entries: entries,
+	}
+	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
+	if err := json.MarshalEncode(enc, doc); err != nil {
+		return errorfamily.WrapInfrastructure(err, "adminui.audit_export.json_encode_failed", "encode audit export JSON")
+	}
+	return nil
+}
+
+// auditExportDoc is the JSON export envelope: what the window can honestly
+// claim, what narrowed the file, and the entries themselves.
+type auditExportDoc struct {
+	Window  auditWindowFacts     `json:"window,omitzero"`
+	Filters auditExportFilters   `json:"filters"`
+	Count   int                  `json:"count"`
+	Entries []usermgmt.AuditEntry `json:"entries"`
 }
 
 // userActivity serves the user detail activity card's load-more tail

@@ -71,7 +71,7 @@ func TestCasbinProjection_UserMergedIntoRemovesEveryGrant(t *testing.T) {
 		Email:         "loser@example.com",
 		Roles:         []Role{RoleUser, RoleViewer},
 	})
-	member := makeEventFor(t, eventMemberAdded, 1, deriveMembershipID(actor, tenant),
+	memberAdded := makeEventFor(t, eventMemberAdded, 1, deriveMembershipID(actor, tenant),
 		aggregateTypeMembership, MemberAddedPayload{
 			SchemaVersion: currentSchemaVersion,
 			ActorKind:     actor.Kind().String(),
@@ -82,7 +82,7 @@ func TestCasbinProjection_UserMergedIntoRemovesEveryGrant(t *testing.T) {
 	if err := proj.Handle(t.Context(), registered); err != nil {
 		t.Fatalf("Handle UserRegistered: %v", err)
 	}
-	if err := proj.Handle(t.Context(), member); err != nil {
+	if err := proj.Handle(t.Context(), memberAdded); err != nil {
 		t.Fatalf("Handle MemberAdded: %v", err)
 	}
 	if got := len(groupRowsFor(t, authz, loser.aggID.Get())); got != 2 {

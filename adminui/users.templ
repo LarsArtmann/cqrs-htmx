@@ -15,8 +15,8 @@ import (
 	"github.com/larsartmann/templ-components/utils/wire"
 )
 
-templ usersPage(p pageData, d usersListData) {
-	@Layout(p, usersContent(d))
+templ usersPage(p pageData, d usersListData, sort string) {
+	@Layout(p, usersContent(d, sort))
 }
 
 // userImportPage is the bulk-import form (super-admin). The result panel
@@ -92,9 +92,9 @@ templ importResultPanel(result usermgmt.ImportResult, back string) {
 	</div>
 }
 
-templ usersContent(d usersListData) {
+templ usersContent(d usersListData, sort string) {
 	@display.PageHeader(display.PageHeaderProps{Title: "Users", Action: newUserAction(d)})
-	<div class="mb-4 flex items-center gap-2">
+	<div class="mb-4 flex flex-wrap items-center gap-2">
 		@display.Button(display.ButtonProps{
 			Text:      "Import users",
 			Href:      d.BasePath + "/users/import",
@@ -109,6 +109,27 @@ templ usersContent(d usersListData) {
 			Size:      display.ButtonSizeSM,
 			BaseProps: utils.BaseProps{Class: classNoUnderline},
 		})
+		// The filtered exports render only while the view is actually
+			// narrowed (search, chip, or sort): with nothing active they would
+			// duplicate the full export above, so the toolbar stays honest about
+			// which button does what. The hrefs carry the CURRENT filter set via
+			// userListURL, so the file matches what the list shows.
+		if d.Search != "" || d.Filter != userFilterNone || sort != "" {
+			@display.Button(display.ButtonProps{
+				Text:      "Export filtered CSV",
+				Href:      userListURL(d.BasePath+"/users/export.filtered.csv", d, d.Filter, sort),
+				Variant:   display.ButtonSecondary,
+				Size:      display.ButtonSizeSM,
+				BaseProps: utils.BaseProps{Class: classNoUnderline},
+			})
+			@display.Button(display.ButtonProps{
+				Text:      "Export filtered JSON",
+				Href:      userListURL(d.BasePath+"/users/export.filtered.json", d, d.Filter, sort),
+				Variant:   display.ButtonSecondary,
+				Size:      display.ButtonSizeSM,
+				BaseProps: utils.BaseProps{Class: classNoUnderline},
+			})
+		}
 		// The search rides the RFC 10008 fallback ladder
 		// (docs/guides/http-query-method.md): Enter submits the form as a
 		// native QUERY request (the cqrs-query extension upgrades the POST
@@ -151,33 +172,63 @@ templ usersContent(d usersListData) {
 			@feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})
 		</span>
 	</div>
-	@userFilterChips(d)
+	@userFilterChips(d, sort)
 	<div id="users-table">
-		@usersTableContent(d)
+		@usersTableContent(d, sort)
 	</div>
 }
 
 // userFilterChips renders the status chips (verified / unverified / MFA /
-// external). Each chip is a link that toggles itself: the active chip links
-// back to the unfiltered list (preserving the search), the inactive ones add
-// the filter. Full navigations keep history honest.
-templ userFilterChips(d usersListData) {
+// external) plus the ordering toggle — the tenants lifecycle-chips + Name/
+// Members pattern with a third axis. Each chip and sort link is a link that
+// carries the FULL state (q, filter, sort) via userListURL / userChipWithSort,
+// so any toggle keeps the rest. Full navigations keep history honest.
+templ userFilterChips(d usersListData, sort string) {
 	<div class="mb-4 flex flex-wrap items-center gap-1.5">
 		for _, chip := range userFilterChipsList(d) {
-			if chip.Active {
-				<a
-					class="rounded-full bg-gray-900 px-2.5 py-1 text-xs font-medium text-white no-underline dark:bg-white dark:text-gray-900"
-					href={ chip.Href }
-					aria-current="true"
-				>{ chip.Label }</a>
-			} else {
-				<a
-					class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 no-underline hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-					href={ chip.Href }
-				>{ chip.Label }</a>
-			}
+			@userChipLink(userChipWithSort(chip, sort))
 		}
+		<span class="text-gray-300">|</span>
+		<span class="text-gray-600 dark:text-gray-400">Sort</span>
+		@userSortLink(d, sort, "", "Default")
+		<span class="text-gray-300">/</span>
+		@userSortLink(d, sort, "email", "Email")
+		<span class="text-gray-300">/</span>
+		@userSortLink(d, sort, "display", "Display name")
+		<span class="text-gray-300">/</span>
+		@userSortLink(d, sort, "created", "Created")
 	</div>
+}
+
+// userChipLink is one status chip; the active one toggles itself OFF (its
+// href points at the unfiltered list, keeping q + sort).
+templ userChipLink(chip userFilterChip) {
+	if chip.Active {
+		<a
+			class="rounded-full bg-gray-900 px-2.5 py-1 text-xs font-medium text-white no-underline dark:bg-white dark:text-gray-900"
+			href={ chip.Href }
+			aria-current="true"
+		>{ chip.Label }</a>
+	} else {
+		<a
+			class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 no-underline hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+			href={ chip.Href }
+		>{ chip.Label }</a>
+	}
+}
+
+// userSortLink is one half of the ordering toggle; current carries the
+// active styling (the tenantSortLink pattern — the active sort renders as a
+// span, the others as links, all preserving q + filter).
+templ userSortLink(d usersListData, current, sort, label string) {
+	if current == sort {
+		<span class="font-medium text-gray-900">{ label }</span>
+	} else {
+		<a
+			class="text-gray-600 no-underline hover:text-gray-900 dark:text-gray-400"
+			href={ userListURL(d.BasePath+"/users", d, d.Filter, sort) }
+		>{ label }</a>
+	}
 }
 
 // newUserAction is the PageHeader action slot for the users list: the
@@ -193,7 +244,12 @@ templ newUserAction(d usersListData) {
 	})
 }
 
-templ usersTableContent(d usersListData) {
+// usersTableContent is the users list's swap region. The optional sort is
+// the GET route's ordering ("" = the directory's stable order); the
+// body-carrying search twin omits it (its wire format is q/filter/page), so
+// the pager it renders keeps q + filter but not sort — the sort key joins
+// that body vocabulary when the search ladder grows the field.
+templ usersTableContent(d usersListData, sort ...string) {
 	if len(d.Users) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			if d.Search != "" {
@@ -211,7 +267,7 @@ templ usersTableContent(d usersListData) {
 			CellPadding: display.TableCellPaddingCompact,
 		})
 		@listNote(len(d.Users), d.Total)
-		@listPager(listPageURL(d.BasePath+"/users", d.Search), d.Page, d.TotalPages)
+		@listPager(userListURL(d.BasePath+"/users", d, d.Filter, pagerSortOf(sort)), d.Page, d.TotalPages)
 	}
 }
 

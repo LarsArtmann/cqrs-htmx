@@ -113,7 +113,9 @@ templ tenantsTableContent(d tenantsListData) {
 			CellPadding: display.TableCellPaddingCompact,
 		})
 		@listNote(len(d.Tenants), d.Total)
-		@listPager(listPageURL(d.BasePath+"/tenants", d.Search), d.Page, d.TotalPages)
+		// The pager rides tenantListURL (not the q-only listPageURL), so a
+		// page turn keeps the lifecycle filter AND the ordering.
+		@listPager(tenantListURL(d, d.Status, d.Sort), d.Page, d.TotalPages)
 	}
 }
 

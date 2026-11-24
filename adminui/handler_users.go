@@ -3,8 +3,14 @@ package adminui
 import (
 	"context"
 	"encoding/base64"
+	"encoding/csv"
+	"encoding/json/v2"
+	"encoding/json/v2/jsontext"
+	"fmt"
+	"io"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,14 +23,133 @@ import (
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	filter := parseUserFilter(r.URL.Query().Get("filter"))
-	d := h.usersSearchData(r.Context(), q, filter, parsePageQuery(r))
+	sort := parseUserSort(r.URL.Query().Get("sort"))
+	d := h.usersIndexData(r.Context(), q, filter, parsePageQuery(r), sort)
 
 	if htmx.RenderPartial(r) {
-		renderPartial(w, r, usersTableContent(d))
+		renderPartial(w, r, usersTableContent(d, sort))
 		return
 	}
 	p := h.page("Users", "/users", user, r)
-	renderPage(w, r, usersPage(p, d))
+	renderPage(w, r, usersPage(p, d, sort))
+}
+
+// usersIndexData is the GET route's list body: the usersSearchData pipeline
+// (filter → page → enrich) with the sort step the URL carries, applied
+// BEFORE the page window so the order spans pages instead of reshuffling
+// each page's rows. It mirrors usersSearchData (handler_user_search.go)
+// because the body-carrying search twin's wire vocabulary is q/filter/page —
+// the sort key joins it the day that body format grows the field; until then
+// the GET rung is the only one that can order, and both rungs share every
+// helper below (one filter, one clamp, one enrichment pass).
+func (h *Handler) usersIndexData(ctx context.Context, q string, filter userFilter, page int, sort string) usersListData {
+	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
+	if filter == userFilterAdmin {
+		matched = h.filterPlatformAdmins(matched)
+	}
+	sortUsers(matched, sort)
+	offset, limit, totalPages, current := pageBounds(page, len(matched), h.config.PageSize)
+	visible := matched[offset : offset+limit]
+	rows := make([]userRow, 0, len(visible))
+	lastSeen := h.lastSeenIndex()
+	for _, u := range visible {
+		row := h.userRow(ctx, u)
+		row.LastSeen = lastSeen[u.ID.Get().String()]
+		rows = append(rows, row)
+	}
+
+	return usersListData{
+		Users: rows, Total: len(matched), Search: q,
+		Filter: filter, BasePath: h.config.BasePath, Page: current, TotalPages: totalPages,
+	}
+}
+
+// userExportFilteredCSV / userExportFilteredJSON stream the FILTERED
+// directory (q + status chip + ordering; every page of the match, not just
+// the visible window — an export that silently truncated to one page would
+// be a partial directory wearing a full one's name). The wire shape is the
+// Service export's exactly, so with every filter off the bytes are the full
+// export; the filename says "filtered" so a browser-saved file tells the
+// truth about how it was narrowed.
+func (h *Handler) userExportFilteredCSV(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	h.exportFiltered(w, r, usermgmt.UserDataFormatCSV)
+}
+
+func (h *Handler) userExportFilteredJSON(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	h.exportFiltered(w, r, usermgmt.UserDataFormatJSON)
+}
+
+func (h *Handler) exportFiltered(w http.ResponseWriter, r *http.Request, format usermgmt.UserDataFormat) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	filter := parseUserFilter(r.URL.Query().Get("filter"))
+	sort := parseUserSort(r.URL.Query().Get("sort"))
+	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
+	if filter == userFilterAdmin {
+		matched = h.filterPlatformAdmins(matched)
+	}
+	sortUsers(matched, sort)
+
+	name := "users-export-filtered." + string(format)
+	w.Header().Set("Content-Type", exportContentType(format))
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", name))
+
+	var err error
+	switch format {
+	case usermgmt.UserDataFormatJSON:
+		err = writeUsersJSON(w, matched)
+	case usermgmt.UserDataFormatCSV:
+		err = writeUsersCSV(w, matched)
+	}
+	if err != nil {
+		// Headers are already committed by the streaming write; the partial
+		// output is honest about failing rather than silently truncated.
+		triggerToast(w, "err", "Export failed: "+actionErrorMessage(err))
+	}
+}
+
+// writeUsersCSV streams the given users with the Service export's exact
+// wire shape (same header, same column order, same csv encoding), so an
+// unfiltered filtered-export is byte-identical to ExportUsersToCSV.
+func writeUsersCSV(w io.Writer, users []*identitymodel.User) error {
+	cw := csv.NewWriter(w)
+	if err := cw.Write([]string{"id", "email", "display_name", "email_verified", "totp_enabled"}); err != nil {
+		return errorfamily.WrapTransient(err, "adminui.export.csv_header_failed", "write filtered CSV header")
+	}
+	for _, u := range users {
+		if err := cw.Write([]string{
+			u.ID.Get().String(),
+			string(u.Email),
+			u.DisplayName,
+			strconv.FormatBool(u.EmailVerified),
+			strconv.FormatBool(u.TOTPEnabled),
+		}); err != nil {
+			return errorfamily.WrapTransient(err, "adminui.export.csv_row_failed", "write filtered CSV row")
+		}
+	}
+	cw.Flush()
+	return cw.Error()
+}
+
+// writeUsersJSON streams the given users with the Service export's exact
+// wire shape (the same ExportUser objects, the same 2-space indent), so an
+// unfiltered filtered-export is byte-identical to ExportUsersToJSON.
+func writeUsersJSON(w io.Writer, users []*identitymodel.User) error {
+	export := make([]usermgmt.ExportUser, 0, len(users))
+	for _, u := range users {
+		export = append(export, usermgmt.ExportUser{
+			ID:               u.ID,
+			Email:            u.Email,
+			DisplayName:      u.DisplayName,
+			EmailVerified:    u.EmailVerified,
+			TOTPEnabled:      u.TOTPEnabled,
+			ExternalAccounts: append([]usermgmt.ExternalAccount(nil), u.ExternalAccounts...),
+		})
+	}
+	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
+	if err := json.MarshalEncode(enc, export); err != nil {
+		return errorfamily.WrapInfrastructure(err, "adminui.export.json_encode_failed", "encode filtered export JSON")
+	}
+	return nil
 }
 
 // lastSeenIndex derives "last recorded activity" per user from the audit

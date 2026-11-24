@@ -160,6 +160,16 @@ func (h *Handler) sharedRoutes() []routeSpec {
 			method: http.MethodGet, pattern: patternAudit, panel: panelAudit, guarded: h.auditIndex,
 			mode: routeModeBoth, why: "the audit trail names every actor and command",
 		},
+		{
+			method: http.MethodGet, pattern: "/audit/export.csv", panel: panelAudit, guarded: h.auditExportCSV,
+			mode: routeModeBoth,
+			why:  "the audit export carries the retained window's events with their actors",
+		},
+		{
+			method: http.MethodGet, pattern: "/audit/export.json", panel: panelAudit, guarded: h.auditExportJSON,
+			mode: routeModeBoth,
+			why:  "the audit export carries the retained window's events with their actors",
+		},
 	}
 }
 
@@ -241,6 +251,16 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 		{
 			method: http.MethodGet, pattern: "/users/export.json", panel: panelUsers, guarded: h.userExportJSON,
 			mode: routeModeSuperAdmin, why: "the export carries every user's public profile",
+		},
+		{
+			method: http.MethodGet, pattern: "/users/export.filtered.csv", panel: panelUsers, guarded: h.userExportFilteredCSV,
+			mode: routeModeSuperAdmin,
+			why:  "the filtered export carries the matched users' public profiles",
+		},
+		{
+			method: http.MethodGet, pattern: "/users/export.filtered.json", panel: panelUsers, guarded: h.userExportFilteredJSON,
+			mode: routeModeSuperAdmin,
+			why:  "the filtered export carries the matched users' public profiles",
 		},
 		{
 			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,

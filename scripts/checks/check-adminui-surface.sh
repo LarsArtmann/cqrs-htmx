@@ -20,9 +20,9 @@
 #   (c) templ ↔ table: every path literal inside templ href/hx-*/action
 #       attributes (adminui/*.templ) points at a declared route: exact
 #       pattern, segment-aligned fragment ("/users/" of "/users/{id}"), or
-#       route-family suffix ("/delete" of d.Base + id + "/delete"); "#..."
-#       anchors pass. A typo'd href fails here with file:line instead of
-#       404ing in the demo.
+#       route-family suffix ("/delete" of d.BasePath + id + "/delete");
+#       "#..." anchors pass. A typo'd href fails here with file:line
+#       instead of 404ing in the demo.
 #
 # The Go goldens (routes_manifest_test.go, check-route-postures.sh) pin
 # behavior; this gate pins the parity text so a drift fails without a build.
@@ -42,7 +42,6 @@ ROUTES="$PKG/routes.go"
 NAV_SRC="$PKG/handler.go"
 
 fail=0
-rows=0
 nav_checked=0
 templ_checked=0
 
@@ -73,33 +72,35 @@ sed -n '/^const (/,/^)/p' "$ROUTES" |
   grep -E '^\s*pattern[A-Za-z]+\s*=' |
   sed -E 's/^\s*(pattern[A-Za-z]+)\s*=\s*"([^"]*)".*/\1 \2/' >"$tmp_consts"
 
-# Declared patterns: every pattern: row value, consts expanded. Dynamic
-# values (a computed pattern) cannot be verified textually — counted
-# separately so a wholesale regex regression still trips the floor guard.
+# Declared patterns: every pattern: row value in the table, consts expanded
+# into the pattern set; a value that is neither literal nor known const is
+# drift the scan cannot verify. Pattern syntax: single-line rows inline the
+# field, multi-line rows start the line with it — match both.
+pattern_values="$(mktemp)"
+trap 'rm -f "$tmp_patterns" "$tmp_consts" "$pattern_values"' EXIT
+grep -oE 'pattern:[[:space:]]*("[^"]*"|pattern[A-Za-z]+)' "$ROUTES" |
+  sed -E 's/^pattern:[[:space:]]*//' >"$pattern_values"
+rows="$(wc -l <"$pattern_values")"
+if [ "$rows" -eq 0 ]; then
+  echo "FAIL: no pattern rows found in $ROUTES — scanner broken?"
+  exit 2
+fi
 while IFS= read -r val; do
-  [ -n "$val" ] || continue
   case "$val" in
-    '"'*'"')
-      rows=$((rows + 1))
+    '"'*)
       printf '%s\n' "${val//\"/}"
       ;;
     pattern*)
       resolved="$(awk -v name="$val" '$1 == name { print $2 }' "$tmp_consts")"
       if [ -n "$resolved" ]; then
-        rows=$((rows + 1))
         printf '%s\n' "$resolved"
       else
         err "route row references pattern const $val which routes.go does not define"
       fi
       ;;
-    *)
-      err "route row pattern is neither a literal nor a pattern* const: $val — the table scan cannot verify it"
-      ;;
   esac
-done < <(grep -E '^\s*pattern:\s*\S' "$ROUTES" | sed -E 's/^\s*pattern:\s*//' | sed -E 's/,.*//')
-sort -u "$tmp_patterns" >"$tmp_patterns.sorted" 2>/dev/null ||
-  { echo "FAIL: pattern collection produced nothing"; exit 2; }
-mv "$tmp_patterns.sorted" "$tmp_patterns"
+done <"$pattern_values" >"$tmp_patterns"
+sort -u -o "$tmp_patterns" "$tmp_patterns"
 
 # --- (a) table ↔ mux ---------------------------------------------------------
 
@@ -145,8 +146,8 @@ fi
 
 # --- (b) nav ↔ table ---------------------------------------------------------
 
-nav_dup="$(grep -c '{Href:' "$NAV_SRC" || true)"
-if [ "$nav_dup" -eq 0 ]; then
+nav_lits="$(grep -c '{Href:' "$NAV_SRC" || true)"
+if [ "$nav_lits" -eq 0 ]; then
   err "no navItem{Href: ...} literals found in $NAV_SRC — the sidebar scan verified nothing"
 fi
 while IFS= read -r line; do
@@ -156,7 +157,9 @@ while IFS= read -r line; do
   href="$(printf '%s' "$body" | sed -E 's/.*\{Href: ([^,]*),.*/\1/')"
   target=""
   case "$href" in
-    '"'*'"') target="${href//\"/}" ;;
+    '"'*)
+      target="${href//\"/}"
+      ;;
     pattern*)
       target="$(awk -v name="$href" '$1 == name { print $2 }' "$tmp_consts")"
       if [ -z "$target" ]; then
@@ -174,7 +177,7 @@ done < <(grep -n '{Href:' "$NAV_SRC")
 
 # --- (c) templ ↔ table -------------------------------------------------------
 
-check_templ_literal() { # <file> <lineno> <literal>
+is_declared_route() { # <literal> — exact, segment-aligned fragment, or family suffix
   lit="$1"
   lit="${lit%%\?*}" # strip query strings: "/audit?q=" filters as "/audit"
   case "$lit" in
@@ -205,11 +208,7 @@ check_templ_literal() { # <file> <lineno> <literal>
   fi
   # Route-family suffix: the trailing segment(s) of a fluent URL build
   # (d.BasePath + id + "/delete" → "/delete" of "/users/{id}/delete").
-  p="$(grep -E "${lit}\$" "$tmp_patterns" | head -1)"
-  if [ -n "$p" ]; then
-    return 0
-  fi
-  return 1
+  [ -n "$(grep -E "${lit}\$" "$tmp_patterns" | head -1)" ]
 }
 
 # Attribute forms: href={ expr }, hx-post={ expr }, and the templ attribute
@@ -230,7 +229,7 @@ for f in "$PKG"/*.templ; do
         *) continue ;;
       esac
       templ_checked=$((templ_checked + 1))
-      if ! check_templ_literal "$lit"; then
+      if ! is_declared_route "$lit"; then
         err "templ href \"$lit\" ($f:$lineno) points at no declared route — dead link on the panel surface"
       fi
     done < <(printf '%s' "$body" | grep -oE '"[^"]*"' | tr -d '"' | sort -u)
@@ -247,28 +246,6 @@ if [ "$(wc -l <"$tmp_patterns")" -lt 30 ]; then
   echo "FAIL: expected at least 30 distinct route patterns, found $(wc -l <"$tmp_patterns") — scanner broken?"
   exit 1
 fi
-
-# Row count: one routeSpec row per declared pattern value (shared routes
-# appear once per declaring row; sort -u dedupes the pattern set below).
-rows="$(grep -cE 'pattern:[[:space:]]*("[^"]*"|pattern[A-Za-z]+)' "$ROUTES")"
-if [ "$rows" -eq 0 ]; then
-  echo "FAIL: no pattern rows found in $ROUTES — scanner broken?"
-  exit 2
-fi
-sort -u -o "$tmp_patterns" "$tmp_patterns"
-
-# A row pattern that is neither a literal nor a known pattern* const is
-# drift the table scan cannot verify.
-while IFS= read -r val; do
-  case "$val" in
-    '"'*) : ;;
-    pattern*)
-      if ! awk -v name="$val" '$1 == name { found = 1 } END { exit(found ? 0 : 1) }' "$tmp_consts"; then
-        err "route row references pattern const $val which routes.go does not define"
-      fi
-      ;;
-  esac
-done < <(grep -oE 'pattern:[[:space:]]*("[^"]*"|pattern[A-Za-z]+)' "$ROUTES" | sed -E 's/^pattern:[[:space:]]*//' | sort -u)
 if [ "$nav_checked" -lt 5 ]; then
   echo "FAIL: expected at least 5 nav href literals checked, found $nav_checked — scanner broken?"
   exit 1
@@ -278,9 +255,10 @@ if [ "$templ_checked" -lt 25 ]; then
   exit 1
 fi
 
+summary="surface: rows=$rows patterns=$(wc -l <"$tmp_patterns") nav=$nav_checked templ-literals=$templ_checked"
 if [ "$fail" -ne 0 ]; then
-  echo "surface: rows=$rows patterns=$(wc -l <"$tmp_patterns") nav=$nav_checked templ-literals=$templ_checked"
+  echo "$summary"
   exit 1
 fi
-echo "surface: rows=$rows patterns=$(wc -l <"$tmp_patterns") nav=$nav_checked templ-literals=$templ_checked"
+echo "$summary"
 echo "OK: adminui surface parity holds — route table, sidebar nav, and templ hrefs all agree"
