@@ -74,12 +74,16 @@ test("partial-swap contract: fragment carries rows, not the wrapper", async ({ p
   expect(partial).not.toContain("<html");
 });
 
-test("search spinner wired via hx-indicator", async ({ page }) => {
+test("search indicator wired via hx-indicator (skeleton, T17)", async ({ page }) => {
   await page.goto(`${ADMIN}/admin/users`, { waitUntil: "load" });
   await page.waitForTimeout(400);
   const html = await page.content();
-  expect(html).toMatch(/<span id="users-search-spinner" class="htmx-indicator[^"]*"/);
-  expect(html).toContain('hx-indicator="#users-search-spinner"');
+  // T17 replaced the old spinner with the users skeleton: the region is
+  // PRESENT but HIDDEN in every server render (.htmx-indicator opacity 0)
+  // and the search wire targets it via hx-indicator.
+  expect(html).toContain('id="users-skeleton"');
+  expect(html).toContain('class="htmx-indicator"');
+  expect(html).toContain('hx-indicator="#users-skeleton"');
 });
 
 test("confirm modal: open, fill, Esc/Cancel/backdrop close, Confirm deletes", async ({ page }) => {
