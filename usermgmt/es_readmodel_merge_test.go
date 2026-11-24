@@ -61,10 +61,8 @@ func (s *userStream) registered(email string) event.Event {
 func (s *userStream) linked(provider, subject string) event.Event {
 	return s.next(eventExternalAccountLinked, ExternalAccountLinkedPayload{
 		SchemaVersion: currentSchemaVersion,
-		ExternalAccountCore: ExternalAccountCore{
-			Provider: provider,
-			Subject:  subject,
-		},
+		Provider:      provider,
+		Subject:       subject,
 	})
 }
 
@@ -78,10 +76,8 @@ func (s *userStream) verified(email string) event.Event {
 func (s *userStream) credential(credentialID []byte) event.Event {
 	return s.next(eventCredentialAdded, CredentialAddedPayload{
 		SchemaVersion: currentSchemaVersion,
-		CredentialCore: CredentialCore{
-			ID:        credentialID,
-			PublicKey: []byte("key-" + string(credentialID)),
-		},
+		ID:            credentialID,
+		PublicKey:     []byte("key-" + string(credentialID)),
 	})
 }
 

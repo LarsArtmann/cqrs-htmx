@@ -267,13 +267,7 @@ func htmlSnippet(html, needle string) string {
 	if i < 0 {
 		return "(not found)"
 	}
-	start := i - 40
-	if start < 0 {
-		start = 0
-	}
-	end := i + 120
-	if end > len(html) {
-		end = len(html)
-	}
+	start := max(i-40, 0)
+	end := min(i+120, len(html))
 	return html[start:end]
 }

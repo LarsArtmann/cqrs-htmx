@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"maps"
 	"regexp"
 	"slices"
 	"strings"
@@ -374,12 +375,8 @@ func label(labels map[string]string, key string) string {
 // silently inert.
 func mergeLabels(overrides map[string]string) map[string]string {
 	merged := make(map[string]string, len(defaultLabels)+len(overrides))
-	for k, v := range defaultLabels {
-		merged[k] = v
-	}
-	for k, v := range overrides {
-		merged[k] = v
-	}
+	maps.Copy(merged, defaultLabels)
+	maps.Copy(merged, overrides)
 	return merged
 }
 

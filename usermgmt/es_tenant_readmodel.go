@@ -21,7 +21,7 @@ type Tenant struct {
 	DisplayName     string     `json:"display_name"`
 	Suspended       bool       `json:"suspended"`
 	Deleted         bool       `json:"deleted"`
-	MergedInto      TenantID   `json:"merged_into,omitempty,omitzero"`
+	MergedInto      TenantID   `json:"merged_into,omitzero"`
 	MergedTenantIDs []TenantID `json:"merged_tenant_ids,omitempty"`
 }
 

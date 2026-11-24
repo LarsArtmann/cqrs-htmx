@@ -138,15 +138,13 @@ func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *ident
 		window = auditWindowFacts{Holds: al.Count(), Limit: al.Limit(), Dropped: al.Dropped()}
 	}
 	d := auditView{
-		auditData: auditData{
-			Entries: entries, Total: total, Search: q, BasePath: h.config.BasePath,
-			listPage: pg,
-		},
-		From:   fromRaw,
-		To:     toRaw,
-		Actor:  actor,
-		Issues: issues,
-		Window: window,
+		Entries: entries, Total: total, Search: q, BasePath: h.config.BasePath,
+		listPage: pg,
+		From:     fromRaw,
+		To:       toRaw,
+		Actor:    actor,
+		Issues:   issues,
+		Window:   window,
 	}
 
 	p := h.page("Audit log", "/audit", user, r)

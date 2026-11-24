@@ -35,7 +35,7 @@ func TestCredentialRestore_EscalationCopyPinned(t *testing.T) {
 func credentialBackupJSON(t *testing.T, id []byte, name string) string {
 	t.Helper()
 	b, err := json.Marshal(identitymodel.WebAuthnCredential{
-		CredentialCore: identitymodel.CredentialCore{ID: id, Name: name},
+		ID: id, Name: name,
 	})
 	if err != nil {
 		t.Fatalf("marshal credential: %v", err)

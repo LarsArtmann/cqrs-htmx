@@ -137,9 +137,8 @@ func (h *Handler) directoryRows(ctx context.Context) []membersDirectoryRow {
 	rows := make([]membersDirectoryRow, 0)
 	for _, t := range h.config.Service.AllTenants() {
 		for _, m := range h.config.Service.TenantMembers(ctx, t.ID) {
-			row := membersDirectoryRow{Tenant: t, memberRow: memberRow{
-				Actor: m.ActorID, Roles: m.Roles, AddedAt: m.AddedAt,
-			}}
+			row := membersDirectoryRow{Tenant: t,
+				Actor: m.ActorID, Roles: m.Roles, AddedAt: m.AddedAt}
 			if userID, ok := identitymodel.ActorIDAsUserID(m.ActorID); ok {
 				if user, found := h.lookupUser(userID); found {
 					row.Email = user.Email
@@ -191,7 +190,7 @@ func (h *Handler) membersDirectory(w http.ResponseWriter, r *http.Request, user 
 		Search: q, TenantFilter: tenantFilter, RoleFilter: roleFilter, Sort: sort,
 		TenantChips: tenantChips, RoleChips: roleChips,
 		BasePath: h.config.BasePath,
-		listPage: listPage{Page: page, TotalPages: totalPages},
+		Page:     page, TotalPages: totalPages,
 	}
 	p := h.page("Membership directory", patternMembers, user, r)
 	if htmx.RenderPartial(r) {

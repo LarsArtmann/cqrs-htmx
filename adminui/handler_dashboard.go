@@ -131,7 +131,7 @@ func ifNoneMatchSatisfied(header, etag string) bool {
 	if strings.TrimSpace(header) == "*" {
 		return true
 	}
-	for _, candidate := range strings.Split(header, ",") {
+	for candidate := range strings.SplitSeq(header, ",") {
 		candidate = strings.TrimSpace(candidate)
 		if candidate == etag || strings.TrimPrefix(candidate, "W/") == etag {
 			return true

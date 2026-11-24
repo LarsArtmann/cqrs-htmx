@@ -2,6 +2,7 @@ package systemadapter
 
 import (
 	"bytes"
+	"slices"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
@@ -256,10 +257,8 @@ func removeUserMergedInto() metaengine.Fold {
 
 // appendUniqueString appends when absent: MergedUserIDs is a set.
 func appendUniqueString(haystack []string, needle string) []string {
-	for _, candidate := range haystack {
-		if candidate == needle {
-			return haystack
-		}
+	if slices.Contains(haystack, needle) {
+		return haystack
 	}
 	return append(haystack, needle)
 }

@@ -261,10 +261,8 @@ func TestDashboard_AdoptionCards(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := svc.AddCredential(ctx, reg.User.ID, identitymodel.WebAuthnCredential{
-		CredentialCore: identitymodel.CredentialCore{
-			ID:        []byte("cred-1"),
-			PublicKey: []byte("pk"),
-		},
+		ID:        []byte("cred-1"),
+		PublicKey: []byte("pk"),
 		CreatedAt: time.Now().UTC(),
 	}); err != nil {
 		t.Fatal(err)

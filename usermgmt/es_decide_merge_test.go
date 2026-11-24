@@ -107,46 +107,38 @@ func mergeSurvivor() UserState {
 		Email:       mergeSurvivorEmail,
 		DisplayName: "Lars",
 		Credentials: []identitymodel.WebAuthnCredential{{
-			CredentialCore: identitymodel.CredentialCore{
-				ID:        []byte("survivor-cred"),
-				PublicKey: []byte("survivor-key"),
-			},
+			ID:        []byte("survivor-cred"),
+			PublicKey: []byte("survivor-key"),
 		}},
 		ExternalAccounts: []identitymodel.ExternalAccount{{
-			ExternalAccountCore: identitymodel.ExternalAccountCore{
-				Provider: "github",
-				Subject:  "survivor-subject",
-			},
+			Provider: "github",
+			Subject:  "survivor-subject",
 		}},
 	}
 }
 
 func mergeCredential(id, publicKey string, verified bool) identitymodel.WebAuthnCredential {
 	return identitymodel.WebAuthnCredential{
-		CredentialCore: identitymodel.CredentialCore{
-			ID:              []byte(id),
-			PublicKey:       []byte(publicKey),
-			AttestationType: "none",
-			Transports:      []string{"internal"},
-			AAGUID:          []byte{1, 2},
-			SignCount:       7,
-			UserPresent:     true,
-			UserVerified:    verified,
-			BackupEligible:  true,
-			BackupState:     true,
-			Name:            "passkey " + id,
-		},
+		ID:              []byte(id),
+		PublicKey:       []byte(publicKey),
+		AttestationType: "none",
+		Transports:      []string{"internal"},
+		AAGUID:          []byte{1, 2},
+		SignCount:       7,
+		UserPresent:     true,
+		UserVerified:    verified,
+		BackupEligible:  true,
+		BackupState:     true,
+		Name:            "passkey " + id,
 	}
 }
 
 func mergeAccount(provider, subject, email, displayName string) identitymodel.ExternalAccount {
 	return identitymodel.ExternalAccount{
-		ExternalAccountCore: identitymodel.ExternalAccountCore{
-			Provider:    provider,
-			Subject:     subject,
-			Email:       email,
-			DisplayName: displayName,
-		},
+		Provider:    provider,
+		Subject:     subject,
+		Email:       email,
+		DisplayName: displayName,
 	}
 }
 
@@ -164,7 +156,7 @@ func richContribution(loserID UserID) identitymodel.MergeContribution {
 		TOTPSecret:    []byte("loser-totp-secret"),
 		Credentials: []identitymodel.WebAuthnCredential{
 			mergeCredential("survivor-cred", "duplicate-of-the-survivor", false),
-			{CredentialCore: identitymodel.CredentialCore{PublicKey: []byte("no-id")}},
+			{PublicKey: []byte("no-id")},
 			mergeCredential("loser-cred-a", "key-a", true),
 			mergeCredential("loser-cred-b", "key-b", false),
 			mergeCredential("loser-cred-a", "key-a-again", true),

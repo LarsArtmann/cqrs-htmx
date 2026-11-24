@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -251,12 +252,7 @@ func assertIssue46RetiredWithAttribution(t *testing.T, svc *Service, ctx context
 }
 
 func roleSetHas(roles []Role, want Role) bool {
-	for _, r := range roles {
-		if r == want {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(roles, want)
 }
 
 // TestService_MergeUsers_IdempotentRerun proves the resumable contract: a

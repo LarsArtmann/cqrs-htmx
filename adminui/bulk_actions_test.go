@@ -103,7 +103,7 @@ func TestPanel_UsersBulk_Resend_PerRowHonesty(t *testing.T) {
 	if !strings.Contains(body, "bea@x.dev") {
 		t.Errorf("refused row not named: %s", body)
 	}
-	for _, line := range strings.Split(body, "<li>") {
+	for line := range strings.SplitSeq(body, "<li>") {
 		if strings.Contains(line, "bea@x.dev") && strings.Contains(line, "verification email sent") {
 			t.Errorf("refused row must not read as sent: %s", line)
 		}

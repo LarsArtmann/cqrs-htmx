@@ -111,20 +111,18 @@ func seedEquippedUser(ctx context.Context, svc *usermgmt.Service) {
 	// out of scope for a demo process, so the fixture carries fixed bytes.
 	// WebAuthnCredential is exempt from exhaustruct repo-wide.
 	cred := identitymodel.WebAuthnCredential{
-		CredentialCore: identitymodel.CredentialCore{
-			ID:              []byte("admin-demo-passkey-erin-01"),
-			PublicKey:       []byte("admin-demo-seed-public-key-not-cryptographically-verifiable"),
-			AttestationType: "none",
-			Transports:      []string{"internal", "hybrid"},
-			AAGUID:          nil,
-			SignCount:       0,
-			UserPresent:     true,
-			UserVerified:    true,
-			BackupEligible:  false,
-			BackupState:     false,
-			Name:            "demo passkey (seeded)",
-		},
-		CreatedAt: time.Now(),
+		ID:              []byte("admin-demo-passkey-erin-01"),
+		PublicKey:       []byte("admin-demo-seed-public-key-not-cryptographically-verifiable"),
+		AttestationType: "none",
+		Transports:      []string{"internal", "hybrid"},
+		AAGUID:          nil,
+		SignCount:       0,
+		UserPresent:     true,
+		UserVerified:    true,
+		BackupEligible:  false,
+		BackupState:     false,
+		Name:            "demo passkey (seeded)",
+		CreatedAt:       time.Now(),
 	}
 	if err := svc.AddCredential(ctx, uid, cred); err != nil {
 		log.Printf("seed passkey %s: %v", equippedUserEmail, err)
