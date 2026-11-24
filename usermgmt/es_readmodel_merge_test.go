@@ -19,8 +19,11 @@ import (
 // userStream builds the events of one user stream with running versions, so a
 // test can list them in the order the journal holds them.
 type userStream struct {
-	t       *testing.T
-	aggID   id.StreamID
+	t     *testing.T
+	aggID id.StreamID
+	// at pins the occurred-at of every event this stream builds from here on;
+	// zero leaves the construction clock in charge.
+	at      time.Time
 	version event.Version
 }
 
@@ -33,7 +36,18 @@ func newUserStream(t *testing.T) *userStream {
 func (s *userStream) next(eventType event.Type, payload any) event.Event {
 	s.t.Helper()
 	s.version = s.version.Increment()
-	return makeUserEvent(s.t, s.aggID, eventType, s.version, payload)
+	var opts []event.Option
+	if !s.at.IsZero() {
+		opts = append(opts, event.WithOccurredAt(s.at))
+	}
+	return makeUserEvent(s.t, s.aggID, eventType, s.version, payload, opts...)
+}
+
+// atTime pins the occurred-at of every later event on this stream, so merge
+// and registration times sort deterministically across a hydrate.
+func (s *userStream) atTime(at time.Time) *userStream {
+	s.at = at
+	return s
 }
 
 func (s *userStream) registered(email string) event.Event {

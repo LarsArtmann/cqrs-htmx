@@ -23,6 +23,7 @@ func makeUserEvent(
 	eventType event.Type,
 	version event.Version,
 	payload any,
+	opts ...event.Option,
 ) event.Event {
 	t.Helper()
 
@@ -31,7 +32,7 @@ func makeUserEvent(
 		t.Fatalf("marshal payload for %s: %v", eventType, err)
 	}
 
-	evt, err := event.NewEvent(eventType, aggID, aggregateTypeUser, version, payloadBytes)
+	evt, err := event.NewEvent(eventType, aggID, aggregateTypeUser, version, payloadBytes, opts...)
 	if err != nil {
 		t.Fatalf("makeUserEvent %s: %v", eventType, err)
 	}
