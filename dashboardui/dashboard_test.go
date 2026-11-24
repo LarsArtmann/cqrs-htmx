@@ -333,9 +333,9 @@ func TestDashboard_TimeTravelDetailRenders(t *testing.T) {
 		`hx-push-url="true"`,
 		`name="v"`,
 		// Payloads are visible inline; the step at v2 is highlighted and expanded.
-		`&quot;Step&quot;: 2`,
+		`&#34;Step&#34;: 2`,
 		`class="step-row"`,
-		`<details class="payload-details" open="">`,
+		`<details class="payload-details" open>`,
 		// Non-step rows carry the payload collapsed.
 		`<details class="payload-details">`,
 	} {

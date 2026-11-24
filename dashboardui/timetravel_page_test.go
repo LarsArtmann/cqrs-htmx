@@ -24,7 +24,7 @@ type timetravelTestEvent struct {
 func timetravelEvent(tt timetravelTestEvent) event.Event {
 	streamID, err := id.ParseStreamID("01HW8STREAMID000000000000000")
 	Expect(err).NotTo(HaveOccurred())
-	eventID, err := id.ParseEventID("01HWEVENT" + tt.version.String() + "D0000000000000")
+	eventID, err := id.ParseEventID("01HWEVENT" + tt.version.String() + "D000000000000000")
 	Expect(err).NotTo(HaveOccurred())
 	evt, err := event.NewEvent(
 		event.Type("UserRegistered"),
@@ -64,23 +64,24 @@ var _ = Describe("the time-travel detail page", func() {
 	})
 
 	It("renders the payload column with each event's data inline", func() {
-		Expect(html).To(ContainSubstring("<th>Payload</th>"))
-		Expect(html).To(ContainSubstring("&quot;email&quot;: &quot;v1@example.com&quot;"))
-		Expect(html).To(ContainSubstring("&quot;email&quot;: &quot;v2@example.com&quot;"))
+		Expect(html).To(ContainSubstring(">Payload</th>"))
+		Expect(html).To(ContainSubstring("&#34;email&#34;: &#34;v1@example.com&#34;"))
+		Expect(html).To(ContainSubstring("&#34;email&#34;: &#34;v2@example.com&#34;"))
 	})
 
 	It("highlights and expands the step row at the selected version only", func() {
 		Expect(html).To(ContainSubstring(`class="step-row"`))
-		Expect(html).To(ContainSubstring(`<details class="payload-details" open="">`))
+		Expect(html).To(ContainSubstring(`<details class="payload-details" open>`))
 		Expect(html).To(ContainSubstring(`<details class="payload-details">`))
 		Expect(html).To(ContainSubstring("this step"))
 		// Exactly one step row and one expanded payload.
 		Expect(strings.Count(html, `class="step-row"`)).To(Equal(1))
-		Expect(strings.Count(html, `<details class="payload-details" open="">`)).To(Equal(1))
+		Expect(strings.Count(html, `<details class="payload-details" open>`)).To(Equal(1))
 	})
 
 	It("drives the slider through htmx so a version change is a partial swap, not a reload", func() {
-		Expect(html).To(ContainSubstring(`hx-get="/dashboard/time-travel/user/01HW8STREAMID000000000000000"`))
+		// The ID segment is StreamID display-form (branded-kind prefix — gotcha 25).
+		Expect(html).To(ContainSubstring(`hx-get="/dashboard/time-travel/user/StreamMarker:01HW8STREAMID000000000000000"`))
 		Expect(html).To(ContainSubstring(`hx-trigger="change"`))
 		Expect(html).To(ContainSubstring(`hx-target="#main-content"`))
 		Expect(html).To(ContainSubstring(`hx-select="#main-content"`))
