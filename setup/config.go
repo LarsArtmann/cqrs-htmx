@@ -680,13 +680,25 @@ func (c Config) withDefaults() Config {
 		cfg.LoginRedirect = cfg.AdminPath
 	}
 
-	// Panel cross-links default ON when both panels mount: each sidebar
-	// gets one entry for the other (admin → "Event store", dashboard →
-	// "Identity admin"), because the pair answers complementary questions
-	// about the same system. "-" is the explicit opt-out (the HealthPath
-	// convention); explicit values pass through verbatim. Set after
-	// normalization so the hrefs carry the same trailing-slash form as the
-	// mount paths.
+	// Panel cross-links default ON when both panels mount (see
+	// [resolvePanelCrossLinks]); applied after normalization so the hrefs
+	// carry the same trailing-slash form as the mount paths.
+	cfg = resolvePanelCrossLinks(cfg)
+
+	if cfg.SSEHeartbeatInterval == 0 {
+		cfg.SSEHeartbeatInterval = 15 * time.Second
+	}
+
+	return cfg
+}
+
+// resolvePanelCrossLinks applies the panel cross-link defaults: each sidebar
+// gets one entry for the other by default (admin → "Event store", dashboard →
+// "Identity admin"), because the two panels are complementary — most apps
+// mount both, and the pair answers complementary questions about the same
+// system. "-" is the explicit opt-out (the HealthPath convention); explicit
+// values pass through verbatim; a disabled sibling leaves its side empty.
+func resolvePanelCrossLinks(cfg Config) Config {
 	if cfg.AdminDashboardURL == "-" {
 		cfg.AdminDashboardURL = ""
 	} else if cfg.AdminDashboardURL == "" && !cfg.DisableDashboard {
@@ -697,10 +709,6 @@ func (c Config) withDefaults() Config {
 		cfg.DashboardAdminURL = ""
 	} else if cfg.DashboardAdminURL == "" && !cfg.DisableAdmin {
 		cfg.DashboardAdminURL = cfg.AdminPath
-	}
-
-	if cfg.SSEHeartbeatInterval == 0 {
-		cfg.SSEHeartbeatInterval = 15 * time.Second
 	}
 
 	return cfg

@@ -246,6 +246,7 @@ type Config struct {
     VersionzRequireAuth bool               // guard /-/versionz behind Authorizer (default: false)
     LogoutURL        string                 // logout link at the sidebar bottom
     ExtraNav         []NavEntry             // consumer nav entries appended to the sidebar
+    AdminURL         string                 // cross-link to the sibling adminui panel ("Identity admin" entry, verbatim)
 }
 ```
 
@@ -272,6 +273,13 @@ with `BasePath` — so it can point at a sibling surface (`/event-catalog`), an
 absolute URL (`https://docs.example.com`), or a dashboard-internal path you
 build yourself from `Config.BasePath`. Entries with an empty `Label` or `Href`
 are rejected at `New`/`Validate`; an unset `ExtraNav` changes nothing.
+
+For the one most common sibling — the adminui identity panel — there is a
+dedicated knob: `Config.AdminURL` renders a single "Identity admin" entry
+(`icons.Users`, verbatim href, appended after your `ExtraNav` entries so their
+ordering stays stable — the same contract as adminui's `DashboardURL`
+"Event store" entry). Empty (the default) hides it; `setup.New` wires it
+automatically when both panels mount, with `-` as the explicit opt-out there.
 
 A custom layout receives the merged list in `PageMeta.Nav`, where
 `NavLink.Verbatim` repeats that contract: it is `true` for your extra entries

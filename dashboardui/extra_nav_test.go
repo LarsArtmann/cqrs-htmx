@@ -339,7 +339,10 @@ func TestNew_AdminURLFollowsExtraNav(t *testing.T) {
 
 	secondLast := d.nav[len(d.nav)-2]
 	if secondLast.Label != "Event Catalog" {
-		t.Errorf("second-to-last nav entry = %+v, want ExtraNav before the cross-link (consumer ordering must stay stable)", secondLast)
+		t.Errorf(
+			"second-to-last nav entry = %+v, want ExtraNav before the cross-link (consumer ordering must stay stable)",
+			secondLast,
+		)
 	}
 }
 
