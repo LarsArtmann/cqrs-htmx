@@ -112,6 +112,7 @@ const (
 	labelActionExportCSV    = "action.export_csv"
 	labelActionExportFCsv   = "action.export_filtered_csv"
 	labelActionExportFJson  = "action.export_filtered_json"
+	labelActionNew          = "action.new"
 	labelActionNewTenant    = "action.new_tenant"
 	labelActionCreateUser   = "action.create_user"
 	labelActionCreateTenant = "action.create_tenant"
@@ -245,6 +246,7 @@ var defaultLabels = map[string]string{
 	labelActionExportCSV:    "Export CSV",
 	labelActionExportFCsv:   "Export filtered CSV",
 	labelActionExportFJson:  "Export filtered JSON",
+	labelActionNew:          "New",
 	labelActionNewTenant:    "New tenant",
 	labelActionCreateUser:   "Create user",
 	labelActionCreateTenant: "Create tenant",

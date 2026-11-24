@@ -12,13 +12,13 @@ import (
 )
 
 templ auditPage(p pageData, d auditView) {
-	@Layout(p, auditContent(d))
+	@Layout(p, auditContent(p, d))
 }
 
-templ auditContent(d auditView) {
-	@display.PageHeader(display.PageHeaderProps{Title: "Audit log"})
+templ auditContent(p pageData, d auditView) {
+	@display.PageHeader(display.PageHeaderProps{Title: p.label(labelPageAudit)})
 	<div id="audit-panel">
-		@auditPanelContent(d)
+		@auditPanelContent(p, d)
 	</div>
 }
 
@@ -29,9 +29,9 @@ templ auditContent(d auditView) {
 // Enter-submit includes the date/actor fields, so neither HTMX path can
 // silently drop an active filter; the pager and chip links carry the full
 // filter set as plain URLs.
-templ auditPanelContent(d auditView) {
-	@auditFilterBar(d)
-	@auditTableContent(d)
+templ auditPanelContent(p pageData, d auditView) {
+	@auditFilterBar(p, d)
+	@auditTableContent(p, d)
 	@auditWindowCaption(d.Window)
 }
 
@@ -39,7 +39,7 @@ templ auditPanelContent(d auditView) {
 // actor-kind chips, and — when a filter input could not be applied — the
 // honest issue strip. Every input re-renders with the value it was given, so
 // the visible state always matches the state that produced the table.
-templ auditFilterBar(d auditView) {
+templ auditFilterBar(p pageData, d auditView) {
 	<div class="mb-4 flex flex-wrap items-center gap-2">
 		// The omnibox filters across action, actor email, and aggregate id
 		// (see filterAuditEntries) — one input instead of three. The form-level
@@ -49,7 +49,7 @@ templ auditFilterBar(d auditView) {
 		@forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
-			Placeholder: "Search actions, people, aggregates\u2026",
+			Placeholder: p.label(labelSearchAuditPH),
 			Action:      d.BasePath + "/audit",
 			DebounceMS:  350,
 			Wire: &wire.Action{
@@ -57,7 +57,7 @@ templ auditFilterBar(d auditView) {
 				Target: "#audit-panel",
 			},
 			BaseProps: utils.BaseProps{
-				AriaLabel: "Search audit log",
+				AriaLabel: p.label(labelSearchAuditAria),
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",
@@ -164,21 +164,21 @@ templ auditWindowCaption(w auditWindowFacts) {
 	}
 }
 
-templ auditTableContent(d auditView) {
+templ auditTableContent(p pageData, d auditView) {
 	if len(d.Entries) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			if auditFiltersActive(d) {
-				@empty("audit", "No events match your filters", "No recorded action matches the active filters.", "Clear filters", d.BasePath+"/audit")
+				@empty("audit", p.label(labelEmptyAuditSearchTitle), p.label(labelEmptyAuditSearchHint), p.label(labelEmptyAuditSearchAction), d.BasePath+"/audit")
 			} else {
-				@empty("audit", "No audit events", "User and tenant changes will be recorded here.", "", "")
+				@empty("audit", p.label(labelEmptyAuditNoneTitle), p.label(labelEmptyAuditNoneHint), "", "")
 			}
 		}
 	} else {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			@display.Table(display.TableProps{
-				Headers:     []string{"Action", "Who", "Aggregate", "When"},
+				Headers:     []string{p.label(labelHeaderAction), p.label(labelHeaderWho), p.label(labelHeaderAggregate), p.label(labelHeaderWhen)},
 				Hover:       true,
-				Body:        auditRows(d),
+				Body:        auditRows(p, d),
 				Flush:       true,
 				Striped:     true,
 				CellPadding: display.TableCellPaddingCompact,
@@ -189,7 +189,7 @@ templ auditTableContent(d auditView) {
 	}
 }
 
-templ auditRows(d auditView) {
+templ auditRows(p pageData, d auditView) {
 	for _, e := range d.Entries {
 		<tr>
 			<td class="px-4 py-2">
@@ -212,7 +212,7 @@ templ auditRows(d auditView) {
 				}
 			</td>
 			<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.Get() }</td>
-			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
+			<td class="px-4 py-2 text-gray-500" title={ p.dateTime(e.OccurredAt) }>
 				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
 			</td>
 		</tr>
@@ -261,7 +261,7 @@ templ userActivityFragment(d userActivityPage) {
 					<span class={ "text-gray-600 dark:text-gray-400" } aria-hidden="true">—</span>
 				}
 			</td>
-			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
+			<td class="px-4 py-2 text-gray-500" title={ p.dateTime(e.OccurredAt) }>
 				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
 			</td>
 		</tr>

@@ -14,24 +14,24 @@ import (
 )
 
 templ tenantsPage(p pageData, d tenantsListData) {
-	@Layout(p, tenantsContent(d))
+	@Layout(p, tenantsContent(p, d))
 }
 
-templ tenantsContent(d tenantsListData) {
+templ tenantsContent(p pageData, d tenantsListData) {
 	@display.PageHeader(display.PageHeaderProps{
-		Title:  "Tenants",
-		Action: newTenantAction(d),
+		Title:  p.label(labelPageTenants),
+		Action: newTenantAction(p, d),
 	})
 	<div class="mb-4 flex items-center gap-2">
 		@forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
-			Placeholder: "Search tenants…",
+			Placeholder: p.label(labelSearchTenantsPH),
 			Action:      d.BasePath + "/tenants",
 			DebounceMS:  350,
 			Wire:        &wire.Action{URL: d.BasePath + "/tenants", Target: "#tenants-table"},
 			BaseProps: utils.BaseProps{
-				AriaLabel: "Search tenants",
+				AriaLabel: p.label(labelSearchTenantsAria),
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",
@@ -54,18 +54,18 @@ templ tenantsContent(d tenantsListData) {
 	// gray-600 (not 500): Tailwind v4's gray-500 misses 4.5:1 on white — the
 	// first adminui axe sweep flagged it (2026-11-14).
 	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-		@tenantStatusChip(d, "", "All", d.Total)
-		@tenantStatusChip(d, "active", "Active", d.StatusCounts["active"])
-		@tenantStatusChip(d, "suspended", "Suspended", d.StatusCounts["suspended"])
-		@tenantStatusChip(d, "deleted", "Deleted", d.StatusCounts["deleted"])
+		@tenantStatusChip(d, "", p.label(labelChipAll), d.Total)
+		@tenantStatusChip(d, "active", p.label(labelChipActive), d.StatusCounts["active"])
+		@tenantStatusChip(d, "suspended", p.label(labelChipSuspended), d.StatusCounts["suspended"])
+		@tenantStatusChip(d, "deleted", p.label(labelChipDeleted), d.StatusCounts["deleted"])
 		<span class="text-gray-300" aria-hidden="true">|</span>
-		<span class="text-gray-600 dark:text-gray-400">Sort</span>
-		@tenantSortLink(d, "name", "Name")
+		<span class="text-gray-600 dark:text-gray-400">{ p.label(labelSortWord) }</span>
+		@tenantSortLink(d, "name", p.label(labelSortName))
 		<span class="text-gray-300" aria-hidden="true">/</span>
-		@tenantSortLink(d, "members", "Members")
+		@tenantSortLink(d, "members", p.label(labelHeaderMembers))
 	</div>
 	<div id="tenants-table">
-		@tenantsTableContent(d)
+		@tenantsTableContent(p, d)
 	</div>
 }
 
@@ -98,18 +98,18 @@ templ tenantSortLink(d tenantsListData, sort, label string) {
 	}
 }
 
-templ tenantsTableContent(d tenantsListData) {
+templ tenantsTableContent(p pageData, d tenantsListData) {
 	if len(d.Tenants) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			if d.Search != "" {
-				@empty("tenants", "No tenants match your search", "No tenant name or slug matches the search term.", "Clear search", d.BasePath+"/tenants")
+				@empty("tenants", p.label(labelEmptyTenantsSearchTitle), p.label(labelEmptyTenantsSearchHint), p.label(labelEmptyTenantsSearchAction), d.BasePath+"/tenants")
 			} else {
-				@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.", "New tenant", d.BasePath+"/tenants/new")
+				@empty("tenants", p.label(labelEmptyTenantsNoneTitle), p.label(labelEmptyTenantsNoneHint), p.label(labelEmptyTenantsNoneAction), d.BasePath+"/tenants/new")
 			}
 		}
 	} else {
 		@display.Table(display.TableProps{
-			Headers:     []string{"Tenant", "Members", "Status", ""},
+			Headers:     []string{p.label(labelHeaderTenant), p.label(labelHeaderMembers), p.label(labelHeaderStatus), ""},
 			Hover:       true,
 			Body:        tenantsRows(d),
 			CellPadding: display.TableCellPaddingCompact,
@@ -123,9 +123,9 @@ templ tenantsTableContent(d tenantsListData) {
 
 // newTenantAction is the PageHeader action slot for the tenants list: the
 // primary "New tenant" entry point rides on the title row.
-templ newTenantAction(d tenantsListData) {
+templ newTenantAction(p pageData, d tenantsListData) {
 	@display.Button(display.ButtonProps{
-		Text:      "New tenant",
+		Text:      p.label(labelActionNewTenant),
 		Href:      d.BasePath + "/tenants/new",
 		Variant:   display.ButtonPrimary,
 		Size:      display.ButtonSizeSM,
@@ -177,16 +177,16 @@ templ tenantStatusBadge(t *usermgmt.Tenant) {
 }
 
 templ tenantNewPage(p pageData, basePath string) {
-	@Layout(p, tenantNewContent(basePath))
+	@Layout(p, tenantNewContent(p, basePath))
 }
 
-templ tenantNewContent(basePath string) {
+templ tenantNewContent(p pageData, basePath string) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
-			{Text: "Tenants", Href: basePath + "/tenants"},
-			{Text: "New"},
+			{Text: p.label(labelPageTenants), Href: basePath + "/tenants"},
+			{Text: p.label(labelActionNew), Href: basePath + "/tenants"},
 		}}),
-		Title: "New tenant",
+		Title: p.label(labelActionNewTenant),
 	})
 	<div class="max-w-[520px]">
 		@display.Card(display.CardProps{}) {
@@ -211,8 +211,8 @@ templ tenantNewContent(basePath string) {
 					})
 				</div>
 				<div class="flex gap-2.5">
-					@display.Button(display.ButtonProps{Text: "Create tenant", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
-					@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/tenants", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
+					@display.Button(display.ButtonProps{Text: p.label(labelActionCreateTenant), Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
+					@display.Button(display.ButtonProps{Text: p.label(labelConfirmCancel), Href: basePath + "/tenants", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
 				</div>
 			</form>
 		}
@@ -228,13 +228,13 @@ templ tenantStatusAction(d tenantDetailData) {
 }
 
 templ tenantDetailPage(p pageData, d tenantDetailData) {
-	@Layout(p, tenantDetailContent(d))
+	@Layout(p, tenantDetailContent(p, d))
 }
 
-templ tenantDetailContent(d tenantDetailData) {
+templ tenantDetailContent(p pageData, d tenantDetailData) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
-			{Text: "Tenants", Href: d.BasePath + "/tenants"},
+			{Text: p.label(labelPageTenants), Href: d.BasePath + "/tenants"},
 			{Text: d.Tenant.DisplayName},
 		}}),
 		Title:    d.Tenant.DisplayName,
@@ -248,7 +248,7 @@ templ tenantDetailContent(d tenantDetailData) {
 		@tenantSuspendedBanner(d)
 	}
 	<div class="mb-4">
-		@membersCard(d)
+		@membersCard(p, d)
 	</div>
 	@display.Card(display.CardProps{
 		Header: dangerZoneHeader(),
@@ -256,38 +256,38 @@ templ tenantDetailContent(d tenantDetailData) {
 		<div class="flex flex-wrap gap-2.5">
 			if d.Tenant.Suspended {
 				@display.Button(display.ButtonProps{
-					Text:    "Reactivate",
+					Text:    p.label(labelChipActive),
 					Variant: display.ButtonPrimary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
-						"data-confirm":       "Reactivate this tenant? Members regain access immediately.",
-						"data-confirm-title": "Reactivate tenant",
+						"data-confirm":       p.label(labelConfirmTenReactivateBod),
+						"data-confirm-title": p.label(labelConfirmTenReactivate),
 						"hx-disabled-elt":    "this",
 					}},
 				})
 			} else {
 				@display.Button(display.ButtonProps{
-					Text:    "Suspend",
+					Text:    p.label(labelChipSuspended),
 					Variant: display.ButtonSecondary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
 						"data-confirm":       tenantSuspendConfirm(d),
-						"data-confirm-title": "Suspend tenant",
+						"data-confirm-title": p.label(labelConfirmTenSuspend),
 						"hx-disabled-elt":    "this",
 					}},
 				})
 			}
 			@display.Button(display.ButtonProps{
-				Text:    "Delete",
+				Text:    p.label(labelChipDeleted),
 				Variant: display.ButtonDanger,
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
 					"data-confirm":       tenantDeleteConfirm(d),
-					"data-confirm-title": "Delete tenant",
+					"data-confirm-title": p.label(labelConfirmTenDelete),
 					"hx-disabled-elt":    "this",
 				}},
 			})

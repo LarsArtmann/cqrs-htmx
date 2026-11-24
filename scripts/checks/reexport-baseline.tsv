@@ -62,7 +62,7 @@ usermgmt/es_bot_commands.go	reexport	2	v5 (removal class 3)
 usermgmt/es_bot_events.go	reexport	2	v5 (removal class 3)
 usermgmt/es_bot_state.go	reexport	2	v5 (removal class 3)
 usermgmt/es_commands.go	reexport	12	v5 (removal class 3)
-usermgmt/es_constants.go	exempt:unexported	54	package-private command/event type plumbing
+usermgmt/es_constants.go	exempt:unexported	66	package-private command/event type plumbing (merge wave 2026-11-24: +6 events +6 commands)
 usermgmt/es_events.go	reexport	13	v5 (removal class 3)
 usermgmt/es_membership_commands.go	reexport	3	v5 (removal class 3)
 usermgmt/es_membership_events.go	reexport	3	v5 (removal class 3)
@@ -77,3 +77,4 @@ usermgmt/sql_event_store.go	exempt:pending	1	SQLEventStore alias of go-cqrs-lite
 usermgmt/store_interfaces.go	reexport	4	v5 (removal class 3)
 usermgmt/upcaster.go	reexport	4	v5 (removal class 3)
 usermgmt/user.go	reexport	6	v5 (removal class 3)
+legalparty-model/aliases.go	exempt:domain-vocabulary	17	the module IS the legalparty vocabulary over go-legalparty (pre-dates the 2026-11-24 wave; landed 2026-11-20 without a baseline row — gate gap closed 2026-11-24)

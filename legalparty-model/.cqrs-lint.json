@@ -38,6 +38,17 @@
     // SchemaVersion 1 with no v2 yet — the upcaster skeleton lands together
     // with the first payload shape change (identity-model grew its registry
     // the same way). A no-op registry now would be decorative.
-    "disable": ["F032", "E005", "C013", "S006", "B026", "E004", "F005"]
+    //
+    // B005 (switch-fold-consider-strict-apply), 2026-11-24: FoldBillTo
+    // mirrors FoldLegalParty's explicit switch with a typed default-case
+    // rejection — the switch IS the runtime exhaustiveness; decider.StrictApply
+    // is a same-shape v5-class refactor of both folds, not a fix for one.
+    //
+    // F008 (json-codec-cbor-suggestion), 2026-11-24: the BillTo events
+    // crossed the rule's event-count threshold. JSON is deliberate: payloads
+    // are tiny (IDs + reason strings), the nested Profile value object stays
+    // human-readable in the journal, and CBOR is the ADR-0059 class for
+    // byte-heavy payloads (credentials, keys) this module does not add.
+    "disable": ["F032", "E005", "C013", "S006", "B026", "E004", "F005", "B005", "F008"]
   }
 }

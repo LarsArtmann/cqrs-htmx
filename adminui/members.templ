@@ -21,9 +21,9 @@ const memberEmailListID = "admin-member-emails"
 // through the directory) rather than the raw "user:01HZ…" actor token: the
 // admin's job is deciding who has access, and an opaque id makes that a
 // lookup exercise.
-templ membersCard(d tenantDetailData) {
+templ membersCard(p pageData, d tenantDetailData) {
 	@display.Card(display.CardProps{
-		Title: "Members",
+		Title: p.label(labelPageMembers),
 	}) {
 		if d.AddMemberError != "" {
 			<div class="mb-4">
@@ -46,12 +46,12 @@ templ membersCard(d tenantDetailData) {
 			</div>
 		}
 		if len(d.Members) == 0 {
-			@empty("members", "No members", "Add a person below to grant tenant access.", "", "")
+			@empty("members", p.label(labelEmptyMembersTitle), p.label(labelEmptyMembersHint), "", "")
 		} else {
 			@display.Table(display.TableProps{
-				Headers:     []string{"Member", "Roles", "Added", ""},
+				Headers:     []string{p.label(labelHeaderMember), p.label(labelHeaderRoles), p.label(labelHeaderAdded), ""},
 				Hover:       true,
-				Body:        membersRows(d),
+				Body:        membersRows(p, d),
 				Flush:       true,
 				CellPadding: display.TableCellPaddingCompact,
 			})
@@ -89,7 +89,7 @@ templ membersCard(d tenantDetailData) {
 	}
 }
 
-templ membersRows(d tenantDetailData) {
+templ membersRows(p pageData, d tenantDetailData) {
 	for _, m := range d.Members {
 		<tr>
 			<td class="px-4 py-2">
@@ -128,7 +128,7 @@ templ membersRows(d tenantDetailData) {
 							Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
 							BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 								"data-confirm":       memberRoleChangeConfirm(d, m),
-								"data-confirm-title": "Change roles",
+								"data-confirm-title": p.label(labelConfirmMemberRoles),
 							}},
 						})
 					</form>
@@ -136,7 +136,7 @@ templ membersRows(d tenantDetailData) {
 			</td>
 			<td class="px-4 py-2 text-gray-500">
 				if !m.AddedAt.IsZero() {
-					<span title={ m.AddedAt.Format("Jan 2, 2006 15:04 MST") }>
+					<span title={ p.dateTime(m.AddedAt) }>
 						@display.RelativeTime(display.RelativeTimeProps{Time: m.AddedAt})
 					</span>
 				} else {
@@ -157,7 +157,7 @@ templ membersRows(d tenantDetailData) {
 						"aria-label":         "Remove " + m.displayName() + " from this tenant",
 						"hx-post":            d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
 						"data-confirm":       memberRemoveConfirm(d, m),
-						"data-confirm-title": "Remove member",
+						"data-confirm-title": p.label(labelConfirmMemberRemove),
 						"hx-disabled-elt":    "this",
 					}},
 				})
@@ -169,9 +169,9 @@ templ membersRows(d tenantDetailData) {
 // tenantHeader renders the page title + tenant status badge + display name
 // via the PageHeader pattern (status in the action slot, identity as the
 // subtitle).
-templ tenantHeader(d tenantDetailData) {
+templ tenantHeader(p pageData, d tenantDetailData) {
 	@display.PageHeader(display.PageHeaderProps{
-		Title:    "Members",
+		Title:    p.label(labelPageMembers),
 		Subtitle: tenantSubtitle(d.Tenant),
 		Action:   tenantHeaderStatus(d),
 	})
@@ -189,10 +189,10 @@ templ tenantHeaderStatus(d tenantDetailData) {
 
 // membersPage is the tenant-scoped members view (ModeTenantAdmin).
 templ membersPage(p pageData, d tenantDetailData) {
-	@Layout(p, membersContent(d))
+	@Layout(p, membersContent(p, d))
 }
 
-templ membersContent(d tenantDetailData) {
-	@tenantHeader(d)
-	@membersCard(d)
+templ membersContent(p pageData, d tenantDetailData) {
+	@tenantHeader(p, d)
+	@membersCard(p, d)
 }

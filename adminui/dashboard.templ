@@ -7,31 +7,29 @@ import (
 )
 
 templ dashboardPage(p pageData, d dashboardData, superAdmin bool) {
-	@Layout(p, dashboardContent(d, superAdmin))
+	@Layout(p, dashboardContent(p, d, superAdmin))
 }
 
-templ dashboardContent(d dashboardData, superAdmin bool) {
+templ dashboardContent(p pageData, d dashboardData, superAdmin bool) {
 	if d.NoAdminGrant {
 		<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
-			<strong>No admin grant exists.</strong> Nobody holds super_admin or admin
-			in the global domain — you are seeing this via a custom authorizer. Grant
-			platform roles from a user's detail page before the last door closes.
+			<strong>{ p.label(labelBannerNoAdminGrant) }</strong> { p.label(labelBannerNoAdminBody) }
 		</div>
 	} else if d.BusFactor {
 		@busFactorBanner()
 	}
-	@dashboardStatsRegion(d, superAdmin)
+	@dashboardStatsRegion(p, d, superAdmin)
 	if len(d.Recent) == 0 {
-		@display.Card(display.CardProps{Title: "Recent activity", Padding: display.CardPaddingNone}) {
-			@empty("audit", "No activity yet", "User and tenant events will appear here.", "", "")
+		@display.Card(display.CardProps{Title: p.label(labelCardRecentActivity), Padding: display.CardPaddingNone}) {
+			@empty("audit", p.label(labelEmptyActivityTitle), p.label(labelEmptyActivityHint), "", "")
 		}
 	} else {
 		@display.Card(display.CardProps{
-			Title:   "Recent activity",
+			Title:   p.label(labelCardRecentActivity),
 			Padding: display.CardPaddingNone,
 		}) {
 			@display.Table(display.TableProps{
-				Headers:     []string{"Action", "Who", "When"},
+				Headers:     []string{p.label(labelHeaderAction), p.label(labelHeaderWho), p.label(labelHeaderWhen)},
 				Hover:       true,
 				Body:        recentActivityRows(d),
 				Flush:       true,
@@ -56,13 +54,13 @@ templ dashboardContent(d dashboardData, superAdmin bool) {
 // The quick-actions row renders INSIDE the region: the polled response is the
 // region itself, so a row outside it would vanish on the first refresh, and a
 // row rendered both inside and outside would duplicate on the page.
-templ dashboardStatsRegion(d dashboardData, superAdmin bool) {
+templ dashboardStatsRegion(p pageData, d dashboardData, superAdmin bool) {
 	@htmx.PolledRegion(htmx.PolledRegionProps{
 		URL:           d.StatsURL,
 		Every:         "30s",
 		ShowTimestamp: true,
 	}) {
-		@quickActionsRow(d, superAdmin)
+		@quickActionsRow(p, d, superAdmin)
 		@dashboardWindowCaption(d)
 		@display.Grid(display.GridProps{
 			Cols:        display.GridColsAutoFit,
@@ -130,11 +128,11 @@ templ registrationsSparkCard(points []dayCount, span auditWindowSpan) {
 // superAdmin gates the row: both creation routes are super-admin table rows,
 // so tenant-admin mode renders NOTHING rather than a control whose target
 // page does not exist in that mode.
-templ quickActionsRow(d dashboardData, superAdmin bool) {
+templ quickActionsRow(p pageData, d dashboardData, superAdmin bool) {
 	if superAdmin {
 		<div class="mb-4 flex items-center gap-3">
 			@display.Button(display.ButtonProps{
-				Text:      "Create user",
+				Text:      p.label(labelActionCreateUser),
 				Href:      d.BasePath + "/users/new",
 				Variant:   display.ButtonPrimary,
 				Size:      display.ButtonSizeSM,
@@ -142,7 +140,7 @@ templ quickActionsRow(d dashboardData, superAdmin bool) {
 				BaseProps: utils.BaseProps{Class: classNoUnderline},
 			})
 			@display.Button(display.ButtonProps{
-				Text:      "Create tenant",
+				Text:      p.label(labelActionCreateTenant),
 				Href:      d.BasePath + "/tenants/new",
 				Variant:   display.ButtonSecondary,
 				Size:      display.ButtonSizeSM,

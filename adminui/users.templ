@@ -16,7 +16,7 @@ import (
 )
 
 templ usersPage(p pageData, d usersListData, sort string) {
-	@Layout(p, usersContent(d, sort))
+	@Layout(p, usersContent(p, d, sort))
 }
 
 // userImportPage is the bulk-import form (super-admin). The result panel
@@ -92,18 +92,18 @@ templ importResultPanel(result usermgmt.ImportResult, back string) {
 	</div>
 }
 
-templ usersContent(d usersListData, sort string) {
-	@display.PageHeader(display.PageHeaderProps{Title: "Users", Action: newUserAction(d)})
+templ usersContent(p pageData, d usersListData, sort string) {
+	@display.PageHeader(display.PageHeaderProps{Title: p.label(labelPageUsers), Action: newUserAction(p, d)})
 	<div class="mb-4 flex flex-wrap items-center gap-2">
 		@display.Button(display.ButtonProps{
-			Text:      "Import users",
+			Text:      p.label(labelActionImportUsers),
 			Href:      d.BasePath + "/users/import",
 			Variant:   display.ButtonSecondary,
 			Size:      display.ButtonSizeSM,
 			BaseProps: utils.BaseProps{Class: classNoUnderline},
 		})
 		@display.Button(display.ButtonProps{
-			Text:      "Export CSV",
+			Text:      p.label(labelActionExportCSV),
 			Href:      d.BasePath + "/users/export.csv",
 			Variant:   display.ButtonSecondary,
 			Size:      display.ButtonSizeSM,
@@ -116,14 +116,14 @@ templ usersContent(d usersListData, sort string) {
 			// userListURL, so the file matches what the list shows.
 		if d.Search != "" || d.Filter != userFilterNone || sort != "" {
 			@display.Button(display.ButtonProps{
-				Text:      "Export filtered CSV",
+				Text:      p.label(labelActionExportFCsv),
 				Href:      userListURL(d.BasePath+"/users/export.filtered.csv", d, d.Filter, sort),
 				Variant:   display.ButtonSecondary,
 				Size:      display.ButtonSizeSM,
 				BaseProps: utils.BaseProps{Class: classNoUnderline},
 			})
 			@display.Button(display.ButtonProps{
-				Text:      "Export filtered JSON",
+				Text:      p.label(labelActionExportFJson),
 				Href:      userListURL(d.BasePath+"/users/export.filtered.json", d, d.Filter, sort),
 				Variant:   display.ButtonSecondary,
 				Size:      display.ButtonSizeSM,
@@ -174,7 +174,7 @@ templ usersContent(d usersListData, sort string) {
 	</div>
 	@userFilterChips(d, sort)
 	<div id="users-table">
-		@usersTableContent(d, sort)
+		@usersTableContent(p, d, sort)
 	</div>
 }
 
@@ -233,9 +233,9 @@ templ userSortLink(d usersListData, current, sort, label string) {
 
 // newUserAction is the PageHeader action slot for the users list: the
 // primary "New user" entry point rides on the title row.
-templ newUserAction(d usersListData) {
+templ newUserAction(p pageData, d usersListData) {
 	@display.Button(display.ButtonProps{
-		Text:      "New user",
+		Text:      p.label(labelActionNewUser),
 		Href:      d.BasePath + "/users/new",
 		Variant:   display.ButtonPrimary,
 		Size:      display.ButtonSizeSM,
@@ -249,20 +249,20 @@ templ newUserAction(d usersListData) {
 // body-carrying search twin omits it (its wire format is q/filter/page), so
 // the pager it renders keeps q + filter but not sort — the sort key joins
 // that body vocabulary when the search ladder grows the field.
-templ usersTableContent(d usersListData, sort ...string) {
+templ usersTableContent(p pageData, d usersListData, sort ...string) {
 	if len(d.Users) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			if d.Search != "" {
-				@empty("users", "No users match your search", "No registered user matches the search term.", "Clear search", d.BasePath+"/users")
+				@empty("users", p.label(labelEmptyUsersSearchTitle), p.label(labelEmptyUsersSearchHint), p.label(labelEmptyUsersSearchAction), d.BasePath+"/users")
 			} else {
-				@empty("users", "No users yet", "Registered users will appear here.", "Create the first user", d.BasePath+"/users/new")
+				@empty("users", p.label(labelEmptyUsersNoneTitle), p.label(labelEmptyUsersNoneHint), p.label(labelEmptyUsersNoneAction), d.BasePath+"/users/new")
 			}
 		}
 	} else {
 		@display.Table(display.TableProps{
-			Headers:     []string{"User", "Access", "Status", "Last seen", "Created", ""},
+			Headers:     []string{p.label(labelHeaderUser), p.label(labelHeaderAccess), p.label(labelHeaderStatus), p.label(labelHeaderLastSeen), p.label(labelHeaderCreated), ""},
 			Hover:       true,
-			Body:        usersRows(d),
+			Body:        usersRows(p, d),
 			Striped:     true,
 			CellPadding: display.TableCellPaddingCompact,
 		})
@@ -271,7 +271,7 @@ templ usersTableContent(d usersListData, sort ...string) {
 	}
 }
 
-templ usersRows(d usersListData) {
+templ usersRows(p pageData, d usersListData) {
 	for _, row := range d.Users {
 		<tr>
 			<td class="px-4 py-2">
@@ -310,7 +310,7 @@ templ usersRows(d usersListData) {
 				// stream: a convenience view, honestly dashed when the window
 				// records nothing (fresh user or evicted history).
 				if !row.LastSeen.IsZero() {
-					<span title={ row.LastSeen.Format("Jan 2, 2006 15:04 MST") }>
+					<span title={ p.dateTime(row.LastSeen) }>
 						@display.RelativeTime(display.RelativeTimeProps{Time: row.LastSeen})
 					</span>
 				} else {

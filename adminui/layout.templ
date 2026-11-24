@@ -18,6 +18,7 @@ templ Layout(p pageData, content templ.Component) {
 		HTMXSrc:       p.BasePath + "/-/htmx.js",
 		Nonce:         p.Nonce,
 		SEO:           layout.SEOMeta{NoIndex: true},
+		HTMLDataAttrs: htmlLangAttrs(p),
 		BodyDataAttrs: sseBodyAttrs(p.SSEURL),
 		HeadContent:   headExtras(p),
 		Footer:        pageFoot(p),
@@ -62,7 +63,7 @@ templ headExtras(p pageData) {
 
 templ sidebar(p pageData) {
 	@navigation.SidebarNav(navigation.SidebarNavProps{
-		BaseProps: utils.BaseProps{Class: "admin-sidebar-scope", AriaLabel: "Admin sections"},
+		BaseProps: utils.BaseProps{Class: "admin-sidebar-scope", AriaLabel: p.label(labelChromeSections)},
 		Brand:     brandMark(p),
 		Items:     sidebarItems(p),
 		Footer:    sidebarFooter(p),
@@ -82,10 +83,10 @@ templ sidebarFooter(p pageData) {
 		// routes ([Config.ReadOnly]), so the chrome must not imply the
 		// creation/deletion forms it still renders are live.
 		<span class="admin-readonly-chip inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300">
-			Read-only
+			{ p.label(labelChromeReadOnly) }
 		</span>
 	}
-	<span class="text-xs text-gray-600 dark:text-gray-400">cqrs-htmx admin</span>
+	<span class="text-xs text-gray-600 dark:text-gray-400">{ p.label(labelChromeFooter) }</span>
 }
 
 // tenantSwitchTrigger is the switcher's trigger visuals; the functional
@@ -98,7 +99,7 @@ templ tenantSwitchTrigger(p pageData) {
 			if p.CurrentTenantID != "" {
 				{ tenantSwitchCurrentName(p) }
 			} else {
-				{ panelTenants }
+				{ p.label(labelNavTenants) }
 			}
 		</span>
 	</span>
@@ -119,7 +120,7 @@ templ topBar(p pageData) {
 		<div class="flex items-center gap-3.5">
 			<button
 				class="admin-toggle hidden max-lg:block"
-				aria-label="Menu"
+				aria-label={ p.label(labelChromeMenu) }
 			>
 				@icon("menu")
 			</button>
@@ -150,11 +151,11 @@ templ topBar(p pageData) {
 					})
 				</div>
 			}
-			@layout.ThemeToggle("Toggle theme", p.Nonce)
+			@layout.ThemeToggle(p.label(labelChromeTheme), p.Nonce)
 			if p.SSEURL != "" {
 				<div class="sync-bar" data-sync-status="idle">
 					<span class="sync-dot"></span>
-					Synced
+					{ p.label(labelChromeSynced) }
 				</div>
 			}
 			if p.User != nil {
@@ -190,9 +191,9 @@ templ topBar(p pageData) {
 								ID:    "admin-user-menu",
 								Nonce: p.Nonce,
 							},
-								Items: []display.DropdownItem{
-									{
-										Text: "Sign out",
+							Items: []display.DropdownItem{
+								{
+									Text: p.label(labelChromeSignOut),
 										Href: p.LogoutURL,
 										Icon: icons.ArrowRightOnRectangle,
 										Kind: display.DropdownItemLink,
@@ -205,7 +206,7 @@ templ topBar(p pageData) {
 							href={ p.LogoutURL }
 						>
 							@icon("arrow-right-on-rectangle")
-							Sign out
+							{ p.label(labelChromeSignOut) }
 						</a>
 					</div>
 				} else {
@@ -231,7 +232,7 @@ templ pageFoot(p pageData) {
 	@htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{Nonce: p.Nonce})
 	// Shared confirm dialog for destructive actions (filled dynamically by
 	// admin.js from data-confirm/data-confirm-title on the triggering button).
-	@confirmModal(p.Nonce)
+	@confirmModal(p)
 	if p.SSEURL != "" {
 		// sync-client.js must load before admin.js: it registers htmx:beforeRequest
 		// and htmx:sendError listeners that admin.js's CSRF config depends on being

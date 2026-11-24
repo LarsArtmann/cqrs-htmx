@@ -101,7 +101,7 @@ func tenantSwitchCurrentName(p pageData) string {
 			return opt.DisplayName
 		}
 	}
-	return panelTenants
+	return label(p.Labels, labelNavTenants)
 }
 
 // tenantSwitchItems renders the switcher's dropdown items: one link per live

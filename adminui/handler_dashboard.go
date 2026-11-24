@@ -66,7 +66,7 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 func (h *Handler) statsPartial(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	p := h.page("Dashboard", "/", user, r)
 	window, span, registrations := h.dashboardWindowIntelligence()
-	renderPartial(w, r, dashboardStatsRegion(dashboardData{
+	renderPartial(w, r, dashboardStatsRegion(p, dashboardData{
 		Stats:         h.dashboardStats(r, p),
 		StatsURL:      p.BasePath + "/partials/stats",
 		BasePath:      p.BasePath,

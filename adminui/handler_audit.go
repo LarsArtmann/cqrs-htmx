@@ -149,11 +149,11 @@ func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *ident
 		Window: window,
 	}
 
+	p := h.page("Audit log", "/audit", user, r)
 	if htmx.RenderPartial(r) {
-		renderPartial(w, r, auditPanelContent(d))
+		renderPartial(w, r, auditPanelContent(p, d))
 		return
 	}
-	p := h.page("Audit log", "/audit", user, r)
 	renderPage(w, r, auditPage(p, d))
 }
 

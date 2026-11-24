@@ -286,18 +286,21 @@ templ listNote(shown, total int) {
 // (all native <dialog> behavior). The server-side handlers are unchanged —
 // the modal is purely progressive enhancement over the same htmx requests.
 // Rendered once per page via pageFoot.
-templ confirmModal(nonce string) {
+// confirmModal is driven by the page's label table (T16): the shared shell
+// strings ride p.label, while each action's specific body text arrives via
+// data-confirm on the triggering button.
+templ confirmModal(p pageData) {
 	@display.Modal(display.ModalProps{
-		BaseProps: utils.BaseProps{ID: "admin-confirm-modal", Nonce: nonce},
-		Title:     "Are you sure?",
+		BaseProps: utils.BaseProps{ID: "admin-confirm-modal", Nonce: p.Nonce},
+		Title:     p.label(labelConfirmTitle),
 		Size:      display.ModalSizeMD,
 	}) {
-		<p id="admin-confirm-body" class="text-sm text-gray-600 dark:text-gray-300">This action cannot be undone.</p>
+		<p id="admin-confirm-body" class="text-sm text-gray-600 dark:text-gray-300">{ p.label(labelConfirmBody) }</p>
 		<div class="mt-5 flex justify-end gap-2">
 			@display.Button(display.ButtonProps{
 				Type:    display.ButtonHTMLButton,
 				Variant: display.ButtonSecondary,
-				Text:    "Cancel",
+				Text:    p.label(labelConfirmCancel),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"data-tc-close": "modal",
 				}},
@@ -305,7 +308,7 @@ templ confirmModal(nonce string) {
 			@display.Button(display.ButtonProps{
 				Type:      display.ButtonHTMLButton,
 				Variant:   display.ButtonDanger,
-				Text:      "Confirm",
+				Text:      p.label(labelConfirmOK),
 				BaseProps: utils.BaseProps{ID: "admin-confirm-ok"},
 			})
 		</div>
