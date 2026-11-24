@@ -544,11 +544,12 @@ func sparklinePoints(points []dayCount) string {
 }
 
 // sparklineAriaLabel is the text alternative (and visible caption) for the
-// sparkline: total registrations across the days the window's range covers.
-func sparklineAriaLabel(points []dayCount) string {
+// sparkline: total registrations across the days the window's range covers,
+// interpolated through the merged label table (f#19).
+func sparklineAriaLabel(labels map[string]string, points []dayCount) string {
 	total := 0
 	for _, p := range points {
 		total += p.Count
 	}
-	return fmt.Sprintf("%d registrations over %d days", total, len(points))
+	return labelf(labels, labelAriaSparkline, total, len(points))
 }

@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, type TestInfo } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 /**
@@ -38,10 +38,15 @@ const ADMIN = "http://localhost:18930";
  */
 const ACCEPTED: Array<{ id: string; why: string; nodes: string[] }> = [];
 
+/** The slice of an axe violation the ledger and the honest attachments need. */
+type AxeViolation = {
+  id: string;
+  impact?: string | null;
+  nodes: Array<{ target: string[]; failureSummary?: string }>;
+};
+
 /** A serious violation survives the ledger only if ALL its nodes are covered. */
-function unexpectedViolations(
-  serious: Array<{ id: string; impact?: string; nodes: Array<{ target: string[] }> }>,
-): Array<{ id: string; impact?: string; nodes: Array<{ target: string[] }> }> {
+function unexpectedViolations(serious: AxeViolation[]): AxeViolation[] {
   return serious.filter((v) => {
     const entry = ACCEPTED.find((e) => e.id === v.id);
     if (!entry) return true;
@@ -50,15 +55,46 @@ function unexpectedViolations(
   });
 }
 
-function summarize(
-  violations: Array<{ id: string; impact?: string; nodes: Array<{ target: string[] }> }>,
-): string {
+function summarize(violations: AxeViolation[]): string {
   return violations
     .map(
       (v) =>
         `${v.id} (${v.impact}): ${v.nodes.length} node(s), e.g. ${v.nodes[0]?.target.join(" ")}`,
     )
     .join("; ");
+}
+
+/**
+ * Honest attachment (TODO row 59 follow-up): every sub-gate finding is
+ * attached as JSON + annotated instead of being silently dropped. This
+ * NEVER changes a sweep's verdict — the gate stays exactly as the ledger
+ * scopes it; moderate/minor findings ride along for the templ-components
+ * owner to triage (same shape as the palette-open sweep below).
+ */
+async function attachNonCritical(
+  testInfo: TestInfo,
+  label: string,
+  violations: AxeViolation[],
+): Promise<void> {
+  if (violations.length === 0) return;
+  const slug = label.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+  await testInfo.attach(`axe-${slug}-non-critical.json`, {
+    body: JSON.stringify(
+      violations.map((v) => ({
+        id: v.id,
+        impact: v.impact,
+        nodes: v.nodes.map((n) => n.target.join(" ")),
+        summary: v.nodes[0]?.failureSummary ?? "",
+      })),
+      null,
+      2,
+    ),
+    contentType: "application/json",
+  });
+  testInfo.annotations.push({
+    type: `axe findings (${label}, non-critical)`,
+    description: summarize(violations),
+  });
 }
 
 test.beforeEach(async ({ page }) => {
@@ -124,7 +160,7 @@ const AXE_PAGES: Array<{ name: string; url: string }> = [
 ];
 
 for (const { name, url } of AXE_PAGES) {
-  test(`axe sweep (adminui): ${name}`, async ({ page }) => {
+  test(`axe sweep (adminui): ${name}`, async ({ page }, testInfo) => {
     await page.goto(`${ADMIN}${url}`, { waitUntil: "load" });
     await page.waitForTimeout(400);
 
@@ -132,12 +168,18 @@ for (const { name, url } of AXE_PAGES) {
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
 
+    // Sub-gate findings ride along honestly; the verdict below is unchanged.
+    const nonCritical = results.violations.filter(
+      (v) => !["critical", "serious"].includes(v.impact ?? ""),
+    );
+    await attachNonCritical(testInfo, name, nonCritical);
+
     const serious = results.violations.filter((v) =>
       ["critical", "serious"].includes(v.impact ?? ""),
     );
     const unexpected = unexpectedViolations(serious);
     if (unexpected.length > 0) {
-      test.info().annotations.push({ type: "axe findings", description: summarize(unexpected) });
+      testInfo.annotations.push({ type: "axe findings", description: summarize(unexpected) });
     }
     expect(unexpected, `axe critical/serious violations on ${name}`).toEqual([]);
   });
@@ -159,6 +201,10 @@ test("axe sweep (adminui): tenant detail and user detail", async ({ page }, test
     const serious = results.violations.filter((v) =>
       ["critical", "serious"].includes(v.impact ?? ""),
     );
+    const nonCritical = results.violations.filter(
+      (v) => !["critical", "serious"].includes(v.impact ?? ""),
+    );
+    await attachNonCritical(testInfo, name, nonCritical);
     const unexpected = unexpectedViolations(serious);
     if (unexpected.length > 0) {
       testInfo.annotations.push({
@@ -194,27 +240,9 @@ test("axe sweep (adminui): command palette open", async ({ page }, testInfo) => 
   // on CRITICAL. Pre-existing non-critical findings (likely library-rendered
   // popover internals owned by templ-components) attach for triage instead
   // of failing the battery.
-  const critical = results.violations.filter((v) => v.impact === "critical");
   const nonCritical = results.violations.filter((v) => v.impact !== "critical");
-  if (nonCritical.length > 0) {
-    await testInfo.attach("axe-palette-open-non-critical.json", {
-      body: JSON.stringify(
-        nonCritical.map((v) => ({
-          id: v.id,
-          impact: v.impact,
-          nodes: v.nodes.map((n) => n.target.join(" ")),
-          summary: v.nodes[0]?.failureSummary ?? "",
-        })),
-        null,
-        2,
-      ),
-      contentType: "application/json",
-    });
-    testInfo.annotations.push({
-      type: "axe findings (palette open, non-critical)",
-      description: summarize(nonCritical),
-    });
-  }
+  await attachNonCritical(testInfo, "palette open", nonCritical);
+  const critical = results.violations.filter((v) => v.impact === "critical");
   expect(critical, "axe CRITICAL violations with the command palette open").toEqual([]);
 });
 

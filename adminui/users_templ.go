@@ -708,7 +708,7 @@ func newUserAction(p pageData, d usersListData) templ.Component {
 // no server round-trip. aria-sort carries the live state (the URL-carried
 // server sort from T03 seeds it on render and stays the bookmarkable
 // default); the indicator span is textContent-updated by admin.js.
-func userSortableHeader(key, label, aria string) templ.Component {
+func userSortableHeader(p pageData, key, label, aria string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -756,9 +756,9 @@ func userSortableHeader(key, label, aria string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var25 string
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templruntime.NewAttributeExpression("Sort by " + label).Resolve(ctx)
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.labelf(labelAriaSortBy, label)).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 280, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 280, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25)
 		if templ_7745c5c3_Err != nil {
@@ -864,7 +864,7 @@ func usersTableContent(p pageData, d usersListData, sort ...string) templ.Compon
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = userSortableHeader("email", p.label(labelHeaderUser), userHeaderAria(pagerSortOf(sort), "email")).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = userSortableHeader(p, "email", p.label(labelHeaderUser), userHeaderAria(pagerSortOf(sort), "email")).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -911,7 +911,7 @@ func usersTableContent(p pageData, d usersListData, sort ...string) templ.Compon
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = userSortableHeader("created", p.label(labelHeaderCreated), userHeaderAria(pagerSortOf(sort), "created")).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = userSortableHeader(p, "created", p.label(labelHeaderCreated), userHeaderAria(pagerSortOf(sort), "created")).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1055,9 +1055,9 @@ func usersRows(p pageData, d usersListData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var40 string
-			templ_7745c5c3_Var40, templ_7745c5c3_Err = templruntime.NewAttributeExpression("Select " + row.User.Email).Resolve(ctx)
+			templ_7745c5c3_Var40, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.labelf(labelAriaSelectRow, row.User.Email)).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 357, Col: 144}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 357, Col: 162}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var40)
 			if templ_7745c5c3_Err != nil {
@@ -2034,8 +2034,8 @@ func userDetailContent(p pageData, d userDetailData) templ.Component {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
-					"data-confirm":       "Delete user " + d.User.Email + "? This cannot be undone.",
-					"data-confirm-title": "Delete user",
+					"data-confirm":       p.labelf(labelConfirmUsersDeleteBody, d.User.Email),
+					"data-confirm-title": p.label(labelConfirmUsersDelete),
 					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -2261,8 +2261,8 @@ func profileEditCard(p pageData, d userDetailData) templ.Component {
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"data-confirm":       "Change this user's email? OAuth providers match by email — the user may lose linked access until re-linked.",
-					"data-confirm-title": "Change email",
+					"data-confirm":       p.label(labelConfirmUsersEmailBody),
+					"data-confirm-title": p.label(labelConfirmUsersEmail),
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -2327,7 +2327,7 @@ func passkeysCard(d userDetailData) templ.Component {
 				templ_7745c5c3_Err = display.Table(display.TableProps{
 					Headers:     []string{"Name", "Added", "Backup", ""},
 					Hover:       true,
-					Body:        credentialRows(d),
+					Body:        credentialRows(p, d),
 					Flush:       true,
 					CellPadding: display.TableCellPaddingCompact,
 				}).Render(ctx, templ_7745c5c3_Buffer)
@@ -2473,8 +2473,8 @@ func credentialRestoreCard(p pageData, d userDetailData) templ.Component {
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("key"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"data-confirm":       "Restore a passkey from backup JSON? The uploaded credential becomes a trusted sign-in factor immediately — restore it only from a backup you control.",
-					"data-confirm-title": "Restore credential",
+					"data-confirm":       p.label(labelConfirmUsersRestoreBody),
+					"data-confirm-title": p.label(labelActionRestoreCredential),
 					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -2498,7 +2498,7 @@ func credentialRestoreCard(p pageData, d userDetailData) templ.Component {
 	})
 }
 
-func credentialRows(d userDetailData) templ.Component {
+func credentialRows(p pageData, d userDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -2624,8 +2624,8 @@ func credentialRows(d userDetailData) templ.Component {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/credentials/" + base64.RawURLEncoding.EncodeToString(c.ID) + "/delete",
-					"data-confirm":       removeCredentialConfirm(d, c),
-					"data-confirm-title": "Remove passkey",
+					"data-confirm":       removeCredentialConfirm(p.Labels, d, c),
+					"data-confirm-title": p.label(labelConfirmUsersPasskey),
 					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -3042,8 +3042,8 @@ func platformAccessCard(p pageData, d userDetailData) templ.Component {
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/roles/revoke",
-						"data-confirm":       revokeRolesConfirm(d),
-						"data-confirm-title": "Revoke platform roles",
+						"data-confirm":       revokeRolesConfirm(p.Labels, d),
+						"data-confirm-title": p.label(labelConfirmUsersRoles),
 						"hx-disabled-elt":    "this",
 					}},
 				}).Render(ctx, templ_7745c5c3_Buffer)
@@ -3373,7 +3373,7 @@ func tenantAccessCard(p pageData, d userDetailData) templ.Component {
 				templ_7745c5c3_Err = display.Table(display.TableProps{
 					Headers:     []string{"Tenant", "Roles", ""},
 					Hover:       true,
-					Body:        tenantAccessRows(d),
+					Body:        tenantAccessRows(p, d),
 					Flush:       true,
 					CellPadding: display.TableCellPaddingCompact,
 				}).Render(ctx, templ_7745c5c3_Buffer)
@@ -3505,7 +3505,7 @@ func tenantAccessCard(p pageData, d userDetailData) templ.Component {
 	})
 }
 
-func tenantAccessRows(d userDetailData) templ.Component {
+func tenantAccessRows(p pageData, d userDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -3629,7 +3629,7 @@ func tenantAccessRows(d userDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, access.Roles, "Set roles in "+access.Name).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, access.Roles, p.labelf(labelAriaSetRolesIn, access.Name)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -3639,8 +3639,8 @@ func tenantAccessRows(d userDetailData) templ.Component {
 				Size:     display.ButtonSizeSM,
 				Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"data-confirm":       tenantRoleChangeConfirm(d, access),
-					"data-confirm-title": "Change roles",
+					"data-confirm":       tenantRoleChangeConfirm(p.Labels, d, access),
+					"data-confirm-title": p.label(labelConfirmTenantRoles),
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -3657,10 +3657,10 @@ func tenantAccessRows(d userDetailData) templ.Component {
 				// Icon-only button: name it for screen readers (axe
 				// button-name, first adminui a11y sweep 2026-11-14).
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"aria-label":         "Revoke access to " + access.Name,
+					"aria-label":         p.labelf(labelAriaRevokeAccess, access.Name),
 					"hx-post":            d.RemoveTenantBase + "/" + access.TenantID + "/delete",
-					"data-confirm":       tenantRevokeConfirm(d, access),
-					"data-confirm-title": "Revoke tenant access",
+					"data-confirm":       tenantRevokeConfirm(p.Labels, d, access),
+					"data-confirm-title": p.label(labelConfirmTenantRevoke),
 					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -3985,8 +3985,8 @@ func externalAccountRows(p pageData, d userDetailData) templ.Component {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
-					"data-confirm":       "Unlink " + ea.Provider + " from " + d.User.Email + "? The account can be linked again later.",
-					"data-confirm-title": "Unlink account",
+					"data-confirm":       p.labelf(labelConfirmUsersUnlinkBody, ea.Provider, d.User.Email),
+					"data-confirm-title": p.label(labelConfirmUsersUnlink),
 					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)

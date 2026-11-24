@@ -794,7 +794,7 @@ templ passkeysCard(d userDetailData) {
 			@display.Table(display.TableProps{
 				Headers:     []string{"Name", "Added", "Backup", ""},
 				Hover:       true,
-				Body:        credentialRows(d),
+				Body:        credentialRows(p, d),
 				Flush:       true,
 				CellPadding: display.TableCellPaddingCompact,
 			})
@@ -840,7 +840,7 @@ templ credentialRestoreCard(p pageData, d userDetailData) {
 	}
 }
 
-templ credentialRows(d userDetailData) {
+templ credentialRows(p pageData, d userDetailData) {
 	for _, c := range d.User.Credentials {
 		<tr>
 			<td class="px-4 py-2 text-sm font-medium">

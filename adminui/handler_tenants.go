@@ -139,6 +139,10 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	for i := range members {
 		members[i].AddedBy = addedBy[members[i].Actor.PrefixedString()]
 	}
+	// The page (and its merged label table) is built before the data so the
+	// transfer candidates' confirm bodies interpolate through the labels
+	// (f#19) — the labels must exist before any confirm text is composed.
+	p := h.page(tenant.DisplayName, "/tenants", user, r)
 	memberBase := h.config.BasePath + "/tenants/" + tenantID.Get() + "/members"
 	d := tenantDetailData{
 		Tenant:              tenant,
@@ -161,10 +165,9 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		RosterURL:          h.config.BasePath + "/tenants/" + tenantID.Get(),
 		RosterExportURL:    h.config.BasePath + "/tenants/" + tenantID.Get() + "/roster.csv",
 		TransferURL:        h.config.BasePath + "/tenants/" + tenantID.Get() + "/transfer",
-		TransferCandidates: transferCandidates(allMembers),
+		TransferCandidates: transferCandidates(p.Labels, allMembers),
 	}
 	h.applyMemberError(r, &d)
-	p := h.page(tenant.DisplayName, "/tenants", user, r)
 	// The switcher is rebuilt with the viewed tenant marked, so the dropdown
 	// answers "where am I" (T091: tenant detail is the tenant dashboard the
 	// switcher falls back to from any other page).
@@ -217,8 +220,9 @@ func countAdminTier(members []memberRow) int {
 // member except the current owner-role holders (transferring to an existing
 // owner is refused server-side, so offering them would lead the admin into
 // an error). Each candidate carries the two-sided confirm body naming the
-// prior owner and the receiver by their directory identity (F163).
-func transferCandidates(members []memberRow) []transferCandidate {
+// prior owner and the receiver by their directory identity (F163),
+// interpolated through the merged label table (f#19).
+func transferCandidates(labels map[string]string, members []memberRow) []transferCandidate {
 	priorName := ""
 	for _, m := range members {
 		if hasRole(m.Roles, identitymodel.RoleOwner) {
@@ -233,9 +237,9 @@ func transferCandidates(members []memberRow) []transferCandidate {
 		}
 		c := transferCandidate{Email: m.displayName(), ConfirmBody: ""}
 		if priorName != "" {
-			c.ConfirmBody = tenantTransferConfirm(priorName, m.displayName())
+			c.ConfirmBody = tenantTransferConfirm(labels, priorName, m.displayName())
 		} else {
-			c.ConfirmBody = tenantTransferGrantOnlyConfirm(m.displayName())
+			c.ConfirmBody = tenantTransferGrantOnlyConfirm(labels, m.displayName())
 		}
 		candidates = append(candidates, c)
 	}

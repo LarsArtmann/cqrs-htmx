@@ -914,7 +914,7 @@ func tenantDetailContent(p pageData, d tenantDetailData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if d.Tenant.Suspended {
-			templ_7745c5c3_Err = tenantSuspendedBanner(d).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tenantSuspendedBanner(p, d).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -969,7 +969,7 @@ func tenantDetailContent(p pageData, d tenantDetailData) templ.Component {
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
-						"data-confirm":       tenantSuspendConfirm(d),
+						"data-confirm":       tenantSuspendConfirm(p.Labels, d),
 						"data-confirm-title": p.label(labelConfirmTenSuspend),
 						"hx-disabled-elt":    "this",
 					}},
@@ -985,7 +985,7 @@ func tenantDetailContent(p pageData, d tenantDetailData) templ.Component {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
-					"data-confirm":       tenantDeleteConfirm(d),
+					"data-confirm":       tenantDeleteConfirm(p.Labels, d),
 					"data-confirm-title": p.label(labelConfirmTenDelete),
 					"hx-disabled-elt":    "this",
 				}},
@@ -1189,7 +1189,7 @@ func roleDistributionDetail(d tenantDetailData) templ.Component {
 // every member of this tenant is locked out is announced where the admin is
 // looking, with the reactivate CTA in context — the same existing POST the
 // danger zone offers, no new route.
-func tenantSuspendedBanner(d tenantDetailData) templ.Component {
+func tenantSuspendedBanner(p pageData, d tenantDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1228,8 +1228,8 @@ func tenantSuspendedBanner(d tenantDetailData) templ.Component {
 			Size:    display.ButtonSizeSM,
 			BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 				"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
-				"data-confirm":       "Reactivate this tenant? Members regain access immediately.",
-				"data-confirm-title": "Reactivate tenant",
+				"data-confirm":       p.label(labelConfirmTenReactivateBod),
+				"data-confirm-title": p.label(labelConfirmTenReactivate),
 				"hx-disabled-elt":    "this",
 			}},
 		}).Render(ctx, templ_7745c5c3_Buffer)

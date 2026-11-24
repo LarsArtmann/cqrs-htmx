@@ -259,7 +259,7 @@ templ tenantDetailContent(p pageData, d tenantDetailData) {
 		@tenantMetaCard(d)
 	</div>
 	if d.Tenant.Suspended {
-		@tenantSuspendedBanner(d)
+			@tenantSuspendedBanner(p, d)
 	}
 	<div class="mb-4">
 		@membersCard(p, d)
@@ -287,7 +287,7 @@ templ tenantDetailContent(p pageData, d tenantDetailData) {
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
-						"data-confirm":       tenantSuspendConfirm(d),
+						"data-confirm":       tenantSuspendConfirm(p.Labels, d),
 						"data-confirm-title": p.label(labelConfirmTenSuspend),
 						"hx-disabled-elt":    "this",
 					}},
@@ -300,7 +300,7 @@ templ tenantDetailContent(p pageData, d tenantDetailData) {
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
-					"data-confirm":       tenantDeleteConfirm(d),
+					"data-confirm":       tenantDeleteConfirm(p.Labels, d),
 					"data-confirm-title": p.label(labelConfirmTenDelete),
 					"hx-disabled-elt":    "this",
 				}},
@@ -343,7 +343,7 @@ templ roleDistributionDetail(d tenantDetailData) {
 // every member of this tenant is locked out is announced where the admin is
 // looking, with the reactivate CTA in context — the same existing POST the
 // danger zone offers, no new route.
-templ tenantSuspendedBanner(d tenantDetailData) {
+templ tenantSuspendedBanner(p pageData, d tenantDetailData) {
 	<div class="mb-4">
 		@feedback.Alert(feedback.AlertProps{
 			Type:    feedback.FeedbackWarning,
@@ -357,8 +357,8 @@ templ tenantSuspendedBanner(d tenantDetailData) {
 				Size:    display.ButtonSizeSM,
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
-					"data-confirm":       "Reactivate this tenant? Members regain access immediately.",
-					"data-confirm-title": "Reactivate tenant",
+					"data-confirm":       p.label(labelConfirmTenReactivateBod),
+					"data-confirm-title": p.label(labelConfirmTenReactivate),
 					"hx-disabled-elt":    "this",
 				}},
 			})

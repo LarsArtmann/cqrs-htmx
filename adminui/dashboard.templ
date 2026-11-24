@@ -112,12 +112,12 @@ templ registrationsSparkCard(p pageData, points []dayCount, span auditWindowSpan
 				viewBox="0 0 140 40"
 				class="h-10 w-full text-blue-600 dark:text-blue-400"
 				role="img"
-				aria-label={ sparklineAriaLabel(points) }
+				aria-label={ sparklineAriaLabel(p.Labels, points) }
 				preserveAspectRatio="none"
 			>
 				<polyline fill="none" stroke="currentColor" stroke-width="2" points={ sparklinePoints(points) }></polyline>
 			</svg>
-			<p class={ "mt-2 text-xs " + metadataTextXSClass }>{ sparklineAriaLabel(points) }</p>
+			<p class={ "mt-2 text-xs " + metadataTextXSClass }>{ sparklineAriaLabel(p.Labels, points) }</p>
 		}
 	}
 }

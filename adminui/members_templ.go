@@ -527,7 +527,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, m.Roles, "Set roles for "+m.displayName()).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = roleCheckboxGroup(d.AssignableRoles, m.Roles, p.labelf(labelAriaSetRolesFor, m.displayName())).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -537,7 +537,7 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				Size:     display.ButtonSizeSM,
 				Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"data-confirm":       memberRoleChangeConfirm(d, m),
+					"data-confirm":       memberRoleChangeConfirm(p.Labels, d, m),
 					"data-confirm-title": p.label(labelConfirmMemberRoles),
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -646,9 +646,9 @@ func membersRows(p pageData, d tenantDetailData) templ.Component {
 				// Icon-only button: name it for screen readers (axe
 				// button-name, first adminui a11y sweep 2026-11-14).
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"aria-label":         "Remove " + m.displayName() + " from this tenant",
+					"aria-label":         p.labelf(labelAriaMemberRemove, m.displayName()),
 					"hx-post":            d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
-					"data-confirm":       memberRemoveConfirm(d, m),
+					"data-confirm":       memberRemoveConfirm(p.Labels, d, m),
 					"data-confirm-title": p.label(labelConfirmMemberRemove),
 					"hx-disabled-elt":    "this",
 				}},
