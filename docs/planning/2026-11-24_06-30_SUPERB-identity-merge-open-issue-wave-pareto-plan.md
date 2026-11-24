@@ -66,6 +66,13 @@ Four issues are open on a repo whose live deployment carries nine user rows for 
 | D12 | The `EmailVerified` adoption gate is exact string equality between the contribution's email and the survivor's email (D3 says "equals"). `ParseEmail` lowercases and trims on the canonical paths, so a case or whitespace difference means the contribution was not built canonically and proves nothing. |
 | D13 | A survivor that is itself merged away answers Conflict `usermgmt.merge_users.survivor_merged` with `merged_into` context, before any deleted check. Terminal identities stay terminal and the admin sees the real survivor. |
 | D14 | A plain-deleted loser answers Conflict `usermgmt.merge_user_into.deleted`, not a Rejection: a deleted user is a terminal state, and conflicts are how the module spells "already in that state". Rejections are reserved for malformed input (`not_found`, `survivor_required`, `self_merge`). |
+| D15 | `identitymodel.User` carries `MergedUserIDs` beside `MergedInto`, both omitted from JSON when empty. The admin panel and the duplicates report need "which identities did this one absorb" without replaying the journal. |
+| D16 | A merged-away row leaves the in-memory `users` map; only the pointer map keeps its trace. Deleting a user evicts every index entry owned by it, including the aliases it inherited, so a merged row never counts, lists or answers as live. |
+| D17 | The chain resolver answers with the zero stream ID when the walk has used every pointer and is still on a merged stream. A cycle has no live member. The deciders cannot build a cycle (D13), so this is defence against a corrupt map. |
+| D18 | A retired stream stays retired. `readModelCore.drop` lets a read model refuse an event before dispatch; the user model refuses everything on a stream in the pointer map except `UserMergedInto`, which re-applies as a no-op. After a hydrate the drain replays events that precede the merge, and a re-applied registration brought the merged identity back (the test was red before the change). |
+| D19 | The SQL tombstone is written before the in-memory removal and carries the pointer inside `Data` (`merged_into`), the loser's own snapshot and the merge time in `updated_at`. A failure of that write aborts `Handle` before memory changes, so the retry starts from the pre-merge state. |
+| D20 | `Hydrate` rebuilds the indexes as a replay in key order: every live and merged row claims its email and external accounts keep-first, then each merge re-points its row's entries to its survivor in merge-time order. A merged row's external account is claimed only while the survivor's live row still holds it (G5). When the survivor chain is dead, a live row created after the merge takes the entry over (the deleted-survivor release). |
+| D21 | `FindByEmailSQL` answers with live rows only: a merged row is replaced by the live view at the end of its chain, duplicates collapse. `FindByIDSQL` answers with the tombstone itself, `Tombstoned` true, so a caller can show what became of an identity. |
 
 ## 5. Pareto split
 
@@ -99,7 +106,7 @@ Deferred by constraint, not by choice: the cross-aggregate retention test and th
 | M15 | adminui finish: route manifest pins, audit labels, templ regeneration through the canonical generator, module tests                  | 60  | high     | M13, M14 |
 | M16 | systemadapter: decoder, schemas, six registrations, gate declarations, declarative projections, count comments, tests                 | 100 | high     | M09, M10 |
 | M17 | gfl-usermgmt: regenerate the events artifact and the eventcatalog resources; add merge scenarios if the CLI is available              | 45  | medium   | M16 |
-| M18 | Issue #43: knob tests, `setup/README.md`, CHANGELOG, true the stale hold claims                                                       | 60  | medium   | nothing |
+| M18 | Issue #43: knob tests, `setup/README.md`, a setup change entry, true the stale hold claims                                       | 60  | medium   | nothing        |
 | M19 | Issue #45: `LegalForm` assertions, bill-to aggregate in `legalparty-model`, README, follow-up row                                      | 100 | medium   | nothing |
 | M20 | Docs: domain language, AGENTS and FEATURES counts, module READMEs, skill references, six CHANGELOGs, TODO harvest                    | 90  | high     | M15, M16, M18, M19 |
 | M21 | ADR for identity merge, two gotchas, plan execution log                                                                              | 45  | medium   | M20 |
@@ -153,7 +160,10 @@ Deferred by constraint, not by choice: the cross-aggregate retention test and th
 | 39  | M07 | `identitymodel.User.MergedInto` (omitted when zero)                                     | 6   |
 | 40  | M07 | SQL `Handle` writes the soft tombstone before the in-memory removal                      | 12  |
 | 41  | M07 | `syncToSQL` skips `UserMergedInto`                                                      | 6   |
-| 42  | M07 | `Hydrate` rebuilds the pointer map from tombstoned rows                                  | 12  |
+| 42  | M07 | `Hydrate` rebuilds the pointer map from tombstoned rows                                                  | 12  |
+| 42a | M07 | `Hydrate` rebuilds the email aliases a merged row handed to its survivor (G4: a restart keeps login by a merged email working) | 12 |
+| 42b | M07 | `Hydrate` claims a merged row's external accounts only while the survivor still holds them (G5) | 10 |
+| 42c | M07 | `FindByEmailSQL` answers with live rows; merged rows resolve to their survivor (G7) | 8  |
 | 43  | M07 | Tests: SQL live path, fresh hydrate, `CountSQL`, tombstone view readable by ID           | 12  |
 | 44  | M08 | Casbin: `UserMergedInto` removes every role of the user                                 | 8   |
 | 45  | M08 | Casbin: `TenantMergedInto` clears the domain                                            | 8   |
@@ -218,7 +228,7 @@ Deferred by constraint, not by choice: the cross-aggregate retention test and th
 | 104 | M17 | Merge scenarios in the spec, or a recorded follow-up                                    | 12  |
 | 105 | M18 | Tests for `AppkitServerTiming` (default emits, false omits)                              | 12  |
 | 106 | M18 | `setup/README.md` config row and `RunWithAppkit` paragraph                              | 10  |
-| 107 | M18 | `setup/CHANGELOG.md` entry                                                              | 6   |
+| 107 | M18 | Change entry for setup: the module has no `CHANGELOG.md` (defect in the original plan path), so the entry goes to the file the repo's convention names; verify with `ls setup/` | 6   |
 | 108 | M18 | True the stale hold claims in six files                                                 | 12  |
 | 109 | M18 | Run setup tests                                                                         | 6   |
 | 110 | M19 | Round-trip test asserts `LegalForm`                                                     | 6   |
@@ -274,10 +284,14 @@ flowchart TD
 
 Kill switches: at K1, K2 or K3 a red result stops the downstream milestones. The wave is reported at the last green milestone; nothing broken is pushed.
 
+Red gates that the plan itself creates, each until the milestone that clears it (verified 2026-11-24 08:35): `check-command-bijection.sh` (`constants: 27 registrations: 24`, the three tenant commands register in M11); `check-domain-counts.sh` (FEATURES.md says 27 events and 21 commands, source has 33 and 27; trued in M20); `systemadapter` `TestArchitectureCatalog_EventParityWithUsermgmt` (the six new events are missing from its derivation; M16). A red outside this list is not expected.
+
 ## 9. Verification battery (the commands behind K1 to K3)
 
 ```sh
 source scripts/lib/go-cache-env.sh; export GOEXPERIMENT=jsonv2
+# Per milestone, for the module just touched (lint debt must not accumulate):
+buildflow -s "golangci-lint [usermgmt]" --format finding
 (cd identity-model && GOWORK=off go build ./... && GOWORK=off go vet ./... && GOWORK=off go test ./... -count=1)
 go build ./... && go vet ./usermgmt/ ./systemadapter/ ./adminui/ ./setup/ ./integration_test/
 go test ./identity-model/ ./usermgmt/ ./systemadapter/ ./adminui/ ./setup/ ./legalparty-model/ ./gfl-usermgmt/ -count=1
@@ -296,4 +310,5 @@ nix run .#test
 | M02  | DONE   | `(cd identity-model && GOWORK=off go build ./... && go vet ./... && go test ./... -count=1)` ok, re-run 2026-11-24 07:25; `identity-model/merge_test.go` has 11 test functions |
 | M03  | DONE   | `bash scripts/checks/check-domain-counts.sh` counts 33 events and 27 commands at source; catalog, inventory and architecture tests green in the full `go test ./usermgmt/` run (only the unrelated snapshot tripwire is red, see M23) |
 | M04  | DONE   | `go test ./usermgmt/ -run 'MergeUsers\|MergeUserInto\|TransferBot\|UnmergedLosers' -count=1`: 33 subtests pass (guards, adoption order, versions 5 to 11, codecs, fold-through, retry no-op, late credential, two losers, TOTP and email gates, merge-into, transfer); `go vet ./usermgmt/` exit 0 |
-| M05  | PARTIAL | Registrations and postures landed; `TestCommandPostures_*` green. The bijection gate stays red until the three tenant commands register in M11 (`constants: 27 registrations: 24`) |
+| M05  | PARTIAL | Registrations and postures landed; `TestCommandPostures_*` green. The bijection gate stays red until the three tenant commands register in M11 (`constants: 27 registrations: 24`). The two merge registrations moved into `registerMergeCommands` on 2026-11-24 to clear a `maintidx` warning; `TestCommandPostures_*` 3 PASS after the move |
+| M06  | DONE   | `go test ./usermgmt/ -run 'TestUserReadModel_Merge\|TestReadModels_HandleEveryDeclaredEventType' -count=1`: 17 PASS lines, 0 failures (re-run 2026-11-24 08:35 in the same command as the M04 and posture tests: 53 PASS lines in total); `es_readmodel_merge_test.go`. Decisions D15 to D18 |

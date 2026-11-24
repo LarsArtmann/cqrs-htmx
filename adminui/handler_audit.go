@@ -159,24 +159,29 @@ func parseAuditDateFilter(raw, label string) (*time.Time, string) {
 	if raw == "" {
 		return nil, ""
 	}
-	day, err := time.ParseInLocation(auditDateLayout, raw, time.Local)
+	// time.Now().Location() IS time.Local — spelled this way because the
+	// audit window is deliberately server-local (the server's own clock
+	// defines its days), never a request's or a user's zone.
+	day, err := time.ParseInLocation(auditDateLayout, raw, time.Now().Location())
 	if err != nil {
 		return nil, label + " date is not a valid date — use YYYY-MM-DD; that bound was ignored."
 	}
 	return &day, ""
 }
 
-// auditActorChips is the actor-kind chip vocabulary — exactly the spelling of
-// the audit entries' own actor kinds (id.ActorKind.String(): user, bot,
+// auditActorKinds is the actor-kind chip vocabulary — exactly the spelling
+// of the audit entries' own actor kinds (id.ActorKind.String(): user, bot,
 // system, service).
-var auditActorChips = []string{"user", "bot", "system", "service"}
+func auditActorKinds() []string {
+	return []string{"user", "bot", "system", "service"}
+}
 
 // parseAuditActorChip maps the chip query param to the vocabulary; an unknown
 // value degrades to "" (every kind) — the same unknown-chip degradation the
 // users status filter uses. The degrade is observable: no chip renders active
 // and every row shows.
 func parseAuditActorChip(raw string) string {
-	for _, chip := range auditActorChips {
+	for _, chip := range auditActorKinds() {
 		if raw == chip {
 			return chip
 		}
@@ -202,7 +207,7 @@ func auditActorChipList(d auditView) []auditChip {
 		Href:   auditFilterURL(d.BasePath+"/audit", d.Search, d.From, d.To, ""),
 		Active: d.Actor == "",
 	})
-	for _, kind := range auditActorChips {
+	for _, kind := range auditActorKinds() {
 		chips = append(chips, auditChip{
 			Label:  auditActorChipLabel(kind),
 			Href:   auditFilterURL(d.BasePath+"/audit", d.Search, d.From, d.To, kind),
@@ -309,7 +314,14 @@ type userActivityPage struct {
 // window's chronological order, matching what userTimeline rendered first)
 // and resolves actor emails like every audit surface.
 func (h *Handler) userActivityData(shown *identitymodel.User, skip int) userActivityPage {
-	d := userActivityPage{UserID: shown.ID.Get().String(), BasePath: h.config.BasePath}
+	d := userActivityPage{
+		UserID:   shown.ID.Get().String(),
+		BasePath: h.config.BasePath,
+		Entries:  nil,
+		NextSkip: 0,
+		Done:     false,
+		Total:    0,
+	}
 	al := h.config.Service.AuditLog()
 	if al == nil {
 		d.Done = true

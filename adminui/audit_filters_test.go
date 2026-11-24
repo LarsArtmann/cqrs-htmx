@@ -76,7 +76,7 @@ func TestFilterAuditRange_InclusiveWholeDays(t *testing.T) {
 func TestParseAuditActorChip(t *testing.T) {
 	t.Parallel()
 
-	for _, kind := range auditActorChips {
+	for _, kind := range auditActorKinds() {
 		if got := parseAuditActorChip(kind); got != kind {
 			t.Errorf("parseAuditActorChip(%q) = %q", kind, got)
 		}
@@ -199,7 +199,7 @@ func TestFlow_AuditActorChip(t *testing.T) {
 	// acted shows the honest filtered-empty state; an unknown chip degrades
 	// to every row and leaves only the All-actors chip active.
 	var acted, absent string
-	for _, kind := range auditActorChips {
+	for _, kind := range auditActorKinds() {
 		if acted == "" && present[kind] {
 			acted = kind
 		}

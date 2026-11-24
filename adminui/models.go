@@ -294,13 +294,14 @@ func cannotSignInCopy() string {
 // not as an absence.
 func userDetailDefinitionItems(d userDetailData) []display.DefinitionItem {
 	items := []display.DefinitionItem{
-		{Term: "User ID", DetailComponent: copyableID(d.User.ID.Get().String())},
-		{Term: "Email", Detail: d.User.Email},
-		{Term: "Verified", DetailComponent: verifiedDetail(d)},
+		{Term: "User ID", Detail: "", DetailComponent: copyableID(d.User.ID.Get().String())},
+		{Term: "Email", Detail: d.User.Email, DetailComponent: nil},
+		{Term: "Verified", Detail: "", DetailComponent: verifiedDetail(d)},
 	}
 	if d.AuthMethods.HasTOTP {
 		items = append(items, display.DefinitionItem{
 			Term:            "TOTP MFA",
+			Detail:          "",
 			DetailComponent: totpBadge(d.User.TOTPEnabled),
 		})
 	}

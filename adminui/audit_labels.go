@@ -165,5 +165,5 @@ func auditChangeApplies(action string) bool {
 // carrying change payloads), this returns ok=false for every entry and the
 // table renders the honest note instead of a fabricated diff.
 func auditChangeFor(_ usermgmt.AuditEntry) (auditChange, bool) {
-	return auditChange{}, false
+	return auditChange{Field: "", Old: "", New: ""}, false
 }

@@ -199,21 +199,32 @@ func (config Config) withDefaults() (Config, error) {
 	if config.Mode == ModeTenantAdmin && config.TenantID.Get() == "" {
 		return config, errConfig("Config.TenantID is required for ModeTenantAdmin")
 	}
-	switch config.AuthorizerPosture {
-	case "", cqrshtmx.PostureAuthenticated, cqrshtmx.PostureRoleGated:
-	case cqrshtmx.PosturePublic, cqrshtmx.PostureUngated:
-		return config, errConfig(
-			"Config.AuthorizerPosture may not be public or ungated — the guard always refuses anonymous callers, so both would be lies",
-		)
-	default:
-		return config, errConfig(
-			"Config.AuthorizerPosture must be empty (role-gated default), cqrshtmx.PostureAuthenticated, or cqrshtmx.PostureRoleGated",
-		)
+	if err := validateAuthorizerPosture(config.AuthorizerPosture); err != nil {
+		return config, err
 	}
 	if err := validateExtraNav(config.ExtraNav); err != nil {
 		return config, err
 	}
 	return config, nil
+}
+
+// validateAuthorizerPosture admits only the truthful postures: the panel's
+// session guard always refuses anonymous callers, so a public/ungated
+// declaration would be a lie about the surface; empty keeps the role-gated
+// default.
+func validateAuthorizerPosture(posture cqrshtmx.Posture) error {
+	switch posture {
+	case "", cqrshtmx.PostureAuthenticated, cqrshtmx.PostureRoleGated:
+		return nil
+	case cqrshtmx.PosturePublic, cqrshtmx.PostureUngated:
+		return errConfig(
+			"Config.AuthorizerPosture may not be public or ungated — the guard always refuses anonymous callers, so both would be lies",
+		)
+	default:
+		return errConfig(
+			"Config.AuthorizerPosture must be empty (role-gated default), cqrshtmx.PostureAuthenticated, or cqrshtmx.PostureRoleGated",
+		)
+	}
 }
 
 // validateExtraNav rejects consumer nav entries without a label or href — a
