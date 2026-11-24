@@ -205,6 +205,7 @@ func (h *Handler) superAdminRoutes() []routeSpec {
 		h.superAdminUserTenantAccessRoutes(),
 		h.superAdminTenantRoutes(),
 		h.superAdminTenantMemberRoutes(),
+		h.superAdminMembersDirectoryRoutes(),
 	)
 }
 
@@ -468,6 +469,22 @@ func (h *Handler) superAdminTenantMemberRoutes() []routeSpec {
 			mode:    routeModeSuperAdmin,
 			write:   true,
 			why:     "role changes re-shape authority inside the tenant",
+		},
+	}
+}
+
+// superAdminMembersDirectoryRoutes read memberships across every tenant in
+// one place: the global directory. Reads only, but the payload spans every
+// tenant's roster, so it stays super-admin. The tenant-admin GET /members row
+// (the roster) shares the pattern but never the mode, so the two never mount
+// in the same panel instance.
+//
+//nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
+func (h *Handler) superAdminMembersDirectoryRoutes() []routeSpec {
+	return []routeSpec{
+		{
+			method: http.MethodGet, pattern: patternMembers, panel: panelMembers, guarded: h.membersDirectory,
+			mode: routeModeSuperAdmin, why: "the membership directory spans every tenant's rosters",
 		},
 	}
 }

@@ -22,14 +22,18 @@ func replayTenant(t *testing.T, start TenantState, events []event.Event) TenantS
 	return state
 }
 
-// decideTenantError runs one tenant decider decision and returns only its
-// error, for guard assertions.
-func decideTenantError(
+// requireTenantDecision runs one tenant decider decision and asserts the
+// typed error it answers with.
+func requireTenantDecision(
+	t *testing.T,
 	decide func(TenantState, event.Version) ([]event.Event, error),
 	state TenantState,
-) error {
+	family errorfamily.Family,
+	code string,
+) *errorfamily.Error {
+	t.Helper()
 	_, err := decide(state, 1)
-	return err
+	return requireDomainError(t, err, family, code)
 }
 
 func liveTenantState() TenantState {
@@ -74,18 +78,17 @@ func TestDecideRenameTenant(t *testing.T) {
 		t.Errorf("Name = %q, want the immutable stream name", state.Name)
 	}
 
-	requireDomainError(t, decideTenantError(decideRenameTenant(aggID, "X"), TenantState{}),
+	_ = requireTenantDecision(t, decideRenameTenant(aggID, "X"), TenantState{},
 		errorfamily.Rejection, "usermgmt.tenant_rename.not_found")
 
 	survivor := identitymodel.NewTenantID("01M47SURVIVOR0000000000T1")
-	ef := requireDomainError(t,
-		decideTenantError(decideRenameTenant(aggID, "X"), mergedTenantState(survivor)),
+	ef := requireTenantDecision(t, decideRenameTenant(aggID, "X"), mergedTenantState(survivor),
 		errorfamily.Conflict, "usermgmt.tenant_rename.merged")
 	if ef.ErrorContext()["merged_into"] != survivor.Get() {
 		t.Errorf("merged_into = %q, want %q", ef.ErrorContext()["merged_into"], survivor.Get())
 	}
 
-	requireDomainError(t, decideTenantError(decideRenameTenant(aggID, ""), liveTenantState()),
+	_ = requireTenantDecision(t, decideRenameTenant(aggID, ""), liveTenantState(),
 		errorfamily.Rejection, "usermgmt.tenant_rename.display_name_required")
 
 	events, err = decideRenameTenant(aggID, "Acme")(liveTenantState(), 1)
@@ -115,25 +118,22 @@ func TestDecideMergeTenants(t *testing.T) {
 		t.Fatalf("MergedTenantIDs = %v, want both losers", state.MergedTenantIDs)
 	}
 
-	requireDomainError(t, decideTenantError(decideMergeTenants(aggID, nil, "x"), liveTenantState()),
+	_ = requireTenantDecision(t, decideMergeTenants(aggID, nil, "x"), liveTenantState(),
 		errorfamily.Rejection, "usermgmt.tenant_merge.no_losers")
-	requireDomainError(t,
-		decideTenantError(decideMergeTenants(aggID, tenantMergeLoserIDs(""), "x"), liveTenantState()),
+	_ = requireTenantDecision(t, decideMergeTenants(aggID, tenantMergeLoserIDs(""), "x"), liveTenantState(),
 		errorfamily.Rejection, "usermgmt.tenant_merge.invalid_loser")
-	requireDomainError(t,
-		decideTenantError(decideMergeTenants(aggID, tenantMergeLoserIDs(aggID.Get()), "x"), liveTenantState()),
+	_ = requireTenantDecision(t,
+		decideMergeTenants(aggID, tenantMergeLoserIDs(aggID.Get()), "x"), liveTenantState(),
 		errorfamily.Rejection, "usermgmt.tenant_merge.self_merge")
 
 	otherSurvivor := identitymodel.NewTenantID("01M47OTHERSURVIVOR00000C1")
-	ef := requireDomainError(t,
-		decideTenantError(decideMergeTenants(aggID, losers, "x"), mergedTenantState(otherSurvivor)),
+	ef := requireTenantDecision(t, decideMergeTenants(aggID, losers, "x"), mergedTenantState(otherSurvivor),
 		errorfamily.Conflict, "usermgmt.tenant_merge.survivor_merged")
 	if ef.ErrorContext()["merged_into"] != otherSurvivor.Get() {
 		t.Errorf("merged_into = %q, want %q", ef.ErrorContext()["merged_into"], otherSurvivor.Get())
 	}
 
-	requireDomainError(t,
-		decideTenantError(decideMergeTenants(aggID, losers, "x"), deletedTenantState()),
+	_ = requireTenantDecision(t, decideMergeTenants(aggID, losers, "x"), deletedTenantState(),
 		errorfamily.Rejection, "usermgmt.tenant_merge.deleted")
 
 	// Re-recording absorbed losers is a no-op.
@@ -173,25 +173,21 @@ func TestDecideMergeTenantInto(t *testing.T) {
 	}
 
 	other := identitymodel.NewTenantID("01M47OTHERSURVIVOR00000C1")
-	ef := requireDomainError(t,
-		decideTenantError(decideMergeTenantInto(aggID, other, "x"), state),
+	ef := requireTenantDecision(t, decideMergeTenantInto(aggID, other, "x"), state,
 		errorfamily.Conflict, "usermgmt.tenant_merge_into.already_merged")
 	if ef.ErrorContext()["merged_into"] != survivor.Get() {
 		t.Errorf("merged_into = %q, want %q", ef.ErrorContext()["merged_into"], survivor.Get())
 	}
 
-	requireDomainError(t,
-		decideTenantError(decideMergeTenantInto(aggID, survivor, "x"), deletedTenantState()),
+	_ = requireTenantDecision(t, decideMergeTenantInto(aggID, survivor, "x"), deletedTenantState(),
 		errorfamily.Conflict, "usermgmt.tenant_merge_into.deleted")
-	requireDomainError(t,
-		decideTenantError(decideMergeTenantInto(aggID, survivor, "x"), TenantState{}),
+	_ = requireTenantDecision(t, decideMergeTenantInto(aggID, survivor, "x"), TenantState{},
 		errorfamily.Rejection, "usermgmt.tenant_merge_into.not_found")
-	requireDomainError(t,
-		decideTenantError(decideMergeTenantInto(aggID, identitymodel.TenantID{}, "x"), liveTenantState()),
+	_ = requireTenantDecision(t,
+		decideMergeTenantInto(aggID, identitymodel.TenantID{}, "x"), liveTenantState(),
 		errorfamily.Rejection, "usermgmt.tenant_merge_into.survivor_required")
-	requireDomainError(t,
-		decideTenantError(
-			decideMergeTenantInto(aggID, identitymodel.NewTenantID(aggID.Get()), "x"), liveTenantState()),
+	_ = requireTenantDecision(t,
+		decideMergeTenantInto(aggID, identitymodel.NewTenantID(aggID.Get()), "x"), liveTenantState(),
 		errorfamily.Rejection, "usermgmt.tenant_merge_into.self_merge")
 }
 
@@ -216,14 +212,12 @@ func TestDecideCreateTenant_RecreateRules(t *testing.T) {
 	}
 
 	survivor := identitymodel.NewTenantID("01M47SURVIVOR0000000000T1")
-	ef := requireDomainError(t,
-		decideTenantError(decideCreateTenant(aggID, "acme", "X"), mergedTenantState(survivor)),
+	ef := requireTenantDecision(t, decideCreateTenant(aggID, "acme", "X"), mergedTenantState(survivor),
 		errorfamily.Conflict, "usermgmt.tenant_create.merged")
 	if ef.ErrorContext()["merged_into"] != survivor.Get() {
 		t.Errorf("merged_into = %q, want %q", ef.ErrorContext()["merged_into"], survivor.Get())
 	}
 
-	requireDomainError(t,
-		decideTenantError(decideCreateTenant(aggID, "other", "X"), liveTenantState()),
+	_ = requireTenantDecision(t, decideCreateTenant(aggID, "other", "X"), liveTenantState(),
 		errorfamily.Conflict, "usermgmt.tenant.already_exists")
 }

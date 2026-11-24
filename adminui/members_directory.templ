@@ -1,0 +1,204 @@
+package adminui
+
+import (
+	"strconv"
+
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/utils"
+	"github.com/larsartmann/templ-components/utils/wire"
+)
+
+// membersDirectoryPage is the global membership directory (super-admin
+// GET /members): every membership across every tenant in one table. It is a
+// distinct page from members.templ's tenant-roster card — that one edits ONE
+// tenant's roster; this one reads them all.
+templ membersDirectoryPage(p pageData, d membersDirectoryData) {
+	@Layout(p, membersDirectoryContent(d))
+}
+
+templ membersDirectoryContent(d membersDirectoryData) {
+	@display.PageHeader(display.PageHeaderProps{
+		Title:    "Membership directory",
+		Subtitle: "Every membership across every tenant",
+	})
+	<div class="mb-4 flex items-center gap-2">
+		@forms.FilterInput(forms.FilterInputProps{
+			Name:        "q",
+			Value:       d.Search,
+			Placeholder: "Search email or name…",
+			Action:      d.BasePath + "/members",
+			DebounceMS:  350,
+			Wire:        &wire.Action{URL: d.BasePath + "/members", Target: "#members-directory-table"},
+			BaseProps: utils.BaseProps{
+				AriaLabel: "Search memberships",
+				Class:     "w-full max-w-xs",
+				Attrs: templ.Attributes{
+					"autocomplete": "off",
+					"hx-get":       d.BasePath + "/members",
+					"hx-trigger":   "submit",
+					"hx-target":    "#members-directory-table",
+					"hx-swap":      "innerHTML",
+					"hx-push-url":  "true",
+					"hx-indicator": "#members-directory-spinner",
+				},
+			},
+		})
+		<span id="members-directory-spinner" class="htmx-indicator text-gray-400">
+			@spinnerSM()
+		</span>
+	</div>
+	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+		@membersDirectoryChip(d, "tenant", "", "All tenants", d.Total)
+		for _, chip := range d.TenantChips {
+			@membersDirectoryChip(d, "tenant", chip.Value, chip.Label, chip.Count)
+		}
+	</div>
+	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+		<span class={ metadataTextClass }>Role</span>
+		@membersDirectoryChip(d, "role", "", "All", d.Total)
+		for _, chip := range d.RoleChips {
+			@membersDirectoryChip(d, "role", chip.Value, chip.Label, chip.Count)
+		}
+		<span class="text-gray-300" aria-hidden="true">|</span>
+		<span class={ metadataTextClass }>Sort</span>
+		@membersDirectorySortLink(d, "tenant", "Tenant")
+		<span class="text-gray-300" aria-hidden="true">/</span>
+		@membersDirectorySortLink(d, "joined", "Joined")
+	</div>
+	<div id="members-directory-table">
+		@membersDirectoryTableContent(d)
+	</div>
+}
+
+// membersDirectoryChip is one filter chip (tenant or role family); current
+// carries the active styling. The count rides the label so the chip is honest
+// about what it shows.
+templ membersDirectoryChip(d membersDirectoryData, family, value, label string, count int) {
+	current := d.TenantFilter
+	if family == "role" {
+		current = d.RoleFilter
+	}
+	if current == value {
+		<span class="rounded-full bg-gray-900 px-2.5 py-0.5 font-medium text-white">
+			{ label } ({ strconv.Itoa(count) })
+		</span>
+	} else {
+		<a
+			class="rounded-full px-2.5 py-0.5 text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
+			href={ membersDirectoryChipURL(d, family, value) }
+	}
+}
+
+// membersDirectoryChipURL builds a chip href: toggling a chip keeps the other
+// family's filter, the search, and the ordering.
+templ membersDirectoryChipURL(d membersDirectoryData, family, value string) {
+	if family == "role" {
+		@templ.URL(membersDirectoryURL(d.BasePath, withDirectoryChip(d, d.TenantFilter, value)))
+	} else {
+		@templ.URL(membersDirectoryURL(d.BasePath, withDirectoryChip(d, value, d.RoleFilter)))
+	}
+}
+
+// withDirectoryChip returns d with one chip family's active value replaced.
+func withDirectoryChip(d membersDirectoryData, tenant, role string) membersDirectoryData {
+	d.TenantFilter = tenant
+	d.RoleFilter = role
+
+	return d
+}
+
+// membersDirectorySortLink is one half of the ordering toggle; current
+// carries the active styling.
+templ membersDirectorySortLink(d membersDirectoryData, sort, label string) {
+	if d.Sort == sort {
+		<span class="font-medium text-gray-900">{ label }</span>
+	} else {
+		<a
+			class="text-gray-600 no-underline hover:text-gray-900 dark:text-gray-400"
+			href={ membersDirectoryURL(d.BasePath, withDirectorySort(d, sort)) }
+		>{ label }</a>
+	}
+}
+
+// withDirectorySort returns d with the ordering replaced.
+func withDirectorySort(d membersDirectoryData, sort string) membersDirectoryData {
+	d.Sort = sort
+
+	return d
+}
+
+templ membersDirectoryTableContent(d membersDirectoryData) {
+	if len(d.Rows) == 0 {
+		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
+			if d.Total == 0 && d.Search == "" && d.TenantFilter == "" && d.RoleFilter == "" {
+				@empty("users", "No memberships yet",
+					"No one has been added to any tenant. Add a member from a tenant's page to see them here.",
+					"Browse tenants", d.BasePath+"/tenants")
+			} else {
+				@empty("users", "No memberships match your filters",
+					"No membership matches the current search and filter chips.", "Clear filters", d.BasePath+"/members")
+			}
+		}
+	} else {
+		@display.Table(display.TableProps{
+			Headers:     []string{"Tenant", "Member", "Roles", "Joined"},
+			Hover:       true,
+			Body:        membersDirectoryRows(d),
+			CellPadding: display.TableCellPaddingCompact,
+		})
+		@listNote(len(d.Rows), d.Total)
+		// The pager rides membersDirectoryURL, so a page turn keeps the
+		// search, both chips, and the ordering.
+		@listPager(membersDirectoryURL(d.BasePath, d), d.Page, d.TotalPages)
+	}
+}
+
+templ membersDirectoryRows(d membersDirectoryData) {
+	for _, row := range d.Rows {
+		<tr>
+			<td class="px-4 py-2">
+				if row.Tenant != nil {
+					<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + row.Tenant.ID.Get() }>
+						<span class="font-medium text-gray-900">{ row.Tenant.DisplayName }</span>
+						<span class={ "font-mono text-xs " + metadataTextXSClass }>{ row.Tenant.Name }</span>
+					</a>
+				}
+			</td>
+			<td class="px-4 py-2">
+				<div class="flex items-center gap-2.5">
+					@display.Avatar(display.AvatarProps{Initials: initials(row.displayName()), Size: display.AvatarSizeSM})
+					<div>
+						if row.IsUser {
+							<a class="font-medium text-gray-900 no-underline hover:underline" href={ d.BasePath + "/users/" + row.Actor.Raw() }>{ row.displayName() }</a>
+						} else {
+							<span class="font-medium text-gray-900">{ row.displayName() }</span>
+						}
+						if row.Name != "" {
+							<div class={ "text-xs " + metadataTextXSClass }>{ row.Name }</div>
+						}
+						if !row.IsUser {
+							<div class={ "font-mono text-[11px] " + metadataTextXSClass }>{ row.Actor.PrefixedString() }</div>
+						}
+					</div>
+				</div>
+			</td>
+			<td class="px-4 py-2">
+				<div class="flex flex-wrap items-center gap-1.5">
+					for _, r := range row.Roles {
+						@roleBadge(string(r))
+					}
+				</div>
+			</td>
+			<td class="px-4 py-2 text-gray-500">
+				if !row.AddedAt.IsZero() {
+					<span title={ row.AddedAt.Format("Jan 2, 2006 15:04 MST") }>
+						@display.RelativeTime(display.RelativeTimeProps{Time: row.AddedAt})
+					</span>
+				} else {
+					<span class="text-gray-600 dark:text-gray-400" aria-hidden="true">—</span>
+				}
+			</td>
+		</tr>
+	}
+}

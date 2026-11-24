@@ -71,11 +71,13 @@ func (m *TenantReadModel) handleTenantCreated(aggID id.StreamID, evt event.Event
 		).WithContextAny("agg_id", aggID)
 	}
 	m.tenants[aggID] = &Tenant{
-		ID:          NewTenantID(aggID.Get()),
-		Name:        p.Name,
-		DisplayName: p.DisplayName,
-		Suspended:   false,
-		Deleted:     false,
+		ID:              NewTenantID(aggID.Get()),
+		Name:            p.Name,
+		DisplayName:     p.DisplayName,
+		Suspended:       false,
+		Deleted:         false,
+		MergedInto:      TenantID{},
+		MergedTenantIDs: nil,
 	}
 	return nil
 }

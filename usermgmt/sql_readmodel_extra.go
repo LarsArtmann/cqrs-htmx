@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
@@ -229,7 +228,8 @@ func (m *SQLTenantReadModel) retireTenantToSQL(ctx context.Context, aggID id.Str
 		view, getErr := m.store.Get(ctx, tid)
 		switch {
 		case errors.Is(getErr, kv.ErrNotFound):
-			retired = &Tenant{ID: tid} // a pointer-only tombstone (the D23 shape)
+			// A pointer-only tombstone (the D23 shape): every other field is unknown.
+			retired = &Tenant{ID: tid} //nolint:exhaustruct // pointer-only tombstone by design
 		case getErr != nil:
 			return errorfamily.WrapTransient(
 				getErr, "usermgmt.sql_readmodel.tenant_retire_get", "read tenant view before writing its tombstone",
