@@ -32,7 +32,7 @@ var auditLabels = map[string]string{
 	"credential_added":     "Passkey added",
 	"credential_removed":   "Passkey removed",
 	"credential_used":      "Passkey used",
-	"email_verified":       "Email verified",
+	auditActionEmailVerified: "Email verified",
 	"totp_enabled":         "MFA enabled",
 	"totp_disabled":        "MFA disabled",
 	"login_succeeded":      "Login succeeded",
@@ -41,6 +41,11 @@ var auditLabels = map[string]string{
 	"session_started":      "Session started",
 	"session_ended":        "Session ended",
 }
+
+// auditActionEmailVerified is the audit action emitted when a user proves
+// email ownership; shared by the label table, the badge tone switch, and the
+// export CSV header column.
+const auditActionEmailVerified = "email_verified"
 
 // auditActionBadge chooses the badge tone for an action: destructive changes
 // read as errors, refused logins as warnings, successful logins as success,
@@ -52,7 +57,7 @@ func auditActionBadge(action string) display.BadgeType {
 		return display.BadgeError
 	case "login_failed", "registration_closed":
 		return display.BadgeWarning
-	case "login_succeeded", "email_verified":
+	case "login_succeeded", auditActionEmailVerified:
 		return display.BadgeSuccess
 	case "session_started", "session_ended":
 		return display.BadgeNeutral

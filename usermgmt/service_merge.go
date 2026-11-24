@@ -38,37 +38,20 @@ const mergeChainHopLimit = 64
 // answers a Conflict (terminal state), a survivor that was itself merged
 // away or deleted is refused before anything is dispatched.
 func (s *Service) MergeUsers(ctx context.Context, survivorID UserID, loserIDs []UserID, reason string) error {
-	if survivorID.IsZero() {
-		return errorfamily.NewRejection("usermgmt.merge_users.survivor_required", "survivor ID is required")
-	}
-	if len(loserIDs) == 0 {
-		return errorfamily.NewRejection("usermgmt.merge_users.no_losers", "a merge needs at least one loser")
-	}
-	for i, loser := range loserIDs {
-		if loser.Get().String() == survivorID.Get().String() {
-			return errorfamily.NewRejection("usermgmt.merge_users.self_merge", "a user cannot be merged into itself").
-				WithContextAny("loser_id", loser.Get().String())
-		}
-		if slices.ContainsFunc(loserIDs[i+1:], func(other UserID) bool {
-			return other.Get().String() == loser.Get().String()
-		}) {
-			return errorfamily.NewRejection(
-				"usermgmt.merge_users.duplicate_loser",
-				"the loser list names the same user twice",
-			).WithContextAny("loser_id", loser.Get().String())
-		}
+	if err := validateMergeUsersInput(survivorID, loserIDs); err != nil {
+		return err
 	}
 
 	survivorAggID, err := aggIDFromUser(survivorID)
 	if err != nil {
-		return err //nolint:wrapcheck // aggIDFromUser already wraps with typed infrastructure error
+		return err
 	}
 	survivorState, _, err := s.repository.LoadRef(ctx, id.NewStreamRef(aggregateTypeUser, survivorAggID))
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "usermgmt.merge_users.load_failed", "load survivor state")
 	}
 	if err := requireLiveSurvivor(survivorState); err != nil {
-		return err //nolint:wrapcheck // decider guard already returns typed domain errors
+		return err
 	}
 
 	contributions, liveLosers, err := s.collectMergeContributions(ctx, survivorID, loserIDs)
@@ -79,7 +62,8 @@ func (s *Service) MergeUsers(ctx context.Context, survivorID UserID, loserIDs []
 		return nil
 	}
 
-	if err := s.dispatcher.Dispatch(ctx, identitymodel.NewMergeUsersCmd(survivorAggID, contributions, reason)); err != nil {
+	mergeCmd := identitymodel.NewMergeUsersCmd(survivorAggID, contributions, reason)
+	if err := s.dispatcher.Dispatch(ctx, mergeCmd); err != nil {
 		return classifyDispatchError(err, survivorID, "reason", reason)
 	}
 
@@ -93,13 +77,49 @@ func (s *Service) MergeUsers(ctx context.Context, survivorID UserID, loserIDs []
 		s.revokeSessionsBestEffort(ctx, loserID, "failed to revoke sessions on merge")
 	}
 
+	return s.retireMergeLosers(ctx, survivorID, liveLosers, reason)
+}
+
+// retireMergeLosers tombstones every live loser — the LAST step of a merge
+// (D1): until it lands the loser is still live, so a failed merge is
+// retried rather than left half-dead.
+func (s *Service) retireMergeLosers(
+	ctx context.Context, survivorID UserID, liveLosers []UserID, reason string,
+) error {
 	for _, loserID := range liveLosers {
 		loserAggID, err := aggIDFromUser(loserID)
 		if err != nil {
-			return err //nolint:wrapcheck // aggIDFromUser already wraps with typed infrastructure error
+			return err
 		}
-		if err := s.dispatcher.Dispatch(ctx, identitymodel.NewMergeUserIntoCmd(loserAggID, survivorID, reason)); err != nil {
+		tombstone := identitymodel.NewMergeUserIntoCmd(loserAggID, survivorID, reason)
+		if err := s.dispatcher.Dispatch(ctx, tombstone); err != nil {
 			return classifyDispatchError(err, loserID, "survivor_id", survivorID.Get().String())
+		}
+	}
+	return nil
+}
+
+// validateMergeUsersInput refuses malformed merge requests before anything
+// is loaded or dispatched (D14: rejections are reserved for malformed input).
+func validateMergeUsersInput(survivorID UserID, loserIDs []UserID) error {
+	if survivorID.IsZero() {
+		return errorfamily.NewRejection("usermgmt.merge_users.survivor_required", "survivor ID is required")
+	}
+	if len(loserIDs) == 0 {
+		return errorfamily.NewRejection("usermgmt.merge_users.no_losers", "a merge needs at least one loser")
+	}
+	for i, loser := range loserIDs {
+		if loser.Get().String() == survivorID.Get().String() {
+			return errorfamily.NewRejection(
+				"usermgmt.merge_users.self_merge", "a user cannot be merged into itself",
+			).WithContextAny("loser_id", loser.Get().String())
+		}
+		if slices.ContainsFunc(loserIDs[i+1:], func(other UserID) bool {
+			return other.Get().String() == loser.Get().String()
+		}) {
+			return errorfamily.NewRejection(
+				"usermgmt.merge_users.duplicate_loser", "the loser list names the same user twice",
+			).WithContextAny("loser_id", loser.Get().String())
 		}
 	}
 	return nil
@@ -121,7 +141,7 @@ func (s *Service) collectMergeContributions(
 	for _, loserID := range loserIDs {
 		loserAggID, err := aggIDFromUser(loserID)
 		if err != nil {
-			return nil, nil, err //nolint:wrapcheck // aggIDFromUser already wraps
+			return nil, nil, err
 		}
 		state, _, err := s.repository.LoadRef(ctx, id.NewStreamRef(aggregateTypeUser, loserAggID))
 		if err != nil {
@@ -158,6 +178,7 @@ func (s *Service) collectMergeContributions(
 			EmailVerified:    state.EmailVerified,
 			Credentials:      state.Credentials,
 			ExternalAccounts: state.ExternalAccounts,
+			TOTPSecret:       nil, // filled below, only while TOTP is enabled
 		}
 		if state.TOTPEnabled {
 			contribution.TOTPSecret = state.TOTPSecret
@@ -266,7 +287,7 @@ func (s *Service) transferBotsToSurvivor(ctx context.Context, survivorID, loserI
 	for _, bot := range s.botReadModel.FindByOwner(loserID) {
 		aggID, err := aggIDFromBot(bot.ID)
 		if err != nil {
-			return err //nolint:wrapcheck // aggIDFromBot already wraps
+			return err
 		}
 		if err := s.dispatcher.Dispatch(ctx, identitymodel.NewTransferBotCmd(aggID, survivorID, reason)); err != nil {
 			return classifyDispatchError(err, loserID,

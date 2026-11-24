@@ -200,6 +200,7 @@ func (h *Handler) fallbackRoutes() []routeSpec {
 func (h *Handler) superAdminRoutes() []routeSpec {
 	return slices.Concat(
 		h.superAdminUserRoutes(),
+		h.superAdminUserExportRoutes(),
 		h.superAdminUserAccountRoutes(),
 		h.superAdminUserTenantAccessRoutes(),
 		h.superAdminTenantRoutes(),
@@ -245,6 +246,29 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			mode: routeModeSuperAdmin, write: true, why: "bulk import creates accounts from the uploaded file",
 		},
 		{
+			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,
+			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
+		},
+		{
+			method: http.MethodGet, pattern: "/users/{id}/activity", panel: panelUsers, guarded: h.userActivity,
+			mode: routeModeSuperAdmin,
+			why:  "the per-user activity tail pages the audit window for one user's stream",
+		},
+		{
+			method: http.MethodPost, pattern: "/users/{id}/delete", panel: panelUsers, guarded: h.userDelete,
+			mode: routeModeSuperAdmin, write: true, why: "deleting users is platform-admin territory",
+		},
+	}
+}
+
+// superAdminUserExportRoutes read the directory in bulk: the full export and
+// the filtered-view export, in CSV and JSON. Reads only, but the payload is
+// every user's public profile, so they stay super-admin.
+//
+//nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
+func (h *Handler) superAdminUserExportRoutes() []routeSpec {
+	return []routeSpec{
+		{
 			method: http.MethodGet, pattern: "/users/export.csv", panel: panelUsers, guarded: h.userExportCSV,
 			mode: routeModeSuperAdmin, why: "the export carries every user's public profile",
 		},
@@ -267,19 +291,6 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			guarded: h.userExportFilteredJSON,
 			mode:    routeModeSuperAdmin,
 			why:     "the filtered export carries the matched users' public profiles",
-		},
-		{
-			method: http.MethodGet, pattern: "/users/{id}", panel: panelUsers, guarded: h.userDetail,
-			mode: routeModeSuperAdmin, why: "user detail exposes credentials metadata",
-		},
-		{
-			method: http.MethodGet, pattern: "/users/{id}/activity", panel: panelUsers, guarded: h.userActivity,
-			mode: routeModeSuperAdmin,
-			why:  "the per-user activity tail pages the audit window for one user's stream",
-		},
-		{
-			method: http.MethodPost, pattern: "/users/{id}/delete", panel: panelUsers, guarded: h.userDelete,
-			mode: routeModeSuperAdmin, write: true, why: "deleting users is platform-admin territory",
 		},
 	}
 }

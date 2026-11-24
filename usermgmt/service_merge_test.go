@@ -42,32 +42,41 @@ func linkMergeTestAccount(t *testing.T, svc *Service, userID UserID, provider, s
 	}
 }
 
-// TestService_MergeUsers_Issue46NineRowsOneHuman is the wave's first kill
-// switch: the live deployment's shape (issue #46 — nine user rows for one
-// human, each row with its own history) collapses into one live identity
-// whose assets, memberships, bots and attribution survive.
-func TestService_MergeUsers_Issue46NineRowsOneHuman(t *testing.T) {
-	svc := setupTestService(t)
+// issue46Seed captures everything the assertions need about the seeded
+// nine-row, one-human world of the issue #46 scenario.
+type issue46Seed struct {
+	survivor     UserID
+	dups         [8]UserID
+	tenant       TenantID
+	credID       []byte
+	botID        BotID
+	botToken     string
+	sessionToken string
+}
+
+// seedIssue46Duplicates builds the live deployment's shape (issue #46): one
+// human with nine rows, each duplicate carrying part of the human's history.
+func seedIssue46Duplicates(t *testing.T, svc *Service) *issue46Seed {
+	t.Helper()
 	ctx := context.Background()
 
 	const humanEmail = "one.human@example.com"
-	survivor := registerMergeTestUser(t, svc, 0, humanEmail)
-	var dups [8]UserID
-	var dupEmails [8]string
-	for i := range dups {
-		// The live shape (issue #46): one human, many rows — every duplicate
-		// registered under a different email spelling.
-		dupEmails[i] = "one.human+dup" + string(rune('1'+i)) + "@example.com"
-		dups[i] = registerMergeTestUser(t, svc, i+1, dupEmails[i])
+	seed := &issue46Seed{}
+	seed.survivor = registerMergeTestUser(t, svc, 0, humanEmail)
+	for i := range seed.dups {
+		// Every duplicate under a different email spelling — that is how the
+		// live rows came to exist past the duplicate-email guard.
+		seed.dups[i] = registerMergeTestUser(t, svc, i+1,
+			"one.human+dup"+string(rune('1'+i))+"@example.com")
 	}
 
-	loserCredential := WebAuthnCredential{
-		ID: []byte{9, 9}, PublicKey: []byte{1, 2, 3}, AttestationType: "none", Name: "loser key",
-	}
-	if err := svc.AddCredential(ctx, dups[0], loserCredential); err != nil {
+	seed.credID = []byte{9, 9}
+	if err := svc.AddCredential(ctx, seed.dups[0], WebAuthnCredential{
+		ID: seed.credID, PublicKey: []byte{1, 2, 3}, AttestationType: "none", Name: "loser key",
+	}); err != nil {
 		t.Fatalf("AddCredential: %v", err)
 	}
-	linkMergeTestAccount(t, svc, dups[1], "google", "subj-dup-2")
+	linkMergeTestAccount(t, svc, seed.dups[1], "google", "subj-dup-2")
 
 	tenant, err := svc.CreateTenant(ctx, CreateTenantRequest{
 		ID:   NewTenantID("01M46TENANT0000000000000X1"),
@@ -76,56 +85,76 @@ func TestService_MergeUsers_Issue46NineRowsOneHuman(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateTenant: %v", err)
 	}
-	if err := svc.AddMember(ctx, ActorIDFromUser(survivor), tenant.ID, []Role{RoleUser}); err != nil {
+	seed.tenant = tenant.ID
+	if err := svc.AddMember(ctx, ActorIDFromUser(seed.survivor), tenant.ID, []Role{RoleUser}); err != nil {
 		t.Fatalf("AddMember survivor: %v", err)
 	}
-	if err := svc.AddMember(ctx, ActorIDFromUser(dups[2]), tenant.ID, []Role{RoleAdmin}); err != nil {
+	if err := svc.AddMember(ctx, ActorIDFromUser(seed.dups[2]), tenant.ID, []Role{RoleAdmin}); err != nil {
 		t.Fatalf("AddMember loser: %v", err)
 	}
 
 	botResult, err := svc.RegisterBot(ctx, RegisterBotRequest{
-		ID: NewBotID("01M46BOT000000000000000B1"), Name: "loser-bot", OwnerID: dups[3],
+		ID: NewBotID("01M46BOT000000000000000B1"), Name: "loser-bot", OwnerID: seed.dups[3],
 	})
 	if err != nil {
 		t.Fatalf("RegisterBot: %v", err)
 	}
+	seed.botID, seed.botToken = botResult.Bot.ID, botResult.Token
 
-	loserSession, err := identitymodel.NewSession(dups[4], time.Hour)
+	loserSession, err := identitymodel.NewSession(seed.dups[4], time.Hour)
 	if err != nil {
 		t.Fatalf("NewSession: %v", err)
 	}
 	if err := svc.sessions.Create(ctx, loserSession); err != nil {
 		t.Fatalf("sessions.Create: %v", err)
 	}
+	seed.sessionToken = loserSession.Token
 
 	// The visits-analog: give one duplicate a long event history.
 	for i := range 5 {
-		if err := svc.ChangeDisplayName(ctx, dups[5], "visit-"+string(rune('a'+i))); err != nil {
+		if err := svc.ChangeDisplayName(ctx, seed.dups[5], "visit-"+string(rune('a'+i))); err != nil {
 			t.Fatalf("ChangeDisplayName %d: %v", i, err)
 		}
 	}
+	return seed
+}
 
-	if err := svc.MergeUsers(ctx, survivor, dups[:], "issue #46: nine rows, one human"); err != nil {
+// TestService_MergeUsers_Issue46NineRowsOneHuman is the wave's first kill
+// switch: the live deployment's shape (issue #46 — nine user rows for one
+// human, each row with its own history) collapses into one live identity
+// whose assets, memberships, bots and attribution survive.
+func TestService_MergeUsers_Issue46NineRowsOneHuman(t *testing.T) {
+	svc := setupTestService(t)
+	ctx := context.Background()
+	seed := seedIssue46Duplicates(t, svc)
+
+	if err := svc.MergeUsers(ctx, seed.survivor, seed.dups[:], "issue #46: nine rows, one human"); err != nil {
 		t.Fatalf("MergeUsers: %v", err)
 	}
+	assertIssue46OneLiveIdentity(t, svc, seed)
+	assertIssue46AssetsMoved(t, svc, ctx, seed)
+	assertIssue46RetiredWithAttribution(t, svc, ctx, seed)
+}
 
+func assertIssue46OneLiveIdentity(t *testing.T, svc *Service, seed *issue46Seed) {
+	t.Helper()
 	if got := svc.readModel.Count(); got != 1 {
 		t.Fatalf("live user count = %d, want 1", got)
 	}
-	live, ok := svc.readModel.FindByEmail(humanEmail)
-	if !ok || live.ID.Get().String() != survivor.Get().String() {
-		t.Fatalf("FindByEmail = %v,%v; want survivor %s", live, ok, survivor.Get())
+	live, ok := svc.readModel.FindByEmail("one.human@example.com")
+	if !ok || live.ID.Get().String() != seed.survivor.Get().String() {
+		t.Fatalf("FindByEmail = %v,%v; want survivor %s", live, ok, seed.survivor.Get())
 	}
-
-	survivorAgg, err := aggIDFromUser(survivor)
+	survivorAgg, err := aggIDFromUser(seed.survivor)
 	if err != nil {
 		t.Fatalf("aggIDFromUser survivor: %v", err)
 	}
-	state, _, err := svc.repository.LoadRef(ctx, id.NewStreamRef(aggregateTypeUser, survivorAgg))
+	state, _, err := svc.repository.LoadRef(context.Background(),
+		id.NewStreamRef(aggregateTypeUser, survivorAgg))
 	if err != nil {
 		t.Fatalf("LoadRef survivor: %v", err)
 	}
-	if !state.HasCredential(loserCredential.ID) {
+	if !state.HasCredential(seed.credID) {
 		t.Error("survivor did not adopt the loser's credential")
 	}
 	foundAccount := false
@@ -137,11 +166,49 @@ func TestService_MergeUsers_Issue46NineRowsOneHuman(t *testing.T) {
 	if !foundAccount {
 		t.Error("survivor did not adopt the loser's external account")
 	}
-	if len(state.MergedUserIDs) != len(dups) {
-		t.Fatalf("MergedUserIDs = %d entries, want %d", len(state.MergedUserIDs), len(dups))
+	if len(state.MergedUserIDs) != len(seed.dups) {
+		t.Fatalf("MergedUserIDs = %d entries, want %d", len(state.MergedUserIDs), len(seed.dups))
+	}
+}
+
+func assertIssue46AssetsMoved(t *testing.T, svc *Service, ctx context.Context, seed *issue46Seed) {
+	t.Helper()
+	var survivorRoles []Role
+	for _, mem := range svc.membershipReadModel.FindByActor(seed.survivor.Get().String()) {
+		if mem.TenantID.Get() == seed.tenant.Get() {
+			survivorRoles = mem.Roles
+		}
+	}
+	if !roleSetHas(survivorRoles, RoleUser) || !roleSetHas(survivorRoles, RoleAdmin) {
+		t.Errorf("survivor tenant roles = %v, want the union [user admin]", survivorRoles)
+	}
+	if rows := svc.membershipReadModel.FindByActor(seed.dups[2].Get().String()); len(rows) != 0 {
+		t.Errorf("loser memberships = %d rows, want 0", len(rows))
 	}
 
-	for i, dup := range dups {
+	if bots := svc.botReadModel.FindByOwner(seed.dups[3]); len(bots) != 0 {
+		t.Errorf("loser still owns %d bots", len(bots))
+	}
+	owned := svc.botReadModel.FindByOwner(seed.survivor)
+	if len(owned) != 1 || owned[0].ID.Get() != seed.botID.Get() {
+		t.Fatalf("survivor owns %v, want the transferred bot", owned)
+	}
+	if resolved, ok := svc.ResolveBotByToken(seed.botToken); !ok || resolved.ID.Get() != seed.botID.Get() {
+		t.Error("transferred bot no longer authenticates with its original token")
+	}
+
+	if _, err := svc.sessions.Find(ctx, seed.sessionToken); !errors.Is(err, ErrSessionNotFound) {
+		t.Errorf("loser session Find err = %v, want ErrSessionNotFound", err)
+	}
+}
+
+func assertIssue46RetiredWithAttribution(t *testing.T, svc *Service, ctx context.Context, seed *issue46Seed) {
+	t.Helper()
+	survivorAgg, err := aggIDFromUser(seed.survivor)
+	if err != nil {
+		t.Fatalf("aggIDFromUser survivor: %v", err)
+	}
+	for i, dup := range seed.dups {
 		aggID, err := aggIDFromUser(dup)
 		if err != nil {
 			t.Fatalf("aggIDFromUser dup %d: %v", i, err)
@@ -155,37 +222,9 @@ func TestService_MergeUsers_Issue46NineRowsOneHuman(t *testing.T) {
 		}
 	}
 
-	var survivorRoles []Role
-	for _, mem := range svc.membershipReadModel.FindByActor(survivor.Get().String()) {
-		if mem.TenantID.Get() == tenant.ID.Get() {
-			survivorRoles = mem.Roles
-		}
-	}
-	if !roleSetHas(survivorRoles, RoleUser) || !roleSetHas(survivorRoles, RoleAdmin) {
-		t.Errorf("survivor tenant roles = %v, want the union [user admin]", survivorRoles)
-	}
-	if rows := svc.membershipReadModel.FindByActor(dups[2].Get().String()); len(rows) != 0 {
-		t.Errorf("loser memberships = %d rows, want 0", len(rows))
-	}
-
-	if bots := svc.botReadModel.FindByOwner(dups[3]); len(bots) != 0 {
-		t.Errorf("loser still owns %d bots", len(bots))
-	}
-	owned := svc.botReadModel.FindByOwner(survivor)
-	if len(owned) != 1 || owned[0].ID.Get() != botResult.Bot.ID.Get() {
-		t.Fatalf("survivor owns %v, want the transferred bot", owned)
-	}
-	if resolved, ok := svc.ResolveBotByToken(botResult.Token); !ok || resolved.ID.Get() != botResult.Bot.ID.Get() {
-		t.Error("transferred bot no longer authenticates with its original token")
-	}
-
-	if _, err := svc.sessions.Find(ctx, loserSession.Token); !errors.Is(err, ErrSessionNotFound) {
-		t.Errorf("loser session Find err = %v, want ErrSessionNotFound", err)
-	}
-
 	// Attribution survives: the visited duplicate's journal is intact and the
 	// retirement is its LAST event (task 57: tombstone last).
-	visitedAgg, err := aggIDFromUser(dups[5])
+	visitedAgg, err := aggIDFromUser(seed.dups[5])
 	if err != nil {
 		t.Fatalf("aggIDFromUser visited: %v", err)
 	}
@@ -274,7 +313,12 @@ func TestService_MergeUsers_InputRejections(t *testing.T) {
 		{"no losers", survivor, nil, "usermgmt.merge_users.no_losers"},
 		{"self merge", survivor, []UserID{survivor}, "usermgmt.merge_users.self_merge"},
 		{"duplicate loser", survivor, []UserID{loser, loser}, "usermgmt.merge_users.duplicate_loser"},
-		{"loser not found", survivor, []UserID{NewUserID("01M46GHOST0000000000000Z9")}, "usermgmt.merge_users.loser_not_found"},
+		{
+			"loser not found",
+			survivor,
+			[]UserID{NewUserID("01M46GHOST0000000000000Z9")},
+			"usermgmt.merge_users.loser_not_found",
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -339,7 +383,7 @@ func TestService_MergeUsers_TerminalConflicts(t *testing.T) {
 		if err := svc.DeleteUser(ctx, e, "gone"); err != nil {
 			t.Fatalf("DeleteUser: %v", err)
 		}
-		requireDomainError(t, svc.MergeUsers(ctx, e, []UserID{c}, "x"),
+		_ = requireDomainError(t, svc.MergeUsers(ctx, e, []UserID{c}, "x"),
 			errorfamily.Rejection, "usermgmt.merge_users.deleted")
 	})
 }
@@ -430,7 +474,8 @@ func TestService_MergeUsers_MembershipUnionKeepsBothDirections(t *testing.T) {
 	for _, mem := range svc.membershipReadModel.FindByActor(survivor.Get().String()) {
 		rolesByTenant[mem.TenantID.Get()] = mem.Roles
 	}
-	if !roleSetHas(rolesByTenant[tenantA.ID.Get()], RoleUser) || !roleSetHas(rolesByTenant[tenantA.ID.Get()], RoleAdmin) {
+	if !roleSetHas(rolesByTenant[tenantA.ID.Get()], RoleUser) ||
+		!roleSetHas(rolesByTenant[tenantA.ID.Get()], RoleAdmin) {
 		t.Errorf("tenant A roles = %v, want union [user admin]", rolesByTenant[tenantA.ID.Get()])
 	}
 	if !roleSetHas(rolesByTenant[tenantB.ID.Get()], RoleViewer) {

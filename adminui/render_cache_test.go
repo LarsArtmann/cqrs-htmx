@@ -28,7 +28,8 @@ func newCacheTestPanel(t *testing.T) (*Handler, *usermgmt.Service, []*identitymo
 		t.Fatalf("New: %v", err)
 	}
 
-	users := []*identitymodel.User{mustUser(t, "admin@example.com")}
+	users := make([]*identitymodel.User, 0, 4)
+	users = append(users, mustUser(t, "admin@example.com"))
 	for _, email := range []string{"ada@example.com", "bob@example.com", "carol@example.com"} {
 		resp, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID:    identitymodel.SyntheticUserID("u-" + email),
@@ -76,48 +77,61 @@ func TestRenderAuthz_MatchesPerRowLookups(t *testing.T) {
 	ctx := context.Background()
 	az := newRenderAuthz(ctx, svc)
 
-	authz := svc.Authz()
 	for _, u := range users {
 		id := u.ID.Get().String()
+		assertPlatformRolesMatch(t, az, svc, u, id)
+		assertTenantCountMatches(t, az, svc, ctx, u, id)
+	}
+}
 
-		wantRoles, err := authz.RolesForUser(u.ID, identitymodel.NewTenantID(identitymodel.WildcardDomain))
-		if err != nil {
-			t.Fatalf("RolesForUser %s: %v", id, err)
-		}
-		gotRoles := az.platformRolesFor(id)
-		if len(gotRoles) != len(wantRoles) {
-			t.Errorf("%s: platform roles = %v, want %v", id, gotRoles, wantRoles)
-		} else {
-			got := make(map[identitymodel.Role]int, len(gotRoles))
-			for _, r := range gotRoles {
-				got[r]++
-			}
-			for _, r := range wantRoles {
-				got[r]--
-			}
-			for r, n := range got {
-				if n != 0 {
-					t.Errorf("%s: platform role %s mismatched (snapshot vs per-row)", id, r)
-				}
-			}
-		}
+// assertPlatformRolesMatch compares the snapshot's platform roles against the
+// published per-row RolesForUser lookup, multiset-equal.
+func assertPlatformRolesMatch(t *testing.T, az *renderAuthz, svc *usermgmt.Service, u *identitymodel.User, id string) {
+	t.Helper()
 
-		wantCount := 0
-		domains, err := authz.DomainsForUser(u.ID)
-		if err != nil {
-			t.Fatalf("DomainsForUser %s: %v", id, err)
+	wantRoles, err := svc.Authz().RolesForUser(u.ID, identitymodel.NewTenantID(identitymodel.WildcardDomain))
+	if err != nil {
+		t.Fatalf("RolesForUser %s: %v", id, err)
+	}
+	gotRoles := az.platformRolesFor(id)
+	if len(gotRoles) != len(wantRoles) {
+		t.Errorf("%s: platform roles = %v, want %v", id, gotRoles, wantRoles)
+		return
+	}
+	got := make(map[identitymodel.Role]int, len(gotRoles))
+	for _, r := range gotRoles {
+		got[r]++
+	}
+	for _, r := range wantRoles {
+		got[r]--
+	}
+	for r, n := range got {
+		if n != 0 {
+			t.Errorf("%s: platform role %s mismatched (snapshot vs per-row)", id, r)
 		}
-		for _, dom := range domains {
-			if dom.Get() == identitymodel.WildcardDomain {
-				continue
-			}
-			if _, err := svc.GetTenant(ctx, dom); err == nil {
-				wantCount++
-			}
+	}
+}
+
+// assertTenantCountMatches compares the snapshot's tenant count against the
+// per-row DomainsForUser lookup resolved through GetTenant.
+func assertTenantCountMatches(t *testing.T, az *renderAuthz, svc *usermgmt.Service, ctx context.Context, u *identitymodel.User, id string) {
+	t.Helper()
+
+	wantCount := 0
+	domains, err := svc.Authz().DomainsForUser(u.ID)
+	if err != nil {
+		t.Fatalf("DomainsForUser %s: %v", id, err)
+	}
+	for _, dom := range domains {
+		if dom.Get() == identitymodel.WildcardDomain {
+			continue
 		}
-		if got := az.tenantCountFor(id); got != wantCount {
-			t.Errorf("%s: tenant count = %d, want %d", id, got, wantCount)
+		if _, err := svc.GetTenant(ctx, dom); err == nil {
+			wantCount++
 		}
+	}
+	if got := az.tenantCountFor(id); got != wantCount {
+		t.Errorf("%s: tenant count = %d, want %d", id, got, wantCount)
 	}
 }
 

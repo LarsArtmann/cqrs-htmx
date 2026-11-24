@@ -215,7 +215,7 @@ func writeUsersCSV(w io.Writer, users []*identitymodel.User) error {
 	for _, u := range users {
 		if err := cw.Write([]string{
 			u.ID.Get().String(),
-			string(u.Email),
+			u.Email,
 			u.DisplayName,
 			strconv.FormatBool(u.EmailVerified),
 			strconv.FormatBool(u.TOTPEnabled),
@@ -235,11 +235,11 @@ func writeUsersJSON(w io.Writer, users []*identitymodel.User) error {
 	for _, u := range users {
 		export = append(export, usermgmt.ExportUser{
 			ID:               u.ID,
-			Email:            usermgmt.Email(u.Email),
+			Email:            u.Email,
 			DisplayName:      u.DisplayName,
 			EmailVerified:    u.EmailVerified,
 			TOTPEnabled:      u.TOTPEnabled,
-			ExternalAccounts: append([]usermgmt.ExternalAccount(nil), u.ExternalAccounts...),
+			ExternalAccounts: append([]identitymodel.ExternalAccount(nil), u.ExternalAccounts...),
 		})
 	}
 	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
