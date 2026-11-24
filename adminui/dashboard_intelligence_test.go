@@ -176,7 +176,7 @@ func TestDashboardWindowCaptionText_HonestSpan(t *testing.T) {
 		},
 	}
 	got := dashboardWindowCaptionText(withWindow)
-	for _, want := range []string{"holds 7 events", "from Nov 24 9:05", "to Nov 24 16:30", "journal keeps the full history"} {
+	for _, want := range []string{"holds 7 events", "from Nov 24 09:05", "to Nov 24 16:30", "journal keeps the full history"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("caption %q missing %q", got, want)
 		}

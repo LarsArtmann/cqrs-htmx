@@ -172,7 +172,7 @@ func TestPanel_MembersDirectoryPager(t *testing.T) {
 	user := mustUser(t, "root@example.com")
 	svc := mustService(t)
 	h := panelWithPageSize(t, user, svc, MinPageSize)
-	for i := 0; i < 12; i++ {
+	for i := range 12 {
 		mustCreateTenant(t, svc, "t"+string(rune('a'+i)))
 		u := mustRegister(t, svc, "u-pager"+string(rune('a'+i)), "pager"+string(rune('a'+i))+"@x.com")
 		mustAddMember(t, svc, u.User.ID, identitymodel.NewTenantID("t"+string(rune('a'+i))), identitymodel.RoleUser)

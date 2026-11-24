@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // userDuplicates renders the duplicate-users report: every cluster of live
@@ -166,4 +165,3 @@ func (h *Handler) superAdminMergeRoutes() []routeSpec {
 		},
 	}
 }
-

@@ -47,8 +47,8 @@ func TestNew_AppendsExtraNavAfterBuiltInItems(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	if len(h.nav) != 6 {
-		t.Fatalf("nav = %+v, want 4 built-in items plus two extra entries", h.nav)
+	if len(h.nav) != 7 {
+		t.Fatalf("nav = %+v, want 5 built-in items plus two extra entries", h.nav)
 	}
 
 	last := h.nav[len(h.nav)-2:]
@@ -65,7 +65,7 @@ func TestNew_AppendsExtraNavAfterBuiltInItems(t *testing.T) {
 		t.Errorf("extra nav[1].Icon = %q, want the explicit %q icon", last[1].Icon, icons.Book)
 	}
 
-	for i, n := range h.nav[:4] {
+	for i, n := range h.nav[:5] {
 		if n.Verbatim {
 			t.Errorf("built-in nav[%d] = %+v unexpectedly verbatim", i, n)
 		}
@@ -84,7 +84,7 @@ func TestNew_DashboardURLAppendsEventStoreEntry(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	if len(h.nav) != 6 {
+	if len(h.nav) != 7 {
 		t.Fatalf("nav = %+v, want built-ins + extra + cross-link", h.nav)
 	}
 	link := h.nav[len(h.nav)-1]
@@ -113,8 +113,8 @@ func TestNew_NoExtraNavOrCrossLinkByDefault(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	if len(h.nav) != 4 {
-		t.Fatalf("nav = %+v, want exactly the 4 built-in super-admin items", h.nav)
+	if len(h.nav) != 5 {
+		t.Fatalf("nav = %+v, want exactly the 5 built-in super-admin items", h.nav)
 	}
 	for _, n := range h.nav {
 		if n.Label == "Event store" {
