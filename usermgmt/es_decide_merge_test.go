@@ -838,7 +838,7 @@ func TestDecideTransferBot_Guards(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			events, err := decideTransferBot(aggID, tt.ownerID, mergeReason)(tt.state, event.Version(2))
-			requireDomainError(t, err, tt.wantFamily, tt.wantCode)
+			_ = requireDomainError(t, err, tt.wantFamily, tt.wantCode)
 			if len(events) != 0 {
 				t.Fatalf("a refused decision must emit nothing, got %d events", len(events))
 			}

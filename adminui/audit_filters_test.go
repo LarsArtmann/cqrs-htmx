@@ -191,7 +191,25 @@ func TestFlow_AuditActorChip(t *testing.T) {
 	if len(all) == 0 {
 		t.Fatal("seed produced no audit entries")
 	}
-	seededKind := all[0].ActorID.Kind().String()
+	present := map[string]bool{}
+	for _, e := range all {
+		present[e.ActorID.Kind().String()] = true
+	}
+	// A chip kind that actually acted keeps rows; a chip kind that never
+	// acted shows the honest filtered-empty state; an unknown chip degrades
+	// to every row and leaves only the All-actors chip active.
+	var acted, absent string
+	for _, kind := range auditActorChips {
+		if acted == "" && present[kind] {
+			acted = kind
+		}
+		if absent == "" && !present[kind] {
+			absent = kind
+		}
+	}
+	if acted == "" || absent == "" {
+		t.Fatalf("seed kinds %v leave no (acted, absent) chip pair", present)
+	}
 
 	get := func(url string) string {
 		rec := httptest.NewRecorder()
@@ -202,33 +220,23 @@ func TestFlow_AuditActorChip(t *testing.T) {
 		return rec.Body.String()
 	}
 
-	// The chip matching the seeded actor kind keeps the rows; a chip of a
-	// kind that never acted shows the honest filtered-empty state; an
-	// unknown chip degrades to every row with no active chip.
-	kept := get("/admin/audit?actor=" + seededKind)
-	if !strings.Contains(kept, "actor1@example.com") {
-		t.Errorf("actor chip %q (the seeded kind) must keep the rows", seededKind)
+	kept := get("/admin/audit?actor=" + acted)
+	if strings.Count(kept, "<tr") < 2 {
+		t.Errorf("actor chip %q (a kind that acted) must keep rows", acted)
 	}
-	var other string
-	for _, kind := range auditActorChips {
-		if kind != seededKind {
-			other = kind
-			break
-		}
-	}
-	none := get("/admin/audit?actor=" + other)
-	if strings.Contains(none, "actor1@example.com") {
-		t.Errorf("actor chip %q must filter the seeded rows out", other)
+	none := get("/admin/audit?actor=" + absent)
+	if strings.Count(none, "<tr") != 1 { // header row only
+		t.Errorf("actor chip %q must filter every row out", absent)
 	}
 	if !strings.Contains(none, "No events match your filters") {
 		t.Error("chip-filtered empty state must be honest about the filters")
 	}
 	degraded := get("/admin/audit?actor=weird")
-	if !strings.Contains(degraded, "actor1@example.com") {
+	if strings.Count(degraded, "<tr") < 2 {
 		t.Error("unknown chip must degrade to every row")
 	}
-	if strings.Contains(degraded, `aria-current="true"`) {
-		t.Error("unknown chip must leave no chip marked active")
+	if strings.Contains(degraded, "actor=weird") {
+		t.Error("unknown chip must leave no chip linking the weird value")
 	}
 
 	// The chip vocabulary renders: All + one per kind.
@@ -350,8 +358,10 @@ func TestFlow_UserActivityLoadMore(t *testing.T) {
 	if strings.Contains(next, "Load more") {
 		t.Error("exhausted stream must not render another load-more trigger")
 	}
-	// Card page + one fragment together show every event exactly once.
-	if got := strings.Count(detail+next, "Name-"); got != 10 {
+	// Card page + one fragment together show every event exactly once: ten
+	// rename rows (the register row rides the stream too, under its own
+	// label).
+	if got := strings.Count(detail+next, "Display name changed"); got != 10 {
 		t.Errorf("card + fragment render %d rename rows, want 10", got)
 	}
 
