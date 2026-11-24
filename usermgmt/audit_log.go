@@ -38,6 +38,8 @@ const (
 	AuditActionEmailChanged       = "email_changed"
 	AuditActionDisplayNameChanged = "display_name_changed"
 	AuditActionUserDeleted        = "user_deleted"
+	AuditActionUserMerged         = "user_merged"
+	AuditActionUserMergedInto     = "user_merged_into"
 	AuditActionCredentialAdded    = "credential_added"   //nolint:gosec // G101: audit action label, not a credential
 	AuditActionCredentialRemoved  = "credential_removed" //nolint:gosec // G101: audit action label, not a credential
 	AuditActionCredentialUsed     = "credential_used"    //nolint:gosec // G101: audit action label, not a credential
@@ -180,6 +182,8 @@ var auditActions = map[event.Type]string{ //nolint:gochecknoglobals // table-dri
 	eventEmailChanged:       AuditActionEmailChanged,
 	eventDisplayNameChanged: AuditActionDisplayNameChanged,
 	eventUserDeleted:        AuditActionUserDeleted,
+	eventUserMerged:         AuditActionUserMerged,
+	eventUserMergedInto:     AuditActionUserMergedInto,
 	eventCredentialAdded:    AuditActionCredentialAdded,
 	eventCredentialRemoved:  AuditActionCredentialRemoved,
 	eventCredentialUsed:     AuditActionCredentialUsed,

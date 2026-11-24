@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -72,6 +73,20 @@ func DecideUnlinkExternalAccount(aggID id.StreamID, provider, subject string) de
 	return decideUnlinkExternalAccount(aggID, provider, subject)
 }
 
+// DecideMergeUsers is the exported version of decideMergeUsers for system.New() integration.
+func DecideMergeUsers(
+	aggID id.StreamID,
+	contributions []identitymodel.MergeContribution,
+	reason string,
+) decider.DecideFunc[UserState] {
+	return decideMergeUsers(aggID, contributions, reason)
+}
+
+// DecideMergeUserInto is the exported version of decideMergeUserInto for system.New() integration.
+func DecideMergeUserInto(aggID id.StreamID, survivorID UserID, reason string) decider.DecideFunc[UserState] {
+	return decideMergeUserInto(aggID, survivorID, reason)
+}
+
 // Membership decide exports
 
 // DecideAddMember is the exported version of decideAddMember for system.New() integration.
@@ -132,4 +147,9 @@ func DecideRegisterBot(
 // DecideDeleteBot is the exported version of decideDeleteBot for system.New() integration.
 func DecideDeleteBot(aggID id.StreamID, reason string) decider.DecideFunc[BotState] {
 	return decideDeleteBot(aggID, reason)
+}
+
+// DecideTransferBot is the exported version of decideTransferBot for system.New() integration.
+func DecideTransferBot(aggID id.StreamID, ownerID UserID, reason string) decider.DecideFunc[BotState] {
+	return decideTransferBot(aggID, ownerID, reason)
 }

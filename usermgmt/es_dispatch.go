@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -231,6 +232,42 @@ func RegisterCommands(
 			"usermgmt.dispatch.register_failed",
 			"register %s",
 			cmdUnlinkExternalAccount,
+		)
+	}
+
+	if err := command.RegisterTyped(
+		dispatcher, cmdMergeUsers,
+		func(ctx context.Context, c *identitymodel.MergeUsersCmd) error {
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeUser, c.StreamID()),
+				decideMergeUsers(c.StreamID(), c.Contributions(), c.Reason()),
+			)
+		},
+	); err != nil {
+		return errorfamily.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdMergeUsers,
+		)
+	}
+
+	if err := command.RegisterTyped(
+		dispatcher, cmdMergeUserInto,
+		func(ctx context.Context, c *identitymodel.MergeUserIntoCmd) error {
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeUser, c.StreamID()),
+				decideMergeUserInto(c.StreamID(), c.SurvivorID(), c.Reason()),
+			)
+		},
+	); err != nil {
+		return errorfamily.Wrapf(
+			err,
+			event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s",
+			cmdMergeUserInto,
 		)
 	}
 

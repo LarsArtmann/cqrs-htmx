@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -46,6 +47,22 @@ func RegisterBotCommands(
 			err, event.Infrastructure,
 			"usermgmt.dispatch.register_failed",
 			"register %s", cmdDeleteBot,
+		)
+	}
+
+	if err := command.RegisterTyped(
+		dispatcher, cmdTransferBot,
+		func(ctx context.Context, c *identitymodel.TransferBotCmd) error {
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeBot, c.StreamID()),
+				decideTransferBot(c.StreamID(), c.OwnerID(), c.Reason()),
+			)
+		},
+	); err != nil {
+		return errorfamily.Wrapf(
+			err, event.Infrastructure,
+			"usermgmt.dispatch.register_failed",
+			"register %s", cmdTransferBot,
 		)
 	}
 
