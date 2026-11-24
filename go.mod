@@ -6,7 +6,7 @@ go 1.27.3
 require (
 	github.com/casbin/casbin/v3 v3.11.0
 	github.com/go-playground/form/v4 v4.5.1
-	github.com/larsartmann/go-codec v0.3.3
+	github.com/larsartmann/go-codec v0.3.4
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (record/v4 trails event/command; detector compares one module's max — cqrs-lint 4.8.1 anchors the finding on the block's first family require)
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
@@ -31,7 +31,6 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.10.4 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
-	github.com/gkampitakis/go-snaps v0.5.25 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect

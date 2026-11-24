@@ -27,7 +27,7 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.20.3 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
-	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
