@@ -20,6 +20,12 @@ type UserState struct {
 	EmailVerified    bool
 	TOTPEnabled      bool
 	TOTPSecret       []byte
+	// MergedInto is non-zero only on a merged-away user and names the
+	// survivor. Deleted is then true as well, so every existing liveness gate
+	// refuses the stream without knowing about merges.
+	MergedInto UserID
+	// MergedUserIDs lists the duplicate users that were merged into this one.
+	MergedUserIDs []UserID
 }
 
 // Exists reports whether the user has been registered (has at least one event).
@@ -35,6 +41,12 @@ func (s UserState) Exists() bool {
 // unchanged.
 func (s UserState) IsActive() bool {
 	return s.Exists() && !s.Deleted
+}
+
+// IsMerged reports whether this user was merged into another one, in which
+// case [UserState.MergedInto] names the survivor.
+func (s UserState) IsMerged() bool {
+	return !s.MergedInto.IsZero()
 }
 
 // MembershipState is the aggregate state for a Membership (actor+tenant pair).
@@ -65,11 +77,23 @@ type TenantState struct {
 	SuspendReason string
 	Deleted       bool
 	DeleteReason  string
+	// MergedInto is non-zero only on a merged-away tenant and names the
+	// survivor. Deleted is then true as well, so every existing liveness gate
+	// refuses the stream without knowing about merges.
+	MergedInto TenantID
+	// MergedTenantIDs lists the tenants that were merged into this one.
+	MergedTenantIDs []TenantID
 }
 
 // Exists reports whether the tenant has been created (has at least one event).
 func (s TenantState) Exists() bool {
 	return s.Name != "" && !s.Deleted
+}
+
+// IsMerged reports whether this tenant was merged into another one, in which
+// case [TenantState.MergedInto] names the survivor.
+func (s TenantState) IsMerged() bool {
+	return !s.MergedInto.IsZero()
 }
 
 // IsActive reports whether the tenant exists and is not suspended or deleted.
@@ -80,6 +104,9 @@ func (s TenantState) IsActive() bool {
 // IsValid enforces struct-level invariants.
 func (s TenantState) IsValid() bool {
 	if s.Deleted && s.Suspended {
+		return false
+	}
+	if s.IsMerged() && !s.Deleted {
 		return false
 	}
 	if !s.Suspended && s.SuspendReason != "" {
@@ -162,6 +189,24 @@ func FoldUser(
 			return state, err
 		}
 		next.Deleted = true
+		next.DeleteReason = p.Reason
+
+	case EventUserMerged:
+		p, err := UnmarshalPayload[UserMergedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		for _, loser := range p.LoserIDs {
+			next.MergedUserIDs = withAppendedUnique(next.MergedUserIDs, loser)
+		}
+
+	case EventUserMergedInto:
+		p, err := UnmarshalPayload[UserMergedIntoPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		next.Deleted = true
+		next.MergedInto = p.SurvivorID
 		next.DeleteReason = p.Reason
 
 	case EventCredentialAdded:
@@ -304,15 +349,10 @@ func FoldTenant(
 		if err != nil {
 			return state, err
 		}
-		next.Name = p.Name
-		next.DisplayName = p.DisplayName
-		next.Suspended = false
-		next.Deleted = false
-		// Clear tombstone/suspension reasons too: a recreated tenant must not
-		// inherit the previous incarnation's reasons (FoldUser resets the
-		// whole state; TenantState.IsValid would reject the stale reasons).
-		next.SuspendReason = ""
-		next.DeleteReason = ""
+		// A fresh incarnation inherits nothing from the previous one: a
+		// recreated tenant must not keep the old reasons (IsValid would
+		// reject them) nor the tenants the old incarnation absorbed.
+		next = TenantState{Name: p.Name, DisplayName: p.DisplayName}
 
 	case EventTenantSuspended:
 		p, err := UnmarshalPayload[TenantSuspendedPayload](evt)
@@ -335,6 +375,33 @@ func FoldTenant(
 		next.Suspended = false
 		next.SuspendReason = ""
 		next.DeleteReason = p.Reason
+
+	case EventTenantRenamed:
+		p, err := UnmarshalPayload[TenantRenamedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		next.DisplayName = p.DisplayName
+
+	case EventTenantMerged:
+		p, err := UnmarshalPayload[TenantMergedPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		for _, loser := range p.LoserIDs {
+			next.MergedTenantIDs = withAppendedUnique(next.MergedTenantIDs, loser)
+		}
+
+	case EventTenantMergedInto:
+		p, err := UnmarshalPayload[TenantMergedIntoPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		next.Deleted = true
+		next.Suspended = false
+		next.SuspendReason = ""
+		next.DeleteReason = p.Reason
+		next.MergedInto = p.SurvivorID
 
 	default:
 		return state, errorfamily.NewRejection(
@@ -370,6 +437,13 @@ func FoldBot(
 	case EventBotDeleted:
 		next.Deleted = true
 
+	case EventBotTransferred:
+		p, err := UnmarshalPayload[BotTransferredPayload](evt)
+		if err != nil {
+			return state, err
+		}
+		next.OwnerID = p.OwnerID
+
 	default:
 		return state, errorfamily.NewRejection(
 			"usermgmt.bot.unknown_event",
@@ -396,6 +470,17 @@ func ActorKindFromString(s string) (ActorKind, error) {
 			"unknown actor kind: "+s,
 		)
 	}
+}
+
+// withAppendedUnique returns ids plus value when value is absent. The result
+// is a fresh slice: fold functions start from a shallow copy of the caller's
+// state, so an in-place append could write through to the state the caller
+// still holds.
+func withAppendedUnique[T comparable](ids []T, value T) []T {
+	if slices.Contains(ids, value) {
+		return ids
+	}
+	return append(slices.Clone(ids), value)
 }
 
 // applyCredentialUsed applies a CredentialUsed event to the credential it
