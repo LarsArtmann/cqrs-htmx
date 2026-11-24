@@ -1,14 +1,18 @@
 package adminui
 
 import (
+	"bytes"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 )
@@ -63,17 +67,77 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 // continues across refreshes. Session-gated by the same guard as the page.
 // The region carries the quick-actions row too, so a polled refresh keeps
 // the page's row instead of dropping it (and the same mode gate applies).
+//
+// The response carries a content-derived ETag (FNV-1a over the rendered
+// bytes — the same pattern cqrshtmx.AssetETag applies to embedded assets)
+// and answers matching If-None-Match with a 304: both the 30s poller and the
+// SSE-triggered refresh issued by admin.js hit this endpoint, and a
+// dashboard whose stats did not change should not pay for a re-render swap.
+// The wall-clock "Updated HH:MM:SS" stamp is EXCLUDED from the tag: it
+// differs on every render by construction, so hashing it would make the
+// ETag never match — always transferred, never 304.
 func (h *Handler) statsPartial(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	p := h.page("Dashboard", "/", user, r)
 	window, span, registrations := h.dashboardWindowIntelligence()
-	renderPartial(w, r, dashboardStatsRegion(p, dashboardData{
+	component := dashboardStatsRegion(p, dashboardData{
 		Stats:         h.dashboardStats(r, p),
 		StatsURL:      p.BasePath + "/partials/stats",
 		BasePath:      p.BasePath,
 		Window:        window,
 		WindowSpan:    span,
 		Registrations: registrations,
-	}, h.config.Mode == ModeSuperAdmin))
+	}, h.config.Mode == ModeSuperAdmin)
+
+	var buf bytes.Buffer
+	if err := component.Render(r.Context(), &buf); err != nil {
+		slog.ErrorContext(r.Context(), "adminui: render stats partial", "error", err)
+		http.Error(w, "render error", http.StatusInternalServerError)
+		return
+	}
+
+	setHTMLNoStoreHeaders(w)
+	etag := cqrshtmx.AssetETag("adminui-stats", stripStatsStamp(buf.Bytes()))
+	w.Header().Set("ETag", etag)
+	if ifNoneMatchSatisfied(r.Header.Get("If-None-Match"), etag) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+	_, _ = w.Write(buf.Bytes())
+}
+
+// statsStampPattern matches the PolledRegion "Updated HH:MM:SS" footer that
+// ShowTimestamp renders: <time ...>Updated 15:04:05</time>. Only the
+// rendered text is volatile; the element shape is templ-fixed. A function
+// (not a package-level var) keeps the global surface at zero; the compile
+// cost is one regex per stats request.
+func statsStampPattern() *regexp.Regexp {
+	return regexp.MustCompile(`<time[^>]*>Updated [0-9]{2}:[0-9]{2}:[0-9]{2}</time>`)
+}
+
+// stripStatsStamp replaces the volatile wall-clock footer with a stable
+// placeholder so the content ETag reflects the data, not the request time.
+func stripStatsStamp(body []byte) []byte {
+	return statsStampPattern().ReplaceAllLiteral(body, []byte(`<time>Updated</time>`))
+}
+
+// ifNoneMatchSatisfied reports whether an If-None-Match header value matches
+// etag. htmx sends the exact tag it last saw; RFC 7232 also allows a comma
+// list, a W/ weak prefix, and "*" — all handled here so honest clients get
+// their 304.
+func ifNoneMatchSatisfied(header, etag string) bool {
+	if header == "" {
+		return false
+	}
+	if strings.TrimSpace(header) == "*" {
+		return true
+	}
+	for _, candidate := range strings.Split(header, ",") {
+		candidate = strings.TrimSpace(candidate)
+		if candidate == etag || strings.TrimPrefix(candidate, "W/") == etag {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {

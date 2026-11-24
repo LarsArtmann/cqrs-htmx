@@ -526,3 +526,31 @@ dialog.tc-modal[open] {
   color: var(--ok);
   border-color: var(--ok);
 }
+
+/* ---------- Skeleton shimmer (T17 F124) ----------
+   The users list's first-load placeholder. An opacity shimmer (no layout
+   thrash, no repaint storms) frozen under the OS preference AND under the
+   .admin-reduced-motion class admin.js mirrors onto <html> — same contract
+   as the sync-pulse guard above. */
+.admin-skeleton {
+  background: var(--muted);
+  border-radius: var(--radius-sm, 6px);
+  animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-skeleton {
+    animation: none;
+  }
+}
+.admin-reduced-motion .admin-skeleton {
+  animation: none;
+}
+@keyframes admin-skeleton-shimmer {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}

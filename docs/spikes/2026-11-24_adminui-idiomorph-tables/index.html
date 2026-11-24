@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>idiomorph-on-tables spike (T24 F176)</title></head>
+<body>
+  <h1>idiomorph vs innerHTML — table swap measurement</h1>
+  <p>Result (JSON) is printed to the last <pre id="result">pending</pre></p>
+
+  <!-- Variant A: innerHTML swap target -->
+  <table id="a-table"><tbody id="a-body"></tbody></table>
+
+  <!-- Variant B: idiomorph swap target -->
+  <table id="b-table"><tbody id="b-body"></tbody></table>
+
+  <script type="module" src="./spike.js"></script>
+</body>
+</html>

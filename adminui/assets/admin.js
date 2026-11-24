@@ -324,3 +324,74 @@
     }
   }, true);
 })();
+
+// ==========================================================================
+// T24 F175 — SSE-event-triggered refresh (LIVE UPDATES; append-only block).
+// ==========================================================================
+// The panel itself NEVER opens an EventSource: the SSE stream is the
+// consumer's to wire (Config.SSEURL -> layout body data-sse-url -> the
+// consumer's sync-client.js opens the connection). This block only REACTS:
+// when the consumer's sync runtime announces events, the panel refreshes the
+// dashboard stats region and any visible list region so a second operator's
+// change shows up without a manual reload.
+//
+// Contract: sync/sync-client.js dispatches "cqrshtmx:sync-events" on
+// `document` as a CustomEvent AND via htmx.trigger on <body> (which bubbles
+// as the same DOM event). One document-level listener sees both, so this is
+// CSP-safe (no inline handlers) and document-delegated (gotcha 57:
+// element-bound JS dies with the pre-swap DOM).
+(function () {
+  "use strict";
+
+  var REFRESH_SELECTOR = [
+    // The polled stats region: found by its own hx-get tail (PolledRegion
+    // renders no stable id, and the URL tail is fixed by the panel route).
+    'div[hx-get$="/partials/stats"]',
+    // Visible list regions with server-side partial twins (htmx.RenderPartial
+    // serves the fragment when HX-Request is set).
+    "#users-table",
+    "#tenants-table",
+    "#members-directory-table",
+    "#audit-panel"
+  ].join(",");
+
+  // Only react when the consumer opted into live sync: data-sse-url exists
+  // iff Config.SSEURL was set (layout_templ sseBodyAttrs). Unset -> this
+  // block registers nothing and opens nothing.
+  function liveUpdatesEnabled() {
+    var body = document.body;
+    return !!(body && body.hasAttribute("data-sse-url") && window.htmx);
+  }
+
+  // Refresh one region. Stats swap the region itself (outerHTML — the
+  // response IS the PolledRegion element, so polling survives); lists swap
+  // their server fragment into the container (innerHTML) using the CURRENT
+  // location so search/filter/sort/page selections survive the refresh.
+  function refreshRegion(el) {
+    if (!el) return;
+    var hxGet = el.getAttribute("hx-get");
+    if (hxGet && /\/partials\/stats$/.test(hxGet)) {
+      window.htmx.ajax("GET", hxGet, { target: el, swap: "outerHTML" });
+      return;
+    }
+    window.htmx.ajax("GET", window.location.pathname + window.location.search, {
+      target: el,
+      swap: "innerHTML",
+      headers: { "HX-Request": "true" }
+    });
+  }
+
+  // Coalesce bursts: sync-client may deliver a pull batch followed by SSE
+  // acks within milliseconds. One trailing refresh per quiet 300ms window.
+  var refreshTimer = null;
+  function scheduleRefresh() {
+    if (!liveUpdatesEnabled() || refreshTimer) return;
+    refreshTimer = window.setTimeout(function () {
+      refreshTimer = null;
+      var regions = document.querySelectorAll(REFRESH_SELECTOR);
+      for (var i = 0; i < regions.length; i++) refreshRegion(regions[i]);
+    }, 300);
+  }
+
+  document.addEventListener("cqrshtmx:sync-events", scheduleRefresh);
+})();
