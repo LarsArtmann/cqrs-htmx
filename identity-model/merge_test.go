@@ -128,7 +128,7 @@ func TestFoldUser_MergedIntoIsATerminalTombstone(t *testing.T) {
 
 func TestUserState_HasCredential(t *testing.T) {
 	state := UserState{Credentials: []WebAuthnCredential{
-		{CredentialCore: CredentialCore{ID: []byte{1, 2}}},
+		{ID: []byte{1, 2}},
 	}}
 
 	if !state.HasCredential([]byte{1, 2}) {
@@ -323,8 +323,8 @@ func TestMergeCommands_AreTypedAndImmutable(t *testing.T) {
 		Email:            "loser@example.com",
 		EmailVerified:    true,
 		TOTPSecret:       []byte("totp-secret"),
-		Credentials:      []WebAuthnCredential{{CredentialCore: CredentialCore{ID: []byte{1}, PublicKey: []byte{2}}}},
-		ExternalAccounts: []ExternalAccount{{ExternalAccountCore: ExternalAccountCore{Provider: "google", Subject: "s"}}},
+		Credentials:      []WebAuthnCredential{{ID: []byte{1}, PublicKey: []byte{2}}},
+		ExternalAccounts: []ExternalAccount{{Provider: "google", Subject: "s"}},
 	}}, "duplicate")
 	assertCommandIdentity(t, merge, CmdMergeUsers, stream)
 	if merge.Reason() != "duplicate" {
