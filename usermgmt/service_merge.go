@@ -342,12 +342,12 @@ func (s *Service) DuplicateUsers(_ context.Context) []DuplicateUserGroup {
 	groups := make([]DuplicateUserGroup, 0)
 	for email, users := range byEmail {
 		if len(users) > 1 {
-			groups = append(groups, DuplicateUserGroup{Key: email, Users: users})
+			groups = append(groups, DuplicateUserGroup{Key: email, Account: "", Users: users})
 		}
 	}
 	for account, users := range byAccount {
 		if len(users) > 1 {
-			groups = append(groups, DuplicateUserGroup{Account: account, Users: users})
+			groups = append(groups, DuplicateUserGroup{Key: "", Account: account, Users: users})
 		}
 	}
 	slices.SortFunc(groups, func(a, b DuplicateUserGroup) int {

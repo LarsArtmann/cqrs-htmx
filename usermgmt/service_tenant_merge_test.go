@@ -14,9 +14,9 @@ func tenantTestID(n int) TenantID {
 	return NewTenantID("01M47TENANT0000000000000" + string(digits[n]))
 }
 
-func createTenantTestTenant(t *testing.T, svc *Service, n int, name string) *Tenant {
+func createTenantTestTenant(ctx context.Context, t *testing.T, svc *Service, n int, name string) *Tenant {
 	t.Helper()
-	tenant, err := svc.CreateTenant(context.Background(), CreateTenantRequest{
+	tenant, err := svc.CreateTenant(ctx, CreateTenantRequest{
 		ID:   tenantTestID(n),
 		Name: name,
 	})
@@ -31,7 +31,7 @@ func createTenantTestTenant(t *testing.T, svc *Service, n int, name string) *Ten
 func TestService_RenameTenant(t *testing.T) {
 	svc := setupTestService(t)
 	ctx := context.Background()
-	tenant := createTenantTestTenant(t, svc, 0, "acme-corp")
+	tenant := createTenantTestTenant(ctx, t, svc, 0, "acme-corp")
 
 	if err := svc.RenameTenant(ctx, tenant.ID, "Acme Corporation"); err != nil {
 		t.Fatalf("RenameTenant: %v", err)
@@ -60,8 +60,8 @@ func TestService_MergeTenants_Issue47Scenario(t *testing.T) {
 	svc := setupTestService(t)
 	ctx := context.Background()
 
-	survivor := createTenantTestTenant(t, svc, 0, "Acme Corp")
-	loser := createTenantTestTenant(t, svc, 1, " acme corp ")
+	survivor := createTenantTestTenant(ctx, t, svc, 0, "Acme Corp")
+	loser := createTenantTestTenant(ctx, t, svc, 1, " acme corp ")
 
 	keep := registerMergeTestUser(t, svc, 0, "keep@example.com")
 	other := registerMergeTestUser(t, svc, 1, "other@example.com")
@@ -131,9 +131,9 @@ func TestService_MergeTenants_Guards(t *testing.T) {
 	svc := setupTestService(t)
 	ctx := context.Background()
 
-	a := createTenantTestTenant(t, svc, 0, "a")
-	b := createTenantTestTenant(t, svc, 1, "b")
-	c := createTenantTestTenant(t, svc, 2, "c")
+	a := createTenantTestTenant(ctx, t, svc, 0, "a")
+	b := createTenantTestTenant(ctx, t, svc, 1, "b")
+	c := createTenantTestTenant(ctx, t, svc, 2, "c")
 
 	_ = requireTenantServiceError(t, svc.MergeTenants(ctx, TenantID{}, []TenantID{b.ID}, "x"),
 		errorfamily.Rejection, "usermgmt.merge_tenants.survivor_required")
@@ -179,9 +179,10 @@ func TestService_UniqueTenantNames(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("off by default", func(t *testing.T) {
+		ctx := context.Background()
 		svc := setupTestService(t)
-		createTenantTestTenant(t, svc, 0, "Acme Corp")
-		createTenantTestTenant(t, svc, 1, " acme corp ")
+		createTenantTestTenant(ctx, t, svc, 0, "Acme Corp")
+		createTenantTestTenant(ctx, t, svc, 1, " acme corp ")
 		if groups := svc.DuplicateTenants(ctx); len(groups) != 1 || len(groups[0].Tenants) != 2 {
 			t.Errorf("DuplicateTenants = %+v, want one group of two", groups)
 		}
@@ -193,7 +194,7 @@ func TestService_UniqueTenantNames(t *testing.T) {
 			t.Fatalf("NewService: %v", err)
 		}
 		t.Cleanup(svc.Stop)
-		existing := createTenantTestTenant(t, svc, 0, "Acme Corp")
+		existing := createTenantTestTenant(ctx, t, svc, 0, "Acme Corp")
 
 		ef := requireTenantServiceError(t, createTenantErr(ctx, svc, tenantTestID(1), " acme corp "),
 			errorfamily.Conflict, "usermgmt.tenant.name_exists")
@@ -203,7 +204,7 @@ func TestService_UniqueTenantNames(t *testing.T) {
 		}
 
 		// A different name still passes.
-		createTenantTestTenant(t, svc, 2, "Globex")
+		createTenantTestTenant(ctx, t, svc, 2, "Globex")
 	})
 
 	t.Run("name released after delete", func(t *testing.T) {
@@ -212,11 +213,11 @@ func TestService_UniqueTenantNames(t *testing.T) {
 			t.Fatalf("NewService: %v", err)
 		}
 		t.Cleanup(svc.Stop)
-		createTenantTestTenant(t, svc, 0, "Acme Corp")
+		createTenantTestTenant(ctx, t, svc, 0, "Acme Corp")
 		if err := svc.DeleteTenant(ctx, tenantTestID(0), "cleanup"); err != nil {
 			t.Fatalf("DeleteTenant: %v", err)
 		}
-		createTenantTestTenant(t, svc, 1, "acme corp")
+		createTenantTestTenant(ctx, t, svc, 1, "acme corp")
 	})
 }
 
@@ -227,14 +228,14 @@ func createTenantErr(ctx context.Context, svc *Service, id TenantID, name string
 
 // registerMergeTestUserDirect dispatches the RegisterUser command without the
 // service-level duplicate-email guard — the shape of legacy duplicate rows.
-func registerMergeTestUserDirect(t *testing.T, svc *Service, n int, email string) UserID {
+func registerMergeTestUserDirect(ctx context.Context, t *testing.T, svc *Service, n int, email string) UserID {
 	t.Helper()
 	userID := mergeTestUserID(n)
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
 		t.Fatalf("aggIDFromUser: %v", err)
 	}
-	if err := svc.dispatcher.Dispatch(context.Background(),
+	if err := svc.dispatcher.Dispatch(ctx,
 		identitymodel.NewRegisterUserCmd(aggID, email, "", nil)); err != nil {
 		t.Fatalf("direct Register: %v", err)
 	}
@@ -252,7 +253,7 @@ func TestService_DuplicateUsers(t *testing.T) {
 	// trims and lowercases), so an email cluster cannot be born through
 	// Register — it arrives as legacy rows. Dispatch the registration
 	// directly, the way pre-guard data replays.
-	b := registerMergeTestUserDirect(t, svc, 1, "Human@example.com")
+	b := registerMergeTestUserDirect(ctx, t, svc, 1, "Human@example.com")
 	c := registerMergeTestUser(t, svc, 2, "distinct@example.com")
 	d := registerMergeTestUser(t, svc, 3, "other@example.com")
 

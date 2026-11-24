@@ -17,6 +17,8 @@ templ dashboardContent(d dashboardData, superAdmin bool) {
 			in the global domain — you are seeing this via a custom authorizer. Grant
 			platform roles from a user's detail page before the last door closes.
 		</div>
+	} else if d.BusFactor {
+		@busFactorBanner()
 	}
 	@dashboardStatsRegion(d, superAdmin)
 	if len(d.Recent) == 0 {
@@ -61,6 +63,7 @@ templ dashboardStatsRegion(d dashboardData, superAdmin bool) {
 		ShowTimestamp: true,
 	}) {
 		@quickActionsRow(d, superAdmin)
+		@dashboardWindowCaption(d)
 		@display.Grid(display.GridProps{
 			Cols:        display.GridColsAutoFit,
 			MinColWidth: "190px",
@@ -69,6 +72,54 @@ templ dashboardStatsRegion(d dashboardData, superAdmin bool) {
 			for _, s := range d.Stats {
 				@statCardView(s)
 			}
+			@registrationsSparkCard(d.Registrations, d.WindowSpan)
+		}
+	}
+}
+
+// busFactorBanner is the single-operator risk variant of the amber chrome:
+// when exactly ONE user holds every admin-tier wildcard grant, one departure
+// or lost credential locks the platform out. It renders only when the zero
+// case (NoAdminGrant) does not — zero is the bigger emergency and gets the
+// stronger message alone.
+templ busFactorBanner() {
+	<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+		<strong>Bus factor of one.</strong> Exactly one user holds every admin-tier
+		grant in the global domain. Grant a second platform admin from a user's
+		detail page so a single departure cannot lock the platform out.
+	</div>
+}
+
+// dashboardWindowCaption is the honesty caption under the stat grid: what the
+// in-memory window holds and the exact span every derived number covers. It
+// renders from the projection's own facts (same pattern as the audit page's
+// retention caption), so it cannot drift from the data the cards read. An
+// empty window renders no caption — there is nothing true to say about dates.
+templ dashboardWindowCaption(d dashboardData) {
+	if text := dashboardWindowCaptionText(d); text != "" {
+		<p class={ "mb-2 text-xs " + metadataTextXSClass }>{ text }</p>
+	}
+}
+
+// registrationsSparkCard is the 14-day registrations sparkline. An empty
+// window renders the honest dash state — no polyline pretending a flat
+// forever, no fabricated zero-day story; just a statement that nothing has
+// been recorded yet.
+templ registrationsSparkCard(points []dayCount, span auditWindowSpan) {
+	@display.Card(display.CardProps{Title: "Registrations per day", Padding: display.CardPaddingSM}) {
+		if len(points) == 0 || !span.HasSpan {
+			<p class={ "text-xs " + metadataTextXSClass }>No registrations recorded in the audit window yet.</p>
+		} else {
+			<svg
+				viewBox="0 0 140 40"
+				class="h-10 w-full text-blue-600 dark:text-blue-400"
+				role="img"
+				aria-label={ sparklineAriaLabel(points) }
+				preserveAspectRatio="none"
+			>
+				<polyline fill="none" stroke="currentColor" stroke-width="2" points={ sparklinePoints(points) }></polyline>
+			</svg>
+			<p class={ "mt-2 text-xs " + metadataTextXSClass }>{ sparklineAriaLabel(points) }</p>
 		}
 	}
 }

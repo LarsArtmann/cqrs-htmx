@@ -71,8 +71,6 @@ test("membership directory: renders the seeded membership with tenant, member, r
 }) => {
   const stamp = Date.now();
   await createTenant(page, `e2e-dir-${stamp}`, "E2E Directory Co");
-  await createUser(page, `e2e-dir-${stamp}@acme.dev`, "E2E Directory User");
-  await postForm(page, "/admin/users", { email: `e2e-dir-${stamp}@acme.dev` }); // no-op warm
   const userPath = await createUser(page, `e2e-dir-${stamp}@acme.dev`, "E2E Directory User");
   await postForm(page, `${userPath}/tenants`, {
     tenant: `e2e-dir-${stamp}`,

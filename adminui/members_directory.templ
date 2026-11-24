@@ -49,16 +49,16 @@ templ membersDirectoryContent(d membersDirectoryData) {
 		</span>
 	</div>
 	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-		@membersDirectoryChip(d, "tenant", "", "All tenants", d.Total)
+		@membersDirectoryChipItem(d, "tenant", d.TenantFilter, "", "All tenants", d.Total)
 		for _, chip := range d.TenantChips {
-			@membersDirectoryChip(d, "tenant", chip.Value, chip.Label, chip.Count)
+			@membersDirectoryChipItem(d, "tenant", d.TenantFilter, chip.Value, chip.Label, chip.Count)
 		}
 	</div>
 	<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
 		<span class={ metadataTextClass }>Role</span>
-		@membersDirectoryChip(d, "role", "", "All", d.Total)
+		@membersDirectoryChipItem(d, "role", d.RoleFilter, "", "All", d.Total)
 		for _, chip := range d.RoleChips {
-			@membersDirectoryChip(d, "role", chip.Value, chip.Label, chip.Count)
+			@membersDirectoryChipItem(d, "role", d.RoleFilter, chip.Value, chip.Label, chip.Count)
 		}
 		<span class="text-gray-300" aria-hidden="true">|</span>
 		<span class={ metadataTextClass }>Sort</span>
@@ -71,14 +71,11 @@ templ membersDirectoryContent(d membersDirectoryData) {
 	</div>
 }
 
-// membersDirectoryChip is one filter chip (tenant or role family); current
-// carries the active styling. The count rides the label so the chip is honest
-// about what it shows.
-templ membersDirectoryChip(d membersDirectoryData, family, value, label string, count int) {
-	current := d.TenantFilter
-	if family == "role" {
-		current = d.RoleFilter
-	}
+// membersDirectoryChipItem is one filter chip (tenant or role family);
+// current is the family's active value — the chip with value == current
+// carries the active styling. The count rides the label so the chip is
+// honest about what it shows.
+templ membersDirectoryChipItem(d membersDirectoryData, family, current, value, label string, count int) {
 	if current == value {
 		<span class="rounded-full bg-gray-900 px-2.5 py-0.5 font-medium text-white">
 			{ label } ({ strconv.Itoa(count) })

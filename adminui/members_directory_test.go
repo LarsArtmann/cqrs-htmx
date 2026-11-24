@@ -1,7 +1,6 @@
 package adminui
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,7 +14,7 @@ import (
 // seedDirectory tenants + members across two tenants: alice (admin+viewer in
 // acme), bob (viewer in acme AND owner in globex) — the multi-tenant row the
 // directory exists to surface.
-func seedDirectory(t *testing.T, svc *usermgmt.Service) {
+func seedDirectoryMemberships(t *testing.T, svc *usermgmt.Service) {
 	t.Helper()
 
 	mustCreateTenant(t, svc, "acme")
@@ -33,7 +32,7 @@ func TestPanel_MembersDirectoryRenders(t *testing.T) {
 
 	user := mustUser(t, "root@example.com")
 	h, svc := newTestPanel(t, user)
-	seedDirectory(t, svc)
+	seedDirectoryMemberships(t, svc)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members", nil))
@@ -73,7 +72,7 @@ func TestPanel_MembersDirectoryFilteredEmpty(t *testing.T) {
 
 	user := mustUser(t, "root@example.com")
 	h, svc := newTestPanel(t, user)
-	seedDirectory(t, svc)
+	seedDirectoryMemberships(t, svc)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members?q=zebra", nil))
@@ -90,7 +89,7 @@ func TestPanel_MembersDirectorySearch(t *testing.T) {
 
 	user := mustUser(t, "root@example.com")
 	h, svc := newTestPanel(t, user)
-	seedDirectory(t, svc)
+	seedDirectoryMemberships(t, svc)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members?q=alice", nil))
@@ -111,7 +110,7 @@ func TestPanel_MembersDirectoryTenantFilter(t *testing.T) {
 
 	user := mustUser(t, "root@example.com")
 	h, svc := newTestPanel(t, user)
-	seedDirectory(t, svc)
+	seedDirectoryMemberships(t, svc)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members?tenant=globex", nil))
@@ -132,7 +131,7 @@ func TestPanel_MembersDirectoryRoleFilter(t *testing.T) {
 
 	user := mustUser(t, "root@example.com")
 	h, svc := newTestPanel(t, user)
-	seedDirectory(t, svc)
+	seedDirectoryMemberships(t, svc)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members?role=owner", nil))
@@ -153,7 +152,7 @@ func TestPanel_MembersDirectoryUnknownRoleDegrades(t *testing.T) {
 
 	user := mustUser(t, "root@example.com")
 	h, svc := newTestPanel(t, user)
-	seedDirectory(t, svc)
+	seedDirectoryMemberships(t, svc)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members?role=wild", nil))
@@ -171,7 +170,8 @@ func TestPanel_MembersDirectoryPager(t *testing.T) {
 	t.Parallel()
 
 	user := mustUser(t, "root@example.com")
-	h, svc := newTestPanel(t, user, Config{PageSize: MinPageSize})
+	svc := mustService(t)
+	h := panelWithPageSize(t, user, svc, MinPageSize)
 	for i := 0; i < 12; i++ {
 		mustCreateTenant(t, svc, "t"+string(rune('a'+i)))
 		u := mustRegister(t, svc, "u-pager"+string(rune('a'+i)), "pager"+string(rune('a'+i))+"@x.com")

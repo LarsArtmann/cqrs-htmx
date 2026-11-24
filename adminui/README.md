@@ -85,8 +85,8 @@ Override with your own `Config.Authorizer`, or use the helpers
 
 Every path the panel answers comes from one table in [`routes.go`](routes.go): the mux
 registration and the [`Handler.Routes()`](handler.go) manifest are both generated from
-those rows, so a route cannot exist outside the table. The source table has **46 rows**;
-a running instance serves the subset for its mode — **42 rows in `ModeSuperAdmin`**
+those rows, so a route cannot exist outside the table. The source table has **47 rows**;
+a running instance serves the subset for its mode — **43 rows in `ModeSuperAdmin`**
 (every row below except the four tenant-admin Members rows) and **15 rows in
 `ModeTenantAdmin`** (the shared rows, Members, and the fallbacks; the Users and Tenants
 panels do not exist in that mode).
@@ -144,6 +144,7 @@ Gate legend:
 | POST   | /tenants/{id}/members                       | Tenants   | super-admin  | role-gated | Add a member from the tenant detail view *(write)*                                                 |
 | POST   | /tenants/{id}/members/{actor}/delete        | Tenants   | super-admin  | role-gated | Remove a member *(write)*                                                                          |
 | POST   | /tenants/{id}/members/{actor}               | Tenants   | super-admin  | role-gated | Change a member's role inside the tenant *(write)*                                                 |
+| GET    | /members                                    | Members   | super-admin  | role-gated | Global membership directory — every membership across every tenant                                 |
 | GET    | /members                                    | Members   | tenant-admin | role-gated | The member roster of `Config.TenantID` — tenant-internal                                           |
 | POST   | /members                                    | Members   | tenant-admin | role-gated | Add a member to the scoped tenant *(write)*                                                        |
 | POST   | /members/{actor}/delete                     | Members   | tenant-admin | role-gated | Remove a member *(write)*                                                                          |
@@ -346,6 +347,16 @@ GOEXPERIMENT=jsonv2 go test ./adminui/ -run XXX -bench BenchmarkUsersPageRender 
   live tenants that jumps between tenant dashboards and marks the one being
   viewed (tenant-admin mode renders no switcher — that mode is scoped to one
   tenant by construction).
+- **Membership directory** (super-admin only) — one page answering "who has
+  access to what" across the whole installation: every membership resolved to
+  its tenant and its person (email + display name, linked to the user page),
+  with role chips, a joined column, a search over email/name, tenant and role
+  filter chips with live counts, a Tenant/Joined ordering toggle, and the
+  shared page-size-bounded pager. The same `/members` path serves the
+  tenant-admin roster in the other mode — the route table scopes the two
+  handlers by mode, so the two pages never mount in the same panel. When no
+  memberships exist at all the page says so explicitly instead of rendering
+  a blank table.
 - **Members** — add a user by email + role, or remove a member, on any tenant
   (super-admin) or your scoped tenant (tenant-admin). Rows resolve the member's
   actor to a person (email + display name, linked to their user page in
