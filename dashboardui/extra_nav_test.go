@@ -279,3 +279,86 @@ func TestNavItemActive(t *testing.T) {
 		}
 	}
 }
+
+func TestNew_AdminURLAppendsIdentityAdminCrossLink(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	d, err := New(Config{
+		EventSource: store,
+		AdminURL:    "/admin/",
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	last := d.nav[len(d.nav)-1]
+	if last.Label != "Identity admin" || last.Href != "/admin/" {
+		t.Errorf("last nav entry = %+v, want Identity admin at /admin/", last)
+	}
+
+	if !last.Verbatim {
+		t.Error("AdminURL href must render verbatim (Verbatim=false would BasePath-prefix it)")
+	}
+
+	if last.Icon != icons.Users {
+		t.Errorf("AdminURL icon = %q, want %q", last.Icon, icons.Users)
+	}
+}
+
+func TestNew_EmptyAdminURLRendersNoCrossLink(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	d, err := New(Config{EventSource: store})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	for _, n := range d.nav {
+		if n.Label == "Identity admin" {
+			t.Errorf("empty AdminURL rendered a cross-link entry: %+v", n)
+		}
+	}
+}
+
+func TestNew_AdminURLFollowsExtraNav(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	d, err := New(Config{
+		EventSource: store,
+		ExtraNav:    []NavEntry{{Label: "Event Catalog", Href: "/event-catalog"}},
+		AdminURL:    "/admin/",
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	last := d.nav[len(d.nav)-1]
+	if last.Label != "Identity admin" {
+		t.Fatalf("last nav entry = %+v, want the AdminURL cross-link after ExtraNav", last)
+	}
+
+	secondLast := d.nav[len(d.nav)-2]
+	if secondLast.Label != "Event Catalog" {
+		t.Errorf("second-to-last nav entry = %+v, want ExtraNav before the cross-link (consumer ordering must stay stable)", secondLast)
+	}
+}
+
+func TestAdminURL_RendersVerbatimInBuiltInSidebar(t *testing.T) {
+	body := renderNavForTest(t, Config{
+		EventSource: memorystorage.NewMemoryStore(),
+		BasePath:    "/dashboard",
+		AdminURL:    "/admin/",
+	})
+
+	if !strings.Contains(body, `href="/admin/"`) {
+		t.Error("AdminURL href missing from the rendered sidebar, or not verbatim")
+	}
+
+	if strings.Contains(body, `href="/dashboard/admin/"`) {
+		t.Error("AdminURL href was BasePath-prefixed; the contract renders it verbatim")
+	}
+
+	if !strings.Contains(body, "Identity admin") {
+		t.Error("AdminURL label missing from the rendered sidebar")
+	}
+}

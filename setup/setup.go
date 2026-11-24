@@ -424,6 +424,7 @@ func buildDashboardConfig(
 		Authorizer:           cfg.DashboardAuthorizer,
 		Layout:               cfg.DashboardLayout,
 		ExtraNav:             cfg.DashboardExtraNav,
+		AdminURL:             cfg.DashboardAdminURL,
 		NonceFunc:            cfg.NonceFunc,
 		SSEHeartbeatInterval: cfg.SSEHeartbeatInterval,
 		SSEMaxReplay:         cfg.SSEMaxReplay,

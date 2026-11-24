@@ -458,9 +458,10 @@ type Config struct {
 	// AdminDashboardURL cross-links the CQRS dashboard (event-store
 	// introspection: journal, projections, time-travel) as an "Event store"
 	// entry in the admin sidebar. The two panels are complementary — most
-	// apps mount both — and this makes the pair one click apart. Pass the
-	// dashboard's mount path (usually "/dashboard/"). Empty (the default)
-	// hides the entry.
+	// apps mount both — and this makes the pair one click apart. Empty (the
+	// default) wires the dashboard's mount path automatically when the
+	// dashboard panel is enabled; a custom value is used verbatim; "-"
+	// suppresses the entry.
 	AdminDashboardURL string
 
 	// DashboardAuthorizer decides whether an authenticated request may use the
@@ -483,6 +484,14 @@ type Config struct {
 	// NavLink.Verbatim tells the shell not to prefix BasePath. Nil (the
 	// default) changes nothing.
 	DashboardExtraNav []dashboardui.NavEntry
+
+	// DashboardAdminURL cross-links the admin panel (identity
+	// administration: users, tenants, members, audit log) as an "Identity
+	// admin" entry in the dashboard sidebar — the mirror of
+	// [Config.AdminDashboardURL]. Empty (the default) wires the admin's
+	// mount path automatically when the admin panel is enabled; a custom
+	// value is used verbatim; "-" suppresses the entry.
+	DashboardAdminURL string
 
 	// LogoutURL is shown as a link in the admin and dashboard panels (default: "" = hidden).
 	LogoutURL string
@@ -669,6 +678,25 @@ func (c Config) withDefaults() Config {
 		// Follow a customized AdminPath (the default post-login destination);
 		// set after normalization so both paths carry the same trailing-slash form.
 		cfg.LoginRedirect = cfg.AdminPath
+	}
+
+	// Panel cross-links default ON when both panels mount: each sidebar
+	// gets one entry for the other (admin → "Event store", dashboard →
+	// "Identity admin"), because the pair answers complementary questions
+	// about the same system. "-" is the explicit opt-out (the HealthPath
+	// convention); explicit values pass through verbatim. Set after
+	// normalization so the hrefs carry the same trailing-slash form as the
+	// mount paths.
+	if cfg.AdminDashboardURL == "-" {
+		cfg.AdminDashboardURL = ""
+	} else if cfg.AdminDashboardURL == "" && !cfg.DisableDashboard {
+		cfg.AdminDashboardURL = cfg.DashboardPath
+	}
+
+	if cfg.DashboardAdminURL == "-" {
+		cfg.DashboardAdminURL = ""
+	} else if cfg.DashboardAdminURL == "" && !cfg.DisableAdmin {
+		cfg.DashboardAdminURL = cfg.AdminPath
 	}
 
 	if cfg.SSEHeartbeatInterval == 0 {

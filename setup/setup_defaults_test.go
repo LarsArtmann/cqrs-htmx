@@ -575,3 +575,47 @@ func TestNew_OnProjectionFailed_Callback(t *testing.T) {
 		t.Fatal("OnProjectionFailed callback should not be called during setup")
 	}
 }
+
+// TestNew_PanelCrossLinks_WiredBothWays proves the smart default end to end:
+// with both panels mounted and no explicit cross-link config, each sidebar
+// carries one entry pointing at the other (admin -> "Event store",
+// dashboard -> "Identity admin").
+func TestNew_PanelCrossLinks_WiredBothWays(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{Title: "Cross Links"})
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Admin == nil || bundle.Dashboard == nil {
+		t.Fatalf("panels missing: admin=%v dashboard=%v", bundle.Admin != nil, bundle.Dashboard != nil)
+	}
+
+	if got := bundle.Admin.Config().DashboardURL; got != "/dashboard/" {
+		t.Errorf("admin DashboardURL = %q, want the default dashboard mount path", got)
+	}
+
+	if got := bundle.Dashboard.Config().AdminURL; got != "/admin/" {
+		t.Errorf("dashboard AdminURL = %q, want the default admin mount path", got)
+	}
+}
+
+// TestNew_PanelCrossLinks_OptOut proves "-" suppresses both entries even
+// though both panels mount.
+func TestNew_PanelCrossLinks_OptOut(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{
+		Title:             "Cross Links Off",
+		AdminDashboardURL: "-",
+		DashboardAdminURL: "-",
+	})
+	defer func() { _ = bundle.Close() }()
+
+	if got := bundle.Admin.Config().DashboardURL; got != "" {
+		t.Errorf("admin DashboardURL = %q, want empty after the \"-\" opt-out", got)
+	}
+
+	if got := bundle.Dashboard.Config().AdminURL; got != "" {
+		t.Errorf("dashboard AdminURL = %q, want empty after the \"-\" opt-out", got)
+	}
+}

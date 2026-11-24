@@ -143,3 +143,76 @@ func TestResolveServiceConfig_OverrideExplicitAuditLog(t *testing.T) {
 		t.Error("explicit ServiceConfig.AuditLog must be preserved, not replaced by the default")
 	}
 }
+
+func TestWithDefaults_PanelCrossLinksDefaultOn(t *testing.T) {
+	t.Parallel()
+
+	cfg := Config{}.withDefaults()
+
+	if cfg.AdminDashboardURL != "/dashboard/" {
+		t.Errorf("AdminDashboardURL = %q, want the default dashboard mount path", cfg.AdminDashboardURL)
+	}
+
+	if cfg.DashboardAdminURL != "/admin/" {
+		t.Errorf("DashboardAdminURL = %q, want the default admin mount path", cfg.DashboardAdminURL)
+	}
+}
+
+func TestWithDefaults_PanelCrossLinksFollowCustomPaths(t *testing.T) {
+	t.Parallel()
+
+	cfg := Config{AdminPath: "/manage/", DashboardPath: "/obs/"}.withDefaults()
+
+	if cfg.AdminDashboardURL != "/obs/" {
+		t.Errorf("AdminDashboardURL = %q, want the customized dashboard path", cfg.AdminDashboardURL)
+	}
+
+	if cfg.DashboardAdminURL != "/manage/" {
+		t.Errorf("DashboardAdminURL = %q, want the customized admin path", cfg.DashboardAdminURL)
+	}
+}
+
+func TestWithDefaults_PanelCrossLinkOptOut(t *testing.T) {
+	t.Parallel()
+
+	cfg := Config{AdminDashboardURL: "-", DashboardAdminURL: "-"}.withDefaults()
+
+	if cfg.AdminDashboardURL != "" {
+		t.Errorf("AdminDashboardURL = %q, want empty (\"-\" is the explicit opt-out)", cfg.AdminDashboardURL)
+	}
+
+	if cfg.DashboardAdminURL != "" {
+		t.Errorf("DashboardAdminURL = %q, want empty (\"-\" is the explicit opt-out)", cfg.DashboardAdminURL)
+	}
+}
+
+func TestWithDefaults_PanelCrossLinkSkipsDisabledSibling(t *testing.T) {
+	t.Parallel()
+
+	cfg := Config{DisableDashboard: true}.withDefaults()
+	if cfg.AdminDashboardURL != "" {
+		t.Errorf("AdminDashboardURL = %q, want empty when the dashboard panel is disabled", cfg.AdminDashboardURL)
+	}
+
+	cfg = Config{DisableAdmin: true}.withDefaults()
+	if cfg.DashboardAdminURL != "" {
+		t.Errorf("DashboardAdminURL = %q, want empty when the admin panel is disabled", cfg.DashboardAdminURL)
+	}
+}
+
+func TestWithDefaults_PanelCrossLinkCustomValueWins(t *testing.T) {
+	t.Parallel()
+
+	cfg := Config{
+		AdminDashboardURL: "/obs/",
+		DashboardAdminURL: "https://admin.example.com",
+	}.withDefaults()
+
+	if cfg.AdminDashboardURL != "/obs/" {
+		t.Errorf("AdminDashboardURL = %q, want the custom value verbatim", cfg.AdminDashboardURL)
+	}
+
+	if cfg.DashboardAdminURL != "https://admin.example.com" {
+		t.Errorf("DashboardAdminURL = %q, want the custom value verbatim", cfg.DashboardAdminURL)
+	}
+}
