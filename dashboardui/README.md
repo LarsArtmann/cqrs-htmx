@@ -564,9 +564,17 @@ Each list item links to a detail page showing full metadata and pretty-printed J
 
 The time-travel detail page includes a version slider with keyboard navigation:
 
-- **Arrow keys** (left/right) move the slider and navigate to the selected version
+- **Arrow keys** (left/right) move the slider and navigate to the selected version —
+  an htmx partial swap of the content region (`hx-get` + `hx-push-url`), not a full
+  page reload, so stepping through versions is instant and the `?v=N` URL stays
+  bookmarkable
 - **Live value display**: The version number updates as the slider moves
 - **Version links**: For streams with <= 20 versions, individual version numbers are clickable
+- **Inline payloads**: The event table carries a Payload column — every event's
+  decoded payload (JSON, CBOR, or the diagnostic fallback) renders collapsed under
+  each row; the event AT the selected version is highlighted (`step-row`) and
+  expanded, so "what changed at this version" is visible without leaving the page.
+  Typed `RegisterPayloadType` renderers are honored exactly as on the event detail page.
 
 ## Telemetry (read-only)
 
