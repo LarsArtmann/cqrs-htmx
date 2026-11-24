@@ -18,7 +18,7 @@ The Server-Timing middleware suite (W3C Server Timing API: middleware + `Measure
 - **Root App wiring** (`app.go:17` direct import): `Config.ServerTiming` predicate (`app.go:93`; nil = disabled, zero overhead) wraps every `App.Command()`/`App.Query()` handler via `applyServerTiming` → `servertiming.WrapServerTiming` (`app.go:370-380`, wired at `:254,:280,:308,:335`; all receipts re-verified 2026-11-22 — unchanged through the 412-commit drift window). The root module imports upstream directly and uses **zero** of its own deprecated aliases (re-verified 2026-11-22; the only mention is a doc comment at `app.go:84`). Present since 2026-07-30 (`eefb0b8a`).
 - Root `server_timing_reexport.go` re-exports 8 symbols as deprecated aliases (`ServerTiming` type at `:16`, 6 middleware/context vars at `:18-47`, 1 const mirror at `:48`) — v5 removes them (wind-down class 1b, ADR-0062 `docs/adr/0062-direct-imports-only.md:80`; `doc.go:12` corroborates the v5 deletion).
 - `examples/admin-demo` consumes the upstream module directly (`main.go:242` `servertiming.ServerTimingMiddlewareWhen`, import at `:45`; moved from `main.go:188` in the 11-14 file during the admin-demo QUERY-ladder/security rework) — the canonical direct-usage demo.
-- No Server-Timing wiring in `setup`/`recommended_middleware.go` (re-verified 2026-11-22: zero hits outside the files above).
+- `setup` still wires none of THIS module's middleware (by design: `Run`/`RunHandler` never emit the header). The `RunWithAppkit` path gained `setup.Config.AppkitServerTiming` (issue #43, 2026-11-24) — that forwards go-appkit's own W3C middleware (`appkit.ServiceConfig.ServerTiming`), a different mechanism from this module.
 
 ## Capability inventory
 

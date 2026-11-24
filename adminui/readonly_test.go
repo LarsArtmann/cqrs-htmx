@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // ReadOnly refusal receipts: Config.ReadOnly skips the route table's
@@ -79,7 +80,7 @@ func TestReadOnly_WritesRefused(t *testing.T) {
 			t.Parallel()
 
 			rec := httptest.NewRecorder()
-			handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/admin"+path, nil))
+			handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, path, nil))
 			if rec.Code != http.StatusMethodNotAllowed {
 				t.Fatalf("POST %s answered %d, want 405 (structural read-only refusal)", path, rec.Code)
 			}
@@ -99,7 +100,7 @@ func TestReadOnly_SafePOSTStillMounted(t *testing.T) {
 	handler, _ := readonlyPanel(t)
 
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/admin/users/search", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/users/search", nil))
 	if rec.Code == http.StatusMethodNotAllowed {
 		t.Fatal("POST /users/search (safe search twin) must stay mounted in ReadOnly mode")
 	}
@@ -144,7 +145,7 @@ func TestReadOnly_NoticeRender(t *testing.T) {
 
 	handler, _ := readonlyPanel(t)
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("dashboard answered %d, want 200", rec.Code)
 	}
@@ -152,9 +153,16 @@ func TestReadOnly_NoticeRender(t *testing.T) {
 		t.Error("ReadOnly panel page lost the sidebar read-only notice chip")
 	}
 
-	full := newTestPanel(t, nil)
+	// Golden: the chip's exact markup (class contract is part of the surface;
+	// a visual redesign updates this line deliberately, in the same change).
+	const chip = `<span class="admin-readonly-chip inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300">Read-only</span>`
+	if !strings.Contains(rec.Body.String(), chip) {
+		t.Errorf("notice chip markup drifted from the golden:\n want: %s", chip)
+	}
+
+	full, _ := newTestPanel(t, nil)
 	rec2 := httptest.NewRecorder()
-	full.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/admin/", nil))
+	full.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/", nil))
 	if strings.Contains(rec2.Body.String(), "Read-only") {
 		t.Error("default panel renders a read-only notice it does not earn")
 	}

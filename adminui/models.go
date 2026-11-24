@@ -564,6 +564,16 @@ func tenantRevokeConfirm(d userDetailData, access tenantAccessRow) string {
 	return msg
 }
 
+// roleDistributionSummary renders the distribution as the identity card's
+// one-line answer: "owner ×1 · admin ×2 · viewer ×3".
+func roleDistributionSummary(dist []roleCount) string {
+	parts := make([]string, 0, len(dist))
+	for _, rc := range dist {
+		parts = append(parts, fmt.Sprintf("%s ×%d", rc.Role, rc.Count))
+	}
+	return strings.Join(parts, " · ")
+}
+
 // lastAdminDowngradeCopy is the shared escalation copy for the DOWNGRADE
 // half of the last-admin guard (T12): removal of the sole admin-tier member
 // already escalates its confirm; changing that member's ROLES can leave the

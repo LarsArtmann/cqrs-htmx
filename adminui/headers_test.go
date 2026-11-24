@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // Header assertions for what the panel's own middleware chain
@@ -78,9 +79,9 @@ func TestHeaders_OnEveryResponseClass(t *testing.T) {
 		name string
 		path string
 	}{
-		{"page", "/admin/"},
-		{"partial", "/admin/partials/stats"},
-		{"asset", "/admin/-/admin.js"},
+		{"page", "/"},
+		{"partial", "/partials/stats"},
+		{"asset", "/-/admin.js"},
 	}
 
 	for _, class := range classes {
@@ -125,10 +126,11 @@ func TestHeaders_OnEveryResponseClass(t *testing.T) {
 				)
 			}
 
-			// The nonce is not just in the header: the page markup consumes
-			// it for its inline <style>/<script> tags (the page and partial
-			// render it; the asset response has no markup to carry it).
-			if class.name != "asset" && !strings.Contains(rec.Body.String(), `nonce="`+nonce+`"`) {
+			// The nonce is not just in the header: the PAGE markup consumes
+			// it for its inline <style>/<script> tags. Partials are markup
+			// fragments with no inline script of their own and assets have
+			// no markup at all, so neither embeds it — that is the truth.
+			if class.name == "page" && !strings.Contains(rec.Body.String(), `nonce="`+nonce+`"`) {
 				t.Errorf("%s markup does not embed the CSP nonce %q", class.name, nonce)
 			}
 		})
@@ -156,7 +158,7 @@ func serveCSP(t *testing.T, handler http.Handler) string {
 	t.Helper()
 
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("dashboard answered %d, want 200", rec.Code)
 	}

@@ -181,6 +181,48 @@ panel as `session(csrf(panel))` — session outermost, CSRF inside it, the panel
 innermost — and the outer security layer (headers, CSP nonce, panic recovery) comes
 from `Bundle.Middleware`. Self-hosting consumers replicate that ordering by hand.
 
+### Read-only mode
+
+Set `ReadOnly: true` on `adminui.Config` to mount the panel without its write
+routes. Every route-table row marked `write: true` (creation, deletion, role
+grants, tenant lifecycle, merges) is skipped **at registration** — the write
+handlers never mount, so a mutating request falls through to the method
+catch-all and answers `405`. The refusal is structural: there is no route to
+reach and no handler check that can be forgotten. Reads (lists, detail pages,
+exports, the audit trail, and the safe `POST /users/search` fallback twin)
+are unaffected.
+
+Three surfaces reflect the same truth:
+
+- `Routes()` omits the write rows, so a reverse-proxy allowlist or
+  `authztest` matrix built from the manifest never names a route this
+  instance refuses.
+- The sidebar footer renders a "Read-only" notice chip instead of implying
+  the creation/deletion forms are live. (The read-only *forms* themselves
+  still render — posting to one is what 405s.)
+- Nothing else changes: the default (`ReadOnly: false`) mounts the full
+  surface, and existing consumers are unaffected.
+
+A minimal recipe:
+
+```go
+panel, err := adminui.New(adminui.Config{
+    Service:  svc,
+    ReadOnly: true, // browse + audit only; every write answers 405
+})
+```
+
+For a review-only deployment, pair it with the auth recipes above —
+`ReadOnly` removes the write *surface*; it does not change who can *read*.
+The demo (`examples/admin-demo`) runs fully interactive and does not set the
+knob; to try read-only there, add `ReadOnly: true` to its
+`adminui.Config{...}` literals in `main.go` (two: the super-admin panel and
+the tenant panel).
+
+Pinned by `readonly_test.go` (per-write-route 405 probes derived from the
+full manifest, safe-POST-still-mounted precision, manifest-minus-write-rows
+truth, notice chip render + markup golden) and `security_posture_test.go`.
+
 ### CSRF
 
 The panel's state changes ride HTMX `POST`s (delete user, create/suspend/delete tenant,

@@ -1,10 +1,12 @@
 package adminui
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
@@ -242,6 +244,9 @@ templ tenantDetailContent(d tenantDetailData) {
 	<div class="mb-4">
 		@tenantMetaCard(d)
 	</div>
+	if d.Tenant.Suspended {
+		@tenantSuspendedBanner(d)
+	}
 	<div class="mb-4">
 		@membersCard(d)
 	</div>
@@ -303,7 +308,46 @@ templ tenantMetaCard(d tenantDetailData) {
 				{Term: "Display name", Detail: d.Tenant.DisplayName},
 				{Term: "Status", DetailComponent: tenantStatusAction(d)},
 				{Term: "Members", Detail: strconv.Itoa(len(d.Members))},
+				{Term: "Roles", DetailComponent: roleDistributionDetail(d)},
 			},
 		})
 	}
+}
+
+// roleDistributionDetail is the identity card's "who holds which roles here"
+// row: one line per held role with its holder count ("owner ×1 · admin ×2").
+// An empty roster renders a dash rather than a fabricated zero row.
+templ roleDistributionDetail(d tenantDetailData) {
+	if len(d.RoleDistribution) == 0 {
+		<span class={ metadataTextClass } aria-hidden="true">—</span>
+	} else {
+		<span class={ metadataTextClass } title="How many members hold each role in this tenant">{ roleDistributionSummary(d.RoleDistribution) }</span>
+	}
+}
+
+// tenantSuspendedBanner is the standing suspended state (T12): the fact that
+// every member of this tenant is locked out is announced where the admin is
+// looking, with the reactivate CTA in context — the same existing POST the
+// danger zone offers, no new route.
+templ tenantSuspendedBanner(d tenantDetailData) {
+	<div class="mb-4">
+		@feedback.Alert(feedback.AlertProps{
+			Type:    feedback.FeedbackWarning,
+			Title:   "This tenant is suspended",
+			Message: fmt.Sprintf("Its %d member(s) cannot sign in until it is reactivated.", len(d.Members)),
+		})
+		<div class="mt-2">
+			@display.Button(display.ButtonProps{
+				Text:    "Reactivate tenant",
+				Variant: display.ButtonPrimary,
+				Size:    display.ButtonSizeSM,
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
+					"data-confirm":       "Reactivate this tenant? Members regain access immediately.",
+					"data-confirm-title": "Reactivate tenant",
+					"hx-disabled-elt":    "this",
+				}},
+			})
+		</div>
+	</div>
 }

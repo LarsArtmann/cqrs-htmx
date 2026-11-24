@@ -71,8 +71,11 @@ func TestRunWithAppkit_ServerTimingHeaderDefaultAndOptOut(t *testing.T) {
 			// future extra entry cannot dodge the contains check.
 			got := strings.Join(resp.Header.Values("Server-Timing"), ", ")
 
-			if tc.wantHeader && !strings.Contains(got, "total;dur=") {
-				t.Errorf("Server-Timing = %q, want it to contain total;dur=", got)
+			// appkit's own middleware renders the total entry with a desc
+			// segment between total and dur ("total;desc=\"Total request\";dur=…"),
+			// so assert the two halves, not the adjacent form.
+			if tc.wantHeader && (!strings.Contains(got, "total;") || !strings.Contains(got, "dur=")) {
+				t.Errorf("Server-Timing = %q, want it to contain total; and dur=", got)
 			}
 
 			if !tc.wantHeader && got != "" {
