@@ -411,7 +411,10 @@ func writeAuditCSV(
 		}
 	}
 	cw.Flush()
-	return cw.Error()
+	if err := cw.Error(); err != nil {
+		return errorfamily.WrapTransient(err, "adminui.audit_export.csv_flush_failed", "flush audit export CSV")
+	}
+	return nil
 }
 
 // writeAuditJSON streams the filtered entries as one envelope object: the

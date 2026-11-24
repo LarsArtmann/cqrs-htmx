@@ -131,6 +131,25 @@ func DecideDeleteTenant(aggID id.StreamID, reason string) decider.DecideFunc[Ten
 	return decideDeleteTenant(aggID, reason)
 }
 
+// DecideRenameTenant is the exported version of decideRenameTenant for system.New() integration.
+func DecideRenameTenant(aggID id.StreamID, displayName string) decider.DecideFunc[TenantState] {
+	return decideRenameTenant(aggID, displayName)
+}
+
+// DecideMergeTenants is the exported version of decideMergeTenants for system.New() integration.
+func DecideMergeTenants(
+	aggID id.StreamID, loserIDs []identitymodel.TenantID, reason string,
+) decider.DecideFunc[TenantState] {
+	return decideMergeTenants(aggID, loserIDs, reason)
+}
+
+// DecideMergeTenantInto is the exported version of decideMergeTenantInto for system.New() integration.
+func DecideMergeTenantInto(
+	aggID id.StreamID, survivorID identitymodel.TenantID, reason string,
+) decider.DecideFunc[TenantState] {
+	return decideMergeTenantInto(aggID, survivorID, reason)
+}
+
 // Bot decide exports
 
 // DecideRegisterBot is the exported version of decideRegisterBot for system.New() integration.

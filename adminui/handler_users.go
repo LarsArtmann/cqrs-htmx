@@ -224,7 +224,10 @@ func writeUsersCSV(w io.Writer, users []*identitymodel.User) error {
 		}
 	}
 	cw.Flush()
-	return cw.Error()
+	if err := cw.Error(); err != nil {
+		return errorfamily.WrapTransient(err, "adminui.export.csv_flush_failed", "flush filtered CSV")
+	}
+	return nil
 }
 
 // writeUsersJSON streams the given users with the Service export's exact

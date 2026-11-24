@@ -261,7 +261,7 @@ func newCacheTestPanelTTL(t *testing.T, user *identitymodel.User) (*Handler, *us
 		t.Fatalf("New: %v", err)
 	}
 	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: user.ID, Email: string(user.Email),
+		ID: user.ID, Email: user.Email,
 	}); err != nil {
 		t.Fatalf("register: %v", err)
 	}
