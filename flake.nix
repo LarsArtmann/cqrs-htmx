@@ -1315,6 +1315,7 @@
                       bash bash scripts/selftests/test-check-conflict-markers.sh
                       bash bash scripts/checks/check-debug-files.sh
                       bash bash scripts/selftests/test-check-debug-files.sh
+                      bash bash scripts/selftests/test-e2e-kill-strays.sh
                       bash bash scripts/checks/check-root-size.sh
                       bash bash scripts/selftests/test-check-root-size.sh
                       bash bash scripts/checks/check-root-clusters.sh
@@ -1399,6 +1400,7 @@
                         "conflict-markers-self-test:bash scripts/selftests/test-check-conflict-markers.sh"
                         "debug-files:bash scripts/checks/check-debug-files.sh"
                         "debug-files-self-test:bash scripts/selftests/test-check-debug-files.sh"
+                        "e2e-kill-strays-self-test:bash scripts/selftests/test-e2e-kill-strays.sh"
                         "root-size:bash scripts/checks/check-root-size.sh"
                         "root-size-self-test:bash scripts/selftests/test-check-root-size.sh"
                         "root-clusters:bash scripts/checks/check-root-clusters.sh"
@@ -2086,6 +2088,26 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-debug-files.sh
+                  '';
+                }
+              );
+            };
+
+            test-e2e-kill-strays = {
+              type = "app";
+              meta.description = "Offline fixture self-test for the session-etiquette refusal guard in e2e-kill-strays.sh (f#41: simulated live battery refuses rc=3, --force and env-force override, quiet-box skip-aware)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-e2e-kill-strays";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                    pkgs.procps
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-e2e-kill-strays.sh
                   '';
                 }
               );
