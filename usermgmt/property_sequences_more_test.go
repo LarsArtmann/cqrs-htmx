@@ -122,7 +122,7 @@ func TestFoldTenantSequence_Associativity(t *testing.T) {
 			t.Fatalf("chunked: %v", err)
 		}
 
-		if whole != chunked {
+		if !tenantStateEqual(whole, chunked) {
 			t.Errorf("associativity broken at split=%d: whole=%+v chunked=%+v", split, whole, chunked)
 		}
 	})
@@ -405,6 +405,19 @@ func eventTypes(events []event.Event) []string {
 	}
 
 	return out
+}
+
+// tenantStateEqual compares tenant states by value; TenantState contains a
+// []TenantID (MergedTenantIDs), so it is not comparable with ==.
+func tenantStateEqual(a, b TenantState) bool {
+	return a.Name == b.Name &&
+		a.DisplayName == b.DisplayName &&
+		a.Suspended == b.Suspended &&
+		a.SuspendReason == b.SuspendReason &&
+		a.Deleted == b.Deleted &&
+		a.DeleteReason == b.DeleteReason &&
+		a.MergedInto == b.MergedInto &&
+		slices.Equal(a.MergedTenantIDs, b.MergedTenantIDs)
 }
 
 // membershipStateEqual compares membership states by value, treating nil and

@@ -61,6 +61,12 @@ func New(config Config) (*Dashboard, error) {
 	nav := buildNav(caps)
 	nav = append(nav, extraNavItems(config.ExtraNav)...)
 
+	// The AdminURL cross-link follows ExtraNav so consumer ordering is
+	// stable regardless of AdminURL (mirrors adminui's DashboardURL).
+	if config.AdminURL != "" {
+		nav = append(nav, adminCrossLink(config.AdminURL))
+	}
+
 	d := &Dashboard{
 		config:      config,
 		caps:        caps,

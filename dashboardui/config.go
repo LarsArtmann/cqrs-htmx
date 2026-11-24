@@ -190,6 +190,15 @@ type Config struct {
 	// VERBATIM (no BasePath prefix) — see [NavEntry]. Empty (the default)
 	// changes nothing.
 	ExtraNav []NavEntry
+
+	// AdminURL cross-links the sibling adminui panel (identity
+	// administration: users, tenants, members, audit log) as an "Identity
+	// admin" sidebar entry. The two panels are complementary — most apps
+	// mount both — and this makes the pair one click apart; setup.New wires
+	// it automatically when both panels are enabled. Href is rendered
+	// VERBATIM (no BasePath prefix). Empty (the default) hides the entry.
+	// For anything more than one link, prefer [Config.ExtraNav].
+	AdminURL string
 }
 
 // Validate checks the configuration and returns the normalized copy with
@@ -339,6 +348,14 @@ func extraNavItems(entries []NavEntry) []NavLink {
 	}
 
 	return items
+}
+
+// adminCrossLink converts Config.AdminURL into the rendered nav shape: the
+// "Identity admin" entry pointing at the sibling adminui panel (verbatim
+// href). Users (the identity glyph), not Link: consumer ExtraNav entries
+// default to Link, and two sidebar items must not share an icon.
+func adminCrossLink(adminURL string) NavLink {
+	return NavLink{Href: adminURL, Label: "Identity admin", Icon: icons.Users, Active: false, Verbatim: true}
 }
 
 func buildNav(caps Capabilities) []NavLink {

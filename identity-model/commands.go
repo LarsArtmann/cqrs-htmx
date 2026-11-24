@@ -400,7 +400,7 @@ type MergeTenantsCmd struct {
 func NewMergeTenantsCmd(aggID id.StreamID, loserIDs []TenantID, reason string) *MergeTenantsCmd {
 	return &MergeTenantsCmd{
 		reasonedCommand: newReasonedCommand(CmdMergeTenants, aggID, reason),
-		loserIDs:       slices.Clone(loserIDs),
+		loserIDs:        slices.Clone(loserIDs),
 	}
 }
 
@@ -474,7 +474,7 @@ type TransferBotCmd struct {
 func NewTransferBotCmd(aggID id.StreamID, ownerID UserID, reason string) *TransferBotCmd {
 	return &TransferBotCmd{
 		reasonedCommand: newReasonedCommand(CmdTransferBot, aggID, reason),
-		ownerID:       ownerID,
+		ownerID:         ownerID,
 	}
 }
 

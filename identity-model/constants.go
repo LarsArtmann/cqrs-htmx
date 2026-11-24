@@ -74,13 +74,13 @@ const (
 	CmdSuspendTenant    command.Type = "SuspendTenant"
 	CmdReactivateTenant command.Type = "ReactivateTenant"
 	CmdDeleteTenant     command.Type = "DeleteTenant"
-	CmdRenameTenant      command.Type = "RenameTenant"
-	CmdMergeTenants      command.Type = "MergeTenants"
-	CmdMergeTenantInto   command.Type = "MergeTenantInto"
+	CmdRenameTenant     command.Type = "RenameTenant"
+	CmdMergeTenants     command.Type = "MergeTenants"
+	CmdMergeTenantInto  command.Type = "MergeTenantInto"
 
-	CmdRegisterBot  command.Type = "RegisterBot"
-	CmdDeleteBot    command.Type = "DeleteBot"
-	CmdTransferBot  command.Type = "TransferBot"
+	CmdRegisterBot command.Type = "RegisterBot"
+	CmdDeleteBot   command.Type = "DeleteBot"
+	CmdTransferBot command.Type = "TransferBot"
 )
 
 const CurrentSchemaVersion = 2
