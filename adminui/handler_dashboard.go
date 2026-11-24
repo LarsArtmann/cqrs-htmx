@@ -17,7 +17,7 @@ import (
 // registrations sparkline spans, and how many login failures in the window
 // switch the failure card to the attention tone.
 const (
-	sparklineDays                 = 14
+	sparklineDays                  = 14
 	loginFailureAttentionThreshold = 5
 )
 
@@ -130,6 +130,7 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 // tenant fleet with its suspension count.
 func (h *Handler) superAdminStats(p pageData) []statCard {
 	svc := h.config.Service
+	var stats []statCard
 	users := svc.ReadModel().AllUsers()
 	verified, mfa, passkey, oauth := 0, 0, 0, 0
 	for _, u := range users {
@@ -152,42 +153,64 @@ func (h *Handler) superAdminStats(p pageData) []statCard {
 			suspended++
 		}
 	}
+	stats = append(stats,
+		[]statCard{
+			{
+				Label: "Users",
+				Value: strconv.Itoa(len(users)),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				Label: labelVerified,
+				Value: percent(verified, len(users)),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				Label: "MFA adoption",
+				Value: percent(mfa, len(users)),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				Label: "Passkey adoption",
+				Value: percent(passkey, len(users)),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				Label: "OAuth adoption",
+				Value: percent(oauth, len(users)),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				// Operators: everyone holding an admin-tier wildcard grant,
+				// counted from Authz.UsersForRole. The link is the platform-admin
+				// filtered users list — the same surface the roles chips drive.
+				Label: "Platform operators",
+				Value: strconv.Itoa(len(h.adminTierOperators())),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users?filter=admin",
+			},
+		}...)
+	stats = append(stats, tenantFleetCards(svc, p, suspended)...)
+	stats = append(stats, tenantFleetCards(svc, p, suspended)...)
+	return stats
+}
+
+// tenantFleetCards are the tenant fleet cards (total + suspended count) that
+// close the super-admin grid; split out of superAdminStats to keep both
+// functions under the length gate.
+func tenantFleetCards(svc *usermgmt.Service, p pageData, suspended int) []statCard {
 	return []statCard{
-		{
-			Label: "Users",
-			Value: strconv.Itoa(len(users)),
-			Icon:  iconUsers,
-			Tone:  display.StatToneBlue,
-			Href:  p.BasePath + "/users",
-		},
-		{
-			Label: labelVerified,
-			Value: percent(verified, len(users)),
-			Icon:  iconUsers,
-			Tone:  display.StatToneBlue,
-			Href:  p.BasePath + "/users",
-		},
-		{
-			Label: "MFA adoption",
-			Value: percent(mfa, len(users)),
-			Icon:  iconUsers,
-			Tone:  display.StatToneBlue,
-			Href:  p.BasePath + "/users",
-		},
-		{
-			Label: "Passkey adoption",
-			Value: percent(passkey, len(users)),
-			Icon:  iconUsers,
-			Tone:  display.StatToneBlue,
-			Href:  p.BasePath + "/users",
-		},
-		{
-			Label: "OAuth adoption",
-			Value: percent(oauth, len(users)),
-			Icon:  iconUsers,
-			Tone:  display.StatToneBlue,
-			Href:  p.BasePath + "/users",
-		},
 		{
 			Label: "Tenants",
 			Value: strconv.Itoa(len(svc.AllTenants())),
@@ -201,16 +224,6 @@ func (h *Handler) superAdminStats(p pageData) []statCard {
 			Icon:  iconTenants,
 			Tone:  display.StatTonePurple,
 			Href:  p.BasePath + "/tenants",
-		},
-		{
-			// Operators: everyone holding an admin-tier wildcard grant,
-			// counted from Authz.UsersForRole. The link is the platform-admin
-			// filtered users list — the same surface the roles chips drive.
-			Label: "Platform operators",
-			Value: strconv.Itoa(len(h.adminTierOperators())),
-			Icon:  iconUsers,
-			Tone:  display.StatToneBlue,
-			Href:  p.BasePath + "/users?filter=admin",
 		},
 	}
 }
@@ -279,6 +292,7 @@ func percent(part, total int) string {
 func (h *Handler) dashboardWindowIntelligence() (auditWindowFacts, auditWindowSpan, []dayCount) {
 	al := h.config.Service.AuditLog()
 	if al == nil {
+		//nolint:exhaustruct // intentional: zero facts mean "no audit log" — every consumer gates on hasFacts/HasSpan
 		return auditWindowFacts{}, auditWindowSpan{}, nil
 	}
 	entries := al.Entries()
@@ -291,6 +305,7 @@ func (h *Handler) dashboardWindowIntelligence() (auditWindowFacts, auditWindowSp
 // caption cannot invent dates.
 func auditWindowSpanOf(entries []usermgmt.AuditEntry) auditWindowSpan {
 	if len(entries) == 0 {
+		//nolint:exhaustruct // intentional: zero span means "empty window" — the caption gates on HasSpan
 		return auditWindowSpan{}
 	}
 	return auditWindowSpan{
@@ -395,7 +410,7 @@ func registrationsPerDay(entries []usermgmt.AuditEntry, loc *time.Location, days
 	order := make([]dayCount, 0, days)
 	for i := range days {
 		day := start.AddDate(0, 0, i)
-		order = append(order, dayCount{Day: day})
+		order = append(order, dayCount{Day: day, Count: 0})
 		counts[day.Format("2006-01-02")] = 0
 	}
 	for _, e := range entries {
@@ -434,10 +449,10 @@ func dashboardWindowCaptionText(d dashboardData) string {
 // maximum is zero (all days empty) renders a flat baseline — an honest
 // picture of "nothing happened", not a fabricated wave.
 func sparklinePoints(points []dayCount) string {
-	max := 0
+	peak := 0
 	for _, p := range points {
-		if p.Count > max {
-			max = p.Count
+		if p.Count > peak {
+			peak = p.Count
 		}
 	}
 	n := len(points)
@@ -448,8 +463,8 @@ func sparklinePoints(points []dayCount) string {
 			x = i * 140 / (n - 1)
 		}
 		y := 38
-		if max > 0 {
-			y = 38 - p.Count*34/max
+		if peak > 0 {
+			y = 38 - p.Count*34/peak
 		}
 		coords = append(coords, strconv.Itoa(x)+","+strconv.Itoa(y))
 	}

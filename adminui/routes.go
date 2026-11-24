@@ -640,3 +640,57 @@ func (h *Handler) authorizerPosture() cqrshtmx.Posture {
 
 	return cqrshtmx.PostureRoleGated
 }
+
+// superAdminMergeRoutes are the duplicate-reconciliation surfaces: the two
+// duplicates reports and the merge/rename writes they post to. Merging
+// identities consolidates authority and history, so every write stays
+// super-admin.
+//
+//nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
+func (h *Handler) superAdminMergeRoutes() []routeSpec {
+	return []routeSpec{
+		{
+			method:  http.MethodGet,
+			pattern: "/users/duplicates",
+			panel:   panelUsers,
+			guarded: h.userDuplicates,
+			mode:    routeModeSuperAdmin,
+			why:     "the duplicates report spans every tenant's users",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/users/{id}/merge",
+			panel:   panelUsers,
+			guarded: h.userMerge,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "consolidating duplicate identities is terminal and platform-wide",
+		},
+		{
+			method:  http.MethodGet,
+			pattern: "/tenants/duplicates",
+			panel:   panelTenants,
+			guarded: h.tenantDuplicates,
+			mode:    routeModeSuperAdmin,
+			why:     "the duplicates report is the platform roster's mirror",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/tenants/{id}/rename",
+			panel:   panelTenants,
+			guarded: h.tenantRename,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "renaming a tenant relabels every tenant-scoped surface",
+		},
+		{
+			method:  http.MethodPost,
+			pattern: "/tenants/{id}/merge",
+			panel:   panelTenants,
+			guarded: h.tenantMerge,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "consolidating duplicate tenants moves every member's authority",
+		},
+	}
+}

@@ -11,6 +11,13 @@ import { test, expect, Page } from "@playwright/test";
  * Coverage: the directory renders seeded memberships (tenant, member, role
  * chips, joined), the search filter narrows to the match, and the tenant
  * chip filter narrows to that tenant's roster.
+ *
+ * RUN STATUS (2026-11-24, T13): AUTHORED-NOT-RUN. The chromium binary on the
+ * authoring host fails to launch (chrome-headless-shell cannot load
+ * libglib-2.0.so.0 — host library gap, not a spec or panel defect); the spec
+ * typechecks (tsc --noEmit) and follows the admin-tenant-access.spec.ts
+ * recipe exactly. Re-run once a provisioning path supplies the browser
+ * deps: npx playwright test tests/admin-members-directory.spec.ts
  */
 test.describe.configure({ mode: "serial" });
 
