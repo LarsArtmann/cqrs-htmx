@@ -98,7 +98,7 @@ func TestDeltaChange_NonMatchingFilterIsHonest(t *testing.T) {
 // threshold the card switches to the yellow tone and shows a real delta.
 func TestLoginFailureCard_ThresholdTone(t *testing.T) {
 	base := time.Now().UTC()
-	var entries []usermgmt.AuditEntry
+	entries := make([]usermgmt.AuditEntry, 0, loginFailureAttentionThreshold)
 	for i := range loginFailureAttentionThreshold {
 		entries = append(entries, auditEntryAt(usermgmt.AuditActionLoginFailed, base.Add(time.Duration(i)*time.Minute)))
 	}

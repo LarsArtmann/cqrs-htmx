@@ -39,14 +39,22 @@ func (h *Handler) userMerge(w http.ResponseWriter, r *http.Request, _ *identitym
 		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
 		return
 	}
-	loserID := identitymodel.NewUserID(r.PathValue("id"))
+	loserID, err := identitymodel.ParseUserID(r.PathValue("id"))
+	if err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid user id", "The user id in the path is not a valid ULID.")
+		return
+	}
 	survivorRaw := strings.TrimSpace(r.FormValue("survivor"))
 	if survivorRaw == "" {
 		triggerToast(w, "err", "Pick a survivor for the merge")
 		h.writeErrorPage(w, r, http.StatusBadRequest, "Survivor required", "Choose which user keeps the identity.")
 		return
 	}
-	survivorID := identitymodel.NewUserID(survivorRaw)
+	survivorID, err := identitymodel.ParseUserID(survivorRaw)
+	if err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid survivor", "The chosen survivor id is not a valid ULID.")
+		return
+	}
 	if err := h.config.Service.MergeUsers(
 		r.Context(), survivorID, []identitymodel.UserID{loserID}, "merged via admin panel",
 	); err != nil {

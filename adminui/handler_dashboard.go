@@ -130,23 +130,9 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 // tenant fleet with its suspension count.
 func (h *Handler) superAdminStats(p pageData) []statCard {
 	svc := h.config.Service
-	var stats []statCard
 	users := svc.ReadModel().AllUsers()
-	verified, mfa, passkey, oauth := 0, 0, 0, 0
-	for _, u := range users {
-		if u.EmailVerified {
-			verified++
-		}
-		if u.TOTPEnabled {
-			mfa++
-		}
-		if len(u.Credentials) > 0 {
-			passkey++
-		}
-		if len(u.ExternalAccounts) > 0 {
-			oauth++
-		}
-	}
+	verified, mfa, passkey, oauth := adoptionCounts(users)
+	stats := make([]statCard, 0, 8)
 	suspended := 0
 	for _, t := range svc.AllTenants() {
 		if t.Suspended {
@@ -204,6 +190,28 @@ func (h *Handler) superAdminStats(p pageData) []statCard {
 	stats = append(stats, tenantFleetCards(svc, p, suspended)...)
 	stats = append(stats, tenantFleetCards(svc, p, suspended)...)
 	return stats
+}
+
+// adoptionCounts reads the four adoption numerators (verified email, TOTP
+// MFA, at least one passkey credential, at least one linked external account)
+// in one pass over the directory — the same single-pass discipline the other
+// dashboard caches follow.
+func adoptionCounts(users []*identitymodel.User) (verified, mfa, passkey, oauth int) {
+	for _, u := range users {
+		if u.EmailVerified {
+			verified++
+		}
+		if u.TOTPEnabled {
+			mfa++
+		}
+		if len(u.Credentials) > 0 {
+			passkey++
+		}
+		if len(u.ExternalAccounts) > 0 {
+			oauth++
+		}
+	}
+	return verified, mfa, passkey, oauth
 }
 
 // tenantFleetCards are the tenant fleet cards (total + suspended count) that

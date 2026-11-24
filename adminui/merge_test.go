@@ -10,6 +10,15 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
+func mustMergeTestUserID(t *testing.T, raw string) identitymodel.UserID {
+	t.Helper()
+	userID, err := identitymodel.ParseUserID(raw)
+	if err != nil {
+		t.Fatalf("ParseUserID %q: %v", raw, err)
+	}
+	return userID
+}
+
 func TestMergeRoutes_Gates(t *testing.T) {
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
 	if err != nil {
@@ -88,13 +97,13 @@ func TestUserMergeRoute_MergesAndRedirects(t *testing.T) {
 	ctx := t.Context()
 
 	survivor, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: identitymodel.NewUserID("01M4SURVIVOR00000000000001"), Email: "keep@example.com",
+		ID: mustMergeTestUserID(t, "01M46AAAAAAAAAAAAAAAAAAA01"), Email: "keep@example.com",
 	})
 	if err != nil {
 		t.Fatalf("register survivor: %v", err)
 	}
 	loser, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: identitymodel.NewUserID("01M4LOSER0000000000000002"), Email: "loser@example.com",
+		ID: mustMergeTestUserID(t, "01M46BBBBBBBBBBBBBBBBBBB02"), Email: "loser@example.com",
 	})
 	if err != nil {
 		t.Fatalf("register loser: %v", err)
