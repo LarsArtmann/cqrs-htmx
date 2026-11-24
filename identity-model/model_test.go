@@ -1,6 +1,7 @@
 package identitymodel
 
 import (
+	"bytes"
 	"encoding/json/v2"
 	"testing"
 	"time"
