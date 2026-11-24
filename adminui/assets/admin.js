@@ -36,6 +36,130 @@
     if (e.target.classList && e.target.classList.contains("admin-scrim")) toggleSidebar();
   });
 
+  // --- Focus restore after HTMX swaps (T15 F110) ---
+  // A swap that replaces the focused element (e.g. the audit date form is
+  // inside #audit-panel, so "Apply dates" swaps away its own trigger) drops
+  // keyboard focus to <body> — a hard stop for keyboard users mid-flow.
+  // Both listeners are DOCUMENT-delegated and re-query per event (gotcha
+  // 57: element-bound JS dies with the pre-swap DOM under hx-boost, and
+  // synthetic htmx events must bubble to be seen here).
+  //
+  // Restore contract: templates mark restorable triggers with
+  // data-focus-restore="<id>" (audit "Apply dates" button, pager arrows and
+  // page links). After the swap, admin.js re-queries the FRESH DOM for the
+  // same value — the pre-swap element reference is dead if its region
+  // swapped, and element-bound handlers would be gone with it.
+  var focusRestoreValue = null;
+  document.addEventListener("htmx:beforeSwap", function (e) {
+    focusRestoreValue = null;
+    var elt = e.detail && e.detail.requestConfig && e.detail.requestConfig.elt;
+    var trigger = elt && elt.closest ? elt.closest("[data-focus-restore]") : null;
+    if (!trigger && document.activeElement && document.activeElement.closest) {
+      trigger = document.activeElement.closest("[data-focus-restore]");
+    }
+    if (trigger) focusRestoreValue = trigger.getAttribute("data-focus-restore") || null;
+  });
+  document.addEventListener("htmx:afterSwap", function () {
+    if (!focusRestoreValue) return;
+    var want = focusRestoreValue;
+    focusRestoreValue = null;
+    var prior = document.querySelector('[data-focus-restore="' + want + '"]');
+    if (prior && typeof prior.focus === "function") prior.focus();
+  });
+
+  // --- Keyboard list navigation (T15 F111) ---
+  // "/" focuses the list search, Escape clears it (and re-runs the search),
+  // ArrowDown/ArrowUp traverse the visible list rows. All document-delegated
+  // (gotcha 57), CSP-safe, and inert while typing in non-search controls.
+  function isTypingTarget(el) {
+    if (!el || !el.tagName) return false;
+    var tag = el.tagName.toLowerCase();
+    return tag === "input" || tag === "textarea" || tag === "select" || el.isContentEditable;
+  }
+  function listSearchInput() {
+    // The FilterInput search box on the list pages (users/tenants/audit):
+    // re-queried per keypress so partial swaps never stale-cache it.
+    return (
+      document.querySelector("main input[type='search'], #panel input[type='search']") ||
+      document.querySelector("input[type='search']")
+    );
+  }
+  function listRowContainer() {
+    var ids = ["users-table", "tenants-table", "audit-panel"];
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
+      if (el) return el;
+    }
+    return null;
+  }
+  function listRows() {
+    var container = listRowContainer();
+    if (!container) return [];
+    var rows = container.querySelectorAll("tbody tr");
+    var visible = [];
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].offsetParent !== null) visible.push(rows[i]);
+    }
+    return visible;
+  }
+  function focusRow(rows, index) {
+    if (index < 0 || index >= rows.length) return;
+    var row = rows[index];
+    // Rows are programmatic focus targets only (never in the Tab ring).
+    if (!row.hasAttribute("tabindex")) row.setAttribute("tabindex", "-1");
+    row.focus();
+  }
+  document.addEventListener("keydown", function (e) {
+    // "/" focuses the list search — unless the user is already typing.
+    if (
+      e.key === "/" &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      !isTypingTarget(document.activeElement)
+    ) {
+      var search = listSearchInput();
+      if (search) {
+        e.preventDefault();
+        search.focus();
+      }
+      return;
+    }
+    // Escape in the search clears it and re-runs the (htmx) search.
+    if (
+      e.key === "Escape" &&
+      isTypingTarget(document.activeElement) &&
+      document.activeElement.type === "search"
+    ) {
+      var box = document.activeElement;
+      if (box.value !== "") {
+        box.value = "";
+        // Fire input so htmx's own trigger map (and any debounced listener)
+        // sees the clear, then submit the wrapping form as the no-JS path.
+        box.dispatchEvent(new Event("input", { bubbles: true }));
+        var form = box.closest("form");
+        if (form && typeof form.requestSubmit === "function") form.requestSubmit();
+      }
+      return;
+    }
+    // Arrow keys walk the list rows once focus is on a row or in the search.
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      var active = document.activeElement;
+      var onRow = active && active.tagName === "TR";
+      var inSearch = isTypingTarget(active) && active.type === "search";
+      if (!onRow && !inSearch) return;
+      var rows = listRows();
+      if (rows.length === 0) return;
+      e.preventDefault();
+      var current = rows.indexOf(active);
+      if (current === -1) {
+        focusRow(rows, e.key === "ArrowDown" ? 0 : rows.length - 1);
+        return;
+      }
+      focusRow(rows, e.key === "ArrowDown" ? current + 1 : current - 1);
+    }
+  });
+
   // --- Toasts: bridge adminui:toast HX-Trigger events to templ-components tcShowToast ---
   // tcShowToast is provided by feedback.ToastContainer (rendered server-side).
   document.addEventListener("adminui:toast", function (e) {

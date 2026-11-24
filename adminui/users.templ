@@ -188,14 +188,14 @@ templ userFilterChips(d usersListData, sort string) {
 		for _, chip := range userFilterChipsList(d) {
 			@userChipLink(userChipWithSort(chip, sort))
 		}
-		<span class="text-gray-300">|</span>
+		<span class="text-gray-300" aria-hidden="true">|</span>
 		<span class="text-gray-600 dark:text-gray-400">Sort</span>
 		@userSortLink(d, sort, "", "Default")
-		<span class="text-gray-300">/</span>
+		<span class="text-gray-300" aria-hidden="true">/</span>
 		@userSortLink(d, sort, "email", "Email")
-		<span class="text-gray-300">/</span>
+		<span class="text-gray-300" aria-hidden="true">/</span>
 		@userSortLink(d, sort, "display", "Display name")
-		<span class="text-gray-300">/</span>
+		<span class="text-gray-300" aria-hidden="true">/</span>
 		@userSortLink(d, sort, "created", "Created")
 	</div>
 }
@@ -281,7 +281,7 @@ templ usersRows(d usersListData) {
 						<div>
 							<div class="font-medium text-gray-900">{ row.User.Email }</div>
 							if row.User.DisplayName != "" {
-								<div class="text-xs text-gray-400">{ row.User.DisplayName }</div>
+								<div class={ "text-xs " + metadataTextXSClass }>{ row.User.DisplayName }</div>
 							}
 						</div>
 					</div>
@@ -314,7 +314,7 @@ templ usersRows(d usersListData) {
 						@display.RelativeTime(display.RelativeTimeProps{Time: row.LastSeen})
 					</span>
 				} else {
-					<span class="text-gray-400" title="No recorded activity in the audit window">—</span>
+					<span class="text-gray-600 dark:text-gray-400" title="No recorded activity in the audit window" aria-hidden="true">—</span>
 				}
 			</td>
 			<td class="px-4 py-2 text-gray-500">
@@ -342,7 +342,7 @@ templ userAccessCell(row userRow, basePath string) {
 			</a>
 		}
 		if !row.isPlatformAdmin() && row.TenantCount == 0 {
-			<span class="text-sm text-gray-400">—</span>
+			<span class="text-sm text-gray-600 dark:text-gray-400" aria-hidden="true">—</span>
 		}
 	</div>
 }
@@ -588,7 +588,7 @@ templ credentialRows(d userDetailData) {
 				if c.Name != "" {
 					{ c.Name }
 				} else {
-					<span class="font-mono text-xs text-gray-400">{ base64.RawURLEncoding.EncodeToString(c.ID)[:12] }…</span>
+					<span class={ "font-mono text-xs " + metadataTextXSClass }>{ base64.RawURLEncoding.EncodeToString(c.ID)[:12] }…</span>
 				}
 			</td>
 			<td class="px-4 py-2 text-gray-500">
@@ -600,7 +600,7 @@ templ credentialRows(d userDetailData) {
 				} else if c.BackupEligible {
 					@statusBadge("sync pending", display.BadgeWarning)
 				} else {
-					<span class="text-sm text-gray-400">—</span>
+					<span class="text-sm text-gray-600 dark:text-gray-400" aria-hidden="true">—</span>
 				}
 			</td>
 			<td class="px-4 py-2 text-right">
@@ -693,7 +693,7 @@ templ userTimelineCard(d userDetailData) {
 				CellPadding: display.TableCellPaddingCompact,
 			})
 			if d.Timeline.Total > len(d.Timeline.Entries) {
-				<div class="px-4 py-2 text-xs text-gray-400">
+				<div class={ "px-4 py-2 text-xs " + metadataTextXSClass }>
 					<a class="no-underline hover:underline" href={ d.BasePath + "/audit?q=" + d.User.ID.Get().String() }>
 						View all { strconv.Itoa(d.Timeline.Total) } events
 					</a>
@@ -713,7 +713,7 @@ templ userTimelineRows(d userDetailData) {
 				if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {
-					<span class="text-gray-400">—</span>
+					<span class="text-gray-600 dark:text-gray-400" aria-hidden="true">—</span>
 				}
 			</td>
 			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
@@ -793,7 +793,7 @@ templ tenantAccessCard(d userDetailData) {
 						Children: htmx.LoadingButton("Grant access", "Granting…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"})),
 					})
 				</form>
-				<div class="mt-2 text-xs text-gray-400">
+				<div class={ "mt-2 text-xs " + metadataTextXSClass }>
 					Only tenants the user does not belong to are offered. Change an existing
 					membership's roles in its row above.
 				</div>
@@ -808,7 +808,7 @@ templ tenantAccessRows(d userDetailData) {
 			<td class="px-4 py-2">
 				<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + access.TenantID }>
 					<span class="font-medium text-gray-900">{ access.Name }</span>
-					<span class="font-mono text-xs text-gray-400">{ access.Slug }</span>
+					<span class={ "font-mono text-xs " + metadataTextXSClass }>{ access.Slug }</span>
 				</a>
 			</td>
 			<td class="px-4 py-2">
@@ -870,7 +870,7 @@ templ externalAccountsCard(d userDetailData) {
 			})
 		}
 		<div class="flex flex-wrap items-center gap-2 px-4 py-2">
-			<span class="text-xs text-gray-400">Linking is done via the user's own OAuth2 login flow.</span>
+			<span class={ "text-xs " + metadataTextXSClass }>Linking is done via the user's own OAuth2 login flow.</span>
 			<div class="flex flex-wrap gap-1">
 				for _, provider := range d.ConfiguredProviders {
 					@display.Badge(display.BadgeProps{Text: provider, Type: display.BadgeNeutral, Pill: true})

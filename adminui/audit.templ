@@ -98,6 +98,9 @@ templ auditFilterBar(d auditView) {
 				Type:    display.ButtonHTMLSubmit,
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
+				// Focus restore after the panel swap eats its own trigger
+				// (T15 F110): the button is inside #audit-panel.
+				BaseProps: utils.BaseProps{Attrs: templ.Attributes{"data-focus-restore": "audit-apply"}},
 			})
 		</form>
 	</div>
@@ -119,7 +122,7 @@ templ auditFilterBar(d auditView) {
 				>{ chip.Label }</a>
 			}
 		}
-		<span class="text-gray-300">|</span>
+		<span class="text-gray-300" aria-hidden="true">|</span>
 		// Window exports: the buttons carry the CURRENT filter set
 		// (auditFilterURL is the one builder the pager and chips already
 		// share), so the downloaded file covers exactly what the list shows
@@ -205,7 +208,7 @@ templ auditRows(d auditView) {
 				if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {
-					<span class="text-gray-400">—</span>
+					<span class={ "text-gray-600 dark:text-gray-400" } aria-hidden="true">—</span>
 				}
 			</td>
 			<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.Get() }</td>
@@ -232,7 +235,7 @@ templ auditDiff(c auditChange) {
 // values for a profile-change entry: an honest note, never a fabricated
 // diff.
 templ auditChangeNote() {
-	<span class="text-xs " + metadataTextXSClass + "" title="The audit window records this change but not its old and new values">values not recorded</span>
+	<span class={ "text-xs " + metadataTextXSClass } title="The audit window records this change but not its old and new values">values not recorded</span>
 }
 
 // userActivityFragment is the load-more response for the user detail
@@ -255,7 +258,7 @@ templ userActivityFragment(d userActivityPage) {
 				if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {
-					<span class="text-gray-400">—</span>
+					<span class={ "text-gray-600 dark:text-gray-400" } aria-hidden="true">—</span>
 				}
 			</td>
 			<td class="px-4 py-2 text-gray-500" title={ e.OccurredAt.Format("Jan 2, 2006 15:04 MST") }>
@@ -265,7 +268,7 @@ templ userActivityFragment(d userActivityPage) {
 	}
 	if d.Done {
 		<tr id="user-activity-more">
-			<td colspan="3" class="px-4 py-2 text-xs text-gray-400">
+			<td colspan="3" class={ "px-4 py-2 text-xs " + metadataTextXSClass }>
 				All { strconv.Itoa(d.Total) } events in the audit window are shown.
 			</td>
 		</tr>

@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -20,16 +21,17 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 		}
 		matched = append(matched, t)
 	}
-	// Member counts for every MATCHED tenant: the member sort needs them all,
-	// and the chip counts report the search-scoped state mix.
-	counts := make(map[identitymodel.TenantID]int, len(matched))
-	for _, t := range matched {
-		counts[t.ID] = len(h.config.Service.TenantMembers(r.Context(), t.ID))
+	// Member counts: the members sort ranks every MATCHED tenant (the order
+	// spans pages), so only that ordering pays for the full map; any other
+	// order reads counts for the visible page's rows alone.
+	if sort == "members" {
+		sortTenants(matched, sort, tenantMemberCounts(r.Context(), h.config.Service, matched))
 	}
-	sortTenants(matched, sort, counts)
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), h.config.PageSize)
+	visible := matched[offset : offset+limit]
+	counts := tenantMemberCounts(r.Context(), h.config.Service, visible)
 	rows := make([]tenantRow, 0, limit)
-	for _, t := range matched[offset : offset+limit] {
+	for _, t := range visible {
 		rows = append(rows, tenantRow{
 			Tenant:      t,
 			MemberCount: counts[t.ID],
@@ -47,6 +49,20 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 	}
 	p := h.page("Tenants", "/tenants", user, r)
 	renderPage(w, r, tenantsPage(p, d))
+}
+
+// tenantMemberCounts resolves one TenantMembers query per tenant in tenants
+// (the read model has no batched count query yet), so callers keep tenants
+// bounded to the rows they will actually render — except the members sort,
+// which legitimately spans pages.
+func tenantMemberCounts(
+	ctx context.Context, svc *usermgmt.Service, tenants []*usermgmt.Tenant,
+) map[identitymodel.TenantID]int {
+	counts := make(map[identitymodel.TenantID]int, len(tenants))
+	for _, t := range tenants {
+		counts[t.ID] = len(svc.TenantMembers(ctx, t.ID))
+	}
+	return counts
 }
 
 func (h *Handler) tenantNew(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {

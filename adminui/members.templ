@@ -102,10 +102,10 @@ templ membersRows(d tenantDetailData) {
 							<span class="font-medium text-gray-900">{ m.displayName() }</span>
 						}
 						if m.Name != "" {
-							<div class="text-xs text-gray-400">{ m.Name }</div>
+							<div class={ "text-xs " + metadataTextXSClass }>{ m.Name }</div>
 						}
 						if !m.IsUser {
-							<div class="font-mono text-[11px] text-gray-400">{ m.Actor.PrefixedString() }</div>
+							<div class={ "font-mono text-[11px] " + metadataTextXSClass }>{ m.Actor.PrefixedString() }</div>
 						}
 					</div>
 				</div>
@@ -134,10 +134,10 @@ templ membersRows(d tenantDetailData) {
 						@display.RelativeTime(display.RelativeTimeProps{Time: m.AddedAt})
 					</span>
 				} else {
-					<span class="text-gray-400">—</span>
+					<span class="text-gray-600 dark:text-gray-400" aria-hidden="true">—</span>
 				}
 				if m.AddedBy != "" {
-					<div class="text-xs text-gray-400" title="Whose grant created this membership">by { m.AddedBy }</div>
+					<div class={ "text-xs " + metadataTextXSClass } title="Whose grant created this membership">by { m.AddedBy }</div>
 				}
 			</td>
 			<td class="px-4 py-2 text-right">

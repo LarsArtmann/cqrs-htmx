@@ -56,10 +56,10 @@ templ tenantsContent(d tenantsListData) {
 		@tenantStatusChip(d, "active", "Active", d.StatusCounts["active"])
 		@tenantStatusChip(d, "suspended", "Suspended", d.StatusCounts["suspended"])
 		@tenantStatusChip(d, "deleted", "Deleted", d.StatusCounts["deleted"])
-		<span class="text-gray-300">|</span>
+		<span class="text-gray-300" aria-hidden="true">|</span>
 		<span class="text-gray-600 dark:text-gray-400">Sort</span>
 		@tenantSortLink(d, "name", "Name")
-		<span class="text-gray-300">/</span>
+		<span class="text-gray-300" aria-hidden="true">/</span>
 		@tenantSortLink(d, "members", "Members")
 	</div>
 	<div id="tenants-table">
@@ -138,16 +138,16 @@ templ tenantsRows(d tenantsListData) {
 			<td class="px-4 py-2">
 				<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + row.Tenant.ID.Get() }>
 					<span class="font-medium text-gray-900">{ row.Tenant.DisplayName }</span>
-					<span class="font-mono text-xs text-gray-400">{ row.Tenant.Name }</span>
+					<span class={ "font-mono text-xs " + metadataTextXSClass }>{ row.Tenant.Name }</span>
 				</a>
 			</td>
 			<td class="px-4 py-2 text-gray-600">
 				<a class="no-underline hover:underline" href={ d.BasePath + "/tenants/" + row.Tenant.ID.Get() }>
 					{ strconv.Itoa(row.MemberCount) }
 					if row.MemberCount == 1 {
-						<span class="text-gray-400"> member</span>
+						<span class="text-gray-600 dark:text-gray-400"> member</span>
 					} else {
-						<span class="text-gray-400"> members</span>
+						<span class="text-gray-600 dark:text-gray-400"> members</span>
 					}
 				</a>
 			</td>

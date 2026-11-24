@@ -42,6 +42,85 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 // the sort key joins it the day that body format grows the field; until then
 // the GET rung is the only one that can order, and both rungs share every
 // helper below (one filter, one clamp, one enrichment pass).
+// renderAuthz is the per-render authorization snapshot: the platform roles
+// and tenant domains every visible row needs, derived in ONE GroupPolicies()
+// pass plus one AllTenants() pass instead of two policy-engine queries per
+// row. A policy-engine failure degrades to empty maps — the same honest
+// degradation the per-row lookups had (columns render empty, the directory
+// itself is still the truth about who exists).
+type renderAuthz struct {
+	// platformRoles maps subject → wildcard-domain roles (direct grants).
+	platformRoles map[string][]identitymodel.Role
+	// tenantDomains maps subject → the non-wildcard domains they hold rows in.
+	tenantDomains map[string][]string
+	// tenantIDs is the set of domains that resolve to a real tenant, from one
+	// AllTenants() pass. Registration grants default roles in a domain named
+	// after the user's own stream; set membership is what keeps a phantom
+	// domain from counting as a tenant.
+	tenantIDs map[string]struct{}
+}
+
+// newRenderAuthz builds the snapshot for one render. GroupPolicies rows carry
+// TWO relations in one Casbin section (gotcha 45): real grants
+// (subject, role, domain) and the mirrored role-hierarchy edges
+// (parentRole, childRole, domain) that seed inheritance. A hierarchy row's
+// SUBJECT is a role name — the exact filter HasAdminGrant and UsersForRole
+// use — so skipping role-named subjects is what keeps a seeded hierarchy from
+// manufacturing admins that do not exist.
+func newRenderAuthz(_ context.Context, svc *usermgmt.Service) *renderAuthz {
+	az := &renderAuthz{
+		platformRoles: make(map[string][]identitymodel.Role),
+		tenantDomains: make(map[string][]string),
+		tenantIDs:     make(map[string]struct{}),
+	}
+	authz := svc.Authz()
+	if authz == nil {
+		return az
+	}
+	rows, err := authz.GroupPolicies()
+	if err != nil {
+		return az
+	}
+	for _, row := range rows {
+		if len(row) != 3 || identitymodel.Role(row[0]).Valid() {
+			continue
+		}
+		subject, role, domain := row[0], row[1], row[2]
+		if domain == identitymodel.WildcardDomain {
+			az.platformRoles[subject] = append(az.platformRoles[subject], identitymodel.Role(role))
+			continue
+		}
+		az.tenantDomains[subject] = append(az.tenantDomains[subject], domain)
+	}
+	for _, t := range svc.AllTenants() {
+		az.tenantIDs[t.ID.Get()] = struct{}{}
+	}
+	return az
+}
+
+// platformRolesFor reads the snapshot for one user. A nil snapshot yields no
+// roles, so callers degrade honestly without nil checks.
+func (az *renderAuthz) platformRolesFor(id string) []identitymodel.Role {
+	if az == nil {
+		return nil
+	}
+	return az.platformRoles[id]
+}
+
+// tenantCountFor counts the user's domains that resolve to a real tenant.
+func (az *renderAuthz) tenantCountFor(id string) int {
+	if az == nil {
+		return 0
+	}
+	count := 0
+	for _, dom := range az.tenantDomains[id] {
+		if _, ok := az.tenantIDs[dom]; ok {
+			count++
+		}
+	}
+	return count
+}
+
 func (h *Handler) usersIndexData(ctx context.Context, q string, filter userFilter, page int, sort string) usersListData {
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
 	az := newRenderAuthz(ctx, h.config.Service)
@@ -49,6 +128,14 @@ func (h *Handler) usersIndexData(ctx context.Context, q string, filter userFilte
 		matched = h.filterPlatformAdmins(matched, az)
 	}
 	sortUsers(matched, sort)
+	return h.assembleUsersList(matched, q, filter, page, az)
+}
+
+// assembleUsersList pages the matched directory and enriches the visible
+// window from the per-render snapshot (roles, tenant count, last seen).
+func (h *Handler) assembleUsersList(
+	matched []*identitymodel.User, q string, filter userFilter, page int, az *renderAuthz,
+) usersListData {
 	offset, limit, totalPages, current := pageBounds(page, len(matched), h.config.PageSize)
 	visible := matched[offset : offset+limit]
 	rows := make([]userRow, 0, len(visible))

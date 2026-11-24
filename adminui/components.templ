@@ -148,8 +148,8 @@ templ listPager(baseURL string, page, totalPages int) {
 		<div class="mt-4">
 			<nav aria-label="Pagination" class="flex items-center justify-between">
 				<div class="flex flex-1 justify-between sm:hidden">
-					@pagerMobileButton(page > 1, pagerPageURL(baseURL, page-1), "Previous")
-					@pagerMobileButton(page < totalPages, pagerPageURL(baseURL, page+1), "Next")
+					@pagerMobileButton(page > 1, pagerPageURL(baseURL, page-1), "pager-prev", "Previous")
+					@pagerMobileButton(page < totalPages, pagerPageURL(baseURL, page+1), "pager-next", "Next")
 				</div>
 				<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
 					<div>
@@ -163,7 +163,7 @@ templ listPager(baseURL string, page, totalPages int) {
 					<div>
 						<ol class="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
 							<li>
-								@pagerArrow(page > 1, pagerPageURL(baseURL, page-1), "rounded-s-md", "Previous page", "Previous", svg.PathArrowLeft)
+								@pagerArrow(page > 1, pagerPageURL(baseURL, page-1), "rounded-s-md", "pager-prev", "Previous page", "Previous", svg.PathArrowLeft)
 							</li>
 							for _, step := range pagerWindow(page, totalPages) {
 								if step.Ellipsis {
@@ -182,12 +182,13 @@ templ listPager(baseURL string, page, totalPages int) {
 										<a
 											href={ templ.SafeURL(pagerPageURL(baseURL, step.Page)) }
 											class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-200 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0"
+											data-focus-restore={ "pager-page-" + strconv.Itoa(step.Page) }
 										>{ strconv.Itoa(step.Page) }</a>
 									</li>
 								}
 							}
 							<li>
-								@pagerArrow(page < totalPages, pagerPageURL(baseURL, page+1), "rounded-e-md", "Next page", "Next", svg.PathArrowRight)
+								@pagerArrow(page < totalPages, pagerPageURL(baseURL, page+1), "rounded-e-md", "pager-next", "Next page", "Next", svg.PathArrowRight)
 							</li>
 						</ol>
 					</div>
@@ -200,11 +201,12 @@ templ listPager(baseURL string, page, totalPages int) {
 // pagerMobileButton is the windowed pager's small-screen Previous/Next
 // control: an enabled link or a disabled span (the library Pagination's
 // mobile row markup).
-templ pagerMobileButton(enabled bool, href, text string) {
+templ pagerMobileButton(enabled bool, href, restoreID, text string) {
 	if enabled {
 		<a
 			href={ templ.SafeURL(href) }
 			class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+			data-focus-restore={ restoreID }
 		>{ text }</a>
 	} else {
 		<span class={ "relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 px-4 py-2 text-sm font-medium " + pagerDisabledTextClass + " cursor-not-allowed" }>{ text }</span>
@@ -215,18 +217,21 @@ templ pagerMobileButton(enabled bool, href, text string) {
 // enabled link or a disabled span (the library Pagination's arrow markup).
 // roundedClass is the complete border-radius utility (e.g. "rounded-s-md") —
 // passed as a literal so Tailwind's content scanner can detect it.
-templ pagerArrow(enabled bool, href, roundedClass, ariaLabel, srText string, path string) {
+// restoreID is the data-focus-restore marker admin.js uses to put keyboard
+// focus back on the control after a swap replaces its region (T15 F110).
+templ pagerArrow(enabled bool, href, roundedClass, restoreID, ariaLabel, srText string, path string) {
 	if enabled {
 		<a
 			href={ templ.SafeURL(href) }
 			class={ "relative inline-flex items-center px-2 py-2 text-gray-600 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0", roundedClass }
 			aria-label={ ariaLabel }
+			data-focus-restore={ restoreID }
 		>
 			<span class="sr-only">{ srText }</span>
 			@svg.FillIcon("h-5 w-5", path, false)
 		</a>
 	} else {
-		<span class={ "relative inline-flex items-center px-2 py-2 " + pagerDisabledTextClass + " ring-1 ring-inset ring-gray-300 dark:ring-gray-600 cursor-not-allowed", roundedClass } aria-disabled="true" tabindex="-1">
+		<span class={ "relative inline-flex items-center px-2 py-2 " + pagerDisabledTextClass + " ring-1 ring-inset ring-gray-300 dark:ring-gray-600 cursor-not-allowed", roundedClass } aria-disabled="true" tabindex="-1" data-focus-restore={ restoreID }>
 			<span class="sr-only">{ srText }</span>
 			@svg.FillIcon("h-5 w-5", path, false)
 		</span>

@@ -95,21 +95,9 @@ func (h *Handler) userSearch(w http.ResponseWriter, r *http.Request, _ *identity
 // pass; the rungs cannot drift.
 func (h *Handler) usersSearchData(ctx context.Context, q string, filter userFilter, page int) usersListData {
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
+	az := newRenderAuthz(ctx, h.config.Service)
 	if filter == userFilterAdmin {
-		matched = h.filterPlatformAdmins(matched)
+		matched = h.filterPlatformAdmins(matched, az)
 	}
-	offset, limit, totalPages, current := pageBounds(page, len(matched), h.config.PageSize)
-	visible := matched[offset : offset+limit]
-	rows := make([]userRow, 0, len(visible))
-	lastSeen := h.lastSeenIndex()
-	for _, u := range visible {
-		row := h.userRow(ctx, u)
-		row.LastSeen = lastSeen[u.ID.Get().String()]
-		rows = append(rows, row)
-	}
-
-	return usersListData{
-		Users: rows, Total: len(matched), Search: q,
-		Filter: filter, BasePath: h.config.BasePath, Page: current, TotalPages: totalPages,
-	}
+	return h.assembleUsersList(matched, q, filter, page, az)
 }
