@@ -346,3 +346,46 @@ templ confirmModal(p pageData) {
 		</div>
 	}
 }
+
+// suggestCombobox is the T08 type-ahead field shell (F051): an input with
+// combobox semantics (role="combobox", aria-expanded, aria-autocomplete) and
+// the listbox popup region it controls via aria-controls. admin.js owns the
+// behavior: it fetches data-suggest-src with the typed prefix (debounced) or,
+// when no src is set, filters the JSON option list in data-suggest-options
+// locally — one component, both modes.
+//
+// The listbox starts hidden and empty; options are created client-side only,
+// so the page never ships a directory slice (the 200-email datalist cap is
+// retired, not replaced by a bigger static payload).
+templ suggestCombobox(id, inputType, name, value, placeholder, ariaLabel, src, optionsJSON string) {
+	<div class="relative" data-suggest
+		data-suggest-src={ src }
+		if optionsJSON != "" {
+			data-suggest-options={ optionsJSON }
+		}>
+		<input
+			type={ inputType }
+			id={ id }
+			name={ name }
+			value={ value }
+			placeholder={ placeholder }
+			aria-label={ ariaLabel }
+			required
+			autocomplete="off"
+			role="combobox"
+			aria-expanded="false"
+			aria-autocomplete="list"
+			aria-haspopup="listbox"
+			data-suggest-input
+			aria-controls={ id + "-listbox" }
+		/>
+		<ul
+			id={ id + "-listbox" }
+			role="listbox"
+			aria-label={ ariaLabel }
+			hidden
+			class="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white py-1 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800"
+			data-suggest-list
+		></ul>
+	</div>
+}

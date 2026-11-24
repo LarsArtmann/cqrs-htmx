@@ -61,6 +61,8 @@ func TestRoutes_ManifestGolden(t *testing.T) {
 		"GET /users role Users",
 		"QUERY /users/search role Users",
 		"POST /users/search role Users",
+		"QUERY /users/suggest role Users",
+		"GET /users/suggest role Users",
 		"GET /users/new role Users",
 		"POST /users role Users",
 		"GET /users/import role Users",

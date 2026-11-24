@@ -8,10 +8,6 @@ import (
 	"github.com/larsartmann/templ-components/utils"
 )
 
-// memberEmailListID is the <datalist> id shared by the add-member input on
-// every page that renders membersCard. One card per page, so one id.
-const memberEmailListID = "admin-member-emails"
-
 // membersCard renders the members table with add/remove/edit-role controls.
 // Shared by the tenant detail page (super-admin) and the members page
 // (tenant-admin). Role options come from AssignableRoles (typed source of
@@ -76,23 +72,10 @@ templ membersCard(p pageData, d tenantDetailData) {
 		}
 		<div class="border-t border-gray-200 pt-4 mt-4">
 			<form class="flex flex-wrap items-center gap-2" hx-post={ d.AddMemberURL }>
-				@forms.Input(forms.InputProps{
-					Type:        forms.InputEmail,
-					Name:        "email",
-					Value:       d.AddMemberEmail,
-					Placeholder: "user@example.com",
-					Required:    true,
-					HelpText:    "Type to pick a person from the directory.",
-					BaseProps: utils.BaseProps{Class: "max-w-[240px]", Attrs: templ.Attributes{
-						"list":        memberEmailListID,
-						"autocomplete": "off",
-					}},
-				})
-				<datalist id={ memberEmailListID }>
-					for _, email := range d.UserEmailOptions {
-						<option value={ email }></option>
-					}
-				</datalist>
+				// T08 F053: the type-ahead combobox replaces the 200-email
+				// datalist — the directory is asked per keystroke
+				// (/users/suggest), never shipped with the page.
+				@suggestCombobox("admin-member-email-input", "email", "email", d.AddMemberEmail, "user@example.com", "Add member email", d.BasePath+"/users/suggest", "")
 				@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
 				// display.Button with the Children slot (#405): LoadingButton content
 				// (label swap + spinner) inside the library's Primary+SM classes.

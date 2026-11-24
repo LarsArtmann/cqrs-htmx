@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -23,33 +22,6 @@ const (
 // the directory seam member rows use so a membership renders as a person.
 func (h *Handler) lookupUser(id identitymodel.UserID) (*identitymodel.User, bool) {
 	return h.config.Service.ReadModel().FindByUserID(id)
-}
-
-// memberEmailOptions lists the directory's email addresses for the add-member
-// autocomplete. Sorted and bounded (MaxListRows) so a large directory cannot
-// balloon the page; the field stays a free-text email input, so typing an
-// address outside the list still works.
-func (h *Handler) memberEmailOptions(exclude []memberRow) []string {
-	alreadyMember := make(map[string]bool, len(exclude))
-	for _, m := range exclude {
-		if m.Email != "" {
-			alreadyMember[strings.ToLower(m.Email)] = true
-		}
-	}
-	all := h.config.Service.ReadModel().AllUsers()
-	emails := make([]string, 0, min(len(all), MaxListRows))
-	for _, u := range all {
-		// A duplicate add is refused by the decider, so offering an existing
-		// member in the autocomplete would only lead the admin into an error.
-		if u.Email != "" && !alreadyMember[strings.ToLower(u.Email)] {
-			emails = append(emails, u.Email)
-		}
-	}
-	slices.Sort(emails)
-	if len(emails) > MaxListRows {
-		emails = emails[:MaxListRows]
-	}
-	return emails
 }
 
 // applyMemberError fills the inline add-member guidance from the redirect
@@ -108,7 +80,6 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *ide
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
 		UpdateRoleBase:   memberBase,
-		UserEmailOptions: h.memberEmailOptions(allMembers),
 		TotalMembers:     total,
 		AdminTierCount:   countAdminTier(allMembers),
 		Page:             page,

@@ -237,6 +237,19 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			why:  "the search fallback twin: byte-identical responses for clients that cannot send QUERY",
 		},
 		{
+			// T08 F049: the type-ahead directory feed behind the members-add
+			// combobox. A prefix match and a capped JSON answer — not the
+			// users list, and not an unbounded directory dump.
+			method: cqrshtmx.MethodQuery, pattern: "/users/suggest", panel: panelUsers, guarded: h.userSuggest,
+			mode: routeModeSuperAdmin,
+			why:  "the type-ahead feed: a capped JSON prefix match so the combobox asks per keystroke instead of the page shipping the directory",
+		},
+		{
+			method: http.MethodGet, pattern: "/users/suggest", panel: panelUsers, guarded: h.userSuggest,
+			mode: routeModeSuperAdmin,
+			why:  "the suggest fallback twin: byte-identical JSON for clients (and tests) that cannot send QUERY",
+		},
+		{
 			method: http.MethodGet, pattern: "/users/new", panel: panelUsers, guarded: h.userNew,
 			mode: routeModeSuperAdmin, why: "the creation form itself reveals the directory shape",
 		},

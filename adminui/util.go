@@ -2,6 +2,7 @@ package adminui
 
 import (
 	"cmp"
+	"encoding/json"
 	"hash/fnv"
 	"net/http"
 	"net/url"
@@ -494,4 +495,26 @@ func tenantListURL(d tenantsListData, status, sort string) string {
 		return d.BasePath + "/tenants"
 	}
 	return d.BasePath + "/tenants?" + params.Encode()
+}
+
+// tenantOptionsJSON serializes the grant form's tenant options for the T08
+// local-mode combobox: the user page's grant form has a bounded, page-shaped
+// candidate list (every live tenant minus existing memberships), so shipping
+// the options once and filtering locally in admin.js beats a network round
+// trip per keystroke. Escaped by encoding/json, so labels are safe in an
+// HTML attribute.
+func tenantOptionsJSON(opts []forms.SelectOption) string {
+	type option struct {
+		Value string `json:"value"`
+		Label string `json:"label"`
+	}
+	encoded := make([]option, 0, len(opts))
+	for _, o := range opts {
+		encoded = append(encoded, option{Value: o.Value, Label: o.Label})
+	}
+	buf, err := json.Marshal(encoded)
+	if err != nil {
+		return "[]"
+	}
+	return string(buf)
 }

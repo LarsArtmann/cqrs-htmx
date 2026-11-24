@@ -149,7 +149,6 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		RemoveMemberBase:    memberBase,
 		UpdateRoleBase:      memberBase,
 		UserDetailBase:      h.config.BasePath + "/users/",
-		UserEmailOptions:    h.memberEmailOptions(allMembers),
 		AddMemberCreateHref: h.config.BasePath + "/users/new",
 		// F080: the identity card answers "who holds which roles here" from
 		// the rows already resolved — no extra queries.

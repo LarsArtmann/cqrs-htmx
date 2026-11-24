@@ -525,10 +525,6 @@ type tenantDetailData struct {
 	// directory, and a link to a route that does not exist is a lie.
 	UserDetailBase string
 
-	// UserEmailOptions feeds the add-member autocomplete: the directory's
-	// email addresses, so an admin picks a person instead of typing one.
-	UserEmailOptions []string
-
 	// AddMemberError is the inline guidance shown when the last add attempt
 	// named no known account. AddMemberEmail preserves what was typed so the
 	// admin can correct it instead of retyping from scratch.

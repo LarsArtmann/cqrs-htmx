@@ -1111,13 +1111,14 @@ templ tenantAccessCard(d userDetailData) {
 				</div>
 			} else {
 				<form class="flex flex-wrap items-end gap-2" hx-post={ d.AddTenantAccessURL }>
-					@forms.Select(forms.SelectProps{
-						Name:      "tenant",
-						Label:     "Tenant",
-						Options:   d.TenantOptions,
-						Required:  true,
-						BaseProps: utils.BaseProps{Class: "max-w-[220px]"},
-					})
+					// T08 F053: the grant form adopts the same combobox shell,
+					// in LOCAL mode (no data-suggest-src): the candidate list
+					// is page-shaped (live tenants minus memberships), so it
+					// ships once as JSON and admin.js filters per keystroke.
+					<div class="max-w-[220px]">
+						<label for="admin-grant-tenant-input" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tenant</label>
+						@suggestCombobox("admin-grant-tenant-input", "text", "tenant", "", "Pick a tenant", "", tenantOptionsJSON(d.TenantOptions))
+					</div>
 					@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
 					@display.Button(display.ButtonProps{
 						Type:     display.ButtonHTMLSubmit,
