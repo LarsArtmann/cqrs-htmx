@@ -2437,7 +2437,7 @@ func credentialRestoreCard(d userDetailData) templ.Component {
 		})
 		templ_7745c5c3_Err = display.Card(display.CardProps{
 			Title:     "Restore a passkey from backup",
-			BaseProps: utils.BaseProps{Class: "mb-4"},
+			BaseProps: utils.BaseProps{Class: "mb-4 print:hidden"},
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var80), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

@@ -810,8 +810,8 @@ templ passkeysCard(d userDetailData) {
 // WebAuthn at all (same probe gate as the Passkeys card).
 templ credentialRestoreCard(d userDetailData) {
 	@display.Card(display.CardProps{
-		Title:   "Restore a passkey from backup",
-		BaseProps: utils.BaseProps{Class: "mb-4"},
+		Title: "Restore a passkey from backup",
+		BaseProps: utils.BaseProps{Class: "mb-4 print:hidden"},
 	}) {
 		<form class="px-4 py-3 space-y-2" method="post" action={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/credentials/restore" } data-dirty-guard>
 			<label class="block text-sm text-gray-500" for="credential-backup-json">Paste the credential backup JSON (exported from the user's own account page)</label>

@@ -186,6 +186,12 @@ func TestRosterCSV_SuperAdminExport(t *testing.T) {
 	if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, "text/csv") {
 		t.Errorf("content type = %q, want text/csv", ct)
 	}
+	// The download filename follows the shared export convention
+	// (<surface>-export[-variant].<ext>) and names the tenant, so
+	// multi-tenant downloads never collide (f#45).
+	if cd := rec.Header().Get("Content-Disposition"); !strings.Contains(cd, `filename="roster-export-acme.csv"`) {
+		t.Errorf("content disposition = %q, want the tenant-named export filename", cd)
+	}
 	body := rec.Body.String()
 	for _, want := range []string{
 		"actor,email,display_name,roles,added_at",
@@ -211,6 +217,11 @@ func TestRosterCSV_TenantAdminExport(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members/roster.csv", nil))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("tenant-admin roster export: status %d", rec.Code)
+	}
+	// Same export-filename convention as the super-admin roster (f#45): the
+	// -export token plus the scoped tenant id.
+	if cd := rec.Header().Get("Content-Disposition"); !strings.Contains(cd, `filename="roster-export-scoped.csv"`) {
+		t.Errorf("content disposition = %q, want the tenant-named export filename", cd)
 	}
 	if body := rec.Body.String(); !strings.Contains(body, "m1@scoped.dev") {
 		t.Errorf("tenant-admin roster CSV missing the member:\n%s", body)
