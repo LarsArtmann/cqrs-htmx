@@ -15,17 +15,18 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// The StateShape persistence round-trip audit (TODO row 90): the in-memory
-// store deep-copies the stamp (0d473d99), but the SQL snapshot store at
-// storage/v4 v4.11.1 has NO state_shape column, no INSERT field, and no scan
-// target — a stamped snapshot silently loses its stamp across a SQL
-// round-trip. The decider treats an empty stamp as legacy and ACCEPTS it
-// (decider/v4 snapshot_load.go: an empty snapshot stamp never mismatches), so
-// the drop only bites when a shape version bumps: the old-shaped snapshot
-// should be discarded and rebuilt from the journal, but is accepted instead.
-// Upstream ask drafted in docs/drafts/; this test pins the CURRENT behavior
-// and must FLIP (assert preservation) the moment upstream persists the stamp.
-func TestSnapshotShape_SQLStoreDropsStampToday(t *testing.T) {
+// The StateShape persistence round-trip contract (TODO row 90, CLOSED):
+// upstream go-cqrs-lite#117 shipped in storage/v4 v4.11.2 — snapshot.go now
+// carries a state_shape column, INSERTs the stamp, and scans it back on load
+// (source-verified at the tag 2026-11-24: lines INSERT 73/87, SELECT 141/155,
+// scan 168, return 198). A stamped snapshot survives a SQL round-trip, so the
+// decider's shape guard (decider/v4 snapshot_load.go) actually discards a
+// stale-shaped snapshot and rebuilds from the journal. This test pins the
+// preservation contract permanently: a regression that drops the stamp again
+// fails here. (Historical shape: at v4.11.1 the store had no state_shape
+// column at all and the sentinel test asserted the drop — it flipped in the
+// same change that swept the pin onto v4.11.2.)
+func TestSnapshotShape_SQLStorePersistsStamp(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
@@ -67,9 +68,9 @@ func TestSnapshotShape_SQLStoreDropsStampToday(t *testing.T) {
 		t.Fatal("load: snapshot missing after save")
 	}
 
-	if loaded.StateShape != "" {
-		t.Fatalf("SQL store now round-trips StateShape (%q) — upstream shipped the fix; "+
-			"flip this test to assert preservation and close TODO row 90", loaded.StateShape)
+	if loaded.StateShape != snapshotStateShapeVersion {
+		t.Fatalf("SQL store dropped StateShape (loaded %q, want %q) — a stamp regression: "+
+			"a stale-shaped snapshot would be accepted as legacy instead of discarded", loaded.StateShape, snapshotStateShapeVersion)
 	}
 
 	// Control: the in-memory store preserves the stamp today.
