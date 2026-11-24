@@ -21,9 +21,9 @@ type User struct {
 	// another one; zero on a live user. A merged-away identity is terminal.
 	MergedInto UserID `json:"merged_into,omitempty,omitzero"`
 	// MergedUserIDs lists the identities that were merged into this one.
-	MergedUserIDs []UserID `json:"merged_user_ids,omitempty"`
-	CreatedAt        time.Time            `json:"created_at"`
-	UpdatedAt        time.Time            `json:"updated_at"`
+	MergedUserIDs []UserID  `json:"merged_user_ids,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 // NewUser creates a User with the given identity fields.

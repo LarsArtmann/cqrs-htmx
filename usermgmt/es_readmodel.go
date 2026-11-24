@@ -220,8 +220,8 @@ func (m *UserReadModel) handleUserDeleted(aggID id.StreamID, _ event.Event) erro
 	// Guarded eviction: under keep-first, a deleted duplicate must not remove
 	// the original user's email / external-account mapping. Only entries that
 	// resolve to this stream go, including aliases it inherited from merges.
-	m.evict(m.emails, aggID)
-	m.evict(m.externalAccounts, aggID)
+	evict(m.emails, aggID)
+	evict(m.externalAccounts, aggID)
 	delete(m.users, aggID)
 	return nil
 }
@@ -260,8 +260,8 @@ func (m *UserReadModel) handleUserMergedInto(aggID id.StreamID, evt event.Event)
 	if err != nil {
 		return err
 	}
-	m.repoint(m.emails, aggID, survivor)
-	m.repoint(m.externalAccounts, aggID, survivor)
+	repoint(m.emails, aggID, survivor)
+	repoint(m.externalAccounts, aggID, survivor)
 	delete(m.users, aggID)
 	m.mergedInto[aggID] = survivor
 	return nil
