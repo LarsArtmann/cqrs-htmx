@@ -394,4 +394,124 @@
   }
 
   document.addEventListener("cqrshtmx:sync-events", scheduleRefresh);
+
+  // ===================== T17 client pack A (F124–F128) =====================
+  // Everything below is document-delegated (gotcha 57) and CSP-safe. This
+  // block is T17-owned territory: sortable headers, dirty-form guard,
+  // copy-row-as-JSON, skeleton spend. Later tasks append AFTER this block,
+  // still inside the IIFE.
+
+  // --- F124/F125: the skeleton spends itself after the FIRST swap ---
+  // users-skeleton is server-rendered hidden (.htmx-indicator) and shown by
+  // htmx only while the first in-flight swap loads the rows. Once any swap
+  // has landed, the window is loaded data — the node is removed so later
+  // swaps never flash a skeleton for data the client already has.
+  document.addEventListener("htmx:afterSwap", function () {
+    var skeleton = document.getElementById("users-skeleton");
+    if (skeleton) skeleton.remove();
+  });
+
+  // --- F126: client-side sortable headers WITHIN the loaded window ---
+  // th[data-sort-key] headers carry a button; rows carry data-sort-<key>
+  // attributes. Clicking sorts the CURRENT page in place (aria-sort on the
+  // th + a text indicator) — no server round-trip. The URL-carried server
+  // sort (T03) stays the default: any navigation, pager click, or swap
+  // re-renders the header state from the URL.
+  function clientSortValue(row, key) {
+    return row.getAttribute("data-sort-" + key) || "";
+  }
+  function clientSortCompare(aRow, bRow, key, dir) {
+    var a = clientSortValue(aRow, key);
+    var b = clientSortValue(bRow, key);
+    var aNum = parseFloat(a);
+    var bNum = parseFloat(b);
+    var cmp;
+    if (!isNaN(aNum) && !isNaN(bNum) && a !== "" && b !== "") {
+      cmp = aNum - bNum;
+    } else {
+      cmp = String(a).localeCompare(String(b));
+    }
+    return dir === "descending" ? -cmp : cmp;
+  }
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-sort-key]");
+    if (!btn || !document.getElementById("users-table")) return;
+    var th = btn.closest("th");
+    var table = btn.closest("table");
+    var tbody = table && table.querySelector("tbody");
+    if (!th || !tbody) return;
+    var key = btn.getAttribute("data-sort-key");
+    var current = th.getAttribute("aria-sort");
+    var next = current === "ascending" ? "descending" : "ascending";
+    // One active sort at a time: clear every sortable header, then set ours.
+    var headers = table.querySelectorAll("th[data-sort-key]");
+    for (var i = 0; i < headers.length; i++) {
+      headers[i].setAttribute("aria-sort", "none");
+      var ind = headers[i].querySelector("[data-sort-indicator]");
+      if (ind) ind.textContent = "";
+    }
+    th.setAttribute("aria-sort", next);
+    var activeInd = btn.querySelector("[data-sort-indicator]");
+    if (activeInd) activeInd.textContent = next === "ascending" ? "↑" : "↓";
+    // Re-append in the new order (stable, in-DOM, no network).
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+    rows.sort(function (a, b) {
+      return clientSortCompare(a, b, key, next);
+    });
+    for (var r = 0; r < rows.length; r++) tbody.appendChild(rows[r]);
+  });
+
+  // --- F127: dirty-form tracking + beforeunload guard ---
+  // Forms marked data-dirty-guard (the detail page's display-name/email
+  // edits) are checked STATELESSLY at unload time: a field is dirty only if
+  // its live value differs from its defaultValue, so reverting by hand
+  // disarms the guard and a clean form never nags. Only actual diffs guard.
+  function adminFormIsDirty(form) {
+    var fields = form.querySelectorAll("input, textarea, select");
+    for (var i = 0; i < fields.length; i++) {
+      var f = fields[i];
+      if (f.type === "hidden" || f.type === "submit" || f.disabled) continue;
+      if (f.value !== f.defaultValue) return true;
+    }
+    return false;
+  }
+  window.addEventListener("beforeunload", function (e) {
+    var guarded = document.querySelectorAll("form[data-dirty-guard]");
+    for (var i = 0; i < guarded.length; i++) {
+      if (adminFormIsDirty(guarded[i])) {
+        e.preventDefault();
+        e.returnValue = ""; // Chrome requires returnValue to prompt
+        return;
+      }
+    }
+  });
+
+  // --- F128: copy-row-as-JSON support action (user DETAIL page) ---
+  // [data-copy-json] buttons carry the server-composed payload; the click
+  // bridges to the async Clipboard API and reports BOTH outcomes honestly
+  // through the existing adminui:toast bridge — success and explicit
+  // denial (no clipboard API at all, or the write promise rejected).
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-copy-json]");
+    if (!btn) return;
+    var payload = btn.getAttribute("data-copy-json") || "";
+    function copyToast(kind, message) {
+      document.dispatchEvent(new CustomEvent("adminui:toast", { detail: { kind: kind, message: message } }));
+    }
+    var okMsg = btn.getAttribute("data-copy-ok") || "Copied.";
+    var errMsg = btn.getAttribute("data-copy-err") || "Clipboard denied — nothing was copied.";
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      navigator.clipboard.writeText(payload).then(
+        function () {
+          copyToast("ok", okMsg);
+        },
+        function () {
+          copyToast("err", errMsg);
+        },
+      );
+    } else {
+      copyToast("err", errMsg);
+    }
+  });
+  // =================== end T17 client pack A block ===================
 })();

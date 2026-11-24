@@ -205,7 +205,12 @@ func TestUserSearch_SearchInputRidesTheLadder(t *testing.T) {
 		`hx-post="/admin/users/search"`,
 		`hx-query=""`,
 		`hx-target="#users-table"`,
-		`hx-indicator="#users-search-spinner"`,
+		// T17 F124/F125: the skeleton region is the indicator — hidden in
+		// the server render (.htmx-indicator), spent by admin.js after the
+		// first swap so loaded data never flashes a skeleton.
+		`hx-indicator="#users-skeleton"`,
+		`id="users-skeleton"`,
+		`class="htmx-indicator"`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("search form missing %q", want)

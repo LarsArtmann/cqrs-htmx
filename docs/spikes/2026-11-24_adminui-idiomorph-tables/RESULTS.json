@@ -1,0 +1,20 @@
+[
+  {
+    "variant": "innerHTML",
+    "rounds": 50,
+    "nodesAdded": 20000,
+    "nodesRemoved": 20000,
+    "focusKept": 0,
+    "focusKeptPct": 0,
+    "swapMs": 47
+  },
+  {
+    "variant": "idiomorph",
+    "rounds": 50,
+    "nodesAdded": 0,
+    "nodesRemoved": 0,
+    "focusKept": 50,
+    "focusKeptPct": 100,
+    "swapMs": 339
+  }
+]

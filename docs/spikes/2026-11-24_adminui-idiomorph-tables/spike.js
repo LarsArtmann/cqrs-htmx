@@ -50,7 +50,7 @@ function makeCounter() {
   };
 }
 
-function runVariant(name, swapFn, tbodyId, counterTarget) {
+async function runVariant(name, swapFn, tbodyId, counterTarget) {
   render(tbodyId, 0);
   const counter = makeCounter();
   counter.start(counterTarget);
@@ -65,13 +65,15 @@ function runVariant(name, swapFn, tbodyId, counterTarget) {
     const after = document.activeElement;
     if (after === before || (before && after && after.id === before.id)) focusKept++;
   }
+  // MutationObserver delivers records on a microtask — flush before reading.
+  await new Promise((r) => setTimeout(r, 50));
   const churn = counter.stop();
   return { variant: name, rounds: ROUNDS, nodesAdded: churn.added, nodesRemoved: churn.removed, focusKept, focusKeptPct: Math.round((100 * focusKept) / ROUNDS) };
 }
 
 const results = [
-  runVariant("innerHTML", render, "a-body", document.getElementById("a-table")),
-  runVariant("idiomorph", morph, "b-body", document.getElementById("b-table")),
+  await runVariant("innerHTML", render, "a-body", document.getElementById("a-table")),
+  await runVariant("idiomorph", morph, "b-body", document.getElementById("b-table")),
 ];
 
 // Timing (coarse; shared machine, advisory only).

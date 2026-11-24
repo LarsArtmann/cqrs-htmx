@@ -1,10 +1,6 @@
 package adminui
 
-import (
-	"encoding/json"
-
-	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-)
+import "encoding/json"
 
 // userCopySnapshot is the JSON payload behind the detail page's
 // copy-row-as-JSON support action (T17 F128): the account facts an admin
@@ -21,7 +17,8 @@ type userCopySnapshot struct {
 
 // userCopyJSON marshals the snapshot. Marshal of this plain-string/bool
 // struct cannot fail in practice; the error arm degrades to an empty object
-// rather than shipping a half-written payload attribute.
+// rather than shipping a half-written payload attribute. The timestamp is
+// UTC (gosmopolitan: no time.Local anywhere).
 func userCopyJSON(d userDetailData) string {
 	snap := userCopySnapshot{
 		ID:          d.User.ID.Get().String(),
@@ -36,9 +33,6 @@ func userCopyJSON(d userDetailData) string {
 	}
 	return string(b)
 }
-
-// _, _ = identitymodel.User{} — placates the import until referenced below.
-var _ = identitymodel.User{} //nolint:gochecknoglobals // compile-time pin only
 
 // clientPackSkeletonID is the DOM id of the users list's first-load skeleton
 // (T17 F124/F125). Server-rendered markup carries it hidden via the
