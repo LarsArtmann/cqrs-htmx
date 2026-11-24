@@ -108,7 +108,9 @@ func TestPanel_UsersFilteredExport_HonorsState(t *testing.T) {
 	}
 
 	// The status chip narrows too: mfa keeps nobody (no seeded user has TOTP).
-	if got := get("/admin/users/export.filtered.csv?filter=mfa").Body.String(); got != "id,email,display_name,email_verified,totp_enabled\n" {
+	if got := get(
+		"/admin/users/export.filtered.csv?filter=mfa",
+	).Body.String(); got != "id,email,display_name,email_verified,totp_enabled\n" {
 		t.Errorf("filter=mfa export must be header-only for a TOTP-less directory, got %q", got)
 	}
 
@@ -117,7 +119,7 @@ func TestPanel_UsersFilteredExport_HonorsState(t *testing.T) {
 	iAlice := strings.Index(sorted, "alice@x.dev")
 	iBea := strings.Index(sorted, "bea@x.dev")
 	iCarol := strings.Index(sorted, "carol@x.dev")
-	if iAlice < 0 || iBea < 0 || iCarol < 0 || !(iAlice < iBea && iBea < iCarol) {
+	if iAlice < 0 || iBea < 0 || iCarol < 0 || (iAlice >= iBea || iBea >= iCarol) {
 		t.Errorf("sort=email must order the exported rows, got %q", sorted)
 	}
 
@@ -235,7 +237,11 @@ func TestPanel_AuditExport(t *testing.T) {
 	// role grant), so the exact total is the Service's business — the export's
 	// business is that count, entries, and window facts agree.
 	if doc.Count != len(doc.Entries) || doc.Count < 3 {
-		t.Errorf("audit JSON count and entries must agree and be non-trivial, got count=%d entries=%d", doc.Count, len(doc.Entries))
+		t.Errorf(
+			"audit JSON count and entries must agree and be non-trivial, got count=%d entries=%d",
+			doc.Count,
+			len(doc.Entries),
+		)
 	}
 	if doc.Window.Holds < doc.Count || doc.Window.Limit <= 0 {
 		t.Errorf("audit JSON window facts must be present, got %+v", doc.Window)

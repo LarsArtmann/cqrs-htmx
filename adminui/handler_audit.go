@@ -369,7 +369,12 @@ func (f auditExportFilters) describe() string {
 // writeAuditCSV streams the filtered entries as CSV led by "# " comment
 // lines: the window caption, the filter state, and the row count — a file
 // that says what it covers before the first data row.
-func writeAuditCSV(w io.Writer, entries []usermgmt.AuditEntry, filters auditExportFilters, window auditWindowFacts) error {
+func writeAuditCSV(
+	w io.Writer,
+	entries []usermgmt.AuditEntry,
+	filters auditExportFilters,
+	window auditWindowFacts,
+) error {
 	cw := csv.NewWriter(w)
 	caption := []string{
 		"Audit export — filtered view of the in-memory audit window.",
@@ -381,10 +386,16 @@ func writeAuditCSV(w io.Writer, entries []usermgmt.AuditEntry, filters auditExpo
 	caption = append(caption, strconv.Itoa(len(entries))+" entries exported.")
 	for _, line := range caption {
 		if err := cw.Write([]string{"# " + line}); err != nil {
-			return errorfamily.WrapTransient(err, "adminui.audit_export.csv_caption_failed", "write audit export caption")
+			return errorfamily.WrapTransient(
+				err,
+				"adminui.audit_export.csv_caption_failed",
+				"write audit export caption",
+			)
 		}
 	}
-	if err := cw.Write([]string{"action", "actor_email", "aggregate_id", "occurred_at", "actor_kind", "detail"}); err != nil {
+	if err := cw.Write(
+		[]string{"action", "actor_email", "aggregate_id", "occurred_at", "actor_kind", "detail"},
+	); err != nil {
 		return errorfamily.WrapTransient(err, "adminui.audit_export.csv_header_failed", "write audit export header")
 	}
 	for _, e := range entries {
@@ -406,7 +417,12 @@ func writeAuditCSV(w io.Writer, entries []usermgmt.AuditEntry, filters auditExpo
 // writeAuditJSON streams the filtered entries as one envelope object: the
 // window facts, the filter state, and the count travel WITH the entries, so
 // a reader can tell what the file covers without the page.
-func writeAuditJSON(w io.Writer, entries []usermgmt.AuditEntry, filters auditExportFilters, window auditWindowFacts) error {
+func writeAuditJSON(
+	w io.Writer,
+	entries []usermgmt.AuditEntry,
+	filters auditExportFilters,
+	window auditWindowFacts,
+) error {
 	doc := auditExportDoc{
 		Window:  window,
 		Filters: filters,
@@ -415,7 +431,11 @@ func writeAuditJSON(w io.Writer, entries []usermgmt.AuditEntry, filters auditExp
 	}
 	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 	if err := json.MarshalEncode(enc, doc); err != nil {
-		return errorfamily.WrapInfrastructure(err, "adminui.audit_export.json_encode_failed", "encode audit export JSON")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"adminui.audit_export.json_encode_failed",
+			"encode audit export JSON",
+		)
 	}
 	return nil
 }

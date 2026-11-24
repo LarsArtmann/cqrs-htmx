@@ -174,29 +174,48 @@ func TestPagerWindow(t *testing.T) {
 			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
 		}},
 		{"first page of many", 1, 10, []pagerStep{
-			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
-			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+			{Page: 1, Ellipsis: false},
+			{Page: 2, Ellipsis: false},
+			{Page: 3, Ellipsis: false},
+			{Page: 0, Ellipsis: true},
+			{Page: 10, Ellipsis: false},
 		}},
 		{"second page still hugs the start", 2, 10, []pagerStep{
-			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
-			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+			{Page: 1, Ellipsis: false},
+			{Page: 2, Ellipsis: false},
+			{Page: 3, Ellipsis: false},
+			{Page: 0, Ellipsis: true},
+			{Page: 10, Ellipsis: false},
 		}},
 		{"middle page is the 1 … 4 5 6 … N shape", 5, 10, []pagerStep{
-			{Page: 1, Ellipsis: false}, {Page: 0, Ellipsis: true},
-			{Page: 4, Ellipsis: false}, {Page: 5, Ellipsis: false}, {Page: 6, Ellipsis: false},
-			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+			{Page: 1, Ellipsis: false},
+			{Page: 0, Ellipsis: true},
+			{Page: 4, Ellipsis: false},
+			{Page: 5, Ellipsis: false},
+			{Page: 6, Ellipsis: false},
+			{Page: 0, Ellipsis: true},
+			{Page: 10, Ellipsis: false},
 		}},
 		{"last page hugs the end", 10, 10, []pagerStep{
-			{Page: 1, Ellipsis: false}, {Page: 0, Ellipsis: true},
-			{Page: 8, Ellipsis: false}, {Page: 9, Ellipsis: false}, {Page: 10, Ellipsis: false},
+			{Page: 1, Ellipsis: false},
+			{Page: 0, Ellipsis: true},
+			{Page: 8, Ellipsis: false},
+			{Page: 9, Ellipsis: false},
+			{Page: 10, Ellipsis: false},
 		}},
 		{"beyond range clamps to last", 99, 10, []pagerStep{
-			{Page: 1, Ellipsis: false}, {Page: 0, Ellipsis: true},
-			{Page: 8, Ellipsis: false}, {Page: 9, Ellipsis: false}, {Page: 10, Ellipsis: false},
+			{Page: 1, Ellipsis: false},
+			{Page: 0, Ellipsis: true},
+			{Page: 8, Ellipsis: false},
+			{Page: 9, Ellipsis: false},
+			{Page: 10, Ellipsis: false},
 		}},
 		{"before range clamps to first", 0, 10, []pagerStep{
-			{Page: 1, Ellipsis: false}, {Page: 2, Ellipsis: false}, {Page: 3, Ellipsis: false},
-			{Page: 0, Ellipsis: true}, {Page: 10, Ellipsis: false},
+			{Page: 1, Ellipsis: false},
+			{Page: 2, Ellipsis: false},
+			{Page: 3, Ellipsis: false},
+			{Page: 0, Ellipsis: true},
+			{Page: 10, Ellipsis: false},
 		}},
 	}
 
@@ -204,7 +223,14 @@ func TestPagerWindow(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := pagerWindow(tt.page, tt.total)
 			if len(got) != len(tt.want) {
-				t.Fatalf("pagerWindow(%d, %d): got %d steps, want %d: %+v", tt.page, tt.total, len(got), len(tt.want), got)
+				t.Fatalf(
+					"pagerWindow(%d, %d): got %d steps, want %d: %+v",
+					tt.page,
+					tt.total,
+					len(got),
+					len(tt.want),
+					got,
+				)
 			}
 			for i := range got {
 				if got[i] != (pagerStep{Page: tt.want[i].Page, Ellipsis: tt.want[i].Ellipsis}) {
@@ -222,7 +248,10 @@ func TestPagerPageURL_PreservesState(t *testing.T) {
 	if got := pagerPageURL("/admin/users", 2); got != "/admin/users?page=2" {
 		t.Errorf("bare base: got %q, want /admin/users?page=2", got)
 	}
-	if got := pagerPageURL("/admin/users?filter=mfa&q=a&sort=created", 2); got != "/admin/users?filter=mfa&page=2&q=a&sort=created" {
+	if got := pagerPageURL(
+		"/admin/users?filter=mfa&q=a&sort=created",
+		2,
+	); got != "/admin/users?filter=mfa&page=2&q=a&sort=created" {
 		t.Errorf("full state: got %q", got)
 	}
 	if got := pagerPageURL("/admin/users?page=5&q=a", 7); got != "/admin/users?page=7&q=a" {

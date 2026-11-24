@@ -121,7 +121,13 @@ func (az *renderAuthz) tenantCountFor(id string) int {
 	return count
 }
 
-func (h *Handler) usersIndexData(ctx context.Context, q string, filter userFilter, page int, sort string) usersListData {
+func (h *Handler) usersIndexData(
+	ctx context.Context,
+	q string,
+	filter userFilter,
+	page int,
+	sort string,
+) usersListData {
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
 	az := newRenderAuthz(ctx, h.config.Service)
 	if filter == userFilterAdmin {

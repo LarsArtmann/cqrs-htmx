@@ -42,6 +42,15 @@
   --accent: #4f46e5;
   --accent-weak: color-mix(in srgb, var(--accent) 14%, transparent);
   --accent-text: color-mix(in srgb, var(--accent) 78%, white);
+  /* T15 contrast pass (2026-11-24): the fill the panel puts UNDER white
+     text (brand tile, active nav link, primary buttons, avatar tile) is
+     the readable-accent mix, not the raw accent — a light deployment
+     accent (e.g. the demo's #0ea5e9) leaves white text at 2.77:1, well
+     under the WCAG AA 4.5:1 bar. Mixing 70% accent + 30% ink keeps the
+     hue while guaranteeing >=4.7:1 for white text on ANY accent hue
+     (measured for #0ea5e9 and #4f46e5). Pure accent stays for
+     non-text-bearing uses (weak tints, --accent-text, focus rings). */
+  --accent-readable: color-mix(in srgb, var(--accent) 70%, #0f172a);
 
   --radius: 10px;
   --radius-sm: 7px;
@@ -60,7 +69,7 @@
   --sidebar-fg-strong: #f8fafc;
   --sidebar-hover: rgba(255, 255, 255, 0.07);
   --text: #0f172a;
-  --muted: #64748b;
+  --muted: #475569;
   --border: #e6e8ec;
   --border-strong: #d1d5db;
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.06);
@@ -96,7 +105,8 @@ html.dark {
 /* Maps adminui CSS variables to Tailwind utility classes so both
    `bg-gray-100` and `var(--bg)` produce the same color. */
 @theme {
-  --color-blue-600: var(--accent);
+  /* The 600 step is the text-bearing fill: see --accent-readable above. */
+  --color-blue-600: var(--accent-readable);
   --color-blue-500: color-mix(in srgb, var(--accent) 85%, white);
 
   /* ADR-0049 (templ-components v1.27.2): library components emit accent-*
@@ -104,7 +114,7 @@ html.dark {
      branded shades mirror the blue mappings above (pixel-identical swap);
      the rest keep Tailwind's literal blue defaults per the upstream
      starter block. */
-  --color-accent-600: var(--accent);
+  --color-accent-600: var(--accent-readable);
   --color-accent-500: color-mix(in srgb, var(--accent) 85%, white);
   --color-accent-400: oklch(70.7% 0.165 254.624);
   --color-accent-700: oklch(48.8% 0.243 264.376);
@@ -117,7 +127,14 @@ html.dark {
   --color-gray-100: var(--bg);
   --color-gray-200: var(--border);
   --color-gray-300: var(--border-strong);
-  --color-gray-400: var(--sidebar-fg);
+  /* T15 contrast pass (2026-11-24): gray-400 used to map to the light-mode
+     sidebar foreground (#cbd5e1) — a DARK-SURFACE color that, applied to
+     light-surface text (the library's PolledRegion "Updated" stamp and any
+     text-gray-400 metadata), computed to ~1.4:1 on the panel background.
+     The metadata ramp floor is the muted token (slate-600, 7.07:1 on
+     --bg); gray-400 stays a valid MUTED step, never a near-white one.
+     Dark-surface text is pinned per-scope (see .admin-sidebar-scope). */
+  --color-gray-400: var(--muted);
   --color-gray-500: var(--muted);
   --color-gray-600: var(--muted);
   --color-gray-700: var(--muted);
@@ -149,7 +166,8 @@ body {
    drops inline style="" attributes — nonces never authorize attributes —
    so var(--accent) theming must go through classes instead. */
 .admin-accent-bg {
-  background-color: var(--accent);
+  /* Readable-accent fill: this class exists to sit under white text. */
+  background-color: var(--accent-readable);
 }
 
 /* AppShell emits its sidebar-width custom property (--tc-sidebar-w) as an
@@ -163,6 +181,20 @@ body {
 .admin-shell {
   --tc-sidebar-w: 16rem;
   --tc-sidebar-bg: #111827;
+}
+
+/* T15 contrast pass (2026-11-24): the library's sidebar surfaces color
+   their secondary text with the muted ramp (slate-500/600 classes), which
+   lands at 3.73:1 on the pinned dark sidebar (#111827) — under the WCAG AA
+   4.5:1 bar for small text. Pin that ramp to slate-400 (6.92:1) inside the
+   sidebar scope so the library's nav/menu/footer hints pass without
+   forking the component; this must stay scoped — the same muted value IS
+   correct on the panel's light surfaces. */
+.admin-sidebar-scope .text-slate-500,
+.admin-sidebar-scope .text-slate-600,
+.admin-sidebar-scope .text-gray-500,
+.admin-sidebar-scope .text-gray-600 {
+  color: #94a3b8;
 }
 
 /* SidebarNav colors its inactive links with Tailwind's literal palette
