@@ -23,6 +23,18 @@ func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*T
 		return nil, errorfamily.NewRejection("usermgmt.tenant.name_required", "tenant name is required")
 	}
 
+	if s.uniqueTenantNames {
+		if existing, ok := s.tenantReadModel.FindByNormalizedName(req.Name); ok &&
+			existing.ID.Get() != req.ID.Get() {
+			return nil, errorfamily.NewConflict(
+				"usermgmt.tenant.name_exists",
+				"a live tenant already uses this name (case and spacing ignored)",
+			).
+				WithContext("existing_tenant_id", existing.ID.Get()).
+				WithContext("existing_tenant_name", existing.Name)
+		}
+	}
+
 	aggID, err := aggIDFromTenant(req.ID)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")

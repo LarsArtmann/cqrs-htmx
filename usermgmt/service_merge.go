@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"slices"
+	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -310,4 +311,54 @@ func unionRoles(a, b []Role) []Role {
 		}
 	}
 	return merged
+}
+
+// DuplicateUserGroup names one cluster of duplicate users. A cluster is
+// either every live user sharing one email (Key = the email, Account empty)
+// or every live user sharing one external account (Account = "provider/subject",
+// Key empty). The admin picks a survivor and calls [Service.MergeUsers].
+type DuplicateUserGroup struct {
+	Key     string  `json:"key,omitempty"`
+	Account string  `json:"account,omitempty"`
+	Users   []*User `json:"users"`
+}
+
+// DuplicateUsers reports every cluster of live users a human would call the
+// same person: identical emails, or one identity-provider subject linked to
+// more than one row. Emails compare after lowercasing and trimming; the live
+// deployment's nine-row human (issue #46) surfaced through exactly these
+// signals.
+func (s *Service) DuplicateUsers(_ context.Context) []DuplicateUserGroup {
+	byEmail := make(map[string][]*User)
+	byAccount := make(map[string][]*User)
+	for _, user := range s.readModel.AllUsers() {
+		emailKey := normalizeEmailKey(user.Email)
+		byEmail[emailKey] = append(byEmail[emailKey], user)
+		for _, account := range user.ExternalAccounts {
+			key := account.Provider + "/" + account.Subject
+			byAccount[key] = append(byAccount[key], user)
+		}
+	}
+	groups := make([]DuplicateUserGroup, 0)
+	for email, users := range byEmail {
+		if len(users) > 1 {
+			groups = append(groups, DuplicateUserGroup{Key: email, Users: users})
+		}
+	}
+	for account, users := range byAccount {
+		if len(users) > 1 {
+			groups = append(groups, DuplicateUserGroup{Account: account, Users: users})
+		}
+	}
+	slices.SortFunc(groups, func(a, b DuplicateUserGroup) int {
+		if a.Account != b.Account {
+			return strings.Compare(a.Account, b.Account)
+		}
+		return strings.Compare(a.Key, b.Key)
+	})
+	return groups
+}
+
+func normalizeEmailKey(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
 }

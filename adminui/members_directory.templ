@@ -87,17 +87,18 @@ templ membersDirectoryChip(d membersDirectoryData, family, value, label string, 
 		<a
 			class="rounded-full px-2.5 py-0.5 text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
 			href={ membersDirectoryChipURL(d, family, value) }
+		>{ label } ({ strconv.Itoa(count) })</a>
 	}
 }
 
 // membersDirectoryChipURL builds a chip href: toggling a chip keeps the other
 // family's filter, the search, and the ordering.
-templ membersDirectoryChipURL(d membersDirectoryData, family, value string) {
+func membersDirectoryChipURL(d membersDirectoryData, family, value string) string {
 	if family == "role" {
-		@templ.URL(membersDirectoryURL(d.BasePath, withDirectoryChip(d, d.TenantFilter, value)))
-	} else {
-		@templ.URL(membersDirectoryURL(d.BasePath, withDirectoryChip(d, value, d.RoleFilter)))
+		return membersDirectoryURL(d.BasePath, withDirectoryChip(d, d.TenantFilter, value))
 	}
+
+	return membersDirectoryURL(d.BasePath, withDirectoryChip(d, value, d.RoleFilter))
 }
 
 // withDirectoryChip returns d with one chip family's active value replaced.

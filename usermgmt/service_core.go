@@ -61,6 +61,7 @@ type Service struct {
 	stopLockoutEviction      func()
 	stopCommandIdemSweeper   func()
 	tokenPepper              TokenPepper
+	uniqueTenantNames        bool
 	projectionHost           *projectionhost.Host
 	checkpointStore          event.CheckpointStore
 	projections              []projection.Projection
@@ -239,6 +240,13 @@ type ServiceConfig struct {
 	// secrets manager or environment variable). When nil, RegisterBot and
 	// ResolveBotByToken return errors.
 	TokenPepper TokenPepper
+
+	// UniqueTenantNames, when true, makes CreateTenant refuse a name whose
+	// normalized form (trimmed, lowercased — see identitymodel.NormalizeTenantName)
+	// matches a live tenant. The default keeps the historical behaviour:
+	// duplicate tenant names are allowed and surfaced by DuplicateTenants
+	// for an admin to merge (issue #47).
+	UniqueTenantNames bool
 
 	// DrainTimeout is the maximum time to wait for projection workers to finish
 	// their initial journal drain during startup. Defaults to 30 seconds when

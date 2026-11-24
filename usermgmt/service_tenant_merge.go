@@ -3,8 +3,10 @@ package usermgmt
 import (
 	"context"
 	"slices"
+	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -58,7 +60,7 @@ func (s *Service) MergeTenants(
 
 	recordCmd := identitymodel.NewMergeTenantsCmd(survivorAggID, liveLosers, reason)
 	if err := s.dispatcher.Dispatch(ctx, recordCmd); err != nil {
-		return classifyDispatchError(err, survivorID, "reason", reason)
+		return err //nolint:wrapcheck // decider returns typed domain errors
 	}
 
 	for _, loserID := range liveLosers {
@@ -153,24 +155,24 @@ func (s *Service) moveTenantRoster(ctx context.Context, survivorID, loserID Tena
 		if found {
 			update := NewUpdateMemberRolesCmd(mem.ActorID, survivorID, merged)
 			if err := s.dispatcher.Dispatch(ctx, update); err != nil {
-				return classifyDispatchError(err, survivorID,
-					"actor_id", mem.ActorID.String(),
-					"loser_id", loserID.Get(),
-				)
+				return errorfamily.Wrapf(err, event.Conflict, "usermgmt.merge_tenants.roster_move_failed",
+					"move one member to the survivor").WithContextAny("loser_id", loserID.Get()).
+					WithContextAny("survivor_id", survivorID.Get()).
+					WithContextAny("actor_id", mem.ActorID.String())
 			}
 		} else {
 			if err := s.dispatcher.Dispatch(ctx, NewAddMemberCmd(mem.ActorID, survivorID, merged)); err != nil {
-				return classifyDispatchError(err, survivorID,
-					"actor_id", mem.ActorID.String(),
-					"loser_id", loserID.Get(),
-				)
+				return errorfamily.Wrapf(err, event.Conflict, "usermgmt.merge_tenants.roster_move_failed",
+					"move one member to the survivor").WithContextAny("loser_id", loserID.Get()).
+					WithContextAny("survivor_id", survivorID.Get()).
+					WithContextAny("actor_id", mem.ActorID.String())
 			}
 		}
 		if err := s.dispatcher.Dispatch(ctx, NewRemoveMemberCmd(mem.ActorID, loserID)); err != nil {
-			return classifyDispatchError(err, loserID,
-				"actor_id", mem.ActorID.String(),
-				"survivor_id", survivorID.Get(),
-			)
+			return errorfamily.Wrapf(err, event.Conflict, "usermgmt.merge_tenants.roster_move_failed",
+				"retire one member of the loser").WithContextAny("loser_id", loserID.Get()).
+				WithContextAny("survivor_id", survivorID.Get()).
+				WithContextAny("actor_id", mem.ActorID.String())
 		}
 	}
 	return nil
@@ -188,7 +190,7 @@ func (s *Service) retireMergeTenantLosers(
 		}
 		tombstone := identitymodel.NewMergeTenantIntoCmd(loserAggID, survivorID, reason)
 		if err := s.dispatcher.Dispatch(ctx, tombstone); err != nil {
-			return classifyDispatchError(err, loserID, "survivor_id", survivorID.Get())
+			return err //nolint:wrapcheck // decider returns typed domain errors
 		}
 	}
 	return nil
@@ -243,7 +245,7 @@ func (s *Service) DuplicateTenants(_ context.Context) []DuplicateTenantGroup {
 		}
 	}
 	slices.SortFunc(groups, func(a, b DuplicateTenantGroup) int {
-		return strings_Compare(a.NormalizedName, b.NormalizedName)
+		return strings.Compare(a.NormalizedName, b.NormalizedName)
 	})
 	return groups
 }

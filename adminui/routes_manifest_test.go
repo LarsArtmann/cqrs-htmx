@@ -91,6 +91,7 @@ func TestRoutes_ManifestGolden(t *testing.T) {
 		"POST /tenants/{id}/members role Tenants",
 		"POST /tenants/{id}/members/{actor}/delete role Tenants",
 		"POST /tenants/{id}/members/{actor} role Tenants",
+		"GET /members role Members",
 		"GET /* role Fallback",
 		"* /* public Fallback",
 	}, "\n")

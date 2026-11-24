@@ -111,15 +111,22 @@ func tenantSwitchItems(p pageData) []display.DropdownItem {
 // statCard is one metric tile on the dashboard. Tone and Href are optional
 // enrichment: the tone colors the icon tile (semantic — blue for people,
 // purple for tenants, green for audit volume), and Href turns the card into
-// a drill-down link. Change/Trend stay unset on purpose (honest UI): the
-// handler has no period-over-period data, and decorative numbers are worse
-// than none.
+// a drill-down link. Change/Trend carry the audit-window delta: they are set
+// ONLY from real window math — a window that cannot support a comparison
+// (zero events) leaves them empty so the card renders no change at all
+// instead of a fabricated "0% → 0%" stability claim.
 type statCard struct {
 	Label string
 	Value string
 	Icon  string
 	Tone  display.StatTone
 	Href  string
+	// Change is the signed delta between the window's later half and its
+	// earlier half (e.g. "+2", "−1", "±0"). Empty = no honest comparison.
+	Change string
+	// Trend colors the Change: TrendUp/TrendDown for real deltas, TrendNone
+	// when the window is empty or the counts are equal.
+	Trend display.TrendDirection
 }
 
 // classNoUnderline is the anchor-decoration suppressor shared by linked
@@ -145,6 +152,22 @@ func tenantSubtitle(t *usermgmt.Tenant) string {
 	return t.DisplayName + " · " + t.Name
 }
 
+// dayCount is one day's event count for the registrations sparkline. Day is
+// the local date's midnight; Count includes that day.
+type dayCount struct {
+	Day   time.Time
+	Count int
+}
+
+// auditWindowSpan is the oldest→newest reach of the audit window's retained
+// entries. HasSpan is false when the window holds no entries — an empty
+// window gets no caption dates because there are none to state.
+type auditWindowSpan struct {
+	From    time.Time
+	To      time.Time
+	HasSpan bool
+}
+
 // dashboardData drives the overview page.
 type dashboardData struct {
 	Stats    []statCard
@@ -155,6 +178,21 @@ type dashboardData struct {
 	// wildcard domain — the panel is one custom authorizer away from being
 	// unreachable, and the dashboard says so instead of staying quiet.
 	NoAdminGrant bool
+	// BusFactor is true when exactly ONE user holds every admin-tier grant
+	// in the wildcard domain: one departure locks the platform out. The
+	// banner names the risk instead of letting a single point of failure
+	// stay invisible.
+	BusFactor bool
+	// Window is the audit projection's retention picture backing every
+	// derived card. Zero facts render no caption.
+	Window auditWindowFacts
+	// WindowSpan is the oldest→newest reach of the retained entries, so the
+	// honesty caption can state what the window covers ("from X to Y").
+	WindowSpan auditWindowSpan
+	// Registrations is the per-day registration count for the sparkline
+	// (oldest → newest across a trailing fixed range). Nil when no audit
+	// log exists.
+	Registrations []dayCount
 }
 
 // listPage carries the pagination footer state shared by all list pages.

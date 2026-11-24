@@ -238,6 +238,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 	svc.wireLockoutEviction()
 
 	svc.tokenPepper = config.TokenPepper
+	svc.uniqueTenantNames = config.UniqueTenantNames
 	svc.maxUsers = config.MaxUsers
 
 	return svc, nil

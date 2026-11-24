@@ -173,7 +173,7 @@ func (h *Handler) membersDirectory(w http.ResponseWriter, r *http.Request, user 
 		if tenantFilter != "" && (row.Tenant == nil || row.Tenant.ID.Get() != tenantFilter) {
 			continue
 		}
-		if roleFilter != "" && !row.HasRole(identitymodel.Role(roleFilter)) {
+		if roleFilter != "" && !hasRole(row.Roles, identitymodel.Role(roleFilter)) {
 			continue
 		}
 		if !matchesDirectorySearch(row, q) {
@@ -209,7 +209,7 @@ func (h *Handler) directoryTenantChips(rows []membersDirectoryRow, q, roleFilter
 		if row.Tenant == nil || !matchesDirectorySearch(row, q) {
 			continue
 		}
-		if roleFilter != "" && !row.HasRole(identitymodel.Role(roleFilter)) {
+		if roleFilter != "" && !hasRole(row.Roles, identitymodel.Role(roleFilter)) {
 			continue
 		}
 		counts[row.Tenant.ID.Get()]++
