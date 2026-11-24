@@ -147,6 +147,16 @@ export default defineConfig({
             ],
             use: {
               ...devices["Desktop Safari"],
+              // Headed webkit on this dev X stack (xwayland-satellite)
+              // cannot satisfy Emulation.setDeviceMetricsOverride ("Failed
+              // to resize window" — hit live 2026-11-24), so viewport
+              // emulation is OFF: the window renders at its own size. The
+              // admin specs assert DOM facts, never pixels, so the viewport
+              // is irrelevant to every assertion in the smoke subset.
+              viewport: null,
+              // null viewport forbids a deviceScaleFactor (Playwright
+              // rejects the combination outright).
+              deviceScaleFactor: undefined,
               launchOptions: {
                 executablePath: process.env.E2E_WEBKIT_PATH || undefined,
                 // The prebuilt webkit needs a nixpkgs lib forest on NixOS
