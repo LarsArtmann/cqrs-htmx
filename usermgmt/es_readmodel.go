@@ -234,11 +234,34 @@ func (m *UserReadModel) handleUserDeleted(aggID id.StreamID, _ event.Event) erro
 // bring a merged identity back. UserMergedInto itself stays applicable so a
 // re-delivered retirement lands as the no-op it is.
 func (m *UserReadModel) dropOnRetiredStream(aggID id.StreamID, evt event.Event) bool {
-	if evt.Type() == eventUserMergedInto {
-		return false
-	}
+	return evt.Type() != eventUserMergedInto && m.isRetired(aggID)
+}
+
+// isRetired reports whether the stream was merged away. Callers hold at least
+// a read lock.
+func (m *UserReadModel) isRetired(aggID id.StreamID) bool {
 	_, retired := m.mergedInto[aggID]
 	return retired
+}
+
+// Retired reports whether the stream was merged away into a survivor. Unlike
+// the finders it does not follow the pointer. The SQL read model uses it to
+// keep a retired stream out of its table.
+func (m *UserReadModel) Retired(aggID id.StreamID) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.isRetired(aggID)
+}
+
+// MergeTarget names the survivor a merged-away stream points at, without
+// following the chain, and reports whether the stream is merged at all. A
+// service that must tell a merged identity from a live one asks here; a
+// lookup that wants the live user uses [UserReadModel.FindByID].
+func (m *UserReadModel) MergeTarget(aggID id.StreamID) (id.StreamID, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	survivor, merged := m.mergedInto[aggID]
+	return survivor, merged
 }
 
 // handleUserMerged records on the survivor which identities it absorbed.
@@ -443,6 +466,20 @@ func (m *UserReadModel) resolve(aggID id.StreamID) id.StreamID {
 // lock. A missing row answers not-found rather than a nil user, so an index
 // entry that outlived its row can never leak a nil clone.
 func (m *UserReadModel) live(aggID id.StreamID) (*User, bool) {
+	u, ok := m.users[aggID]
+	if !ok {
+		return nil, false
+	}
+	return u.Clone(), true
+}
+
+// row returns a copy of what is stored on aggID itself. Unlike the finders it
+// does not follow a merge pointer: a merged stream answers not-found here
+// while FindByID answers with its survivor. Callers need the user as it was
+// before a merge retires it.
+func (m *UserReadModel) row(aggID id.StreamID) (*User, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	u, ok := m.users[aggID]
 	if !ok {
 		return nil, false
