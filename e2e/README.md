@@ -51,20 +51,44 @@ battery. The leg is ADVISORY (kill point K-T28): the CI step runs with
 
 Provisioning (gotcha 66 — ONLY the repo's own pinned driver installer, so
 the downloaded build is by construction the revision THAT driver expects;
-never copy a browser tree from another host/cache/nix store):
+never copy a browser tree from another host/cache/nix store), then a no-op
+re-run of the installer before the first spec:
 
 ```bash
 cd e2e && PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 \
   PLAYWRIGHT_BROWSERS_PATH=/mnt/buildcache/playwright \
-  ./node_modules/.bin/playwright install webkit
+  ./node_modules/.bin/playwright install webkit   # driver pins webkit-2388
 ```
 
-After provisioning, re-run the installer and require a no-op, then one
-smoke spec (`--project=webkit tests/admin-csrf.spec.ts`) before anything
-wider. On NixOS the prebuilt webkit needs a lib forest like firefox — set
-`E2E_WEBKIT_PATH` to the cached executable and `E2E_WEBKIT_LIBS` to the
-forest, both injected per-launch by the config (a runner-wide
-LD_LIBRARY_PATH would poison the chromium children).
+On NixOS the WPE MiniBrowser needs a lib forest the shared chromium/firefox
+one doesn't cover (~40 libs: the gstreamer stack, icu74, enchant, ...) plus
+three live traps: `libjpeg8`/`libopus` are the attrs with the sonames
+webkit-2388 links (`libjpeg` here is the 62-ABI; `opus` is static-only),
+and hb-icu comes from an Ubuntu .deb — harfbuzz dropped the API upstream
+while webkit-2388 hard-needs it (`WPEWebProcess: undefined symbol:
+hb_icu_script_to_script` without it). Build the forest reproducibly with:
+
+```bash
+bash e2e/webkit-forest.sh          # → /tmp/webkit-forest/lib
+E2E_WEBKIT_PATH=/mnt/buildcache/playwright/webkit-2388/pw_run.sh \
+  E2E_WEBKIT_LIBS=/tmp/webkit-forest/lib \
+  ./node_modules/.bin/playwright test --project=webkit --reporter=line
+```
+
+The config auto-bypasses BOTH webkit launch wrappers (`pw_run.sh` and the
+zip bundle's own `MiniBrowser` script — each REBUILDS `LD_LIBRARY_PATH`
+for the browser child and would clobber the injection; first launch died
+on `libatk-1.0.so.0` with the forest already exported): it execs
+`minibrowser-wpe/bin/MiniBrowser` directly with the bundle env derived
+from `E2E_WEBKIT_PATH`. CI is unaffected (`E2E_WEBKIT=1` →
+registry-resolved executable + apt libs from `--with-deps`). The
+libxml2.so.2 → .so.16 shim in the forest is the FIRST suspect on any
+future XML-related webkit red.
+
+Receipt 2026-11-24: pinned-driver install + no-op re-run clean; webkit
+smoke 10/10 (admin-a11y + admin-tenant-access + admin-csrf), the same
+subset 10/10 under chromium, reproduced 10/10 from a fresh
+`webkit-forest.sh` build — first webkit-green run of this battery.
 
 > **Never `pnpm dlx playwright test`** (or `bunx playwright test` outside
 > `nix run .#e2e-firefox`, which resolves the local copy). A dlx'd standalone
