@@ -1,5 +1,9 @@
 # Status — Adminui Next-Wave Execution (Pareto Plan T01–T32)
 
+> **ANNOTATED 2026-11-24** — ~~this report~~ **SUPERSEDED** by [`2026-11-24_19-25_adminui-next-wave-execution-complete.md`](../2026-11-24_19-25_adminui-next-wave-execution-complete.md), which execution completed; this in-flight half is superseded by the corrected complete record. Strike depth:
+> supersession verdict (round-18 precedent for series-internal reports); nothing here is a
+> unique open item. **ARCHIVED 2026-11-24 (round-23 (2026-11-24)).**
+
 **Date:** 2026-11-24 09:16 · **Author:** Crush · **Session window:** 06:31 → 09:16
 **Task:** execute `docs/planning/2026-11-24_06-31_SUPERB-adminui-next-wave-pareto-plan.md` (the 100-idea adminui audit turned into 32 coarse / 229 fine tasks) via concurrent subagents, per the owner directive ("spawn subagents, keep 3 concurrent, do not stop until finished and verified").
 **Repo state at report time:** master ahead of origin by **53 commits** (push BLOCKED — see §d/f), working tree clean, adminui race suite green, adminui lint 0 issues.

@@ -4,7 +4,7 @@
 **Date:** 2026-11-24
 **Driver (owner):** GitHub issues #46 (user merge — the live deployment had
 nine user rows for one human) and #47 (tenant rename/merge).
-**Related:** [ADR 0060](0060-session-lifecycle-audit.md) (the audit-chain
+**Related:** [ADR 0060](0060-session-lifecycle-audit-events.md) (the audit-chain
 precedent for forensics), [ADR 0062](0062-direct-imports-only.md) (the
 no-new-aliases rule the merge symbols follow),
 [plan of record](../planning/2026-11-24_06-30_SUPERB-identity-merge-open-issue-wave-pareto-plan.md).
