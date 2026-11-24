@@ -122,8 +122,8 @@ const appkitDefaultDrainDelay = 2 * time.Second
 
 // appkitServiceConfig assembles the appkit.ServiceConfig for the bundle's
 // serve path: the SSE-safe timeout policy, the bundle readiness probe, and the
-// consumer-facing extras (Metrics, Version, and the three lifecycle-hook
-// seams forwarded from Config).
+// consumer-facing extras (Metrics, Version, ServerTiming, and the three
+// lifecycle-hook seams forwarded from Config).
 //
 //nolint:exhaustruct // optional appkit fields default sensibly inside appkit
 func (b *Bundle) appkitServiceConfig(
@@ -144,6 +144,7 @@ func (b *Bundle) appkitServiceConfig(
 		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready (see doc above)
 		Metrics:           b.config.Metrics,
 		Version:           b.config.Version,
+		ServerTiming:      b.config.AppkitServerTiming,
 		StartHooks:        b.config.AppkitStartHooks,
 		DrainHooks:        b.config.AppkitDrainHooks,
 		ShutdownHooks:     b.config.AppkitShutdownHooks,

@@ -355,6 +355,19 @@ type Config struct {
 	// Metrics is also set).
 	Version string
 
+	// AppkitServerTiming forwards to appkit.ServiceConfig.ServerTiming on
+	// the [Bundle.RunWithAppkit] path: go-appkit >= v0.10.0 mounts the W3C
+	// Server-Timing middleware OUTERMOST in its default stack, so every
+	// response carries `Server-Timing: total;dur=<ms>` (stamped at response
+	// commit, SSE-safe). Tri-state like appkit's own knob: nil = appkit
+	// default (header on), &false omits the middleware entirely, &true is
+	// the same as nil. RunWithAppkit-only; Run/RunHandler serve via
+	// httputil and never emit the header. This is a different mechanism
+	// from the root package's opt-in `cqrshtmx.Config.ServerTiming`
+	// predicate, which gates the cqrshtmx middleware on handlers you wire
+	// yourself.
+	AppkitServerTiming *bool
+
 	// AppkitStartHooks forward to the appkit service's StartHooks on the
 	// [Bundle.RunWithAppkit] path: they run once, in order, after the
 	// listener has bound but BEFORE serving begins — the seam for
