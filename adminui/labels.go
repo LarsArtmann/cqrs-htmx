@@ -151,6 +151,26 @@ const (
 	labelActionCopyJSONErr  = "action.copy_json_err"
 	labelActionCopyJSONNa   = "action.copy_json_unavailable"
 
+	labelMergePageUsers     = "merge.page_users"
+	labelMergePageTenants   = "merge.page_tenants"
+	labelMergeCrumbDups     = "merge.breadcrumb_duplicates"
+	labelMergeEmptyUsers    = "merge.empty_users"
+	labelMergeEmptyTenants  = "merge.empty_tenants"
+	labelMergeHeaderUser    = "merge.header_user"
+	labelMergeHeaderCreated = "merge.header_created"
+	labelMergeHeaderTenant  = "merge.header_tenant"
+	labelMergeHeaderRename  = "merge.header_rename"
+	labelMergeHeaderInto    = "merge.header_merge_into"
+	labelMergeActionMerge   = "merge.action_merge"
+	labelMergeActionRename  = "merge.action_rename"
+	labelMergeTitleEmail    = "merge.title_email"
+	labelMergeTitleExternal = "merge.title_external"
+	labelMergeTitleName     = "merge.title_name"
+	labelMergeAriaSurvivor  = "merge.aria_survivor"
+	labelMergeAriaReason    = "merge.aria_reason"
+	labelMergeAriaNewName   = "merge.aria_new_display_name"
+	labelMergePhReason      = "merge.placeholder_reason"
+
 	labelChipAll       = "chip.all"
 	labelChipActive    = "chip.active"
 	labelChipSuspended = "chip.suspended"
@@ -396,6 +416,26 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelActionCopyJSONOk:   "User copied as JSON.",
 	labelActionCopyJSONErr:  "Clipboard unavailable or denied — nothing was copied.",
 	labelActionCopyJSONNa:   "Snapshot unavailable — nothing was copied.",
+
+	labelMergePageUsers:     "Duplicate users",
+	labelMergePageTenants:   "Duplicate tenants",
+	labelMergeCrumbDups:     "Duplicates",
+	labelMergeEmptyUsers:    "No duplicate users: every email and external account belongs to one live row.",
+	labelMergeEmptyTenants:  "No duplicate tenants: every normalized name belongs to one live tenant.",
+	labelMergeHeaderUser:    "User",
+	labelMergeHeaderCreated: "Created",
+	labelMergeHeaderTenant:  "Tenant",
+	labelMergeHeaderRename:  "Rename",
+	labelMergeHeaderInto:    "Merge into",
+	labelMergeActionMerge:   "Merge",
+	labelMergeActionRename:  "Rename",
+	labelMergeTitleEmail:    "Email: %s",
+	labelMergeTitleExternal: "External account: %s",
+	labelMergeTitleName:     "Name: %s",
+	labelMergeAriaSurvivor:  "Survivor",
+	labelMergeAriaReason:    "Reason",
+	labelMergeAriaNewName:   "New display name",
+	labelMergePhReason:      "reason",
 
 	labelChipAll:       "All",
 	labelChipActive:    "Active",

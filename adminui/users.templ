@@ -637,7 +637,7 @@ templ userDetailContent(p pageData, d userDetailData) {
 	}
 	// T17 F128: the copy-row-as-JSON support action — the detail page's
 	// account facts as one clipboard payload for tickets and API calls.
-	@userSupportActions(d)
+	@userSupportActions(p, d)
 	@profileEditCard(p, d)
 	// The self-service card renders only when the shown user is the signed-in
 	// admin: their own display-name edit, their own grants read back, and the
@@ -709,17 +709,18 @@ templ verifiedDetail(d userDetailData) {
 // snapshot of the resolved facts) and carried in a data attribute — the
 // click handler is the document-delegated admin.js bridge to the async
 // Clipboard API, with an explicit denial message (never a silent no-op).
-templ userSupportActions(d userDetailData) {
+templ userSupportActions(p pageData, d userDetailData) {
 	<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-gray-50 px-3.5 py-2.5 dark:bg-gray-800/50">
 		<span class="text-xs text-gray-500 dark:text-gray-400">Support: copy the account facts as JSON for tickets and API calls.</span>
 		@display.Button(display.ButtonProps{
-			Text:      "Copy as JSON",
+			Text:      p.label(labelActionCopyJSON),
 			Variant:   display.ButtonSecondary,
 			Size:      display.ButtonSizeSM,
 			BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-				"data-copy-json": userCopyJSON(d),
-				"data-copy-ok":   "User copied as JSON.",
-				"data-copy-err":  "Clipboard unavailable or denied — nothing was copied.",
+				"data-copy-json":  userCopyJSON(d),
+				"data-copy-ok":    p.label(labelActionCopyJSONOk),
+				"data-copy-err":   p.label(labelActionCopyJSONErr),
+				"data-copy-empty": p.label(labelActionCopyJSONNa),
 			}},
 		})
 	</div>

@@ -38,43 +38,43 @@ type tenantDuplicatesData struct {
 }
 
 templ userDuplicatesPage(p pageData, d userDuplicatesData) {
-	@Layout(p, userDuplicatesContent(d))
+	@Layout(p, userDuplicatesContent(p, d))
 }
 
-templ userDuplicatesContent(d userDuplicatesData) {
+templ userDuplicatesContent(p pageData, d userDuplicatesData) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
 			{Text: "Users", Href: d.BasePath + "/users"},
-			{Text: "Duplicates"},
+			{Text: p.label(labelMergeCrumbDups)},
 		}}),
-		Title: "Duplicate users",
+		Title: p.label(labelMergePageUsers),
 	})
 	if len(d.Groups) == 0 {
 		@display.Card(display.CardProps{}) {
-			<p class={ "text-sm " + metadataTextClass }>No duplicate users: every email and external account belongs to one live row.</p>
+			<p class={ "text-sm " + metadataTextClass }>{ p.label(labelMergeEmptyUsers) }</p>
 		}
 	} else {
 		for _, group := range d.Groups {
-			@duplicateUserGroupCard(d, group)
+			@duplicateUserGroupCard(p, d, group)
 		}
 	}
 }
 
-templ duplicateUserGroupCard(d userDuplicatesData, group userDuplicateGroup) {
+templ duplicateUserGroupCard(p pageData, d userDuplicatesData, group userDuplicateGroup) {
 	<div class="mb-6">
-		@display.Card(display.CardProps{Title: duplicateGroupTitle(group)}) {
+		@display.Card(display.CardProps{Title: duplicateGroupTitle(p, group)}) {
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead>
 						<tr class={ "text-left " + metadataTextXSClass }>
-							<th class="px-4 py-2 font-medium">User</th>
-							<th class="px-4 py-2 font-medium">Created</th>
-							<th class="px-4 py-2 font-medium">Merge into</th>
+							<th class="px-4 py-2 font-medium">{ p.label(labelMergeHeaderUser) }</th>
+							<th class="px-4 py-2 font-medium">{ p.label(labelMergeHeaderCreated) }</th>
+							<th class="px-4 py-2 font-medium">{ p.label(labelMergeHeaderInto) }</th>
 						</tr>
 					</thead>
 					<tbody>
 						for _, row := range group.Rows {
-							@duplicateUserRowTR(d, row)
+							@duplicateUserRowTR(p, d, row)
 						}
 					</tbody>
 				</table>
@@ -83,7 +83,7 @@ templ duplicateUserGroupCard(d userDuplicatesData, group userDuplicateGroup) {
 	</div>
 }
 
-templ duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) {
+templ duplicateUserRowTR(p pageData, d userDuplicatesData, row duplicateUserRow) {
 	<tr class="border-t border-gray-100 dark:border-gray-800">
 		<td class="px-4 py-2">
 			<a class="flex no-underline" href={ d.BasePath + "/users/" + row.User.ID.Get().String() }>
@@ -99,14 +99,14 @@ templ duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) {
 		<td class={ "px-4 py-2 " + metadataTextClass }>{ row.User.CreatedAt.Format("2006-01-02 15:04") }</td>
 		<td class="px-4 py-2">
 			<form class="flex flex-wrap items-center gap-2" hx-post={ d.BasePath + "/users/" + row.User.ID.Get().String() + "/merge" } hx-target="this">
-				<select name="survivor" class="input" aria-label="Survivor">
+				<select name="survivor" class="input" aria-label={ p.label(labelMergeAriaSurvivor) }>
 					for _, survivor := range row.Survivor {
 						<option value={ survivor.ID.Get().String() }>{ survivor.Email }</option>
 					}
 				</select>
-				<input type="text" name="reason" placeholder="reason" class="input" aria-label="Reason"/>
+				<input type="text" name="reason" placeholder={ p.label(labelMergePhReason) } class="input" aria-label={ p.label(labelMergeAriaReason) }/>
 				@display.Button(display.ButtonProps{
-					Text:    "Merge",
+					Text:    p.label(labelMergeActionMerge),
 					Type:    display.ButtonHTMLSubmit,
 					Variant: display.ButtonDanger,
 					BaseProps: utils.BaseProps{
@@ -119,43 +119,43 @@ templ duplicateUserRowTR(d userDuplicatesData, row duplicateUserRow) {
 }
 
 templ tenantDuplicatesPage(p pageData, d tenantDuplicatesData) {
-	@Layout(p, tenantDuplicatesContent(d))
+	@Layout(p, tenantDuplicatesContent(p, d))
 }
 
-templ tenantDuplicatesContent(d tenantDuplicatesData) {
+templ tenantDuplicatesContent(p pageData, d tenantDuplicatesData) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
 			{Text: "Tenants", Href: d.BasePath + "/tenants"},
-			{Text: "Duplicates"},
+			{Text: p.label(labelMergeCrumbDups)},
 		}}),
-		Title: "Duplicate tenants",
+		Title: p.label(labelMergePageTenants),
 	})
 	if len(d.Groups) == 0 {
 		@display.Card(display.CardProps{}) {
-			<p class={ "text-sm " + metadataTextClass }>No duplicate tenants: every normalized name belongs to one live tenant.</p>
+			<p class={ "text-sm " + metadataTextClass }>{ p.label(labelMergeEmptyTenants) }</p>
 		}
 	} else {
 		for _, group := range d.Groups {
-			@duplicateTenantGroupCard(d, group)
+			@duplicateTenantGroupCard(p, d, group)
 		}
 	}
 }
 
-templ duplicateTenantGroupCard(d tenantDuplicatesData, group usermgmt.DuplicateTenantGroup) {
+templ duplicateTenantGroupCard(p pageData, d tenantDuplicatesData, group usermgmt.DuplicateTenantGroup) {
 	<div class="mb-6">
-		@display.Card(display.CardProps{Title: "Name: " + group.NormalizedName}) {
+		@display.Card(display.CardProps{Title: p.labelf(labelMergeTitleName, group.NormalizedName)}) {
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead>
 						<tr class={ "text-left " + metadataTextXSClass }>
-							<th class="px-4 py-2 font-medium">Tenant</th>
-							<th class="px-4 py-2 font-medium">Rename</th>
-							<th class="px-4 py-2 font-medium">Merge into</th>
+							<th class="px-4 py-2 font-medium">{ p.label(labelMergeHeaderTenant) }</th>
+							<th class="px-4 py-2 font-medium">{ p.label(labelMergeHeaderRename) }</th>
+							<th class="px-4 py-2 font-medium">{ p.label(labelMergeHeaderInto) }</th>
 						</tr>
 					</thead>
 					<tbody>
 						for _, tenant := range group.Tenants {
-							@duplicateTenantRowTR(d, group, tenant)
+							@duplicateTenantRowTR(p, d, group, tenant)
 						}
 					</tbody>
 				</table>
@@ -165,6 +165,7 @@ templ duplicateTenantGroupCard(d tenantDuplicatesData, group usermgmt.DuplicateT
 }
 
 templ duplicateTenantRowTR(
+	p pageData,
 	d tenantDuplicatesData,
 	group usermgmt.DuplicateTenantGroup,
 	tenant *usermgmt.Tenant,
@@ -183,10 +184,10 @@ templ duplicateTenantRowTR(
 					name="display_name"
 					placeholder={ tenant.DisplayName }
 					class="input"
-					aria-label="New display name"
+					aria-label={ p.label(labelMergeAriaNewName) }
 				/>
 				@display.Button(display.ButtonProps{
-					Text:    "Rename",
+					Text:    p.label(labelMergeActionRename),
 					Type:    display.ButtonHTMLSubmit,
 					Variant: display.ButtonSecondary,
 				})
@@ -194,16 +195,16 @@ templ duplicateTenantRowTR(
 		</td>
 		<td class="px-4 py-2">
 			<form class="flex flex-wrap items-center gap-2" hx-post={ d.BasePath + "/tenants/" + tenant.ID.Get() + "/merge" } hx-target="this">
-				<select name="survivor" class="input" aria-label="Survivor">
+				<select name="survivor" class="input" aria-label={ p.label(labelMergeAriaSurvivor) }>
 					for _, other := range group.Tenants {
 						if other.ID.Get() != tenant.ID.Get() {
 							<option value={ other.ID.Get() }>{ other.Name }</option>
 						}
 					}
 				</select>
-				<input type="text" name="reason" placeholder="reason" class="input" aria-label="Reason"/>
+				<input type="text" name="reason" placeholder={ p.label(labelMergePhReason) } class="input" aria-label={ p.label(labelMergeAriaReason) }/>
 				@display.Button(display.ButtonProps{
-					Text:    "Merge",
+					Text:    p.label(labelMergeActionMerge),
 					Type:    display.ButtonHTMLSubmit,
 					Variant: display.ButtonDanger,
 				})
@@ -212,10 +213,11 @@ templ duplicateTenantRowTR(
 	</tr>
 }
 
-// duplicateGroupTitle names what makes the cluster one person.
-func duplicateGroupTitle(group userDuplicateGroup) string {
+// duplicateGroupTitle names what makes the cluster one person (f#22: the
+// prefix words ride the label seam; the values are interpolated).
+func duplicateGroupTitle(p pageData, group userDuplicateGroup) string {
 	if group.Account != "" {
-		return "External account: " + group.Account
+		return p.labelf(labelMergeTitleExternal, group.Account)
 	}
-	return "Email: " + group.Key
+	return p.labelf(labelMergeTitleEmail, group.Key)
 }
