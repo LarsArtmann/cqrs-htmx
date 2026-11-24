@@ -243,13 +243,15 @@ func TestRosterPagination_PagesBeyondMaxListRows(t *testing.T) {
 	}
 
 	page1, page2 := getBody("1"), getBody("2")
-	if !strings.Contains(page1, "ma@crowd.dev") || strings.Contains(page1, "mk@crowd.dev") {
-		t.Error("page 1 must carry the first ten members only")
+	// Row presence is counted on the roster row links (…</a>): the transfer
+	// select and the add-member datalist repeat emails outside the table.
+	if got := strings.Count(page1, "@crowd.dev</a>"); got != 10 {
+		t.Errorf("page 1 must carry exactly ten member rows, got %d", got)
 	}
-	if !strings.Contains(page2, "mk@crowd.dev") || strings.Contains(page2, "ma@crowd.dev") {
-		t.Error("page 2 must carry the eleventh member only")
+	if got := strings.Count(page2, "@crowd.dev</a>"); got != 1 || !strings.Contains(page2, ">mk@crowd.dev") {
+		t.Errorf("page 2 must carry only the eleventh member, got %d rows", got)
 	}
-	if !strings.Contains(page1, "of 2") {
+	if !strings.Contains(page1, "Showing page") || !strings.Contains(page1, ">2</span>") {
 		t.Error("pager must announce 2 pages")
 	}
 	// The identity card quotes the FULL roster, not the page.

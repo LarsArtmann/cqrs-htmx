@@ -378,7 +378,18 @@ GOEXPERIMENT=jsonv2 go test ./adminui/ -run XXX -bench BenchmarkUsersPageRender 
   platform roles (durable, event-sourced), manage passkeys and external
   accounts, resend verification, **manage tenant access from the user side**
   (grant a tenant + role, change a role, revoke), delete. Each write escalates
-  its confirmation dialog to match its blast radius.
+  its confirmation dialog to match its blast radius. The external-accounts
+  card identifies each link fully (provider glyph, issuer subject id with the
+  full value in its tooltip, locale-shaped linked-at timestamp), the Details
+  card answers the verification-token lifetime honestly — it is configured by
+  the embedding application and the panel cannot read the configured value —
+  and a lockout badge fires when a user holds no sign-in channel at all. On
+  your OWN detail page a self-service card renders: edit your display name,
+  read back your grants, and follow the **Sign out** link — that link points
+  at the endpoint YOU mount via `Config.LogoutURL`; unset, the card says so
+  instead of linking to nothing (the panel owns no session routes; there is
+  deliberately no credential-restore-from-backup route — a future route task,
+  though the published `AddCredential` API makes it straightforward).
 - **Tenants** — searchable roster with per-tenant member counts, lifecycle
   filter chips (active / suspended / deleted, with live counts) and a
   Name/Members ordering toggle; create, suspend, reactivate, delete — the

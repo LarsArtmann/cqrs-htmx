@@ -242,38 +242,42 @@ func transferCandidates(members []memberRow) []transferCandidate {
 	return candidates
 }
 
-// tenantTombstone resolves a deleted tenant's deletion facts from the AUDIT
-// WINDOW (F154): the last TenantDeleted entry on the tenant's stream names
-// when it happened and (via the actor chain) who dispatched it. Honesty
-// rules: an audit log that has rotated the entry away — or a store hiccup —
-// yields Recorded=false, and the view says "not recorded" instead of
-// guessing a time or blaming an actor.
+// tenantTombstone resolves a deleted tenant's deletion facts from the event
+// record (F154). Honest scope note: the AuditLog projection subscribes only
+// to user and auth events (usermgmt allAuditedEventTypes), so TENANT events
+// never appear in it — the durable record for a deletion is the tenant
+// stream in the journal. The last TenantDeleted event names when the tenant
+// died and (via the same actor chain the audit trail rides, go-cqrs-lite's
+// ActorEnricher) who dispatched it. Honesty rules: a load failure, a stream
+// without a deletion event, or a pre-actor-chain event yields Recorded=false
+// or "not recorded" — the view never guesses a time or blames an actor.
 func (h *Handler) tenantTombstone(ctx context.Context, tenantID identitymodel.TenantID) *tenantTombstone {
 	tb := &tenantTombstone{}
 	stream, err := id.ParseStreamID(tenantID.Get())
 	if err != nil {
 		return tb // unparseable id: honest "not recorded", never a guess
 	}
-	al := h.config.Service.AuditLog()
-	if al == nil {
+	events, err := h.config.Service.Journal().Load(
+		ctx, id.NewStreamRef(identitymodel.AggregateTypeTenant, stream),
+	)
+	if err != nil {
 		return tb
 	}
-	var found bool
-	for _, e := range al.EntriesFor(stream) {
-		if e.EventType != identitymodel.EventTenantDeleted {
+	for _, evt := range events {
+		if evt.Type() != identitymodel.EventTenantDeleted {
 			continue
 		}
-		tb.DeletedAt, found = e.OccurredAt, true
-		if uid, ok := identitymodel.ActorIDAsUserID(e.ActorID); ok {
-			if u, ok := h.lookupUser(uid); ok && u.Email != "" {
+		tb.DeletedAt, tb.Recorded = evt.OccurredAt(), true
+		actor := evt.Metadata().ActorID
+		if uid, ok := identitymodel.ActorIDAsUserID(actor); ok {
+			if u, found := h.lookupUser(uid); found && u.Email != "" {
 				tb.DeletedBy = u.Email
 			}
 		}
-		if tb.DeletedBy == "" {
-			tb.DeletedBy = e.ActorID.PrefixedString()
+		if tb.DeletedBy == "" && !actor.IsZero() {
+			tb.DeletedBy = actor.PrefixedString()
 		}
 	}
-	tb.Recorded = found
 	return tb
 }
 

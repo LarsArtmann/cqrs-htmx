@@ -68,10 +68,15 @@ func TestOAuthCard_EnrichedIdentity(t *testing.T) {
 	if !strings.Contains(html, "google") {
 		t.Error("expected provider name in the identity row")
 	}
-	// Linked-at goes through p.dateTime (locale layout + render location).
-	if !strings.Contains(html, "11/24/2026") && !strings.Contains(html, "Nov 24, 2026") && !strings.Contains(html, "2026-11-24") {
-		t.Error("expected a locale-shaped linked-at timestamp")
+	// Linked-at goes through p.dateTime (locale layout + render location);
+	// the OR of the three default-locale shapes keeps the pin
+	// version-stable without pinning one layout spelling.
+	for _, shape := range []string{"11/24/2026", "Nov 24, 2026", "2026-11-24"} {
+		if strings.Contains(html, shape) {
+			return
+		}
 	}
+	t.Error("expected a locale-shaped linked-at timestamp")
 	if strings.Contains(html, `LinkedAt.Format`) {
 		t.Error("linked-at must not bypass the locale seam")
 	}
@@ -100,8 +105,8 @@ func TestOAuthCard_ShortSubjectUntruncated(t *testing.T) {
 // names the library default — it never displays a concrete configured TTL,
 // because the published Service surface exposes none.
 func TestVerificationTTLRow_ConsumerConfigured(t *testing.T) {
-	if copy := verificationTTLCopy(); !strings.Contains(copy, "Consumer-configured") || !strings.Contains(copy, "24h") {
-		t.Errorf("verificationTTLCopy = %q, want consumer-configured honesty with the default named", copy)
+	if got := verificationTTLCopy(); !strings.Contains(got, "Consumer-configured") || !strings.Contains(got, "24h") {
+		t.Errorf("verificationTTLCopy = %q, want consumer-configured honesty with the default named", got)
 	}
 
 	d := userDetailData{
@@ -128,11 +133,11 @@ func TestVerificationTTLRow_ConsumerConfigured(t *testing.T) {
 // consumer-mounted endpoint.
 func TestSelfServiceCard_RendersForSelf(t *testing.T) {
 	d := userDetailData{
-		User:         mustUser(t, "self@example.com"),
-		BasePath:     "/admin",
-		IsSelf:       true,
+		User:          mustUser(t, "self@example.com"),
+		BasePath:      "/admin",
+		IsSelf:        true,
 		PlatformRoles: []identitymodel.Role{identitymodel.RoleSuperAdmin},
-		SignOutURL:   "/logout",
+		SignOutURL:    "/logout",
 	}
 	d.User.DisplayName = "Self Admin"
 
