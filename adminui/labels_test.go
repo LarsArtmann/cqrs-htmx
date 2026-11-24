@@ -261,3 +261,26 @@ func TestLabels_MergeDoesNotMutateDefaults(t *testing.T) {
 		t.Errorf("merged table should be one entry per table key: got %d, want %d", len(merged), len(defaultLabels))
 	}
 }
+
+// labelf interpolates through the merged table: overrides control the whole
+// sentence (verbs included), defaults carry the %s/%d verb form, an unknown
+// key still renders the KEY ITSELF, and a no-arg call must not run Sprintf.
+func TestLabelf_InterpolatesThroughTable(t *testing.T) {
+	t.Parallel()
+
+	merged := mergeLabels(map[string]string{
+		labelConfirmUsersDeleteBody: "Benutzer %s löschen?",
+	})
+	if got := labelf(merged, labelConfirmUsersDeleteBody, "a@b.dev"); got != "Benutzer a@b.dev löschen?" {
+		t.Errorf("override not interpolated: %q", got)
+	}
+	if got := labelf(merged, labelConfirmTenSuspendBody, 3); got != "Suspend this tenant? Its 3 member(s) lose access until it is reactivated." {
+		t.Errorf("default verb form not interpolated: %q", got)
+	}
+	if got := labelf(merged, "no.such.key", 1); got != "no.such.key" {
+		t.Errorf("unknown key must fall back to the key itself: %q", got)
+	}
+	if got := labelf(merged, labelConfirmTitle); got != "Are you sure?" {
+		t.Errorf("no-arg call must return the table value untouched: %q", got)
+	}
+}

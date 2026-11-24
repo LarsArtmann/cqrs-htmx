@@ -409,10 +409,10 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelConfirmUsersEmail:       "Change email",
 	labelConfirmUsersPasskey:     "Remove passkey",
 	labelConfirmUsersRoles:       "Revoke platform roles",
-	labelConfirmTenantRoles:      "Change roles", //nolint:goconst // display value shared by design
+	labelConfirmTenantRoles:      "Change roles",
 	labelConfirmTenantRevoke:     "Revoke tenant access",
 	labelConfirmUsersUnlink:      "Unlink account",
-	labelConfirmTenReactivate:    "Reactivate tenant", //nolint:goconst // display value shared by design
+	labelConfirmTenReactivate:    "Reactivate tenant",
 	labelConfirmTenReactivateBod: "Reactivate this tenant? Members regain access immediately.",
 	labelConfirmTenSuspend:       "Suspend tenant",
 	labelConfirmTenDelete:        "Delete tenant",
@@ -433,29 +433,29 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelFormNewEmailHelp:          "The address the user will sign in and be found by.",
 	labelFormNewDisplayName:        "Display name", //nolint:goconst // display value shared by design
 	labelFormNewDisplayNameHelp:    "Optional. Shown instead of the email where space allows.",
-	labelFormProfileDisplayName:    "Display name", //nolint:goconst // display value shared by design
-	labelFormProfileEmail:          "Email",        //nolint:goconst // display value shared by design
+	labelFormProfileDisplayName:    "Display name",
+	labelFormProfileEmail:          "Email",
 	labelFormProfileEmailHelp:      "Changing the email changes how the user signs in and is found.",
 	labelActionSaveDisplayName:     "Save display name",
 	labelActionSaveEmail:           "Save email",
 	labelFormSelfDisplayName:       "Your display name",
-	labelFormGrantTenant:           "Tenant", //nolint:goconst // display value shared by design
+	labelFormGrantTenant:           "Tenant",
 	labelActionGrantAccess:         "Grant access",
 	labelActionSavePlatformRoles:   "Save platform roles",
 	labelActionRevokeAll:           "Revoke all",
 	labelFormRestoreBackupLabel:    "Paste the credential backup JSON (exported from the user's own account page)",
 	labelActionRestoreCredential:   "Restore credential",
-	labelFormBulkRole:              "Role", //nolint:goconst // display value shared by design
+	labelFormBulkRole:              "Role",
 	labelAriaBulkSelectAll:         "Select all users on this page",
 	labelActionResendVerification:  "Resend verification",
 	labelActionGrantRole:           "Grant role",
 	labelActionExportSelection:     "Export selection (CSV)",
 	labelFormTenantSlug:            "Tenant slug",
 	labelFormTenantSlugHelp:        "A unique, URL-safe identifier. It cannot be changed later.",
-	labelFormTenantDisplayName:     "Display name", //nolint:goconst // display value shared by design
+	labelFormTenantDisplayName:     "Display name",
 	labelFormTenantDisplayNameHelp: "Optional. Shown in the panel instead of the slug.",
 	labelFormMemberEmail:           "Add member email",
-	labelFormMemberRole:            "Role", //nolint:goconst // display value shared by design
+	labelFormMemberRole:            "Role",
 	labelFormOwnership:             "Ownership:",
 
 	labelConfirmUsersDeleteBody:      "Delete user %s? This cannot be undone.",
