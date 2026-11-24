@@ -288,9 +288,10 @@ func (h *Handler) superAdminUserSuggestRoutes() []routeSpec {
 		{
 			method:  cqrshtmx.MethodQuery,
 			pattern: patternUsersSuggest,
-			panel:   panelUsers, guarded: h.userSuggest,
-			mode: routeModeSuperAdmin,
-			why:  "the type-ahead feed: a capped JSON prefix match so the combobox asks per keystroke instead of the page shipping the directory",
+			panel:   panelUsers,
+			guarded: h.userSuggest,
+			mode:    routeModeSuperAdmin,
+			why:     "the type-ahead feed: a capped JSON prefix match per keystroke, instead of the page shipping the directory",
 		},
 		{
 			method: http.MethodGet, pattern: patternUsersSuggest, panel: panelUsers, guarded: h.userSuggest,

@@ -13,10 +13,10 @@ import { test, expect, Page } from "@playwright/test";
  *
  * Coverage: grant tenant access from the user page (row, email, role badges,
  * joined tenant leaves the grant select), change roles via the checkbox
- * group and revoke (row state each step), the add-member datalist (directory
- * feed, joined members drop out, unknown email banner preserves the typed
- * address), and the users-list access column (badges, Administrators chip,
- * id search).
+ * group and revoke (row state each step), the add-member unknown-email
+ * banner preserving the typed address (the combobox pick path lives in
+ * admin-suggest.spec.ts), and the users-list access column (badges,
+ * Administrators chip, id search).
  */
 test.describe.configure({ mode: "serial" });
 
@@ -166,43 +166,15 @@ test("tenant access: change roles via the checkbox group, then revoke", async ({
   await expect(page.getByText("not a member of any tenant yet")).toBeVisible();
 });
 
-test("add member: datalist feeds the directory, drops joined members, unknown email explains", async ({
+// T08: the add-member datalist is retired for the type-ahead combobox; the
+// endpoint contract and the pick path live in admin-suggest.spec.ts. What
+// stays HERE is the inline-miss flow, which is page state, not suggestion
+// plumbing: an unknown email redirects back with an explanation.
+test("add member: unknown email explains inline and preserves the typed address", async ({
   page,
 }) => {
   const stamp = Date.now();
-  const tenantId = `e2e-member-${stamp}`;
-  const tenantPath = await createTenant(page, tenantId, "E2E Member Co");
-  await createUser(page, `e2e-m1-${stamp}@acme.dev`, "Member One");
-  await createUser(page, `e2e-m2-${stamp}@acme.dev`, "Member Two");
-
-  await page.goto(`${ADMIN}${tenantPath}`, { waitUntil: "load" });
-  await page.waitForTimeout(400);
-  let html = await page.content();
-  expect(html).toContain('id="admin-member-emails"');
-  expect(html).toContain(`e2e-m1-${stamp}@acme.dev`);
-  expect(html).toContain(`e2e-m2-${stamp}@acme.dev`);
-
-  // Join member one through the add-member form endpoint.
-  const add = await postForm(page, `${tenantPath}/members`, {
-    email: `e2e-m1-${stamp}@acme.dev`,
-    roles: ["user"],
-  });
-  expect(add.ok, `add member: ${add.status}`).toBeTruthy();
-
-  // The joined member is no longer suggested — a duplicate add is refused by
-  // the decider, so offering them is a dead end.
-  await page.goto(`${ADMIN}${tenantPath}`, { waitUntil: "load" });
-  await page.waitForTimeout(400);
-  html = await page.content();
-  // A datalist's options are not rendered content — innerText is empty;
-  // the option elements live in innerHTML.
-  const dataListHTML = await page.locator("#admin-member-emails").innerHTML();
-  expect(dataListHTML).not.toContain(`e2e-m1-${stamp}@acme.dev`);
-  expect(dataListHTML).toContain(`e2e-m2-${stamp}@acme.dev`);
-  // The roster row names the person, not the actor token.
-  await expect(
-    page.locator("table tbody tr", { hasText: `e2e-m1-${stamp}@acme.dev` }).first(),
-  ).toBeVisible();
+  const tenantPath = await createTenant(page, `e2e-member-${stamp}`, "E2E Member Co");
 
   // Unknown email: the redirect carries the miss back inline, preserving the
   // typed address for correction.
