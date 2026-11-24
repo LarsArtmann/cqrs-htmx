@@ -137,8 +137,10 @@ func (h *Handler) directoryRows(ctx context.Context) []membersDirectoryRow {
 	rows := make([]membersDirectoryRow, 0)
 	for _, t := range h.config.Service.AllTenants() {
 		for _, m := range h.config.Service.TenantMembers(ctx, t.ID) {
-			row := membersDirectoryRow{Tenant: t,
-				Actor: m.ActorID, Roles: m.Roles, AddedAt: m.AddedAt}
+			row := membersDirectoryRow{
+				Tenant: t,
+				Actor:  m.ActorID, Roles: m.Roles, AddedAt: m.AddedAt,
+			}
 			if userID, ok := identitymodel.ActorIDAsUserID(m.ActorID); ok {
 				if user, found := h.lookupUser(userID); found {
 					row.Email = user.Email
