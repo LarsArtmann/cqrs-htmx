@@ -62,6 +62,10 @@ Four issues are open on a repo whose live deployment carries nine user rows for 
 | D8  | Admin routes: `POST /users/{id}/merge` and `POST /tenants/{id}/merge` merge the path identity INTO the form field `survivor`; `POST /tenants/{id}/rename` takes `display_name`. Duplicates are sections on the two list pages, served by `Service.DuplicateUsers` and `Service.DuplicateTenants`. |
 | D9  | Issue #45: the bill-to link is implemented inside `legalparty-model` (a small aggregate keyed by tenant). The cross-aggregate retention test is recorded as a follow-up for the first legalparty-model tag (non-goal 6).                                                |
 | D10 | No GitHub state change before the release train.                                                                                                                                                                                                                        |
+| D11 | An adopted `CredentialAdded` carries `UserPresent` and `UserVerified` from the loser's credential, beyond the fields `decideAddCredential` sets. Lossless: the payload struct has both and `NewCredentialFromPayload` folds them. |
+| D12 | The `EmailVerified` adoption gate is exact string equality between the contribution's email and the survivor's email (D3 says "equals"). `ParseEmail` lowercases and trims on the canonical paths, so a case or whitespace difference means the contribution was not built canonically and proves nothing. |
+| D13 | A survivor that is itself merged away answers Conflict `usermgmt.merge_users.survivor_merged` with `merged_into` context, before any deleted check. Terminal identities stay terminal and the admin sees the real survivor. |
+| D14 | A plain-deleted loser answers Conflict `usermgmt.merge_user_into.deleted`, not a Rejection: a deleted user is a terminal state, and conflicts are how the module spells "already in that state". Rejections are reserved for malformed input (`not_found`, `survivor_required`, `self_merge`). |
 
 ## 5. Pareto split
 
@@ -279,7 +283,7 @@ go build ./... && go vet ./usermgmt/ ./systemadapter/ ./adminui/ ./setup/ ./inte
 go test ./identity-model/ ./usermgmt/ ./systemadapter/ ./adminui/ ./setup/ ./legalparty-model/ ./gfl-usermgmt/ -count=1
 bash scripts/checks/check-domain-counts.sh
 bash scripts/checks/check-command-bijection.sh
-nix run .#check-reexport-policy -- -- && nix run .#check-module-layers && nix run .#check-route-postures
+nix run .#check-reexport-policy -- --strict && nix run .#check-module-layers && nix run .#check-route-postures
 nix run .#check-cqrs-lint
 nix run .#test
 ```
@@ -289,4 +293,7 @@ nix run .#test
 | Step | Result | Evidence                                                                                               |
 | ---- | ------ | ------------------------------------------------------------------------------------------------------ |
 | M01  | DONE   | `go vet ./usermgmt/` exit 0; `go test ./usermgmt/ -run TestFoldTenantSequence` ok; `gofmt -l` empty    |
-| M02+ | open   |                                                                                                        |
+| M02  | DONE   | `(cd identity-model && GOWORK=off go build ./... && go vet ./... && go test ./... -count=1)` ok, re-run 2026-11-24 07:25; `identity-model/merge_test.go` has 11 test functions |
+| M03  | DONE   | `bash scripts/checks/check-domain-counts.sh` counts 33 events and 27 commands at source; catalog, inventory and architecture tests green in the full `go test ./usermgmt/` run (only the unrelated snapshot tripwire is red, see M23) |
+| M04  | DONE   | `go test ./usermgmt/ -run 'MergeUsers\|MergeUserInto\|TransferBot\|UnmergedLosers' -count=1`: 33 subtests pass (guards, adoption order, versions 5 to 11, codecs, fold-through, retry no-op, late credential, two losers, TOTP and email gates, merge-into, transfer); `go vet ./usermgmt/` exit 0 |
+| M05  | PARTIAL | Registrations and postures landed; `TestCommandPostures_*` green. The bijection gate stays red until the three tenant commands register in M11 (`constants: 27 registrations: 24`) |

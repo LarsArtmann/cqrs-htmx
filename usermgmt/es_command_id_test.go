@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -12,7 +13,7 @@ import (
 // idempotency dedup and Watermill message UUIDs (which derive from cmd.ID()).
 //
 // Every command constructor must produce a non-zero ID(). This table-driven
-// test iterates all 20 command constructors and asserts each returns a
+// test iterates all 27 command constructors and asserts each returns a
 // non-zero command ID.
 func TestAllCommandsHaveNonZeroID(t *testing.T) {
 	t.Parallel()
@@ -26,33 +27,40 @@ func TestAllCommandsHaveNonZeroID(t *testing.T) {
 		name string
 		cmd  command.Command
 	}{
-		// User commands (11)
+		// User commands (14)
 		{"RegisterUser", NewRegisterUserCmd(aggID, "user@test.com", "Test", []Role{"admin"})},
 		{"ChangeEmail", NewChangeEmailCmd(aggID, "new@test.com")},
 		{"ChangeDisplayName", NewChangeDisplayNameCmd(aggID, "New Name")},
 		{"DeleteUser", NewDeleteUserCmd(aggID, "test")},
 		{"AddCredential", NewAddCredentialCmd(aggID, WebAuthnCredential{})},
 		{"RemoveCredential", NewRemoveCredentialCmd(aggID, []byte("cred1"))},
+		{"RecordCredentialUse", NewRecordCredentialUseCmd(aggID, CredentialUse{})},
 		{"VerifyEmail", NewVerifyEmailCmd(aggID)},
 		{"EnableTOTP", NewEnableTOTPCmd(aggID, []byte("secret"))},
 		{"DisableTOTP", NewDisableTOTPCmd(aggID)},
 		{"LinkExternalAccount", NewLinkExternalAccountCmd(aggID, "google", "sub123", "user@test.com", "Test")},
 		{"UnlinkExternalAccount", NewUnlinkExternalAccountCmd(aggID, "google", "sub123")},
+		{"MergeUsers", identitymodel.NewMergeUsersCmd(aggID, []identitymodel.MergeContribution{{UserID: userID}}, "duplicates")},
+		{"MergeUserInto", identitymodel.NewMergeUserIntoCmd(aggID, userID, "duplicates")},
 
 		// Membership commands (3)
 		{"AddMember", NewAddMemberCmd(actorID, tenantID, []Role{"member"})},
 		{"UpdateMemberRoles", NewUpdateMemberRolesCmd(actorID, tenantID, []Role{"admin"})},
 		{"RemoveMember", NewRemoveMemberCmd(actorID, tenantID)},
 
-		// Tenant commands (4)
+		// Tenant commands (7)
 		{"CreateTenant", NewCreateTenantCmd(aggID, "acme", "Acme Corp")},
 		{"SuspendTenant", NewSuspendTenantCmd(aggID, "policy violation")},
 		{"ReactivateTenant", NewReactivateTenantCmd(aggID)},
 		{"DeleteTenant", NewDeleteTenantCmd(aggID, "closing")},
+		{"RenameTenant", identitymodel.NewRenameTenantCmd(aggID, "Acme GmbH")},
+		{"MergeTenants", identitymodel.NewMergeTenantsCmd(aggID, []TenantID{tenantID}, "duplicates")},
+		{"MergeTenantInto", identitymodel.NewMergeTenantIntoCmd(aggID, tenantID, "duplicates")},
 
-		// Bot commands (2)
+		// Bot commands (3)
 		{"RegisterBot", NewRegisterBotCmd(aggID, "CI Bot", userID, []byte("hash"), []string{"read"})},
 		{"DeleteBot", NewDeleteBotCmd(aggID, "decommissioned")},
+		{"TransferBot", identitymodel.NewTransferBotCmd(aggID, userID, "owner left")},
 	}
 
 	for _, tt := range tests {
@@ -83,7 +91,7 @@ func TestCommandIDsAreUnique(t *testing.T) {
 }
 
 // TestAllCommandsProduceDifferentIDs constructs every command constructor twice
-// (two batches) and verifies all 40 IDs are mutually unique. This catches a
+// (two batches) and verifies all 54 IDs are mutually unique. This catches a
 // regression where ULID minting could collide or where a constructor
 // accidentally hardcodes a fixed ID.
 func TestAllCommandsProduceDifferentIDs(t *testing.T) {
@@ -103,11 +111,14 @@ func TestAllCommandsProduceDifferentIDs(t *testing.T) {
 			NewDeleteUserCmd(aggID, "r"),
 			NewAddCredentialCmd(aggID, WebAuthnCredential{}),
 			NewRemoveCredentialCmd(aggID, []byte("c")),
+			NewRecordCredentialUseCmd(aggID, CredentialUse{}),
 			NewVerifyEmailCmd(aggID),
 			NewEnableTOTPCmd(aggID, []byte("s")),
 			NewDisableTOTPCmd(aggID),
 			NewLinkExternalAccountCmd(aggID, "g", "s", "u@t.com", "T"),
 			NewUnlinkExternalAccountCmd(aggID, "g", "s"),
+			identitymodel.NewMergeUsersCmd(aggID, []identitymodel.MergeContribution{{UserID: userID}}, "d"),
+			identitymodel.NewMergeUserIntoCmd(aggID, userID, "d"),
 			NewAddMemberCmd(actorID, tenantID, []Role{"m"}),
 			NewUpdateMemberRolesCmd(actorID, tenantID, []Role{"a"}),
 			NewRemoveMemberCmd(actorID, tenantID),
@@ -115,8 +126,12 @@ func TestAllCommandsProduceDifferentIDs(t *testing.T) {
 			NewSuspendTenantCmd(aggID, "violation"),
 			NewReactivateTenantCmd(aggID),
 			NewDeleteTenantCmd(aggID, "closing"),
+			identitymodel.NewRenameTenantCmd(aggID, "Acme GmbH"),
+			identitymodel.NewMergeTenantsCmd(aggID, []TenantID{tenantID}, "d"),
+			identitymodel.NewMergeTenantIntoCmd(aggID, tenantID, "d"),
 			NewRegisterBotCmd(aggID, "Bot", userID, []byte("h"), []string{"r"}),
 			NewDeleteBotCmd(aggID, "decommissioned"),
+			identitymodel.NewTransferBotCmd(aggID, userID, "d"),
 		}
 	}
 

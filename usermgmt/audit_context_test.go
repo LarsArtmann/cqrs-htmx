@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -198,8 +199,8 @@ func TestDispatch_UnauthenticatedContextStillRecordsCausation(t *testing.T) {
 }
 
 // TestCommandOptionApplier_SatisfiedByDomainCommands proves the structural
-// interface covers every identity-model command: all 20 embed
-// *command.BasicCommand, whose ApplyOptions promotes to the wrapper.
+// interface covers every identity-model command: all 27 embed
+// *command.BasicCommand (or a wrapper over it), whose ApplyOptions promotes to the wrapper.
 func TestCommandOptionApplier_SatisfiedByDomainCommands(t *testing.T) {
 	t.Parallel()
 
@@ -209,6 +210,12 @@ func TestCommandOptionApplier_SatisfiedByDomainCommands(t *testing.T) {
 		NewChangeDisplayNameCmd(id.NewStreamID(), "Applier"),
 		NewDeleteUserCmd(id.NewStreamID(), "test"),
 		NewVerifyEmailCmd(id.NewStreamID()),
+		identitymodel.NewMergeUsersCmd(id.NewStreamID(), nil, "duplicates"),
+		identitymodel.NewMergeUserIntoCmd(id.NewStreamID(), GenerateUserID(), "duplicates"),
+		identitymodel.NewRenameTenantCmd(id.NewStreamID(), "Acme GmbH"),
+		identitymodel.NewMergeTenantsCmd(id.NewStreamID(), nil, "duplicates"),
+		identitymodel.NewMergeTenantIntoCmd(id.NewStreamID(), NewTenantID("01JXTESTTENANTID00000000"), "duplicates"),
+		identitymodel.NewTransferBotCmd(id.NewStreamID(), GenerateUserID(), "owner left"),
 	}
 
 	for i, cmd := range commands {
@@ -292,7 +299,7 @@ func TestDispatch_ClientIDPropagatesToEventMetadata(t *testing.T) {
 
 // driftGuardCmd mirrors the identity-model command pattern: a thin wrapper
 // embedding *command.BasicCommand, so ApplyOptions is promoted to the wrapper
-// exactly as on all 20 identity-model commands.
+// exactly as on all 27 identity-model commands.
 type driftGuardCmd struct {
 	*command.BasicCommand
 }
