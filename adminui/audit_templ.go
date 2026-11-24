@@ -1041,7 +1041,7 @@ func auditChangeNote() templ.Component {
 // activity card: the next timeline rows in the card's column shape, then
 // either the next load-more row (replacing the clicked one, so appended rows
 // land directly under the existing ones) or the honest end-of-window note.
-func userActivityFragment(d userActivityPage) templ.Component {
+func userActivityFragment(p pageData, d userActivityPage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

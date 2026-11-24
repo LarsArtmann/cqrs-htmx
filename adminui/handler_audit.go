@@ -460,7 +460,7 @@ type auditExportDoc struct {
 // the fragment carries either the next load-more row or the honest
 // end-of-window note. Same posture as the user detail route it extends:
 // session+role gated, read-only, super-admin only.
-func (h *Handler) userActivity(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+func (h *Handler) userActivity(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	target, err := identitymodel.ParseUserID(r.PathValue("id"))
 	if err != nil {
 		h.writeErrorPage(

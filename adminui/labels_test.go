@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -28,7 +29,7 @@ func testPageData() pageData {
 func renderPageData(t *testing.T, c templ.Component) string {
 	t.Helper()
 	var b strings.Builder
-	if err := c.Render(nil, &b); err != nil {
+	if err := c.Render(context.Background(), &b); err != nil {
 		t.Fatalf("render: %v", err)
 	}
 	return b.String()
@@ -41,8 +42,10 @@ func renderPageData(t *testing.T, c templ.Component) string {
 func TestLabels_OverrideReplacesTableValue(t *testing.T) {
 	t.Parallel()
 
+	svc := mustService(t)
 	user := mustUser(t, "admin@example.com")
 	h, _ := newTestPanel(t, user, Config{
+		Service: svc,
 		Labels: map[string]string{
 			labelNavUsers:            "Brukere",
 			labelEmptyUsersNoneTitle: "Ingen brukere ennå",
@@ -74,7 +77,6 @@ func TestLabels_OverrideReplacesTableValue(t *testing.T) {
 func TestLabels_UnknownOverrideRejected(t *testing.T) {
 	t.Parallel()
 
-	user := mustUser(t, "admin@example.com")
 	_, err := New(Config{
 		Service: mustService(t),
 		Labels:  map[string]string{"nav.usres": "typo"},
@@ -122,7 +124,7 @@ func TestLangDirRender(t *testing.T) {
 	t.Parallel()
 
 	user := mustUser(t, "admin@example.com")
-	defaultPanel, _ := newTestPanel(t, user)
+	defaultPanel, _ := newTestPanel(t, user, Config{Service: mustService(t)})
 	rec := httptest.NewRecorder()
 	defaultPanel.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin", nil))
 	body := rec.Body.String()
@@ -130,7 +132,7 @@ func TestLangDirRender(t *testing.T) {
 		t.Errorf("default panel must render lang=\"en\" dir=\"ltr\"; html tag: %q", htmlTagOf(body))
 	}
 
-	rtlPanel, _ := newTestPanel(t, user, Config{Locale: "ar", Dir: "rtl"})
+	rtlPanel, _ := newTestPanel(t, user, Config{Service: mustService(t), Locale: "ar", Dir: "rtl"})
 	rec = httptest.NewRecorder()
 	rtlPanel.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin", nil))
 	body = rec.Body.String()
@@ -190,10 +192,10 @@ func TestLocaleDateShapes(t *testing.T) {
 		wantDate   string
 		wantDTNoTZ string
 	}{
-		{"", "Jan 2, 2006", "Jan 2, 2006 15:04"},
-		{"en", "Jan 2, 2006", "Jan 2, 2006 15:04"},
-		{"en-US", "Jan 2, 2006", "Jan 2, 2006 15:04"},
-		{"de", "02.01.2006", "02.01.2006 15:04"},
+		{"", "Nov 24, 2026", "Nov 24, 2026 15:04"},
+		{"en", "Nov 24, 2026", "Nov 24, 2026 15:04"},
+		{"en-US", "Nov 24, 2026", "Nov 24, 2026 15:04"},
+		{"de", "24.11.2026", "24.11.2026 15:04"},
 		{"fr", "2026-11-24", "2026-11-24 15:04"},
 	} {
 		dateLayout, dtLayout := localeDateLayouts(tc.locale)
@@ -214,8 +216,8 @@ func TestLocaleDateShapes(t *testing.T) {
 	}
 	p.Lang = "en"
 	p.Loc = time.FixedZone("CET", 3600)
-	if got := p.dateTime(stamp); got != "Jan 2, 2006 16:04 CET" {
-		t.Errorf("p.dateTime(en, CET) = %q, want Jan 2, 2006 16:04 CET", got)
+	if got := p.dateTime(stamp); got != "Nov 24, 2026 16:04 CET" {
+		t.Errorf("p.dateTime(en, CET) = %q, want Nov 24, 2026 16:04 CET", got)
 	}
 }
 
@@ -257,7 +259,7 @@ func TestLabels_MergeDoesNotMutateDefaults(t *testing.T) {
 	if merged[labelNavUsers] != "People" {
 		t.Error("override not applied to the merged copy")
 	}
-	if len(merged) <= len(defaultLabels) {
-		t.Error("merged table should be a full copy plus nothing")
+	if len(merged) != len(defaultLabels) {
+		t.Errorf("merged table should be one entry per table key: got %d, want %d", len(merged), len(defaultLabels))
 	}
 }

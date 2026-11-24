@@ -229,3 +229,52 @@ func validBillToProfile(t *testing.T) LegalPartyProfile {
 	}
 	return profile
 }
+
+// TestBillTo_CommandsAndDerivation covers the command surface and the stream
+// derivation — the constructors, accessors, and the tenant-key round-trip.
+func TestBillTo_CommandsAndDerivation(t *testing.T) {
+	stream := DeriveBillToStreamID("tenant-cmds")
+	if stream.Get() != "tenant-cmds" {
+		t.Fatalf("stream key = %q, want the verbatim tenant key", stream.Get())
+	}
+
+	open := NewOpenBillToCmd("tenant-cmds", billToTestParty(3), billToTestActor)
+	if open.StreamID().Get() != "tenant-cmds" {
+		t.Errorf("open StreamID = %q", open.StreamID().Get())
+	}
+	if open.LegalPartyID() != billToTestParty(3) {
+		t.Errorf("open party = %v", open.LegalPartyID())
+	}
+	if open.OpenedBy() != billToTestActor {
+		t.Errorf("open actor = %v", open.OpenedBy())
+	}
+
+	redirect := NewRedirectBillToCmd("tenant-cmds", billToTestParty(4), "why", billToTestActor)
+	if redirect.StreamID().Get() != "tenant-cmds" || redirect.LegalPartyID() != billToTestParty(4) ||
+		redirect.Reason() != "why" || redirect.RedirectedBy() != billToTestActor {
+		t.Errorf("redirect command = %+v", redirect)
+	}
+
+	close := NewCloseBillToCmd("tenant-cmds", "done", billToTestActor)
+	if close.StreamID().Get() != "tenant-cmds" || close.Reason() != "done" ||
+		close.ClosedBy() != billToTestActor {
+		t.Errorf("close command = %+v", close)
+	}
+}
+
+// TestBillToDecider_ExportedShape pins the exported decider constructor.
+func TestBillToDecider_ExportedShape(t *testing.T) {
+	d := BillToDecider()
+	if d.Initial.Opened {
+		t.Error("initial state must be unopened")
+	}
+	openEvents, openErr := DecideOpenBillTo(DeriveBillToStreamID("tenant-dec"), billToTestParty(5),
+		billToTestActor, time.Date(2026, 11, 24, 12, 0, 0, 0, time.UTC))(BillToState{}, 0)
+	state, err := d.Apply(BillToState{}, mustBillToEvents(t, openEvents, openErr))
+	if err != nil {
+		t.Fatalf("apply: %v", err)
+	}
+	if !state.Opened || state.LegalPartyID != billToTestParty(5) {
+		t.Fatalf("state = %+v", state)
+	}
+}

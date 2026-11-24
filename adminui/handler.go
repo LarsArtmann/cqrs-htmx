@@ -66,12 +66,12 @@ func New(config Config) (*Handler, error) {
 
 	h := &Handler{ //nolint:exhaustruct // table is built and validated immediately below
 		config:   config,
-		nav:      buildNav(config),
 		labels:   mergeLabels(config.Labels),
 		adminCSS: adminCSS,
 		adminJS:  adminJS,
 		clock:    time.Now,
 	}
+	h.nav = buildNav(config, h.labels)
 	h.table = h.buildRouteTable()
 	if err := validateRouteTable(h.table); err != nil {
 		return nil, err
@@ -84,21 +84,21 @@ func New(config Config) (*Handler, error) {
 // the consumer's ExtraNav entries (verbatim hrefs), then the optional
 // dashboardui cross-link. ExtraNav precedes the cross-link so consumer
 // ordering is stable regardless of DashboardURL.
-func buildNav(config Config) []navItem {
+func buildNav(config Config, labels map[string]string) []navItem {
 	var nav []navItem
 	if config.Mode == ModeTenantAdmin {
 		nav = []navItem{
-			{Href: "/", Label: label(config.Labels, labelNavDashboard), Icon: iconDashboard},
-			{Href: "/members", Label: label(config.Labels, labelNavMembers), Icon: iconMembers},
-			{Href: "/audit", Label: label(config.Labels, labelNavAudit), Icon: iconAudit},
+			{Href: "/", Label: label(labels, labelNavDashboard), Icon: iconDashboard},
+			{Href: "/members", Label: label(labels, labelNavMembers), Icon: iconMembers},
+			{Href: "/audit", Label: label(labels, labelNavAudit), Icon: iconAudit},
 		}
 	} else {
 		nav = []navItem{
-			{Href: "/", Label: label(config.Labels, labelNavDashboard), Icon: iconDashboard},
-			{Href: patternUsers, Label: label(config.Labels, labelNavUsers), Icon: iconUsers},
-			{Href: "/tenants", Label: label(config.Labels, labelNavTenants), Icon: iconTenants},
-			{Href: patternMembers, Label: label(config.Labels, labelNavMembers), Icon: iconMembers},
-			{Href: "/audit", Label: label(config.Labels, labelNavAudit), Icon: iconAudit},
+			{Href: "/", Label: label(labels, labelNavDashboard), Icon: iconDashboard},
+			{Href: patternUsers, Label: label(labels, labelNavUsers), Icon: iconUsers},
+			{Href: "/tenants", Label: label(labels, labelNavTenants), Icon: iconTenants},
+			{Href: patternMembers, Label: label(labels, labelNavMembers), Icon: iconMembers},
+			{Href: "/audit", Label: label(labels, labelNavAudit), Icon: iconAudit},
 		}
 	}
 	for _, entry := range config.ExtraNav {
@@ -112,7 +112,7 @@ func buildNav(config Config) []navItem {
 		// CircleStack (the database glyph), not Chart: the built-in Dashboard
 		// entry already uses Chart, and two sidebar items must not share an icon.
 		nav = append(nav, navItem{
-			Href: config.DashboardURL, Label: label(config.Labels, labelNavEventStore), Icon: string(icons.CircleStack), Verbatim: true,
+			Href: config.DashboardURL, Label: label(labels, labelNavEventStore), Icon: string(icons.CircleStack), Verbatim: true,
 		})
 	}
 	return nav
