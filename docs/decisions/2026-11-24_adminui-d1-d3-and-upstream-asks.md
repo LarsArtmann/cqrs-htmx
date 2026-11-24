@@ -87,3 +87,5 @@ All file:line citations verified against the working tree on 2026-11-24. Every a
 
 - Nothing in this packet is sent, filed, or implemented: all eight asks stay owner-gated (K-gates, plan §7); SEND happens only on the owner's tick of D2 plus per-ask approval.
 - The (h) row's "Verify: each item links its upstream artifact" remains unsatisfied by design — this packet is the pre-filing evidence base, not the artifact.
+
+**UI specs (T31/F221–F224):** [`2026-11-24_adminui-gated-surface-ui-specs.md`](2026-11-24_adminui-gated-surface-ui-specs.md) — wireframes + interaction contracts for the impersonation kit, bots pack, sessions/MFA-bypass/lockout, and tenant rename/counts/attribution surfaces, each consuming only the D1/D2/D3 decisions and asks A–H documented above (paper only; nothing gated is implemented).
