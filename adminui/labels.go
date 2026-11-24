@@ -508,12 +508,15 @@ func label(labels map[string]string, key string) string {
 // carries the verb form ("Delete user %s? This cannot be undone.") so a
 // consumer override controls the whole sentence, values included.
 //
-// Honest failure modes, both visible rather than silent: an unknown key
-// renders the key itself (same contract as label), and an override that
-// drops a verb renders fmt's %!(EXTRA…) marker — ugly, but it names the
-// arity mistake at the exact surface that made it.
+// Honest failure modes: an unknown key renders the KEY ITSELF (same contract
+// as label — args are dropped, never blank, never a key+EXTRA hybrid), and
+// an override that drops a verb renders fmt's %!(EXTRA…) marker — ugly, but
+// it names the arity mistake at the exact surface that made it.
 func labelf(labels map[string]string, key string, args ...any) string {
-	s := label(labels, key)
+	s, ok := labels[key]
+	if !ok {
+		return key
+	}
 	if len(args) == 0 {
 		return s
 	}

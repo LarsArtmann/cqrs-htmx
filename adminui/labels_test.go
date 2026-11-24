@@ -274,7 +274,11 @@ func TestLabelf_InterpolatesThroughTable(t *testing.T) {
 	if got := labelf(merged, labelConfirmUsersDeleteBody, "a@b.dev"); got != "Benutzer a@b.dev löschen?" {
 		t.Errorf("override not interpolated: %q", got)
 	}
-	if got := labelf(merged, labelConfirmTenSuspendBody, 3); got != "Suspend this tenant? Its 3 member(s) lose access until it is reactivated." {
+	if got := labelf(
+		merged,
+		labelConfirmTenSuspendBody,
+		3,
+	); got != "Suspend this tenant? Its 3 member(s) lose access until it is reactivated." {
 		t.Errorf("default verb form not interpolated: %q", got)
 	}
 	if got := labelf(merged, "no.such.key", 1); got != "no.such.key" {
