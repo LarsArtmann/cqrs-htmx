@@ -184,6 +184,41 @@ const (
 	labelTombstoneNotRecorded = "tombstone.not_recorded"
 	labelSearchSwitcherPH     = "search.switcher.placeholder"
 	labelSearchSwitcherAria   = "search.switcher.aria"
+
+	// Batch-3 form pack (f#20): user-facing form field labels, help texts,
+	// and the form submit buttons that belong to those forms. Values are
+	// exactly the strings the forms hardcoded before this batch, so a
+	// default-config render stays byte-identical.
+	labelFormImportFile           = "form.import.file"
+	labelFormImportFileHelp       = "form.import.file.help"
+	labelFormNewEmail             = "form.new.email"
+	labelFormNewEmailHelp         = "form.new.email.help"
+	labelFormNewDisplayName       = "form.new.display_name"
+	labelFormNewDisplayNameHelp   = "form.new.display_name.help"
+	labelFormProfileDisplayName   = "form.profile.display_name"
+	labelFormProfileEmail         = "form.profile.email"
+	labelFormProfileEmailHelp     = "form.profile.email.help"
+	labelActionSaveDisplayName    = "action.save_display_name"
+	labelActionSaveEmail          = "action.save_email"
+	labelFormSelfDisplayName      = "form.self.display_name"
+	labelFormGrantTenant          = "form.grant.tenant"
+	labelActionGrantAccess        = "action.grant_access"
+	labelActionSavePlatformRoles  = "action.save_platform_roles"
+	labelActionRevokeAll          = "action.revoke_all"
+	labelFormRestoreBackupLabel   = "form.credential_restore.backup"
+	labelActionRestoreCredential  = "action.restore_credential"
+	labelFormBulkRole             = "form.bulk.role"
+	labelAriaBulkSelectAll        = "aria.users.select_all"
+	labelActionResendVerification = "action.resend_verification"
+	labelActionGrantRole          = "action.grant_role"
+	labelActionExportSelection    = "action.export_selection_csv"
+	labelFormTenantSlug           = "form.tenant.slug"
+	labelFormTenantSlugHelp       = "form.tenant.slug.help"
+	labelFormTenantDisplayName    = "form.tenant.display_name"
+	labelFormTenantDisplayNameHelp = "form.tenant.display_name.help"
+	labelFormMemberEmail          = "form.member.email"
+	labelFormMemberRole           = "form.member.role"
+	labelFormOwnership            = "form.member.ownership"
 )
 
 // defaultLabels is the display table: the single source for every covered
@@ -356,6 +391,37 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelTombstoneNotRecorded: "not recorded",
 	labelSearchSwitcherPH:     "Filter tenants…",
 	labelSearchSwitcherAria:   "Filter tenants",
+
+	labelFormImportFile:           "File",
+	labelFormImportFileHelp:       "A .csv or .json file of users (email + optional display_name).",
+	labelFormNewEmail:             "Email", //nolint:goconst // display value shared by design
+	labelFormNewEmailHelp:         "The address the user will sign in and be found by.",
+	labelFormNewDisplayName:       "Display name", //nolint:goconst // display value shared by design
+	labelFormNewDisplayNameHelp:   "Optional. Shown instead of the email where space allows.",
+	labelFormProfileDisplayName:   "Display name", //nolint:goconst // display value shared by design
+	labelFormProfileEmail:         "Email",        //nolint:goconst // display value shared by design
+	labelFormProfileEmailHelp:     "Changing the email changes how the user signs in and is found.",
+	labelActionSaveDisplayName:    "Save display name",
+	labelActionSaveEmail:          "Save email",
+	labelFormSelfDisplayName:      "Your display name",
+	labelFormGrantTenant:          "Tenant", //nolint:goconst // display value shared by design
+	labelActionGrantAccess:        "Grant access",
+	labelActionSavePlatformRoles:  "Save platform roles",
+	labelActionRevokeAll:          "Revoke all",
+	labelFormRestoreBackupLabel:   "Paste the credential backup JSON (exported from the user's own account page)",
+	labelActionRestoreCredential:  "Restore credential",
+	labelFormBulkRole:             "Role", //nolint:goconst // display value shared by design
+	labelAriaBulkSelectAll:        "Select all users on this page",
+	labelActionResendVerification: "Resend verification",
+	labelActionGrantRole:          "Grant role",
+	labelActionExportSelection:    "Export selection (CSV)",
+	labelFormTenantSlug:           "Tenant slug",
+	labelFormTenantSlugHelp:       "A unique, URL-safe identifier. It cannot be changed later.",
+	labelFormTenantDisplayName:    "Display name", //nolint:goconst // display value shared by design
+	labelFormTenantDisplayNameHelp: "Optional. Shown in the panel instead of the slug.",
+	labelFormMemberEmail:          "Add member email",
+	labelFormMemberRole:           "Role", //nolint:goconst // display value shared by design
+	labelFormOwnership:            "Ownership:",
 }
 
 // label resolves one display string from a merged label table. The fallback

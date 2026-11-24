@@ -43,10 +43,10 @@ templ userImportContent(p pageData, basePath string) {
 					@forms.FileInput(forms.FileInputProps{
 						ID:       "import-file",
 						Name:     "file",
-						Label:    "File",
+						Label:    p.label(labelFormImportFile),
 						Required: true,
 						Accept:   ".csv,.json,text/csv,application/json",
-						HelpText: "A .csv or .json file of users (email + optional display_name).",
+						HelpText: p.label(labelFormImportFileHelp),
 					})
 				</div>
 				<div class="mb-4 rounded-md bg-gray-50 px-3.5 py-2.5 text-xs text-gray-500">
@@ -323,7 +323,7 @@ templ usersTableContent(p pageData, d usersListData, sort ...string) {
 						// T19 F137: the select-all checkbox. Indeterminate state is
 						// client-owned (admin.js) — the server only seeds unchecked.
 						<th scope="col" class="w-10 px-3 py-2">
-							<input type="checkbox" data-bulk-select-all class="h-4 w-4" aria-label="Select all users on this page"/>
+							<input type="checkbox" data-bulk-select-all class="h-4 w-4" aria-label={ p.label(labelAriaBulkSelectAll) }/>
 						</th>
 						@userSortableHeader("email", p.label(labelHeaderUser), userHeaderAria(pagerSortOf(sort), "email"))
 						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderAccess) }</th>
@@ -435,11 +435,11 @@ templ userAccessCell(row userRow, basePath string) {
 // counts a checked row; the export link's href is recomputed client-side
 // from the checked ids (data-export-base is the server-owned constant, the
 // ids param is client state — the server never guesses a selection).
-templ usersBulkBar(d usersListData) {
+templ usersBulkBar(p pageData, d usersListData) {
 	<div id="users-bulk-bar" hidden class="my-4 flex flex-wrap items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 dark:border-gray-700 dark:bg-gray-800">
 		<span id="bulk-count" class="text-sm font-medium text-gray-700 dark:text-gray-200"></span>
 		@display.Button(display.ButtonProps{
-			Text:    "Resend verification",
+			Text:    p.label(labelActionResendVerification),
 			Type:    display.ButtonHTMLSubmit,
 			Variant: display.ButtonSecondary,
 			Size:    display.ButtonSizeSM,
@@ -449,14 +449,14 @@ templ usersBulkBar(d usersListData) {
 			}},
 		})
 		<span class="flex items-center gap-1.5">
-			<label class="text-sm text-gray-600 dark:text-gray-300" for="bulk-role">Role</label>
+			<label class="text-sm text-gray-600 dark:text-gray-300" for="bulk-role">{ p.label(labelFormBulkRole) }</label>
 			<select id="bulk-role" name="roles" class="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
 				for _, role := range identitymodel.AdminRoles() {
 					<option value={ string(role) }>{ string(role) }</option>
 				}
 			</select>
 			@display.Button(display.ButtonProps{
-				Text:    "Grant role",
+				Text:    p.label(labelActionGrantRole),
 				Type:    display.ButtonHTMLSubmit,
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
@@ -471,7 +471,7 @@ templ usersBulkBar(d usersListData) {
 			class="text-sm text-gray-600 no-underline hover:underline dark:text-gray-300"
 			href={ d.BasePath + "/users/export.ids.csv" }
 			data-export-base={ d.BasePath + "/users/export.ids.csv" }
-		>Export selection (CSV)</a>
+		>{ p.label(labelActionExportSelection) }</a>
 	</div>
 }
 
@@ -560,17 +560,17 @@ templ userNewContent(p pageData, basePath string) {
 					Type:       forms.InputEmail,
 					Placeholder: "ada@example.com",
 					Required:   true,
-					Label:      "Email",
-					HelpText:   "The address the user will sign in and be found by.",
+					Label:      p.label(labelFormNewEmail),
+					HelpText:   p.label(labelFormNewEmailHelp),
 				})
 				</div>
 				<div class="mb-4">
 					@forms.Input(forms.InputProps{
-					BaseProps:  utils.BaseProps{ID: "display_name"},
-					Name:       "display_name",
-					Placeholder: "Ada Lovelace",
-					Label:      "Display name",
-					HelpText:   "Optional. Shown instead of the email where space allows.",
+						BaseProps:  utils.BaseProps{ID: "display_name"},
+						Name:       "display_name",
+						Placeholder: "Ada Lovelace",
+						Label:      p.label(labelFormNewDisplayName),
+						HelpText:   p.label(labelFormNewDisplayNameHelp),
 					})
 				</div>
 				<div class="mb-4 rounded-md bg-gray-50 px-3.5 py-2.5 text-xs text-gray-500">
@@ -638,12 +638,12 @@ templ userDetailContent(p pageData, d userDetailData) {
 	// T17 F128: the copy-row-as-JSON support action — the detail page's
 	// account facts as one clipboard payload for tickets and API calls.
 	@userSupportActions(d)
-	@profileEditCard(d)
+	@profileEditCard(p, d)
 	// The self-service card renders only when the shown user is the signed-in
 	// admin: their own display-name edit, their own grants read back, and the
 	// consumer-mounted sign-out link (or the honest note when none exists).
 	if d.IsSelf {
-		@selfServiceCard(d)
+		@selfServiceCard(p, d)
 	}
 	// The sign-in cards render only when the deployment can serve the
 	// channel at all (probes above): a Passkeys card in a WebAuthn-less
@@ -652,13 +652,13 @@ templ userDetailContent(p pageData, d userDetailData) {
 	// that cannot exist. Dead cards never render — not even as empty states.
 	if d.AuthMethods.HasWebAuthn {
 		@passkeysCard(d)
-		@credentialRestoreCard(d)
+		@credentialRestoreCard(p, d)
 	}
 	if d.AuthMethods.HasOAuth2 {
 			@externalAccountsCard(p, d)
 		}
-	@platformAccessCard(d)
-	@tenantAccessCard(d)
+	@platformAccessCard(p, d)
+	@tenantAccessCard(p, d)
 	@userTimelineCard(d)
 	@display.Card(display.CardProps{
 		Header: dangerZoneHeader(),
@@ -728,7 +728,7 @@ templ userSupportActions(d userDetailData) {
 // profileEditCard holds the two inline profile edits: display name and
 // sign-in email. Each is its own form so a save never mixes fields; the email
 // form carries a confirm dialog because it changes how the user signs in.
-templ profileEditCard(d userDetailData) {
+templ profileEditCard(p pageData, d userDetailData) {
 	@display.Card(display.CardProps{
 		Title:     "Edit profile",
 		BaseProps: utils.BaseProps{Class: "mb-4"},
@@ -741,11 +741,11 @@ templ profileEditCard(d userDetailData) {
 				BaseProps: utils.BaseProps{ID: "display_name", Class: "mb-2"},
 				Name:       "display_name",
 				Value:      d.User.DisplayName,
-				Placeholder: "Display name",
-				Label:      "Display name",
+				Placeholder: p.label(labelFormProfileDisplayName),
+				Label:      p.label(labelFormProfileDisplayName),
 			})
 			@display.Button(display.ButtonProps{
-				Text:    "Save display name",
+				Text:    p.label(labelActionSaveDisplayName),
 				Type:    display.ButtonHTMLSubmit,
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
@@ -758,11 +758,11 @@ templ profileEditCard(d userDetailData) {
 				Type:       forms.InputEmail,
 				Value:      d.User.Email,
 				Placeholder: "email@example.com",
-				Label:      "Email",
-				HelpText:   "Changing the email changes how the user signs in and is found.",
+				Label:      p.label(labelFormProfileEmail),
+				HelpText:   p.label(labelFormProfileEmailHelp),
 			})
 			@display.Button(display.ButtonProps{
-				Text:    "Save email",
+				Text:    p.label(labelActionSaveEmail),
 				Type:    display.ButtonHTMLSubmit,
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
@@ -808,13 +808,13 @@ templ passkeysCard(d userDetailData) {
 // pinned in handler_credential_restore_test.go — the card inherits the
 // contract, not a paraphrase. Renders only where the deployment can serve
 // WebAuthn at all (same probe gate as the Passkeys card).
-templ credentialRestoreCard(d userDetailData) {
+templ credentialRestoreCard(p pageData, d userDetailData) {
 	@display.Card(display.CardProps{
 		Title: "Restore a passkey from backup",
 		BaseProps: utils.BaseProps{Class: "mb-4 print:hidden"},
 	}) {
 		<form class="px-4 py-3 space-y-2" method="post" action={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/credentials/restore" } data-dirty-guard>
-			<label class="block text-sm text-gray-500" for="credential-backup-json">Paste the credential backup JSON (exported from the user's own account page)</label>
+			<label class="block text-sm text-gray-500" for="credential-backup-json">{ p.label(labelFormRestoreBackupLabel) }</label>
 			<textarea
 				id="credential-backup-json"
 				name="backup"
@@ -825,7 +825,7 @@ templ credentialRestoreCard(d userDetailData) {
 			/>
 			<div class="flex justify-end">
 				@display.Button(display.ButtonProps{
-					Text:    "Restore credential",
+					Text:    p.label(labelActionRestoreCredential),
 					Variant: display.ButtonDanger,
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("key"),
@@ -887,7 +887,7 @@ templ credentialRows(d userDetailData) {
 // embedding application mounts via Config.LogoutURL. When no sign-out URL is
 // configured the card says so instead of rendering a link that would 404 —
 // the panel owns no session routes of its own and adds none.
-templ selfServiceCard(d userDetailData) {
+templ selfServiceCard(p pageData, d userDetailData) {
 	@display.Card(display.CardProps{
 		Title:     "Your account",
 		BaseProps: utils.BaseProps{Class: "mb-4"},
@@ -901,11 +901,11 @@ templ selfServiceCard(d userDetailData) {
 				BaseProps: utils.BaseProps{ID: "self_display_name", Class: "mb-2"},
 				Name:       "display_name",
 				Value:      d.User.DisplayName,
-				Placeholder: "Your display name",
-				Label:      "Your display name",
+				Placeholder: p.label(labelFormSelfDisplayName),
+				Label:      p.label(labelFormSelfDisplayName),
 			})
 			@display.Button(display.ButtonProps{
-				Text:    "Save display name",
+				Text:    p.label(labelActionSaveDisplayName),
 				Type:    display.ButtonHTMLSubmit,
 				Variant: display.ButtonSecondary,
 				Size:    display.ButtonSizeSM,
@@ -958,7 +958,7 @@ templ selfServiceCard(d userDetailData) {
 // durable GrantRoles path (membership events, replayed by the projection —
 // ADR-0057). Granting replaces the role set, so the checkboxes show the
 // user's current platform roles as the starting point.
-templ platformAccessCard(d userDetailData) {
+templ platformAccessCard(p pageData, d userDetailData) {
 	@display.Card(display.CardProps{
 		Title:     "Platform access",
 		BaseProps: utils.BaseProps{Class: "mb-4"},
@@ -983,14 +983,14 @@ templ platformAccessCard(d userDetailData) {
 			</div>
 			<div class="flex flex-wrap items-center gap-2.5">
 				@display.Button(display.ButtonProps{
-					Text:    "Save platform roles",
+					Text:    p.label(labelActionSavePlatformRoles),
 					Type:    display.ButtonHTMLSubmit,
 					Variant: display.ButtonPrimary,
 					Size:    display.ButtonSizeSM,
 				})
 				if len(d.PlatformRoles) > 0 {
 					@display.Button(display.ButtonProps{
-						Text:    "Revoke all",
+						Text:    p.label(labelActionRevokeAll),
 						Variant: display.ButtonDanger,
 						Size:    display.ButtonSizeSM,
 						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
@@ -1083,7 +1083,7 @@ templ userDetailAvatar(d userDetailData) {
 // this person can act in, and the durable membership grant that adds one. The
 // operations are the SAME membership commands the tenant roster dispatches —
 // one authority path, whichever side the admin starts from.
-templ tenantAccessCard(d userDetailData) {
+templ tenantAccessCard(p pageData, d userDetailData) {
 @display.Card(display.CardProps{
 	Title:     "Tenant access",
 	Padding:   display.CardPaddingNone,
@@ -1116,15 +1116,15 @@ templ tenantAccessCard(d userDetailData) {
 					// is page-shaped (live tenants minus memberships), so it
 					// ships once as JSON and admin.js filters per keystroke.
 					<div class="max-w-[220px]">
-						<label for="admin-grant-tenant-input" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tenant</label>
+						<label for="admin-grant-tenant-input" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{ p.label(labelFormGrantTenant) }</label>
 						@suggestCombobox("admin-grant-tenant-input", "text", "tenant", "", "Pick a tenant", "Tenant", "", tenantOptionsJSON(d.TenantOptions))
 					</div>
-					@roleCheckboxGroup(d.AssignableRoles, nil, "Role")
+					@roleCheckboxGroup(d.AssignableRoles, nil, p.label(labelFormMemberRole))
 					@display.Button(display.ButtonProps{
 						Type:     display.ButtonHTMLSubmit,
 						Variant:  display.ButtonPrimary,
 						Size:     display.ButtonSizeSM,
-						Children: htmx.LoadingButton("Grant access", "Granting…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"})),
+						Children: htmx.LoadingButton(p.label(labelActionGrantAccess), "Granting…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"})),
 					})
 				</form>
 				<div class={ "mt-2 text-xs " + metadataTextXSClass }>
