@@ -179,15 +179,16 @@ func (m *SQLUserReadModel) retireToSQL(ctx context.Context, aggID id.StreamID, e
 	userID := NewUserID(aggID.Get())
 	retired, ok := m.row(aggID)
 	if !ok {
-		retired, err = m.storedUser(ctx, userID)
+		var live bool
+		retired, live, err = m.storedUser(ctx, userID)
 		if err != nil {
 			return err
 		}
-	}
-	// nil answers a row that is already a tombstone: the event is delivered
-	// again and the tombstone stays as it was first written.
-	if retired == nil {
-		return nil
+		// not live answers a row that is already a tombstone: the event is
+		// delivered again and the tombstone stays as it was first written.
+		if !live {
+			return nil
+		}
 	}
 	retired.MergedInto = p.SurvivorID
 	view, err := userViewOf(retired, evt.OccurredAt())
@@ -204,25 +205,26 @@ func (m *SQLUserReadModel) retireToSQL(ctx context.Context, aggID id.StreamID, e
 
 // storedUser reads the row the store holds for a user that memory has no row
 // for. No row answers a user that carries nothing but its ID: a merge pointer
-// without a tombstone would be lost at the next restart.
-func (m *SQLUserReadModel) storedUser(ctx context.Context, userID UserID) (*User, error) {
+// without a tombstone would be lost at the next restart. live is false when
+// the stored row is already a tombstone.
+func (m *SQLUserReadModel) storedUser(ctx context.Context, userID UserID) (user *User, live bool, err error) {
 	view, err := m.cache.Get(ctx, userID)
 	if errors.Is(err, kv.ErrNotFound) {
-		return &User{ID: userID}, nil //nolint:exhaustruct // a pointer-only tombstone: every other field is unknown
+		return &User{ID: userID}, true, nil // a pointer-only tombstone: every other field is unknown
 	}
 	if err != nil {
-		return nil, errorfamily.WrapTransient(
+		return nil, false, errorfamily.WrapTransient(
 			err, "usermgmt.sql_readmodel.retire_get", "read user view before writing its tombstone").
 			WithContextAny("user_id", userID)
 	}
 	if view.Tombstoned {
-		return nil, nil
+		return nil, false, nil
 	}
-	user, err := unmarshalUserViewData(view.Data)
+	user, err = unmarshalUserViewData(view.Data)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return user, nil
+	return user, true, nil
 }
 
 func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error {
@@ -258,7 +260,7 @@ func userViewOf(user *User, at time.Time) (*UserView, error) {
 		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.sql_readmodel.user_marshal", "marshal user view data").
 			WithContextAny("user_id", user.ID)
 	}
-	return &UserView{ //nolint:exhaustruct // a live row is never tombstoned; the zero value is the contract
+	return &UserView{ // a live row is never tombstoned; the zero value is the contract
 		Email: user.Email, DisplayName: user.DisplayName,
 		EmailVerified: user.EmailVerified, TOTPEnabled: user.TOTPEnabled,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
@@ -292,10 +294,11 @@ func (m *SQLUserReadModel) FindByEmailSQL(ctx context.Context, email string) ([]
 	seen := make(map[UserID]struct{}, len(rows))
 	for _, row := range rows {
 		if row.Tombstoned {
-			if row, err = m.liveAfterMerge(ctx, row); err != nil {
+			var live bool
+			if row, live, err = m.liveAfterMerge(ctx, row); err != nil {
 				return nil, err
 			}
-			if row == nil {
+			if !live {
 				continue
 			}
 		}
@@ -319,36 +322,38 @@ const sqlMergeChainLimit = 10000
 
 // liveAfterMerge follows the merge pointer of a tombstone to the live row at
 // end of its chain. A tombstone without a pointer, and a chain without a
-// live row, answer nil.
-func (m *SQLUserReadModel) liveAfterMerge(ctx context.Context, tombstone *UserView) (*UserView, error) {
+// live row, answer live false.
+func (m *SQLUserReadModel) liveAfterMerge(
+	ctx context.Context, tombstone *UserView,
+) (view *UserView, live bool, err error) {
 	row := tombstone
 	for range sqlMergeChainLimit {
 		user, err := unmarshalUserViewData(row.Data)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		if user.MergedInto.IsZero() {
-			return nil, nil
+			return nil, false, nil
 		}
 		survivor, err := aggIDFromUser(user.MergedInto)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		next, err := m.cache.Get(ctx, NewUserID(survivor.Get()))
 		if errors.Is(err, kv.ErrNotFound) {
-			return nil, nil
+			return nil, false, nil
 		}
 		if err != nil {
-			return nil, errorfamily.WrapTransient(
+			return nil, false, errorfamily.WrapTransient(
 				err, "usermgmt.sql_readmodel.query_email", "read the survivor of a merged user view").
 				WithContextAny("user_id", user.MergedInto)
 		}
 		if !next.Tombstoned {
-			return next, nil
+			return next, true, nil
 		}
 		row = next
 	}
-	return nil, nil
+	return nil, false, nil
 }
 
 // viewUserID reads the user a stored row belongs to. The row carries no key

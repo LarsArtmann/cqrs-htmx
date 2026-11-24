@@ -209,6 +209,7 @@ func newUserIndex(size int) *userIndex {
 		externalAccounts: make(map[externalAccountKey]id.StreamID),
 		mergedInto:       make(map[id.StreamID]id.StreamID),
 		live:             make([]liveUserRow, 0, size),
+		merges:           make([]mergeRecord, 0),
 	}
 }
 
