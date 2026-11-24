@@ -21,7 +21,10 @@ const suggestLimit = 20
 // errSuggestEmptyQuery is the Rejection for an absent or blank query. An
 // empty q would otherwise mean "the whole directory", which is the users
 // list's job — the endpoint refuses honestly instead of impersonating it.
-var errSuggestEmptyQuery error = errorfamily.NewRejection("adminui.suggest.empty_query", "the q parameter is required and must not be blank")
+var errSuggestEmptyQuery error = errorfamily.NewRejection(
+	"adminui.suggest.empty_query",
+	"the q parameter is required and must not be blank",
+)
 
 // userSuggestResult is one suggestion row: enough to label the popup option
 // and fill the form field — the id (for future actor-carrying posts), the
@@ -77,7 +80,13 @@ func (h *Handler) userSuggest(w http.ResponseWriter, r *http.Request, _ *identit
 	w.Header().Set("Content-Type", "application/json")
 	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 	if err := json.MarshalEncode(enc, matches); err != nil {
-		h.writeErrorPage(w, r, http.StatusInternalServerError, "Suggest failed", "The suggestions could not be rendered.")
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusInternalServerError,
+			"Suggest failed",
+			"The suggestions could not be rendered.",
+		)
 	}
 }
 
@@ -90,5 +99,8 @@ func (h *Handler) writeJSONRejection(w http.ResponseWriter, status int, rejectio
 	w.WriteHeader(status)
 	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 	body := map[string]string{"error": rejection.Error()}
-	_ = json.MarshalEncode(enc, body) // writing to a ResponseWriter cannot fail meaningfully; a short write surfaces on the client
+	_ = json.MarshalEncode(
+		enc,
+		body,
+	) // writing to a ResponseWriter cannot fail meaningfully; a short write surfaces on the client
 }

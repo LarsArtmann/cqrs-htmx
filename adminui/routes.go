@@ -21,10 +21,11 @@ const (
 
 // Shared route patterns (referenced by the table and the sidebar nav).
 const (
-	patternUsers   = "/users"
-	patternTenants = "/tenants"
-	patternMembers = "/members"
-	patternAudit   = "/audit"
+	patternUsers        = "/users"
+	patternUsersSuggest = "/users/suggest"
+	patternTenants      = "/tenants"
+	patternMembers      = "/members"
+	patternAudit        = "/audit"
 )
 
 // Route is one row of the admin panel's route manifest — behind
@@ -204,6 +205,7 @@ func (h *Handler) fallbackRoutes() []routeSpec {
 func (h *Handler) superAdminRoutes() []routeSpec {
 	return slices.Concat(
 		h.superAdminUserRoutes(),
+		h.superAdminUserSuggestRoutes(),
 		h.superAdminUserExportRoutes(),
 		h.superAdminUserAccountRoutes(),
 		h.superAdminUserCredentialRoutes(),
@@ -235,19 +237,6 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 			method: http.MethodPost, pattern: "/users/search", panel: panelUsers, guarded: h.userSearch,
 			mode: routeModeSuperAdmin,
 			why:  "the search fallback twin: byte-identical responses for clients that cannot send QUERY",
-		},
-		{
-			// T08 F049: the type-ahead directory feed behind the members-add
-			// combobox. A prefix match and a capped JSON answer — not the
-			// users list, and not an unbounded directory dump.
-			method: cqrshtmx.MethodQuery, pattern: "/users/suggest", panel: panelUsers, guarded: h.userSuggest,
-			mode: routeModeSuperAdmin,
-			why:  "the type-ahead feed: a capped JSON prefix match so the combobox asks per keystroke instead of the page shipping the directory",
-		},
-		{
-			method: http.MethodGet, pattern: "/users/suggest", panel: panelUsers, guarded: h.userSuggest,
-			mode: routeModeSuperAdmin,
-			why:  "the suggest fallback twin: byte-identical JSON for clients (and tests) that cannot send QUERY",
 		},
 		{
 			method: http.MethodGet, pattern: "/users/new", panel: panelUsers, guarded: h.userNew,
@@ -285,6 +274,28 @@ func (h *Handler) superAdminUserRoutes() []routeSpec {
 		{
 			method: http.MethodPost, pattern: "/users/{id}/delete", panel: panelUsers, guarded: h.userDelete,
 			mode: routeModeSuperAdmin, write: true, why: "deleting users is platform-admin territory",
+		},
+	}
+}
+
+// superAdminUserSuggestRoutes serve the type-ahead directory feed behind the
+// members-add combobox (T08 F049): a prefix match and a capped JSON answer —
+// not the users list, and not an unbounded directory dump.
+//
+//nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
+func (h *Handler) superAdminUserSuggestRoutes() []routeSpec {
+	return []routeSpec{
+		{
+			method:  cqrshtmx.MethodQuery,
+			pattern: patternUsersSuggest,
+			panel:   panelUsers, guarded: h.userSuggest,
+			mode: routeModeSuperAdmin,
+			why:  "the type-ahead feed: a capped JSON prefix match so the combobox asks per keystroke instead of the page shipping the directory",
+		},
+		{
+			method: http.MethodGet, pattern: patternUsersSuggest, panel: panelUsers, guarded: h.userSuggest,
+			mode: routeModeSuperAdmin,
+			why:  "the suggest fallback twin: byte-identical JSON for clients (and tests) that cannot send QUERY",
 		},
 	}
 }

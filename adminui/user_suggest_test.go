@@ -108,7 +108,7 @@ func TestUserSuggest_CappedAtTwenty(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	ctx := context.Background()
-	for i := 0; i < suggestLimit+1; i++ {
+	for i := range suggestLimit + 1 {
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID:    identitymodel.SyntheticUserID("u-cap-" + strings.Repeat("x", i+1)),
 			Email: "cap" + strings.Repeat("x", i+1) + "@example.com",
@@ -193,5 +193,40 @@ func TestUserSuggest_TenantModeAbsent(t *testing.T) {
 	panel.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/suggest?q=x", nil))
 	if rec.Code == http.StatusOK {
 		t.Fatal("tenant mode must not serve /users/suggest")
+	}
+}
+
+// TestSuggest_JSWired pins the client half (T08 F052/F054, panelAdminJS
+// pattern): admin.js must own the combobox behavior — debounce, keyboard
+// selection, pick, close — document-delegated and CSP-safe (no inline
+// handlers), and the members page must carry the hook markers.
+func TestSuggest_JSWired(t *testing.T) {
+	t.Parallel()
+
+	user := mustUser(t, "admin@example.com")
+	h, svc := newTestPanel(t, user)
+	mustCreateTenant(t, svc, "acme")
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/acme", nil))
+	body := rec.Body.String()
+	for _, want := range []string{"data-suggest-input", "data-suggest-list", `role="combobox"`, `aria-expanded="false"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("members page missing combobox marker %q", want)
+		}
+	}
+
+	js := panelAdminJS(t)
+	for _, want := range []string{
+		"data-suggest-input",    // delegation hook
+		"setTimeout",            // debounce
+		"aria-activedescendant", // selection semantics
+		"ArrowDown",             // keyboard selection
+		"Escape",                // close
+		"?q=",                   // the query param the fetch targets
+	} {
+		if !strings.Contains(js, want) {
+			t.Errorf("admin.js missing suggest hook %q", want)
+		}
 	}
 }

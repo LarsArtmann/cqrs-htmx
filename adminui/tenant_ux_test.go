@@ -236,4 +236,10 @@ func TestTenantAdminMembers_NoUserLinks(t *testing.T) {
 	if strings.Contains(body, "/admin/users/") {
 		t.Error("tenant-admin mode must not link to the absent user directory")
 	}
+	// T08: same honesty for the type-ahead feed — no /users routes in this
+	// mode means no suggest fetch either; the combobox degrades to a plain
+	// input (roles still present, data-suggest-src absent).
+	if strings.Contains(body, "/users/suggest") {
+		t.Error("tenant-admin mode must not fetch the absent suggest endpoint")
+	}
 }
