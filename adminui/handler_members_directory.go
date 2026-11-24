@@ -139,7 +139,9 @@ func (h *Handler) directoryRows(ctx context.Context) []membersDirectoryRow {
 		for _, m := range h.config.Service.TenantMembers(ctx, t.ID) {
 			row := membersDirectoryRow{
 				Tenant: t,
-				Actor:  m.ActorID, Roles: m.Roles, AddedAt: m.AddedAt,
+				memberRow: memberRow{
+					Actor: m.ActorID, Roles: m.Roles, AddedAt: m.AddedAt,
+				},
 			}
 			if userID, ok := identitymodel.ActorIDAsUserID(m.ActorID); ok {
 				if user, found := h.lookupUser(userID); found {

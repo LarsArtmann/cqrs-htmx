@@ -230,9 +230,9 @@ const (
 	labelConfirmUsersDeleteBody      = "confirm.users.delete.body"
 	labelConfirmUsersEmailBody       = "confirm.users.change_email.body"
 	labelConfirmUsersRestoreBody     = "confirm.users.restore_passkey.body"
-	labelConfirmUsersPasskeyBody     = "confirm.users.remove_passkey.body"
-	labelConfirmUsersPasskeyLastBody = "confirm.users.remove_passkey.last.body"
-	labelConfirmUsersPasskeyOnlyBody = "confirm.users.remove_passkey.only.body"
+	labelConfirmUsersPasskeyBody     = "confirm.users.remove_passkey.body"      //nolint:gosec // label key, not a credential
+	labelConfirmUsersPasskeyLastBody = "confirm.users.remove_passkey.last.body" //nolint:gosec // label key, not a credential
+	labelConfirmUsersPasskeyOnlyBody = "confirm.users.remove_passkey.only.body" //nolint:gosec // label key, not a credential
 	labelConfirmUsersRevokeSelfBody  = "confirm.users.revoke_roles.self.body"
 	labelConfirmUsersRevokeBody      = "confirm.users.revoke_roles.body"
 	labelConfirmUsersUnlinkBody      = "confirm.users.unlink.body"
@@ -405,7 +405,7 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelSearchDirPH:       "Search email or name…",
 	labelSearchDirAria:     "Search the directory",
 
-	labelConfirmUsersDelete:      "Delete user", //nolint:goconst // display value shared by design
+	labelConfirmUsersDelete:      "Delete user",
 	labelConfirmUsersEmail:       "Change email",
 	labelConfirmUsersPasskey:     "Remove passkey",
 	labelConfirmUsersRoles:       "Revoke platform roles",
