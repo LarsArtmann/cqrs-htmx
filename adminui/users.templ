@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
@@ -164,15 +165,17 @@ templ usersContent(p pageData, d usersListData, sort string) {
 					"hx-trigger":   "submit",
 					"hx-target":    "#users-table",
 					"hx-swap":      "innerHTML",
-					"hx-indicator": "#users-search-spinner",
+					"hx-indicator": "#users-skeleton",
 				},
 			},
 		})
-		<span id="users-search-spinner" class="htmx-indicator text-gray-400">
-			@feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})
-		</span>
 	</div>
 	@userFilterChips(d, sort)
+	// T17 F124/F125: the skeleton is the search wire's hx-indicator — hidden
+	// in every server response (.htmx-indicator CSS), shown only while the
+	// FIRST in-flight swap loads rows, then removed by admin.js so an
+	// already-loaded window never flashes it again.
+	@usersSkeleton()
 	<div id="users-table">
 		@usersTableContent(p, d, sort)
 	</div>
@@ -244,6 +247,34 @@ templ newUserAction(p pageData, d usersListData) {
 	})
 }
 
+// userSortableHeader is one client-sortable column header (T17 F126): a
+// plain button that admin.js uses to re-order the LOADED window in place —
+// no server round-trip. aria-sort carries the live state (the URL-carried
+// server sort from T03 seeds it on render and stays the bookmarkable
+// default); the indicator span is textContent-updated by admin.js.
+templ userSortableHeader(key, label, aria string) {
+	<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white" aria-sort={ aria }>
+		<button
+			type="button"
+			data-sort-key={ key }
+			class="inline-flex items-center gap-1 py-1 hover:text-blue-600 dark:hover:text-blue-400"
+			aria-label={ "Sort by " + label }
+		>
+			{ label }
+			<span data-sort-indicator aria-hidden="true"></span>
+		</button>
+	</th>
+}
+
+// userHeaderAria seeds the aria-sort state from the URL-carried server sort
+// (ascending only — the T03 vocabulary has no descending key).
+func userHeaderAria(sort, key string) string {
+	if sort == key {
+		return "ascending"
+	}
+	return "none"
+}
+
 // usersTableContent is the users list's swap region. The optional sort is
 // the GET route's ordering ("" = the directory's stable order); the
 // body-carrying search twin omits it (its wire format is q/filter/page), so
@@ -259,21 +290,40 @@ templ usersTableContent(p pageData, d usersListData, sort ...string) {
 			}
 		}
 	} else {
-		@display.Table(display.TableProps{
-			Headers:     []string{p.label(labelHeaderUser), p.label(labelHeaderAccess), p.label(labelHeaderStatus), p.label(labelHeaderLastSeen), p.label(labelHeaderCreated), ""},
-			Hover:       true,
-			Body:        usersRows(p, d),
-			Striped:     true,
-			CellPadding: display.TableCellPaddingCompact,
-		})
+		// T17 F126: hand-rolled table (the library's display.Table header
+		// vocabulary cannot carry the data-sort-key buttons), mirroring the
+		// library's wrapper/table/tbody classes so the visual contract is
+		// unchanged. Only the User and Created columns are client-sortable.
+		<div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700" role="region" tabindex="0">
+			<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+				<thead class="bg-gray-50 dark:bg-gray-800">
+					<tr>
+						@userSortableHeader("email", p.label(labelHeaderUser), userHeaderAria(pagerSortOf(sort), "email"))
+						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderAccess) }</th>
+						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderStatus) }</th>
+						<th scope="col" class="px-4 py-2 text-start font-semibold text-gray-900 dark:text-white">{ p.label(labelHeaderLastSeen) }</th>
+						@userSortableHeader("created", p.label(labelHeaderCreated), userHeaderAria(pagerSortOf(sort), "created"))
+						<th scope="col" class="px-4 py-2 text-end font-semibold text-gray-900 dark:text-white"><span class="sr-only">Actions</span></th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+					@usersRows(p, d)
+				</tbody>
+			</table>
+		</div>
 		@listNote(len(d.Users), d.Total)
 		@listPager(userListURL(d.BasePath+"/users", d, d.Filter, pagerSortOf(sort)), d.Page, d.TotalPages)
 	}
 }
 
+
+// usersRows renders the users list body rows. data-sort-* carries the
+// client-sort vocabulary (T17 F126): admin.js reads these per row — no
+// cell-level attrs needed — and the values mirror compareUsers' lowercase
+// compares so the in-window order agrees with the URL-carried server sort.
 templ usersRows(p pageData, d usersListData) {
-	for _, row := range d.Users {
-		<tr>
+	for i, row := range d.Users {
+		<tr class={ templ.KV("bg-gray-50 dark:bg-gray-800/50", i%2 == 1), "hover:bg-gray-100 dark:hover:bg-gray-800" } data-sort-email={ strings.ToLower(row.User.Email) } data-sort-display={ strings.ToLower(row.User.DisplayName) } data-sort-created={ strconv.FormatInt(row.User.CreatedAt.Unix(), 10) }>
 			<td class="px-4 py-2">
 				<a class="flex no-underline" href={ d.BasePath + "/users/" + row.User.ID.Get().String() }>
 					<div class="flex items-center gap-2.5">
@@ -448,6 +498,9 @@ templ userDetailContent(p pageData, d userDetailData) {
 			Items: userDetailDefinitionItems(d),
 		})
 	}
+	// T17 F128: the copy-row-as-JSON support action — the detail page's
+	// account facts as one clipboard payload for tickets and API calls.
+	@userSupportActions(d)
 	@profileEditCard(d)
 	// The self-service card renders only when the shown user is the signed-in
 	// admin: their own display-name edit, their own grants read back, and the
@@ -513,6 +566,27 @@ templ verifiedDetail(d userDetailData) {
 	</span>
 }
 
+// userSupportActions is the detail page's support strip (T17 F128): the
+// copy-row-as-JSON action. The payload is composed server-side (one honest
+// snapshot of the resolved facts) and carried in a data attribute — the
+// click handler is the document-delegated admin.js bridge to the async
+// Clipboard API, with an explicit denial message (never a silent no-op).
+templ userSupportActions(d userDetailData) {
+	<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-gray-50 px-3.5 py-2.5 dark:bg-gray-800/50">
+		<span class="text-xs text-gray-500 dark:text-gray-400">Support: copy the account facts as JSON for tickets and API calls.</span>
+		@display.Button(display.ButtonProps{
+			Text:      "Copy as JSON",
+			Variant:   display.ButtonSecondary,
+			Size:      display.ButtonSizeSM,
+			BaseProps: utils.BaseProps{Attrs: templ.Attributes{
+				"data-copy-json": userCopyJSON(d),
+				"data-copy-ok":   "User copied as JSON.",
+				"data-copy-err":  "Clipboard unavailable or denied — nothing was copied.",
+			}},
+		})
+	</div>
+}
+
 // profileEditCard holds the two inline profile edits: display name and
 // sign-in email. Each is its own form so a save never mixes fields; the email
 // form carries a confirm dialog because it changes how the user signs in.
@@ -521,7 +595,10 @@ templ profileEditCard(d userDetailData) {
 		Title:     "Edit profile",
 		BaseProps: utils.BaseProps{Class: "mb-4"},
 	}) {
-		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/display-name" } hx-target="this" class="mb-4">
+		// T17 F127: data-dirty-guard marks the edit forms for the unsaved-
+		// changes guard — admin.js compares live values to defaultValue and
+		// raises beforeunload ONLY while something actually differs.
+		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/display-name" } hx-target="this" class="mb-4" data-dirty-guard>
 			@forms.Input(forms.InputProps{
 				BaseProps: utils.BaseProps{ID: "display_name", Class: "mb-2"},
 				Name:       "display_name",
@@ -536,7 +613,7 @@ templ profileEditCard(d userDetailData) {
 				Size:    display.ButtonSizeSM,
 			})
 		</form>
-		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/email" } hx-target="this">
+		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/email" } hx-target="this" data-dirty-guard>
 			@forms.Input(forms.InputProps{
 				BaseProps: utils.BaseProps{ID: "email", Class: "mb-2"},
 				Name:       "email",
@@ -643,7 +720,7 @@ templ selfServiceCard(d userDetailData) {
 			This is the account you are signed in as. You can edit your own display
 			name here; your access grants are listed below as they stand.
 		</div>
-		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/display-name" } hx-target="this" class="mb-4">
+		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/display-name" } hx-target="this" class="mb-4" data-dirty-guard>
 			@forms.Input(forms.InputProps{
 				BaseProps: utils.BaseProps{ID: "self_display_name", Class: "mb-2"},
 				Name:       "display_name",

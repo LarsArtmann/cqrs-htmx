@@ -10,7 +10,7 @@ const browser = await chromium.launch({ executablePath, args: ["--no-sandbox"] }
 const page = await browser.newPage();
 page.on("console", (m) => console.log("[console]", m.text()));
 page.on("pageerror", (e) => { console.error("[pageerror]", e.message); process.exitCode = 1; });
-await page.goto("file://" + join(dir, "index.html"));
+await page.goto("http://127.0.0.1:8125/" + "index.html");
 await page.waitForFunction(() => window.__SPIKE_DONE === true, { timeout: 20000 });
 const results = await page.evaluate(() => document.getElementById("result").textContent);
 writeFileSync(join(dir, "RESULTS.json"), results);
