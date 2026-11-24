@@ -45,7 +45,7 @@ func TestExternalAccountsCard_RendersLinkUnlinkView(t *testing.T) {
 		ConfiguredProviders: []string{"google", "github"},
 	}
 
-	html := renderComponent(t, externalAccountsCard(data))
+	html := renderComponent(t, externalAccountsCard(pageData{}, data))
 
 	wantUnlinkURL := "/admin/users/" + u.ID.Get().String() + "/external/google/unlink"
 	if !strings.Contains(html, wantUnlinkURL) {
@@ -79,7 +79,7 @@ func TestExternalAccountsCard_EmptyState(t *testing.T) {
 		BasePath: "/admin",
 	}
 
-	html := renderComponent(t, externalAccountsCard(data))
+	html := renderComponent(t, externalAccountsCard(pageData{}, data))
 
 	if !strings.Contains(html, "No external accounts linked.") {
 		t.Error("expected empty-state note")

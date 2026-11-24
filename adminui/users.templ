@@ -400,10 +400,10 @@ templ userNewContent(p pageData, basePath string) {
 }
 
 templ userDetailPage(p pageData, d userDetailData) {
-	@Layout(p, userDetailContent(d))
+	@Layout(p, userDetailContent(p, d))
 }
 
-templ userDetailContent(d userDetailData) {
+templ userDetailContent(p pageData, d userDetailData) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
 			{Text: "Users", Href: d.BasePath + "/users"},
@@ -449,6 +449,12 @@ templ userDetailContent(d userDetailData) {
 		})
 	}
 	@profileEditCard(d)
+	// The self-service card renders only when the shown user is the signed-in
+	// admin: their own display-name edit, their own grants read back, and the
+	// consumer-mounted sign-out link (or the honest note when none exists).
+	if d.IsSelf {
+		@selfServiceCard(d)
+	}
 	// The sign-in cards render only when the deployment can serve the
 	// channel at all (probes above): a Passkeys card in a WebAuthn-less
 	// deployment would advertise an enrollment the user can never perform,
@@ -458,8 +464,8 @@ templ userDetailContent(d userDetailData) {
 		@passkeysCard(d)
 	}
 	if d.AuthMethods.HasOAuth2 {
-		@externalAccountsCard(d)
-	}
+			@externalAccountsCard(p, d)
+		}
 	@platformAccessCard(d)
 	@tenantAccessCard(d)
 	@userTimelineCard(d)
@@ -618,6 +624,80 @@ templ credentialRows(d userDetailData) {
 				})
 			</td>
 		</tr>
+	}
+}
+
+// selfServiceCard is the signed-in admin's own detail page: their own
+// display-name edit (the existing display-name route), their own grants read
+// back as facts (platform roles + tenant memberships — the same resolved
+// data the page already carries), and the sign-out link to the endpoint the
+// embedding application mounts via Config.LogoutURL. When no sign-out URL is
+// configured the card says so instead of rendering a link that would 404 —
+// the panel owns no session routes of its own and adds none.
+templ selfServiceCard(d userDetailData) {
+	@display.Card(display.CardProps{
+		Title:     "Your account",
+		BaseProps: utils.BaseProps{Class: "mb-4"},
+	}) {
+		<div class="mb-4 text-sm text-gray-500">
+			This is the account you are signed in as. You can edit your own display
+			name here; your access grants are listed below as they stand.
+		</div>
+		<form hx-post={ d.BasePath + "/users/" + d.User.ID.Get().String() + "/display-name" } hx-target="this" class="mb-4">
+			@forms.Input(forms.InputProps{
+				BaseProps: utils.BaseProps{ID: "self_display_name", Class: "mb-2"},
+				Name:       "display_name",
+				Value:      d.User.DisplayName,
+				Placeholder: "Your display name",
+				Label:      "Your display name",
+			})
+			@display.Button(display.ButtonProps{
+				Text:    "Save display name",
+				Type:    display.ButtonHTMLSubmit,
+				Variant: display.ButtonSecondary,
+				Size:    display.ButtonSizeSM,
+			})
+		</form>
+		<div class="mb-4">
+			<div class={ "mb-1 text-xs font-medium " + metadataTextXSClass }>Your platform roles</div>
+			<div class="flex flex-wrap items-center gap-1.5">
+				if len(d.PlatformRoles) == 0 {
+					<span class="text-sm text-gray-600 dark:text-gray-400" aria-hidden="true">—</span>
+				} else {
+					for _, role := range d.PlatformRoles {
+						@roleBadge(string(role))
+					}
+				}
+			</div>
+		</div>
+		<div class="mb-4">
+			<div class={ "mb-1 text-xs font-medium " + metadataTextXSClass }>Your tenant memberships</div>
+			if len(d.TenantAccess) == 0 {
+				<div class="text-sm text-gray-500">You are not a member of any tenant.</div>
+			} else {
+				<ul class="list-inside list-disc text-sm text-gray-600 dark:text-gray-300">
+					for _, access := range d.TenantAccess {
+						<li>
+							<a class="no-underline hover:underline" href={ d.BasePath + "/tenants/" + access.TenantID }>{ access.Name }</a>
+							for _, r := range access.Roles {
+								@roleBadge(string(r))
+							}
+						</li>
+					}
+				</ul>
+			}
+		</div>
+		if d.SignOutURL != "" {
+			@display.Button(display.ButtonProps{
+				Text:      "Sign out",
+				Href:      d.SignOutURL,
+				Variant:   display.ButtonSecondary,
+				Size:      display.ButtonSizeSM,
+				BaseProps: utils.BaseProps{Class: classNoUnderline},
+			})
+		} else {
+			<div class={ "text-xs " + metadataTextXSClass }>{ signOutAbsentCopy() }</div>
+		}
 	}
 }
 
@@ -859,7 +939,11 @@ templ tenantAccessRows(d userDetailData) {
 // because the OAuth2 handshake requires the user to authenticate with the
 // provider themselves (the admin cannot impersonate it). Configured providers
 // are listed so the admin knows what the user CAN link via their own login.
-templ externalAccountsCard(d userDetailData) {
+// The identity rows carry the provider glyph (a generic link glyph — the
+// icons module has no brand marks, and a generic glyph is the honest stand-in),
+// the issuer-assigned subject id (truncated for display, full value in the
+// title attribute), and the linked-at timestamp through the locale seam.
+templ externalAccountsCard(p pageData, d userDetailData) {
 	@display.Card(display.CardProps{
 		Title:     "External accounts",
 		Padding:   display.CardPaddingNone,
@@ -869,9 +953,9 @@ templ externalAccountsCard(d userDetailData) {
 			<div class="px-4 py-2 text-sm text-gray-500">No external accounts linked.</div>
 		} else {
 			@display.Table(display.TableProps{
-				Headers:     []string{"Provider", "Email", "Linked", ""},
+				Headers:     []string{"Provider", "Subject", "Email", "Linked", ""},
 				Hover:       true,
-				Body:        externalAccountRows(d),
+				Body:        externalAccountRows(p, d),
 				Flush:       true,
 				CellPadding: display.TableCellPaddingCompact,
 			})
@@ -887,14 +971,20 @@ templ externalAccountsCard(d userDetailData) {
 	}
 }
 
-templ externalAccountRows(d userDetailData) {
+templ externalAccountRows(p pageData, d userDetailData) {
 	for _, ea := range d.User.ExternalAccounts {
 		<tr>
 			<td class="px-4 py-2">
-				@display.Badge(display.BadgeProps{Text: ea.Provider, Type: display.BadgeNeutral, Pill: true})
+				<span class="flex items-center gap-1.5">
+					@icon("link")
+					@display.Badge(display.BadgeProps{Text: ea.Provider, Type: display.BadgeNeutral, Pill: true})
+				</span>
+			</td>
+			<td class="px-4 py-2">
+				<span class={ "font-mono text-xs " + metadataTextXSClass } title={ oauthSubjectTitle(ea) }>{ oauthSubjectShort(ea) }</span>
 			</td>
 			<td class="px-4 py-2 text-sm">{ ea.Email }</td>
-			<td class="px-4 py-2 text-sm text-gray-500">{ ea.LinkedAt.Format("Jan 2, 2006") }</td>
+			<td class={ "px-4 py-2 text-sm text-gray-500" } title={ p.dateTime(ea.LinkedAt) }>{ p.dateTime(ea.LinkedAt) }</td>
 			<td class="px-4 py-2 text-right">
 				@display.Button(display.ButtonProps{
 					Text:    "Unlink",

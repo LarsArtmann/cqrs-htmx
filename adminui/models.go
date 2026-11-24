@@ -319,6 +319,11 @@ type userDetailData struct {
 	AddTenantAccessURL string
 	UpdateTenantBase   string
 	RemoveTenantBase   string
+	// SignOutURL is the sign-out destination the embedding application mounts
+	// (Config.LogoutURL). The panel owns no session endpoint of its own, so
+	// when the consumer has not mounted one the self-service card says so
+	// honestly instead of rendering a sign-out link that 404s.
+	SignOutURL string
 }
 
 // cannotSignIn is the lockout truth table: every sign-in path in usermgmt
@@ -358,6 +363,10 @@ func userDetailDefinitionItems(d userDetailData) []display.DefinitionItem {
 		{Term: "User ID", Detail: "", DetailComponent: copyableID(d.User.ID.Get().String())},
 		{Term: labelEmail, Detail: d.User.Email, DetailComponent: nil},
 		{Term: "Verified", Detail: "", DetailComponent: verifiedDetail(d)},
+		// The token lifetime is consumer-configured and unreadable from the
+		// published Service surface — the row names that honestly (F168)
+		// instead of displaying a TTL the panel would have to invent.
+		{Term: "Verification token", Detail: verificationTTLCopy(), DetailComponent: nil},
 	}
 	if d.AuthMethods.HasTOTP {
 		items = append(items, display.DefinitionItem{
@@ -367,6 +376,42 @@ func userDetailDefinitionItems(d userDetailData) []display.DefinitionItem {
 		})
 	}
 	return items
+}
+
+// oauthSubjectCell is the OAuth identity card's subject pair: the visible
+// text is the subject id truncated to a glanceable width; the full id lives
+// in the title attribute (and stays copyable there). Provider subjects are
+// opaque issuer-assigned strings, sometimes long — truncation is display
+// only, never a rewrite of the value.
+func oauthSubjectShort(ea identitymodel.ExternalAccount) string {
+	const subjectShowLen = 14
+	if len(ea.Subject) <= subjectShowLen {
+		return ea.Subject
+	}
+	return ea.Subject[:subjectShowLen] + "…"
+}
+
+func oauthSubjectTitle(ea identitymodel.ExternalAccount) string {
+	return "Subject: " + ea.Subject
+}
+
+// verificationTTLCopy is the verification-token lifetime row's honest answer.
+// The TTL lives in usermgmt's consumer-side EmailVerificationConfig and the
+// published Service surface exposes NO accessor for it — the panel cannot
+// read the configured value, so it says who sets it and names the library
+// default instead of inventing a number.
+func verificationTTLCopy() string {
+	return "Consumer-configured — set by the embedding application " +
+		"(usermgmt default: 24h); the panel cannot read the configured value."
+}
+
+// signOutAbsentCopy is the self-service card's honest fallback when the
+// consumer has not mounted a sign-out endpoint: the panel owns no session
+// routes, so the card names the missing configuration instead of rendering
+// a link that would 404.
+func signOutAbsentCopy() string {
+	return "Sign-out is mounted by the embedding application via Config.LogoutURL; " +
+		"no sign-out URL is configured, so this panel has no sign-out link."
 }
 
 // tenantAccessRow is one resolved tenant membership on the user page. The

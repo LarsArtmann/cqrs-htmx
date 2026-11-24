@@ -152,6 +152,15 @@ const (
 	labelConfirmTenDelete        = "confirm.tenants.delete"
 	labelConfirmMemberRoles      = "confirm.members.change_roles"
 	labelConfirmMemberRemove     = "confirm.members.remove"
+
+	// T21/T22 tenant surface pack.
+	labelActionTransferOwner  = "action.transfer_ownership"
+	labelActionExportRoster   = "action.export_roster"
+	labelConfirmTenTransfer   = "confirm.tenants.transfer"
+	labelTombstoneTitle       = "tombstone.title"
+	labelTombstoneNotRecorded = "tombstone.not_recorded"
+	labelSearchSwitcherPH     = "search.switcher.placeholder"
+	labelSearchSwitcherAria   = "search.switcher.aria"
 )
 
 // defaultLabels is the display table: the single source for every covered
@@ -294,6 +303,14 @@ var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, no
 	labelConfirmTenDelete:        "Delete tenant",
 	labelConfirmMemberRoles:      "Change roles",
 	labelConfirmMemberRemove:     "Remove member",
+
+	labelActionTransferOwner:  "Transfer ownership",
+	labelActionExportRoster:   "Export roster CSV",
+	labelConfirmTenTransfer:   "Transfer ownership",
+	labelTombstoneTitle:       "Deleted tenant",
+	labelTombstoneNotRecorded: "not recorded",
+	labelSearchSwitcherPH:     "Filter tenants…",
+	labelSearchSwitcherAria:   "Filter tenants",
 }
 
 // label resolves one display string from a merged label table. The fallback

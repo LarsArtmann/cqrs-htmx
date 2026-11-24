@@ -439,6 +439,7 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 		AddTenantAccessURL:  userBase + "/tenants",
 		UpdateTenantBase:    userBase + "/tenants",
 		RemoveTenantBase:    userBase + "/tenants",
+		SignOutURL:          h.config.LogoutURL,
 	}))
 }
 

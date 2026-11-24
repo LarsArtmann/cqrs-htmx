@@ -208,7 +208,7 @@ func TestAuthState_LockoutBadgeRendersTruthTable(t *testing.T) {
 				AuthMethods: authMethods{HasWebAuthn: true, HasTOTP: true, HasOAuth2: true},
 			}
 			tc.seed(d.User)
-			body := renderComponent(t, userDetailContent(d))
+			body := renderComponent(t, userDetailContent(pageData{}, d))
 			got := contains(body, "Cannot sign in")
 			if got != tc.wantBadge {
 				t.Errorf("%s: badge rendered = %v, want %v", tc.name, got, tc.wantBadge)
