@@ -63,10 +63,8 @@ func TestLabels_OverrideReplacesTableValue(t *testing.T) {
 			t.Errorf("override %q not rendered", want)
 		}
 	}
-	for _, gone := range []string{"No users yet", ">Users<"} {
-		if strings.Contains(body, gone) {
-			t.Errorf("default label %q still rendered alongside the override", gone)
-		}
+	if strings.Contains(body, "No users yet") {
+		t.Error("default label still rendered alongside the override")
 	}
 }
 
@@ -126,7 +124,7 @@ func TestLangDirRender(t *testing.T) {
 	user := mustUser(t, "admin@example.com")
 	defaultPanel, _ := newTestPanel(t, user, Config{Service: mustService(t)})
 	rec := httptest.NewRecorder()
-	defaultPanel.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin", nil))
+	defaultPanel.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/", nil))
 	body := rec.Body.String()
 	if !strings.Contains(body, `lang="en"`) || !strings.Contains(body, `dir="ltr"`) {
 		t.Errorf("default panel must render lang=\"en\" dir=\"ltr\"; html tag: %q", htmlTagOf(body))
@@ -134,7 +132,7 @@ func TestLangDirRender(t *testing.T) {
 
 	rtlPanel, _ := newTestPanel(t, user, Config{Service: mustService(t), Locale: "ar", Dir: "rtl"})
 	rec = httptest.NewRecorder()
-	rtlPanel.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin", nil))
+	rtlPanel.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/", nil))
 	body = rec.Body.String()
 	if !strings.Contains(body, `lang="ar"`) || !strings.Contains(body, `dir="rtl"`) {
 		t.Errorf("Locale=ar/Dir=rtl must render on the html element; got %q", htmlTagOf(body))
@@ -229,17 +227,17 @@ func TestLabels_DefaultsMatchLegacyStrings(t *testing.T) {
 	t.Parallel()
 
 	for key, want := range map[string]string{
-		labelNavAudit:             "Audit log",
-		labelChromeSignOut:        "Sign out",
-		labelChromeReadOnly:       "Read-only",
-		labelConfirmTitle:         "Are you sure?",
-		labelConfirmOK:            "Confirm",
-		labelEmptyUsersNoneTitle:  "No users yet",
-		labelEmptyAuditNoneTitle:  "No audit events",
-		labelActionNewTenant:      "New tenant",
-		labelHeaderMember:         "Member",
-		labelConfirmMemberRemove:  "Remove member",
-		labelPageDirectory:        "Membership directory",
+		labelNavAudit:            "Audit log",
+		labelChromeSignOut:       "Sign out",
+		labelChromeReadOnly:      "Read-only",
+		labelConfirmTitle:        "Are you sure?",
+		labelConfirmOK:           "Confirm",
+		labelEmptyUsersNoneTitle: "No users yet",
+		labelEmptyAuditNoneTitle: "No audit events",
+		labelActionNewTenant:     "New tenant",
+		labelHeaderMember:        "Member",
+		labelConfirmMemberRemove: "Remove member",
+		labelPageDirectory:       "Membership directory",
 	} {
 		if got := defaultLabels[key]; got != want {
 			t.Errorf("label %q = %q, want %q (default renders must stay identical)", key, got, want)

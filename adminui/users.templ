@@ -30,7 +30,7 @@ templ userImportContent(p pageData, basePath string) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
 			{Text: p.label(labelPageUsers), Href: basePath + "/users"},
-			{Text: p.label(labelActionImportUsers)},
+			{Text: p.label(labelActionImport)},
 		}}),
 		Title: p.label(labelPageImportUsers),
 	})
@@ -145,7 +145,7 @@ templ usersContent(p pageData, d usersListData, sort string) {
 		@forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
-			Placeholder: "Search users\u2026",
+			Placeholder: p.label(labelSearchUsersPH),
 			Action:      d.BasePath + "/users",
 			DebounceMS:  350,
 			Wire: &wire.Action{
@@ -154,7 +154,7 @@ templ usersContent(p pageData, d usersListData, sort string) {
 				Target: "#users-table",
 			},
 			BaseProps: utils.BaseProps{
-				AriaLabel: "Search users",
+				AriaLabel: p.label(labelSearchUsersAria),
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",

@@ -932,7 +932,7 @@ func tenantDetailContent(p pageData, d tenantDetailData) templ.Component {
 			}
 			if d.Tenant.Suspended {
 				templ_7745c5c3_Err = display.Button(display.ButtonProps{
-					Text:    p.label(labelChipActive),
+					Text:    p.label(labelActionReactivate),
 					Variant: display.ButtonPrimary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
@@ -947,7 +947,7 @@ func tenantDetailContent(p pageData, d tenantDetailData) templ.Component {
 				}
 			} else {
 				templ_7745c5c3_Err = display.Button(display.ButtonProps{
-					Text:    p.label(labelChipSuspended),
+					Text:    p.label(labelActionSuspend),
 					Variant: display.ButtonSecondary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
@@ -962,7 +962,7 @@ func tenantDetailContent(p pageData, d tenantDetailData) templ.Component {
 				}
 			}
 			templ_7745c5c3_Err = display.Button(display.ButtonProps{
-				Text:    p.label(labelChipDeleted),
+				Text:    p.label(labelActionDelete),
 				Variant: display.ButtonDanger,
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),

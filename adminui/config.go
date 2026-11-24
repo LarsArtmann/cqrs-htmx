@@ -213,23 +213,7 @@ type NavEntry struct {
 // withDefaults returns a copy of config with empty fields replaced by defaults and
 // validates the result.
 func (config Config) withDefaults() (Config, error) {
-	if config.Service == nil {
-		return config, errConfig("Config.Service is required")
-	}
-	if config.Title == "" {
-		config.Title = "Admin"
-	}
-	if config.BasePath == "" {
-		config.BasePath = defaultBasePath
-	}
-	config.BasePath = trimTrailingSlash(config.BasePath)
-	if config.PageSize == 0 {
-		config.PageSize = DefaultPageSize
-	}
-	// Clamp, don't reject: a page size outside 10..[MaxListRows] is a tuning
-	// mistake, not an invalid panel — snap to the boundary instead of
-	// failing construction.
-	config.PageSize = min(max(config.PageSize, MinPageSize), MaxListRows)
+	config = config.applyBaseDefaults()
 	if config.AccentColor == "" {
 		config.AccentColor = DefaultAccentColor
 	}
@@ -238,13 +222,7 @@ func (config Config) withDefaults() (Config, error) {
 			"Config.AccentColor must be a CSS color literal (#hex, rgb()/rgba()/hsl()/hsla() with numeric components, or a named color); got " + config.AccentColor,
 		)
 	}
-	if err := validateLabels(config.Labels); err != nil {
-		return config, err
-	}
-	if err := validateLocale(config.Locale); err != nil {
-		return config, err
-	}
-	if err := validateDir(config.Dir); err != nil {
+	if err := config.validateI18n(); err != nil {
 		return config, err
 	}
 	if config.Locale == "" {
@@ -296,4 +274,42 @@ func validateExtraNav(entries []NavEntry) error {
 		}
 	}
 	return nil
+}
+
+// validateI18n validates the label-override and locale/direction seam fields
+// (T16) and applies their defaults, so withDefaults stays readable: overrides
+// must name existing keys, Locale must be a well-formed tag, Dir must be a
+// real direction, and the empty defaults render lang="en" dir="ltr".
+func (config Config) validateI18n() error {
+	if err := validateLabels(config.Labels); err != nil {
+		return err
+	}
+	if err := validateLocale(config.Locale); err != nil {
+		return err
+	}
+	if err := validateDir(config.Dir); err != nil {
+		return err
+	}
+	return nil
+}
+
+// applyBaseDefaults fills the shell fields (Service presence check aside):
+// title, base path, and the page size with its 10..[MaxListRows] clamp.
+// Extracted from withDefaults to keep both readable (cyclop).
+func (config Config) applyBaseDefaults() Config {
+	if config.Title == "" {
+		config.Title = "Admin"
+	}
+	if config.BasePath == "" {
+		config.BasePath = defaultBasePath
+	}
+	config.BasePath = trimTrailingSlash(config.BasePath)
+	if config.PageSize == 0 {
+		config.PageSize = DefaultPageSize
+	}
+	// Clamp, don't reject: a page size outside 10..[MaxListRows] is a tuning
+	// mistake, not an invalid panel — snap to the boundary instead of
+	// failing construction.
+	config.PageSize = min(max(config.PageSize, MinPageSize), MaxListRows)
+	return config
 }

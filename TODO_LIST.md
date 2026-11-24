@@ -9,6 +9,7 @@
 
 ## Status Legend
 
+- [ ] **e2e specs for the admin merge/rename flows (2026-11-24 wave follow-up).** Browser specs for `/admin/users/duplicates` + `/admin/tenants/duplicates` (merge form posts, toast, redirect to survivor) belong in the battery once the sibling adminui wave settles AND the identity-model family train tags (the hermetic e2e server build hits the same tag-gap today). Interim coverage: adminui httptest suite (TestMergeRoutes_Gates, TestUserMergeRoute_MergesAndRedirects, TestTenantMergeAndRenameRoutes) + usermgmt service tests (TestService_MergeUsers_Issue46NineRowsOneHuman, TestService_MergeTenants_Issue47Scenario).
 - [ ] **gfl-usermgmt: merge scenarios in the spec.** The events universe accepts the six merge events (regenerated 2026-11-24) but `usermgmt.gfl` has no merge feature yet — add one (duplicate-user merge + tenant rename scenarios), recompile bindings, regenerate the catalog. Recorded as the plan task-104 follow-up; the declarative-path behavior is already pinned by systemadapter's `TestDeclarative_UserMergeSequence`/`TenantRenameAndMerge`.
 - [ ] **legalparty-model: cross-aggregate retention test (BillTo → LegalParty closure).** D9's recorded follow-up: when a BillTo stream points at a LegalParty that later closes, billing must refuse BEFORE the first invoice, not at dunning time. Test lands with the first legalparty-model tag (needs a released consumer harness); non-goal 6 of the 2026-11-24 plan.
 - [ ] **OPEN** — actionable, not yet started.

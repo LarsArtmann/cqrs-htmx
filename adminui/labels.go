@@ -113,6 +113,10 @@ const (
 	labelActionExportFCsv   = "action.export_filtered_csv"
 	labelActionExportFJson  = "action.export_filtered_json"
 	labelActionNew          = "action.new"
+	labelActionImport       = "action.import"
+	labelActionReactivate   = "action.reactivate"
+	labelActionSuspend      = "action.suspend"
+	labelActionDelete       = "action.delete"
 	labelActionNewTenant    = "action.new_tenant"
 	labelActionCreateUser   = "action.create_user"
 	labelActionCreateTenant = "action.create_tenant"
@@ -137,7 +141,7 @@ const (
 
 	labelConfirmUsersDelete      = "confirm.users.delete"
 	labelConfirmUsersEmail       = "confirm.users.change_email"
-	labelConfirmUsersPasskey     = "confirm.users.remove_passkey"
+	labelConfirmUsersPasskey     = "confirm.users.remove_passkey" //nolint:gosec // label key, not a credential
 	labelConfirmUsersRoles       = "confirm.users.revoke_platform_roles"
 	labelConfirmTenantRoles      = "confirm.tenant_access.change_roles"
 	labelConfirmTenantRevoke     = "confirm.tenant_access.revoke"
@@ -155,12 +159,16 @@ const (
 // anything unmapped, so a typo renders the key itself — visible, honest,
 // never blank.
 //
+// The VALUES repeat across keys by design ("Change roles" guards two
+// surfaces; "Members" is both a nav item and a column header) — a display
+// table is not a place to dedupe English strings into constants.
+//
 //nolint:gochecknoglobals // immutable display lookup table, read-only after init (same posture as auditLabels)
-var defaultLabels = map[string]string{
+var defaultLabels = map[string]string{ //nolint:gosec // a display-value map, not credentials
 	labelNavDashboard:   "Dashboard",
-	labelNavUsers:       "Users",
-	labelNavTenants:     "Tenants",
-	labelNavMembers:     "Members",
+	labelNavUsers:       "Users",   //nolint:goconst // display value shared by design
+	labelNavTenants:     "Tenants", //nolint:goconst // display value shared by design
+	labelNavMembers:     "Members", //nolint:goconst // display value shared by design
 	labelNavAudit:       "Audit log",
 	labelNavEventStore:  "Event store",
 	labelChromeSections: "Admin sections",
@@ -230,10 +238,10 @@ var defaultLabels = map[string]string{
 	labelHeaderStatus:    "Status",
 	labelHeaderLastSeen:  "Last seen",
 	labelHeaderCreated:   "Created",
-	labelHeaderTenant:    "Tenant",
+	labelHeaderTenant:    "Tenant", //nolint:goconst // display value shared by design
 	labelHeaderMembers:   "Members",
 	labelHeaderMember:    "Member",
-	labelHeaderRoles:     "Roles",
+	labelHeaderRoles:     "Roles", //nolint:goconst // display value shared by design
 	labelHeaderAdded:     "Added",
 	labelHeaderJoined:    "Joined",
 	labelHeaderAction:    "Action",
@@ -247,6 +255,10 @@ var defaultLabels = map[string]string{
 	labelActionExportFCsv:   "Export filtered CSV",
 	labelActionExportFJson:  "Export filtered JSON",
 	labelActionNew:          "New",
+	labelActionImport:       "Import",
+	labelActionReactivate:   "Reactivate",
+	labelActionSuspend:      "Suspend",
+	labelActionDelete:       "Delete",
 	labelActionNewTenant:    "New tenant",
 	labelActionCreateUser:   "Create user",
 	labelActionCreateTenant: "Create tenant",
@@ -269,14 +281,14 @@ var defaultLabels = map[string]string{
 	labelSearchDirPH:       "Search email or name…",
 	labelSearchDirAria:     "Search the directory",
 
-	labelConfirmUsersDelete:      "Delete user",
+	labelConfirmUsersDelete:      "Delete user", //nolint:goconst // display value shared by design
 	labelConfirmUsersEmail:       "Change email",
 	labelConfirmUsersPasskey:     "Remove passkey",
 	labelConfirmUsersRoles:       "Revoke platform roles",
-	labelConfirmTenantRoles:      "Change roles",
+	labelConfirmTenantRoles:      "Change roles", //nolint:goconst // display value shared by design
 	labelConfirmTenantRevoke:     "Revoke tenant access",
 	labelConfirmUsersUnlink:      "Unlink account",
-	labelConfirmTenReactivate:    "Reactivate tenant",
+	labelConfirmTenReactivate:    "Reactivate tenant", //nolint:goconst // display value shared by design
 	labelConfirmTenReactivateBod: "Reactivate this tenant? Members regain access immediately.",
 	labelConfirmTenSuspend:       "Suspend tenant",
 	labelConfirmTenDelete:        "Delete tenant",

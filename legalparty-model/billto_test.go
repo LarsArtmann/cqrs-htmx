@@ -270,11 +270,11 @@ func TestBillToDecider_ExportedShape(t *testing.T) {
 	}
 	openEvents, openErr := DecideOpenBillTo(DeriveBillToStreamID("tenant-dec"), billToTestParty(5),
 		billToTestActor, time.Date(2026, 11, 24, 12, 0, 0, 0, time.UTC))(BillToState{}, 0)
-	state, err := d.Apply(BillToState{}, mustBillToEvents(t, openEvents, openErr))
-	if err != nil {
-		t.Fatalf("apply: %v", err)
-	}
+	state := foldBillToAll(t, BillToState{}, mustBillToEvents(t, openEvents, openErr))
 	if !state.Opened || state.LegalPartyID != billToTestParty(5) {
 		t.Fatalf("state = %+v", state)
+	}
+	if d.Initial.Opened {
+		t.Error("initial state must be unopened")
 	}
 }

@@ -97,7 +97,7 @@ func userImportContent(p pageData, basePath string) templ.Component {
 		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{
 			Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
 				{Text: p.label(labelPageUsers), Href: basePath + "/users"},
-				{Text: p.label(labelActionImportUsers)},
+				{Text: p.label(labelActionImport)},
 			}}),
 			Title: p.label(labelPageImportUsers),
 		}).Render(ctx, templ_7745c5c3_Buffer)
@@ -348,7 +348,7 @@ func usersContent(p pageData, d usersListData, sort string) templ.Component {
 		templ_7745c5c3_Err = forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
-			Placeholder: "Search users\u2026",
+			Placeholder: p.label(labelSearchUsersPH),
 			Action:      d.BasePath + "/users",
 			DebounceMS:  350,
 			Wire: &wire.Action{
@@ -357,7 +357,7 @@ func usersContent(p pageData, d usersListData, sort string) templ.Component {
 				Target: "#users-table",
 			},
 			BaseProps: utils.BaseProps{
-				AriaLabel: "Search users",
+				AriaLabel: p.label(labelSearchUsersAria),
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",

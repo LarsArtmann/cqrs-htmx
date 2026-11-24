@@ -112,7 +112,10 @@ func buildNav(config Config, labels map[string]string) []navItem {
 		// CircleStack (the database glyph), not Chart: the built-in Dashboard
 		// entry already uses Chart, and two sidebar items must not share an icon.
 		nav = append(nav, navItem{
-			Href: config.DashboardURL, Label: label(labels, labelNavEventStore), Icon: string(icons.CircleStack), Verbatim: true,
+			Href:     config.DashboardURL,
+			Label:    label(labels, labelNavEventStore),
+			Icon:     string(icons.CircleStack),
+			Verbatim: true,
 		})
 	}
 	return nav

@@ -256,7 +256,7 @@ templ tenantDetailContent(p pageData, d tenantDetailData) {
 		<div class="flex flex-wrap gap-2.5">
 			if d.Tenant.Suspended {
 				@display.Button(display.ButtonProps{
-					Text:    p.label(labelChipActive),
+					Text:    p.label(labelActionReactivate),
 					Variant: display.ButtonPrimary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
@@ -268,7 +268,7 @@ templ tenantDetailContent(p pageData, d tenantDetailData) {
 				})
 			} else {
 				@display.Button(display.ButtonProps{
-					Text:    p.label(labelChipSuspended),
+					Text:    p.label(labelActionSuspend),
 					Variant: display.ButtonSecondary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
@@ -280,7 +280,7 @@ templ tenantDetailContent(p pageData, d tenantDetailData) {
 				})
 			}
 			@display.Button(display.ButtonProps{
-				Text:    p.label(labelChipDeleted),
+				Text:    p.label(labelActionDelete),
 				Variant: display.ButtonDanger,
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
