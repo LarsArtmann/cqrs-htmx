@@ -108,25 +108,10 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	tenant, err := h.config.Service.GetTenant(r.Context(), tenantID)
 	if err != nil {
 		// F155: a DELETED tenant is allowed into the detail route — but only
-		// into the tombstone view. The read model drops deleted tenants
-		// (es_tenant_readmodel.go handleTenantDeleted), so "not found" is the
-		// deleted case's shape: reconstruct the identity from the AUDIT
-		// WINDOW. A tenant with no deletion entry in the audit window is a
-		// genuine 404, not a tombstone candidate.
+		// into the tombstone view. A tenant with no deletion entry in the
+		// event record is a genuine 404, not a tombstone candidate.
 		if tb := h.tenantTombstone(r.Context(), tenantID); tb.Recorded {
-			// F154 honesty: the display name lived only in the read model, so
-			// the tombstone shows the slug as the identity and leaves the
-			// display name "not recorded" rather than guessing.
-			ghost := &usermgmt.Tenant{
-				ID: tenantID, Name: tenantID.Get(), DisplayName: tenantID.Get(), Deleted: true,
-			}
-			d := tenantDetailData{
-				Tenant:    ghost,
-				BasePath:  h.config.BasePath,
-				Tombstone: tb,
-			}
-			p := h.page(ghost.DisplayName, "/tenants", user, r)
-			renderPage(w, r, tenantTombstonePage(p, d))
+			h.renderTenantTombstone(w, r, user, tenantID, tb)
 			return
 		}
 		h.writeErrorPage(
@@ -141,13 +126,7 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	// Defensive second lock: a read model that keeps deleted tenants marked
 	// still renders ONLY the tombstone here, never the live view below.
 	if tenant.Deleted {
-		d := tenantDetailData{
-			Tenant:    tenant,
-			BasePath:  h.config.BasePath,
-			Tombstone: h.tenantTombstone(r.Context(), tenantID),
-		}
-		p := h.page(tenant.DisplayName, "/tenants", user, r)
-		renderPage(w, r, tenantTombstonePage(p, d))
+		h.renderTenantTombstone(w, r, user, tenantID, h.tenantTombstone(r.Context(), tenantID))
 		return
 	}
 	allMembers := h.tenantRoster(r.Context(), tenantID)
@@ -194,6 +173,27 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	renderPage(w, r, tenantDetailPage(p, d))
 }
 
+// renderTenantTombstone renders the read-only tombstone view (F154/F155).
+// F154 honesty: the display name lived only in the read model (which drops
+// deleted tenants), so the tombstone shows the slug as the identity and
+// leaves the display name "not recorded" rather than guessing.
+func (h *Handler) renderTenantTombstone(
+	w http.ResponseWriter, r *http.Request, user *identitymodel.User,
+	tenantID identitymodel.TenantID, tb *tenantTombstone,
+) {
+	//nolint:exhaustruct // a tombstone ghost carries only identity facts
+	ghost := &usermgmt.Tenant{
+		ID: tenantID, Name: tenantID.Get(), DisplayName: tenantID.Get(), Deleted: true,
+	}
+	d := tenantDetailData{
+		Tenant:    ghost,
+		BasePath:  h.config.BasePath,
+		Tombstone: tb,
+	}
+	p := h.page(ghost.DisplayName, "/tenants", user, r)
+	renderPage(w, r, tenantTombstonePage(p, d))
+}
+
 // tenantRoster assembles the tenant's full member rows (the person behind
 // each membership resolved through the directory). Both the detail page's
 // paginated view and the CSV export read through it, so the page and the
@@ -231,7 +231,7 @@ func transferCandidates(members []memberRow) []transferCandidate {
 		if hasRole(m.Roles, identitymodel.RoleOwner) {
 			continue
 		}
-		c := transferCandidate{Email: m.displayName()}
+		c := transferCandidate{Email: m.displayName(), ConfirmBody: ""}
 		if priorName != "" {
 			c.ConfirmBody = tenantTransferConfirm(priorName, m.displayName())
 		} else {
@@ -252,6 +252,7 @@ func transferCandidates(members []memberRow) []transferCandidate {
 // without a deletion event, or a pre-actor-chain event yields Recorded=false
 // or "not recorded" — the view never guesses a time or blames an actor.
 func (h *Handler) tenantTombstone(ctx context.Context, tenantID identitymodel.TenantID) *tenantTombstone {
+	//nolint:exhaustruct // zero facts until the record proves them
 	tb := &tenantTombstone{}
 	stream, err := id.ParseStreamID(tenantID.Get())
 	if err != nil {
@@ -468,6 +469,7 @@ func executeOwnershipTransfer(
 	ctx context.Context, svc *usermgmt.Service, tenantID identitymodel.TenantID,
 	target identitymodel.ActorID, targetRoles []identitymodel.Role, prior *memberRow,
 ) transferOutcome {
+	//nolint:exhaustruct // zero-value outcome until each step reports
 	out := transferOutcome{PriorExisted: prior != nil}
 	if prior != nil {
 		out.PriorEmail = prior.Email

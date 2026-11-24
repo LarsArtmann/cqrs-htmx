@@ -407,7 +407,8 @@ func TestTransferOwnership_NotAMemberRefused(t *testing.T) {
 	mustAddMember(t, svc, owner.User.ID, tenant.ID, identitymodel.RoleOwner)
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/admin/tenants/acme/transfer", strings.NewReader("email=out@acme.dev"))
+	req := httptest.NewRequest(http.MethodPost, "/admin/tenants/acme/transfer",
+		strings.NewReader("email=out@acme.dev"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	h.ServeHTTP(rec, req)
 

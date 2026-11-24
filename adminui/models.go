@@ -148,6 +148,9 @@ func roleDescriptions(role identitymodel.Role) string {
 		return "Standard member access to this tenant."
 	case identitymodel.RoleViewer:
 		return "Read-only access to this tenant."
+	case identitymodel.RoleSuperAdmin:
+		// Global-only (not in AssignableRoles); no tenant-scope description.
+		return ""
 	}
 	return ""
 }

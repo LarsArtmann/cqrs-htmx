@@ -11,6 +11,23 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 )
 
+// credentialRestoreConfirmCopy is the danger-gated escalation the restore
+// CARD must carry in data-confirm when the user-detail pack wires the UI:
+// a restored credential is a fully trusted factor minted from a file, and
+// the confirm must say so before the admin commits. Pinned here so the card
+// inherits the contract, not a paraphrase.
+const credentialRestoreConfirmCopy = "Restore a passkey from backup JSON? " +
+	"The uploaded credential becomes a trusted sign-in factor immediately — " +
+	"restore it only from a backup you control."
+
+func TestCredentialRestore_EscalationCopyPinned(t *testing.T) {
+	for _, want := range []string{"trusted sign-in factor", "backup you control"} {
+		if !strings.Contains(credentialRestoreConfirmCopy, want) {
+			t.Errorf("escalation copy missing %q", want)
+		}
+	}
+}
+
 // F170: credential restore from backup JSON (the route the T23 agent had to
 // cut because routes.go was owned elsewhere). Per-error honesty: every
 // refusal names what failed, and success is asserted through the read model.

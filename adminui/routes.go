@@ -202,6 +202,7 @@ func (h *Handler) superAdminRoutes() []routeSpec {
 		h.superAdminUserRoutes(),
 		h.superAdminUserExportRoutes(),
 		h.superAdminUserAccountRoutes(),
+		h.superAdminUserCredentialRoutes(),
 		h.superAdminUserTenantAccessRoutes(),
 		h.superAdminTenantRoutes(),
 		h.superAdminTenantMemberRoutes(),
@@ -347,6 +348,24 @@ func (h *Handler) superAdminUserAccountRoutes() []routeSpec {
 		},
 		{
 			method:  http.MethodPost,
+			pattern: "/users/{id}/resend-verification",
+			panel:   panelUsers,
+			guarded: h.userResendVerification,
+			mode:    routeModeSuperAdmin,
+			write:   true,
+			why:     "sending mail as a user-visible action must be admin-gated",
+		},
+	}
+}
+
+// superAdminUserCredentialRoutes manage a user's authentication FACTORS from
+// the user side: passkey removal and backup-JSON restore.
+//
+//nolint:exhaustruct // rows intentionally omit inapplicable fields (asset vs guarded, write)
+func (h *Handler) superAdminUserCredentialRoutes() []routeSpec {
+	return []routeSpec{
+		{
+			method:  http.MethodPost,
 			pattern: "/users/{id}/credentials/{credential}/delete",
 			panel:   panelUsers,
 			guarded: h.userRemoveCredential,
@@ -362,15 +381,6 @@ func (h *Handler) superAdminUserAccountRoutes() []routeSpec {
 			mode:    routeModeSuperAdmin,
 			write:   true,
 			why:     "restoring a passkey from backup JSON re-grants an authentication factor",
-		},
-		{
-			method:  http.MethodPost,
-			pattern: "/users/{id}/resend-verification",
-			panel:   panelUsers,
-			guarded: h.userResendVerification,
-			mode:    routeModeSuperAdmin,
-			write:   true,
-			why:     "sending mail as a user-visible action must be admin-gated",
 		},
 	}
 }

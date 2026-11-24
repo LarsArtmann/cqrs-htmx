@@ -1334,7 +1334,7 @@ func tenantTombstoneContent(p pageData, d tenantDetailData) templ.Component {
 					{Term: "Tenant ID", DetailComponent: copyableID(d.Tenant.ID.Get())},
 					{Term: "Slug", Detail: d.Tenant.Name},
 					{Term: "Display name", Detail: d.Tenant.DisplayName},
-					{Term: "Status", DetailComponent: tenantStatusAction(d)},
+					{Term: p.label(labelHeaderStatus), DetailComponent: tenantStatusAction(d)},
 					{Term: "Deleted", DetailComponent: tombstoneDeletedAt(p, d.Tombstone)},
 					{Term: "Deleted by", DetailComponent: tombstoneDeletedBy(p, d.Tombstone)},
 				},

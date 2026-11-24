@@ -15,16 +15,6 @@ import (
 // that posts to it folds into a later task; the confirm copy below is the
 // danger-gated escalation the card must carry (data-confirm).
 
-// credentialRestoreConfirm is the danger-gated escalation copy (F170): a
-// restored credential is a FULLY TRUSTED authentication factor minted from a
-// file, not a browser ceremony — the confirm must say what trusting backup
-// JSON means before the admin commits.
-func credentialRestoreConfirm(userEmail string) string {
-	return "Restore a passkey from backup JSON for " + userEmail + "? " +
-		"The uploaded credential becomes a trusted sign-in factor immediately — " +
-		"restore it only from a backup you control."
-}
-
 // userRestoreCredential restores one WebAuthn credential from the uploaded
 // backup JSON (F170). identitymodel.WebAuthnCredential is fully JSON-tagged
 // and usermgmt.Service.AddCredential is published (service_misc.go), so no
