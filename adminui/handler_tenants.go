@@ -107,6 +107,28 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	tenantID := identitymodel.NewTenantID(r.PathValue("id"))
 	tenant, err := h.config.Service.GetTenant(r.Context(), tenantID)
 	if err != nil {
+		// F155: a DELETED tenant is allowed into the detail route — but only
+		// into the tombstone view. The read model drops deleted tenants
+		// (es_tenant_readmodel.go handleTenantDeleted), so "not found" is the
+		// deleted case's shape: reconstruct the identity from the AUDIT
+		// WINDOW. A tenant with no deletion entry in the audit window is a
+		// genuine 404, not a tombstone candidate.
+		if tb := h.tenantTombstone(r.Context(), tenantID); tb.Recorded {
+			// F154 honesty: the display name lived only in the read model, so
+			// the tombstone shows the slug as the identity and leaves the
+			// display name "not recorded" rather than guessing.
+			ghost := &usermgmt.Tenant{
+				ID: tenantID, Name: tenantID.Get(), DisplayName: tenantID.Get(), Deleted: true,
+			}
+			d := tenantDetailData{
+				Tenant:    ghost,
+				BasePath:  h.config.BasePath,
+				Tombstone: tb,
+			}
+			p := h.page(ghost.DisplayName, "/tenants", user, r)
+			renderPage(w, r, tenantTombstonePage(p, d))
+			return
+		}
 		h.writeErrorPage(
 			w,
 			r,
@@ -116,18 +138,15 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		)
 		return
 	}
-	// F155: a DELETED tenant is allowed into the detail route, but only into
-	// the tombstone view — the live view (members card, danger zone) must not
-	// render for a tenant whose memberships are gone.
+	// Defensive second lock: a read model that keeps deleted tenants marked
+	// still renders ONLY the tombstone here, never the live view below.
 	if tenant.Deleted {
 		d := tenantDetailData{
-			Tenant:      tenant,
-			BasePath:    h.config.BasePath,
-			Tombstone:   h.tenantTombstone(r.Context(), tenantID),
-			RosterExportURL: h.config.BasePath + "/tenants/" + tenantID.Get() + "/roster.csv",
+			Tenant:    tenant,
+			BasePath:  h.config.BasePath,
+			Tombstone: h.tenantTombstone(r.Context(), tenantID),
 		}
 		p := h.page(tenant.DisplayName, "/tenants", user, r)
-		p.CurrentTenantID = tenantID.Get()
 		renderPage(w, r, tenantTombstonePage(p, d))
 		return
 	}

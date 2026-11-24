@@ -12,6 +12,36 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
+// newPanelConfig is newTestPanel with a caller-supplied Config (mode, page
+// size, tenant scope): the service is created here and injected, so callers
+// never pass a half-built Config.
+func newPanelConfig(t *testing.T, user *identitymodel.User, cfg Config) (http.Handler, *usermgmt.Service) {
+	t.Helper()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	cfg.Service = svc
+	if cfg.Authorizer == nil {
+		cfg.Authorizer = RequireAuthenticated()
+	}
+	panel, err := New(cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	mux := http.NewServeMux()
+	mw := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if user != nil {
+				r = r.WithContext(usermgmt.WithUser(r.Context(), user))
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+	mux.Handle("/admin/", mw(http.StripPrefix("/admin", panel.Handler())))
+	return mux, svc
+}
+
 // panelAdminJS fetches the served admin.js asset body.
 func panelAdminJS(t *testing.T) string {
 	t.Helper()
@@ -95,8 +125,9 @@ func TestTenantDetail_DeletedRendersTombstoneNotLiveView(t *testing.T) {
 		t.Fatalf("GET deleted tenant: status %d", rec.Code)
 	}
 	body := rec.Body.String()
-	// The tombstone renders.
-	for _, want := range []string{"This tenant is deleted", "Deleted by", "admin@example.com"} {
+	// The tombstone renders, with the audit-resolved actor; the slug is the
+	// only surviving identity (the display name lived in the read model).
+	for _, want := range []string{"This tenant is deleted", "Deleted by", "admin@example.com", "ghost"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("tombstone missing %q", want)
 		}
@@ -172,7 +203,7 @@ func TestRosterCSV_TenantAdminExport(t *testing.T) {
 
 	user := mustUser(t, "admin@example.com")
 	tenant := identitymodel.NewTenantID("scoped")
-	h, svc := newTestPanel(t, user, Config{Mode: ModeTenantAdmin, TenantID: tenant})
+	h, svc := newPanelConfig(t, user, Config{Mode: ModeTenantAdmin, TenantID: tenant})
 	u := mustRegister(t, svc, "m1", "m1@scoped.dev")
 	mustAddMember(t, svc, u.User.ID, tenant, identitymodel.RoleViewer)
 
@@ -194,7 +225,7 @@ func TestRosterPagination_PagesBeyondMaxListRows(t *testing.T) {
 	user := mustUser(t, "admin@example.com")
 	// Config.PageSize is clamped to MinPageSize (10) at New — so 11 members
 	// make two pages without violating the clamp.
-	h, svc := newTestPanel(t, user, Config{PageSize: MinPageSize})
+	h, svc := newPanelConfig(t, user, Config{PageSize: MinPageSize})
 	tenant := mustCreateTenant(t, svc, "crowd")
 	for i := range 11 {
 		u := mustRegister(t, svc, "m"+string(rune('a'+i)), "m"+string(rune('a'+i))+"@crowd.dev")
@@ -399,13 +430,14 @@ func TestTransferOwnership_MidSequenceFailureHonest(t *testing.T) {
 	var prior *memberRow
 	var targetActor identitymodel.ActorID
 	var targetRoles []identitymodel.Role
+	targetActor = identitymodel.ActorIDFromUser(target.User.ID)
 	for i := range members {
 		if hasRole(members[i].Roles, identitymodel.RoleOwner) {
 			m := members[i]
 			prior = &m
 		}
-		if members[i].Email == "target@acme.dev" {
-			targetActor, targetRoles = members[i].Actor, members[i].Roles
+		if members[i].Actor.PrefixedString() == targetActor.PrefixedString() {
+			targetRoles = members[i].Roles
 		}
 	}
 	// The membership disappears between snapshot and dispatch.

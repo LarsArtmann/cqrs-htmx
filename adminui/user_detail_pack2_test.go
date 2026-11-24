@@ -9,6 +9,7 @@ import (
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // User-detail pack 2 (F167–F169, F171): the OAuth identity card's enrichment
@@ -194,17 +195,29 @@ func TestSelfServiceCard_NoSignOutConfiguredIsHonest(t *testing.T) {
 // same user does not.
 func TestSelfServiceCard_GrantsListed(t *testing.T) {
 	admin := mustUser(t, "walker@example.com")
-	h, _ := newTestPanel(t, admin, Config{LogoutURL: "/logout-test"})
+	svc := newPack2Service(t)
+	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
+		ID: admin.ID, Email: admin.Email,
+	}); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	h, _ := newTestPanel(t, admin, Config{Service: svc, LogoutURL: "/logout-test"})
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/"+admin.ID.Get().String(), nil))
 	body := rec.Body.String()
 	if !strings.Contains(body, "Your account") || !strings.Contains(body, `href="/logout-test"`) {
-		t.Error("own detail page missing self-service card or sign-out link")
+		t.Errorf("own detail page missing self-service card or sign-out link; status=%d", rec.Code)
 	}
 
-	other := mustUser(t, "viewer@example.com")
-	h2, _ := newTestPanel(t, other, Config{LogoutURL: "/logout-test"})
+	viewer := mustUser(t, "viewer@example.com")
+	svc2 := newPack2Service(t)
+	if _, err := svc2.Register(context.Background(), usermgmt.RegisterRequest{
+		ID: viewer.ID, Email: viewer.Email,
+	}); err != nil {
+		t.Fatalf("register viewer: %v", err)
+	}
+	h2, _ := newTestPanel(t, viewer, Config{Service: svc2, LogoutURL: "/logout-test"})
 	rec2 := httptest.NewRecorder()
 	h2.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/admin/users/"+admin.ID.Get().String(), nil))
 	if strings.Contains(rec2.Body.String(), "Your account") {
@@ -212,17 +225,34 @@ func TestSelfServiceCard_GrantsListed(t *testing.T) {
 	}
 }
 
-// TestPanel_HandlerPopulatesSignOutURL pins the wiring: the detail handler
-// copies Config.LogoutURL into the page data, and an unset LogoutURL yields
-// the honest absence copy on the signed-in admin's own page.
+// TestPanel_HandlerPopulatesSignOutURL pins the wiring: with an unset
+// Config.LogoutURL, the signed-in admin's own detail page renders the honest
+// absence copy instead of a sign-out link.
 func TestPanel_HandlerPopulatesSignOutURL(t *testing.T) {
 	admin := mustUser(t, "wire@example.com")
-	hNoURL, _ := newTestPanel(t, admin)
-	rec := httptest.NewRecorder()
-	hNoURL.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/"+admin.ID.Get().String(), nil))
-	if !strings.Contains(rec.Body.String(), signOutAbsentCopy()) {
-		t.Error("unset LogoutURL must render the honest absence copy")
+	svc := newPack2Service(t)
+	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
+		ID: admin.ID, Email: admin.Email,
+	}); err != nil {
+		t.Fatalf("register: %v", err)
 	}
+	h, _ := newTestPanel(t, admin, Config{Service: svc})
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/users/"+admin.ID.Get().String(), nil))
+	if !strings.Contains(rec.Body.String(), signOutAbsentCopy()) {
+		t.Errorf("unset LogoutURL must render the honest absence copy; status=%d", rec.Code)
+	}
+}
+
+// newPack2Service builds the bare in-memory service the handler-level pack-2
+// tests register their users into.
+func newPack2Service(t *testing.T) *usermgmt.Service {
+	t.Helper()
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	return svc
 }
 
 // htmlSnippet returns the ~120 chars around the first occurrence of needle —
