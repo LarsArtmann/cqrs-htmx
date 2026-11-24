@@ -1984,7 +1984,7 @@ func userDetailContent(p pageData, d userDetailData) templ.Component {
 			}
 		}
 		if d.AuthMethods.HasWebAuthn {
-			templ_7745c5c3_Err = passkeysCard(d).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = passkeysCard(p, d).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2289,7 +2289,7 @@ func profileEditCard(p pageData, d userDetailData) templ.Component {
 // Credential ids are binary, so they travel base64url-encoded in the POST
 // path. Removing the last passkey leaves the user dependent on OAuth2 (or
 // locked out entirely) — the confirm text says so.
-func passkeysCard(d userDetailData) templ.Component {
+func passkeysCard(p pageData, d userDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

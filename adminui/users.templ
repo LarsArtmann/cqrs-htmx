@@ -651,7 +651,7 @@ templ userDetailContent(p pageData, d userDetailData) {
 	// and an External-accounts card without OAuth2 would promise a link
 	// that cannot exist. Dead cards never render — not even as empty states.
 	if d.AuthMethods.HasWebAuthn {
-		@passkeysCard(d)
+		@passkeysCard(p, d)
 		@credentialRestoreCard(p, d)
 	}
 	if d.AuthMethods.HasOAuth2 {
@@ -779,7 +779,7 @@ templ profileEditCard(p pageData, d userDetailData) {
 // Credential ids are binary, so they travel base64url-encoded in the POST
 // path. Removing the last passkey leaves the user dependent on OAuth2 (or
 // locked out entirely) — the confirm text says so.
-templ passkeysCard(d userDetailData) {
+templ passkeysCard(p pageData, d userDetailData) {
 	@display.Card(display.CardProps{
 		Title:     "Passkeys",
 		Padding:   display.CardPaddingNone,
