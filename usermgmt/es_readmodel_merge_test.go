@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 	"time"
@@ -23,13 +24,10 @@ type userStream struct {
 	version event.Version
 }
 
-// newUserStream returns a stream whose UserRegistered (version 1) is built but
-// not applied; the test decides which read model receives it.
-func newUserStream(t *testing.T, email string) *userStream {
+// newUserStream returns an empty stream on a fresh aggregate ID.
+func newUserStream(t *testing.T) *userStream {
 	t.Helper()
-	stream := &userStream{t: t, aggID: id.NewStreamID()}
-	stream.registered(email)
-	return stream
+	return &userStream{t: t, aggID: id.NewStreamID()}
 }
 
 func (s *userStream) next(eventType event.Type, payload any) event.Event {
@@ -104,6 +102,24 @@ func (s *userStream) deleted() event.Event {
 
 func (s *userStream) userID() UserID { return NewUserID(s.aggID.Get()) }
 
+// survivorMergeEvent builds the survivor's UserMerged naming every loser.
+func survivorMergeEvent(survivor *userStream, losers ...*userStream) event.Event {
+	loserStreams := make([]id.StreamID, 0, len(losers))
+	for _, loser := range losers {
+		loserStreams = append(loserStreams, loser.aggID)
+	}
+	return survivor.merged(loserStreams...)
+}
+
+// retireEvents builds each loser's UserMergedInto naming the survivor.
+func retireEvents(survivor *userStream, losers ...*userStream) []event.Event {
+	events := make([]event.Event, 0, len(losers))
+	for _, loser := range losers {
+		events = append(events, loser.mergedInto(survivor.aggID))
+	}
+	return events
+}
+
 // applyEvents feeds events to the model in the given order.
 func applyEvents(t *testing.T, m *UserReadModel, events ...event.Event) {
 	t.Helper()
@@ -114,18 +130,25 @@ func applyEvents(t *testing.T, m *UserReadModel, events ...event.Event) {
 	}
 }
 
+// completeMerge applies the merge events in the order the service appends them
+// (the survivor's record, then each loser's retirement) and returns them, so a
+// test can hand the same event values over a second time.
+func completeMerge(t *testing.T, m *UserReadModel, survivor *userStream, losers ...*userStream) []event.Event {
+	t.Helper()
+	events := append([]event.Event{survivorMergeEvent(survivor, losers...)}, retireEvents(survivor, losers...)...)
+	applyEvents(t, m, events...)
+	return events
+}
+
 // assertAnswers checks that one lookup answers with exactly the want user.
 func assertAnswers(t *testing.T, label string, lookup func() (*User, bool), want UserID) {
 	t.Helper()
 	got, ok := lookup()
-	if !ok {
-		t.Fatalf("%s: not found, want user %s", label, want.Get())
-	}
-	if got == nil {
-		t.Fatalf("%s: found flag is true but the user is nil", label)
+	if !ok || got == nil {
+		t.Fatalf("%s: not found, want user %s", label, want.Get().String())
 	}
 	if got.ID.Get() != want.Get() {
-		t.Errorf("%s: answered with user %s, want %s", label, got.ID.Get(), want.Get())
+		t.Errorf("%s: answered with user %s, want %s", label, got.ID.Get().String(), want.Get().String())
 	}
 }
 
@@ -133,62 +156,53 @@ func assertAnswers(t *testing.T, label string, lookup func() (*User, bool), want
 func assertMissing(t *testing.T, label string, lookup func() (*User, bool)) {
 	t.Helper()
 	got, ok := lookup()
-	if ok || got != nil {
-		t.Errorf("%s: answered with %#v (found=%t), want not found", label, got, ok)
+	switch {
+	case got != nil:
+		t.Errorf("%s: answered with user %s, want not found", label, got.ID.Get().String())
+	case ok:
+		t.Errorf("%s: found flag is true without a user, want not found", label)
 	}
 }
 
-func mergedUserIDs(users []*User) []string {
+func userIDs(users []*User) []string {
 	ids := make([]string, 0, len(users))
-	for _, id := range users {
-		ids = append(ids, id.Get())
+	for _, user := range users {
+		ids = append(ids, user.ID.Get().String())
 	}
 	return ids
 }
 
-// mergedScenario registers a survivor and two losers on the model and merges
-// both losers into the survivor in the order the service appends the events.
-// The survivor shares its email with one loser and owns the older mapping; the
-// other loser brings a distinct email and an external subject of its own.
-func mergedScenario(t *testing.T, m *UserReadModel) (survivor, distinct, duplicate *userStream) {
+func userIDStrings(ids []UserID) []string {
+	strings := make([]string, 0, len(ids))
+	for _, id := range ids {
+		strings = append(strings, id.Get().String())
+	}
+	return strings
+}
+
+// mergeScenario registers a survivor and two losers on the model and adopts
+// one loser's assets onto the survivor; the merge events themselves are left
+// to the test. The survivor shares its email with one loser and owns the older
+// mapping; the other loser brings a distinct email and an external subject.
+func mergeScenario(t *testing.T, m *UserReadModel) (survivor, distinct, duplicate *userStream) {
 	t.Helper()
-	survivor = newUserStream(t, "same@example.com")
-	distinct = newUserStream(t, "other@example.com")
-	duplicate = newUserStream(t, "same@example.com")
+	survivor = newUserStream(t)
+	distinct = newUserStream(t)
+	duplicate = newUserStream(t)
 
 	applyEvents(t, m,
 		survivor.registered("same@example.com"),
-	)
-	applyEvents(t, m, survivor.linked("pocket-id", "subject-survivor"))
-	applyEvents(t, m,
+		survivor.linked("pocket-id", "subject-survivor"),
 		distinct.registered("other@example.com"),
 		distinct.linked("pocket-id", "subject-distinct"),
 		distinct.verified("other@example.com"),
-	)
-	applyEvents(t, m, duplicate.registered("same@example.com"))
-
-	// Adoption lands on the survivor as ordinary lifecycle events, then
-	// UserMerged closes the survivor's append and each loser is retired.
-	applyEvents(t, m,
+		duplicate.registered("same@example.com"),
+		// Adoption lands on the survivor as ordinary lifecycle events.
 		survivor.credential([]byte("credential-distinct")),
 		survivor.linked("pocket-id", "subject-distinct"),
 		survivor.verified("same@example.com"),
 	)
-	mergeInto(t, m, survivor, distinct, duplicate)
 	return survivor, distinct, duplicate
-}
-
-// mergeInto appends UserMerged on the survivor and UserMergedInto on each loser.
-func mergeInto(t *testing.T, m *UserReadModel, survivor *userStream, losers ...*userStream) {
-	t.Helper()
-	loserStreams := make([]id.StreamID, 0, len(losers))
-	for _, loser := range losers {
-		loserStreams = append(loserStreams, loser.aggID)
-	}
-	applyEvents(t, m, survivor.merged(loserStreams...))
-	for _, loser := range losers {
-		applyEvents(t, m, loser.mergedInto(survivor.aggID))
-	}
 }
 
 func assertMergedScenario(t *testing.T, m *UserReadModel, survivor, distinct, duplicate *userStream) {
@@ -197,8 +211,8 @@ func assertMergedScenario(t *testing.T, m *UserReadModel, survivor, distinct, du
 	if got := m.Count(); got != 1 {
 		t.Errorf("Count() = %d, want 1: merged rows must leave the live set", got)
 	}
-	if got := mergedUserIDs(m.AllUsers()); !slices.Equal(got, []string{survivor.aggID.Get()}) {
-		t.Errorf("AllUsers() = %v, want only the survivor %s", got, survivor.aggID.Get())
+	if got, want := userIDs(m.AllUsers()), []string{survivor.aggID.Get()}; !slices.Equal(got, want) {
+		t.Errorf("AllUsers() = %v, want only the survivor %v", got, want)
 	}
 
 	assertAnswers(t, "FindByID(survivor)", func() (*User, bool) { return m.FindByID(survivor.aggID) }, survivor.userID())
@@ -231,16 +245,18 @@ func assertMergedScenario(t *testing.T, m *UserReadModel, survivor, distinct, du
 
 func TestUserReadModel_Merge_ResolvesEveryLookupToSurvivor(t *testing.T) {
 	m := NewUserReadModel()
-	survivor, distinct, duplicate := mergedScenario(t, m)
+	survivor, distinct, duplicate := mergeScenario(t, m)
+
+	completeMerge(t, m, survivor, distinct, duplicate)
 
 	assertMergedScenario(t, m, survivor, distinct, duplicate)
 
 	row, ok := m.FindByID(survivor.aggID)
 	if !ok {
-		t.Fatalf("survivor row missing")
+		t.Fatal("survivor row missing")
 	}
 	wantMerged := []string{distinct.aggID.Get(), duplicate.aggID.Get()}
-	if got := mergedUserIDs(row.MergedUserIDs); !slices.Equal(got, wantMerged) {
+	if got := userIDStrings(row.MergedUserIDs); !slices.Equal(got, wantMerged) {
 		t.Errorf("MergedUserIDs = %v, want %v", got, wantMerged)
 	}
 	if len(row.Credentials) != 1 {
@@ -253,39 +269,28 @@ func TestUserReadModel_Merge_ResolvesEveryLookupToSurvivor(t *testing.T) {
 		t.Error("EmailVerified = false, want the adopted verification")
 	}
 	if !row.MergedInto.IsZero() {
-		t.Errorf("survivor MergedInto = %s, want zero: the survivor is live", row.MergedInto.Get())
+		t.Errorf("survivor MergedInto = %s, want zero: the survivor is live", row.MergedInto.Get().String())
 	}
 }
 
 func TestUserReadModel_Merge_AcceptsEitherEventOrder(t *testing.T) {
 	// The two merge events live on different streams, so nothing orders one
 	// stream's UserMerged before the other's UserMergedInto.
-	t.Run("retire first", func(t *testing.T) {
+	t.Run("survivor records first", func(t *testing.T) {
 		m := NewUserReadModel()
-		survivor, distinct, duplicate := mergedScenario(t, m)
+		survivor, distinct, duplicate := mergeScenario(t, m)
+
+		completeMerge(t, m, survivor, distinct, duplicate)
+
 		assertMergedScenario(t, m, survivor, distinct, duplicate)
 	})
 
-	t.Run("record first", func(t *testing.T) {
+	t.Run("losers retire first", func(t *testing.T) {
 		m := NewUserReadModel()
-		survivor := newUserStream(t, "same@example.com")
-		distinct := newUserStream(t, "other@example.com")
-		duplicate := newUserStream(t, "same@example.com")
+		survivor, distinct, duplicate := mergeScenario(t, m)
 
-		applyEvents(t, m,
-			distinct.registered("other@example.com"),
-			distinct.linked("pocket-id", "subject-distinct"),
-			duplicate.registered("same@example.com"),
-		)
-		applyEvents(t, m,
-			survivor.registered("same@example.com"),
-			survivor.linked("pocket-id", "subject-survivor"),
-		)
-		applyEvents(t, m, survivor.merged(distinct.aggID, duplicate.aggID))
-		applyEvents(t, m,
-			distinct.mergedInto(survivor.aggID),
-			duplicate.mergedInto(survivor.aggID),
-		)
+		applyEvents(t, m, retireEvents(survivor, distinct, duplicate)...)
+		applyEvents(t, m, survivorMergeEvent(survivor, distinct, duplicate))
 
 		assertMergedScenario(t, m, survivor, distinct, duplicate)
 	})
@@ -298,8 +303,8 @@ func TestUserReadModel_Merge_KeepFirstMappingFollowsItsOwner(t *testing.T) {
 	setup := func(t *testing.T) (m *UserReadModel, older, newer *userStream) {
 		t.Helper()
 		m = NewUserReadModel()
-		older = newUserStream(t, "dupe@example.com")
-		newer = newUserStream(t, "dupe@example.com")
+		older = newUserStream(t)
+		newer = newUserStream(t)
 		applyEvents(t, m,
 			older.registered("dupe@example.com"),
 			older.linked("pocket-id", "subject-dupe"),
@@ -311,7 +316,7 @@ func TestUserReadModel_Merge_KeepFirstMappingFollowsItsOwner(t *testing.T) {
 
 	t.Run("owner merged away", func(t *testing.T) {
 		m, older, newer := setup(t)
-		mergeInto(t, m, newer, older)
+		completeMerge(t, m, newer, older)
 
 		assertAnswers(t, "FindByEmail", func() (*User, bool) {
 			return m.FindByEmail("dupe@example.com")
@@ -324,7 +329,7 @@ func TestUserReadModel_Merge_KeepFirstMappingFollowsItsOwner(t *testing.T) {
 
 	t.Run("duplicate merged away", func(t *testing.T) {
 		m, older, newer := setup(t)
-		mergeInto(t, m, older, newer)
+		completeMerge(t, m, older, newer)
 
 		assertAnswers(t, "FindByEmail", func() (*User, bool) {
 			return m.FindByEmail("dupe@example.com")
@@ -338,17 +343,17 @@ func TestUserReadModel_Merge_KeepFirstMappingFollowsItsOwner(t *testing.T) {
 
 func TestUserReadModel_Merge_FollowsATransitiveChain(t *testing.T) {
 	m := NewUserReadModel()
-	first := newUserStream(t, "first@example.com")
-	second := newUserStream(t, "second@example.com")
-	third := newUserStream(t, "third@example.com")
+	first := newUserStream(t)
+	second := newUserStream(t)
+	third := newUserStream(t)
 	applyEvents(t, m,
 		first.registered("first@example.com"),
 		second.registered("second@example.com"),
 		third.registered("third@example.com"),
 	)
 
-	mergeInto(t, m, second, first)
-	mergeInto(t, m, third, second)
+	completeMerge(t, m, second, first)
+	completeMerge(t, m, third, second)
 
 	if got := m.Count(); got != 1 {
 		t.Errorf("Count() = %d, want 1", got)
@@ -362,8 +367,8 @@ func TestUserReadModel_Merge_FollowsATransitiveChain(t *testing.T) {
 		}, third.userID())
 	}
 
-	// The pointers name the direct survivor of each merge, so the chain stays
-	// as long as the journal recorded it.
+	// Each pointer names the direct survivor of one merge, so the chain is as
+	// long as the journal recorded it.
 	if got, want := len(m.mergedInto), 2; got != want {
 		t.Errorf("len(mergedInto) = %d, want %d", got, want)
 	}
@@ -374,41 +379,46 @@ func TestUserReadModel_Merge_FollowsATransitiveChain(t *testing.T) {
 
 func TestUserReadModel_Merge_PointerCycleAnswersNotFound(t *testing.T) {
 	m := NewUserReadModel()
-	first := newUserStream(t, "first@example.com")
-	second := newUserStream(t, "second@example.com")
+	first := newUserStream(t)
+	second := newUserStream(t)
 	applyEvents(t, m,
 		first.registered("first@example.com"),
 		second.registered("second@example.com"),
 	)
 
 	// The deciders refuse to merge a merged-away identity, so a cycle needs a
-	// hand-planted pointer map. Stale rows under the cycle make sure the
-	// answer comes from the resolver and not from the rows being absent.
+	// hand-planted pointer map. Both rows are still present, which makes sure
+	// the answer comes from the resolver and not from the rows being absent.
 	m.mergedInto[first.aggID] = second.aggID
 	m.mergedInto[second.aggID] = first.aggID
 
-	type result struct {
-		first, second id.StreamID
-	}
-	done := make(chan result, 1)
+	done := make(chan []string, 1)
 	go func() {
-		done <- result{first: m.resolve(first.aggID), second: m.resolve(second.aggID)}
+		failures := make([]string, 0)
+		for label, aggID := range map[string]id.StreamID{"first": first.aggID, "second": second.aggID} {
+			if got := m.resolve(aggID); !got.IsZero() {
+				failures = append(failures, fmt.Sprintf("resolve(%s) = %s, want zero: no stream on a cycle is live", label, got.Get()))
+			}
+			if user, ok := m.FindByID(aggID); ok || user != nil {
+				failures = append(failures, fmt.Sprintf("FindByID(%s) answered with a user, want not found", label))
+			}
+		}
+		done <- failures
 	}()
 
 	select {
-	case got := <-done:
-		if !got.first.IsZero() || !got.second.IsZero() {
-			t.Errorf("resolve on a cycle answered %s and %s, want zero: no stream on a cycle is live",
-				got.first.Get(), got.second.Get())
+	case failures := <-done:
+		for _, failure := range failures {
+			t.Error(failure)
 		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("resolve did not return on a pointer cycle")
+		t.Fatal("lookups did not return on a pointer cycle")
 	}
 }
 
 func TestUserReadModel_Merge_StaleIndexEntryAnswersNotFound(t *testing.T) {
 	m := NewUserReadModel()
-	stream := newUserStream(t, "ghost@example.com")
+	stream := newUserStream(t)
 
 	// An index entry can outlive its row (a view write that lost its row).
 	// The lookup must answer not-found, never a nil user marked found.
@@ -425,21 +435,19 @@ func TestUserReadModel_Merge_StaleIndexEntryAnswersNotFound(t *testing.T) {
 
 func TestUserReadModel_Merge_RedeliveredMergeEventsChangeNothing(t *testing.T) {
 	m := NewUserReadModel()
-	survivor, distinct, duplicate := mergedScenario(t, m)
+	survivor, distinct, duplicate := mergeScenario(t, m)
+
+	// At-least-once delivery can hand the same event values over twice.
+	mergeEvents := completeMerge(t, m, survivor, distinct, duplicate)
 	before := m.AllUsers()
 
-	// At-least-once delivery can hand the merge events over twice.
-	applyEvents(t, m,
-		survivor.merged(distinct.aggID, duplicate.aggID),
-		distinct.mergedInto(survivor.aggID),
-		duplicate.mergedInto(survivor.aggID),
-	)
+	applyEvents(t, m, mergeEvents...)
 
 	after := m.AllUsers()
-	if len(after) != 1 {
-		t.Fatalf("len(AllUsers()) = %d, want 1", len(after))
+	if len(after) != 1 || len(before) != 1 {
+		t.Fatalf("len(AllUsers()) = %d before and %d after re-delivery, want 1", len(before), len(after))
 	}
-	if got, want := mergedUserIDs(after[0].MergedUserIDs), mergedUserIDs(before[0].MergedUserIDs); !slices.Equal(got, want) {
+	if got, want := userIDStrings(after[0].MergedUserIDs), userIDStrings(before[0].MergedUserIDs); !slices.Equal(got, want) {
 		t.Errorf("MergedUserIDs = %v after re-delivery, want %v listed once each", got, want)
 	}
 	if got, want := len(m.mergedInto), 2; got != want {
@@ -450,7 +458,8 @@ func TestUserReadModel_Merge_RedeliveredMergeEventsChangeNothing(t *testing.T) {
 
 func TestUserReadModel_Merge_DeletedSurvivorReleasesInheritedAliases(t *testing.T) {
 	m := NewUserReadModel()
-	survivor, _, _ := mergedScenario(t, m)
+	survivor, distinct, duplicate := mergeScenario(t, m)
+	completeMerge(t, m, survivor, distinct, duplicate)
 	applyEvents(t, m, survivor.deleted())
 
 	assertMissing(t, "FindByID(survivor)", func() (*User, bool) { return m.FindByID(survivor.aggID) })
@@ -469,7 +478,7 @@ func TestUserReadModel_Merge_DeletedSurvivorReleasesInheritedAliases(t *testing.
 
 	// The inherited aliases were only the deleted survivor's to hold: a new
 	// user must be able to claim them.
-	fresh := newUserStream(t, "other@example.com")
+	fresh := newUserStream(t)
 	applyEvents(t, m,
 		fresh.registered("other@example.com"),
 		fresh.linked("pocket-id", "subject-distinct"),
@@ -484,31 +493,35 @@ func TestUserReadModel_Merge_DeletedSurvivorReleasesInheritedAliases(t *testing.
 
 func TestUserReadModel_Merge_RetiredStreamStaysRetired(t *testing.T) {
 	m := NewUserReadModel()
-	survivor, distinct, _ := mergedScenario(t, m)
-
-	// After a hydrate the drain can re-deliver events that precede the merge
-	// on a stream whose pointer is already known. A retired stream is
-	// terminal, so the earlier events must not bring its row back.
+	survivor := newUserStream(t)
+	loser := newUserStream(t)
+	registration := loser.registered("loser@example.com")
+	link := loser.linked("pocket-id", "subject-loser")
 	applyEvents(t, m,
-		distinct.registered("other@example.com"),
-		distinct.linked("pocket-id", "subject-late"),
-		distinct.verified("other@example.com"),
+		survivor.registered("survivor@example.com"),
+		registration,
+		link,
 	)
+	completeMerge(t, m, survivor, loser)
 
-	if got := m.Count(); got != 1 {
-		t.Errorf("Count() = %d, want 1: a re-delivered event resurrected the retired row", got)
+	// After a hydrate the drain can hand events that precede the merge to a
+	// stream whose pointer is already known. A retired stream is terminal,
+	// so its earlier events must not bring its row back.
+	applyEvents(t, m, registration, link)
+
+	if got, want := userIDs(m.AllUsers()), []string{survivor.aggID.Get()}; !slices.Equal(got, want) {
+		t.Errorf("AllUsers() = %v, want only the survivor %v: a re-delivered event resurrected the retired row", got, want)
 	}
-	if got := mergedUserIDs(m.AllUsers()); !slices.Equal(got, []string{survivor.aggID.Get()}) {
-		t.Errorf("AllUsers() = %v, want only the survivor", got)
-	}
-	assertMissing(t, "FindByEmail(subject of the retired stream)", func() (*User, bool) {
-		return m.FindByExternalAccount("pocket-id", "subject-late")
-	})
+	assertAnswers(t, "FindByID(loser)", func() (*User, bool) { return m.FindByID(loser.aggID) }, survivor.userID())
+	// The retired stream's subject stays resolvable and names the survivor.
+	assertAnswers(t, "FindByExternalAccount(loser subject)", func() (*User, bool) {
+		return m.FindByExternalAccount("pocket-id", "subject-loser")
+	}, survivor.userID())
 }
 
 func TestUserReadModel_Merge_IntoUnknownSurvivorLeavesNoRow(t *testing.T) {
 	m := NewUserReadModel()
-	loser := newUserStream(t, "loser@example.com")
+	loser := newUserStream(t)
 	applyEvents(t, m,
 		loser.registered("loser@example.com"),
 		loser.linked("pocket-id", "subject-loser"),

@@ -39,6 +39,7 @@ type externalAccountKey struct {
 
 func NewUserReadModel() *UserReadModel {
 	return &UserReadModel{
+		drop: (*UserReadModel).dropOnRetiredStream,
 		handlers: map[event.Type]eventHandler[*UserReadModel]{
 			eventUserRegistered:          (*UserReadModel).handleUserRegistered,
 			eventRolesUpdated:            (*UserReadModel).handleRolesUpdated,
@@ -226,6 +227,20 @@ func (m *UserReadModel) handleUserDeleted(aggID id.StreamID, _ event.Event) erro
 	return nil
 }
 
+// dropOnRetiredStream keeps a merged-away stream retired. Its row is gone, so
+// every handler but UserRegistered is already a no-op on it; the registration
+// would build a new row, which is how an event re-delivered out of order
+// (after a hydrate the drain replays events that precede the merge) could
+// bring a merged identity back. UserMergedInto itself stays applicable so a
+// re-delivered retirement lands as the no-op it is.
+func (m *UserReadModel) dropOnRetiredStream(aggID id.StreamID, evt event.Event) bool {
+	if evt.Type() == eventUserMergedInto {
+		return false
+	}
+	_, retired := m.mergedInto[aggID]
+	return retired
+}
+
 // handleUserMerged records on the survivor which identities it absorbed.
 // The adopted assets arrive as ordinary lifecycle events before this one.
 func (m *UserReadModel) handleUserMerged(_ id.StreamID, evt event.Event) error {
@@ -285,9 +300,9 @@ func evict[K comparable](index map[K]id.StreamID, owner id.StreamID) {
 	}
 }
 
-// mergeChainLimit bounds how many pointers one lookup follows. A chain is
-// at most as long as the pointer map, so a longer walk means the pointers
-// formed a cycle; the walk stops instead of spinning.
+// mergeChainLimit bounds how many pointers one lookup follows: one per
+// pointer in the map. A chain cannot be longer, so a walk that reaches the
+// limit sits on a cycle.
 func (m *UserReadModel) mergeChainLimit() int {
 	return len(m.mergedInto) + 1
 }
@@ -408,19 +423,20 @@ func (m *UserReadModel) FindByExternalAccount(provider, subject string) (*User, 
 }
 
 // resolve follows the merge chain from a stream to the live survivor at its
-// end; a stream that was not merged away answers with itself. The walk is
-// bounded: a chain longer than the pointer map is a cycle, and every stream on
-// a cycle is merged away, so the caller's row lookup answers not-found there.
+// end; a stream that was not merged away answers with itself. Every pointer
+// names the direct survivor of one merge, so a chain is at most as long as the
+// pointer map: a walk that used every hop and is still on a merged stream
+// found a cycle, where no stream is live, and answers with the zero ID.
 // Callers hold at least a read lock.
 func (m *UserReadModel) resolve(aggID id.StreamID) id.StreamID {
 	for range m.mergeChainLimit() {
 		survivor, merged := m.mergedInto[aggID]
 		if !merged {
-			break
+			return aggID
 		}
 		aggID = survivor
 	}
-	return aggID
+	return id.StreamID{}
 }
 
 // live returns a copy of the live user on aggID. Callers hold at least a read

@@ -16,6 +16,11 @@ type eventHandler[T any] func(m T, aggID id.StreamID, evt event.Event) error
 type readModelCore[T any] struct {
 	mu       sync.RWMutex
 	handlers map[event.Type]eventHandler[T]
+	// drop optionally reports, under the write lock, that an event must not be
+	// applied. A read model whose streams can reach a terminal state uses it to
+	// keep a retired stream retired when an event that precedes the retirement
+	// is delivered after it.
+	drop func(m T, aggID id.StreamID, evt event.Event) bool
 }
 
 // handleEvent dispatches evt to the registered handler under a write lock.
@@ -23,6 +28,10 @@ type readModelCore[T any] struct {
 func (c *readModelCore[T]) handleEvent(m T, evt event.Event) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	aggID := evt.StreamID()
+	if c.drop != nil && c.drop(m, aggID, evt) {
+		return nil
+	}
 	h, ok := c.handlers[evt.Type()]
 	if !ok {
 		return nil

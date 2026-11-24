@@ -485,6 +485,54 @@ func TestUser_Clone(t *testing.T) {
 	}
 }
 
+func TestUser_Clone_CopiesTheMergeFields(t *testing.T) {
+	original := &User{
+		ID:            GenerateUserID(),
+		MergedInto:    GenerateUserID(),
+		MergedUserIDs: []UserID{GenerateUserID()},
+	}
+	cloned := original.Clone()
+	if cloned.MergedInto.Get() != original.MergedInto.Get() {
+		t.Error("clone lost MergedInto")
+	}
+	cloned.MergedUserIDs[0] = GenerateUserID()
+	if original.MergedUserIDs[0].Get() == cloned.MergedUserIDs[0].Get() {
+		t.Error("clone shares the MergedUserIDs slice with the original")
+	}
+}
+
+func TestUser_JSON_OmitsTheMergeFieldsOnALiveUser(t *testing.T) {
+	data, err := json.Marshal(NewUser(GenerateUserID(), "live@example.com", "Live"))
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for _, field := range []string{`"merged_into"`, `"merged_user_ids"`} {
+		if bytes.Contains(data, []byte(field)) {
+			t.Errorf("a live user serializes %s: %s", field, data)
+		}
+	}
+}
+
+func TestUser_JSON_RoundTripsTheMergeFields(t *testing.T) {
+	merged := NewUser(GenerateUserID(), "merged@example.com", "Merged")
+	merged.MergedInto = GenerateUserID()
+	merged.MergedUserIDs = []UserID{GenerateUserID()}
+	data, err := json.Marshal(merged)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	var decoded User
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if decoded.MergedInto.Get() != merged.MergedInto.Get() {
+		t.Errorf("MergedInto = %s, want %s", decoded.MergedInto.Get().String(), merged.MergedInto.Get().String())
+	}
+	if len(decoded.MergedUserIDs) != 1 || decoded.MergedUserIDs[0].Get() != merged.MergedUserIDs[0].Get() {
+		t.Errorf("MergedUserIDs did not survive the round trip: %v", decoded.MergedUserIDs)
+	}
+}
+
 func TestUser_HasCredential(t *testing.T) {
 	u := &User{
 		Credentials: []WebAuthnCredential{
