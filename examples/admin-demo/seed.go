@@ -2,8 +2,8 @@
 // main.go fills the happy paths (users, memberships, tenants, pagination),
 // seedCast plants the edge states the panel's surfaces are built for: machine
 // actors (bots), a fully-equipped human (passkey + MFA + a real login-audit
-// trail), tenant lifecycle states (suspended, deleted tombstone), role-change
-// audit entries, and a user who cannot sign in at all.
+// trail), tenant lifecycle states (suspended, deleted), varied membership
+// roles, and a user who cannot sign in at all.
 //
 // Everything here travels the published Service methods only — the same
 // commands the panel dispatches — so every seeded fact is a fact the event
@@ -188,8 +188,11 @@ func demoTOTPCode(base32Secret string, at time.Time) string {
 
 // seedTenantLifecycle creates two dedicated tenants and drives them into the
 // lifecycle states the tenants page renders: suspended (read-only mode,
-// badge + reason) and deleted (tombstone row). The base tenants (acme,
-// globex, initech) stay healthy — alice's tenant-admin panel depends on it.
+// badge + reason) and deleted. The base tenants (acme, globex, initech) stay
+// healthy — alice's tenant-admin panel depends on it. At this pin the
+// in-memory read model DROPS deleted tenants (the TenantDeleted event lives
+// in the journal only), so vanisho demos the delete path rather than a
+// visible tombstone row.
 func seedTenantLifecycle(ctx context.Context, svc *usermgmt.Service) {
 	for _, t := range []struct {
 		id, name, display string
@@ -227,10 +230,12 @@ func seedTenantLifecycle(ctx context.Context, svc *usermgmt.Service) {
 }
 
 // seedRoleChanges journals real role transitions on existing members so the
-// audit page has roles_updated entries (membership add/remove commands do
-// not journal audit entries; UpdateMemberRoles does). Bob gains admin in
-// acme — also badge variety in the members table — and carol gains a
-// writable role in globex.
+// members table shows varied roles (bob gains admin in acme, carol becomes a
+// user in globex). At this pin the change journals a MemberRolesChanged event
+// on the membership stream — deliberately NOT claimed as an audit-page entry:
+// the AuditLog projection maps only the legacy user-stream RolesUpdated event,
+// which no published command emits here, so the audit page honestly shows
+// nothing for a membership role change at this pin.
 func seedRoleChanges(ctx context.Context, svc *usermgmt.Service) {
 	for _, rc := range []struct {
 		email, tenant string

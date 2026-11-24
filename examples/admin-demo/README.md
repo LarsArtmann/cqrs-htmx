@@ -28,3 +28,38 @@ the same directory:
 Both rungs are session-gated: `usermgmt.NewSessionMiddleware` only enriches
 the request context, so the API route carries its own `requireSession` gate
 (401 + problem document) — the pattern any consumer API surface needs.
+
+## The seeded demo cast
+
+Every boot seeds the same deterministic cast (in-memory state, fixed IDs via
+`SyntheticUserID("seed-"+email)`), so screenshots and e2e runs stay stable:
+
+| Who | State it demos |
+| --- | --- |
+| `admin@demo.dev` | super admin — auto sign-in at the root URL (`/dev-login`) |
+| `alice@acme.dev` | acme owner — `/dev-login-tenant` signs into the tenant-admin panel |
+| `bob@acme.dev` | acme admin (role changed from user by the seed) |
+| `carol@other.dev` | globex user (role changed from viewer by the seed) |
+| `erin@acme.dev` | fully equipped: seeded passkey fixture + TOTP MFA enabled, plus a real login-audit trail (one rejected verify, then a success) |
+| `mallory@acme.dev` | registered with no sign-in method — the panel's can't-sign-in edge state |
+| `teamNN@acme.dev` ×60 | pagination filler past one 50-row page |
+| bots `demo-ci-bot`, `demo-deploy-bot` | machine actors (scope-less and `users:read`+`tenants:read`) |
+| tenants `acme`, `globex`, `initech` | healthy tenants for the panel lists |
+| tenant `suspendo` | suspended with a reason — the Suspended chip/badge |
+| tenant `vanisho` | deleted — the `TenantDeleted` event is journalled; the pinned in-memory read model drops the row, so it demos the delete path, not a visible tombstone |
+
+Startup output prints each bot's API token once (`SHOWN ONCE` note): the
+service stores only an HMAC hash (bot registration needs the demo's
+`ServiceConfig.TokenPepper` — a fixed dev value, safe only because state is
+in-memory). Bots are reachable via `GetBot`/`ResolveBotByToken` and
+`usermgmt.NewAPITokenMiddleware`; the panel does not render a bots page yet.
+
+The audit page shows the seeded activity produced through real published
+paths only: registrations, session starts, passkey add, MFA enable, and
+erin's `login_failed` → `login_succeeded` pair. Membership role changes
+journal `MemberRolesChanged` on the membership stream — at this pin the
+audit projection maps no audit action to them, so they change the members
+table but not the audit page. No lockout rows are faked: the demo
+configures no `LockoutStore`. External-account linking is likewise not
+seeded: `LinkExternalAccount` exists only as an OAuth2-flow-internal
+command at this pin, with no public `Service` method to drive it honestly.
