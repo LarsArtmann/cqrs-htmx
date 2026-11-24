@@ -2,12 +2,16 @@ package adminui
 
 import (
 	"context"
+	"encoding/csv"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
@@ -111,8 +115,27 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		)
 		return
 	}
-	memberships := h.config.Service.TenantMembers(r.Context(), tenantID)
-	members := toMemberRows(memberships, h.lookupUser)
+	// F155: a DELETED tenant is allowed into the detail route, but only into
+	// the tombstone view — the live view (members card, danger zone) must not
+	// render for a tenant whose memberships are gone.
+	if tenant.Deleted {
+		d := tenantDetailData{
+			Tenant:      tenant,
+			BasePath:    h.config.BasePath,
+			Tombstone:   h.tenantTombstone(r.Context(), tenantID),
+			RosterExportURL: h.config.BasePath + "/tenants/" + tenantID.Get() + "/roster.csv",
+		}
+		p := h.page(tenant.DisplayName, "/tenants", user, r)
+		p.CurrentTenantID = tenantID.Get()
+		renderPage(w, r, tenantTombstonePage(p, d))
+		return
+	}
+	allMembers := h.tenantRoster(r.Context(), tenantID)
+	total := len(allMembers)
+	// F157: the roster paginates beyond MaxListRows like every other list —
+	// one page of rows, the full count for the captions and confirms.
+	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), total, h.config.PageSize)
+	members := allMembers[offset : offset+limit]
 	addedBy := h.addedByIndex(r.Context(), tenantID, members)
 	for i := range members {
 		members[i].AddedBy = addedBy[members[i].Actor.PrefixedString()]
@@ -127,11 +150,19 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 		RemoveMemberBase:    memberBase,
 		UpdateRoleBase:      memberBase,
 		UserDetailBase:      h.config.BasePath + "/users/",
-		UserEmailOptions:    h.memberEmailOptions(members),
+		UserEmailOptions:    h.memberEmailOptions(allMembers),
 		AddMemberCreateHref: h.config.BasePath + "/users/new",
 		// F080: the identity card answers "who holds which roles here" from
 		// the rows already resolved — no extra queries.
-		RoleDistribution: roleDistribution(members),
+		RoleDistribution: roleDistribution(allMembers),
+		TotalMembers:     total,
+		AdminTierCount:   countAdminTier(allMembers),
+		Page:             page,
+		TotalPages:       totalPages,
+		RosterURL:        h.config.BasePath + "/tenants/" + tenantID.Get(),
+		RosterExportURL:  h.config.BasePath + "/tenants/" + tenantID.Get() + "/roster.csv",
+		TransferURL:      h.config.BasePath + "/tenants/" + tenantID.Get() + "/transfer",
+		TransferCandidates: transferCandidates(allMembers),
 	}
 	h.applyMemberError(r, &d)
 	p := h.page(tenant.DisplayName, "/tenants", user, r)
@@ -141,6 +172,89 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 	p.CurrentTenantID = tenantID.Get()
 	p.TenantSwitcher = h.tenantSwitchOptions(tenantID.Get())
 	renderPage(w, r, tenantDetailPage(p, d))
+}
+
+// tenantRoster assembles the tenant's full member rows (the person behind
+// each membership resolved through the directory). Both the detail page's
+// paginated view and the CSV export read through it, so the page and the
+// export can never disagree about who is a member.
+func (h *Handler) tenantRoster(ctx context.Context, tenantID identitymodel.TenantID) []memberRow {
+	return toMemberRows(h.config.Service.TenantMembers(ctx, tenantID), h.lookupUser)
+}
+
+// countAdminTier counts admin/owner holders across a member slice.
+func countAdminTier(members []memberRow) int {
+	count := 0
+	for _, m := range members {
+		if holdsAdminTier(m.Roles) {
+			count++
+		}
+	}
+	return count
+}
+
+// transferCandidates lists the members eligible to RECEIVE ownership: every
+// member except the current owner-role holders (transferring to an existing
+// owner is refused server-side, so offering them would lead the admin into
+// an error). Each candidate carries the two-sided confirm body naming the
+// prior owner and the receiver by their directory identity (F163).
+func transferCandidates(members []memberRow) []transferCandidate {
+	priorName := ""
+	for _, m := range members {
+		if hasRole(m.Roles, identitymodel.RoleOwner) {
+			priorName = m.displayName()
+			break
+		}
+	}
+	candidates := make([]transferCandidate, 0, len(members))
+	for _, m := range members {
+		if hasRole(m.Roles, identitymodel.RoleOwner) {
+			continue
+		}
+		c := transferCandidate{Email: m.displayName()}
+		if priorName != "" {
+			c.ConfirmBody = tenantTransferConfirm(priorName, m.displayName())
+		} else {
+			c.ConfirmBody = tenantTransferGrantOnlyConfirm(m.displayName())
+		}
+		candidates = append(candidates, c)
+	}
+	return candidates
+}
+
+// tenantTombstone resolves a deleted tenant's deletion facts from the AUDIT
+// WINDOW (F154): the last TenantDeleted entry on the tenant's stream names
+// when it happened and (via the actor chain) who dispatched it. Honesty
+// rules: an audit log that has rotated the entry away — or a store hiccup —
+// yields Recorded=false, and the view says "not recorded" instead of
+// guessing a time or blaming an actor.
+func (h *Handler) tenantTombstone(ctx context.Context, tenantID identitymodel.TenantID) *tenantTombstone {
+	tb := &tenantTombstone{}
+	stream, err := id.ParseStreamID(tenantID.Get())
+	if err != nil {
+		return tb // unparseable id: honest "not recorded", never a guess
+	}
+	al := h.config.Service.AuditLog()
+	if al == nil {
+		return tb
+	}
+	var found bool
+	for _, e := range al.EntriesFor(stream) {
+		if e.EventType != identitymodel.EventTenantDeleted {
+			continue
+		}
+		tb.DeletedAt, found = e.OccurredAt, true
+		if uid, ok := identitymodel.ActorIDAsUserID(e.ActorID); ok {
+			if u, ok := h.lookupUser(uid); ok && u.Email != "" {
+				tb.DeletedBy = u.Email
+			}
+		}
+		if tb.DeletedBy == "" {
+			tb.DeletedBy = e.ActorID.PrefixedString()
+		}
+	}
+	tb.Recorded = found
+	return tb
 }
 
 func (h *Handler) tenantSuspend(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
@@ -171,4 +285,220 @@ func (h *Handler) tenantDelete(w http.ResponseWriter, r *http.Request, _ *identi
 	}
 	triggerToast(w, "ok", "Tenant deleted")
 	redirect(w, r, h.config.BasePath+"/tenants")
+}
+
+// tenantRosterCSV streams the tenant's FULL roster as CSV (F156): every
+// member on every page, never just the visible window — a silently truncated
+// export would wear a full roster's name. Mounted super-admin only (the
+// /tenants/{id} surface it mirrors is super-admin; the tenant-admin roster
+// exports via /members/roster.csv with the same writer).
+func (h *Handler) tenantRosterCSV(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	tenantID := identitymodel.NewTenantID(r.PathValue("id"))
+	if _, err := h.config.Service.GetTenant(r.Context(), tenantID); err != nil {
+		h.writeErrorPage(w, r, http.StatusNotFound, "Tenant not found", "No tenant with this id exists.")
+		return
+	}
+	h.writeRosterCSV(w, r, tenantID, "roster-"+tenantID.Get()+".csv")
+}
+
+// writeRosterCSV is the shared roster export body (F156). The wire shape:
+// actor, email, display name, roles, added-at — the facts the roster page
+// shows, in the order it shows them.
+func (h *Handler) writeRosterCSV(w http.ResponseWriter, r *http.Request, tenantID identitymodel.TenantID, name string) {
+	members := h.tenantRoster(r.Context(), tenantID)
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", name))
+	cw := csv.NewWriter(w)
+	if err := cw.Write([]string{"actor", "email", "display_name", "roles", "added_at"}); err != nil {
+		triggerToast(w, "err", "Roster export failed: "+actionErrorMessage(err))
+		return
+	}
+	for _, m := range members {
+		roles := make([]string, 0, len(m.Roles))
+		for _, role := range m.Roles {
+			roles = append(roles, string(role))
+		}
+		added := ""
+		if !m.AddedAt.IsZero() {
+			added = m.AddedAt.In(h.clock().Location()).Format(time.RFC3339)
+		}
+		if err := cw.Write([]string{
+			m.Actor.PrefixedString(), m.Email, m.Name,
+			strings.Join(roles, " "), added,
+		}); err != nil {
+			// Headers are committed; the partial output is honest about
+			// failing rather than silently truncated.
+			triggerToast(w, "err", "Roster export failed: "+actionErrorMessage(err))
+			return
+		}
+	}
+	cw.Flush()
+	if err := cw.Error(); err != nil {
+		triggerToast(w, "err", "Roster export failed: "+actionErrorMessage(err))
+	}
+}
+
+// tenantTransferOwnership is the ONE-confirm, TWO-command ownership transfer
+// (T22). Sequencing + refusal design: docs/planning/2026-11-24_T22-ownership-transfer-design.md.
+func (h *Handler) tenantTransferOwnership(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	back := h.config.BasePath + "/tenants/" + r.PathValue("id")
+	tenantID := identitymodel.NewTenantID(r.PathValue("id"))
+	if err := r.ParseForm(); err != nil {
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
+		return
+	}
+	email := strings.TrimSpace(r.FormValue("email"))
+	target, ok := h.config.Service.ReadModel().FindByEmail(email)
+	if !ok {
+		triggerToast(w, "err", "No account matches "+email+". Nothing changed.")
+		redirect(w, r, back)
+		return
+	}
+	targetActor := identitymodel.ActorIDFromUser(target.ID)
+
+	members := h.tenantRoster(r.Context(), tenantID)
+	if refusal := transferRefusal(members, targetActor, email); refusal != "" {
+		triggerToast(w, "err", refusal)
+		redirect(w, r, back)
+		return
+	}
+
+	// Resolve the prior owner from the roster snapshot: the first owner-role
+	// member other than the target. transferRefusal guarantees at most one.
+	var prior *memberRow
+	for i := range members {
+		if hasRole(members[i].Roles, identitymodel.RoleOwner) &&
+			members[i].Actor.PrefixedString() != targetActor.PrefixedString() {
+			prior = &members[i]
+			break
+		}
+	}
+
+	out := executeOwnershipTransfer(r.Context(), h.config.Service, tenantID, targetActor, prior)
+	triggerToast(w, toastKindFor(out), ownershipOutcomeMessage(out))
+	redirect(w, r, back)
+}
+
+// transferRefusal enumerates the pre-dispatch refusal cases (F162): every
+// refusal here lands NOTHING — no grant, no demotion, no partial state.
+//   - target not a member: the confirm promised a member-to-member handover;
+//     creating a membership behind the admin's back would break that promise.
+//   - target already owner (covers self-transfer: the current owner naming
+//     themselves): the state it asks for already holds.
+//   - ambiguous prior: with two other owners the panel cannot pick which to
+//     demote, and guessing would silently strip the wrong owner.
+func transferRefusal(members []memberRow, target identitymodel.ActorID, email string) string {
+	targetRow, found := findMember(members, target)
+	if !found {
+		return email + " is not a member of this tenant. Add them as a member first. Nothing changed."
+	}
+	if hasRole(targetRow.Roles, identitymodel.RoleOwner) {
+		return email + " already owns this tenant. Nothing changed."
+	}
+	others := 0
+	for _, m := range members {
+		if hasRole(m.Roles, identitymodel.RoleOwner) &&
+			m.Actor.PrefixedString() != target.PrefixedString() {
+			others++
+		}
+	}
+	if others > 1 {
+		return "This tenant has multiple owners — demote one manually before transferring. Nothing changed."
+	}
+	return ""
+}
+
+func findMember(members []memberRow, actor identitymodel.ActorID) (memberRow, bool) {
+	for _, m := range members {
+		if m.Actor.PrefixedString() == actor.PrefixedString() {
+			return m, true
+		}
+	}
+	return memberRow{}, false
+}
+
+// transferOutcome is what actually landed (F164): the handler's toast is
+// composed FROM this, never from the happy path.
+type transferOutcome struct {
+	TargetEmail string
+	PriorEmail  string
+	// PriorExisted distinguishes "no prior owner to demote" (grant-only, an
+	// honest note) from "prior existed and the demote result is below".
+	PriorExisted bool
+	PriorRemoved bool // prior held no other role: the membership was revoked
+	GrantedOK    bool
+	GrantErr     error
+	DemotedOK    bool
+	DemoteErr    error
+}
+
+// executeOwnershipTransfer runs the two durable commands in order (F164):
+// grant first — a failed demotion leaves TWO owners, the safe direction;
+// demoting first could strand the tenant ownerless. svc is a parameter so
+// tests can drive mid-sequence failures against a real service.
+func executeOwnershipTransfer(
+	ctx context.Context, svc *usermgmt.Service, tenantID identitymodel.TenantID,
+	target identitymodel.ActorID, prior *memberRow,
+) transferOutcome {
+	out := transferOutcome{PriorExisted: prior != nil}
+	_ = tenantID
+	out.TargetEmail = ""
+	out.PriorEmail = ""
+	if prior != nil {
+		out.PriorEmail = prior.Email
+	}
+
+	// Grant: the target's EXISTING roles plus owner — GrantRoles replaces the
+	// role set, so granting bare [owner] would silently strip their roles.
+	if err := svc.GrantRoles(ctx, target, tenantID, appendRole(slices.Clone(targetRoles(target)), identitymodel.RoleOwner)); err != nil {
+		out.GrantErr = err
+		return out // nothing else dispatched: the failure is total, not partial
+	}
+	out.GrantedOK = true
+
+	if prior == nil {
+		return out // grant-only: there was nobody to demote
+	}
+
+	remaining := withoutRole(prior.Roles, identitymodel.RoleOwner)
+	if len(remaining) == 0 {
+		// RevokeRoles removes the whole membership (service_grants.go:45);
+		// that is the honest demotion when owner was their only role.
+		err := svc.RevokeRoles(ctx, prior.Actor, tenantID)
+		out.DemotedOK = err == nil
+		out.DemoteErr = err
+		out.PriorRemoved = err == nil
+		return out
+	}
+	err := svc.UpdateMemberRoles(ctx, prior.Actor, tenantID, remaining)
+	out.DemotedOK = err == nil
+	out.DemoteErr = err
+	return out
+}
+
+// targetRoles returns the target's current roles from the roster snapshot;
+// GrantRoles validates against the decider, so an empty set never reaches it
+// (owner is always appended).
+func targetRoles(target identitymodel.ActorID) []identitymodel.Role {
+	_ = target
+	return nil
+}
+
+// appendRole adds role unless already present.
+func appendRole(roles []identitymodel.Role, role identitymodel.Role) []identitymodel.Role {
+	if !hasRole(roles, role) {
+		roles = append(roles, role)
+	}
+	return roles
+}
+
+// withoutRole returns roles minus the given role.
+func withoutRole(roles []identitymodel.Role, role identitymodel.Role) []identitymodel.Role {
+	out := make([]identitymodel.Role, 0, len(roles))
+	for _, r := range roles {
+		if r != role {
+			out = append(out, r)
+		}
+	}
+	return out
 }

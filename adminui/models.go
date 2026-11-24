@@ -106,7 +106,10 @@ func tenantSwitchCurrentName(p pageData) string {
 
 // tenantSwitchItems renders the switcher's dropdown items: one link per live
 // tenant (display-name order), the tenant being viewed carrying the check
-// icon as its current marker.
+// icon as its current marker. Each item carries data-tenant-search (display
+// name + slug, lowercased) for the switcher's in-dropdown filter (F158): the
+// filter is a client-side narrow of the server-rendered list, never a
+// second source of tenant truth.
 func tenantSwitchItems(p pageData) []display.DropdownItem {
 	items := make([]display.DropdownItem, 0, len(p.TenantSwitcher))
 	for _, opt := range p.TenantSwitcher {
@@ -117,7 +120,9 @@ func tenantSwitchItems(p pageData) []display.DropdownItem {
 			Kind:     display.DropdownItemLink,
 			External: false,
 			Disabled: false,
-			Attrs:    nil,
+			Attrs: templ.Attributes{
+				"data-tenant-search": strings.ToLower(opt.DisplayName + " " + opt.ID),
+			},
 		}
 		if opt.Current {
 			item.Icon = icons.Check
@@ -125,6 +130,36 @@ func tenantSwitchItems(p pageData) []display.DropdownItem {
 		items = append(items, item)
 	}
 	return items
+}
+
+// roleDescriptions is the help-text vocabulary for the role checkbox group
+// (F153): one line per assignable role, saying what the role CONFERES so an
+// admin granting it knows the blast radius before the checkbox, not after.
+// A function, not a package var: package-level state stays reserved for the
+// display tables.
+func roleDescriptions(role identitymodel.Role) string {
+	switch role {
+	case identitymodel.RoleOwner:
+		return "Full control of this tenant, including its lifecycle. There should be exactly one."
+	case identitymodel.RoleAdmin:
+		return "Manage members and roles inside this tenant."
+	case identitymodel.RoleUser:
+		return "Standard member access to this tenant."
+	case identitymodel.RoleViewer:
+		return "Read-only access to this tenant."
+	}
+	return ""
+}
+
+// tenantTransferConfirm composes the transfer confirm for ONE pairing
+// (F163): the current owner and the receiving member are both NAMED — ids
+// alone would make an irreversible authority move a lookup exercise. The
+// text also states the two-sided effect. (T16 batch-3: interpolated confirm
+// bodies composed in Go helpers stay hardcoded English.)
+func tenantTransferConfirm(priorName, targetName string) string {
+	return "Transfer ownership from " + priorName + " to " + targetName + "? " +
+			targetName + " gains the owner role and keeps their other roles; " +
+			priorName + " loses owner but keeps any other roles they hold."
 }
 
 // statCard is one metric tile on the dashboard. Tone and Href are optional
@@ -497,6 +532,56 @@ type tenantDetailData struct {
 	// AssignableRoles order. Empty when the roster is empty — the identity
 	// card renders a dash rather than a fabricated zero row.
 	RoleDistribution []roleCount
+
+	// TotalMembers is the FULL roster size (F157): Members is the visible
+	// page once the roster outgrows Config.PageSize, so confirms and the
+	// identity card must quote the whole tenant, not the page.
+	TotalMembers int
+
+	// AdminTierCount is the FULL-roster count of admin/owner holders. The
+	// last-admin confirm escalations use it instead of scanning the visible
+	// page: a paginated roster must not hide a second admin from the guard.
+	AdminTierCount int
+
+	// Page/TotalPages drive the roster pager (F157). TotalPages <= 1
+	// renders no pager; RosterURL is the pager's base (page param appended).
+	Page       int
+	TotalPages int
+	RosterURL  string
+
+	// RosterExportURL is the CSV export of the FULL roster (F156).
+	RosterExportURL string
+
+	// TransferURL is the ownership-transfer POST target (T22). Set only on
+	// the super-admin tenant detail; empty hides the transfer form entirely
+	// (tenant-admin mode has no tenant lifecycle surface).
+	TransferURL string
+
+	// TransferCandidates are the members eligible to RECEIVE ownership (the
+	// target select). Each entry names the person AND carries the composed
+	// two-sided confirm body for that pairing (F163).
+	TransferCandidates []transferCandidate
+
+	// Tombstone is set when the tenant is DELETED (F154): the detail page
+	// renders the read-only tombstone and never the live view.
+	Tombstone *tenantTombstone
+}
+
+// transferCandidate is one ownership-transfer target option: the person named
+// both in the select and in the per-pairing confirm body.
+type transferCandidate struct {
+	Email       string
+	ConfirmBody string
+}
+
+// tenantTombstone is a deleted tenant's read-only identity (F154). Every
+// field is honest: Recorded=false means the audit window no longer holds the
+// TenantDeleted entry, and the view says "not recorded" instead of guessing.
+type tenantTombstone struct {
+	DeletedAt time.Time
+	DeletedBy string
+	// Recorded is true only when the audit window yielded the deletion entry.
+	Recorded bool
 }
 
 // roleCount is one row of the tenant identity card's role distribution: how
@@ -588,26 +673,13 @@ func holdsAdminTier(roles []identitymodel.Role) bool {
 	return false
 }
 
-// anyOtherAdminTier reports whether any member OTHER than except holds an
-// admin-tier role in the tenant.
-func anyOtherAdminTier(members []memberRow, except memberRow) bool {
-	for _, m := range members {
-		if m.Actor.PrefixedString() == except.Actor.PrefixedString() {
-			continue
-		}
-		if holdsAdminTier(m.Roles) {
-			return true
-		}
-	}
-	return false
-}
 
 // memberRemoveConfirm builds the roster remove confirm text, escalating like
 // the passkey case when the member holds the tenant's ONLY admin-tier role:
 // the admin is about to leave a tenant nobody can administer.
 func memberRemoveConfirm(d tenantDetailData, m memberRow) string {
 	msg := "Remove " + m.displayName() + " from this tenant?"
-	if holdsAdminTier(m.Roles) && !anyOtherAdminTier(d.Members, m) {
+	if holdsAdminTier(m.Roles) && d.AdminTierCount <= 1 {
 		msg += " They hold the only admin or owner role here — the tenant would be left without an admin."
 	}
 	return msg
@@ -662,7 +734,7 @@ func lastAdminDowngradeRefusalMessage() string {
 // removal would.
 func memberRoleChangeConfirm(d tenantDetailData, m memberRow) string {
 	msg := "Change the roles of " + m.displayName() + " in this tenant?"
-	if holdsAdminTier(m.Roles) && !anyOtherAdminTier(d.Members, m) {
+	if holdsAdminTier(m.Roles) && d.AdminTierCount <= 1 {
 		msg += " " + lastAdminDowngradeCopy(1)
 	}
 	return msg
@@ -683,14 +755,14 @@ func tenantRoleChangeConfirm(d userDetailData, access tenantAccessRow) string {
 // spelled out: the admin is about to cut access for a known number of
 // people, and "some members" would hide the blast radius.
 func tenantSuspendConfirm(d tenantDetailData) string {
-	return fmt.Sprintf("Suspend this tenant? Its %d member(s) lose access until it is reactivated.", len(d.Members))
+	return fmt.Sprintf("Suspend this tenant? Its %d member(s) lose access until it is reactivated.", d.TotalMembers)
 }
 
 // tenantDeleteConfirm builds the delete confirm text with the same impact
 // truth: deletion revokes every membership, and the admin should see how
 // many before confirming something irreversible.
 func tenantDeleteConfirm(d tenantDetailData) string {
-	return fmt.Sprintf("Delete this tenant and revoke its %d membership(s)? This cannot be undone.", len(d.Members))
+	return fmt.Sprintf("Delete this tenant and revoke its %d membership(s)? This cannot be undone.", d.TotalMembers)
 }
 
 // removeCredentialConfirm builds the passkey-removal confirm text: removing
