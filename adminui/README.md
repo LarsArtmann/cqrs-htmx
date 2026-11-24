@@ -87,7 +87,9 @@ Every path the panel answers comes from one table in [`routes.go`](routes.go): t
 registration and the [`Handler.Routes()`](handler.go) manifest are both generated from
 those rows, so a route cannot exist outside the table. The source table has **67 rows**
 (re-trued with the T08 suggest routes; the previous claim of 61 had drifted four rows
-behind the table); a running instance serves the subset for its mode — **62 rows in
+behind the table — the stated count is gate-pinned by
+[`check-adminui-surface.sh`](../scripts/checks/check-adminui-surface.sh) since then);
+a running instance serves the subset for its mode — **62 rows in
 `ModeSuperAdmin`** (every row below except the five tenant-admin Members rows) and
 **19 rows in `ModeTenantAdmin`** (the shared rows, Members, and the fallbacks; the
 Users and Tenants panels do not exist in that mode).
