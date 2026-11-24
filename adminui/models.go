@@ -292,10 +292,14 @@ func cannotSignInCopy() string {
 // included only when the Service can do TOTP at all: an always-"Off" row for
 // a capability the deployment lacks reads as a setting someone could flip,
 // not as an absence.
+// labelEmail is the Details-card row label for the user's email address —
+// the same column word the forms and tables spell elsewhere in the panel.
+const labelEmail = "Email"
+
 func userDetailDefinitionItems(d userDetailData) []display.DefinitionItem {
 	items := []display.DefinitionItem{
 		{Term: "User ID", Detail: "", DetailComponent: copyableID(d.User.ID.Get().String())},
-		{Term: "Email", Detail: d.User.Email, DetailComponent: nil},
+		{Term: labelEmail, Detail: d.User.Email, DetailComponent: nil},
 		{Term: "Verified", Detail: "", DetailComponent: verifiedDetail(d)},
 	}
 	if d.AuthMethods.HasTOTP {

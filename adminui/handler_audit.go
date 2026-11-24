@@ -201,7 +201,8 @@ type auditChip struct {
 // kind. The active chip toggles OFF (keeping q and the date range), the
 // others toggle their own kind ON.
 func auditActorChipList(d auditView) []auditChip {
-	chips := make([]auditChip, 0, len(auditActorChips)+1)
+	kinds := auditActorKinds()
+	chips := make([]auditChip, 0, len(kinds)+1)
 	chips = append(chips, auditChip{
 		Label:  "All actors",
 		Href:   auditFilterURL(d.BasePath+"/audit", d.Search, d.From, d.To, ""),
