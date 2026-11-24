@@ -470,6 +470,20 @@ dialog.tc-modal[open] {
 [data-sync-state="rejected"] .sync-dot {
   background: var(--err);
 }
+/* Reduced motion (T16 F121): the sync pulse is the one adminui-owned loop
+   that never stops on its own — freeze it under the OS preference AND under
+   the .admin-reduced-motion class admin.js mirrors onto <html> (so a
+   mid-session preference change applies without a reload). Toast and
+   spinner animations are stripped by their components' motion-reduce:
+   classes; this guard covers the panel-owned animation. */
+@media (prefers-reduced-motion: reduce) {
+  [data-sync-state="pending"] .sync-dot {
+    animation: none;
+  }
+}
+.admin-reduced-motion [data-sync-state="pending"] .sync-dot {
+  animation: none;
+}
 @keyframes sync-pulse {
   0%,
   100% {

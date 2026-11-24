@@ -23,16 +23,16 @@ templ usersPage(p pageData, d usersListData, sort string) {
 // swaps in-place via htmx: a file POST renders the imported/skipped summary
 // plus a bounded per-row error list, without losing the form for a retry.
 templ userImportPage(p pageData, basePath string) {
-	@Layout(p, userImportContent(basePath))
+	@Layout(p, userImportContent(p, basePath))
 }
 
-templ userImportContent(basePath string) {
+templ userImportContent(p pageData, basePath string) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
-			{Text: "Users", Href: basePath + "/users"},
-			{Text: "Import"},
+			{Text: p.label(labelPageUsers), Href: basePath + "/users"},
+			{Text: p.label(labelActionImportUsers)},
 		}}),
-		Title: "Import users",
+		Title: p.label(labelPageImportUsers),
 	})
 	<div class="max-w-[520px]">
 		@display.Card(display.CardProps{}) {
@@ -55,7 +55,7 @@ templ userImportContent(basePath string) {
 				</div>
 				<div class="flex gap-2.5">
 					@display.Button(display.ButtonProps{Text: "Import", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary, Children: htmx.LoadingButton("Import", "Importing…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"}))})
-					@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
+					@display.Button(display.ButtonProps{Text: p.label(labelConfirmCancel), Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
 				</div>
 			</form>
 			<div id="import-result" class="mt-4"></div>
@@ -352,16 +352,16 @@ templ userAccessCell(row userRow, basePath string) {
 // gate, and (honestly documented below) cannot set credentials — passwordless
 // users enroll their own passkey or link an OAuth2 provider on first login.
 templ userNewPage(p pageData, basePath string) {
-	@Layout(p, userNewContent(basePath))
+	@Layout(p, userNewContent(p, basePath))
 }
 
-templ userNewContent(basePath string) {
+templ userNewContent(p pageData, basePath string) {
 	@display.PageHeader(display.PageHeaderProps{
 		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
-			{Text: "Users", Href: basePath + "/users"},
-			{Text: "New"},
+			{Text: p.label(labelPageUsers), Href: basePath + "/users"},
+			{Text: p.label(labelActionNew)},
 		}}),
-		Title: "New user",
+		Title: p.label(labelActionNewUser),
 	})
 	<div class="max-w-[520px]">
 		@display.Card(display.CardProps{}) {
@@ -391,8 +391,8 @@ templ userNewContent(basePath string) {
 				passkey or sign in via a configured OAuth2 provider that matches this email.
 				</div>
 				<div class="flex gap-2.5">
-					@display.Button(display.ButtonProps{Text: "Create user", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
-					@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
+					@display.Button(display.ButtonProps{Text: p.label(labelActionCreateUser), Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
+					@display.Button(display.ButtonProps{Text: p.label(labelConfirmCancel), Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
 				</div>
 			</form>
 		}

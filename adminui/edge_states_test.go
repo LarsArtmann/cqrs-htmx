@@ -54,7 +54,7 @@ func TestUsersList_EmptyStateCTA(t *testing.T) {
 
 	render := func(d usersListData) string {
 		var b strings.Builder
-		if err := usersTableContent(d).Render(context.Background(), &b); err != nil {
+		if err := usersTableContent(testPageData(), d).Render(context.Background(), &b); err != nil {
 			t.Fatalf("render: %v", err)
 		}
 		return b.String()
@@ -227,7 +227,7 @@ func TestLastSeenColumn(t *testing.T) {
 	}
 
 	var b strings.Builder
-	if err := usersTableContent(usersListData{BasePath: "/admin", Users: []userRow{{
+	if err := usersTableContent(testPageData(), usersListData{BasePath: "/admin", Users: []userRow{{
 		User:     quiet.User,
 		LastSeen: time.Time{}, // zero: no window entry
 	}}}).Render(ctx, &b); err != nil {

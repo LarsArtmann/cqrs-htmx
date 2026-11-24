@@ -14,24 +14,24 @@ import (
 // distinct page from members.templ's tenant-roster card — that one edits ONE
 // tenant's roster; this one reads them all.
 templ membersDirectoryPage(p pageData, d membersDirectoryData) {
-	@Layout(p, membersDirectoryContent(d))
+	@Layout(p, membersDirectoryContent(p, d))
 }
 
-templ membersDirectoryContent(d membersDirectoryData) {
+templ membersDirectoryContent(p pageData, d membersDirectoryData) {
 	@display.PageHeader(display.PageHeaderProps{
-		Title:    "Membership directory",
-		Subtitle: "Every membership across every tenant",
+		Title:    p.label(labelPageDirectory),
+		Subtitle: p.label(labelPageDirectorySub),
 	})
 	<div class="mb-4 flex items-center gap-2">
 		@forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
-			Placeholder: "Search email or name…",
+			Placeholder: p.label(labelSearchDirPH),
 			Action:      d.BasePath + "/members",
 			DebounceMS:  350,
 			Wire:        &wire.Action{URL: d.BasePath + "/members", Target: "#members-directory-table"},
 			BaseProps: utils.BaseProps{
-				AriaLabel: "Search memberships",
+				AriaLabel: p.label(labelSearchDirAria),
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",
@@ -67,7 +67,7 @@ templ membersDirectoryContent(d membersDirectoryData) {
 		@membersDirectorySortLink(d, "joined", "Joined")
 	</div>
 	<div id="members-directory-table">
-		@membersDirectoryTableContent(d)
+		@membersDirectoryTableContent(p, d)
 	</div>
 }
 
@@ -126,23 +126,23 @@ func withDirectorySort(d membersDirectoryData, sort string) membersDirectoryData
 	return d
 }
 
-templ membersDirectoryTableContent(d membersDirectoryData) {
+templ membersDirectoryTableContent(p pageData, d membersDirectoryData) {
 	if len(d.Rows) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			if d.Total == 0 && d.Search == "" && d.TenantFilter == "" && d.RoleFilter == "" {
-				@empty("users", "No memberships yet",
-					"No one has been added to any tenant. Add a member from a tenant's page to see them here.",
-					"Browse tenants", d.BasePath+"/tenants")
+				@empty("users", p.label(labelEmptyDirectoryNoneTitle),
+					p.label(labelEmptyDirectoryNoneHint),
+					p.label(labelEmptyDirectoryNoneAction), d.BasePath+"/tenants")
 			} else {
-				@empty("users", "No memberships match your filters",
-					"No membership matches the current search and filter chips.", "Clear filters", d.BasePath+"/members")
+				@empty("users", p.label(labelEmptyDirectorySearchTitle),
+					p.label(labelEmptyDirectorySearchHint), p.label(labelEmptyDirectorySearchAction), d.BasePath+"/members")
 			}
 		}
 	} else {
 		@display.Table(display.TableProps{
-			Headers:     []string{"Tenant", "Member", "Roles", "Joined"},
+			Headers:     []string{p.label(labelHeaderTenant), p.label(labelHeaderMember), p.label(labelHeaderRoles), p.label(labelHeaderJoined)},
 			Hover:       true,
-			Body:        membersDirectoryRows(d),
+			Body:        membersDirectoryRows(p, d),
 			CellPadding: display.TableCellPaddingCompact,
 		})
 		@listNote(len(d.Rows), d.Total)
@@ -152,7 +152,7 @@ templ membersDirectoryTableContent(d membersDirectoryData) {
 	}
 }
 
-templ membersDirectoryRows(d membersDirectoryData) {
+templ membersDirectoryRows(p pageData, d membersDirectoryData) {
 	for _, row := range d.Rows {
 		<tr>
 			<td class="px-4 py-2">
@@ -190,7 +190,7 @@ templ membersDirectoryRows(d membersDirectoryData) {
 			</td>
 			<td class="px-4 py-2 text-gray-500">
 				if !row.AddedAt.IsZero() {
-					<span title={ row.AddedAt.Format("Jan 2, 2006 15:04 MST") }>
+					<span title={ p.dateTime(row.AddedAt) }>
 						@display.RelativeTime(display.RelativeTimeProps{Time: row.AddedAt})
 					</span>
 				} else {

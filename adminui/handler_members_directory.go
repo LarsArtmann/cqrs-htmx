@@ -193,11 +193,11 @@ func (h *Handler) membersDirectory(w http.ResponseWriter, r *http.Request, user 
 		BasePath: h.config.BasePath,
 		listPage: listPage{Page: page, TotalPages: totalPages},
 	}
+	p := h.page("Membership directory", patternMembers, user, r)
 	if htmx.RenderPartial(r) {
-		renderPartial(w, r, membersDirectoryTableContent(d))
+		renderPartial(w, r, membersDirectoryTableContent(p, d))
 		return
 	}
-	p := h.page("Membership directory", patternMembers, user, r)
 	renderPage(w, r, membersDirectoryPage(p, d))
 }
 

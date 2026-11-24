@@ -160,6 +160,22 @@
     }
   });
 
+  // --- Reduced motion (T16 F121): mirror the media query onto a class ---
+  // prefers-reduced-motion is honored by the panel's own CSS (media query)
+  // AND by this class on <html>, so a mid-session preference change takes
+  // effect immediately and any future class-driven rule has a single hook.
+  // classList only — no inline styles, CSP-safe. Toasts and spinners keep
+  // their CONTENT (the library's motion-reduce: classes already strip their
+  // animation); this guard covers the panel-owned animations (sync pulse).
+  var motionQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function applyMotionPreference() {
+    document.documentElement.classList.toggle("admin-reduced-motion", !!(motionQuery && motionQuery.matches));
+  }
+  applyMotionPreference();
+  if (motionQuery && typeof motionQuery.addEventListener === "function") {
+    motionQuery.addEventListener("change", applyMotionPreference);
+  }
+
   // --- Toasts: bridge adminui:toast HX-Trigger events to templ-components tcShowToast ---
   // tcShowToast is provided by feedback.ToastContainer (rendered server-side).
   document.addEventListener("adminui:toast", function (e) {

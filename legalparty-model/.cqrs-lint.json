@@ -49,6 +49,18 @@
     // are tiny (IDs + reason strings), the nested Profile value object stays
     // human-readable in the journal, and CBOR is the ADR-0059 class for
     // byte-heavy payloads (credentials, keys) this module does not add.
-    "disable": ["F032", "E005", "C013", "S006", "B026", "E004", "F005", "B005", "F008"]
+    //
+    // A032 (plain-string-ID-in-payload), 2026-11-24: BillToOpenedPayload's
+    // TenantID is deliberately a raw string — the tenant is the CONSUMING
+    // app's vocabulary (usermgmt's TenantID cannot be imported without a
+    // dependency edge this module refuses), and a local brand would invent a
+    // third competing tenant type. The stream key IS the tenant (D9);
+    // consumers convert once at their composition root.
+    //
+    // F016 (aggregate-listing), 2026-11-24: the second aggregate crossed the
+    // rule's aggregate-count threshold. Stream status tracking is a consumer
+    // deployment concern (system.New's infrastructure); a pure domain module
+    // takes no dependency for it — the F032 argument again.
+    "disable": ["F032", "E005", "C013", "S006", "B026", "E004", "F005", "B005", "F008", "A032", "F016"]
   }
 }

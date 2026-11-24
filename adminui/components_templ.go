@@ -1034,7 +1034,10 @@ func listNote(shown, total int) templ.Component {
 // (all native <dialog> behavior). The server-side handlers are unchanged —
 // the modal is purely progressive enhancement over the same htmx requests.
 // Rendered once per page via pageFoot.
-func confirmModal(nonce string) templ.Component {
+// confirmModal is driven by the page's label table (T16): the shared shell
+// strings ride p.label, while each action's specific body text arrives via
+// data-confirm on the triggering button.
+func confirmModal(p pageData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1063,14 +1066,27 @@ func confirmModal(nonce string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<p id=\"admin-confirm-body\" class=\"text-sm text-gray-600 dark:text-gray-300\">This action cannot be undone.</p><div class=\"mt-5 flex justify-end gap-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<p id=\"admin-confirm-body\" class=\"text-sm text-gray-600 dark:text-gray-300\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var45 string
+			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(p.label(labelConfirmBody))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 298, Col: 105}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</p><div class=\"mt-5 flex justify-end gap-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = display.Button(display.ButtonProps{
 				Type:    display.ButtonHTMLButton,
 				Variant: display.ButtonSecondary,
-				Text:    "Cancel",
+				Text:    p.label(labelConfirmCancel),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"data-tc-close": "modal",
 				}},
@@ -1081,21 +1097,21 @@ func confirmModal(nonce string) templ.Component {
 			templ_7745c5c3_Err = display.Button(display.ButtonProps{
 				Type:      display.ButtonHTMLButton,
 				Variant:   display.ButtonDanger,
-				Text:      "Confirm",
+				Text:      p.label(labelConfirmOK),
 				BaseProps: utils.BaseProps{ID: "admin-confirm-ok"},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
 		templ_7745c5c3_Err = display.Modal(display.ModalProps{
-			BaseProps: utils.BaseProps{ID: "admin-confirm-modal", Nonce: nonce},
-			Title:     "Are you sure?",
+			BaseProps: utils.BaseProps{ID: "admin-confirm-modal", Nonce: p.Nonce},
+			Title:     p.label(labelConfirmTitle),
 			Size:      display.ModalSizeMD,
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var44), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

@@ -39,7 +39,7 @@ func membersDirectoryPage(p pageData, d membersDirectoryData) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = Layout(p, membersDirectoryContent(d)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(p, membersDirectoryContent(p, d)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -47,7 +47,7 @@ func membersDirectoryPage(p pageData, d membersDirectoryData) templ.Component {
 	})
 }
 
-func membersDirectoryContent(d membersDirectoryData) templ.Component {
+func membersDirectoryContent(p pageData, d membersDirectoryData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -65,8 +65,8 @@ func membersDirectoryContent(d membersDirectoryData) templ.Component {
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{
-			Title:    "Membership directory",
-			Subtitle: "Every membership across every tenant",
+			Title:    p.label(labelPageDirectory),
+			Subtitle: p.label(labelPageDirectorySub),
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -78,12 +78,12 @@ func membersDirectoryContent(d membersDirectoryData) templ.Component {
 		templ_7745c5c3_Err = forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
-			Placeholder: "Search email or name…",
+			Placeholder: p.label(labelSearchDirPH),
 			Action:      d.BasePath + "/members",
 			DebounceMS:  350,
 			Wire:        &wire.Action{URL: d.BasePath + "/members", Target: "#members-directory-table"},
 			BaseProps: utils.BaseProps{
-				AriaLabel: "Search memberships",
+				AriaLabel: p.label(labelSearchDirAria),
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",
@@ -235,7 +235,7 @@ func membersDirectoryContent(d membersDirectoryData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = membersDirectoryTableContent(d).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = membersDirectoryTableContent(p, d).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -446,7 +446,7 @@ func withDirectorySort(d membersDirectoryData, sort string) membersDirectoryData
 	return d
 }
 
-func membersDirectoryTableContent(d membersDirectoryData) templ.Component {
+func membersDirectoryTableContent(p pageData, d membersDirectoryData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -477,15 +477,15 @@ func membersDirectoryTableContent(d membersDirectoryData) templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				if d.Total == 0 && d.Search == "" && d.TenantFilter == "" && d.RoleFilter == "" {
-					templ_7745c5c3_Err = empty("users", "No memberships yet",
-						"No one has been added to any tenant. Add a member from a tenant's page to see them here.",
-						"Browse tenants", d.BasePath+"/tenants").Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = empty("users", p.label(labelEmptyDirectoryNoneTitle),
+						p.label(labelEmptyDirectoryNoneHint),
+						p.label(labelEmptyDirectoryNoneAction), d.BasePath+"/tenants").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = empty("users", "No memberships match your filters",
-						"No membership matches the current search and filter chips.", "Clear filters", d.BasePath+"/members").Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = empty("users", p.label(labelEmptyDirectorySearchTitle),
+						p.label(labelEmptyDirectorySearchHint), p.label(labelEmptyDirectorySearchAction), d.BasePath+"/members").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -498,9 +498,9 @@ func membersDirectoryTableContent(d membersDirectoryData) templ.Component {
 			}
 		} else {
 			templ_7745c5c3_Err = display.Table(display.TableProps{
-				Headers:     []string{"Tenant", "Member", "Roles", "Joined"},
+				Headers:     []string{p.label(labelHeaderTenant), p.label(labelHeaderMember), p.label(labelHeaderRoles), p.label(labelHeaderJoined)},
 				Hover:       true,
-				Body:        membersDirectoryRows(d),
+				Body:        membersDirectoryRows(p, d),
 				CellPadding: display.TableCellPaddingCompact,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -523,7 +523,7 @@ func membersDirectoryTableContent(d membersDirectoryData) templ.Component {
 	})
 }
 
-func membersDirectoryRows(d membersDirectoryData) templ.Component {
+func membersDirectoryRows(p pageData, d membersDirectoryData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -822,9 +822,9 @@ func membersDirectoryRows(d membersDirectoryData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var34 string
-				templ_7745c5c3_Var34, templ_7745c5c3_Err = templruntime.NewAttributeExpression(row.AddedAt.Format("Jan 2, 2006 15:04 MST")).Resolve(ctx)
+				templ_7745c5c3_Var34, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.dateTime(row.AddedAt)).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members_directory.templ`, Line: 193, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members_directory.templ`, Line: 193, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var34)
 				if templ_7745c5c3_Err != nil {

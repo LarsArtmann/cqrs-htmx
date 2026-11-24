@@ -483,7 +483,10 @@ func (h *Handler) userActivity(w http.ResponseWriter, r *http.Request, _ *identi
 		)
 		return
 	}
-	renderPartial(w, r, userActivityFragment(h.userActivityData(shown, parseActivitySkip(r.URL.Query().Get("skip")))))
+	// The fragment carries the label table + locale so an override-configured
+	// deployment re-words the swapped-in rows too (T16).
+	renderPartial(w, r, userActivityFragment(h.page("", "/users", user, r),
+		h.userActivityData(shown, parseActivitySkip(r.URL.Query().Get("skip")))))
 }
 
 // userActivityPage is one load-more fragment's data: the next rows, the skip

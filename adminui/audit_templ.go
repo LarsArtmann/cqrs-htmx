@@ -37,7 +37,7 @@ func auditPage(p pageData, d auditView) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = Layout(p, auditContent(d)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(p, auditContent(p, d)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -45,7 +45,7 @@ func auditPage(p pageData, d auditView) templ.Component {
 	})
 }
 
-func auditContent(d auditView) templ.Component {
+func auditContent(p pageData, d auditView) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -62,7 +62,7 @@ func auditContent(d auditView) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{Title: "Audit log"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{Title: p.label(labelPageAudit)}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -70,7 +70,7 @@ func auditContent(d auditView) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = auditPanelContent(d).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = auditPanelContent(p, d).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -89,7 +89,7 @@ func auditContent(d auditView) templ.Component {
 // Enter-submit includes the date/actor fields, so neither HTMX path can
 // silently drop an active filter; the pager and chip links carry the full
 // filter set as plain URLs.
-func auditPanelContent(d auditView) templ.Component {
+func auditPanelContent(p pageData, d auditView) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -106,11 +106,11 @@ func auditPanelContent(d auditView) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = auditFilterBar(d).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = auditFilterBar(p, d).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = auditTableContent(d).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = auditTableContent(p, d).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -126,7 +126,7 @@ func auditPanelContent(d auditView) templ.Component {
 // actor-kind chips, and — when a filter input could not be applied — the
 // honest issue strip. Every input re-renders with the value it was given, so
 // the visible state always matches the state that produced the table.
-func auditFilterBar(d auditView) templ.Component {
+func auditFilterBar(p pageData, d auditView) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -150,7 +150,7 @@ func auditFilterBar(d auditView) templ.Component {
 		templ_7745c5c3_Err = forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
-			Placeholder: "Search actions, people, aggregates\u2026",
+			Placeholder: p.label(labelSearchAuditPH),
 			Action:      d.BasePath + "/audit",
 			DebounceMS:  350,
 			Wire: &wire.Action{
@@ -158,7 +158,7 @@ func auditFilterBar(d auditView) templ.Component {
 				Target: "#audit-panel",
 			},
 			BaseProps: utils.BaseProps{
-				AriaLabel: "Search audit log",
+				AriaLabel: p.label(labelSearchAuditAria),
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
 					"autocomplete": "off",
@@ -519,7 +519,7 @@ func auditWindowCaption(w auditWindowFacts) templ.Component {
 	})
 }
 
-func auditTableContent(d auditView) templ.Component {
+func auditTableContent(p pageData, d auditView) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -550,12 +550,12 @@ func auditTableContent(d auditView) templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				if auditFiltersActive(d) {
-					templ_7745c5c3_Err = empty("audit", "No events match your filters", "No recorded action matches the active filters.", "Clear filters", d.BasePath+"/audit").Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = empty("audit", p.label(labelEmptyAuditSearchTitle), p.label(labelEmptyAuditSearchHint), p.label(labelEmptyAuditSearchAction), d.BasePath+"/audit").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = empty("audit", "No audit events", "User and tenant changes will be recorded here.", "", "").Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = empty("audit", p.label(labelEmptyAuditNoneTitle), p.label(labelEmptyAuditNoneHint), "", "").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -580,9 +580,9 @@ func auditTableContent(d auditView) templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				templ_7745c5c3_Err = display.Table(display.TableProps{
-					Headers:     []string{"Action", "Who", "Aggregate", "When"},
+					Headers:     []string{p.label(labelHeaderAction), p.label(labelHeaderWho), p.label(labelHeaderAggregate), p.label(labelHeaderWhen)},
 					Hover:       true,
-					Body:        auditRows(d),
+					Body:        auditRows(p, d),
 					Flush:       true,
 					Striped:     true,
 					CellPadding: display.TableCellPaddingCompact,
@@ -609,7 +609,7 @@ func auditTableContent(d auditView) templ.Component {
 	})
 }
 
-func auditRows(d auditView) templ.Component {
+func auditRows(p pageData, d auditView) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -800,9 +800,9 @@ func auditRows(d auditView) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var32 string
-			templ_7745c5c3_Var32, templ_7745c5c3_Err = templruntime.NewAttributeExpression(e.OccurredAt.Format("Jan 2, 2006 15:04 MST")).Resolve(ctx)
+			templ_7745c5c3_Var32, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.dateTime(e.OccurredAt)).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 215, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 215, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var32)
 			if templ_7745c5c3_Err != nil {
@@ -1164,9 +1164,9 @@ func userActivityFragment(d userActivityPage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var48 string
-			templ_7745c5c3_Var48, templ_7745c5c3_Err = templruntime.NewAttributeExpression(e.OccurredAt.Format("Jan 2, 2006 15:04 MST")).Resolve(ctx)
+			templ_7745c5c3_Var48, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.dateTime(e.OccurredAt)).Resolve(ctx)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 264, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `audit.templ`, Line: 264, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var48)
 			if templ_7745c5c3_Err != nil {

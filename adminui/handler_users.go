@@ -26,11 +26,11 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 	sort := parseUserSort(r.URL.Query().Get("sort"))
 	d := h.usersIndexData(r.Context(), q, filter, parsePageQuery(r), sort)
 
+	p := h.page("Users", "/users", user, r)
 	if htmx.RenderPartial(r) {
-		renderPartial(w, r, usersTableContent(d, sort))
+		renderPartial(w, r, usersTableContent(p, d, sort))
 		return
 	}
-	p := h.page("Users", "/users", user, r)
 	renderPage(w, r, usersPage(p, d, sort))
 }
 

@@ -72,7 +72,7 @@ func parseUserSearch(r *http.Request) (userSearch, error) {
 // ladder answers byte-identically (pinned by TestUserSearch_LadderParity).
 // The response is the users table fragment, the exact payload the search
 // input's hx-target swap expects.
-func (h *Handler) userSearch(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+func (h *Handler) userSearch(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	search, err := parseUserSearch(r)
 	if err != nil {
 		h.writeErrorPage(
@@ -86,7 +86,9 @@ func (h *Handler) userSearch(w http.ResponseWriter, r *http.Request, _ *identity
 	}
 
 	data := h.usersSearchData(r.Context(), search.Query, search.Filter, search.Page)
-	renderPartial(w, r, usersTableContent(data))
+	// The fragment carries the label table so override-configured deployments
+	// re-word the swapped-in table too (T16).
+	renderPartial(w, r, usersTableContent(h.page("Users", "/users", user, r), data))
 }
 
 // usersSearchData builds the list data for one page of filtered users — the

@@ -41,7 +41,7 @@ func usersPage(p pageData, d usersListData, sort string) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = Layout(p, usersContent(d, sort)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(p, usersContent(p, d, sort)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -69,7 +69,7 @@ func userImportPage(p pageData, basePath string) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = Layout(p, userImportContent(basePath)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(p, userImportContent(p, basePath)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -77,7 +77,7 @@ func userImportPage(p pageData, basePath string) templ.Component {
 	})
 }
 
-func userImportContent(basePath string) templ.Component {
+func userImportContent(p pageData, basePath string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -96,10 +96,10 @@ func userImportContent(basePath string) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{
 			Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
-				{Text: "Users", Href: basePath + "/users"},
-				{Text: "Import"},
+				{Text: p.label(labelPageUsers), Href: basePath + "/users"},
+				{Text: p.label(labelActionImportUsers)},
 			}}),
-			Title: "Import users",
+			Title: p.label(labelPageImportUsers),
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -156,7 +156,7 @@ func userImportContent(basePath string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = display.Button(display.ButtonProps{Text: p.label(labelConfirmCancel), Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -278,7 +278,7 @@ func importResultPanel(result usermgmt.ImportResult, back string) templ.Componen
 	})
 }
 
-func usersContent(d usersListData, sort string) templ.Component {
+func usersContent(p pageData, d usersListData, sort string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -295,7 +295,7 @@ func usersContent(d usersListData, sort string) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{Title: "Users", Action: newUserAction(d)}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{Title: p.label(labelPageUsers), Action: newUserAction(p, d)}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -304,7 +304,7 @@ func usersContent(d usersListData, sort string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = display.Button(display.ButtonProps{
-			Text:      "Import users",
+			Text:      p.label(labelActionImportUsers),
 			Href:      d.BasePath + "/users/import",
 			Variant:   display.ButtonSecondary,
 			Size:      display.ButtonSizeSM,
@@ -314,7 +314,7 @@ func usersContent(d usersListData, sort string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = display.Button(display.ButtonProps{
-			Text:      "Export CSV",
+			Text:      p.label(labelActionExportCSV),
 			Href:      d.BasePath + "/users/export.csv",
 			Variant:   display.ButtonSecondary,
 			Size:      display.ButtonSizeSM,
@@ -325,7 +325,7 @@ func usersContent(d usersListData, sort string) templ.Component {
 		}
 		if d.Search != "" || d.Filter != userFilterNone || sort != "" {
 			templ_7745c5c3_Err = display.Button(display.ButtonProps{
-				Text:      "Export filtered CSV",
+				Text:      p.label(labelActionExportFCsv),
 				Href:      userListURL(d.BasePath+"/users/export.filtered.csv", d, d.Filter, sort),
 				Variant:   display.ButtonSecondary,
 				Size:      display.ButtonSizeSM,
@@ -335,7 +335,7 @@ func usersContent(d usersListData, sort string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = display.Button(display.ButtonProps{
-				Text:      "Export filtered JSON",
+				Text:      p.label(labelActionExportFJson),
 				Href:      userListURL(d.BasePath+"/users/export.filtered.json", d, d.Filter, sort),
 				Variant:   display.ButtonSecondary,
 				Size:      display.ButtonSizeSM,
@@ -394,7 +394,7 @@ func usersContent(d usersListData, sort string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = usersTableContent(d, sort).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = usersTableContent(p, d, sort).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -640,7 +640,7 @@ func userSortLink(d usersListData, current, sort, label string) templ.Component 
 
 // newUserAction is the PageHeader action slot for the users list: the
 // primary "New user" entry point rides on the title row.
-func newUserAction(d usersListData) templ.Component {
+func newUserAction(p pageData, d usersListData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -658,7 +658,7 @@ func newUserAction(d usersListData) templ.Component {
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.Button(display.ButtonProps{
-			Text:      "New user",
+			Text:      p.label(labelActionNewUser),
 			Href:      d.BasePath + "/users/new",
 			Variant:   display.ButtonPrimary,
 			Size:      display.ButtonSizeSM,
@@ -677,7 +677,7 @@ func newUserAction(d usersListData) templ.Component {
 // body-carrying search twin omits it (its wire format is q/filter/page), so
 // the pager it renders keeps q + filter but not sort — the sort key joins
 // that body vocabulary when the search ladder grows the field.
-func usersTableContent(d usersListData, sort ...string) templ.Component {
+func usersTableContent(p pageData, d usersListData, sort ...string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -708,12 +708,12 @@ func usersTableContent(d usersListData, sort ...string) templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				if d.Search != "" {
-					templ_7745c5c3_Err = empty("users", "No users match your search", "No registered user matches the search term.", "Clear search", d.BasePath+"/users").Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = empty("users", p.label(labelEmptyUsersSearchTitle), p.label(labelEmptyUsersSearchHint), p.label(labelEmptyUsersSearchAction), d.BasePath+"/users").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = empty("users", "No users yet", "Registered users will appear here.", "Create the first user", d.BasePath+"/users/new").Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = empty("users", p.label(labelEmptyUsersNoneTitle), p.label(labelEmptyUsersNoneHint), p.label(labelEmptyUsersNoneAction), d.BasePath+"/users/new").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -726,9 +726,9 @@ func usersTableContent(d usersListData, sort ...string) templ.Component {
 			}
 		} else {
 			templ_7745c5c3_Err = display.Table(display.TableProps{
-				Headers:     []string{"User", "Access", "Status", "Last seen", "Created", ""},
+				Headers:     []string{p.label(labelHeaderUser), p.label(labelHeaderAccess), p.label(labelHeaderStatus), p.label(labelHeaderLastSeen), p.label(labelHeaderCreated), ""},
 				Hover:       true,
-				Body:        usersRows(d),
+				Body:        usersRows(p, d),
 				Striped:     true,
 				CellPadding: display.TableCellPaddingCompact,
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -748,7 +748,7 @@ func usersTableContent(d usersListData, sort ...string) templ.Component {
 	})
 }
 
-func usersRows(d usersListData) templ.Component {
+func usersRows(p pageData, d usersListData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -904,9 +904,9 @@ func usersRows(d usersListData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var29 string
-				templ_7745c5c3_Var29, templ_7745c5c3_Err = templruntime.NewAttributeExpression(row.LastSeen.Format("Jan 2, 2006 15:04 MST")).Resolve(ctx)
+				templ_7745c5c3_Var29, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.dateTime(row.LastSeen)).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 313, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `users.templ`, Line: 313, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var29)
 				if templ_7745c5c3_Err != nil {
@@ -1058,7 +1058,7 @@ func userNewPage(p pageData, basePath string) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = Layout(p, userNewContent(basePath)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(p, userNewContent(p, basePath)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1066,7 +1066,7 @@ func userNewPage(p pageData, basePath string) templ.Component {
 	})
 }
 
-func userNewContent(basePath string) templ.Component {
+func userNewContent(p pageData, basePath string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1085,10 +1085,10 @@ func userNewContent(basePath string) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{
 			Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
-				{Text: "Users", Href: basePath + "/users"},
-				{Text: "New"},
+				{Text: p.label(labelPageUsers), Href: basePath + "/users"},
+				{Text: p.label(labelActionNew)},
 			}}),
-			Title: "New user",
+			Title: p.label(labelActionNewUser),
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1156,11 +1156,11 @@ func userNewContent(basePath string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = display.Button(display.ButtonProps{Text: "Create user", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = display.Button(display.ButtonProps{Text: p.label(labelActionCreateUser), Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = display.Button(display.ButtonProps{Text: p.label(labelConfirmCancel), Href: basePath + "/users", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

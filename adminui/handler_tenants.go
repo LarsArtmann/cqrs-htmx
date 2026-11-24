@@ -43,11 +43,11 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 		BasePath: h.config.BasePath,
 		Page:     page, TotalPages: totalPages,
 	}
+	p := h.page("Tenants", "/tenants", user, r)
 	if htmx.RenderPartial(r) {
-		renderPartial(w, r, tenantsTableContent(d))
+		renderPartial(w, r, tenantsTableContent(p, d))
 		return
 	}
-	p := h.page("Tenants", "/tenants", user, r)
 	renderPage(w, r, tenantsPage(p, d))
 }
 

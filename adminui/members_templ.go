@@ -30,7 +30,7 @@ const memberEmailListID = "admin-member-emails"
 // through the directory) rather than the raw "user:01HZ…" actor token: the
 // admin's job is deciding who has access, and an opaque id makes that a
 // lookup exercise.
-func membersCard(d tenantDetailData) templ.Component {
+func membersCard(p pageData, d tenantDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -102,15 +102,15 @@ func membersCard(d tenantDetailData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if len(d.Members) == 0 {
-				templ_7745c5c3_Err = empty("members", "No members", "Add a person below to grant tenant access.", "", "").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = empty("members", p.label(labelEmptyMembersTitle), p.label(labelEmptyMembersHint), "", "").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
 				templ_7745c5c3_Err = display.Table(display.TableProps{
-					Headers:     []string{"Member", "Roles", "Added", ""},
+					Headers:     []string{p.label(labelHeaderMember), p.label(labelHeaderRoles), p.label(labelHeaderAdded), ""},
 					Hover:       true,
-					Body:        membersRows(d),
+					Body:        membersRows(p, d),
 					Flush:       true,
 					CellPadding: display.TableCellPaddingCompact,
 				}).Render(ctx, templ_7745c5c3_Buffer)
@@ -210,7 +210,7 @@ func membersCard(d tenantDetailData) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = display.Card(display.CardProps{
-			Title: "Members",
+			Title: p.label(labelPageMembers),
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -219,7 +219,7 @@ func membersCard(d tenantDetailData) templ.Component {
 	})
 }
 
-func membersRows(d tenantDetailData) templ.Component {
+func membersRows(p pageData, d tenantDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -447,7 +447,7 @@ func membersRows(d tenantDetailData) templ.Component {
 				Children: htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
 					"data-confirm":       memberRoleChangeConfirm(d, m),
-					"data-confirm-title": "Change roles",
+					"data-confirm-title": p.label(labelConfirmMemberRoles),
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -463,9 +463,9 @@ func membersRows(d tenantDetailData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
-				templ_7745c5c3_Var17, templ_7745c5c3_Err = templruntime.NewAttributeExpression(m.AddedAt.Format("Jan 2, 2006 15:04 MST")).Resolve(ctx)
+				templ_7745c5c3_Var17, templ_7745c5c3_Err = templruntime.NewAttributeExpression(p.dateTime(m.AddedAt)).Resolve(ctx)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 139, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 139, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 				if templ_7745c5c3_Err != nil {
@@ -558,7 +558,7 @@ func membersRows(d tenantDetailData) templ.Component {
 					"aria-label":         "Remove " + m.displayName() + " from this tenant",
 					"hx-post":            d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
 					"data-confirm":       memberRemoveConfirm(d, m),
-					"data-confirm-title": "Remove member",
+					"data-confirm-title": p.label(labelConfirmMemberRemove),
 					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -577,7 +577,7 @@ func membersRows(d tenantDetailData) templ.Component {
 // tenantHeader renders the page title + tenant status badge + display name
 // via the PageHeader pattern (status in the action slot, identity as the
 // subtitle).
-func tenantHeader(d tenantDetailData) templ.Component {
+func tenantHeader(p pageData, d tenantDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -595,7 +595,7 @@ func tenantHeader(d tenantDetailData) templ.Component {
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{
-			Title:    "Members",
+			Title:    p.label(labelPageMembers),
 			Subtitle: tenantSubtitle(d.Tenant),
 			Action:   tenantHeaderStatus(d),
 		}).Render(ctx, templ_7745c5c3_Buffer)
@@ -658,7 +658,7 @@ func membersPage(p pageData, d tenantDetailData) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = Layout(p, membersContent(d)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(p, membersContent(p, d)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -666,7 +666,7 @@ func membersPage(p pageData, d tenantDetailData) templ.Component {
 	})
 }
 
-func membersContent(d tenantDetailData) templ.Component {
+func membersContent(p pageData, d tenantDetailData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -683,11 +683,11 @@ func membersContent(d tenantDetailData) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = tenantHeader(d).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tenantHeader(p, d).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = membersCard(d).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = membersCard(p, d).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

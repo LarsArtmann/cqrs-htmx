@@ -70,7 +70,7 @@ templ dashboardStatsRegion(p pageData, d dashboardData, superAdmin bool) {
 			for _, s := range d.Stats {
 				@statCardView(s)
 			}
-			@registrationsSparkCard(d.Registrations, d.WindowSpan)
+			@registrationsSparkCard(p, d.Registrations, d.WindowSpan)
 		}
 	}
 }
@@ -103,10 +103,10 @@ templ dashboardWindowCaption(d dashboardData) {
 // window renders the honest dash state — no polyline pretending a flat
 // forever, no fabricated zero-day story; just a statement that nothing has
 // been recorded yet.
-templ registrationsSparkCard(points []dayCount, span auditWindowSpan) {
+templ registrationsSparkCard(p pageData, points []dayCount, span auditWindowSpan) {
 	@display.Card(display.CardProps{Title: "Registrations per day", Padding: display.CardPaddingSM}) {
 		if len(points) == 0 || !span.HasSpan {
-			<p class={ "text-xs " + metadataTextXSClass }>No registrations recorded in the audit window yet.</p>
+			<p class={ "text-xs " + metadataTextXSClass }>{ p.label(labelSparkNoRegistrars) }</p>
 		} else {
 			<svg
 				viewBox="0 0 140 40"
