@@ -27,7 +27,9 @@ func userLookup() metaengine.QueryDecl[system.LookupInput[string], UserView] {
 		updateTOTPDisabled(),
 		updateExternalAccountLinked(),
 		updateExternalAccountUnlinked(),
+		updateUserMerged(),
 		removeUser(),
+		removeUserMergedInto(),
 		metaengine.Volume(100_000),
 	)
 }
@@ -45,7 +47,9 @@ func userScan() metaengine.QueryDecl[system.ScanInput, UserView] {
 		updateTOTPDisabled(),
 		updateExternalAccountLinked(),
 		updateExternalAccountUnlinked(),
+		updateUserMerged(),
 		removeUser(),
+		removeUserMergedInto(),
 		metaengine.FilterOnField[UserView]("Email", metaengine.FilterEq),
 		metaengine.FilterOnField[UserView]("EmailVerified", metaengine.FilterEq),
 		metaengine.SortOnField[UserView]("CreatedAt", false),
@@ -228,4 +232,34 @@ func removeUser() metaengine.Fold {
 	return metaengine.OnRecordTyped(string(identitymodel.EventUserDeleted),
 		projectionadapter.EventWithID[identitymodel.UserDeletedPayload]{},
 		metaengine.Remove[UserView]())
+}
+
+func updateUserMerged() metaengine.Fold {
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventUserMerged),
+		projectionadapter.EventWithID[identitymodel.UserMergedPayload]{},
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.UserMergedPayload], prev UserView) UserView {
+			for _, loser := range e.Payload.LoserIDs {
+				prev.MergedUserIDs = appendUniqueString(prev.MergedUserIDs, loser.Get().String())
+			}
+			prev.UpdatedAt = e.OccurredAt
+			return prev
+		},
+	)
+}
+
+func removeUserMergedInto() metaengine.Fold {
+	return metaengine.OnRecordTyped(string(identitymodel.EventUserMergedInto),
+		projectionadapter.EventWithID[identitymodel.UserMergedIntoPayload]{},
+		metaengine.Remove[UserView]())
+}
+
+// appendUniqueString appends when absent: MergedUserIDs is a set.
+func appendUniqueString(haystack []string, needle string) []string {
+	for _, candidate := range haystack {
+		if candidate == needle {
+			return haystack
+		}
+	}
+	return append(haystack, needle)
 }

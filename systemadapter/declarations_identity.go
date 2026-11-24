@@ -19,7 +19,10 @@ func tenantLookup() metaengine.QueryDecl[system.LookupInput[string], TenantView]
 		insertTenant(),
 		updateTenantSuspended(),
 		updateTenantReactivated(),
+		updateTenantRenamed(),
+		updateTenantMerged(),
 		removeTenant(),
+		removeTenantMergedInto(),
 		metaengine.Volume(100),
 	)
 }
@@ -29,7 +32,10 @@ func tenantScan() metaengine.QueryDecl[system.ScanInput, TenantView] {
 		insertTenant(),
 		updateTenantSuspended(),
 		updateTenantReactivated(),
+		updateTenantRenamed(),
+		updateTenantMerged(),
 		removeTenant(),
+		removeTenantMergedInto(),
 		metaengine.FilterOnField[TenantView]("Name", metaengine.FilterEq),
 		metaengine.FilterOnField[TenantView]("Suspended", metaengine.FilterEq),
 		metaengine.Volume(100),
@@ -86,6 +92,36 @@ func removeTenant() metaengine.Fold {
 		metaengine.Remove[TenantView]())
 }
 
+func updateTenantRenamed() metaengine.Fold {
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventTenantRenamed),
+		projectionadapter.EventWithID[identitymodel.TenantRenamedPayload]{},
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.TenantRenamedPayload], prev TenantView) TenantView {
+			prev.DisplayName = e.Payload.DisplayName
+			return prev
+		},
+	)
+}
+
+func updateTenantMerged() metaengine.Fold {
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventTenantMerged),
+		projectionadapter.EventWithID[identitymodel.TenantMergedPayload]{},
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.TenantMergedPayload], prev TenantView) TenantView {
+			for _, loser := range e.Payload.LoserIDs {
+				prev.MergedTenantIDs = appendUniqueString(prev.MergedTenantIDs, loser.Get())
+			}
+			return prev
+		},
+	)
+}
+
+func removeTenantMergedInto() metaengine.Fold {
+	return metaengine.OnRecordTyped(string(identitymodel.EventTenantMergedInto),
+		projectionadapter.EventWithID[identitymodel.TenantMergedIntoPayload]{},
+		metaengine.Remove[TenantView]())
+}
+
 // -------------------------------------------------------------------------
 // Bot
 // -------------------------------------------------------------------------
@@ -93,6 +129,7 @@ func removeTenant() metaengine.Fold {
 func botLookup() metaengine.QueryDecl[system.LookupInput[string], BotView] {
 	return metaengine.Query[system.LookupInput[string], BotView]("bot_by_id",
 		insertBot(),
+		updateBotTransferred(),
 		removeBot(),
 		metaengine.Volume(1_000),
 	)
@@ -101,6 +138,7 @@ func botLookup() metaengine.QueryDecl[system.LookupInput[string], BotView] {
 func botScan() metaengine.QueryDecl[system.ScanInput, BotView] {
 	return metaengine.Query[system.ScanInput, BotView]("bots",
 		insertBot(),
+		updateBotTransferred(),
 		removeBot(),
 		metaengine.FilterOnField[BotView]("OwnerID", metaengine.FilterEq),
 		metaengine.Volume(1_000),
@@ -208,4 +246,15 @@ func removeMembership() metaengine.Fold {
 	return metaengine.OnRecordTyped(string(identitymodel.EventMemberRemoved),
 		projectionadapter.EventWithID[identitymodel.MemberRemovedPayload]{},
 		metaengine.Remove[MembershipView]())
+}
+
+func updateBotTransferred() metaengine.Fold {
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventBotTransferred),
+		projectionadapter.EventWithID[identitymodel.BotTransferredPayload]{},
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.BotTransferredPayload], prev BotView) BotView {
+			prev.OwnerID = e.Payload.OwnerID.String()
+			return prev
+		},
+	)
 }

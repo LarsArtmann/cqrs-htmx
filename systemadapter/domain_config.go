@@ -8,8 +8,8 @@
 //
 // Example:
 //
-//	domain := systemadapter.DomainConfig()          // 4 deciders, 21 commands,
-//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 27 events, projections
+//	domain := systemadapter.DomainConfig()          // 4 deciders, 27 commands,
+//	deployment := systemadapter.RecommendedSQLiteDeployment("file:app.db") // 33 events, projections
 //	sys, err := system.New(ctx, domain, deployment)
 //
 // Projection-side knobs ride the same call: WithCheckpointStore supplies the
@@ -33,8 +33,8 @@ import (
 )
 
 // DomainConfig returns a system.DomainConfig pre-wired with all four identity-model
-// deciders (User, Membership, Tenant, Bot), all 21 commands, and a TypeDecoder
-// that maps all 27 event types to their payload structs.
+// deciders (User, Membership, Tenant, Bot), all 27 commands, and a TypeDecoder
+// that maps all 33 event types to their payload structs.
 //
 // The consumer passes this to system.New() alongside a DeploymentConfig that
 // specifies engines and buses. The system handles repository creation, event
@@ -94,7 +94,7 @@ func defaultProjectionHostOptions(dlqStore projectionhost.DeadLetterStore) []pro
 }
 
 // registerAllCommands is the Commands closure passed to system.DomainConfig.
-// It registers all four deciders and all 21 commands on the system.
+// It registers all four deciders and all 27 commands on the system.
 func registerAllCommands(sys *system.System) {
 	registerUserDecider(sys)
 	registerMembershipDecider(sys)
@@ -271,6 +271,26 @@ func registerUserCommands(sys *system.System) {
 			)
 		},
 	))
+
+	must(system.RegisterCommand[*identitymodel.MergeUsersCmd, usermgmt.UserState](
+		sys, identitymodel.CmdMergeUsers,
+		func(ctx context.Context, c *identitymodel.MergeUsersCmd) system.Op[usermgmt.UserState] {
+			return system.Execute[usermgmt.UserState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
+				usermgmt.DecideMergeUsers(c.StreamID(), c.Contributions(), c.Reason()),
+			)
+		},
+	))
+
+	must(system.RegisterCommand[*identitymodel.MergeUserIntoCmd, usermgmt.UserState](
+		sys, identitymodel.CmdMergeUserInto,
+		func(ctx context.Context, c *identitymodel.MergeUserIntoCmd) system.Op[usermgmt.UserState] {
+			return system.Execute[usermgmt.UserState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
+				usermgmt.DecideMergeUserInto(c.StreamID(), c.SurvivorID(), c.Reason()),
+			)
+		},
+	))
 }
 
 // --- Membership Commands ---
@@ -349,6 +369,35 @@ func registerTenantCommands(sys *system.System) {
 			)
 		},
 	))
+	must(system.RegisterCommand[*identitymodel.RenameTenantCmd, usermgmt.TenantState](
+		sys, identitymodel.CmdRenameTenant,
+		func(ctx context.Context, c *identitymodel.RenameTenantCmd) system.Op[usermgmt.TenantState] {
+			return system.Execute[usermgmt.TenantState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeTenant,
+				usermgmt.DecideRenameTenant(c.StreamID(), c.DisplayName()),
+			)
+		},
+	))
+
+	must(system.RegisterCommand[*identitymodel.MergeTenantsCmd, usermgmt.TenantState](
+		sys, identitymodel.CmdMergeTenants,
+		func(ctx context.Context, c *identitymodel.MergeTenantsCmd) system.Op[usermgmt.TenantState] {
+			return system.Execute[usermgmt.TenantState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeTenant,
+				usermgmt.DecideMergeTenants(c.StreamID(), c.LoserIDs(), c.Reason()),
+			)
+		},
+	))
+
+	must(system.RegisterCommand[*identitymodel.MergeTenantIntoCmd, usermgmt.TenantState](
+		sys, identitymodel.CmdMergeTenantInto,
+		func(ctx context.Context, c *identitymodel.MergeTenantIntoCmd) system.Op[usermgmt.TenantState] {
+			return system.Execute[usermgmt.TenantState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeTenant,
+				usermgmt.DecideMergeTenantInto(c.StreamID(), c.SurvivorID(), c.Reason()),
+			)
+		},
+	))
 }
 
 // --- Bot Commands ---
@@ -372,6 +421,16 @@ func registerBotCommands(sys *system.System) {
 			return system.Execute[usermgmt.BotState](
 				ctx, c.StreamID(), identitymodel.AggregateTypeBot,
 				usermgmt.DecideDeleteBot(c.StreamID(), c.Reason()),
+			)
+		},
+	))
+
+	must(system.RegisterCommand[*identitymodel.TransferBotCmd, usermgmt.BotState](
+		sys, identitymodel.CmdTransferBot,
+		func(ctx context.Context, c *identitymodel.TransferBotCmd) system.Op[usermgmt.BotState] {
+			return system.Execute[usermgmt.BotState](
+				ctx, c.StreamID(), identitymodel.AggregateTypeBot,
+				usermgmt.DecideTransferBot(c.StreamID(), c.OwnerID(), c.Reason()),
 			)
 		},
 	))

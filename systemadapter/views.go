@@ -6,12 +6,15 @@ import "time"
 // They are keyed by stream ID (string) and updated declaratively via fold
 // handlers registered in evolutions.go.
 
-// TenantView is the read-model projection for tenants.
+// TenantView is the read-model projection for tenants. MergedTenantIDs
+// names the tenants this one absorbed — the duplicates report reads it
+// without replaying the journal.
 type TenantView struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name,omitempty"`
-	Suspended   bool   `json:"suspended"`
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	DisplayName     string   `json:"display_name,omitempty"`
+	Suspended       bool     `json:"suspended"`
+	MergedTenantIDs []string `json:"merged_tenant_ids,omitempty"`
 }
 
 // BotView is the read-model projection for bots.
@@ -72,6 +75,12 @@ type UserView struct {
 	CreatedAt time.Time `json:"created_at"`
 	//cqrs-lint:ignore(C013) metaengine serializes views as JSON; time.Time marshals to RFC3339 with timezone — nothing is lost
 	UpdatedAt time.Time `json:"updated_at"`
+	// MergedInto names the surviving identity when this user was merged away;
+	// MergedUserIDs lists the identities merged into this one. A merged-away
+	// row leaves the lookup (Remove), so MergedInto only matters to the audit
+	// story; MergedUserIDs is what the duplicates report reads.
+	MergedInto    string   `json:"merged_into,omitempty"`
+	MergedUserIDs []string `json:"merged_user_ids,omitempty"`
 }
 
 // BotTokenView is a secondary index projection for looking up bots by token hash.

@@ -5,7 +5,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 )
 
-// EventTypeDecoder returns a projectionadapter.TypeDecoder that maps all 27
+// EventTypeDecoder returns a projectionadapter.TypeDecoder that maps all 33
 // identity-model event types to their payload structs. This enables the
 // system.New() projection host to decode events for metaengine fold handlers
 // without manual switch/case boilerplate.
@@ -58,6 +58,12 @@ func EventTypeDecoder() *projectionadapter.TypeDecoder {
 		projectionadapter.Register[identitymodel.ExternalAccountUnlinkedPayload](
 			identitymodel.EventExternalAccountUnlinked, identitymodel.ExternalAccountUnlinkedPayload{},
 		),
+		projectionadapter.Register[identitymodel.UserMergedPayload](
+			identitymodel.EventUserMerged, identitymodel.UserMergedPayload{},
+		),
+		projectionadapter.Register[identitymodel.UserMergedIntoPayload](
+			identitymodel.EventUserMergedInto, identitymodel.UserMergedIntoPayload{},
+		),
 
 		// Membership events
 		projectionadapter.Register[identitymodel.MemberAddedPayload](
@@ -83,6 +89,15 @@ func EventTypeDecoder() *projectionadapter.TypeDecoder {
 		projectionadapter.Register[identitymodel.TenantDeletedPayload](
 			identitymodel.EventTenantDeleted, identitymodel.TenantDeletedPayload{},
 		),
+		projectionadapter.Register[identitymodel.TenantRenamedPayload](
+			identitymodel.EventTenantRenamed, identitymodel.TenantRenamedPayload{},
+		),
+		projectionadapter.Register[identitymodel.TenantMergedPayload](
+			identitymodel.EventTenantMerged, identitymodel.TenantMergedPayload{},
+		),
+		projectionadapter.Register[identitymodel.TenantMergedIntoPayload](
+			identitymodel.EventTenantMergedInto, identitymodel.TenantMergedIntoPayload{},
+		),
 
 		// Bot events
 		projectionadapter.Register[identitymodel.BotRegisteredPayload](
@@ -90,6 +105,9 @@ func EventTypeDecoder() *projectionadapter.TypeDecoder {
 		),
 		projectionadapter.Register[identitymodel.BotDeletedPayload](
 			identitymodel.EventBotDeleted, identitymodel.BotDeletedPayload{},
+		),
+		projectionadapter.Register[identitymodel.BotTransferredPayload](
+			identitymodel.EventBotTransferred, identitymodel.BotTransferredPayload{},
 		),
 
 		// Auth audit events (cqrs-htmx#23) — dedicated Auth streams.
