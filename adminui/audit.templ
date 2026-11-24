@@ -192,7 +192,7 @@ templ auditRows(d auditView) {
 			<td class="px-4 py-2">
 				@badge(auditLabel(e.Action), auditActionBadge(e.Action))
 				if e.Detail != "" {
-					<span class="ml-1 text-xs text-gray-400">{ e.Detail }</span>
+					<span class={ "ml-1 text-xs " + metadataTextXSClass }>{ e.Detail }</span>
 				}
 				{{ change, hasChange := auditChangeFor(e) }}
 				if hasChange {
@@ -232,7 +232,7 @@ templ auditDiff(c auditChange) {
 // values for a profile-change entry: an honest note, never a fabricated
 // diff.
 templ auditChangeNote() {
-	<span class="text-xs text-gray-400" title="The audit window records this change but not its old and new values">values not recorded</span>
+	<span class="text-xs " + metadataTextXSClass + "" title="The audit window records this change but not its old and new values">values not recorded</span>
 }
 
 // userActivityFragment is the load-more response for the user detail

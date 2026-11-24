@@ -207,7 +207,7 @@ templ pagerMobileButton(enabled bool, href, text string) {
 			class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
 		>{ text }</a>
 	} else {
-		<span class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-500 cursor-not-allowed">{ text }</span>
+		<span class={ "relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 px-4 py-2 text-sm font-medium " + pagerDisabledTextClass + " cursor-not-allowed" }>{ text }</span>
 	}
 }
 
@@ -219,19 +219,37 @@ templ pagerArrow(enabled bool, href, roundedClass, ariaLabel, srText string, pat
 	if enabled {
 		<a
 			href={ templ.SafeURL(href) }
-			class={ "relative inline-flex items-center px-2 py-2 text-gray-400 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0", roundedClass }
+			class={ "relative inline-flex items-center px-2 py-2 text-gray-600 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0", roundedClass }
 			aria-label={ ariaLabel }
 		>
 			<span class="sr-only">{ srText }</span>
 			@svg.FillIcon("h-5 w-5", path, false)
 		</a>
 	} else {
-		<span class={ "relative inline-flex items-center px-2 py-2 text-gray-300 dark:text-gray-600 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 cursor-not-allowed", roundedClass } aria-disabled="true" tabindex="-1">
+		<span class={ "relative inline-flex items-center px-2 py-2 " + pagerDisabledTextClass + " ring-1 ring-inset ring-gray-300 dark:ring-gray-600 cursor-not-allowed", roundedClass } aria-disabled="true" tabindex="-1">
 			<span class="sr-only">{ srText }</span>
 			@svg.FillIcon("h-5 w-5", path, false)
 		</span>
 	}
 }
+
+// Metadata text ramp tokens (contrast design pass, T15 F106/F107): the ramp
+// floor is gray-600 in light mode (4.83:1 on white, above the WCAG AA 4.5:1
+// bar for small text) and gray-400 in dark mode (fine on the dark surfaces).
+// Every metadata/chrome hint on the panel renders through these tokens
+// instead of ad-hoc light-mode gray-300/400 text literals, so the axe
+// color-contrast findings they caused stay fixed by construction.
+const (
+	// metadataTextClass is the floor for metadata hints (slugs, member
+	// names, footers, captions, empty-state notes).
+	metadataTextClass = "text-gray-600 dark:text-gray-400"
+	// metadataTextXSClass names the same floor for the xs-size ramp
+	// (table cell hints, inline detail spans).
+	metadataTextXSClass = "text-gray-600 dark:text-gray-400"
+	// pagerDisabledTextClass is the disabled-pager ramp (still readable —
+	// muted by the cursor rule, not by contrast).
+	pagerDisabledTextClass = "text-gray-600 dark:text-gray-500"
+)
 
 // listNote renders a "showing N of M" hint when a list is truncated by the
 // page window. shown is the rendered count; total is the unfiltered match
@@ -242,7 +260,14 @@ templ pagerArrow(enabled bool, href, roundedClass, ariaLabel, srText string, pat
 // abstraction would take more parameters than the skeletons have lines
 // (accepted, art-dupl round 2026-10-07).
 templ listNote(shown, total int) {
-	@display.ListNote(display.ListNoteProps{Shown: shown, Total: total})
+	@display.ListNote(display.ListNoteProps{
+		Shown: shown,
+		Total: total,
+		// aria-live="polite" (T15 F109): a search/filter swap re-renders
+		// the count under the user; the polite live region announces the
+		// new count without stealing focus.
+		BaseProps: utils.BaseProps{Attrs: templ.Attributes{"aria-live": "polite"}},
+	})
 }
 
 // confirmModal is the ONE shared confirmation dialog for all destructive

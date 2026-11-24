@@ -44,8 +44,9 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *ident
 // helper below (one filter, one clamp, one enrichment pass).
 func (h *Handler) usersIndexData(ctx context.Context, q string, filter userFilter, page int, sort string) usersListData {
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
+	az := newRenderAuthz(ctx, h.config.Service)
 	if filter == userFilterAdmin {
-		matched = h.filterPlatformAdmins(matched)
+		matched = h.filterPlatformAdmins(matched, az)
 	}
 	sortUsers(matched, sort)
 	offset, limit, totalPages, current := pageBounds(page, len(matched), h.config.PageSize)
@@ -53,8 +54,11 @@ func (h *Handler) usersIndexData(ctx context.Context, q string, filter userFilte
 	rows := make([]userRow, 0, len(visible))
 	lastSeen := h.lastSeenIndex()
 	for _, u := range visible {
-		row := h.userRow(ctx, u)
-		row.LastSeen = lastSeen[u.ID.Get().String()]
+		id := u.ID.Get().String()
+		row := userRow{
+			User: u, PlatformRoles: az.platformRolesFor(id),
+			TenantCount: az.tenantCountFor(id), LastSeen: lastSeen[id],
+		}
 		rows = append(rows, row)
 	}
 
@@ -85,7 +89,7 @@ func (h *Handler) exportFiltered(w http.ResponseWriter, r *http.Request, format 
 	sort := parseUserSort(r.URL.Query().Get("sort"))
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q, filter)
 	if filter == userFilterAdmin {
-		matched = h.filterPlatformAdmins(matched)
+		matched = h.filterPlatformAdmins(matched, newRenderAuthz(context.Background(), h.config.Service))
 	}
 	sortUsers(matched, sort)
 
@@ -153,13 +157,33 @@ func writeUsersJSON(w io.Writer, users []*identitymodel.User) error {
 }
 
 // lastSeenIndex derives "last recorded activity" per user from the audit
-// window in ONE bounded scan (the window holds DefaultAuditLogLimit entries;
-// a page render pays one pass, not one query per row — no unbounded scan).
-// It is a convenience view over the same window the audit page shows: entries
-// evicted from the window simply leave the user's column at the honest dash.
+// window in ONE bounded scan (the window holds DefaultAuditLogLimit entries),
+// memoized for [lastSeenTTL] so a burst of renders pays one pass per window,
+// not one per render. It is a convenience view over the same window the audit
+// page shows: entries evicted from the window simply leave the user's column
+// at the honest dash. The returned map is never mutated after publication, so
+// concurrent readers are safe.
 func (h *Handler) lastSeenIndex() map[string]time.Time {
+	h.lastSeenMu.Lock()
+	defer h.lastSeenMu.Unlock()
+	now := h.clock()
+	if h.lastSeenCache != nil && now.Sub(h.lastSeenBuilt) < lastSeenTTL {
+		return h.lastSeenCache
+	}
+	latest := computeLastSeen(h.config.Service.AuditLog())
+	h.lastSeenCache = latest
+	h.lastSeenBuilt = now
+	return latest
+}
+
+// lastSeenTTL is how long one audit-window scan stays authoritative for the
+// users list's last-seen column.
+const lastSeenTTL = 30 * time.Second
+
+// computeLastSeen scans the audit window once, keeping the latest entry time
+// per aggregate.
+func computeLastSeen(log *usermgmt.AuditLog) map[string]time.Time {
 	latest := make(map[string]time.Time)
-	log := h.config.Service.AuditLog()
 	if log == nil {
 		return latest
 	}
@@ -249,41 +273,25 @@ func userMatchesFilter(u *identitymodel.User, filter userFilter) bool {
 // (wildcard-domain) roles they hold and how many tenants they belong to. A
 // policy-engine failure degrades the column to empty rather than failing the
 // page — the directory itself is still the truth about who exists.
-//
-// The tenant count is derived from the domains the policy engine reports AND
-// that resolve to a real tenant. Registration grants a user's default roles in
-// a domain named after their own stream, so a raw domain count would report a
-// phantom "tenant" for every user; the tenant lookup is what makes the number
-// mean what it says.
-func (h *Handler) userRow(ctx context.Context, u *identitymodel.User) userRow {
-	row := userRow{User: u, PlatformRoles: nil, TenantCount: 0, LastSeen: time.Time{}}
-	authz := h.config.Service.Authz()
-	if authz == nil {
-		return row
+// userRow resolves the access facts for one directory entry from the
+// per-render snapshot: the platform (wildcard-domain) roles they hold and how
+// many tenants they belong to. See [renderAuthz] for how the snapshot keeps
+// the numbers meaning what they say.
+func (h *Handler) userRow(u *identitymodel.User, az *renderAuthz) userRow {
+	id := u.ID.Get().String()
+	return userRow{
+		User: u, PlatformRoles: az.platformRolesFor(id),
+		TenantCount: az.tenantCountFor(id), LastSeen: time.Time{},
 	}
-	if roles, err := authz.RolesForUser(u.ID, identitymodel.NewTenantID(identitymodel.WildcardDomain)); err == nil {
-		row.PlatformRoles = roles
-	}
-	if domains, err := authz.DomainsForUser(u.ID); err == nil {
-		for _, dom := range domains {
-			if dom.Get() == identitymodel.WildcardDomain {
-				continue
-			}
-			if _, err := h.config.Service.GetTenant(ctx, dom); err == nil {
-				row.TenantCount++
-			}
-		}
-	}
-	return row
 }
 
 // filterPlatformAdmins narrows the directory to users holding a platform
-// (wildcard-domain) role. It runs after the directory scan because the roles
-// live in the policy engine, not the read model.
-func (h *Handler) filterPlatformAdmins(all []*identitymodel.User) []*identitymodel.User {
+// (wildcard-domain) role, read from the per-render snapshot instead of one
+// policy query per candidate.
+func (h *Handler) filterPlatformAdmins(all []*identitymodel.User, az *renderAuthz) []*identitymodel.User {
 	out := make([]*identitymodel.User, 0, len(all))
 	for _, u := range all {
-		if h.userRow(context.Background(), u).isPlatformAdmin() {
+		if h.userRow(u, az).isPlatformAdmin() {
 			out = append(out, u)
 		}
 	}

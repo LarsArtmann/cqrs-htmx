@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
+	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
@@ -25,6 +27,15 @@ type Handler struct {
 	adminCSS http.Handler
 	adminJS  http.Handler
 	table    []routeSpec
+
+	// lastSeenIndex TTL cache: the derived last-activity map is rebuilt at
+	// most once per [lastSeenTTL] instead of once per render. Guarded by
+	// lastSeenMu; the Handler is shared across concurrent requests.
+	lastSeenMu    sync.Mutex
+	lastSeenCache map[string]time.Time
+	lastSeenBuilt time.Time
+	// clock is the time seam for the TTL check; tests inject a fixed clock.
+	clock func() time.Time
 }
 
 // New builds an admin panel from config, applying defaults to empty fields and
@@ -54,6 +65,7 @@ func New(config Config) (*Handler, error) {
 		nav:      buildNav(config),
 		adminCSS: adminCSS,
 		adminJS:  adminJS,
+		clock:    time.Now,
 	}
 	h.table = h.buildRouteTable()
 	if err := validateRouteTable(h.table); err != nil {
