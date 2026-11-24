@@ -26,7 +26,7 @@ func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *ident
 		resolveAuditEmails(h.config.Service, all)
 		matched := filterAuditEntries(all, q)
 		total = len(matched)
-		offset, limit, totalPages, page := pageBounds(parsePageQuery(r), total, listPageSize)
+		offset, limit, totalPages, page := pageBounds(parsePageQuery(r), total, h.config.PageSize)
 		entries = matched[offset : offset+limit]
 		pg = listPage{Page: page, TotalPages: totalPages}
 	}

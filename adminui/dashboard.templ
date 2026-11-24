@@ -3,13 +3,14 @@ package adminui
 import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/htmx"
+	"github.com/larsartmann/templ-components/utils"
 )
 
-templ dashboardPage(p pageData, d dashboardData) {
-	@Layout(p, dashboardContent(d))
+templ dashboardPage(p pageData, d dashboardData, superAdmin bool) {
+	@Layout(p, dashboardContent(d, superAdmin))
 }
 
-templ dashboardContent(d dashboardData) {
+templ dashboardContent(d dashboardData, superAdmin bool) {
 	if d.NoAdminGrant {
 		<div class="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
 			<strong>No admin grant exists.</strong> Nobody holds super_admin or admin
@@ -17,7 +18,7 @@ templ dashboardContent(d dashboardData) {
 			platform roles from a user's detail page before the last door closes.
 		</div>
 	}
-	@dashboardStatsRegion(d)
+	@dashboardStatsRegion(d, superAdmin)
 	if len(d.Recent) == 0 {
 		@display.Card(display.CardProps{Title: "Recent activity", Padding: display.CardPaddingNone}) {
 			@empty("audit", "No activity yet", "User and tenant events will appear here.", "", "")
@@ -49,12 +50,17 @@ templ dashboardContent(d dashboardData) {
 // carries stat payloads. Stats are cheap read-model count queries; polling
 // keeps them fresh for every viewer with zero fan-out state and no per-page
 // SSE payload contract. The two mechanisms do not overlap.
-templ dashboardStatsRegion(d dashboardData) {
+//
+// The quick-actions row renders INSIDE the region: the polled response is the
+// region itself, so a row outside it would vanish on the first refresh, and a
+// row rendered both inside and outside would duplicate on the page.
+templ dashboardStatsRegion(d dashboardData, superAdmin bool) {
 	@htmx.PolledRegion(htmx.PolledRegionProps{
 		URL:           d.StatsURL,
 		Every:         "30s",
 		ShowTimestamp: true,
 	}) {
+		@quickActionsRow(d, superAdmin)
 		@display.Grid(display.GridProps{
 			Cols:        display.GridColsAutoFit,
 			MinColWidth: "190px",
@@ -64,6 +70,35 @@ templ dashboardStatsRegion(d dashboardData) {
 				@statCardView(s)
 			}
 		}
+	}
+}
+
+// quickActionsRow is the dashboard's create entry points, linking to the
+// existing /users/new and /tenants/new forms — the same destination as the
+// lists' "New user"/"New tenant" header buttons, one click closer to hand.
+// superAdmin gates the row: both creation routes are super-admin table rows,
+// so tenant-admin mode renders NOTHING rather than a control whose target
+// page does not exist in that mode.
+templ quickActionsRow(d dashboardData, superAdmin bool) {
+	if superAdmin {
+		<div class="mb-4 flex items-center gap-3">
+			@display.Button(display.ButtonProps{
+				Text:      "Create user",
+				Href:      d.BasePath + "/users/new",
+				Variant:   display.ButtonPrimary,
+				Size:      display.ButtonSizeSM,
+				Icon:      icon("plus"),
+				BaseProps: utils.BaseProps{Class: classNoUnderline},
+			})
+			@display.Button(display.ButtonProps{
+				Text:      "Create tenant",
+				Href:      d.BasePath + "/tenants/new",
+				Variant:   display.ButtonSecondary,
+				Size:      display.ButtonSizeSM,
+				Icon:      icon("plus"),
+				BaseProps: utils.BaseProps{Class: classNoUnderline},
+			})
+		</div>
 	}
 }
 

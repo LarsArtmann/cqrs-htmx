@@ -81,19 +81,26 @@ func capList[T any](in []T) ([]T, int) {
 	return in[:MaxListRows], total
 }
 
-// listPageSize is the number of rows per page on paginated lists (users,
-// tenants, audit). Every row stays reachable — the pagination footer advances
-// the window — while a single page render stays bounded on large datasets.
-const listPageSize = 50
+// Page-size bounds shared by [Config.PageSize] and [pageBounds]' fallback.
+const (
+	// MinPageSize is the smallest rows-per-page the panel serves: below it
+	// the pagination footer becomes the primary navigation, which it was
+	// not designed for.
+	MinPageSize = 10
+
+	// DefaultPageSize is the rows-per-page when [Config.PageSize] is unset:
+	// the historical 50, kept so existing mounts render identically.
+	DefaultPageSize = 50
+)
 
 // pageBounds clamps a 1-based page request against a total row count and
 // returns the slice window plus footer metadata: offset/limit select the
 // page's rows, totalPages is always >= 1 (an empty list is one empty page),
 // and current is the clamped page number. pageSize <= 0 falls back to
-// listPageSize.
+// [DefaultPageSize].
 func pageBounds(page, total, pageSize int) (offset, limit, totalPages, current int) {
 	if pageSize <= 0 {
-		pageSize = listPageSize
+		pageSize = DefaultPageSize
 	}
 	totalPages = max((total+pageSize-1)/pageSize, 1)
 	current = min(max(page, 1), totalPages)

@@ -31,19 +31,23 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 		d.NoAdminGrant = true
 	}
 
-	renderPage(w, r, dashboardPage(p, d))
+	// superAdmin gates the quick-actions row: the create routes are
+	// super-admin table rows, so tenant-admin mode must not render them.
+	renderPage(w, r, dashboardPage(p, d, h.config.Mode == ModeSuperAdmin))
 }
 
 // statsPartial serves the polled stats region for htmx.PolledRegion
 // (hx-swap=outerHTML): the response re-renders the region itself so polling
 // continues across refreshes. Session-gated by the same guard as the page.
+// The region carries the quick-actions row too, so a polled refresh keeps
+// the page's row instead of dropping it (and the same mode gate applies).
 func (h *Handler) statsPartial(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	p := h.page("Dashboard", "/", user, r)
 	renderPartial(w, r, dashboardStatsRegion(dashboardData{
 		Stats:    h.dashboardStats(r, p),
 		StatsURL: p.BasePath + "/partials/stats",
 		BasePath: p.BasePath,
-	}))
+	}, h.config.Mode == ModeSuperAdmin))
 }
 
 func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {

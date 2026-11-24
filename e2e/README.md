@@ -10,6 +10,8 @@ Playwright-based browser tests for every client-facing cqrs-htmx surface: the of
 | `axe.spec.ts` / `axe-probe.spec.ts` | dashboardui accessibility                                 | e2e/server (:18923)             | axe sweeps, light + dark                                              |
 | `screenshots.spec.ts`               | dashboardui visual capture                                | e2e/server (:18923)             | light/dark/mobile → `docs/screenshots/`                               |
 | `admin-behavior.spec.ts`            | adminui                                                   | examples/admin-demo (:18930)    |                                                                       |
+| `admin-csrf.spec.ts`                | adminui CSRF refusal (browser-level proof)                | examples/admin-demo (:18930)    | token-less POST → 403; paired with-token control creates              |
+| `admin-a11y.spec.ts`                | adminui accessibility (axe + keyboard)                    | examples/admin-demo (:18930)    | also in the webkit smoke subset                                       |
 | `datastar.spec.ts`                  | DataStar adapter demo                                     | examples/datastar-demo (:18931) | the demo that shipped dead-in-browser through every gate (2026-11-07) |
 | `root-htmx.spec.ts`                 | root HTMX helpers (RenderPartialOrFull, OOB, SSE refresh) | examples/basic (:18932)         |                                                                       |
 | `setup-bundle.spec.ts`              | setup composition root                                    | examples/setup-demo (:18933)    | session gates, /health, dual-transport hub                            |
@@ -36,6 +38,33 @@ bun install   # or: pnpm install
 # prebuilt firefox needs on NixOS, locates the cached Playwright firefox
 nix run .#e2e-firefox
 ```
+
+### WebKit advisory smoke (T28, 2026-11-24)
+
+A `webkit` project exists but is ABSENT unless you opt in — like firefox,
+it appears only when `E2E_WEBKIT_PATH` (a webkit executable) or
+`E2E_WEBKIT` (CI-style: let Playwright resolve its registry build) is set.
+Per-project `testMatch` scopes it to the admin smoke subset —
+`admin-a11y`, `admin-tenant-access`, and `admin-csrf` — never the full
+battery. The leg is ADVISORY (kill point K-T28): the CI step runs with
+`continue-on-error` and must never block.
+
+Provisioning (gotcha 66 — ONLY the repo's own pinned driver installer, so
+the downloaded build is by construction the revision THAT driver expects;
+never copy a browser tree from another host/cache/nix store):
+
+```bash
+cd e2e && PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 \
+  PLAYWRIGHT_BROWSERS_PATH=/mnt/buildcache/playwright \
+  ./node_modules/.bin/playwright install webkit
+```
+
+After provisioning, re-run the installer and require a no-op, then one
+smoke spec (`--project=webkit tests/admin-csrf.spec.ts`) before anything
+wider. On NixOS the prebuilt webkit needs a lib forest like firefox — set
+`E2E_WEBKIT_PATH` to the cached executable and `E2E_WEBKIT_LIBS` to the
+forest, both injected per-launch by the config (a runner-wide
+LD_LIBRARY_PATH would poison the chromium children).
 
 > **Never `pnpm dlx playwright test`** (or `bunx playwright test` outside
 > `nix run .#e2e-firefox`, which resolves the local copy). A dlx'd standalone
@@ -118,6 +147,13 @@ env the project is absent and the run is chromium-only. In CI BOTH lanes
 are blocking since 2026-11-08 (F20 promotion: three clean firefox
 observations + the divergence-resolution wave); locally keep using
 `nix run .#e2e-firefox` for the both-engine pass.
+
+WebKit is the THIRD lane and advisory-only (T28/F206, 2026-11-24): one
+step installs webkit in-step (`bunx playwright install --with-deps
+webkit`) and runs `--project=webkit` with `continue-on-error: true` — a
+provisioning or spec failure must never redden CI. Promotion to blocking
+requires the same evidence class as firefox got: consecutive clean
+observations plus resolved divergences.
 
 ## See also
 

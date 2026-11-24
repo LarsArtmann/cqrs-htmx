@@ -77,6 +77,14 @@ type Config struct {
 	// [New]. Default [DefaultAccentColor].
 	AccentColor string
 
+	// PageSize is the number of rows per page on the paginated lists (users,
+	// tenants, audit, search). Zero (the default) keeps the historical 50 —
+	// [DefaultPageSize] — so existing mounts render identically; any other
+	// value is clamped into [MinPageSize]..[MaxListRows] (10..200) at [New],
+	// so a mistuned config can neither shrink a page below the pager's
+	// design nor balloon a single render.
+	PageSize int
+
 	// Authorizer decides whether the authenticated user may use the panel.
 	// Return a non-nil error to deny access (HTTP 403). When nil, a default
 	// role-based authorizer is used — see [defaultAuthorizer]. Override this to
@@ -173,6 +181,13 @@ func (config Config) withDefaults() (Config, error) {
 		config.BasePath = defaultBasePath
 	}
 	config.BasePath = trimTrailingSlash(config.BasePath)
+	if config.PageSize == 0 {
+		config.PageSize = DefaultPageSize
+	}
+	// Clamp, don't reject: a page size outside 10..[MaxListRows] is a tuning
+	// mistake, not an invalid panel — snap to the boundary instead of
+	// failing construction.
+	config.PageSize = min(max(config.PageSize, MinPageSize), MaxListRows)
 	if config.AccentColor == "" {
 		config.AccentColor = DefaultAccentColor
 	}

@@ -27,7 +27,7 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 		counts[t.ID] = len(h.config.Service.TenantMembers(r.Context(), t.ID))
 	}
 	sortTenants(matched, sort, counts)
-	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
+	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), h.config.PageSize)
 	rows := make([]tenantRow, 0, limit)
 	for _, t := range matched[offset : offset+limit] {
 		rows = append(rows, tenantRow{

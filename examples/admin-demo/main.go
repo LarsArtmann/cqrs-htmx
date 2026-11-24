@@ -93,10 +93,16 @@ func main() {
 	//    routes (NewAuthHandler(svc).RegisterRoutes(mux)) so the TOTP endpoints
 	//    (/auth/totp/setup, /auth/totp/verify, etc.) are reachable. This demo
 	//    uses a dev-login shortcut for simplicity.
+	//
+	//    TokenPepper unlocks the bot surface (RegisterBot hashes API tokens
+	//    with it). The fixed dev value is safe HERE ONLY: state is in-memory
+	//    and the pepper never leaves the process. Production reads a real
+	//    secret from a secrets manager (see usermgmt.ServiceConfig docs).
 	totpProvider := totp.New(totp.Config{Issuer: "cqrs-htmx Demo"})
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // demo uses in-memory defaults
-		AuditLog: usermgmt.NewAuditLog(),
-		TOTP:     totpProvider,
+		AuditLog:    usermgmt.NewAuditLog(),
+		TOTP:        totpProvider,
+		TokenPepper: usermgmt.TokenPepper("admin-demo-dev-pepper-never-production"),
 	})
 	if err != nil {
 		log.Fatalf("NewService: %v", err)
@@ -340,6 +346,11 @@ func seed(ctx context.Context, svc *usermgmt.Service) (string, string) {
 			log.Printf("seed register %s: %v", email, err)
 		}
 	}
+
+	// Second-wave cast (seed.go): bots, an equipped user, tenant lifecycle
+	// states, role-change audit entries. Requires the memberships and tenants
+	// seeded above.
+	seedCast(ctx, svc)
 
 	return resp.Session.Token, tenantToken
 }

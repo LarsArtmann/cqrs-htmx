@@ -98,7 +98,7 @@ func (h *Handler) usersSearchData(ctx context.Context, q string, filter userFilt
 	if filter == userFilterAdmin {
 		matched = h.filterPlatformAdmins(matched)
 	}
-	offset, limit, totalPages, current := pageBounds(page, len(matched), listPageSize)
+	offset, limit, totalPages, current := pageBounds(page, len(matched), h.config.PageSize)
 	visible := matched[offset : offset+limit]
 	rows := make([]userRow, 0, len(visible))
 	lastSeen := h.lastSeenIndex()
