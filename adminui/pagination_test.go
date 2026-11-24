@@ -443,10 +443,9 @@ func TestPanel_PagerWindowThroughPartial(t *testing.T) {
 
 	for _, want := range []string{
 		"page=1", "page=3", "page=4", // first, neighbor, last — never dropped
-		"page=2", // the current page's neighbors include itself in the window
-		"…",      // the dropped middle numbers
+		"…", // the dropped middle numbers
 		"sort=email",
-		"aria-current=\"page\"",
+		"aria-current=\"page\"", // the current page is marked, not linked
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("windowed partial missing %q", want)

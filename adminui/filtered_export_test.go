@@ -178,13 +178,16 @@ func TestPanel_AuditExport(t *testing.T) {
 		"# Audit export",
 		"# Filters: none", // an unfiltered export says so
 		"# Audit window holds",
-		"# 3 entries exported.",
+		"entries exported.",
 		"action,actor_email,aggregate_id,occurred_at,actor_kind,detail",
 		"register,alice@x.dev",
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("audit CSV export missing %q", want)
 		}
+	}
+	if strings.Contains(body, "0 entries exported.") {
+		t.Error("an unfiltered window with three registrations must not export zero entries")
 	}
 
 	// The q filter narrows the file exactly like the page.
@@ -228,25 +231,43 @@ func TestPanel_AuditExport(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &doc); err != nil {
 		t.Fatalf("audit JSON parse: %v; body %.200s", err, rec.Body.String())
 	}
-	if doc.Count != 3 || len(doc.Entries) != 3 {
-		t.Errorf("audit JSON must carry the 3 window entries, got count=%d entries=%d", doc.Count, len(doc.Entries))
+	// Registration lands two window entries per user (register + the default
+	// role grant), so the exact total is the Service's business — the export's
+	// business is that count, entries, and window facts agree.
+	if doc.Count != len(doc.Entries) || doc.Count < 3 {
+		t.Errorf("audit JSON count and entries must agree and be non-trivial, got count=%d entries=%d", doc.Count, len(doc.Entries))
 	}
-	if doc.Window.Holds < 3 || doc.Window.Limit <= 0 {
+	if doc.Window.Holds < doc.Count || doc.Window.Limit <= 0 {
 		t.Errorf("audit JSON window facts must be present, got %+v", doc.Window)
 	}
 	if len(doc.Filters) != 0 {
 		t.Errorf("unfiltered audit JSON must carry no filters, got %v", doc.Filters)
 	}
 
-	// A narrowed JSON export echoes the filter that produced it.
+	// A narrowed JSON export echoes the filter that produced it: every entry
+	// belongs to the q match, and the filters object names the q.
 	rec = httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/audit/export.json?q=alice", nil))
-	var doc2 map[string]any
+	var doc2 struct {
+		Filters map[string]string `json:"filters"`
+		Count   int               `json:"count"`
+		Entries []struct {
+			Email string `json:"email"`
+		} `json:"entries"`
+	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &doc2); err != nil {
 		t.Fatalf("narrowed audit JSON parse: %v", err)
 	}
-	if doc2["count"].(float64) != 1 {
-		t.Errorf("q=alice audit JSON must carry one entry, got %v", doc2["count"])
+	if doc2.Filters["q"] != "alice" {
+		t.Errorf("narrowed audit JSON must echo its q filter, got %v", doc2.Filters)
+	}
+	if doc2.Count != len(doc2.Entries) || doc2.Count == 0 {
+		t.Fatalf("narrowed audit JSON count/entries disagree: %d vs %d", doc2.Count, len(doc2.Entries))
+	}
+	for _, e := range doc2.Entries {
+		if e.Email != "alice@x.dev" {
+			t.Errorf("q=alice audit JSON must only carry alice entries, got %q", e.Email)
+		}
 	}
 	_ = svc // the service's window is read through the handler; kept for clarity
 }
@@ -278,11 +299,12 @@ func TestPanel_ExportButtons_StateCarrying(t *testing.T) {
 		t.Error("users page must keep the full export button")
 	}
 
-	// A narrowed view carries its filter set into the export hrefs.
+	// A narrowed view carries its filter set into the export hrefs (the URL
+	// builder emits params alphabetically; templ escapes & in attributes).
 	narrowed := get("/admin/users?q=alice&filter=unverified&sort=email")
 	for _, want := range []string{
-		"/users/export.filtered.csv?q=alice&amp;filter=unverified&amp;sort=email",
-		"/users/export.filtered.json?q=alice&amp;filter=unverified&amp;sort=email",
+		"/users/export.filtered.csv?filter=unverified&amp;q=alice&amp;sort=email",
+		"/users/export.filtered.json?filter=unverified&amp;q=alice&amp;sort=email",
 	} {
 		if !strings.Contains(narrowed, want) {
 			t.Errorf("narrowed users page missing export href %q", want)

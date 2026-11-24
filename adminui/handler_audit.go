@@ -54,9 +54,9 @@ type auditView struct {
 // entries have rolled off. The journal remains the durable record; the
 // caption says so in the audit-window vocabulary.
 type auditWindowFacts struct {
-	Holds   int // entries currently retained
-	Limit   int // window capacity
-	Dropped int // entries evicted since construction
+	Holds   int `json:"holds"`   // entries currently retained
+	Limit   int `json:"limit"`   // window capacity
+	Dropped int `json:"dropped"` // entries evicted since construction
 }
 
 // hasFacts reports whether real window facts were captured (the panel may run

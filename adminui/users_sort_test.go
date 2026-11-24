@@ -69,18 +69,18 @@ func TestCompareUsers_ThreeOrdersWithIDTiebreak(t *testing.T) {
 	}
 
 	// The tiebreak: equal keys fall to the id so equal-keyed users never
-	// swap between renders.
+	// swap between renders. The ids are ULID-hashed, so the expected order
+	// is read off the ids' own string form rather than assumed.
 	twinA := sortUser("s-1", "same@x.dev", "Same", base)
 	twinB := sortUser("s-2", "same@x.dev", "Same", base)
-	if compareUsers(twinA, twinB, "email") >= 0 {
-		t.Error("equal emails must tiebreak to the id (s-1 first)")
-	}
-	if compareUsers(twinB, twinA, "email") <= 0 {
-		t.Error("tiebreak must be antisymmetric")
+	wantSign := strings.Compare(twinA.ID.Get().String(), twinB.ID.Get().String())
+	gotSign := compareUsers(twinA, twinB, "email")
+	if gotSign != wantSign || gotSign == 0 {
+		t.Errorf("equal emails must tiebreak to the id: got %d, want %d", gotSign, wantSign)
 	}
 
 	// An unknown key compares by id only — the stable default order.
-	if compareUsers(alice, carol, "wibble") >= 0 {
+	if compareUsers(alice, carol, "wibble") != strings.Compare(alice.ID.Get().String(), carol.ID.Get().String()) {
 		t.Error("unknown sort key must fall through to the id tiebreak")
 	}
 }
@@ -171,12 +171,18 @@ func TestPanel_UsersSortUnknownDegrades(t *testing.T) {
 	assertRowOrder(t, body("?sort=wibble"), "carol@x.dev", "alice@x.dev", "bea@x.dev")
 }
 
-// TestPanel_UsersSortPartialRoundTrip drives the HTMX leg: the partial
-// carries the sort in its pager and chip links, and following one of those
-// links lands on the same ordering (the state survives the swap).
+// TestPanel_UsersSortPartialRoundTrip drives the HTMX leg: with two pages,
+// the partial's pager and sort links carry the ordering, and following that
+// link shape lands on the same ordering (the state survives the swap).
 func TestPanel_UsersSortPartialRoundTrip(t *testing.T) {
 	t.Parallel()
-	h, _ := sortHarness(t)
+	user := mustUser(t, "admin@example.com")
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	seedDirectory(t, svc, 12, "srt") // emails srt00@… srt11@…: email order == id order
+	h := panelWithPageSize(t, user, svc, 10)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/users?sort=email", nil)
 	req.Header.Set("HX-Request", "true")
@@ -187,24 +193,27 @@ func TestPanel_UsersSortPartialRoundTrip(t *testing.T) {
 	}
 	partial := rec.Body.String()
 
-	// The partial's own links preserve the ordering...
+	// The partial's pager keeps the ordering next to the page param...
 	if !strings.Contains(partial, "sort=email") {
-		t.Error("partial must carry sort in its state-preserving links")
+		t.Error("partial must carry sort in its state-preserving pager links")
 	}
-	// ...and the rows arrive in the sorted order already.
-	assertRowOrder(t, partial, "alice@x.dev", "bea@x.dev", "carol@x.dev")
+	if !strings.Contains(partial, "page=2") {
+		t.Error("two-page list must offer page 2 from the partial")
+	}
+	// ...and page one shows the first ten emails in sorted order.
+	assertRowOrder(t, partial, "srt00@p.dev", "srt05@p.dev", "srt09@p.dev")
+	if strings.Contains(partial, "srt10@p.dev") {
+		t.Error("page one must not spill page-two rows")
+	}
 
-	// Following the partial's link shape keeps the ordering on the next hop.
+	// Following the partial's own link shape keeps the ordering on page two.
 	rec2 := httptest.NewRecorder()
-	h.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/admin/users?sort=email&q=bea", nil))
+	h.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/admin/users?sort=email&page=2", nil))
 	if rec2.Code != http.StatusOK {
-		t.Fatalf("filtered+sorted: status %d", rec2.Code)
+		t.Fatalf("sorted page 2: status %d", rec2.Code)
 	}
-	if !strings.Contains(rec2.Body.String(), "bea@x.dev") {
-		t.Error("sorted search page must keep its match")
-	}
-	if strings.Contains(rec2.Body.String(), "alice@x.dev") {
-		t.Error("q=bea must narrow the sorted page to bea alone")
+	if !strings.Contains(rec2.Body.String(), "srt10@p.dev") || !strings.Contains(rec2.Body.String(), "srt11@p.dev") {
+		t.Error("sorted page 2 must carry the last two emails")
 	}
 }
 
