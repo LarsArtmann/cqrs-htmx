@@ -52,7 +52,7 @@ require (
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
+	github.com/larsartmann/go-atomic-write v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.15.0 // indirect
