@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -21,7 +22,18 @@ func decideCreateTenant(
 	name, displayName string,
 ) func(TenantState, event.Version) ([]event.Event, error) {
 	return func(state TenantState, version event.Version) ([]event.Event, error) {
-		if state.Name != "" {
+		// A merged-away tenant is terminal (D2): recreating its ID would
+		// orphan every pointer that names it as merged. The conflict names
+		// the survivor so the caller sees the real tenant.
+		if state.IsMerged() {
+			return nil, errorfamily.NewConflict(
+				"usermgmt.tenant_create.merged",
+				"a merged-away tenant ID cannot be recreated",
+			).WithContext("merged_into", state.MergedInto.Get().String())
+		}
+		// A plain tombstone may be recreated: the TenantCreated fold resets
+		// the state, so the new incarnation starts clean.
+		if state.Name != "" && !state.Deleted {
 			return nil, errorfamily.NewConflict(
 				"usermgmt.tenant.already_exists",
 				"tenant with this ID already exists",

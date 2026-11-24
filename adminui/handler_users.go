@@ -235,7 +235,7 @@ func writeUsersJSON(w io.Writer, users []*identitymodel.User) error {
 	for _, u := range users {
 		export = append(export, usermgmt.ExportUser{
 			ID:               u.ID,
-			Email:            u.Email,
+			Email:            identitymodel.Email(u.Email),
 			DisplayName:      u.DisplayName,
 			EmailVerified:    u.EmailVerified,
 			TOTPEnabled:      u.TOTPEnabled,

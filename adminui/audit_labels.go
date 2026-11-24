@@ -24,22 +24,22 @@ func auditLabel(action string) string {
 //
 //nolint:gochecknoglobals // immutable display lookup table, read-only after init
 var auditLabels = map[string]string{
-	"register":             "User registered",
-	"roles_updated":        "Roles updated",
-	"email_changed":        "Email changed",
-	"display_name_changed": "Display name changed",
-	"user_deleted":         "User deleted",
-	"credential_added":     "Passkey added",
-	"credential_removed":   "Passkey removed",
-	"credential_used":      "Passkey used",
+	"register":               "User registered",
+	"roles_updated":          "Roles updated",
+	"email_changed":          "Email changed",
+	"display_name_changed":   "Display name changed",
+	"user_deleted":           "User deleted",
+	"credential_added":       "Passkey added",
+	"credential_removed":     "Passkey removed",
+	"credential_used":        "Passkey used",
 	auditActionEmailVerified: "Email verified",
-	"totp_enabled":         "MFA enabled",
-	"totp_disabled":        "MFA disabled",
-	"login_succeeded":      "Login succeeded",
-	"login_failed":         "Login failed",
-	"registration_closed":  "Registration closed",
-	"session_started":      "Session started",
-	"session_ended":        "Session ended",
+	"totp_enabled":           "MFA enabled",
+	"totp_disabled":          "MFA disabled",
+	"login_succeeded":        "Login succeeded",
+	"login_failed":           "Login failed",
+	"registration_closed":    "Registration closed",
+	"session_started":        "Session started",
+	"session_ended":          "Session ended",
 }
 
 // auditActionEmailVerified is the audit action emitted when a user proves

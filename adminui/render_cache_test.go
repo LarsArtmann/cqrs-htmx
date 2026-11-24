@@ -114,7 +114,14 @@ func assertPlatformRolesMatch(t *testing.T, az *renderAuthz, svc *usermgmt.Servi
 
 // assertTenantCountMatches compares the snapshot's tenant count against the
 // per-row DomainsForUser lookup resolved through GetTenant.
-func assertTenantCountMatches(t *testing.T, az *renderAuthz, svc *usermgmt.Service, ctx context.Context, u *identitymodel.User, id string) {
+func assertTenantCountMatches(
+	t *testing.T,
+	az *renderAuthz,
+	svc *usermgmt.Service,
+	ctx context.Context,
+	u *identitymodel.User,
+	id string,
+) {
 	t.Helper()
 
 	wantCount := 0

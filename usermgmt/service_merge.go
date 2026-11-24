@@ -254,7 +254,8 @@ func (s *Service) moveMembershipsToSurvivor(ctx context.Context, survivorID, los
 	for _, mem := range s.membershipReadModel.FindByActor(loserID.Get().String()) {
 		merged := unionRoles(survivorRoles[mem.TenantID], mem.Roles)
 		if _, ok := survivorRoles[mem.TenantID]; ok {
-			if err := s.dispatcher.Dispatch(ctx, NewUpdateMemberRolesCmd(survivorActor, mem.TenantID, merged)); err != nil {
+			update := NewUpdateMemberRolesCmd(survivorActor, mem.TenantID, merged)
+			if err := s.dispatcher.Dispatch(ctx, update); err != nil {
 				return classifyDispatchError(err, survivorID,
 					"tenant_id", mem.TenantID.Get(),
 					"loser_id", loserID.Get().String(),
