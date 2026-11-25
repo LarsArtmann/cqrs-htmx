@@ -61,6 +61,9 @@ func (s *Service) MergeTenants(
 	recordCmd := identitymodel.NewMergeTenantsCmd(survivorAggID, liveLosers, reason)
 	if err := s.dispatcher.Dispatch(ctx, recordCmd); err != nil {
 		return err //nolint:wrapcheck // decider returns typed domain errors
+		//cqrs-lint:ignore(C033) same verdict as the wrapcheck line: the decider's
+		// typed family IS the context (Rejection/Conflict map to HTTP semantics
+		// downstream); re-wrapping would reclassify it
 	}
 
 	for _, loserID := range liveLosers {
@@ -191,6 +194,8 @@ func (s *Service) retireMergeTenantLosers(
 		tombstone := identitymodel.NewMergeTenantIntoCmd(loserAggID, survivorID, reason)
 		if err := s.dispatcher.Dispatch(ctx, tombstone); err != nil {
 			return err //nolint:wrapcheck // decider returns typed domain errors
+			//cqrs-lint:ignore(C033) same verdict as the wrapcheck line: the decider's
+			// typed family IS the context; re-wrapping would reclassify it
 		}
 	}
 	return nil
