@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 
@@ -10,6 +11,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
+
+// withDispatchContext attaches merge-site context to a decider's typed error
+// without reclassifying it: the family IS the downstream HTTP semantics
+// (errorfamily.Classify maps Rejection/Conflict/Transient to statuses), so
+// this is C033's "wrap with context for debuggability" done in the
+// family-preserving form. A non-event.Error passes through unchanged — there
+// is no family to preserve and inventing one would lie about the failure.
+func withDispatchContext(err error, kv ...string) error {
+	ee, ok := errors.AsType[*event.Error](err)
+	if !ok {
+		return err
+	}
+	for i := 0; i+1 < len(kv); i += 2 {
+		ee = ee.WithContextAny(kv[i], kv[i+1])
+	}
+	return ee
+}
 
 // RenameTenant changes a tenant's display name. The tenant ID never moves:
 // it is the stream identity, the Casbin domain and the key of every
@@ -60,10 +78,7 @@ func (s *Service) MergeTenants(
 
 	recordCmd := identitymodel.NewMergeTenantsCmd(survivorAggID, liveLosers, reason)
 	if err := s.dispatcher.Dispatch(ctx, recordCmd); err != nil {
-		return err //nolint:wrapcheck // decider returns typed domain errors
-		//cqrs-lint:ignore(C033) same verdict as the wrapcheck line: the decider's
-		// typed family IS the context (Rejection/Conflict map to HTTP semantics
-		// downstream); re-wrapping would reclassify it
+		return withDispatchContext(err, "operation", "merge_tenants.record", "survivor_id", survivorID.Get())
 	}
 
 	for _, loserID := range liveLosers {
@@ -193,9 +208,11 @@ func (s *Service) retireMergeTenantLosers(
 		}
 		tombstone := identitymodel.NewMergeTenantIntoCmd(loserAggID, survivorID, reason)
 		if err := s.dispatcher.Dispatch(ctx, tombstone); err != nil {
-			return err //nolint:wrapcheck // decider returns typed domain errors
-			//cqrs-lint:ignore(C033) same verdict as the wrapcheck line: the decider's
-			// typed family IS the context; re-wrapping would reclassify it
+			return withDispatchContext(err,
+				"operation", "merge_tenant_into",
+				"loser_id", loserID.Get(),
+				"survivor_id", survivorID.Get(),
+			)
 		}
 	}
 	return nil

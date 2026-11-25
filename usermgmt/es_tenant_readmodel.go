@@ -32,11 +32,12 @@ type TenantReadModel struct {
 	//cqrs-lint:ignore(P011) bounded by finite tenant count; in-memory dev/test default
 	tenants map[id.StreamID]*Tenant
 	// mergedInto holds the merge pointer of every retired tenant stream: the
-	// row itself is gone, only this map keeps its trace (D16).
-	//cqrs-lint:ignore(P011) the merge trace is a correctness structure — every
-	// TenantMerged event ever replayed must stay resolvable, eviction would
-	// lose a retired stream's pointer; growth is bounded by tenant-merge
-	// operations (an admin action, at most one per tenant stream)
+	// row itself is gone, only this map keeps its trace (D16). The trace is a
+	// correctness structure — every TenantMerged event ever replayed must stay
+	// resolvable, eviction would lose a retired stream's pointer — and its
+	// growth is bounded by tenant-merge operations (an admin action, at most
+	// one per tenant stream).
+	//cqrs-lint:ignore(P011) bounded by tenant-merge count; eviction would lose a retired stream's merge trace
 	mergedInto map[id.StreamID]id.StreamID
 }
 
