@@ -345,29 +345,30 @@ dialog.tc-modal[open] {
   }
 }
 
-/* Vendored library CSS: popover anchor positioning (CORRECTED — diverges
-   from the library's custom.css, 2026-11-05).
-   Since templ-components v1.27.0, the tcPopoverPosition JS singleton exits
-   early on engines with CSS anchor positioning (Chromium >= 125) and defers
-   to a declarative layer. The library's custom.css layer is broken on
-   Chromium 156 in two ways, both verified empirically against
-   e2e/tests/admin-behavior.spec.ts (the dropdown parked at the viewport
-   corner):
-   1. Its compound values (bottom span-inline-start / span-inline-end and
-      the two-keyword logical forms "bottom start|end") are REJECTED by
-      Chromium — the declaration drops, the popover falls back to its
-      static position, and the panel renders at the viewport corner.
-   2. Flushing the menu's edge with the trigger's edge needs anchor()
-      functions, and anchor() cannot see the implicit popovertarget
-      invoker — only explicit anchor-names resolve.
-   Corrected layer: single-keyword position-area bands (valid syntax) give
-   every anchored popover a safe band placement, self-aligned
-   anchor-centered by default; the one known instance (the user menu,
-   DropdownPositionRight = align end) is refined to the documented
-   flush-end via an explicit anchor-name. anchor-name lives in this
-   stylesheet, not an inline style attribute, so strict CSP holds.
-   The JS fallback (engines without anchor positioning) is unchanged and
-   keeps using gap = 8, mirrored by the margin here. */
+/* Vendored library CSS: popover anchor positioning — VERBATIM COPY of
+   templ-components templates/custom.css @ v1.27.2 (the PR #101 fix, merged
+   0cbee16c 2026-11-17, shipped v1.27.1; block re-aligned 2026-11-24).
+   Why a copy at all: adminui's compiled Tailwind bundle never loads the
+   library's runtime CSS — the build (flake build-adminui-css) harvests
+   CLASS TOKENS from library sources and compiles adminui's own stylesheet,
+   so a plain-CSS layer like this must ship in the bundle itself.
+   Engine receipt: on Chromium >= 125 the tcPopoverPosition JS singleton
+   exits early and defers to this declarative layer; compound
+   span-inline-start/span-inline-end values are REJECTED by the engine
+   (verified 152.0.7977.82, 2026-11-16 — the declaration drops at
+   computed-value time and parks the popover at its static position), while
+   single-keyword bands and the span-x-* alignment spellings compute
+   correctly. The band rules below are upstream verbatim (base rule, the six
+   position maps, the four align variants). The ONE adminui-specific
+   extension is the user-menu flush-end pair at the bottom: upstream is
+   bands-only by design ("no per-instance anchor names required",
+   custom.css:111-118), but flushing the menu's inline-end edge with the
+   trigger's edge needs anchor() functions, and anchor() cannot see the
+   implicit popovertarget invoker — only explicit anchor-names resolve.
+   anchor-name lives in this stylesheet, not an inline style attribute,
+   so strict CSP holds. The JS fallback (engines without anchor
+   positioning) is unchanged and keeps using gap = 8, mirrored by the
+   margin here. */
 @supports (anchor-name: --x) {
   [popover][data-tc-anchor] {
     position-area: var(--tc-popover-area, bottom);
@@ -400,9 +401,26 @@ dialog.tc-modal[open] {
     --tc-popover-area: inline-end;
   }
 
-  /* User menu (align=end): flush the menu's inline-end edge with the
-     trigger's, 8px out on both axes — the JS fallback's left = r.right - w
-     placement. Physical right: adminui's shell is LTR. */
+  /* Alignment variants (the JS applies align only on the top/bottom axis). */
+  [data-tc-position="top"][data-tc-align="start"] {
+    --tc-popover-area: top span-x-end;
+  }
+
+  [data-tc-position="top"][data-tc-align="end"] {
+    --tc-popover-area: top span-x-start;
+  }
+
+  [data-tc-position="bottom"][data-tc-align="start"] {
+    --tc-popover-area: bottom span-x-end;
+  }
+
+  [data-tc-position="bottom"][data-tc-align="end"] {
+    --tc-popover-area: bottom span-x-start;
+  }
+
+  /* ADMINUI EXTENSION — user menu (align=end): flush the menu's inline-end
+     edge with the trigger's, 8px out on both axes — the JS fallback's
+     left = r.right - w placement. Physical right: adminui's shell is LTR. */
   #admin-user-menu-button {
     anchor-name: --tc-admin-user-menu;
   }
