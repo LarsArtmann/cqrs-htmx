@@ -31,6 +31,10 @@ func (c Config) validate() error {
 		return err
 	}
 
+	if err := c.validateAuditStores(); err != nil {
+		return err
+	}
+
 	if c.SSEMaxReplay < 0 {
 		return errorfamily.Newf(
 			errorfamily.Rejection,
@@ -229,6 +233,13 @@ func (c Config) validateDisableService() error {
 			"setup.invalid_config",
 			"DisableService builds a bundle whose session gate has no service to authenticate against (a cookie-carrying request would panic), so the session-gated surfaces cannot mount — unset %s; they return behind an injectable gate in a future release",
 			strings.Join(gated, ", "),
+		)
+	}
+
+	if c.CommandStore != nil || c.QueryStore != nil {
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DisableService builds no dashboard, so CommandStore and QueryStore have no panel to feed — drop them for the shell",
 		)
 	}
 

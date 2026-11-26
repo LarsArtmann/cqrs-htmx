@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
 )
@@ -125,6 +126,29 @@ type Config struct {
 	// infrastructure is used instead.
 	EventStore event.Store
 	EventBus   event.Bus
+
+	// CommandStore and QueryStore light up the dashboard's two audit panels
+	// (/commands and /queries under DashboardPath) with the records your
+	// composition root writes. go-cqrs-lite builds both stores
+	// (system.CommandStore()/QueryStore()) but leaves them unwritten by
+	// default, and this bundle's own dispatch does not record into them, so
+	// the panels mount only when you hand the bundle stores a recorder
+	// fills. They then render every recorded command and query with the
+	// user, device, and actor it was issued under, which is the "who read
+	// what" view a usage analysis starts from:
+	//
+	//	es, err := cqrs.NewEventService(cfg) // go-appkit: records by default
+	//	bundle, err := setup.New(setup.Config{
+	//		CommandStore: es.CommandStore(),
+	//		QueryStore:   es.QueryStore(),
+	//	})
+	//
+	// A store must be able to list its whole trail (command.CommandJournal,
+	// query.QueryJournal); New rejects one that cannot, instead of mounting
+	// a panel that stays empty. Nil (the default) mounts neither panel.
+	// Rejected while the dashboard is disabled (DisableDashboard).
+	CommandStore command.Store
+	QueryStore   query.QueryStore
 
 	// ReadModelDB enables SQL-backed read models (optional, nil = in-memory).
 	// The flattened path always uses the SQLite read-model dialect: the

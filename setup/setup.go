@@ -7,9 +7,11 @@ import (
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -433,6 +435,11 @@ func buildDashboardConfig(
 	if journal, ok := store.(event.Journal); ok {
 		dashCfg.Journal = journal
 	}
+
+	// The audit panels mount only for a store that can list its whole trail;
+	// validateAuditStores rejects any other store before this runs.
+	dashCfg.CommandJournal, _ = cfg.CommandStore.(command.CommandJournal)
+	dashCfg.QueryJournal, _ = cfg.QueryStore.(query.QueryJournal)
 
 	if cfg.DashboardReadOnly != nil {
 		dashCfg.ReadOnly = *cfg.DashboardReadOnly
