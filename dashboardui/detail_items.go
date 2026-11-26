@@ -157,8 +157,8 @@ func attributionItems(userID id.UserID, deviceKey, nonce string) []display.Defin
 }
 
 // metadataItems builds the correlation, causation, actor, and request
-// definition items shared by the command and query detail pages. Blank IDs
-// and zero actors are omitted.
+// definition items shared by the command, query, and event detail pages.
+// Blank IDs and zero actors are omitted.
 func metadataItems(corrID, causID, reqID string, actorID prefixedActorID, nonce string) []display.DefinitionItem {
 	items := make([]display.DefinitionItem, 0, maxMetadataItems)
 
