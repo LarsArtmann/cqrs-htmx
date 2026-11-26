@@ -340,12 +340,17 @@ func CommandOptionsFromContext(ctx context.Context) []command.Option {
 }
 
 // QueryOptionsFromContext builds query.Options from request context,
-// propagating user identity, actor identity, correlation ID, and request ID
-// into query metadata. Use this in query decoders so dispatched queries
-// carry the same audit-trail metadata as commands and events.
+// propagating user identity, actor identity, correlation ID, request ID, and
+// the client device ID into query metadata. Use this in query decoders so
+// dispatched queries carry the same audit-trail metadata as commands and
+// events, and so a persisted query can be mapped to its user or, before a
+// login, to the device that sent it.
 //
-// Returns nil options if none of user ID, actor ID, correlation ID, or request
-// ID is found.
+// The device key rides under the same metadata key events use
+// (event.MetadataKeyClientID), so one key names one concept everywhere.
+//
+// Returns nil options if none of user ID, actor ID, correlation ID, request
+// ID, or client ID is found.
 func QueryOptionsFromContext(ctx context.Context) []query.Option {
 	var opts []query.Option
 
@@ -363,6 +368,10 @@ func QueryOptionsFromContext(ctx context.Context) []query.Option {
 
 	if rid := RequestIDFromContext(ctx); !rid.IsZero() {
 		opts = append(opts, query.WithRequestID(rid))
+	}
+
+	if clientID := ClientIDFromContext(ctx); !clientID.IsZero() {
+		opts = append(opts, query.WithCustomMetadata(string(event.MetadataKeyClientID), clientID.String()))
 	}
 
 	return opts

@@ -17,6 +17,7 @@ import (
 const (
 	logFieldCorrelationID = "correlation_id"
 	logFieldUserID        = "user_id"
+	logFieldClientID      = "client_id"
 	logFieldRequestID     = "request_id"
 )
 
@@ -196,7 +197,8 @@ func (r *StatusRecorder) WriteHeader(code int) {
 
 // RequestLoggingSlog returns HTTP middleware that logs each request using
 // structured logging via log/slog. It captures method, path, status, duration,
-// and any correlation ID, user ID, or request ID present in the context.
+// and any correlation ID, user ID, client (device) ID, or request ID present
+// in the context.
 //
 // Usage:
 //
@@ -228,6 +230,10 @@ func RequestLoggingSlog(logger *slog.Logger) func(http.Handler) http.Handler {
 
 			if uid := UserIDFromContext(r.Context()); !uid.IsZero() {
 				attrs = append(attrs, slog.String(logFieldUserID, uid.String()))
+			}
+
+			if clientID := ClientIDFromContext(r.Context()); !clientID.IsZero() {
+				attrs = append(attrs, slog.String(logFieldClientID, clientID.String()))
 			}
 
 			if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {

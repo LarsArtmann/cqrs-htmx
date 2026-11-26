@@ -359,6 +359,30 @@ func TestQueryOptionsFromContext_Empty(t *testing.T) {
 	}
 }
 
+// TestQueryOptionsFromContext_ClientID pins the pre-login identity: a query
+// dispatched for an anonymous visitor must still be mappable to the device
+// that sent it, under the same metadata key events already use.
+func TestQueryOptionsFromContext_ClientID(t *testing.T) {
+	t.Parallel()
+
+	clientID := id.NewClientID()
+
+	opts := QueryOptionsFromContext(WithClientID(context.Background(), clientID))
+	if len(opts) != 1 {
+		t.Fatalf("expected 1 option, got %d", len(opts))
+	}
+
+	qry, err := query.New(query.Type("ListItems"), opts...)
+	if err != nil {
+		t.Fatalf("query.New failed: %v", err)
+	}
+
+	want := query.MetadataKey(event.MetadataKeyClientID)
+	if got := qry.Metadata().Custom[want]; got != clientID.String() {
+		t.Errorf("metadata Custom[%q] = %q, want %q", want, got, clientID.String())
+	}
+}
+
 // --- Full dispatch pipeline integration tests ---
 
 func TestDispatchPipeline_CommandCarriesActorMetadata(t *testing.T) {

@@ -200,6 +200,33 @@ var _ = Describe("Request Logging", func() {
 			logged := buf.String()
 			Expect(logged).To(ContainSubstring(`"request_id":"01HK1549P84T9XF8R94E960633"`))
 		})
+
+		It("includes client_id from context in slog output", func() {
+			middleware, buf := newSlogCapture()
+
+			handler := middleware(okHandler())
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/api", nil)
+			clientID := id.NewClientID()
+			r = r.WithContext(cqrshtmx.WithClientID(r.Context(), clientID))
+			handler.ServeHTTP(w, r)
+
+			logged := buf.String()
+			Expect(logged).To(ContainSubstring(`"client_id":"` + clientID.String() + `"`))
+		})
+
+		It("omits client_id when the browser sent no device key", func() {
+			middleware, buf := newSlogCapture()
+
+			handler := middleware(okHandler())
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/api", nil)
+			handler.ServeHTTP(w, r)
+
+			Expect(buf.String()).NotTo(ContainSubstring(`"client_id"`))
+		})
 		It("omits query string from slog output", func() {
 			middleware, buf := newSlogCapture()
 
