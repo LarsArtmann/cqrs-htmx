@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Every dispatched query carries the browser's device key; the request log line names it (2026-11-26).** `QueryOptionsFromContext` stamps the `X-Client-Id` device key onto the query under `event.MetadataKeyClientID` (`client.id`), the one constant the event side already uses, so an anonymous read maps to a device in the query audit trail; a request without the header stamps no key. `RequestLoggingSlog` adds a `client_id` attribute when the header was sent. Pinned by `TestQueryOptionsFromContext_ClientID` and two Ginkgo specs in `logging_test.go`. The root README gained "User-mapped queries: the audit trail" (the native `query.AuditMiddleware` recipe, the two levels, reading one user's records).
+
+- **`setup`: `Config.CommandStore` and `Config.QueryStore` mount the dashboard's two audit panels (2026-11-26).** go-cqrs-lite builds both stores but leaves them unwritten by default, and the bundle never wired them, so `/dashboard/commands` and `/dashboard/queries` stayed unmounted for every `setup.New` consumer. Hand the bundle the stores your composition root records into (go-appkit's `EventService` records every command and query by default) and both panels mount. A store that cannot list its whole trail (`command.CommandJournal`, `query.QueryJournal`) is rejected at `New` instead of mounting an empty panel, as is a store behind `DisableDashboard` or in the `DisableService` shell. Pinned by `setup/audit_journals_test.go` (panels mount, a default bundle mounts none, four rejections, the shell rejection). `query/v4` became a direct require of `setup` (dependency budget 24 → 25, same change).
+
 ### Housekeeping
 
 - **Docs and posture trues for the identity-merge wave (#46/#47/#45/#43).** DOMAIN_LANGUAGE gained the merge vocabulary; FEATURES/AGENTS counts trued to 33 events / 27 commands; legalparty-model FEATURES section added.

@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Command and query audit details name who the record is attributed to (2026-11-26).** The audit detail pages showed correlation, causation, actor and request IDs but not the user a record was issued under, which is the first question a "who read what" audit asks. Both pages now lead their identity tail with **User ID** (the record's `UserID`) and **Device ID** (the browser's device key under the event convention `event.MetadataKeyClientID`, present only when the transport stamped one), each with a copy button; an anonymous record shows neither. The event detail page is unchanged. Pinned by `detail_items_attribution_test.go` (query: both present, device omitted, anonymous; command: both present).
+
 - **`Config.AdminURL` cross-links the sibling adminui panel (2026-11-24).** The dashboard had no way to point at the identity admin panel mounted next door (adminui has carried the mirror knob `DashboardURL`/"Event store" since its sidebar shipped), so the pair read as two unrelated apps. A set `AdminURL` renders one "Identity admin" sidebar entry (`icons.Users`, verbatim href, appended after `ExtraNav` so consumer ordering stays stable — the same contract as adminui's cross-link). Empty (the default) changes nothing; `setup.New` now wires both cross-links automatically when both panels mount, with `-` as the explicit opt-out (setup README § Configuration). Pinned by `extra_nav_test.go` (entry shape, empty-URL absence, ExtraNav ordering, verbatim render).
 
 ### Changed

@@ -206,6 +206,7 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `AsyncStartup`                                            | `bool`                              | `false`                                 | Bind immediately; `/health` gates readiness during drain                                                                                                                                                                                                                                                                                                                                                                |
 | `DashboardReadOnly`                                       | `*bool`                             | `true`                                  | Set `false` at your own risk (enables reset/DLQ replay)                                                                                                                                                                                                                                                                                                                                                                 |
 | `DashboardPageSize`                                       | `int`                               | 50                                      | Rows per dashboard table page (max 200)                                                                                                                                                                                                                                                                                                                                                                                 |
+| `CommandStore` / `QueryStore`                             | `command.Store` / `query.QueryStore` | nil (panels off)                        | Audit stores your composition root records into; mounting them lights the dashboard's `/commands` and `/queries` audit panels (user, device and actor on every detail page). Each store must list its whole trail (`command.CommandJournal`, `query.QueryJournal`): `New` rejects one that cannot, and rejects both while `DisableDashboard` is set |
 | `LoginNoRegistration`                                     | `bool`                              | `false`                                 | Hide the registration section                                                                                                                                                                                                                                                                                                                                                                                           |
 | `LoginAutoRedirect`                                       | `bool`                              | `false`                                 | When OAuth2 is the login page's ONLY sign-in method (no WebAuthn, exactly one provider), redirect straight to the provider instead of rendering a button                                                                                                                                                                                                                                                                |
 | `LoginCSSPath`                                            | `string`                            | `"/app.css"`                            | URL of the compiled Tailwind stylesheet the login page loads — the consumer MUST compile one scanning the loginpage package (see [Styling](#styling)); the admin/dashboard panels need nothing (self-contained bundles)                                                                                                                                                                                                 |
@@ -363,6 +364,10 @@ light up according to what it implements:
 | `event.EventSource` (implied by `Store`)    | Aggregate detail view + time-travel in the dashboard                                                                                                                                         |
 | also `projectionhost.Host` (wired by `New`) | Projection health panel + DLQ view                                                                                                                                                           |
 
+| You also set                                      | Unlocks                                                                                                                                                                                      |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CommandStore` / `QueryStore`                      | Command and query audit panels (`/commands`, `/queries`): every record your composition root wrote, with the user and device it was issued under                                                                              |
+
 The machine endpoints (`EventCatalogPath`, `ProjectionStatusPath`, `DebugPath`)
 have no store requirements: the catalog comes from
 `usermgmt.DefaultEventCatalog()` (the 21 identity events), projection statuses
@@ -382,10 +387,11 @@ consumer supplies the handler.
 Practical consequence: a minimal live-only store that cannot replay history
 still boots the bundle but silently loses the replay-backed surfaces above —
 which is exactly why `New` refuses non-`SeekableJournal` stores rather than
-shipping a half-working dashboard. Wiring `dashboardui` by hand lights the
-same per-interface surfaces, plus two more the bundle does not wire:
-`CommandJournal`/`QueryJournal` (command/query audit panels) and a custom
-`StreamReader`; see `dashboardui/README.md`.
+shipping a half-working dashboard. The two audit panels are the exception
+among the dashboard surfaces: they do not derive from the `EventStore` but
+mount through `Config.CommandStore` / `Config.QueryStore`. Wiring
+`dashboardui` by hand lights the same per-interface surfaces plus a custom
+`StreamReader` the bundle does not wire; see `dashboardui/README.md`.
 
 ## Troubleshooting
 
@@ -395,6 +401,7 @@ same per-interface surfaces, plus two more the bundle does not wire:
 | `/health` returns **503**                              | The projection readiness gate is doing its job: at least one projection is still replaying/draining (always the case briefly at startup, and while `AsyncStartup: true` replays in the background). Poll until 200 before routing traffic. |
 | `setup.New` rejects the config                         | `New` validates paths: `/` is rejected (the login page owns root), duplicate mounts are rejected, trailing slashes are normalized. Fix the `Config` paths — the error names the offending pair.                                            |
 | A second `bundle.Mount(mux)` **panics**                | `Mount` is once-only by design (stdlib mux rejects duplicate patterns). Call it once per mux.                                                                                                                                              |
+| Dashboard `/commands` or `/queries` answers **404**     | No audit store is wired: the panels mount only for `Config.CommandStore` / `Config.QueryStore`. Pass the stores your composition root records into (go-cqrs-lite's `system.CommandStore()` / `system.QueryStore()`); go-appkit's `EventService` records by default |
 | SSE clients connect but receive nothing                | A buffering proxy in front of the server (nginx `proxy_buffering`, CDNs). Disable response buffering for the SSE route (`X-Accel-Buffering: no`) and make sure the proxy does not impose short read timeouts.                              |
 | TOTP logins fail after upgrading an old SQL read model | Rows written before checkpointed hydration lack the TOTP secret. Run `RebuildProjection(ctx, "user-read-model")` once after upgrading; affected users would otherwise have to re-enroll. See `docs/guides/event-replay-and-rebuild.md`.    |
 

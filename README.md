@@ -55,6 +55,7 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 - [The modules](#the-modules) — usermgmt, adminui, dashboardui, setup, datastar, huma
 - [Realtime: SSE and offline sync](#realtime-sse-and-offline-sync)
 - [Error handling](#error-handling) — domain errors → HTTP status mapping
+- [User-mapped queries](#user-mapped-queries-the-audit-trail) — who read what: the durable query log
 - [Ready-made UIs & the one-call setup](#ready-made-uis--the-one-call-setup)
 - [Examples](#examples) — 13 runnable, tested demos
 - [Documentation](#documentation) — 30+ guides, ADRs, runbooks
@@ -461,6 +462,53 @@ Plug in the response format you want via `Config.ErrorHandler`:
 - `DefaultErrorHandler*` — plain text, with HTMX-aware `HX-Redirect` to `Config.LoginRedirect` on auth errors
 
 `MapError(err)` returns the status for any error; `NewStructuredError(err, r)` builds the RFC 7807 payload for SSE error events.
+
+## User-mapped queries: the audit trail
+
+Every query dispatched through `app.Query` carries who issued it. `QueryOptionsFromContext` stamps the session user (`UserID`), the effective actor (`ActorID`), a request ID, a correlation ID and, when the browser sent its `X-Client-Id` device key, that key under the `client.id` metadata key. An anonymous read therefore still maps to a device. `RequestLoggingSlog` puts the same key on the request log line as `client_id`.
+
+go-cqrs-lite keeps those records in a durable query log: `system.New` builds the `queries` collection, `sys.QueryStore()` is its handle, and `query.AuditMiddleware` is the recorder. Recording is opt-in there, so install the middleware on the dispatcher before it reaches `App`. A failed save is logged and never fails the read.
+
+```go
+qryDisp := query.NewDispatcher()
+qryDisp.Use(query.AuditMiddleware(sys.QueryStore(), query.AuditMetadata, logger))
+
+app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: qryDisp})
+```
+
+| Level                 | A record holds                                                                   | Use it when                                         |
+| --------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `query.AuditMetadata` | type, request ID, received-at, user, actor, device key, correlation, causation   | Always safe: no payload, nothing a user typed.      |
+| `query.AuditFull`     | the same plus the query payload                                                  | A usage analysis that must know WHAT was asked.     |
+
+The store lists the whole trail through its journal. Keep one user's reads with a filter on the metadata:
+
+```go
+// printUserQueries prints the queries one user was recorded issuing.
+func printUserQueries(ctx context.Context, store query.QueryStore, userID id.UserID) error {
+    journal, ok := store.(query.QueryJournal)
+    if !ok {
+        return errorfamily.NewRejection("app.query_store_unreadable", "the query store cannot list its trail")
+    }
+
+    records, err := journal.ReadAllQueries(ctx)
+    if err != nil {
+        return err
+    }
+
+    for _, record := range records {
+        if record.Metadata().UserID == userID {
+            fmt.Println(record.Type(), record.ReceivedAt())
+        }
+    }
+
+    return nil
+}
+```
+
+A recommendation pipeline reads the same journal: filter by `UserID` for signed-in users and by the `client.id` custom key for anonymous devices; a record carries both once the visitor is signed in, so the two views join on the device key.
+
+Two readers already render the trail. The `dashboardui` query audit panel (`/queries`) lists every record and names the user and the device on its detail page; hand `setup` the stores (`setup.Config.QueryStore`, `setup.Config.CommandStore`) and the two audit panels mount. go-appkit's `EventService` records every command and query by default, so its users only wire those two fields.
 
 ## Ready-made UIs & the one-call setup
 
