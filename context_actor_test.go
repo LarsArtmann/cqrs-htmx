@@ -473,6 +473,43 @@ func TestDispatchPipeline_QueryCarriesActorMetadata(t *testing.T) {
 	}
 }
 
+func TestDispatchPipeline_QueryCarriesClientID(t *testing.T) {
+	t.Parallel()
+
+	clientID := id.NewClientID()
+
+	var capturedMeta query.Metadata
+
+	disp := query.NewDispatcher()
+	_ = disp.Register("ListItems", func(_ context.Context, qry query.Query) (any, error) {
+		if basic, ok := qry.(*query.BasicQuery); ok {
+			capturedMeta = basic.Metadata()
+		}
+
+		return nil, nil
+	})
+
+	app := MustNew(Config{Queries: disp})
+
+	handler := app.Query(query.Type("ListItems"), func(cfg *handlerConfig) {
+		cfg.queryDecoder = func(_ *http.Request) (query.Query, error) {
+			return query.New(query.Type("ListItems"))
+		}
+	})
+
+	// The X-Client-Id header reaches the query through two hops: the
+	// enrichment middleware captures it into the context, and the dispatch
+	// pipeline stamps it onto the query the decoder built.
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	request.Header.Set(HeaderClientID, clientID.String())
+	handler.ServeHTTP(httptest.NewRecorder(), request)
+
+	want := query.MetadataKey(event.MetadataKeyClientID)
+	if got := capturedMeta.Custom[want]; got != clientID.String() {
+		t.Errorf("query metadata Custom[%q] = %q, want the device key %q", want, got, clientID.String())
+	}
+}
+
 func TestDispatchPipeline_CommandNoActorForAnonymousRequest(t *testing.T) {
 	t.Parallel()
 
