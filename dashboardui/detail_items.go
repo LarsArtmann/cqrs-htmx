@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
@@ -21,6 +22,10 @@ import (
 // maxMetadataItems is the largest metadataItems can emit: correlation,
 // causation, request, and actor.
 const maxMetadataItems = 4
+
+// maxAttributionItems is the largest attributionItems can emit: user and
+// device.
+const maxAttributionItems = 2
 
 // Fixed-item counts of commandMetaItems and queryMetaItems before the
 // variable metadata tail.
@@ -131,9 +136,29 @@ type prefixedActorID interface {
 	PrefixedString() string
 }
 
+// attributionItems builds the user and device definition items: who an
+// audit record is attributed to. The device key is the browser's stable
+// client ID, which the transport stamps under the event convention
+// (event.MetadataKeyClientID); a record without one came from a request
+// that carried no device key.
+func attributionItems(userID id.UserID, deviceKey, nonce string) []display.DefinitionItem {
+	items := make([]display.DefinitionItem, 0, maxAttributionItems)
+
+	if !userID.IsZero() {
+		user := userID.String()
+		items = append(items, defItemCopy("User ID", monoSpan(esc(user)), user, nonce))
+	}
+
+	if deviceKey != "" {
+		items = append(items, defItemCopy("Device ID", monoSpan(esc(deviceKey)), deviceKey, nonce))
+	}
+
+	return items
+}
+
 // metadataItems builds the correlation, causation, actor, and request
-// definition items shared by the command, query, and event detail pages.
-// Blank IDs and zero actors are omitted.
+// definition items shared by the command and query detail pages. Blank IDs
+// and zero actors are omitted.
 func metadataItems(corrID, causID, reqID string, actorID prefixedActorID, nonce string) []display.DefinitionItem {
 	items := make([]display.DefinitionItem, 0, maxMetadataItems)
 
@@ -158,7 +183,8 @@ func metadataItems(corrID, causID, reqID string, actorID prefixedActorID, nonce 
 }
 
 // commandMetaItems builds the command detail metadata items: stream facts
-// plus correlation, causation, and actor IDs when present.
+// plus the user and device it is attributed to and its correlation,
+// causation, and actor IDs when present.
 func commandMetaItems(cmd *command.PersistedCommand, nonce string) []display.DefinitionItem {
 	meta := cmd.Metadata()
 
@@ -166,7 +192,10 @@ func commandMetaItems(cmd *command.PersistedCommand, nonce string) []display.Def
 		meta.CorrelationID.String(), meta.CausationID.String(),
 		meta.RequestID.String(), meta.ActorID, nonce,
 	)
-	items := make([]display.DefinitionItem, 0, baseCommandMetaItems+len(metaItems))
+	attribution := attributionItems(
+		meta.UserID, meta.Custom[command.MetadataKey(event.MetadataKeyClientID)], nonce,
+	)
+	items := make([]display.DefinitionItem, 0, baseCommandMetaItems+len(attribution)+len(metaItems))
 	items = append(items,
 		defItem("Command Type", string(cmd.Type())),
 		defItem("Stream Type", string(cmd.StreamType())),
@@ -174,6 +203,7 @@ func commandMetaItems(cmd *command.PersistedCommand, nonce string) []display.Def
 		defItem("Received At", cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 		defItemCopy("Command ID", monoSpan(esc(cmd.ID().String())), cmd.ID().String(), nonce),
 	)
+	items = append(items, attribution...)
 	items = append(items, metaItems...)
 
 	return items
@@ -187,12 +217,16 @@ func queryMetaItems(q *query.PersistedQuery, nonce string) []display.DefinitionI
 		meta.CorrelationID.String(), meta.CausationID.String(),
 		meta.RequestID.String(), meta.ActorID, nonce,
 	)
-	items := make([]display.DefinitionItem, 0, baseQueryMetaItems+len(metaItems))
+	attribution := attributionItems(
+		meta.UserID, meta.Custom[query.MetadataKey(event.MetadataKeyClientID)], nonce,
+	)
+	items := make([]display.DefinitionItem, 0, baseQueryMetaItems+len(attribution)+len(metaItems))
 	items = append(items,
 		defItem("Query Type", string(q.Type())),
 		defItem("Received At", q.ReceivedAt().Format("2006-01-02 15:04:05")),
 		defItemCopy("Request ID", monoSpan(esc(q.ID().String())), q.ID().String(), nonce),
 	)
+	items = append(items, attribution...)
 	items = append(items, metaItems...)
 
 	return items
