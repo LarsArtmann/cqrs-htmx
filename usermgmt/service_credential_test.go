@@ -69,7 +69,10 @@ func TestService_ChangeEmail_EmptyEmail(t *testing.T) {
 func TestService_ChangeEmail_WhitespaceEmail(t *testing.T) {
 	t.Parallel()
 
-	for _, tc := range blankEmailCases()[1:] { // the empty spelling has its own test
+	for _, tc := range blankEmailCases() {
+		if tc.email == "" { // the empty spelling has its own test
+			continue
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

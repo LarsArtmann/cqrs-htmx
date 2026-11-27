@@ -54,14 +54,19 @@ and event-catalog rows.
   queries are one adapter (`LoadQuery` + `FromDispatcher`) that keeps the
   `query/<Name>` posture, so a consumer without a dispatcher uses the same
   API. `Optional()` is the only degradation path and it is visible through
-  `LoadReport`/`OnLoadError`; `PageOnly()` marks loaders a region request
+  `LoadReport`, the `OnLoad` hook (every load that did not abort) and
+  `OnLoadError` (degraded loads); `PageOnly()` marks loaders a region request
   does not need.
 - **Out:** `Views[T](...)` — exactly one `Page`, any number of
   `Region(selector)` (at most one `.Default()`), any number of `OOB(id)`
   views. Selection is request-derived and deterministic: boosted navigation
   or history restore → Page; matching `HX-Target` → that region; partial
   with no match → the `Default` region, else an `unroutable_view`
-  rejection; everything else → Page.
+  rejection; everything else → Page. Inside a QuerySet handler the selection
+  runs BEFORE the loaders, so an unroutable request is refused without a
+  single read.
+- **Response parity.** The HTMX response options (`Trigger`, `PushURL`,
+  `Redirect`, …) apply on a QuerySet route exactly as on `App.Query`.
 - **Invariants.** A query never returns a templ component; a component never
   dispatches. Both are review rules with mechanically checkable shapes.
 - **No templ dependency.** Views are built from `TemplComponent` (structural
@@ -84,10 +89,38 @@ and event-catalog rows.
   a handler.
 - Additive-only root API: next minor. Nothing is aliased; every new symbol
   is root-exported directly.
-- What this deliberately does NOT do: no `view/` subpackage (a `DispatchFunc`
-  seam would be needed to avoid the module-layers back-edge; revisit if the
-  surface grows past ~200 LOC), no per-view props types, no shell-first
-  streaming, no per-page cache keys, and no adminui panel-wide rewrite.
+- What this deliberately does NOT do: no `view/` subpackage in v4 (see the
+  amendment below), no per-view props types, no shell-first streaming, no
+  per-page cache keys, and no adminui panel-wide rewrite.
+
+## Amendment — same day, follow-through (2026-11-27)
+
+The first execution pass left three questions open; all three are settled
+here, before the API is tagged.
+
+1. **HTMX response options apply (parity), they are not rejected.** The first
+   cut accepted `Trigger`/`PushURL`/`Redirect` on a QuerySet route and
+   dropped them silently. "HandlerOption is HandlerOption": a consumer who
+   writes `app.QuerySet(set, Views(...), cqrshtmx.NotifySuccess("saved"))`
+   gets the header, exactly as on `App.Query`. A non-HTMX `Redirect` stays
+   terminal, as on `App.Query`.
+2. **`OnLoad` is the success-path twin of `OnLoadError`.** Two hooks, not one:
+   `OnLoadError` replaces the default WARN log when installed, so merging the
+   two would let a metrics-only hook silence a degrading read. `OnLoad` is
+   additive observability; it also fires on a degraded run, after
+   `OnLoadError`.
+3. **The seam stays in root for v4.** The ADR's own trigger fired: the
+   surface is 20 exported declarations across two files (22 with
+   `OOBTempl` and `App.QuerySet`), 1,027 lines with their docs and internals —
+   past the ~200 LOC at any reading. A `view/` subpackage would still be the
+   wrong cut: `Views` is a `HandlerOption`, so the binder can only live where
+   `handlerConfig` lives; the value types would move while `RenderTempl`,
+   `RenderPartialOrFull`, `RenderIf` and `OOBHTML` stayed, splitting one
+   render family across two packages, and every consumer would import both
+   for one feature (ADR-0062 forbids papering over it with aliases). The
+   root-size ratchet exists to force this decision, not to force a split.
+   Revisit trigger: the v5 breaking window, when the WHOLE render family can
+   move to one package with its config seam in one cut.
 
 ## Alternatives considered
 
@@ -97,3 +130,6 @@ and event-catalog rows.
 | Query-only loaders (dispatched queries mandatory) | `adminui` — the repo's largest consumer — owns no dispatcher; the API would be demo-only. Function loaders plus a dispatch adapter serve both. |
 | Silent full-page fallback for an unmatched fragment target | Reproduces the 2026-10-18 blanking class from the other direction: htmx would swap a whole document into a fragment target. Fail loud instead. |
 | Deprecating `RenderPartialOrFull`/`OOBHTML` | They are the 1-query/2-view cases of the same seam; removing them buys nothing and breaks every consumer. |
+| Rejecting HTMX response options on a QuerySet route | Breaks "HandlerOption is HandlerOption" for no gain; `App.Query` already defines the semantics (headers first, a non-HTMX redirect terminal). Parity costs one call. |
+| One merged load hook instead of `OnLoad` + `OnLoadError` | A hook replaces the default WARN log; a metrics-only consumer would then silence a degrading read by accident. Two hooks keep degradation loud. |
+| A `view/` subpackage now | Splits the render family and forces two imports per feature; see amendment 3. |
