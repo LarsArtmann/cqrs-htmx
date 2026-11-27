@@ -498,11 +498,12 @@ func TestDispatchPipeline_QueryCarriesClientID(t *testing.T) {
 	})
 
 	// The X-Client-Id header reaches the query through two hops: the
-	// enrichment middleware captures it into the context, and the dispatch
-	// pipeline stamps it onto the query the decoder built.
+	// enrichment middleware (App.Middleware) captures it into the context,
+	// and the dispatch pipeline stamps it onto the query the decoder built.
+	// A handler served without App.Middleware sees no header at all.
 	request := httptest.NewRequest(http.MethodGet, "/", nil)
 	request.Header.Set(HeaderClientID, clientID.String())
-	handler.ServeHTTP(httptest.NewRecorder(), request)
+	app.Middleware()(handler).ServeHTTP(httptest.NewRecorder(), request)
 
 	want := query.MetadataKey(event.MetadataKeyClientID)
 	if got := capturedMeta.Custom[want]; got != clientID.String() {
