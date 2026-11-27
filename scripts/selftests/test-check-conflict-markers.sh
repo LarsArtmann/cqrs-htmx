@@ -15,6 +15,7 @@
 #      repaired (the pre-commit shape: the commit still carries the marker)
 #  11. --staged passes when the index is clean but the working tree is dirty
 #  12. an unknown argument exits 2 instead of scanning something else
+#  13. a linked worktree (where .git is a file) passes, in tree and --staged mode
 #
 # Usage: bash scripts/selftests/test-check-conflict-markers.sh
 set -uo pipefail
@@ -179,6 +180,27 @@ git -C "$r" add -A
 out="$(CONFLICT_MARKERS_ROOT="$r" bash "$TOOL" --bogus 2>&1)"
 rc=$?
 if [ "$rc" -eq 2 ]; then ok "unknown argument exits 2"; else bad "unknown argument" "rc=$rc out=$out"; fi
+
+# --- 13. a linked worktree passes (.git is a file there) -------------------
+r="$WORK/linked-main"
+new_repo "$r"
+printf 'alpha\n' >"$r/file.txt"
+git -C "$r" add -A
+git -C "$r" -c user.name=selftest -c user.email=selftest@example.invalid commit -q -m init
+git -C "$r" worktree add -q "$WORK/linked-wt" -b linked
+out="$(run "$WORK/linked-wt")"
+rc=$?
+if [ "$rc" -eq 0 ]; then ok "linked worktree passes"; else bad "linked worktree" "rc=$rc out=$out"; fi
+
+printf 'one\n<<<<<<< Updated upstream\ntwo\n' >"$WORK/linked-wt/file.txt"
+git -C "$WORK/linked-wt" add -A
+out="$(run_staged "$WORK/linked-wt")"
+rc=$?
+if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q 'file.txt'; then
+  ok "--staged fails on a marker inside a linked worktree"
+else
+  bad "linked worktree --staged" "rc=$rc out=$out"
+fi
 
 echo
 if [ "$fail" -eq 0 ]; then

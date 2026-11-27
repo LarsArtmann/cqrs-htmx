@@ -12,6 +12,7 @@
 #   7. --staged passes when the index is clean but an untracked zz_ exists
 #   8. a non-repo directory exits 2 (never green)
 #   9. an unknown argument exits 2 instead of scanning something else
+#  10. a linked worktree (where .git is a file) passes
 #
 # Usage: bash scripts/selftests/test-check-debug-files.sh
 set -uo pipefail
@@ -143,6 +144,17 @@ git -C "$r" add -A
 out="$(DEBUG_FILES_ROOT="$r" bash "$TOOL" --bogus 2>&1)"
 rc=$?
 if [ "$rc" -eq 2 ]; then ok "unknown argument exits 2"; else bad "unknown argument" "rc=$rc out=$out"; fi
+
+# --- 10. a linked worktree passes (.git is a file there) ---------------------
+r="$WORK/linked-main"
+new_repo "$r"
+printf 'package main\n' >"$r/main.go"
+git -C "$r" add -A
+git -C "$r" -c user.name=selftest -c user.email=selftest@example.invalid commit -q -m init
+git -C "$r" worktree add -q "$WORK/linked-wt" -b linked
+out="$(run "$WORK/linked-wt")"
+rc=$?
+if [ "$rc" -eq 0 ]; then ok "linked worktree passes"; else bad "linked worktree" "rc=$rc out=$out"; fi
 
 echo ""
 echo "passed: $pass  failed: $fail"

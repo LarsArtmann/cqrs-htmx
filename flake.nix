@@ -1988,7 +1988,7 @@
 
             test-check-conflict-markers = {
               type = "app";
-              meta.description = "Fixture self-test for check-conflict-markers.sh (9 cases: clean/marker-per-marker/mid-line quote/code-span quote/untracked file/non-repo/multi-marker file)";
+              meta.description = "Fixture self-test for check-conflict-markers.sh (14 cases: clean/marker-per-marker/mid-line quote/code-span quote/untracked file/non-repo/multi-marker file/staged index/linked worktree)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "test-check-conflict-markers";

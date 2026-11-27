@@ -35,7 +35,7 @@ esac
 
 ROOT="${CONFLICT_MARKERS_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
-if [ ! -d "$ROOT/.git" ]; then
+if [ "$(git -C "$ROOT" rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]; then
   echo "✗ conflict-markers: $ROOT is not a git working tree (rc=2)" >&2
   exit 2
 fi
