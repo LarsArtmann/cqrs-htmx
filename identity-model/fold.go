@@ -159,6 +159,12 @@ func (s BotState) IsActive() bool {
 }
 
 // FoldUser applies an event to the current UserState, returning the new state.
+//
+// The switch is dispatch only: one row per event, handed to the helper that
+// owns that transition (the apply* helpers at the bottom of this file). A
+// helper answers a payload that does not decode with the state it was given,
+// and FoldUser answers every error with the caller's original state. An event
+// type outside the User stream's vocabulary is a rejection, never a no-op.
 // cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
 func FoldUser(
 	state UserState,
@@ -166,137 +172,60 @@ func FoldUser(
 ) (UserState, error) {
 	next := state
 
+	var err error
+
 	switch evt.Type() {
+	// Who the user is: the identity fields, from registration to the tombstone.
 	case EventUserRegistered:
-		p, err := UnmarshalPayload[UserRegisteredPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next = UserState{
-			Email:       p.Email,
-			DisplayName: p.DisplayName,
-		}
-
-	case EventRolesUpdated:
-		_, err := UnmarshalPayload[RolesUpdatedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-
+		next, err = applyUserRegistered(next, evt)
 	case EventEmailChanged:
-		p, err := UnmarshalPayload[EmailChangedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.Email = p.Email
-		next.EmailVerified = false
-		next.TOTPEnabled = false
-		next.TOTPSecret = nil
-
-	case EventDisplayNameChanged:
-		p, err := UnmarshalPayload[DisplayNameChangedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.DisplayName = p.DisplayName
-
-	case EventUserDeleted:
-		p, err := UnmarshalPayload[UserDeletedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.Deleted = true
-		next.DeleteReason = p.Reason
-
-	case EventUserMerged:
-		p, err := UnmarshalPayload[UserMergedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		for _, loser := range p.LoserIDs {
-			next.MergedUserIDs = withAppendedUnique(next.MergedUserIDs, loser)
-		}
-
-	case EventUserMergedInto:
-		p, err := UnmarshalPayload[UserMergedIntoPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.Deleted = true
-		next.MergedInto = p.SurvivorID
-		next.DeleteReason = p.Reason
-
-	case EventCredentialAdded:
-		p, err := UnmarshalPayload[CredentialAddedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.Credentials = append(next.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
-
-	case EventCredentialRemoved:
-		var err error
-		next, err = applyCredentialRemoved(next, evt)
-		if err != nil {
-			return state, err
-		}
-
-	case EventCredentialUsed:
-		var err error
-		next, err = applyCredentialUsed(next, evt)
-		if err != nil {
-			return state, err
-		}
-
+		next, err = applyEmailChanged(next, evt)
 	case EventEmailVerified:
-		_, err := UnmarshalPayload[EmailVerifiedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.EmailVerified = true
+		next, err = applyEmailVerified(next, evt)
+	case EventDisplayNameChanged:
+		next, err = applyDisplayNameChanged(next, evt)
+	case EventUserDeleted:
+		next, err = applyUserDeleted(next, evt)
 
+	// Merge of duplicate identities: the survivor's half and the loser's.
+	case EventUserMerged:
+		next, err = applyUserMerged(next, evt)
+	case EventUserMergedInto:
+		next, err = applyUserMergedInto(next, evt)
+
+	// Legacy (see constants.go): no longer emitted, decoded for backward compat.
+	// Its payload is decoded for the error alone; it never changed UserState.
+	case EventRolesUpdated:
+		_, err = UnmarshalPayload[RolesUpdatedPayload](evt)
+
+	// Credentials: the user's WebAuthn authenticators.
+	case EventCredentialAdded:
+		next, err = applyCredentialAdded(next, evt)
+	case EventCredentialRemoved:
+		next, err = applyCredentialRemoved(next, evt)
+	case EventCredentialUsed:
+		next, err = applyCredentialUsed(next, evt)
+
+	// Sign-in factors beyond credentials: TOTP and linked external identities.
 	case EventTOTPEnabled:
-		p, err := UnmarshalPayload[TOTPEnabledPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.TOTPEnabled = true
-		next.TOTPSecret = slices.Clone(p.Secret)
-
+		next, err = applyTOTPEnabled(next, evt)
 	case EventTOTPDisabled:
 		next.TOTPEnabled = false
 		next.TOTPSecret = nil
-
 	case EventExternalAccountLinked:
-		p, err := UnmarshalPayload[ExternalAccountLinkedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		next.ExternalAccounts = append(next.ExternalAccounts, ExternalAccount{
-			Provider:    p.Provider,
-			Subject:     p.Subject,
-			Email:       p.Email,
-			DisplayName: p.DisplayName,
-			LinkedAt:    evt.OccurredAt(),
-		})
-
+		next, err = applyExternalAccountLinked(next, evt)
 	case EventExternalAccountUnlinked:
-		p, err := UnmarshalPayload[ExternalAccountUnlinkedPayload](evt)
-		if err != nil {
-			return state, err
-		}
-		filtered := make([]ExternalAccount, 0, len(next.ExternalAccounts))
-		for _, ea := range next.ExternalAccounts {
-			if ea.Provider != p.Provider || ea.Subject != p.Subject {
-				filtered = append(filtered, ea)
-			}
-		}
-		next.ExternalAccounts = filtered
+		next, err = applyExternalAccountUnlinked(next, evt)
 
 	default:
 		return state, errorfamily.NewRejection(
 			"usermgmt.user.unknown_event",
 			"FoldUser received unknown event type: "+string(evt.Type()),
 		)
+	}
+
+	if err != nil {
+		return state, err
 	}
 
 	return next, nil
@@ -552,6 +481,176 @@ func applyCredentialRemoved(state UserState, evt event.Event) (UserState, error)
 	}
 
 	state.Credentials = filtered
+
+	return state, nil
+}
+
+// applyCredentialAdded records a WebAuthn authenticator with the sign counter
+// the event carried. Its later life belongs to applyCredentialUsed and
+// applyCredentialRemoved.
+func applyCredentialAdded(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[CredentialAddedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.Credentials = append(state.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
+
+	return state, nil
+}
+
+// applyUserRegistered starts a fresh incarnation of the stream. The whole
+// state is replaced, so nothing from a previous incarnation (credentials,
+// sign-in factors, a tombstone, merge bookkeeping) survives it.
+func applyUserRegistered(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[UserRegisteredPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	return UserState{Email: p.Email, DisplayName: p.DisplayName}, nil
+}
+
+// applyEmailChanged moves the account to a new address and drops what was
+// attached to the old one: the new address starts out unverified and TOTP is
+// switched off, secret included.
+func applyEmailChanged(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[EmailChangedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.Email = p.Email
+	state.EmailVerified = false
+	state.TOTPEnabled = false
+	state.TOTPSecret = nil
+
+	return state, nil
+}
+
+// applyEmailVerified marks the address as verified. The payload is decoded
+// for its error alone; the transition is carried by the event type.
+func applyEmailVerified(state UserState, evt event.Event) (UserState, error) {
+	_, err := UnmarshalPayload[EmailVerifiedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.EmailVerified = true
+
+	return state, nil
+}
+
+// applyDisplayNameChanged sets the name other people see. The login identity
+// (the email) is untouched.
+func applyDisplayNameChanged(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[DisplayNameChangedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.DisplayName = p.DisplayName
+
+	return state, nil
+}
+
+// applyUserDeleted raises the tombstone. The stream keeps its history
+// (Exists stays true); IsActive is what turns false.
+func applyUserDeleted(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[UserDeletedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.Deleted = true
+	state.DeleteReason = p.Reason
+
+	return state, nil
+}
+
+// applyUserMerged runs on the SURVIVOR of a merge: each duplicate folded into
+// this user is recorded once in MergedUserIDs.
+func applyUserMerged(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[UserMergedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	for _, loser := range p.LoserIDs {
+		state.MergedUserIDs = withAppendedUnique(state.MergedUserIDs, loser)
+	}
+
+	return state, nil
+}
+
+// applyUserMergedInto is the terminal event of a merged-away duplicate. It is
+// a tombstone as well (Deleted=true), so every liveness gate that predates
+// merges refuses the stream; MergedInto names the survivor to follow.
+func applyUserMergedInto(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[UserMergedIntoPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.Deleted = true
+	state.MergedInto = p.SurvivorID
+	state.DeleteReason = p.Reason
+
+	return state, nil
+}
+
+// applyTOTPEnabled switches the second factor on and adopts the secret the
+// event carries. The secret is cloned: the payload's slice belongs to the
+// decoded event, and the state must not alias it.
+func applyTOTPEnabled(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[TOTPEnabledPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.TOTPEnabled = true
+	state.TOTPSecret = slices.Clone(p.Secret)
+
+	return state, nil
+}
+
+// applyExternalAccountLinked adds a linked third-party identity (provider +
+// subject). LinkedAt is the event's own timestamp, not a payload field.
+func applyExternalAccountLinked(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[ExternalAccountLinkedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	state.ExternalAccounts = append(state.ExternalAccounts, ExternalAccount{
+		Provider:    p.Provider,
+		Subject:     p.Subject,
+		Email:       p.Email,
+		DisplayName: p.DisplayName,
+		LinkedAt:    evt.OccurredAt(),
+	})
+
+	return state, nil
+}
+
+// applyExternalAccountUnlinked drops every linked identity matching the
+// event's provider + subject pair; a pair that was never linked is not an
+// error. The survivors move to a fresh slice so the fold never writes through
+// to the caller's state.
+func applyExternalAccountUnlinked(state UserState, evt event.Event) (UserState, error) {
+	p, err := UnmarshalPayload[ExternalAccountUnlinkedPayload](evt)
+	if err != nil {
+		return state, err
+	}
+
+	filtered := make([]ExternalAccount, 0, len(state.ExternalAccounts))
+	for _, ea := range state.ExternalAccounts {
+		if ea.Provider != p.Provider || ea.Subject != p.Subject {
+			filtered = append(filtered, ea)
+		}
+	}
+
+	state.ExternalAccounts = filtered
 
 	return state, nil
 }

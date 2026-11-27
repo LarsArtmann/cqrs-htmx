@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"regexp"
-	"strconv"
 	"slices"
+	"strconv"
 	"testing"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
