@@ -144,6 +144,9 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 		// Hold the shared registration lock for the whole batch so concurrent
 		// Register/OAuth2 flows see the updated count once this returns
 		// (importUsers bypassing the gate was the registration-lock hole #3).
+		// Lock order: registrationMu (here) precedes the per-address email
+		// stripe taken per row below — the order Register and the OAuth2
+		// first-login path share.
 		s.registrationMu.Lock()
 		defer s.registrationMu.Unlock()
 	}
@@ -154,26 +157,36 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 			result.Errors = append(result.Errors, err.Error())
 			continue
 		}
-		if _, ok := s.readModel.FindByEmail(users[i].Email); ok {
-			result.Skipped++
-			continue
+
+		// The uniqueness check and the dispatch share the row's email stripe
+		// (emailStripeLocks), so a concurrent Register, ChangeEmail or OAuth2
+		// first-login cannot claim the same address in between. The stripe is
+		// released before the next row: one stripe at a time.
+		unlock := s.emailMu.lock(users[i].Email)
+		_, taken := s.readModel.FindByEmail(users[i].Email)
+		closed := !taken && s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers
+		var dispatchErr error
+		if !taken && !closed {
+			aggID := id.NewStreamID()
+			dispatchErr = s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
+				aggID, users[i].Email, users[i].DisplayName, []Role{RoleUser},
+			))
 		}
-		if s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers {
+		unlock()
+
+		switch {
+		case taken:
+			result.Skipped++
+		case closed:
 			result.Skipped++
 			result.Errors = append(result.Errors,
 				users[i].Email+": registration is closed")
-			continue
-		}
-
-		aggID := id.NewStreamID()
-		if err := s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
-			aggID, users[i].Email, users[i].DisplayName, []Role{RoleUser},
-		)); err != nil {
+		case dispatchErr != nil:
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("%s: %v", users[i].Email, err))
-			continue
+				fmt.Sprintf("%s: %v", users[i].Email, dispatchErr))
+		default:
+			result.Imported++
 		}
-		result.Imported++
 	}
 	if len(result.Errors) == 0 {
 		result.Errors = nil

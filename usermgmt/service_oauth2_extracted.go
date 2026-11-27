@@ -37,6 +37,16 @@ type OAuth2Service struct {
 	// matchOrCreateUser so concurrent first logins cannot both pass the gate.
 	registrationMu *sync.Mutex
 
+	// emailMu is the Service's shared per-address stripe lock (see
+	// emailStripeLocks). matchOrCreateUser holds the stripe of a provider-
+	// verified email across the email match and the auto-registration that
+	// follows it, so a concurrent Register with the same address cannot land
+	// in between. NewService wires the core Service's lock set here; a
+	// stand-alone OAuth2Service keeps the private one the constructor makes,
+	// which still serializes its own first logins.
+	// Lock order: registrationMu (when taken) comes first.
+	emailMu *emailStripeLocks
+
 	// Shared dependencies from the core Service
 	readModel     *UserReadModel
 	dispatcher    dispatcher
@@ -68,6 +78,9 @@ type errorClassifier func(err error, userID UserID, kv ...string) error
 // same values the core Service was built with (ServiceConfig.MaxUsers and the
 // Service's registration mutex) so both flows enforce one shared user limit.
 // registrationMu may be nil, in which case the count check is advisory only.
+// The per-address email lock set is not a parameter (the signature is frozen):
+// the service starts with a private set and NewService swaps in the core
+// Service's one so both flows serialize on the same stripes.
 // store + bus carry the auth audit journal; pass the Service's values.
 func NewOAuth2Service(
 	provider OAuth2Provider,
@@ -96,6 +109,7 @@ func NewOAuth2Service(
 		stateTTL:       stateTTL,
 		maxUsers:       maxUsers,
 		registrationMu: registrationMu,
+		emailMu:        new(emailStripeLocks),
 		readModel:      readModel,
 		dispatcher:     dispatcher,
 		sessions:       sessions,
@@ -322,6 +336,16 @@ func (o *OAuth2Service) Unlink(ctx context.Context, userID UserID, provider stri
 
 // matchOrCreateUser finds an existing user by provider+subject (stable ID),
 // or by email, or auto-registers a new user if neither is found.
+//
+// Past the external-account fast path, the whole match-or-provision runs
+// under the shared registration lock (when MaxUsers is set) and — when the
+// provider verified the email — under that address's stripe: the email match
+// IS the uniqueness check for the auto-registration that follows, so both
+// must sit on one side of the locks, or a concurrent Service.Register with
+// the same address could land in between and leave two users on it.
+// Lock order matches Register and importUsers: registrationMu before the
+// email stripe, so no path can deadlock against them (see emailStripeLocks).
+// provisionLinkedUser relies on the caller for both locks.
 func (o *OAuth2Service) matchOrCreateUser(
 	ctx context.Context,
 	provider string,
@@ -329,6 +353,15 @@ func (o *OAuth2Service) matchOrCreateUser(
 ) (*User, bool, error) {
 	if existing, ok := o.readModel.FindByExternalAccount(provider, info.Subject); ok {
 		return existing, false, nil
+	}
+
+	if o.maxUsers > 0 {
+		o.registrationMu.Lock()
+		defer o.registrationMu.Unlock()
+	}
+	if info.EmailVerified {
+		unlock := o.emailMu.lock(info.Email)
+		defer unlock()
 	}
 
 	// Email-match linking is gated on EmailVerified (see matchVerifiedEmail).
@@ -344,27 +377,24 @@ func (o *OAuth2Service) matchOrCreateUser(
 }
 
 // provisionLinkedUser auto-registers a fresh user for the OAuth2 identity and
-// links the external account to it. The shared registration lock (when
-// MaxUsers is set) is held from the count check through the final read so a
-// concurrent Register or first-login sees the updated count once this returns.
+// links the external account to it. The caller (matchOrCreateUser) holds the
+// shared registration lock (when MaxUsers is set) and the email stripe (when
+// the provider verified the email) from before the email match through the
+// final read, so a concurrent Register or first-login sees the updated read
+// model once this returns.
 func (o *OAuth2Service) provisionLinkedUser(
 	ctx context.Context,
 	provider string,
 	info OAuth2UserInfo,
 ) (*User, bool, error) {
-	if o.maxUsers > 0 {
-		o.registrationMu.Lock()
-		defer o.registrationMu.Unlock()
+	if o.maxUsers > 0 && o.readModel.Count() >= o.maxUsers {
+		o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
+		o.audit.registrationClosed(ctx)
 
-		if o.readModel.Count() >= o.maxUsers {
-			o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
-			o.audit.registrationClosed(ctx)
-
-			return nil, false, errorfamily.NewRejection(
-				"usermgmt.oauth2.registration_closed",
-				"registration is closed",
-			).WithCause(ErrRegistrationClosed).WithContext("provider", provider)
-		}
+		return nil, false, errorfamily.NewRejection(
+			"usermgmt.oauth2.registration_closed",
+			"registration is closed",
+		).WithCause(ErrRegistrationClosed).WithContext("provider", provider)
 	}
 
 	aggID := id.NewStreamID()

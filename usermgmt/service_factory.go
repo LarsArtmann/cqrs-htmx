@@ -233,6 +233,10 @@ func NewService(config ServiceConfig) (*Service, error) {
 			classifyDispatchError,
 			svc.store, svc.bus,
 		)
+		// Share the core Service's per-address stripes so an OAuth2 first-login
+		// and a Register/ChangeEmail/import for the same address serialize on
+		// one lock (same lock order: registrationMu, then the stripe).
+		svc.oauth2Svc.emailMu = &svc.emailMu
 	}
 
 	svc.wireLockoutEviction()

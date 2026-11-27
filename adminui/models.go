@@ -488,8 +488,9 @@ type tenantsListData struct {
 
 // tenantRow is one tenant list entry plus the facts an admin needs BEFORE
 // opening it: how many actors it scopes and its lifecycle state. The count is
-// derived per visible row (the read model has no batched count query yet) and
-// the list is page-bounded, so this stays O(page × memberships).
+// read once per tenant per request (the read model has no batched count query
+// yet): for the rows of the visible page, or for every matched tenant when the
+// list is ranked by members, because that ranking spans pages.
 type tenantRow struct {
 	Tenant      *usermgmt.Tenant
 	MemberCount int
