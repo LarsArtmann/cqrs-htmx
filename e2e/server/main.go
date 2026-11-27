@@ -121,6 +121,10 @@ func main() {
 	// viewer) with their deterministic driver endpoints.
 	mountBridges(mux, host)
 
+	// Client-tracking surfaces (tracker script, endpoint, page under test,
+	// signal read-back) for tests/tracker.spec.ts.
+	mountTracking(mux)
+
 	// Browsers request /favicon.ico on every page; a 404 here is logged as
 	// a console error by Firefox's internal favicon loader under some pages'
 	// CSP settings (hit live in the firefox engine runs, 2026-11-08). Answer

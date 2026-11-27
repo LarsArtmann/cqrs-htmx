@@ -1,26 +1,27 @@
 # Browser E2E Battery
 
-Playwright-based browser tests for every client-facing cqrs-htmx surface: the offline-sync SharedWorker, adminui, dashboardui, loginpage (WebAuthn + posture), the root HTMX helpers, the setup bundle, the DataStar adapter, and the health/auditlog bridge dashboards.
+Playwright-based browser tests for every client-facing cqrs-htmx surface: the offline-sync SharedWorker, adminui, dashboardui, loginpage (WebAuthn + posture), the root HTMX helpers, the setup bundle, the DataStar adapter, the health/auditlog bridge dashboards, and the client tracker.
 
 ## Coverage matrix
 
-| Spec                                | Surface under test                                        | Server (port)                   | Notes                                                                 |
-| ----------------------------------- | --------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------- |
-| `sync.spec.ts`                      | offline-sync SharedWorker + pull/push handlers            | e2e/server (:18923)             | offline/online toggles, IndexedDB queue, dedup, backendId reset       |
-| `axe.spec.ts` / `axe-probe.spec.ts` | dashboardui accessibility                                 | e2e/server (:18923)             | axe sweeps, light + dark                                              |
-| `screenshots.spec.ts`               | dashboardui visual capture                                | e2e/server (:18923)             | light/dark/mobile → `docs/screenshots/`                               |
-| `admin-behavior.spec.ts`            | adminui                                                   | examples/admin-demo (:18930)    |                                                                       |
-| `admin-csrf.spec.ts`                | adminui CSRF refusal (browser-level proof)                | examples/admin-demo (:18930)    | token-less POST → 403; paired with-token control creates              |
-| `admin-a11y.spec.ts`                | adminui accessibility (axe + keyboard)                    | examples/admin-demo (:18930)    | also in the webkit smoke subset                                       |
-| `datastar.spec.ts`                  | DataStar adapter demo                                     | examples/datastar-demo (:18931) | the demo that shipped dead-in-browser through every gate (2026-11-07) |
-| `root-htmx.spec.ts`                 | root HTMX helpers (RenderPartialOrFull, OOB, SSE refresh) | examples/basic (:18932)         |                                                                       |
-| `setup-bundle.spec.ts`              | setup composition root                                    | examples/setup-demo (:18933)    | session gates, /health, dual-transport hub                            |
-| `loginpage-webauthn.spec.ts`        | loginpage + usermgmt WebAuthn                             | e2e/server (:18923)             | CDP virtual authenticator — **Chromium-only**                         |
-| `loginpage-golden.spec.ts`          | loginpage render DOM                                      | e2e/server (:18923)             | regenerate with `WRITE_GOLDEN=1`                                      |
-| `loginpage-posture.spec.ts`         | /auth/me + logout session contract                        | e2e/server (:18923)             | 401 anonymous / 200 with session / revoked after logout               |
-| `dashboard.spec.ts`                 | dashboardui static views                                  | e2e/server (:18923)             |                                                                       |
-| `dashboard-live.spec.ts`            | dashboardui live SSE views                                | e2e/server (:18923)             | journal replay, multi-tab, time-travel, `/api/debug/emit` driver      |
-| `bridges.spec.ts`                   | health dashboard + auditlog live viewer                   | e2e/server (:18923)             | `/api/debug/invoke` driver                                            |
+| Spec                                | Surface under test                                        | Server (port)                   | Notes                                                                              |
+| ----------------------------------- | --------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------- |
+| `sync.spec.ts`                      | offline-sync SharedWorker + pull/push handlers            | e2e/server (:18923)             | offline/online toggles, IndexedDB queue, dedup, backendId reset                    |
+| `axe.spec.ts` / `axe-probe.spec.ts` | dashboardui accessibility                                 | e2e/server (:18923)             | axe sweeps, light + dark                                                           |
+| `screenshots.spec.ts`               | dashboardui visual capture                                | e2e/server (:18923)             | light/dark/mobile → `docs/screenshots/`                                            |
+| `admin-behavior.spec.ts`            | adminui                                                   | examples/admin-demo (:18930)    |                                                                                    |
+| `admin-csrf.spec.ts`                | adminui CSRF refusal (browser-level proof)                | examples/admin-demo (:18930)    | token-less POST → 403; paired with-token control creates                           |
+| `admin-a11y.spec.ts`                | adminui accessibility (axe + keyboard)                    | examples/admin-demo (:18930)    | also in the webkit smoke subset                                                    |
+| `datastar.spec.ts`                  | DataStar adapter demo                                     | examples/datastar-demo (:18931) | the demo that shipped dead-in-browser through every gate (2026-11-07)              |
+| `root-htmx.spec.ts`                 | root HTMX helpers (RenderPartialOrFull, OOB, SSE refresh) | examples/basic (:18932)         |                                                                                    |
+| `setup-bundle.spec.ts`              | setup composition root                                    | examples/setup-demo (:18933)    | session gates, /health, dual-transport hub                                         |
+| `loginpage-webauthn.spec.ts`        | loginpage + usermgmt WebAuthn                             | e2e/server (:18923)             | CDP virtual authenticator — **Chromium-only**                                      |
+| `loginpage-golden.spec.ts`          | loginpage render DOM                                      | e2e/server (:18923)             | regenerate with `WRITE_GOLDEN=1`                                                   |
+| `loginpage-posture.spec.ts`         | /auth/me + logout session contract                        | e2e/server (:18923)             | 401 anonymous / 200 with session / revoked after logout                            |
+| `dashboard.spec.ts`                 | dashboardui static views                                  | e2e/server (:18923)             |                                                                                    |
+| `dashboard-live.spec.ts`            | dashboardui live SSE views                                | e2e/server (:18923)             | journal replay, multi-tab, time-travel, `/api/debug/emit` driver                   |
+| `bridges.spec.ts`                   | health dashboard + auditlog live viewer                   | e2e/server (:18923)             | `/api/debug/invoke` driver                                                         |
+| `tracker.spec.ts`                   | client tracker (`tracker.js` + `TrackHandler`)            | e2e/server (:18923)             | page view, dwell, click, impression attributed; GPC + `data-tracking="off"` silent |
 
 ## How to run
 
@@ -154,8 +155,11 @@ nspr resolution breaks; hit live 2026-11-08).
 ## Test server
 
 `e2e/server/` mounts the loginpage/usermgmt stack, the dashboard, the bridge
-dashboards, and the debug drivers (`POST /api/debug/emit`, `POST
-/api/debug/invoke`, `POST /api/debug/rotate-backend`). Playwright's
+dashboards, the client-tracking surfaces (tracker script, `POST /-/track`
+behind a session, the `/tracking` page under test), and the debug drivers
+(`POST /api/debug/emit`, `POST /api/debug/invoke`, `POST
+/api/debug/rotate-backend`, `POST /api/debug/tracking-login`, `GET
+/api/debug/signals`, `POST /api/debug/signals/reset`). Playwright's
 `webServer` entries start it (plus the four example servers) automatically —
 the config pins `GOWORK`/`GOTOOLCHAIN`/`GOEXPERIMENT` per server.
 
