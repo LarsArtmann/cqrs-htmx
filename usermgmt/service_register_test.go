@@ -2,6 +2,8 @@ package usermgmt
 
 import (
 	"context"
+	"errors"
+	"sync"
 	"testing"
 )
 
@@ -162,4 +164,60 @@ func TestService_Register_MaxUsersTwo_AllowsThird(t *testing.T) {
 		ID: NewUserID("u3"), Email: "third@example.com",
 	})
 	assertErrorIs(t, err, ErrRegistrationClosed, "registration closed after 2 users with MaxUsers=2")
+}
+
+// TestService_Register_ConcurrentSameEmail pins the single-instance uniqueness
+// guarantee. With the default MaxUsers=0 nothing serialized the
+// check-then-register section, so N concurrent registrations of one address
+// used to produce several users on it. The per-address stripe lock now spans
+// the uniqueness check and the dispatch: exactly one succeeds and exactly one
+// row holds the address.
+func TestService_Register_ConcurrentSameEmail(t *testing.T) {
+	t.Parallel()
+
+	const (
+		workers = 24
+		email   = "same-address@example.com"
+	)
+	svc := newTestService(t) // MaxUsers=0: the configuration that used to race
+	t.Cleanup(svc.Stop)
+	ctx := context.Background()
+
+	errs := make([]error, workers)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start // barrier: every goroutine races from the same gun
+			_, errs[i] = svc.Register(ctx, RegisterRequest{Email: email})
+		}()
+	}
+	close(start)
+	wg.Wait()
+
+	var succeeded, refused int
+	for i, err := range errs {
+		switch {
+		case err == nil:
+			succeeded++
+		case errors.Is(err, ErrEmailExists):
+			refused++
+		default:
+			t.Errorf("worker %d: unexpected error: %v", i, err)
+		}
+	}
+	if succeeded != 1 {
+		t.Errorf("succeeded = %d, want exactly 1", succeeded)
+	}
+	if refused != workers-1 {
+		t.Errorf("refused with ErrEmailExists = %d, want %d", refused, workers-1)
+	}
+	if holders := countUsersWithEmail(svc, email); holders != 1 {
+		t.Errorf("rows holding %s = %d, want exactly 1", email, holders)
+	}
+	if got := svc.readModel.Count(); got != 1 {
+		t.Errorf("read model count = %d, want 1", got)
+	}
 }

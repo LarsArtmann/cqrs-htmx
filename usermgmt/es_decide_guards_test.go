@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
+
 // existingState is a valid, non-deleted user state used as the base for guard tests.
 func existingState() UserState {
 	return UserState{Email: "user@example.com", DisplayName: "User"}

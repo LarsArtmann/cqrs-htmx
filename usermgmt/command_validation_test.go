@@ -77,3 +77,68 @@ func TestValidateCommand_CommandsWithoutSyntacticRulesPassThrough(t *testing.T) 
 		t.Errorf("VerifyEmailCmd rejected: %v", err)
 	}
 }
+
+// TestValidateCommand_RequiredEmailRejectedWhenEmpty pins that the email of
+// RegisterUserCmd and ChangeEmailCmd is validated even when it is empty or
+// blank. The middleware used to skip the check for "" ("empty arguments skip
+// their check"), so ValidateCommand(NewChangeEmailCmd(id, "")) returned nil
+// and the command went on to blank a user's stored email.
+func TestValidateCommand_RequiredEmailRejectedWhenEmpty(t *testing.T) {
+	t.Parallel()
+
+	aggID := aggIDFromUserID(t, GenerateUserID())
+	commands := map[string]func(email string) command.Command{
+		"RegisterUserCmd": func(email string) command.Command {
+			return NewRegisterUserCmd(aggID, email, "", nil)
+		},
+		"ChangeEmailCmd": func(email string) command.Command {
+			return NewChangeEmailCmd(aggID, email)
+		},
+	}
+	for name, build := range commands {
+		for _, tc := range blankEmailCases() {
+			if err := ValidateCommand(build(tc.email)); !errors.Is(err, ErrValidation) {
+				t.Errorf("ValidateCommand(%s with %s email) = %v, want an ErrValidation error", name, tc.name, err)
+			}
+		}
+	}
+
+	// A genuinely optional argument keeps the "empty skips its check" rule.
+	if err := ValidateCommand(NewChangeDisplayNameCmd(aggID, "")); err != nil {
+		t.Errorf("ValidateCommand(ChangeDisplayNameCmd with empty display name) = %v, want nil", err)
+	}
+}
+
+// TestCommandValidation_EmptyChangeEmailNeverReachesTheDomain wires the
+// middleware and dispatches a ChangeEmail carrying an empty address: it is
+// refused before the domain handler runs and the user keeps its address.
+func TestCommandValidation_EmptyChangeEmailNeverReachesTheDomain(t *testing.T) {
+	t.Parallel()
+
+	svc := newTestServiceWithConfig(t, ServiceConfig{
+		CommandMiddleware: []command.Middleware{
+			middleware.CommandValidation(ValidateCommand),
+		},
+	})
+	t.Cleanup(svc.Stop)
+
+	const email = "keep@test.com"
+	userID := registerTestUser(t, svc, "u1", email).User.ID
+	aggID, err := aggIDFromUser(userID)
+	if err != nil {
+		t.Fatalf("aggIDFromUser: %v", err)
+	}
+
+	err = svc.dispatcher.Dispatch(t.Context(), NewChangeEmailCmd(aggID, ""))
+	if !errors.Is(err, ErrValidation) {
+		t.Fatalf("dispatch with empty email: error = %v, want the ErrValidation sentinel", err)
+	}
+
+	user, ok := svc.readModel.FindByUserID(userID)
+	if !ok {
+		t.Fatal("user vanished after a refused ChangeEmail")
+	}
+	if user.Email != email {
+		t.Errorf("stored email = %q, want %q (the command must not reach the domain)", user.Email, email)
+	}
+}
