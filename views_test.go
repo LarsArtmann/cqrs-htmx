@@ -1,9 +1,12 @@
 package cqrshtmx_test
 
 import (
+	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
@@ -16,11 +19,33 @@ type viewsTestProps struct {
 	Label string
 }
 
+// countingTemplComponent counts its Render calls, for the single-render proof.
+type countingTemplComponent struct {
+	inner   cqrshtmx.TemplComponent
+	renders *atomic.Int32
+}
+
+func (c *countingTemplComponent) Render(ctx context.Context, w io.Writer) error {
+	c.renders.Add(1)
+
+	return c.inner.Render(ctx, w)
+}
+
 // viewsTestComponent renders a marker string so the assertions can tell the
 // three shapes apart without parsing HTML.
 func viewsTestComponent(marker string) func(viewsTestProps) cqrshtmx.TemplComponent {
 	return func(props viewsTestProps) cqrshtmx.TemplComponent {
 		return &bddTemplComponent{html: "<" + marker + ">" + props.Label + "</" + marker + ">"}
+	}
+}
+
+// countingViewsTestComponent is viewsTestComponent plus a Render counter.
+func countingViewsTestComponent(marker string, renders *atomic.Int32) func(viewsTestProps) cqrshtmx.TemplComponent {
+	return func(props viewsTestProps) cqrshtmx.TemplComponent {
+		return &countingTemplComponent{
+			inner:   viewsTestComponent(marker)(props),
+			renders: renders,
+		}
 	}
 }
 
@@ -170,6 +195,30 @@ var _ = Describe("Views", func() {
 			Expect(strings.Index(body, `id="first"`)).To(BeNumerically("<", strings.Index(body, `id="second"`)))
 			Expect(body).To(ContainSubstring(`<div id="first" hx-swap-oob="true"><b>rows</b></div>`))
 			Expect(body).To(ContainSubstring(`<div id="second" hx-swap-oob="true"><i>rows</i></div>`))
+		})
+
+		It("renders the primary view exactly once and each OOB view exactly once", func() {
+			var page, region, oob atomic.Int32
+
+			app := newViewsTestApp(props)
+			handler := app.Query("GetUser", decodeGetUserJSONQuery(), cqrshtmx.Views(
+				cqrshtmx.Region("#rows", countingViewsTestComponent("ul", &region)),
+				cqrshtmx.Page(countingViewsTestComponent("html", &page)),
+				cqrshtmx.OOB("count", countingViewsTestComponent("b", &oob)),
+			))
+
+			serve(handler, viewsRequest(map[string]string{
+				"Hx-Request": cqrshtmx.HeaderTrue,
+				"Hx-Target":  "rows",
+			}))
+			Expect(region.Load()).To(Equal(int32(1)))
+			Expect(oob.Load()).To(Equal(int32(1)))
+			Expect(page.Load()).To(Equal(int32(0)))
+
+			serve(handler, viewsRequest(nil))
+			Expect(page.Load()).To(Equal(int32(1)))
+			Expect(region.Load()).To(Equal(int32(1)))
+			Expect(oob.Load()).To(Equal(int32(1)))
 		})
 
 		It("never emits OOB fragments on a full page", func() {

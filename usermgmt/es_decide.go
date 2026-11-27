@@ -1,6 +1,8 @@
 package usermgmt
 
 import (
+	"strings"
+
 	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -31,7 +33,9 @@ func decideRegisterUser(
 			return nil, errorfamily.NewConflict("usermgmt.user_already_exists",
 				"user with this ID already exists")
 		}
-		if email == "" {
+		// TrimSpace, not == "": a whitespace-only address is the same hole — it
+		// is never blank-checked downstream and would be stored verbatim.
+		if strings.TrimSpace(email) == "" {
 			return nil, errorfamily.NewRejection("usermgmt.register.email_required",
 				"email is required")
 		}

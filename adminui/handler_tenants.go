@@ -27,14 +27,25 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 		matched = append(matched, t)
 	}
 	// Member counts: the members sort ranks every MATCHED tenant (the order
-	// spans pages), so only that ordering pays for the full map; any other
-	// order reads counts for the visible page's rows alone.
+	// spans pages), so it reads the full map once and the rows below reuse it;
+	// any other order reads counts for the visible page's rows alone. Either
+	// way a tenant's count is read exactly once per request.
+	var counts map[identitymodel.TenantID]int
 	if sort == "members" {
-		sortTenants(matched, sort, h.tenantMemberCounts(r.Context(), matched))
+		counts = h.tenantMemberCounts(r.Context(), matched)
 	}
+
+	// EVERY order is applied before paging. The read model returns tenants in
+	// map order, so a list that skipped this would page differently on every
+	// request (2026-11-27: the members-only guard introduced on 11-24 dropped
+	// the default name sort).
+	sortTenants(matched, sort, counts)
+
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), h.config.PageSize)
 	visible := matched[offset : offset+limit]
-	counts := h.tenantMemberCounts(r.Context(), visible)
+	if sort != "members" {
+		counts = h.tenantMemberCounts(r.Context(), visible)
+	}
 	rows := make([]tenantRow, 0, limit)
 	for _, t := range visible {
 		rows = append(rows, tenantRow{

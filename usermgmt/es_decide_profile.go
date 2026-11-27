@@ -1,6 +1,8 @@
 package usermgmt
 
 import (
+	"strings"
+
 	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -18,6 +20,14 @@ func decideChangeEmail(
 		if state.Deleted {
 			return nil, errorfamily.NewRejection("usermgmt.change_email.deleted",
 				"cannot change email of deleted user")
+		}
+		// A blank email must never reach the event: UserState.Exists() is
+		// `Email != ""`, so an EmailChanged carrying "" erases the aggregate
+		// (every later command answers *.not_found). Only the blank hole is
+		// closed here — the format rule (ParseEmail) belongs to the Service.
+		if strings.TrimSpace(email) == "" {
+			return nil, errorfamily.NewRejection("usermgmt.change_email.email_required",
+				"email is required")
 		}
 		if state.Email == email {
 			return nil, nil

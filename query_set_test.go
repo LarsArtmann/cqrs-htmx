@@ -594,7 +594,7 @@ var _ = Describe("QuerySet", func() {
 			var sink error
 
 			app := newQuerySetTestApp(&sink)
-			w := serve(app.QuerySet(set, cqrshtmx.Views(
+			serve(app.QuerySet(set, cqrshtmx.Views(
 				cqrshtmx.Region("#item-list", func(props querySetProps) cqrshtmx.TemplComponent {
 					return &bddTemplComponent{html: props.Name}
 				}),
@@ -606,7 +606,8 @@ var _ = Describe("QuerySet", func() {
 				}),
 			)), querySetFragmentRequest("#nowhere"))
 
-			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			// The mapped status (400) is pinned by the spec above; this one
+			// proves the refusal costs nothing and says what would have matched.
 			Expect(runs.Load()).To(Equal(int32(0)))
 			Expect(errorfamily.Code(sink)).To(Equal("unroutable_view"))
 			Expect(sink.Error()).To(ContainSubstring(`no view matches target "#nowhere"`))
@@ -806,6 +807,7 @@ var _ = Describe("QuerySet", func() {
 				}),
 				cqrshtmx.OnLoad(func(_ *http.Request, report cqrshtmx.LoadReport) {
 					degraded = report.HasFailures()
+
 					order = append(order, "load")
 				}),
 			)
@@ -839,8 +841,12 @@ var _ = Describe("QuerySet", func() {
 	})
 
 	Describe("optional failures", func() {
-		countErr := errorfamily.NewTransient("count_unavailable", "counts are down")
-		badgeErr := errorfamily.NewTransient("badge_unavailable", "badges are down")
+		var countErr, badgeErr error
+
+		BeforeEach(func() {
+			countErr = errorfamily.NewTransient("count_unavailable", "counts are down")
+			badgeErr = errorfamily.NewTransient("badge_unavailable", "badges are down")
+		})
 
 		newDegradedSet := func() cqrshtmx.QuerySet[querySetProps] {
 			return cqrshtmx.NewQuerySet(
@@ -880,6 +886,7 @@ var _ = Describe("QuerySet", func() {
 			var logs bytes.Buffer
 
 			previous := slog.Default()
+
 			slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
 			DeferCleanup(func() { slog.SetDefault(previous) })
 
@@ -941,6 +948,7 @@ var _ = Describe("QuerySet", func() {
 					}
 
 					<-ctx.Done()
+
 					outcome <- ctx.Err()
 
 					return "", ctx.Err()

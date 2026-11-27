@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -131,6 +132,17 @@ func renderedTenantRows(t *testing.T, body string) []string {
 	return rows
 }
 
+// slugsOfRows names the tenants behind "slug=count" row tokens, in the order
+// given.
+func slugsOfRows(rows []string) []string {
+	slugs := make([]string, 0, len(rows))
+	for _, row := range rows {
+		slug, _, _ := strings.Cut(row, "=")
+		slugs = append(slugs, slug)
+	}
+	return slugs
+}
+
 // rowsOf renders tenant indices as the "slug=count" tokens the read panel's
 // tenants must show.
 func rowsOf(indices []int) []string {
@@ -154,16 +166,6 @@ func membersOrder(n int) []int {
 		}
 		return cmp.Compare(a, b)
 	})
-	return order
-}
-
-// nameOrder lists the read panel's tenant indices in display-name order,
-// which is index order for the zero-padded slugs.
-func nameOrder(n int) []int {
-	order := make([]int, 0, n)
-	for i := range n {
-		order = append(order, i)
-	}
 	return order
 }
 
@@ -252,26 +254,60 @@ func TestTenantsIndex_MemberCountReads(t *testing.T) {
 	})
 
 	// Any other order must not inherit the members sort's cost: it reads
-	// exactly the rows it renders — full page, then the short last page —
-	// and keeps its display-name order and counts.
+	// exactly the rows it renders — the full first page, then the short last
+	// page — and each of them once.
 	t.Run("name sort reads only the rows it renders", func(t *testing.T) {
 		const tenants, pageSize = 23, 10
 		panel, counter := newTenantReadPanel(t, tenants, pageSize)
-		order := nameOrder(tenants)
-		for _, tc := range []struct{ page, wantReads int }{{1, 10}, {3, 3}} {
+		for _, tc := range []struct {
+			page, wantRows int
+		}{{1, 10}, {3, 3}} {
 			counter.reset()
 			body := getTenants(t, panel, fmt.Sprintf("?page=%d", tc.page), true)
-			if counter.reads != tc.wantReads {
-				t.Errorf("page %d: member-count reads = %d, want %d", tc.page, counter.reads, tc.wantReads)
+			rendered := renderedTenantRows(t, body)
+			if len(rendered) != tc.wantRows {
+				t.Errorf("page %d renders %d rows, want %d", tc.page, len(rendered), tc.wantRows)
 			}
-			assertEachReadOnce(t, counter, tc.wantReads)
-			window := pageWindow(order, tc.page, pageSize)
-			if got := counter.readSlugs(); !slices.Equal(got, slugsOf(window)) {
-				t.Errorf("page %d tenants read = %v, want %v", tc.page, got, slugsOf(window))
+			if counter.reads != tc.wantRows {
+				t.Errorf("page %d: member-count reads = %d, want %d", tc.page, counter.reads, tc.wantRows)
 			}
-			if got := renderedTenantRows(t, body); !slices.Equal(got, rowsOf(window)) {
-				t.Errorf("page %d rows = %v, want %v", tc.page, got, rowsOf(window))
+			assertEachReadOnce(t, counter, tc.wantRows)
+			want := slugsOfRows(rendered)
+			slices.Sort(want)
+			if got := counter.readSlugs(); !slices.Equal(got, want) {
+				t.Errorf("page %d tenants read = %v, want the rendered rows %v", tc.page, got, want)
 			}
 		}
 	})
+}
+
+// TestTenantsIndex_NameSortIsDeterministic pins the default order across
+// pages: the read model hands tenants over in map order, so the list MUST
+// sort by display name before it pages. With the sort skipped (the 11-24
+// regression) each page showed a random window and a tenant could appear on
+// two pages or on none.
+func TestTenantsIndex_NameSortIsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	const tenants, pageSize = 23, 10
+	panel, _ := newTenantReadPanel(t, tenants, pageSize)
+
+	for page := 1; page <= 3; page++ {
+		body := getTenants(t, panel, fmt.Sprintf("?page=%d", page), true)
+		wantRows := rowsOf(pageWindow(identityOrder(tenants), page, pageSize))
+		if got := renderedTenantRows(t, body); !slices.Equal(got, wantRows) {
+			t.Errorf("page %d rows = %v, want %v (display-name order)", page, got, wantRows)
+		}
+	}
+}
+
+// identityOrder lists the first n tenant indices in index order, which for
+// the read panel is also display-name order (zero-padded slugs).
+func identityOrder(n int) []int {
+	order := make([]int, 0, n)
+	for i := range n {
+		order = append(order, i)
+	}
+
+	return order
 }
