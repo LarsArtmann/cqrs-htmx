@@ -34,7 +34,7 @@ broadcaster := cqrshtmx.NewBroadcaster()
 broadcaster.Broadcast(evt) // -> all connected clients
 
 // 4. Chain middleware (outer -> inner)
-cqrshtmx.Chain(cqrshtmx.RecommendedSecurityMiddleware(), httputil.CSRFMiddleware(httputil.CSRFConfig{}), app.Middleware())(mux)
+cqrshtmx.Chain(cqrshtmx.RecommendedSecurityMiddleware(), httputil.CSRFMiddleware(httputil.CSRFConfig{Secure: true, SameSite: http.SameSiteLaxMode}), app.Middleware())(mux)
 
 // 5. Map errors -> HTTP status (one function)
 status := httperr.MapError(err) // Rejection->400, Conflict->409, Transient->503, etc.
@@ -60,6 +60,8 @@ An app typically composes some subset of these. They are **independent Go module
 | **loginpage**         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`          | Ready-made passwordless login page (templ-components based: `layout.Base`, Tailwind-only styling, CSP-nonce + cookie-theme hooks). Third sibling UI panel.                                                                                                                                                                                                               |
 | **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering.                                                                                                                                                                                                                          |
 | **datastar**          | `github.com/larsartmann/cqrs-htmx/datastar/v4`           | Optional DataStar adapter: script serving, signal decoding, SSE response builder, EventBridge. Depends only on go-datastar + go-sse (no root dep).                                                                                                                                                                                                                       |
+
+Middleware questions beyond this table (middleware ordering, CSRF behind a reverse proxy, SSE through middleware, a complete chain to copy) belong to the `httputil` skill; hand off to it instead of restating its README.
 
 | **huma** | `github.com/larsartmann/cqrs-htmx/huma/v4` | Optional [Huma v2](https://huma.rocks/) adapter: `RegisterCommand`/`RegisterQuery` run the same authorize → validate → guard → dispatch stages inside typed OpenAPI operations and emit the same RFC 9457 error document. Huma keeps decode, status codes and the generated schema. Pins root v4.16.0, zero root change. |
 
@@ -164,7 +166,7 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 
 http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecommendedSecurityMiddleware(),
-    httputil.RateLimiterMiddleware(httputil.DefaultRateLimiterConfig()),
+    httputil.KeyedRateLimiterMiddleware(httputil.DefaultKeyedRateLimiterConfig()), // per-key limiter; the old RateLimiterMiddleware left httputil in v1.1.0
     cqrshtmx.RequestLoggingSlog(logger),
 )(mux))
 ```
@@ -542,7 +544,7 @@ mux.Handle("GET /htmx.js", htmx.ScriptHandler()) // embedded htmx 2.0.11, ETag +
 
 http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecommendedSecurityMiddleware(),
-    httputil.CSRFMiddleware(httputil.CSRFConfig{}), // protects mutations; opt-in
+    httputil.CSRFMiddleware(httputil.CSRFConfig{Secure: true, SameSite: http.SameSiteLaxMode}), // protects mutations; opt-in. The zero value sets Secure=false.
     cqrshtmx.HTMXMiddleware,                        // detects HTMX requests
     app.Middleware(),                                // enriches context (user/correlation/request IDs)
 )(mux))
@@ -622,7 +624,7 @@ sessionMW := usermgmt.NewSessionMiddleware(svc, "session")
 http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecommendedSecurityMiddleware(),
     sessionMW,                                    // authenticate the cookie first
-    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    httputil.CSRFMiddleware(httputil.CSRFConfig{Secure: true, SameSite: http.SameSiteLaxMode}),
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
 )(mux))
