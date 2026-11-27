@@ -105,7 +105,7 @@ way, as instructed.
 | c5 | HARVEST of both reports' §f into TODO_LIST / ROADMAP (previous f50) | See b6 |
 | c6 | The archive round and the audit-all decision | See b5 |
 | c7 | TODO rows 53, 54, 84 (the fast e2e slice script, the sync offline-reads flake posture, the e2e stale-port guard), 104, 105 (the CSP-knob guide and skill recipe), 107 (five gate micro-items), 143 (`nolint-audit` CI wiring), 149 (templ formatter-to-generator chain), 186 (`RequireSession` export decision) | Read and triaged, not executed |
-| c8 | adminui adoption of the seam (previous f33/f34) and the batched membership-count ask (f27) | Still blocked on a batched read; filing is owner-gated |
+| c8 | adminui adoption of the seam (previous f33/f34) and the batched membership-count ask (previous report f27) | Still blocked on a batched read; filing is owner-gated |
 | c9 | ROADMAP rows for the seam's deferred tail (previous f35–f48) and for two ideas I would now reject with a reason: a typed swap-strategy set for `OOB` (htmx swap values are an open grammar with modifiers — a closed set would refuse valid values) and dropping the out-of-band detection buffer (it buys rule parity with `OOBTempl`) | Nothing is recorded; the reasoning would be lost |
 | c10 | ROADMAP rows for the email probe's decision items: the avatar feature, branded-email constructor parameters, a database unique index on email, re-keying `UserState.Exists()` onto a registered flag, and the second email normalisation in the OAuth2 path | Each needs an owner decision; none is written down outside the probe's output |
 | c11 | Adminui's two `AllTenants()` scans per request (`tenantsIndex` and `tenantSwitchOptions` via `h.page`) | Noticed by the subagent, not touched |
@@ -193,7 +193,7 @@ audit for it.
   shapes to satisfy two analysers; the end state is right, the path was long.
 - **Scope the PNG fix deliberately.** Re-encoding a "human-eyeballed render
   receipt" to an 8-bit palette is defensible (a crop was inspected, a lossless
-  re-encode does not fit) but it is a judgement the owner should confirm (b7).
+  re-encode does not fit) but it is a judgement the owner should confirm (b6).
 
 **What could you still improve?**
 
