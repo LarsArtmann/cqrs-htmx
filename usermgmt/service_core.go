@@ -70,6 +70,12 @@ type Service struct {
 	// Register and OAuth2Service.matchOrCreateUser so concurrent requests cannot
 	// both pass the MaxUsers check before either dispatch lands in the read model.
 	registrationMu sync.Mutex
+	// emailMu serializes the email-uniqueness check-then-dispatch critical
+	// section per address (striped, so different addresses proceed in
+	// parallel). Shared by Register, ChangeEmail, importUsers and the OAuth2
+	// first-login path. Lock order: registrationMu (when taken) comes first.
+	// Single-instance guard only — see emailStripeLocks for scope and limits.
+	emailMu emailStripeLocks
 }
 
 // ServiceConfig holds optional dependencies for NewService.

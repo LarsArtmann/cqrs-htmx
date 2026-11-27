@@ -35,10 +35,8 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 		counts = h.tenantMemberCounts(r.Context(), matched)
 	}
 
-	// EVERY order is applied before paging. The read model returns tenants in
-	// map order, so a list that skipped this would page differently on every
-	// request (2026-11-27: the members-only guard introduced on 11-24 dropped
-	// the default name sort).
+	// EVERY order is applied before paging: the read model returns tenants in
+	// map order, so an unsorted list would page differently on every request.
 	sortTenants(matched, sort, counts)
 
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), h.config.PageSize)

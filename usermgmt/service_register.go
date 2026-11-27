@@ -26,6 +26,16 @@ func formatValidationErrors(errs []string) error {
 	return errorfamily.NewRejection("validation", strings.Join(errs, "; ")).WithCause(ErrValidation)
 }
 
+// newEmailExistsError is the shared "address already taken" answer of
+// Register and ChangeEmail: code usermgmt.email_exists, sentinel
+// ErrEmailExists, tagged with the id of the user the request was for.
+func newEmailExistsError(userID UserID) *event.Error {
+	return withUserIDContext(
+		errorfamily.NewRejection("usermgmt.email_exists", "email already registered").
+			WithCause(ErrEmailExists), userID,
+	)
+}
+
 func withUserIDContext(err *event.Error, userID UserID) *event.Error {
 	if err == nil || userID.IsZero() {
 		return err
@@ -88,11 +98,16 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 		return nil, err
 	}
 
+	// Same-address registrations are serialized per address: the uniqueness
+	// check and the dispatch below run under one stripe (emailStripeLocks), so
+	// two concurrent Registers cannot both find the address free. With the
+	// default MaxUsers=0 nothing else serializes this section. registrationMu
+	// (held above when MaxUsers is set) always precedes the stripe.
+	unlock := s.emailMu.lock(req.Email)
+	defer unlock()
+
 	if _, exists := s.readModel.FindByEmail(req.Email); exists {
-		return nil, withUserIDContext(
-			errorfamily.NewRejection("usermgmt.email_exists", "email already registered").
-				WithCause(ErrEmailExists), req.ID,
-		)
+		return nil, newEmailExistsError(req.ID)
 	}
 
 	aggID, err := aggIDFromUser(req.ID)

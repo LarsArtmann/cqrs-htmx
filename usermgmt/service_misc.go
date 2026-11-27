@@ -77,11 +77,35 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 	return user, nil
 }
 
-// ChangeEmail dispatches a ChangeEmail command.
+// ChangeEmail dispatches a ChangeEmail command after applying the same rules
+// Register does:
+//
+//   - the address must parse (ParseEmail: trimmed, lower-cased, RFC 5322
+//     shape, at most MaxEmailLength). A refused one — empty or blank included
+//     — answers the request-layer validation error (ErrValidation), and the
+//     normalised form is what gets stored;
+//   - the address must not belong to a DIFFERENT user, else the
+//     usermgmt.email_exists rejection with ErrEmailExists. Re-setting the
+//     user's own address is the decider's no-op.
+//
+// The uniqueness check and the dispatch run under the address's stripe lock,
+// so two users racing for one free address cannot both take it within one
+// process (see emailStripeLocks for the multi-replica limit).
 func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail string) error {
+	email, err := ParseEmail(newEmail)
+	if err != nil {
+		return formatValidationErrors([]string{"invalid email"})
+	}
+	unlock := s.emailMu.lock(email.String())
+	defer unlock()
+
+	if holder, ok := s.readModel.FindByEmail(email.String()); ok && holder.ID.Get() != userID.Get() {
+		return newEmailExistsError(userID)
+	}
+
 	return s.dispatchUserCommand(ctx, userID,
-		func(aggID id.StreamID) command.Command { return NewChangeEmailCmd(aggID, newEmail) },
-		"new_email", newEmail,
+		func(aggID id.StreamID) command.Command { return NewChangeEmailCmd(aggID, email.String()) },
+		"new_email", email.String(),
 	)
 }
 

@@ -49,8 +49,10 @@ func TestTenantsList_StatusFilter(t *testing.T) {
 	}
 }
 
-// TestTenantsList_SortByMembers pins the ordering toggle: sort=members orders
-// by member count descending, with display name as the stable tiebreak.
+// TestTenantsList_SortByMembers pins the ordering toggle on the TABLE. The
+// page's tenant switcher is name-sorted whatever the table does, so the
+// assertions read the table fragment an HTMX request gets; on the full page
+// the switcher's links come first and would mask a table-order bug.
 func TestTenantsList_SortByMembers(t *testing.T) {
 	t.Parallel()
 
@@ -63,20 +65,31 @@ func TestTenantsList_SortByMembers(t *testing.T) {
 	mustAddMember(t, svc, u1.User.ID, identitymodel.NewTenantID("busy"), identitymodel.RoleViewer)
 	mustAddMember(t, svc, u2.User.ID, identitymodel.NewTenantID("busy"), identitymodel.RoleViewer)
 
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants?sort=members", nil))
-	body := rec.Body.String()
-	if strings.Index(body, "busy") > strings.Index(body, "lonely") {
+	if !tenantsTableListsFirst(t, h, "?sort=members", "busy", "lonely") {
 		t.Error("sort=members must put the tenant with more members first")
 	}
 
-	// Default (no param) stays display-name order: busy before lonely.
-	rec = httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants", nil))
-	body = rec.Body.String()
-	if strings.Index(body, "busy") > strings.Index(body, "lonely") {
+	if !tenantsTableListsFirst(t, h, "", "busy", "lonely") {
 		t.Error("default sort must be display-name order (busy before lonely)")
 	}
+}
+
+// tenantsTableListsFirst reports whether the tenants TABLE fragment lists the
+// first tenant's link before the second's.
+func tenantsTableListsFirst(t *testing.T, h http.Handler, query, first, second string) bool {
+	t.Helper()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/admin/tenants"+query, nil)
+	req.Header.Set("HX-Request", "true")
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /admin/tenants%s: status %d", query, rec.Code)
+	}
+
+	body := rec.Body.String()
+
+	return strings.Index(body, "/admin/tenants/"+first) < strings.Index(body, "/admin/tenants/"+second)
 }
 
 // TestTenantDetail_ImpactConfirms pins the preflight truth: the destructive
