@@ -1,13 +1,13 @@
 package dashboardui
 
 import (
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/templ-components/display"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 // The command and query detail pages name who the audit record is attributed
@@ -77,8 +77,13 @@ func attributedCommand(userID id.UserID, deviceKey string) *command.PersistedCom
 }
 
 var _ = Describe("audit record attribution items", func() {
-	userID := id.NewUserID()
 	const deviceKey = "01HZDEVICEDEVICEDEVICEDEVICE0"
+
+	var userID id.UserID
+
+	BeforeEach(func() {
+		userID = id.NewUserID()
+	})
 
 	Describe("on the query detail page", func() {
 		It("shows the user and the device when the query carries both", func() {
