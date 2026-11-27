@@ -48,7 +48,7 @@ func TestDecideChangeEmail_BlankEmailRejected(t *testing.T) {
 
 			decide := decideChangeEmail(id.NewStreamID(), tc.email)
 			events, err := decide(existingState(), 1)
-			requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.email_required")
+			_ = requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.email_required")
 			if len(events) != 0 {
 				t.Fatalf("blank email emitted %d events, want 0", len(events))
 			}
@@ -68,7 +68,7 @@ func TestDecideChangeEmail_BlankEmailGuardOrder(t *testing.T) {
 
 		decide := decideChangeEmail(id.NewStreamID(), "")
 		events, err := decide(UserState{}, 0)
-		requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.not_found")
+		_ = requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.not_found")
 		if len(events) != 0 {
 			t.Fatalf("got %d events, want 0", len(events))
 		}
@@ -79,7 +79,7 @@ func TestDecideChangeEmail_BlankEmailGuardOrder(t *testing.T) {
 
 		decide := decideChangeEmail(id.NewStreamID(), " ")
 		events, err := decide(deletedState(), 1)
-		requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.deleted")
+		_ = requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.deleted")
 		if len(events) != 0 {
 			t.Fatalf("got %d events, want 0", len(events))
 		}
@@ -98,7 +98,7 @@ func TestDecideRegisterUser_WhitespaceEmailRejected(t *testing.T) {
 
 			decide := decideRegisterUser(id.NewStreamID(), tc.email, "A", []Role{RoleUser})
 			events, err := decide(UserState{}, 0)
-			requireDomainError(t, err, errorfamily.Rejection, "usermgmt.register.email_required")
+			_ = requireDomainError(t, err, errorfamily.Rejection, "usermgmt.register.email_required")
 			if len(events) != 0 {
 				t.Fatalf("blank email emitted %d events, want 0", len(events))
 			}

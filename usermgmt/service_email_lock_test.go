@@ -98,90 +98,172 @@ func TestEmailStripeLocks_SpreadsAddresses(t *testing.T) {
 func TestService_EmailLock_OrderAcrossPaths(t *testing.T) {
 	t.Parallel()
 
-	const (
-		addresses = 3
-		movers    = 2
-		rounds    = 6
-	)
-	email := func(i int) string { return fmt.Sprintf("lock%d@oauth.test", i) } // perProviderOAuth2Stub's address
-	provider := func(i int) string { return fmt.Sprintf("lock%d", i) }
-
 	for _, maxUsers := range []int{0, 10} {
 		t.Run(fmt.Sprintf("MaxUsers=%d", maxUsers), func(t *testing.T) {
 			t.Parallel()
 
-			svc, err := NewService(ServiceConfig{OAuth2: perProviderOAuth2Stub{}, MaxUsers: maxUsers})
-			if err != nil {
-				t.Fatalf("NewService: %v", err)
-			}
-			t.Cleanup(svc.Stop)
-			ctx := context.Background()
-
-			// The movers are pre-registered so ChangeEmail has a user to act
-			// on whatever the racing registrations do.
-			moverIDs := make([]UserID, movers)
-			home := func(m int) string { return fmt.Sprintf("mover-%d@test.com", m) }
-			for m := range movers {
-				moverIDs[m] = registerTestUser(t, svc, fmt.Sprintf("mover-%d", m), home(m)).User.ID
-			}
-
-			var importBody strings.Builder
-			_, _ = importBody.WriteString("[")
-			for i := range addresses {
-				if i > 0 {
-					_, _ = importBody.WriteString(",")
-				}
-				_, _ = fmt.Fprintf(&importBody, `{"email":%q}`, email(i))
-			}
-			_, _ = importBody.WriteString("]")
-
-			workers := make([]func(), 0, 2*addresses+movers+1)
-			for i := range addresses {
-				workers = append(workers,
-					func() {
-						for range rounds {
-							_, _ = svc.Register(ctx, RegisterRequest{Email: email(i)})
-						}
-					},
-					func() {
-						for range rounds {
-							_, _ = runTestOAuth2Login(ctx, svc, provider(i))
-						}
-					},
-				)
-			}
-			for m := range movers {
-				workers = append(workers, func() {
-					for range rounds {
-						_ = svc.ChangeEmail(ctx, moverIDs[m], email(m%addresses))
-						_ = svc.ChangeEmail(ctx, moverIDs[m], home(m))
-					}
-				})
-			}
-			workers = append(workers, func() {
-				for range rounds {
-					_, _ = svc.ImportUsersFromJSON(ctx, strings.NewReader(importBody.String()))
-				}
-			})
-
-			start := make(chan struct{})
-			var wg sync.WaitGroup
-			for _, run := range workers {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					<-start // barrier: every path races from the same gun
-					run()
-				}()
-			}
-			close(start)
-			wg.Wait()
-
-			for i := range addresses {
-				if holders := countUsersWithEmail(svc, email(i)); holders > 1 {
-					t.Errorf("rows holding %s = %d, want at most 1", email(i), holders)
-				}
-			}
+			arena := newEmailLockArena(t, maxUsers)
+			raceWorkers(arena.workers())
+			arena.assertNoAddressShared(t)
 		})
+	}
+}
+
+// The arena's size: as many addresses as the OAuth2 stub serves, two
+// pre-registered users that move between them, and the rounds each racing
+// goroutine runs.
+const (
+	emailLockAddresses = 3
+	emailLockMovers    = 2
+	emailLockRounds    = 6
+)
+
+// emailLockArena is one service under the lock-order test: the addresses the
+// racing paths fight over, the OAuth2 providers that mint them, and the
+// pre-registered users ("movers") that change their email back and forth.
+type emailLockArena struct {
+	svc        *Service
+	ctx        context.Context
+	emails     []string
+	providers  []string
+	moverIDs   []UserID
+	moverHomes []string
+	importBody string
+}
+
+// newEmailLockArena builds the service with the OAuth2 stub, pre-registers the
+// movers and prepares the JSON import that carries every racing address.
+func newEmailLockArena(t *testing.T, maxUsers int) *emailLockArena {
+	t.Helper()
+
+	svc, err := NewService(ServiceConfig{OAuth2: perProviderOAuth2Stub{}, MaxUsers: maxUsers})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	t.Cleanup(svc.Stop)
+
+	arena := &emailLockArena{
+		svc:        svc,
+		ctx:        context.Background(),
+		moverIDs:   make([]UserID, emailLockMovers),
+		moverHomes: make([]string, emailLockMovers),
+	}
+
+	for i := range emailLockAddresses {
+		arena.emails = append(arena.emails, fmt.Sprintf("lock%d@oauth.test", i)) // perProviderOAuth2Stub's address
+		arena.providers = append(arena.providers, fmt.Sprintf("lock%d", i))
+	}
+
+	for m := range emailLockMovers {
+		arena.moverHomes[m] = fmt.Sprintf("mover-%d@test.com", m)
+		arena.moverIDs[m] = registerTestUser(t, svc, fmt.Sprintf("mover-%d", m), arena.moverHomes[m]).User.ID
+	}
+
+	arena.importBody = emailLockImportBody(arena.emails)
+
+	return arena
+}
+
+// emailLockImportBody is the JSON import document carrying every address.
+func emailLockImportBody(emails []string) string {
+	var body strings.Builder
+
+	_, _ = body.WriteString("[")
+
+	for i, email := range emails {
+		if i > 0 {
+			_, _ = body.WriteString(",")
+		}
+
+		_, _ = fmt.Fprintf(&body, `{"email":%q}`, email)
+	}
+
+	_, _ = body.WriteString("]")
+
+	return body.String()
+}
+
+// workers lists the goroutine bodies that race: per address a Register and an
+// OAuth2 first-login, per mover a ChangeEmail pair, and one import of every
+// address.
+func (a *emailLockArena) workers() []func() {
+	workers := make([]func(), 0, 2*len(a.emails)+len(a.moverIDs)+1)
+
+	for i := range a.emails {
+		workers = append(workers, a.registerWorker(i), a.oauthWorker(i))
+	}
+
+	for m := range a.moverIDs {
+		workers = append(workers, a.moverWorker(m))
+	}
+
+	return append(workers, a.importWorker())
+}
+
+func (a *emailLockArena) registerWorker(i int) func() {
+	return func() {
+		for range emailLockRounds {
+			_, _ = a.svc.Register(a.ctx, RegisterRequest{Email: a.emails[i]})
+		}
+	}
+}
+
+func (a *emailLockArena) oauthWorker(i int) func() {
+	return func() {
+		for range emailLockRounds {
+			_, _ = runTestOAuth2Login(a.ctx, a.svc, a.providers[i])
+		}
+	}
+}
+
+// moverWorker moves one user onto a racing address and back home, so
+// ChangeEmail contends with the registrations for the same stripes.
+func (a *emailLockArena) moverWorker(m int) func() {
+	return func() {
+		for range emailLockRounds {
+			_ = a.svc.ChangeEmail(a.ctx, a.moverIDs[m], a.emails[m%len(a.emails)])
+			_ = a.svc.ChangeEmail(a.ctx, a.moverIDs[m], a.moverHomes[m])
+		}
+	}
+}
+
+func (a *emailLockArena) importWorker() func() {
+	return func() {
+		for range emailLockRounds {
+			_, _ = a.svc.ImportUsersFromJSON(a.ctx, strings.NewReader(a.importBody))
+		}
+	}
+}
+
+// raceWorkers runs every worker on its own goroutine, released from one
+// barrier so they all contend at once.
+func raceWorkers(workers []func()) {
+	start := make(chan struct{})
+
+	var wg sync.WaitGroup
+
+	for _, run := range workers {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			<-start
+			run()
+		}()
+	}
+
+	close(start)
+	wg.Wait()
+}
+
+// assertNoAddressShared fails when any racing address ended up on two users.
+func (a *emailLockArena) assertNoAddressShared(t *testing.T) {
+	t.Helper()
+
+	for _, email := range a.emails {
+		if holders := countUsersWithEmail(a.svc, email); holders > 1 {
+			t.Errorf("rows holding %s = %d, want at most 1", email, holders)
+		}
 	}
 }
