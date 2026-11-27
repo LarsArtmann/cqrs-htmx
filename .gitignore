@@ -70,6 +70,7 @@ examples/samber-do-demo/samber-do-demo
 examples/setup-demo/setup-demo
 examples/sync-demo/sync-demo
 examples/system-demo/system-demo
+examples/tracking-demo/tracking-demo
 # Nix build output
 /result
 # Generated reports (buildflow coverage / jscpd / lint output)
