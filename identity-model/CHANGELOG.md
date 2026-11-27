@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **`FoldUser` is a dispatch table over per-event helpers (2026-11-27).** The 15-event switch no longer carries the transitions itself; each event is applied by an unexported `apply*` helper, which brings the function's cyclomatic complexity from 34 to 18 and the module's hermetic lint to zero findings. Behaviour is unchanged for every journaled stream — the same guards, errors and state, pinned by a differential run of the old function against the new one over 12,000 folds — and the module's own tests now cover each event's transition (module coverage 77.7% → 87.0%).
+
 ### Added
 
 - **Identity merge vocabulary (cqrs-htmx #46/#47).** Six events (`UserMerged`, `UserMergedInto`, `TenantRenamed`, `TenantMerged`, `TenantMergedInto`, `BotTransferred`) and six commands (`MergeUsers`, `MergeUserInto`, `RenameTenant`, `MergeTenants`, `MergeTenantInto`, `TransferBot`) with payloads, folds (`MergedInto`/`MergedUserIDs`/`MergedTenantIDs` state), `MergeContribution` (the authenticators a loser hands its survivor), and `NormalizeTenantName` (trim + lowercase comparison for the duplicates report and opt-in uniqueness). Terminal identities stay terminal: merged streams answer typed conflicts naming the survivor.

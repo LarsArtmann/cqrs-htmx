@@ -157,7 +157,7 @@ Tenants · Bots                                                        [ Registe
 
 - `display.Table` inside a `display.Card`, `empty()` for the zero state: "No bots yet — Register a bot to issue a scoped API token for machine callers." (search/filter deliberately out of scope until the list is big enough to need it; `listNote`/`listPager` only if ask E's sketch grows pagination).
 - Columns come from the bot read model (`Name`, `OwnerID`, `Scopes`, registration time) — `gated: needs ask E`, which is read-model only and carries NO token material (packet §2 ask E). Token hashes never render.
-- Row actions are sm `display.Button`s with `hx-post` + `data-confirm`/`data-confirm-title` + `hx-disabled-elt="this"` (the danger-zone button pattern, `users.templ:416-427`).
+- Row actions are sm `display.Button` components with `hx-post` + `data-confirm`/`data-confirm-title` + `hx-disabled-elt="this"` (the danger-zone button pattern, `users.templ:416-427`).
 
 ### 2.4 Wireframe — register flow with SHOW-ONCE token reveal
 

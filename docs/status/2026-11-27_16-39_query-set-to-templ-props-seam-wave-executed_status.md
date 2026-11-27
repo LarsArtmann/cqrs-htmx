@@ -92,7 +92,7 @@ genuinely wrong and one process failure is worth naming bluntly.
 
 **d1 — `App.QuerySet` silently ignores HTMX response options (real defect, not
 cosmetic).** `Trigger`, `TriggerWithDetail`, `Notify*`, `PushURL` and `Redirect`
-are `HandlerOption`s that work on `App.Query`; on `App.QuerySet` they are
+are `HandlerOption` values that work on `App.Query`; on `App.QuerySet` they are
 accepted and then dropped, because the handler calls `writeDefaultStatus`
 instead of `applyHTMXResponse`. A consumer who writes
 `app.QuerySet(set, Views(...), cqrshtmx.NotifySuccess("saved"))` gets a 200 with

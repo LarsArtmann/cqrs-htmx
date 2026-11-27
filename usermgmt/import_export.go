@@ -152,46 +152,67 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 	}
 	result := &ImportResult{Errors: []string{}, Imported: 0, Skipped: 0}
 	for i := range users {
-		if err := users[i].Validate(); err != nil {
-			result.Skipped++
-			result.Errors = append(result.Errors, err.Error())
-			continue
-		}
+		verdict, message := s.importOneUser(ctx, users[i])
 
-		// The uniqueness check and the dispatch share the row's email stripe
-		// (emailStripeLocks), so a concurrent Register, ChangeEmail or OAuth2
-		// first-login cannot claim the same address in between. The stripe is
-		// released before the next row: one stripe at a time.
-		unlock := s.emailMu.lock(users[i].Email)
-		_, taken := s.readModel.FindByEmail(users[i].Email)
-		closed := !taken && s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers
-		var dispatchErr error
-		if !taken && !closed {
-			aggID := id.NewStreamID()
-			dispatchErr = s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
-				aggID, users[i].Email, users[i].DisplayName, []Role{RoleUser},
-			))
-		}
-		unlock()
-
-		switch {
-		case taken:
-			result.Skipped++
-		case closed:
-			result.Skipped++
-			result.Errors = append(result.Errors,
-				users[i].Email+": registration is closed")
-		case dispatchErr != nil:
-			result.Errors = append(result.Errors,
-				fmt.Sprintf("%s: %v", users[i].Email, dispatchErr))
-		default:
+		switch verdict {
+		case importRowImported:
 			result.Imported++
+		case importRowSkipped:
+			result.Skipped++
+
+			if message != "" {
+				result.Errors = append(result.Errors, message)
+			}
+		case importRowFailed:
+			result.Errors = append(result.Errors, message)
 		}
 	}
+
 	if len(result.Errors) == 0 {
 		result.Errors = nil
 	}
+
 	return result, nil
+}
+
+// importVerdict is what one imported row became.
+type importVerdict int
+
+const (
+	importRowImported importVerdict = iota
+	importRowSkipped
+	importRowFailed
+)
+
+// importOneUser validates and imports one row, returning its verdict and, for
+// a refused row, the message. The uniqueness check and the dispatch share the
+// row's email stripe (emailStripeLocks), so a concurrent Register, ChangeEmail
+// or OAuth2 first-login cannot claim the same address in between; the stripe
+// is released before the next row.
+func (s *Service) importOneUser(ctx context.Context, user ImportUser) (importVerdict, string) {
+	if err := user.Validate(); err != nil {
+		return importRowSkipped, err.Error()
+	}
+
+	unlock := s.emailMu.lock(user.Email)
+	defer unlock()
+
+	if _, taken := s.readModel.FindByEmail(user.Email); taken {
+		return importRowSkipped, ""
+	}
+
+	if s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers {
+		return importRowSkipped, user.Email + ": registration is closed"
+	}
+
+	aggID := id.NewStreamID()
+	if err := s.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
+		aggID, user.Email, user.DisplayName, []Role{RoleUser},
+	)); err != nil {
+		return importRowFailed, fmt.Sprintf("%s: %v", user.Email, err)
+	}
+
+	return importRowImported, ""
 }
 
 // ExportUsersToJSON writes all users as a JSON array to the writer.

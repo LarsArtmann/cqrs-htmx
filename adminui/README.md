@@ -249,7 +249,7 @@ truth, notice chip render + markup golden) and `security_posture_test.go`.
 
 ### CSRF
 
-The panel's state changes ride HTMX `POST`s (delete user, create/suspend/delete tenant,
+The panel's state changes ride HTMX `POST` requests (delete user, create/suspend/delete tenant,
 role grants, …), so CSRF protection belongs in the middleware wrapped around it. The
 knob is [`setup.Config.CSRF`](../setup/config.go) (`*httputil.CSRFConfig`), passed to
 [`httputil.CSRFMiddleware`](https://pkg.go.dev/github.com/larsartmann/httputil#CSRFMiddleware)

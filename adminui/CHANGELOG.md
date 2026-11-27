@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **The tenants list pages in a stable order again and reads each member count once (2026-11-27).** Only `sort=members` sorted the matched tenants since 2026-11-24; the default name sort was skipped, and the read model returns tenants in map order, so every page showed a random window and a tenant could appear on two pages or on none. Every order is now applied before paging (`TestTenantsIndex_NameSortIsDeterministic`), and under the members sort a tenant's member count is read once per request instead of twice (`TestTenantsIndex_MemberCountReads`: 24 → 12 reads for twelve tenants). The read goes through a small `Handler.memberCount` seam so the count can be measured.
+
 ### Added
 
 - **Keyboard shortcut map in the README.** The panel's full keyboard surface is now documented where consumers look: palette open/close (`Ctrl/Cmd + K`), in-palette help (`?`), list search focus (`/`) and clear (`Esc`), dialog dismissal, and the arrow/Enter navigation shared by lists, the palette, and the combobox (`adminui/README.md` § Keyboard shortcuts).
