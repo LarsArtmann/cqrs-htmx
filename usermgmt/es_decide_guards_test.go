@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
-
 // existingState is a valid, non-deleted user state used as the base for guard tests.
 func existingState() UserState {
 	return UserState{Email: "user@example.com", DisplayName: "User"}
@@ -31,6 +30,78 @@ func TestDecideChangeEmail_Deleted(t *testing.T) {
 	decide := decideChangeEmail(id.NewStreamID(), "new@example.com")
 	if _, err := decide(deletedState(), 1); err == nil {
 		t.Fatal("expected deleted error")
+	}
+}
+
+// TestDecideChangeEmail_BlankEmailRejected pins the guard that keeps a blank
+// address off the event stream. Before it, ChangeEmail("") emitted an
+// EmailChanged carrying "" — and since UserState.Exists() is `Email != ""`,
+// that single event erased the aggregate (every later command answered
+// *.not_found). The refusal is Rejection-family and emits zero events.
+func TestDecideChangeEmail_BlankEmailRejected(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range blankEmailCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			decide := decideChangeEmail(id.NewStreamID(), tc.email)
+			events, err := decide(existingState(), 1)
+			requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.email_required")
+			if len(events) != 0 {
+				t.Fatalf("blank email emitted %d events, want 0", len(events))
+			}
+		})
+	}
+}
+
+// TestDecideChangeEmail_BlankEmailGuardOrder pins where the blank guard sits:
+// after the existence and Deleted guards (a missing or deleted user answers
+// with its own code), and in front of the same-email no-op — on an empty
+// state an empty email is an error, never a silent success.
+func TestDecideChangeEmail_BlankEmailGuardOrder(t *testing.T) {
+	t.Parallel()
+
+	t.Run("missing user wins", func(t *testing.T) {
+		t.Parallel()
+
+		decide := decideChangeEmail(id.NewStreamID(), "")
+		events, err := decide(UserState{}, 0)
+		requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.not_found")
+		if len(events) != 0 {
+			t.Fatalf("got %d events, want 0", len(events))
+		}
+	})
+
+	t.Run("deleted user wins", func(t *testing.T) {
+		t.Parallel()
+
+		decide := decideChangeEmail(id.NewStreamID(), " ")
+		events, err := decide(deletedState(), 1)
+		requireDomainError(t, err, errorfamily.Rejection, "usermgmt.change_email.deleted")
+		if len(events) != 0 {
+			t.Fatalf("got %d events, want 0", len(events))
+		}
+	})
+}
+
+// TestDecideRegisterUser_WhitespaceEmailRejected closes the whitespace hole
+// of the register guard: it compared `email == ""`, so "   " passed and was
+// stored verbatim.
+func TestDecideRegisterUser_WhitespaceEmailRejected(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range blankEmailCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			decide := decideRegisterUser(id.NewStreamID(), tc.email, "A", []Role{RoleUser})
+			events, err := decide(UserState{}, 0)
+			requireDomainError(t, err, errorfamily.Rejection, "usermgmt.register.email_required")
+			if len(events) != 0 {
+				t.Fatalf("blank email emitted %d events, want 0", len(events))
+			}
+		})
 	}
 }
 

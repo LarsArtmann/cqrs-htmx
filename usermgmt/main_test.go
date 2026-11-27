@@ -130,6 +130,37 @@ func assertChangeEmailError(t *testing.T, svc *Service, userID UserID, email str
 	}
 }
 
+// blankEmailCases lists the empty and whitespace-only inputs that must never
+// be stored as a user's email. Malformed non-blank addresses are deliberately
+// absent: the deciders accept those by design (the format rule lives in the
+// Service, via ParseEmail).
+func blankEmailCases() []struct {
+	name  string
+	email string
+} {
+	return []struct {
+		name  string
+		email string
+	}{
+		{name: "empty", email: ""},
+		{name: "spaces", email: "   "},
+		{name: "tabs", email: "\t\t"},
+		{name: "mixed whitespace", email: " \t\r\n "},
+	}
+}
+
+// countUsersWithEmail returns how many read-model rows hold email. An address
+// must never sit on more than one user.
+func countUsersWithEmail(svc *Service, email string) int {
+	count := 0
+	for _, user := range svc.readModel.AllUsers() {
+		if user.Email == email {
+			count++
+		}
+	}
+	return count
+}
+
 func registerWithSessionMaxAge(t *testing.T, id, email string, maxAge int) {
 	t.Helper()
 	svc := newTestServiceWithAuthz(t)

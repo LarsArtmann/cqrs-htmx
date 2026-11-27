@@ -290,7 +290,11 @@ func (s *viewSet[T]) render(w http.ResponseWriter, r *http.Request, result any) 
 			fmt.Sprintf("unexpected result type %T", result)).WithCause(httperr.ErrDecodeFailed)
 	}
 
-	primary, err := s.selectView(r)
+	// The scope is read once per render: it decides the primary shape and
+	// whether out-of-band views ride along.
+	scope := LoadScopeFor(r)
+
+	primary, err := s.selectView(r, scope)
 	if err != nil {
 		return err
 	}
@@ -301,7 +305,7 @@ func (s *viewSet[T]) render(w http.ResponseWriter, r *http.Request, result any) 
 		return err //nolint:wrapcheck // component error passthrough, matching RenderTempl
 	}
 
-	if LoadScopeFor(r) != ScopeFragment {
+	if scope != ScopeFragment {
 		return nil
 	}
 
@@ -319,13 +323,14 @@ func (s *viewSet[T]) render(w http.ResponseWriter, r *http.Request, result any) 
 // runs it before any loader starts, so a request whose shape the set cannot
 // render is refused without paying for the reads.
 func (s *viewSet[T]) requireRoutable(r *http.Request) error {
-	_, err := s.selectView(r)
+	_, err := s.selectView(r, LoadScopeFor(r))
 
 	return err
 }
 
-func (s *viewSet[T]) selectView(r *http.Request) (View[T], error) {
-	if LoadScopeFor(r) == ScopePage {
+// selectView picks the one view a request of the given scope renders.
+func (s *viewSet[T]) selectView(r *http.Request, scope LoadScope) (View[T], error) {
+	if scope == ScopePage {
 		return *s.page, nil
 	}
 
