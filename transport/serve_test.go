@@ -308,6 +308,27 @@ func TestServeDomainEvents_HeartbeatEmission(t *testing.T) {
 
 	h := ServeDomainEvents(b, nil, 10*time.Millisecond)
 
+	// Under load the stream goroutine can miss a whole window before it is
+	// scheduled once, so the stream gets a few windows before a missing
+	// heartbeat counts as a regression.
+	const attempts = 5
+
+	var body string
+
+	for range attempts {
+		body = captureStreamFor(h, 50*time.Millisecond)
+
+		if heartbeatFrames(body) > 0 {
+			return
+		}
+	}
+
+	t.Errorf("expected at least 1 heartbeat comment frame in %d streams, got 0\nlast body:\n%s", attempts, body)
+}
+
+// captureStreamFor serves one event stream for the given window and returns
+// the bytes it wrote.
+func captureStreamFor(h http.Handler, window time.Duration) string {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -321,23 +342,25 @@ func TestServeDomainEvents_HeartbeatEmission(t *testing.T) {
 		close(done)
 	}()
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(window)
 	cancel()
 	<-done
 
-	body := rec.Body.String()
+	return rec.Body.String()
+}
 
-	heartbeatCount := 0
+// heartbeatFrames counts the comment frames of a stream body: the lines that
+// start with ":".
+func heartbeatFrames(body string) int {
+	count := 0
 
 	for line := range strings.SplitSeq(body, "\n") {
 		if strings.HasPrefix(line, ":") {
-			heartbeatCount++
+			count++
 		}
 	}
 
-	if heartbeatCount == 0 {
-		t.Errorf("expected at least 1 heartbeat comment frame, got 0\nbody:\n%s", body)
-	}
+	return count
 }
 
 func TestServeDomainEvents_ReplayCursored(t *testing.T) {
