@@ -216,3 +216,15 @@ Then, only if that feels right: `QuerySet` + `Load` + `PageOnly`, declared again
    shipped. A one-page spike (`tenantsIndex`) as evidence, then a decision.
 4. **Error degradation policy.** Fail-fast page, or per-region degradation by default? Cheap to build
    either way, expensive to change once consumers rely on it.
+
+## 11. Errata (annotate, do not rewrite)
+
+**E1 (2026-11-27, found while writing the plan).** §2 and §4 assume a loader is a dispatched query.
+`adminui` owns **no query dispatcher** (zero `app.Query` / `query.Dispatcher` / `Queries:` references;
+handlers mount their own mux and read `config.Service` directly), so a queries-only QuerySet would be
+unusable by the repo's largest consumer. Correction: a loader is a **named function**
+`func(ctx) (any, error)` plus an apply function; dispatched queries are one adapter over it
+(`DispatchFunc`, preserving `query/<Name>` posture). Function loaders are authorized by the consumer's
+session/route layer, and that asymmetry belongs in the API's documentation. Executed by
+`docs/planning/2026-11-27_15-24_SUPERB-query-set-to-templ-view-seam-pareto-plan.md` §10 E1 and its
+decision D5.
