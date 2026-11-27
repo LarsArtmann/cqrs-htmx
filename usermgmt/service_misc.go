@@ -91,8 +91,8 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 // The uniqueness check and the dispatch run under the address's stripe lock,
 // so two users racing for one free address cannot both take it within one
 // process (see emailStripeLocks for the multi-replica limit).
-func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail string) error {
-	parsed, err := ParseEmail(newEmail)
+func (s *Service) ChangeEmail(ctx context.Context, userID UserID, email string) error {
+	parsed, err := ParseEmail(email)
 	if err != nil {
 		return formatValidationErrors([]string{"invalid email"})
 	}

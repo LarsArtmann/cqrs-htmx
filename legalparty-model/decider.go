@@ -114,6 +114,8 @@ func DecideUpdateLegalPartyProfile(
 // DecideCloseLegalParty returns the decide function for closing a party:
 // the party must exist and be open, the reason is required, and closure is
 // terminal (a second close conflicts).
+//
+//nolint:dupl // parallel to DecideCloseBillTo by design: the guard ladder is shared (closeRequest.requireCloseable); the event each aggregate emits is its own
 func DecideCloseLegalParty(
 	aggID id.StreamID, reason string, closedBy identitymodel.ActorID, closedAt time.Time,
 ) func(LegalPartyState, event.Version) ([]event.Event, error) {

@@ -224,6 +224,8 @@ func DecideRedirectBillTo(
 
 // DecideCloseBillTo closes a tenant's billing link: it must be open, the
 // reason is required, and closure is terminal.
+//
+//nolint:dupl // parallel to DecideCloseLegalParty by design: the guard ladder is shared (closeRequest.requireCloseable); the event each aggregate emits is its own
 func DecideCloseBillTo(
 	aggID id.StreamID, reason string, closedBy identitymodel.ActorID, closedAt time.Time,
 ) func(BillToState, event.Version) ([]event.Event, error) {
