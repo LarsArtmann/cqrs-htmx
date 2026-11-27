@@ -131,3 +131,29 @@ var (
 	_ error = cqrshtmx.ErrRequestTooLarge
 	_ error = cqrshtmx.ErrMethodNotAllowed
 )
+
+// Client tracking: the endpoint, its records, and the embedded tracker.
+var (
+	_ func(cqrshtmx.TrackingSink, ...cqrshtmx.TrackOption) http.Handler          = cqrshtmx.TrackHandler
+	_ func(int64) cqrshtmx.TrackOption                                           = cqrshtmx.WithTrackBodyLimit
+	_ func(int) cqrshtmx.TrackOption                                             = cqrshtmx.WithTrackBatchLimit
+	_ func(func(http.ResponseWriter, *http.Request, error)) cqrshtmx.TrackOption = cqrshtmx.WithTrackErrorHandler
+	_ cqrshtmx.TrackingSink                                                      = (*recordingSink)(nil)
+	_ cqrshtmx.TrackedEventKind                                                  = cqrshtmx.TrackedPageview
+	_ cqrshtmx.TrackedEventKind                                                  = cqrshtmx.TrackedEngagement
+	_ cqrshtmx.TrackedEventKind                                                  = cqrshtmx.TrackedClick
+	_ cqrshtmx.TrackedEventKind                                                  = cqrshtmx.TrackedImpression
+	_ int64                                                                      = cqrshtmx.MaxTrackBodyBytes
+	_ int                                                                        = cqrshtmx.MaxTrackBatch
+	_ func() http.Handler                                                        = cqrshtmx.TrackerScriptHandler
+	_ func(string) string                                                        = cqrshtmx.TrackerScriptTag
+	_ func() string                                                              = cqrshtmx.TrackingVersion
+	_ string                                                                     = cqrshtmx.HeaderClientID
+	_                                                                            = (*cqrshtmx.TrackReceipt)(nil)
+	_ trackingSinkShape                                                          = cqrshtmx.TrackingSink(nil)
+)
+
+// trackingSinkShape is the exact method set a cqrshtmx.TrackingSink must have.
+type trackingSinkShape = interface {
+	Record(ctx context.Context, events []cqrshtmx.TrackedEvent) error
+}

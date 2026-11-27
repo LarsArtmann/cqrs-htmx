@@ -55,3 +55,5 @@ sync protocol	sync_openapi.go
 sync protocol	sync_pull.go
 sync protocol	sync_push.go
 sync protocol	sync_serve.go
+client tracking	tracking.go
+client tracking	tracking_embed.go
