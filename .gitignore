@@ -163,3 +163,7 @@ cython_debug/
 .coverage
 htmlcov/
 # <<< buildflow-managed (.gitignore) <<<
+
+# docs-gates freshness --pre-flight cache: a local tool snapshot, never content
+# (the daemon committed it on 2026-11-22; the root-files allowlist went red)
+.docs-gates-preflight.json
