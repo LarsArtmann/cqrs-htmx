@@ -11,8 +11,18 @@ import (
 // (a sink-only store, or one without a ReadAll) would mount a panel that
 // stays empty or fails on its first load. With the dashboard disabled the
 // stores would be a silent no-op. Both are the silent-misconfiguration class
-// this validator family exists for.
+// this validator family exists for. A shell (DisableService) builds no
+// dashboard at all, so it gets the most specific message: validate() runs
+// validateDisableService first, and that function has no audit-store check
+// of its own on purpose.
 func (c Config) validateAuditStores() error {
+	if c.DisableService && (c.CommandStore != nil || c.QueryStore != nil) {
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DisableService builds no dashboard, so CommandStore and QueryStore have no panel to feed — drop them for the shell",
+		)
+	}
+
 	if c.DisableDashboard && (c.CommandStore != nil || c.QueryStore != nil) {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",

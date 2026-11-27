@@ -236,13 +236,6 @@ func (c Config) validateDisableService() error {
 		)
 	}
 
-	if c.CommandStore != nil || c.QueryStore != nil {
-		return errorfamily.NewRejection(
-			"setup.invalid_config",
-			"DisableService builds no dashboard, so CommandStore and QueryStore have no panel to feed — drop them for the shell",
-		)
-	}
-
 	if c.AuthHandlerConfig != nil {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
