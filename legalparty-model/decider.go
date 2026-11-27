@@ -118,11 +118,8 @@ func DecideCloseLegalParty(
 	aggID id.StreamID, reason string, closedBy identitymodel.ActorID, closedAt time.Time,
 ) func(LegalPartyState, event.Version) ([]event.Event, error) {
 	return func(state LegalPartyState, version event.Version) ([]event.Event, error) {
-		if err := requireCloseable(
-			state.Opened, state.Closed, ErrLegalPartyNotFound, ErrLegalPartyClosed, closedBy, reason,
-			"legalparty.legal_party.close_reason_required",
-			"closing a legal party names a reason (e.g. ceased trading, merged, registry dissolved)",
-		); err != nil {
+		if err := closeLegalParty(closedBy, reason).
+			requireCloseable(lifecycle{opened: state.Opened, closed: state.Closed}); err != nil {
 			return nil, err
 		}
 
@@ -147,6 +144,37 @@ func DecideCloseLegalParty(
 	}
 }
 
+// closeLegalParty is a legal party's close request: its own not-found and
+// already-closed errors, and the rejection that enforces a reason.
+func closeLegalParty(actor identitymodel.ActorID, reason string) closeRequest {
+	return closeRequest{
+		notFound:      ErrLegalPartyNotFound,
+		alreadyClosed: ErrLegalPartyClosed,
+		actor:         actor,
+		reason:        reason,
+		reasonCode:    "legalparty.legal_party.close_reason_required",
+		reasonMsg:     "closing a legal party names a reason (e.g. ceased trading, merged, registry dissolved)",
+	}
+}
+
+// lifecycle is the open/closed pair every closable aggregate state carries.
+type lifecycle struct {
+	opened bool
+	closed bool
+}
+
+// closeRequest is what a close command asks for once the aggregate is set
+// aside: the aggregate's own not-found and already-closed errors, the closing
+// actor, and the reason with the rejection that enforces it.
+type closeRequest struct {
+	notFound      error
+	alreadyClosed error
+	actor         identitymodel.ActorID
+	reason        string
+	reasonCode    string
+	reasonMsg     string
+}
+
 // requireCloseable runs the refusal ladder the two close deciders share
 // (DecideCloseLegalParty and DecideCloseBillTo), in this order: the aggregate
 // must exist (notFound), must not be closed already — closure is terminal
@@ -154,21 +182,21 @@ func DecideCloseLegalParty(
 // rejectIllegalMaintainer), and the close must name a reason (a fresh
 // rejection built from reasonCode and reasonMsg). It returns nil once every
 // rung passes; which event the close emits stays each aggregate's decision.
-func requireCloseable(
-	opened, closed bool, notFound, alreadyClosed error, actor identitymodel.ActorID,
-	reason, reasonCode, reasonMsg string,
-) error {
-	if !opened {
-		return notFound
+func (r closeRequest) requireCloseable(state lifecycle) error {
+	if !state.opened {
+		return r.notFound
 	}
-	if closed {
-		return alreadyClosed
+
+	if state.closed {
+		return r.alreadyClosed
 	}
-	if err := rejectIllegalMaintainer(actor); err != nil {
+
+	if err := rejectIllegalMaintainer(r.actor); err != nil {
 		return err
 	}
-	if strings.TrimSpace(reason) == "" {
-		return errorfamily.NewRejection(reasonCode, reasonMsg)
+
+	if strings.TrimSpace(r.reason) == "" {
+		return errorfamily.NewRejection(r.reasonCode, r.reasonMsg)
 	}
 
 	return nil

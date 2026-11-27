@@ -228,13 +228,11 @@ func DecideCloseBillTo(
 	aggID id.StreamID, reason string, closedBy identitymodel.ActorID, closedAt time.Time,
 ) func(BillToState, event.Version) ([]event.Event, error) {
 	return func(state BillToState, version event.Version) ([]event.Event, error) {
-		if err := requireCloseable(
-			state.Opened, state.Closed, ErrBillToNotFound, ErrBillToClosed, closedBy, reason,
-			"legalparty.bill_to.close_reason_required",
-			"closing a bill-to link names a reason (e.g. tenant churned, billing moved in-house)",
-		); err != nil {
+		if err := closeBillTo(closedBy, reason).
+			requireCloseable(lifecycle{opened: state.Opened, closed: state.Closed}); err != nil {
 			return nil, err
 		}
+
 		evt, err := event.New(
 			EventBillToClosed, aggID, AggregateTypeBillTo, version.Increment(),
 			BillToClosedPayload{
@@ -250,6 +248,19 @@ func DecideCloseBillTo(
 			)
 		}
 		return []event.Event{evt}, nil
+	}
+}
+
+// closeBillTo is a bill-to link's close request: its own not-found and
+// already-closed errors, and the rejection that enforces a reason.
+func closeBillTo(actor identitymodel.ActorID, reason string) closeRequest {
+	return closeRequest{
+		notFound:      ErrBillToNotFound,
+		alreadyClosed: ErrBillToClosed,
+		actor:         actor,
+		reason:        reason,
+		reasonCode:    "legalparty.bill_to.close_reason_required",
+		reasonMsg:     "closing a bill-to link names a reason (e.g. tenant churned, billing moved in-house)",
 	}
 }
 

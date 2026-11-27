@@ -92,20 +92,20 @@ func (s *Service) GetUser(_ context.Context, id UserID) (*User, error) {
 // so two users racing for one free address cannot both take it within one
 // process (see emailStripeLocks for the multi-replica limit).
 func (s *Service) ChangeEmail(ctx context.Context, userID UserID, newEmail string) error {
-	email, err := ParseEmail(newEmail)
+	parsed, err := ParseEmail(newEmail)
 	if err != nil {
 		return formatValidationErrors([]string{"invalid email"})
 	}
-	unlock := s.emailMu.lock(email.String())
+	unlock := s.emailMu.lock(parsed.String())
 	defer unlock()
 
-	if holder, ok := s.readModel.FindByEmail(email.String()); ok && holder.ID.Get() != userID.Get() {
+	if holder, ok := s.readModel.FindByEmail(parsed.String()); ok && holder.ID.Get() != userID.Get() {
 		return newEmailExistsError(userID)
 	}
 
 	return s.dispatchUserCommand(ctx, userID,
-		func(aggID id.StreamID) command.Command { return NewChangeEmailCmd(aggID, email.String()) },
-		"new_email", email.String(),
+		func(aggID id.StreamID) command.Command { return NewChangeEmailCmd(aggID, parsed.String()) },
+		"new_email", parsed.String(),
 	)
 }
 
