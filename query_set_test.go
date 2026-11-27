@@ -1,8 +1,10 @@
 package cqrshtmx_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +13,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/htmx"
+	"github.com/larsartmann/cqrs-htmx/v4/openapi"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
@@ -121,6 +124,33 @@ var _ = Describe("QuerySet", func() {
 
 			Expect(sink).NotTo(HaveOccurred())
 			Expect(w.Body.String()).To(Equal("first"))
+		})
+
+		It("reports a loader's own context.Canceled as the fatal error when nothing else failed", func() {
+			set := cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("cancelled", func(ctx context.Context) (string, error) {
+					// The loader's OWN read is cancelled while the load context is
+					// alive: a genuine cancellation, not the fail-fast artifact.
+					canceled, cancel := context.WithCancel(ctx)
+					cancel()
+					<-canceled.Done()
+
+					return "", canceled.Err()
+				}, func(_ *querySetProps, _ string) {}),
+				cqrshtmx.Load("sibling", func(ctx context.Context) (int, error) {
+					<-ctx.Done()
+
+					return 0, ctx.Err()
+				}, func(_ *querySetProps, _ int) {}),
+			)
+
+			var sink error
+
+			app := newQuerySetTestApp(&sink)
+			serve(app.QuerySet(set, cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"})),
+				querySetPageRequest())
+
+			Expect(sink).To(MatchError(context.Canceled))
 		})
 
 		It("aborts the request and cancels siblings when a fatal loader fails", func() {
@@ -549,6 +579,73 @@ var _ = Describe("QuerySet", func() {
 
 			Expect(w.code()).To(Equal(http.StatusBadRequest))
 		})
+
+		It("refuses an unroutable fragment before a single loader runs and names what would match", func() {
+			var runs atomic.Int32
+
+			set := cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("name", func(_ context.Context) (string, error) {
+					runs.Add(1)
+
+					return "items", nil
+				}, func(props *querySetProps, value string) { props.Name = value }),
+			)
+
+			var sink error
+
+			app := newQuerySetTestApp(&sink)
+			w := serve(app.QuerySet(set, cqrshtmx.Views(
+				cqrshtmx.Region("#item-list", func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: props.Name}
+				}),
+				cqrshtmx.Page(func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: props.Name}
+				}),
+				cqrshtmx.OOB("badge", func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: props.Badge}
+				}),
+			)), querySetFragmentRequest("#nowhere"))
+
+			Expect(w.code()).To(Equal(http.StatusBadRequest))
+			Expect(runs.Load()).To(Equal(int32(0)))
+			Expect(errorfamily.Code(sink)).To(Equal("unroutable_view"))
+			Expect(sink.Error()).To(ContainSubstring(`no view matches target "#nowhere"`))
+			Expect(sink.Error()).To(ContainSubstring("routable: page, region #item-list"))
+		})
+
+		It("routes an empty HX-Target to the Default region with fragment scope", func() {
+			var pageRuns atomic.Int32
+
+			set := cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("name", func(_ context.Context) (string, error) {
+					return "items", nil
+				}, func(props *querySetProps, value string) { props.Name = value }),
+				cqrshtmx.Load("page-nav", func(_ context.Context) (string, error) {
+					pageRuns.Add(1)
+
+					return "nav", nil
+				}, func(props *querySetProps, value string) { props.Badge = value }).PageOnly(),
+			)
+
+			app := newQuerySetTestApp(nil)
+			w := serve(app.QuerySet(set, cqrshtmx.Views(
+				cqrshtmx.Region("#item-list", func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: "region:" + props.Name}
+				}),
+				cqrshtmx.Region("#fallback", func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: "default:" + props.Name}
+				}).Default(),
+				cqrshtmx.Page(func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: "page:" + props.Name}
+				}),
+			)), querySetFragmentRequest(""))
+
+			// Scope and shape agree: a fragment render, so page-only loaders are
+			// skipped, and the Default region is what gets drawn.
+			Expect(w.code()).To(Equal(http.StatusOK))
+			Expect(w.Body.String()).To(Equal("default:items"))
+			Expect(pageRuns.Load()).To(Equal(int32(0)))
+		})
 	})
 
 	Describe("LoadScopeFor", func() {
@@ -559,6 +656,320 @@ var _ = Describe("QuerySet", func() {
 			r.Header.Set("Hx-Target", "item-list")
 
 			Expect(cqrshtmx.LoadScopeFor(r)).To(Equal(cqrshtmx.ScopePage))
+		})
+	})
+
+	Describe("HTMX response options", func() {
+		nameSet := func() cqrshtmx.QuerySet[querySetProps] {
+			return cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("name", func(_ context.Context) (string, error) {
+					return "widgets", nil
+				}, func(props *querySetProps, value string) { props.Name = value }),
+			)
+		}
+
+		It("applies Trigger and PushURL on a successful load and still renders the body", func() {
+			app := newQuerySetTestApp(nil)
+			handler := app.QuerySet(nameSet(),
+				cqrshtmx.RenderTemplResult(func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: props.Name}
+				}),
+				cqrshtmx.Trigger("propsLoaded"),
+				cqrshtmx.PushURL("/widgets"),
+			)
+
+			w := serve(handler, querySetFragmentRequest("item-list"))
+			Expect(w.code()).To(Equal(http.StatusOK))
+			Expect(w.Header().Get(htmx.HeaderTrigger)).To(Equal("propsLoaded"))
+			Expect(w.Header().Get(htmx.HeaderPushURL)).To(Equal("/widgets"))
+			Expect(w.Body.String()).To(Equal("widgets"))
+		})
+
+		It("lets a Redirect take precedence over the renderer for a non-HTMX client", func() {
+			rendered := false
+
+			app := newQuerySetTestApp(nil)
+			handler := app.QuerySet(nameSet(),
+				cqrshtmx.Render(func(http.ResponseWriter, *http.Request, any) error {
+					rendered = true
+
+					return nil
+				}),
+				cqrshtmx.Redirect("/login"),
+			)
+
+			w := serve(handler, querySetPageRequest())
+			Expect(w.code()).To(Equal(http.StatusSeeOther))
+			Expect(w.Header().Get("Location")).To(Equal("/login"))
+			Expect(rendered).To(BeFalse())
+		})
+
+		It("answers an HTMX client with HX-Redirect", func() {
+			app := newQuerySetTestApp(nil)
+			handler := app.QuerySet(nameSet(),
+				cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"}),
+				cqrshtmx.Redirect("/login"),
+			)
+
+			w := serve(handler, querySetFragmentRequest("item-list"))
+			Expect(w.Header().Get(htmx.HeaderRedirect)).To(Equal("/login"))
+			Expect(w.code()).To(Equal(http.StatusOK))
+		})
+
+		It("applies the same options without an App", func() {
+			handler := cqrshtmx.QuerySetHandler(nameSet(),
+				cqrshtmx.RenderTemplResult(func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: props.Name}
+				}),
+				cqrshtmx.Trigger("propsLoaded"),
+			)
+
+			w := serve(handler, querySetFragmentRequest("item-list"))
+			Expect(w.Header().Get(htmx.HeaderTrigger)).To(Equal("propsLoaded"))
+			Expect(w.Body.String()).To(Equal("widgets"))
+		})
+	})
+
+	Describe("OnLoad", func() {
+		newScopedSet := func(pageRuns *atomic.Int32) cqrshtmx.QuerySet[querySetProps] {
+			return cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("rows", func(_ context.Context) (string, error) {
+					return "rows", nil
+				}, func(props *querySetProps, value string) { props.Name = value }),
+				cqrshtmx.Load("page-nav", func(_ context.Context) (string, error) {
+					pageRuns.Add(1)
+
+					return "nav", nil
+				}, func(props *querySetProps, value string) { props.Badge = value }).PageOnly(),
+			)
+		}
+
+		newHandler := func(
+			set cqrshtmx.QuerySet[querySetProps],
+			hooks ...cqrshtmx.HandlerOption,
+		) http.HandlerFunc {
+			return newQuerySetTestApp(nil).QuerySet(set, append([]cqrshtmx.HandlerOption{
+				cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"}),
+			}, hooks...)...)
+		}
+
+		It("reports which loaders ran and which PageOnly skipped", func() {
+			var pageRuns atomic.Int32
+
+			var report cqrshtmx.LoadReport
+
+			var path string
+
+			handler := newHandler(newScopedSet(&pageRuns), cqrshtmx.OnLoad(
+				func(r *http.Request, got cqrshtmx.LoadReport) {
+					report = got
+					path = r.URL.Path
+				}))
+
+			serve(handler, querySetFragmentRequest("item-list"))
+
+			Expect(path).To(Equal("/page"))
+			Expect(report.Ran).To(Equal([]string{"rows"}))
+			Expect(report.Skipped).To(Equal([]string{"page-nav"}))
+			Expect(report.HasFailures()).To(BeFalse())
+		})
+
+		It("lists every loader as ran on a full page", func() {
+			var pageRuns atomic.Int32
+
+			var report cqrshtmx.LoadReport
+
+			handler := newHandler(newScopedSet(&pageRuns), cqrshtmx.OnLoad(
+				func(_ *http.Request, got cqrshtmx.LoadReport) { report = got }))
+
+			serve(handler, querySetPageRequest())
+
+			Expect(report.Ran).To(Equal([]string{"rows", "page-nav"}))
+			Expect(report.Skipped).To(BeNil())
+			Expect(pageRuns.Load()).To(Equal(int32(1)))
+		})
+
+		It("still fires on a degraded run, after OnLoadError", func() {
+			var order []string
+
+			var degraded bool
+
+			set := cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("count", func(_ context.Context) (int, error) {
+					return 0, errorfamily.NewTransient("count_unavailable", "counts are down")
+				}, func(props *querySetProps, value int) { props.Count = value }).Optional(),
+			)
+
+			handler := newHandler(set,
+				cqrshtmx.OnLoadError(func(_ *http.Request, _ cqrshtmx.LoadReport) {
+					order = append(order, "error")
+				}),
+				cqrshtmx.OnLoad(func(_ *http.Request, report cqrshtmx.LoadReport) {
+					degraded = report.HasFailures()
+					order = append(order, "load")
+				}),
+			)
+
+			serve(handler, querySetPageRequest())
+
+			Expect(order).To(Equal([]string{"error", "load"}))
+			Expect(degraded).To(BeTrue())
+		})
+
+		It("never fires when the load aborts", func() {
+			fired := false
+
+			set := cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("broken", func(_ context.Context) (int, error) {
+					return 0, errorfamily.NewRejection("read_failed", "no")
+				}, func(_ *querySetProps, _ int) {}),
+			)
+
+			var sink error
+
+			app := newQuerySetTestApp(&sink)
+			serve(app.QuerySet(set,
+				cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"}),
+				cqrshtmx.OnLoad(func(_ *http.Request, _ cqrshtmx.LoadReport) { fired = true }),
+			), querySetPageRequest())
+
+			Expect(sink).To(HaveOccurred())
+			Expect(fired).To(BeFalse())
+		})
+	})
+
+	Describe("optional failures", func() {
+		countErr := errorfamily.NewTransient("count_unavailable", "counts are down")
+		badgeErr := errorfamily.NewTransient("badge_unavailable", "badges are down")
+
+		newDegradedSet := func() cqrshtmx.QuerySet[querySetProps] {
+			return cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("name", func(_ context.Context) (string, error) {
+					return "widgets", nil
+				}, func(props *querySetProps, value string) { props.Name = value }),
+				cqrshtmx.Load("count", func(_ context.Context) (int, error) {
+					return 0, countErr
+				}, func(props *querySetProps, value int) { props.Count = value }).Optional(),
+				cqrshtmx.Load("badge", func(_ context.Context) (string, error) {
+					return "", badgeErr
+				}, func(props *querySetProps, value string) { props.Badge = value }).Optional(),
+			)
+		}
+
+		It("names every failed loader in declaration order", func() {
+			var report cqrshtmx.LoadReport
+
+			app := newQuerySetTestApp(nil)
+			w := serve(app.QuerySet(newDegradedSet(),
+				cqrshtmx.RenderTemplResult(func(props querySetProps) cqrshtmx.TemplComponent {
+					return &bddTemplComponent{html: props.Name}
+				}),
+				cqrshtmx.OnLoadError(func(_ *http.Request, got cqrshtmx.LoadReport) { report = got }),
+			), querySetPageRequest())
+
+			Expect(w.code()).To(Equal(http.StatusOK))
+			Expect(report.Ran).To(Equal([]string{"name", "count", "badge"}))
+			Expect(report.Failures).To(HaveLen(2))
+			Expect(report.Failures[0].Name).To(Equal("count"))
+			Expect(report.Failures[0].Err).To(MatchError(countErr))
+			Expect(report.Failures[1].Name).To(Equal("badge"))
+			Expect(report.Failures[1].Err).To(MatchError(badgeErr))
+		})
+
+		It("logs one WARN naming every degraded loader when no hook is installed", func() {
+			var logs bytes.Buffer
+
+			previous := slog.Default()
+			slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
+			DeferCleanup(func() { slog.SetDefault(previous) })
+
+			app := newQuerySetTestApp(nil)
+			serve(app.QuerySet(newDegradedSet(),
+				cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"})), querySetPageRequest())
+
+			Expect(logs.String()).To(ContainSubstring("optional loaders degraded"))
+			Expect(logs.String()).To(ContainSubstring("loaders=count,badge"))
+		})
+	})
+
+	Describe("pipeline options", func() {
+		nameSet := func() cqrshtmx.QuerySet[querySetProps] {
+			return cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("name", func(_ context.Context) (string, error) {
+					return "widgets", nil
+				}, func(props *querySetProps, value string) { props.Name = value }),
+			)
+		}
+
+		It("runs the loaders under the App timeout", func() {
+			var sink error
+
+			app, err := cqrshtmx.New(cqrshtmx.Config{
+				Queries: query.NewDispatcher(),
+				Timeout: 30 * time.Millisecond,
+				ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
+					sink = err
+
+					w.WriteHeader(http.StatusInternalServerError)
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			set := cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("slow", func(ctx context.Context) (string, error) {
+					<-ctx.Done()
+
+					return "", ctx.Err()
+				}, func(_ *querySetProps, _ string) {}),
+			)
+
+			serve(app.QuerySet(set, cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"})),
+				querySetPageRequest())
+
+			Expect(sink).To(MatchError(context.DeadlineExceeded))
+		})
+
+		It("honours WithTimeout when the App has no timeout of its own", func() {
+			outcome := make(chan error, 1)
+
+			set := cqrshtmx.NewQuerySet(
+				cqrshtmx.Load("slow", func(ctx context.Context) (string, error) {
+					if _, ok := ctx.Deadline(); !ok {
+						outcome <- errors.New("the loader context carries no deadline")
+
+						return "", nil
+					}
+
+					<-ctx.Done()
+					outcome <- ctx.Err()
+
+					return "", ctx.Err()
+				}, func(_ *querySetProps, _ string) {}),
+			)
+
+			app := newQuerySetTestApp(nil)
+			serve(app.QuerySet(set, cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"}),
+				cqrshtmx.WithTimeout(20*time.Millisecond)), querySetPageRequest())
+
+			select {
+			case err := <-outcome:
+				Expect(err).To(MatchError(context.DeadlineExceeded))
+			case <-time.After(2 * time.Second):
+				Fail("the handler timeout never reached the loader")
+			}
+		})
+
+		It("collects the operation for the OpenAPI document", func() {
+			app := newQuerySetTestApp(nil)
+			_ = app.QuerySet(nameSet(),
+				cqrshtmx.WithOpenAPI(openapi.Get("LoadWidgets").Summary("load the widgets page").Op()),
+				cqrshtmx.RenderTempl(&bddTemplComponent{html: "x"}),
+			)
+
+			routes := app.OpenAPIRoutes()
+			Expect(routes).To(HaveLen(1))
+			Expect(routes[0].Kind).To(Equal("query"))
+			Expect(routes[0].Operation.Summary).To(Equal("load the widgets page"))
 		})
 	})
 })

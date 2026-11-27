@@ -227,6 +227,56 @@ var _ = Describe("Views", func() {
 				)
 			}).To(PanicWith(ContainSubstring("non-empty element id")))
 		})
+
+		It("panics on a zero-value View instead of treating it as a page with no component", func() {
+			Expect(func() {
+				cqrshtmx.Views(cqrshtmx.View[viewsTestProps]{})
+			}).To(PanicWith(ContainSubstring("zero-value View")))
+		})
+
+		It("panics on a view without a component", func() {
+			Expect(func() {
+				cqrshtmx.Views(cqrshtmx.Page[viewsTestProps](nil))
+			}).To(PanicWith(ContainSubstring("page requires a component")))
+		})
+
+		It("panics when a Page is marked Default", func() {
+			Expect(func() {
+				cqrshtmx.Views(cqrshtmx.Page(viewsTestComponent("html")).Default())
+			}).To(PanicWith(ContainSubstring("Page cannot be Default")))
+		})
+
+		It("panics when an OOB view is marked Default", func() {
+			Expect(func() {
+				cqrshtmx.Views(
+					cqrshtmx.Page(viewsTestComponent("html")),
+					cqrshtmx.OOB("count", viewsTestComponent("b")).Default(),
+				)
+			}).To(PanicWith(ContainSubstring("OOB cannot be Default")))
+		})
+
+		It("reports every problem at once instead of only the first", func() {
+			Expect(func() {
+				cqrshtmx.Views(
+					cqrshtmx.Region("", viewsTestComponent("ul")).Default(),
+					cqrshtmx.Region("#other", viewsTestComponent("ol")).Default(),
+					cqrshtmx.OOB("", viewsTestComponent("i")),
+				)
+			}).To(PanicWith(And(
+				ContainSubstring("non-empty selector"),
+				ContainSubstring("at most one Region may be Default"),
+				ContainSubstring("non-empty element id"),
+				ContainSubstring("found none"),
+			)))
+		})
+	})
+
+	Describe("View.String", func() {
+		It("names each shape for diagnostics and test output", func() {
+			Expect(cqrshtmx.Page(viewsTestComponent("html")).String()).To(Equal("page"))
+			Expect(cqrshtmx.Region("#rows", viewsTestComponent("ul")).String()).To(Equal("region #rows"))
+			Expect(cqrshtmx.OOB("count", viewsTestComponent("b")).String()).To(Equal("oob count"))
+		})
 	})
 
 	Describe("result typing", func() {
@@ -259,6 +309,12 @@ var _ = Describe("Views", func() {
 				htmx.HeaderHistoryRestore: cqrshtmx.HeaderTrue,
 			}))
 			Expect(scope).To(Equal(cqrshtmx.ScopePage))
+		})
+
+		It("names the scope for logs and test output", func() {
+			Expect(cqrshtmx.ScopePage.String()).To(Equal("page"))
+			Expect(cqrshtmx.ScopeFragment.String()).To(Equal("fragment"))
+			Expect(cqrshtmx.LoadScopeFor(viewsRequest(nil)).String()).To(Equal("page"))
 		})
 	})
 })
