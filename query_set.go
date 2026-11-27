@@ -268,7 +268,7 @@ func (s QuerySet[T]) load(
 
 	runs := make([]loaderRun[T], 0, len(s.Loaders))
 	for _, loader := range s.Loaders {
-		runs = append(runs, loaderRun[T]{loader: loader, slot: slotState{}})
+		runs = append(runs, loaderRun[T]{loader: loader})
 	}
 
 	report := LoadReport{Ran: make([]string, 0, len(runs))}
@@ -498,11 +498,13 @@ func (a *App) QuerySet[T any](set QuerySet[T], opts ...HandlerOption) http.Handl
 		}
 
 		if err := config.runBeforeLoad(r); err != nil {
+			//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 			a.handleErr(w, r, ctx, config, err)
 
 			return
 		}
 
+		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.loadAndRespond(w, r, ctx, config, set)
 	})
 }
@@ -516,14 +518,11 @@ func (a *App) loadAndRespond[T any](
 	config *handlerConfig,
 	set QuerySet[T],
 ) {
-	//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 	loadCtx, cancel := a.timeoutCtx(ctx, config)
 	defer cancel()
 
-	//nolint:contextcheck // loadCtx derives from dispatchContext's ctx, which derives from r
 	props, report, err := set.load(loadCtx, LoadScopeFor(r) == ScopePage)
 	if err != nil {
-		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.handleErr(w, r, ctx, config, err)
 
 		return
@@ -531,15 +530,12 @@ func (a *App) loadAndRespond[T any](
 
 	reportLoad(r, config, report)
 
-	//nolint:contextcheck // loadCtx derives from dispatchContext's ctx, which derives from r
 	if renderErr := respondLoaded(w, r.WithContext(loadCtx), config, props); renderErr != nil {
-		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
 		a.handleErr(w, r, ctx, config, renderErr)
 
 		return
 	}
 
-	//nolint:contextcheck // loadCtx derives from dispatchContext's ctx, which derives from r
 	a.afterDispatchHook(loadCtx, r, nil)
 }
 
@@ -586,7 +582,7 @@ func respondLoaded(w http.ResponseWriter, r *http.Request, config *handlerConfig
 
 	if config.render != nil {
 		if err := config.render(w, r, props); err != nil {
-			return err //nolint:wrapcheck // the renderer's own error is relayed verbatim, matching App.Query
+			return err
 		}
 	}
 

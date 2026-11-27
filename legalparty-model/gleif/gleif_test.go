@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/legalparty-model/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // fixture mirrors the live record fetched 2026-11-20 for LEI
@@ -202,6 +203,40 @@ func TestResolveByRegister_NoMatch(t *testing.T) {
 	if _, err := client.ResolveByRegister(context.Background(), ref); !errors.Is(err, legalparty.ErrRegistryNotFound) {
 		t.Fatalf("empty result must be ErrRegistryNotFound, got %v", err)
 	}
+}
+
+// TestResolveByRegister_InvalidReference pins the input guard: a reference the
+// canonical vocabulary rejects never reaches the API, comes back as the
+// adapter's own rejection, and keeps the canonical rejection as its cause.
+func TestResolveByRegister_InvalidReference(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, _ *http.Request) {
+		t.Error("must not call the API for an invalid register reference")
+	})
+
+	_, err := client.ResolveByRegister(context.Background(), legalparty.RegisterRef{Registry: "de"})
+	if err == nil {
+		t.Fatal("a reference without an entry number must reject without an API call")
+	}
+	if code := codeOf(t, err); code != "legalparty.registry.reference_invalid" {
+		t.Errorf("error code: got %q, want the adapter's invalid-reference rejection", code)
+	}
+	if code := codeOf(t, errors.Unwrap(err)); code != "legalparty.register.number_required" {
+		t.Errorf("cause code: got %q, want go-legalparty's own register rejection", code)
+	}
+	if family := errorfamily.Classify(err); family != errorfamily.Rejection {
+		t.Errorf("family: got %v, want a rejection (bad input is never retried)", family)
+	}
+}
+
+// codeOf returns the machine-readable code the error carries.
+func codeOf(t *testing.T, err error) string {
+	t.Helper()
+	coded, ok := errors.AsType[errorfamily.Coded](err)
+	if !ok {
+		t.Fatalf("error %v carries no code", err)
+	}
+
+	return coded.ErrorCode()
 }
 
 func TestResolveByLEI_StatusMapping(t *testing.T) {

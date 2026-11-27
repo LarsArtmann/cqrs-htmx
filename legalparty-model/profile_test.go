@@ -1,6 +1,7 @@
 package legalparty
 
 import (
+	"errors"
 	"testing"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -140,10 +141,13 @@ func TestProfileValidate_IdentityFacts(t *testing.T) {
 		requireNoError(t, p.Validate())
 	})
 
-	t.Run("bad register propagates", func(t *testing.T) {
+	t.Run("bad register rejected, canonical cause kept", func(t *testing.T) {
 		p := gmbhProfile()
 		p.LEI = ""
 		p.Register = &RegisterRef{Registry: "", Number: "HRB 1"}
-		requireErrorCode(t, p.Validate(), "legalparty.register.registry_required")
+		err := p.Validate()
+		requireErrorCode(t, err, "legalparty.profile.register_invalid")
+		// go-legalparty's own rejection stays reachable one Unwrap down.
+		requireErrorCode(t, errors.Unwrap(err), "legalparty.register.registry_required")
 	})
 }

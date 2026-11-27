@@ -30,6 +30,8 @@ func (k viewKind) String() string {
 		return "region"
 	case viewKindOOB:
 		return "oob"
+	case viewKindInvalid:
+		return "invalid"
 	default:
 		return "invalid"
 	}
@@ -61,6 +63,8 @@ func (v View[T]) String() string {
 		return v.kind.String() + " " + v.id
 	case viewKindPage:
 		return v.kind.String()
+	case viewKindInvalid:
+		return v.kind.String() + " view"
 	default:
 		return v.kind.String() + " view"
 	}
@@ -186,23 +190,21 @@ func declareViews[T any](views []View[T], set *viewSet[T]) []string {
 // declareView validates one view and files it into the set. pages counts the
 // Page declarations so the "exactly one Page" verdict is reported once.
 func declareView[T any](view View[T], set *viewSet[T], pages *int) []string {
-	if view.kind <= viewKindInvalid || view.kind > viewKindOOB {
-		return []string{"zero-value View (use Page, Region or OOB)"}
-	}
-
 	problems := set.admit(view, pages)
 
-	if view.component == nil {
+	if view.kind != viewKindInvalid && view.component == nil {
 		problems = append(problems, view.String()+" requires a component")
 	}
 
 	return problems
 }
 
-// admit files one valid-kind view into its partition and returns its
-// declaration problems.
+// admit files one view into its partition and returns its declaration
+// problems; a view that was never built by Page, Region or OOB is refused.
 func (s *viewSet[T]) admit(view View[T], pages *int) []string {
 	switch view.kind {
+	case viewKindInvalid:
+		return []string{zeroViewMessage}
 	case viewKindPage:
 		*pages++
 
@@ -212,9 +214,13 @@ func (s *viewSet[T]) admit(view View[T], pages *int) []string {
 	case viewKindOOB:
 		return s.admitOOB(view)
 	default:
-		return []string{"zero-value View (use Page, Region or OOB)"}
+		return []string{zeroViewMessage}
 	}
 }
+
+// zeroViewMessage is the one problem a hand-built View can have that no
+// constructor can produce.
+const zeroViewMessage = "zero-value View (use Page, Region or OOB)"
 
 func (s *viewSet[T]) admitPage(view View[T]) []string {
 	if s.page == nil {

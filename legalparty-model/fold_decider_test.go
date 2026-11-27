@@ -246,6 +246,36 @@ func TestDecideCloseLegalParty_Guards(t *testing.T) {
 	})
 }
 
+// TestDecideClose_GuardOrder pins the refusal order both close deciders share
+// through requireCloseable: the lifecycle refusals (not found, then closed)
+// outrank the actor guard, which outranks the blank-reason rejection.
+func TestDecideClose_GuardOrder(t *testing.T) {
+	linkStream := DeriveBillToStreamID("tenant-close-order")
+	closedParty := openState(gmbhProfile())
+	closedParty.Closed = true
+	closedParty.CloseReason = "ceased trading"
+	closedParty.ClosedAt = testTime
+
+	// A blank reason from a bot on an open aggregate: the actor guard answers first.
+	_, err := DecideCloseLegalParty(testStream, "", testBotID, testTime)(openState(gmbhProfile()), event.Version(1))
+	requireErrorCode(t, err, "legalparty.actor.bot_forbidden")
+	_, err = DecideCloseBillTo(linkStream, "", testBotID, testTime)(BillToState{Opened: true}, event.Version(1))
+	requireErrorCode(t, err, "legalparty.actor.bot_forbidden")
+
+	// A closed aggregate: the terminal state outranks actor and reason.
+	_, err = DecideCloseLegalParty(testStream, "", testBotID, testTime)(closedParty, event.Version(2))
+	requireErrorCode(t, err, "legalparty.legal_party.closed")
+	_, err = DecideCloseBillTo(linkStream, "", testBotID, testTime)(
+		BillToState{Opened: true, Closed: true, CloseReason: "tenant churned", ClosedAt: testTime}, event.Version(2))
+	requireErrorCode(t, err, "legalparty.bill_to.closed")
+
+	// A stream that was never opened: not-found outranks everything.
+	_, err = DecideCloseLegalParty(testStream, "", testBotID, testTime)(LegalPartyState{}, event.Version(0))
+	requireErrorCode(t, err, "legalparty.legal_party.not_found")
+	_, err = DecideCloseBillTo(linkStream, "", testBotID, testTime)(BillToState{}, event.Version(0))
+	requireErrorCode(t, err, "legalparty.bill_to.not_found")
+}
+
 func TestFoldLegalParty_UnknownEvent(t *testing.T) {
 	evt, err := event.New(
 		"BogusEvent", testStream, AggregateTypeLegalParty, event.Version(0).Increment(),
