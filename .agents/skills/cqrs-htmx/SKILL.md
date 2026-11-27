@@ -391,7 +391,48 @@ cqrshtmx.RenderIf(func(r *http.Request) bool { return htmx.Target(r) == "#avatar
 
 All use `htmx.RenderPartial(r)` internally (history-restore requests render full page). HTML-specific helpers set `Content-Type: text/html`; generic `RenderIf`/`RenderPartialOrFullFunc` do not (see ADR-0037).
 
-**OOB swap wrapping:** `cqrshtmx.OOBHTML(id, html, swapStrategy...)` wraps HTML with `hx-swap-oob` attributes.
+**OOB swap wrapping:** `cqrshtmx.OOBHTML(id, html, swapStrategy...)` wraps HTML with `hx-swap-oob` attributes. `cqrshtmx.OOBTempl(id, component, swapStrategy...)` is the component form and emits byte-identical bytes (one shared envelope writer).
+
+### View sets: one props struct, three shapes (ADR-0068)
+
+A real HTMX page is three views over one view model. Declare them once and let the request pick:
+
+```go
+mux.Handle("GET /tenants", app.QuerySet(tenantsSet,
+    cqrshtmx.Views(
+        cqrshtmx.Region("#tenant-rows", tenantsRows),                  // hx-target="#tenant-rows"
+        cqrshtmx.Region("#tenant-search", tenantsSearch).Default(),    // any other partial target
+        cqrshtmx.Page(tenantsPage),                                    // visit, hx-boost, history restore
+        cqrshtmx.OOB("tenant-count", tenantCount),                     // rides fragment responses
+    ),
+    cqrshtmx.OnLoadError(func(r *http.Request, rep cqrshtmx.LoadReport) {
+        slog.Warn("degraded", "failures", len(rep.Failures))
+    }),
+))
+```
+
+Selection is request-derived: boosted navigation or history restore → `Page`; `HX-Target` matching a region (leading `#` optional on both sides) → that region; unmatched partial → the `Default` region, else a mapped `unroutable_view` rejection — never a silent full-page fallback. Exactly one `Page` and at most one `Default` are validated at registration. `OOB` views render only on fragment responses.
+
+The props come from a query set — named loaders, run in parallel, applied by one goroutine after the join:
+
+```go
+tenantsSet := cqrshtmx.NewQuerySet(
+    cqrshtmx.LoadQuery("ListTenants", cqrshtmx.FromDispatcher(qryDisp),
+        func(ctx context.Context) (query.Query, error) { return &listTenantsQuery{}, nil },
+        func(props *tenantsProps, rows []Tenant) { props.Rows = rows }),
+    cqrshtmx.Load("TenantMemberCounts", countMembers,
+        func(props *tenantsProps, counts map[identitymodel.TenantID]int) { props.Counts = counts }).Optional(),
+    cqrshtmx.Load("PageNav", loadNav,
+        func(props *tenantsProps, nav navData) { props.Nav = nav }).PageOnly(),
+)
+```
+
+- `Load` takes any plain function, so a consumer without a dispatcher (adminui is one) uses the same API; `LoadQuery`/`FromDispatcher` adapt a dispatched query and keep its `query/<Name>` posture.
+- `Optional()` is the ONLY degradation path and it is visible (`LoadReport`/`OnLoadError`); a non-optional failure aborts with the first failing loader in declaration order (never completion order).
+- `PageOnly()` loaders are skipped for targeted HTMX requests — the rule is exported as `cqrshtmx.LoadScopeFor(r)`.
+- `cqrshtmx.QuerySetHandler(set, opts...)` is the App-less form for a bare mux.
+- `ETagResults()` composes after `Views` (the tag hashes rendered bytes, so 304 works for all three shapes).
+- Guide: `docs/guides/query-set-to-templ.md`; decision: ADR-0068.
 
 ### Custom auth (cookie-based, API keys, ownership checks)
 

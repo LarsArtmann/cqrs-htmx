@@ -124,6 +124,7 @@ cqrshtmx.RenderHTML(htmlString)                         // static HTML response 
 cqrshtmx.RenderPartialOrFull[T](partial, full)          // HTMX partial vs full page (templ, generic typed)
 cqrshtmx.RenderPartialOrFullFunc(partial, full)          // HTMX partial vs full page (non-generic RenderFunc)
 cqrshtmx.RenderIf(check, match, noMatch)                 // custom predicate render selector
+cqrshtmx.Views[T](cqrshtmx.Page(fn), cqrshtmx.Region("#id", fn), cqrshtmx.OOB("id", fn)) // one props struct → page / region / OOB, selected from the request
 cqrshtmx.ETagResults()                                   // AFTER a renderer: strong FNV ETag over rendered bytes, 304 on If-None-Match
 cqrshtmx.Redirect(url)                                 // HTMX-aware (HX-Redirect for HTMX reqs)
 cqrshtmx.PushURL(url)                                  // HTMX address-bar update
@@ -275,12 +276,55 @@ pq := cqrshtmx.DecodePagination(r)   // reads ?page & ?page_size, validates, app
 
 Requesting a page beyond the last returns an empty page (standard REST, no silent clamping).
 
+## Query sets and view sets (one props seam)
+
+A real HTMX page is three views over one view model. Declare the reads as
+loaders and the shapes as views; the request selects one:
+
+```go
+type tenantsProps struct {
+    Rows   []Tenant
+    Counts map[identitymodel.TenantID]int
+    Nav    PageMeta // PageOnly: a region swap never pays for it
+}
+
+set := cqrshtmx.NewQuerySet(
+    cqrshtmx.Load("ListTenants", listTenants,
+        func(p *tenantsProps, rows []Tenant) { p.Rows = rows }),
+    cqrshtmx.Load("TenantMemberCounts", countMembers,
+        func(p *tenantsProps, c map[identitymodel.TenantID]int) { p.Counts = c }),
+    cqrshtmx.Load("PageNav", loadNav,
+        func(p *tenantsProps, nav PageMeta) { p.Nav = nav }).PageOnly(),
+)
+
+mux.Handle("GET /tenants", app.QuerySet(set,
+    cqrshtmx.Views(
+        cqrshtmx.Region("#tenant-rows", tenantsRows),
+        cqrshtmx.Region("#tenant-other", tenantsOther).Default(),
+        cqrshtmx.Page(tenantsPage),
+        cqrshtmx.OOB("tenant-count", tenantCount),
+    ),
+    cqrshtmx.OnLoadError(func(r *http.Request, rep cqrshtmx.LoadReport) { /* visible degradation */ }),
+))
+```
+
+- **Loaders are named functions, not queries.** `LoadFunc[V] = func(ctx) (V, error)`; dispatched queries are one adapter (`LoadQuery` + `FromDispatcher`) that keeps the `query/<Name>` posture. A loader never needs a dispatcher, so consumers that read a service directly use the same API.
+- **Parallel, then one apply pass.** Loaders run concurrently; the props struct is written by a single goroutine after the join, so no field can race and `PageOnly` skipping is trivially correct.
+- **Fail loud, degrade explicitly.** A non-optional failure aborts with the first failing loader in DECLARATION order (never completion order — a flake class avoided by design). `Optional()` is the only degradation path, and it is visible through `LoadReport` / `OnLoadError`.
+- **`PageOnly()`** loaders are skipped for targeted HTMX requests, per `LoadScopeFor(r)` — the same rule `Views` uses to pick a fragment.
+- **`Views[T]`** requires exactly one `Page` and at most one `Default` region (validated at registration). Selection: boosted/history-restore → Page; matching `HX-Target` → that region; partial with no match → the `Default` region, else an `unroutable_view` rejection — never a silent full-page fallback.
+- **`OOB` views** render only on fragment responses, so a direct visit cannot leak an `hx-swap-oob` element into the document.
+- **`QuerySetHandler(set, opts...)`** is the App-less form for a bare mux (no dispatch pipeline, no authz gate — your middleware owns those).
+- **`ETagResults()`** composes after `Views`: the tag hashes the rendered bytes, so it is 304-correct across all three shapes.
+
 ## Utilities
 
 ```go
 cqrshtmx.WriteJSON(w, status, v)
 cqrshtmx.RenderTemplComponent(w, r, partial, full) // standalone partial-vs-full (non-CQRS routes)
-cqrshtmx.OOBHTML(id, html, swapStrategy...)        // wrap HTML with hx-swap-oob (HTTP + WS)
+cqrshtmx.OOBHTML(id, html, swapStrategy...)        // wrap HTML with hx-swap-oob (string form)
+cqrshtmx.OOBTempl(id, component, swapStrategy...)  // same wire bytes, component form (byte-identical to OOBHTML)
+cqrshtmx.LoadScopeFor(r)                           // page vs fragment scope (the PageOnly-loader rule; Views uses it too)
 cqrshtmx.KeyExtractorFromClientIP()     // proxy-aware rate-limit key extractor (uses httputil.ClientIP)
 htmx.ScriptHandler()            // embedded htmx 2.0.11 (GET/HEAD, ETag, 1y cache)
 htmx.ScriptHandlerWith(js, ver) // serve a custom build

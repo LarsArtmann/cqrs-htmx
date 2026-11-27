@@ -78,6 +78,7 @@ Every Go backend that combines CQRS + HTMX ends up writing the same glue, endpoi
 This library handles all of it — and if your endpoint doesn't need all of it, you opt out piece by piece. Every layer (auth, CSRF, rate limit, HTMX) is a middleware or a `HandlerOption` you choose to apply.
 
 <!-- fleet-quote-count: 7 consumer reviews quote this line (exact grep: rg -l "not for you" ~/projects/*/docs/review/libs/cqrs-htmx.md; re-derived 2026-11-21) -->
+
 **If you are not using go-cqrs-lite**, this library is not for you — it is the HTMX/HTTP binding for that specific CQRS core, not a generic web framework.
 
 ## What you get
@@ -85,7 +86,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 **Endpoints & rendering**
 
 - **Command & query dispatch** — `app.Command()` / `app.Query()` return `http.HandlerFunc` that decode, authorize, validate, dispatch, and respond; typed variants (`CommandTyped[Q]`, `QueryTyped[Q, R]`) eliminate mappers and type assertions
-- **HTMX-aware responses** — fluent builder for every `HX-*` header, notifications (`NotifySuccess`/`NotifyError`/…), out-of-band swaps (`OOBHTML`), and `RenderPartialOrFull` to kill the `if HX-Request` branch in every handler
+- **HTMX-aware responses** — fluent builder for every `HX-*` header, notifications (`NotifySuccess`/`NotifyError`/…), out-of-band swaps (`OOBHTML`/`OOBTempl`), and `RenderPartialOrFull`/`Views` to kill the `if HX-Request` branch in every handler. `Views` declares one props struct as a page, swappable regions and OOB fragments; `QuerySet` fills that struct from parallel named loaders (with `PageOnly` scoping and visible optional degradation)
 - **templ integration** — duck-typed `TemplComponent` renders templ components without importing templ
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()`
 - **HTTP QUERY method (RFC 10008)** — complex reads without the URL-length lie or the unsafe-POST lie: `App.Query` is method-agnostic, so one `QUERY /contacts` pattern serves the native method and every fallback from a single handler — `MethodOverrideMiddleware` rewrites POST + `X-HTTP-Method-Override: QUERY` before routing (mounted inside the security stack so CSRF sees the wire method), the JSON decoders advertise `Accept-Query: application/json` themselves, `RequireAnyMethod`/`RequireContentType` guard multi-method mounts (405 + `Allow`, 400/415 media-type ladder), and `openapi.Query()` renders the operation with an automatic OpenAPI 3.2.0 version bump ([guide](docs/guides/http-query-method.md))
@@ -286,7 +287,7 @@ mux.Handle("POST /widgets", app.Command("CreateWidget",
 1. `Authorize` / `RequireAuth` first — fail fast before touching the body.
 2. `ValidateCommand` / `RequestGuard` **after** the decoder — they read the decoded value from context. Reversing the order silently skips validation.
 
-**HandlerOption families:** authorization (`Authorize`, `RequireAuth`, `RequestGuard`), decoding (`DecodeJSON`/`DecodeForm`/`DecodeJSONQuery`/`DecodeFormQuery` + typed variants + request-aware variants), validation (`ValidateCommand`, `ValidateQuery`), rendering (`RenderJSON[T]`, `RenderTempl`, `RenderTemplResult[T]`, `RenderPartialOrFull`, `Redirect`, custom `Render`), HTMX effects (`PushURL`, `Trigger`, `TriggerWithDetail`, `Notify*`, `Reswap`/`Retarget` via the response builder), and per-handler config (`WithSuccessStatus`, `WithTimeout`, `WithMaxBodySize`, `RequireMethod`, `OnError`, `CSRFProtect`, `WithOpenAPI`).
+**HandlerOption families:** authorization (`Authorize`, `RequireAuth`, `RequestGuard`), decoding (`DecodeJSON`/`DecodeForm`/`DecodeJSONQuery`/`DecodeFormQuery` + typed variants + request-aware variants), validation (`ValidateCommand`, `ValidateQuery`), rendering (`RenderJSON[T]`, `RenderTempl`, `RenderTemplResult[T]`, `RenderPartialOrFull`, `Views`, `Redirect`, custom `Render`), HTMX effects (`PushURL`, `Trigger`, `TriggerWithDetail`, `Notify*`, `Reswap`/`Retarget` via the response builder), and per-handler config (`WithSuccessStatus`, `WithTimeout`, `WithMaxBodySize`, `RequireMethod`, `OnError`, `CSRFProtect`, `WithOpenAPI`).
 
 **Middleware order** (outer → inner): recovery & security headers first; then your **session** middleware; then **CSRF**; then **HTMX**; then `app.Middleware()` (context enrichment). The non-negotiable trio is `CSRF → HTMX → enrichment`:
 
@@ -354,25 +355,25 @@ Dependency direction is strict: identity-model is the pure domain source of trut
 
 Generated 2026-11-21 by `scripts/checks/dep-footprint.sh` — **never hand-edit these numbers**; regenerate and paste whenever any go.mod changes (a release-checklist step). `direct` = non-indirect requires in the module's go.mod; `closure` = the module graph build list (`GOWORK=off go list -m all` line count); `go` = the module's go directive. The script measures all 32 module directories in the repo (examples and test scaffolding included); this table shows the published modules.
 
-| Module             | direct | closure | go floor |
-| ------------------ | ------ | ------- | -------- |
-| root               | 19     | 78      | 1.27.3   |
-| identity-model     | 8      | 59      | 1.27.3   |
-| usermgmt           | 30     | 245     | 1.27.3   |
-| usermgmt/webauthn  | 2      | 24      | 1.27     |
-| usermgmt/totp      | 2      | 9       | 1.27     |
-| usermgmt/oauth2    | 4      | 6       | 1.27     |
-| adminui            | 12     | 230     | 1.27.3   |
-| dashboardui        | 25     | 231     | 1.27.3   |
-| loginpage          | 7      | 230     | 1.27.3   |
-| setup              | 24     | 272     | 1.27.3   |
-| datastar           | 7      | 64      | 1.27.3   |
-| huma               | 6      | 120     | 1.27.3   |
-| health             | 6      | 103     | 1.27.3   |
-| auditlog           | 4      | 86      | 1.27     |
-| systemadapter      | 22     | 247     | 1.27.3   |
-| legalparty-model   | 9      | 74      | 1.27.3   |
-| gfl-usermgmt       | 7      | 242     | 1.27.3   |
+| Module            | direct | closure | go floor |
+| ----------------- | ------ | ------- | -------- |
+| root              | 19     | 78      | 1.27.3   |
+| identity-model    | 8      | 59      | 1.27.3   |
+| usermgmt          | 30     | 245     | 1.27.3   |
+| usermgmt/webauthn | 2      | 24      | 1.27     |
+| usermgmt/totp     | 2      | 9       | 1.27     |
+| usermgmt/oauth2   | 4      | 6       | 1.27     |
+| adminui           | 12     | 230     | 1.27.3   |
+| dashboardui       | 25     | 231     | 1.27.3   |
+| loginpage         | 7      | 230     | 1.27.3   |
+| setup             | 24     | 272     | 1.27.3   |
+| datastar          | 7      | 64      | 1.27.3   |
+| huma              | 6      | 120     | 1.27.3   |
+| health            | 6      | 103     | 1.27.3   |
+| auditlog          | 4      | 86      | 1.27     |
+| systemadapter     | 22     | 247     | 1.27.3   |
+| legalparty-model  | 9      | 74      | 1.27.3   |
+| gfl-usermgmt      | 7      | 242     | 1.27.3   |
 
 ### Subpackages in the root module
 
@@ -476,10 +477,10 @@ qryDisp.Use(query.AuditMiddleware(sys.QueryStore(), query.AuditMetadata, logger)
 app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: qryDisp})
 ```
 
-| Level                 | A record holds                                                                   | Use it when                                         |
-| --------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `query.AuditMetadata` | type, request ID, received-at, user, actor, device key, correlation, causation   | Always safe: no payload, nothing a user typed.      |
-| `query.AuditFull`     | the same plus the query payload                                                  | A usage analysis that must know WHAT was asked.     |
+| Level                 | A record holds                                                                 | Use it when                                     |
+| --------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
+| `query.AuditMetadata` | type, request ID, received-at, user, actor, device key, correlation, causation | Always safe: no payload, nothing a user typed.  |
+| `query.AuditFull`     | the same plus the query payload                                                | A usage analysis that must know WHAT was asked. |
 
 The store lists the whole trail through its journal. Keep one user's reads with a filter on the metadata:
 
@@ -631,9 +632,9 @@ Migration guides: [v2→v3](docs/migrations/v2-to-v3.md) · [v3→v4](docs/migra
 
 Sub-modules release on **per-module version trains, not lockstep** — each carries its own tags. The tag shapes and the consumer moves:
 
-| What | Tag shape | Example |
-| --- | --- | --- |
-| Root module | `v4.X.Y` | `v4.18.1` |
+| What              | Tag shape             | Example                   |
+| ----------------- | --------------------- | ------------------------- |
+| Root module       | `v4.X.Y`              | `v4.18.1`                 |
 | Nested sub-module | `<module-dir>/v4.X.Y` | `usermgmt/oauth2/v4.13.1` |
 
 1. **A nested require resolves only sub-module tags.** `go mod` on `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4` can never consume a root tag — if the fix you need landed on root but no sub-tag carries it, the fix is unreachable from a nested go.mod until the sub-tag is cut.

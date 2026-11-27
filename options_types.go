@@ -83,8 +83,11 @@ type handlerConfig struct {
 	// response header (RFC 10008 discovery). JSON body-query decoders seed it
 	// with application/json so the advertisement cannot drift from what the
 	// handler actually decodes; AcceptQuery appends consumer types.
-	acceptQuery  []string
-	onError      func(*http.Request, error)
+	acceptQuery []string
+	onError     func(*http.Request, error)
+	// onLoadError receives the report of one QuerySet run when optional
+	// loaders failed. Without it those failures are logged at WARN.
+	onLoadError  func(*http.Request, LoadReport)
 	requestGuard RequestGuardFunc
 	openapiMeta  *openapi.Operation
 }
