@@ -81,7 +81,8 @@ func (c *Client) ResolveByRegister(
 	ctx context.Context, ref legalparty.RegisterRef,
 ) (legalparty.RegistryFacts, error) {
 	if err := ref.Validate(); err != nil {
-		return legalparty.RegistryFacts{}, err
+		return legalparty.RegistryFacts{}, errorfamily.WrapRejection(err,
+			"legalparty.registry.reference_invalid", "validate the register reference for the GLEIF lookup")
 	}
 
 	q := url.Values{}

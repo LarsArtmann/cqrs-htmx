@@ -224,26 +224,16 @@ func DecideRedirectBillTo(
 
 // DecideCloseBillTo closes a tenant's billing link: it must be open, the
 // reason is required, and closure is terminal.
-//
-//nolint:dupl // parallel lifecycle close guard to DecideCloseLegalParty; a shared generic would obscure the two payload types
 func DecideCloseBillTo(
 	aggID id.StreamID, reason string, closedBy identitymodel.ActorID, closedAt time.Time,
 ) func(BillToState, event.Version) ([]event.Event, error) {
 	return func(state BillToState, version event.Version) ([]event.Event, error) {
-		if !state.Opened {
-			return nil, ErrBillToNotFound
-		}
-		if state.Closed {
-			return nil, ErrBillToClosed
-		}
-		if err := rejectIllegalMaintainer(closedBy); err != nil {
+		if err := requireCloseable(
+			state.Opened, state.Closed, ErrBillToNotFound, ErrBillToClosed, closedBy, reason,
+			"legalparty.bill_to.close_reason_required",
+			"closing a bill-to link names a reason (e.g. tenant churned, billing moved in-house)",
+		); err != nil {
 			return nil, err
-		}
-		if strings.TrimSpace(reason) == "" {
-			return nil, errorfamily.NewRejection(
-				"legalparty.bill_to.close_reason_required",
-				"closing a bill-to link names a reason (e.g. tenant churned, billing moved in-house)",
-			)
 		}
 		evt, err := event.New(
 			EventBillToClosed, aggID, AggregateTypeBillTo, version.Increment(),

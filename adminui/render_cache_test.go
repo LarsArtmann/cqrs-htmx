@@ -272,13 +272,13 @@ func newCacheTestPanelTTL(t *testing.T, user *identitymodel.User) (*Handler, *us
 // reports counts for exactly the tenants it was given (visible page vs full
 // match is the caller's choice), and agrees with a direct TenantMembers read.
 func TestTenantMemberCounts_BoundedToScope(t *testing.T) {
-	_, svc, _ := newCacheTestPanel(t)
+	h, svc, _ := newCacheTestPanel(t)
 	ctx := context.Background()
 	tenants := svc.AllTenants()
 	if len(tenants) != 2 {
 		t.Fatalf("AllTenants = %d, want 2", len(tenants))
 	}
-	counts := tenantMemberCounts(ctx, svc, tenants)
+	counts := h.tenantMemberCounts(ctx, tenants)
 	for _, ten := range tenants {
 		want := len(svc.TenantMembers(ctx, ten.ID))
 		if counts[ten.ID] != want {
@@ -286,7 +286,7 @@ func TestTenantMemberCounts_BoundedToScope(t *testing.T) {
 		}
 	}
 	// A single-tenant scope reports only that tenant.
-	only := tenantMemberCounts(ctx, svc, tenants[:1])
+	only := h.tenantMemberCounts(ctx, tenants[:1])
 	if len(only) != 1 || only[tenants[0].ID] == 0 {
 		t.Errorf("bounded scope map = %v, want exactly one populated entry", only)
 	}

@@ -124,6 +124,15 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
+      # aliases.go is the module's deliberate, baseline-frozen re-export of the
+      # go-legalparty vocabulary (scripts/checks/reexport-baseline.tsv lists it
+      # as exempt:domain-vocabulary): its Parse*/New* function values must stay
+      # package-level so callers keep `legalparty.ParseLEI(...)`. Scope: this
+      # file, this linter — mirroring the root config's _reexport.go rule.
+      - path: aliases\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
       - path: country\.go$
         text: is a global variable
         linters:

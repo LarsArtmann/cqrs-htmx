@@ -255,10 +255,10 @@ func TestBillTo_CommandsAndDerivation(t *testing.T) {
 		t.Errorf("redirect command = %+v", redirect)
 	}
 
-	close := NewCloseBillToCmd("tenant-cmds", "done", billToTestActor)
-	if close.StreamID().Get() != "tenant-cmds" || close.Reason() != "done" ||
-		close.ClosedBy() != billToTestActor {
-		t.Errorf("close command = %+v", close)
+	closeCmd := NewCloseBillToCmd("tenant-cmds", "done", billToTestActor)
+	if closeCmd.StreamID().Get() != "tenant-cmds" || closeCmd.Reason() != "done" ||
+		closeCmd.ClosedBy() != billToTestActor {
+		t.Errorf("close command = %+v", closeCmd)
 	}
 }
 

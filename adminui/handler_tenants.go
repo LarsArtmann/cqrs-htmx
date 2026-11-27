@@ -30,11 +30,11 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 	// spans pages), so only that ordering pays for the full map; any other
 	// order reads counts for the visible page's rows alone.
 	if sort == "members" {
-		sortTenants(matched, sort, tenantMemberCounts(r.Context(), h.config.Service, matched))
+		sortTenants(matched, sort, h.tenantMemberCounts(r.Context(), matched))
 	}
 	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), h.config.PageSize)
 	visible := matched[offset : offset+limit]
-	counts := tenantMemberCounts(r.Context(), h.config.Service, visible)
+	counts := h.tenantMemberCounts(r.Context(), visible)
 	rows := make([]tenantRow, 0, limit)
 	for _, t := range visible {
 		rows = append(rows, tenantRow{
@@ -56,18 +56,26 @@ func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *ide
 	renderPage(w, r, tenantsPage(p, d))
 }
 
-// tenantMemberCounts resolves one TenantMembers query per tenant in tenants
-// (the read model has no batched count query yet), so callers keep tenants
-// bounded to the rows they will actually render — except the members sort,
-// which legitimately spans pages.
-func tenantMemberCounts(
-	ctx context.Context, svc *usermgmt.Service, tenants []*usermgmt.Tenant,
+// tenantMemberCounts resolves one member-count read per tenant in tenants
+// through the Handler's read seam (the read model has no batched count query
+// yet), so callers keep tenants bounded to the rows they will actually render
+// — except the members sort, which legitimately spans pages.
+func (h *Handler) tenantMemberCounts(
+	ctx context.Context, tenants []*usermgmt.Tenant,
 ) map[identitymodel.TenantID]int {
 	counts := make(map[identitymodel.TenantID]int, len(tenants))
 	for _, t := range tenants {
-		counts[t.ID] = len(svc.TenantMembers(ctx, t.ID))
+		counts[t.ID] = h.memberCount(ctx, t.ID)
 	}
 	return counts
+}
+
+// countTenantMembers binds the service read behind Handler.memberCount: one
+// TenantMembers query, whose length is the tenant's member count.
+func countTenantMembers(svc *usermgmt.Service) func(ctx context.Context, tenantID identitymodel.TenantID) int {
+	return func(ctx context.Context, tenantID identitymodel.TenantID) int {
+		return len(svc.TenantMembers(ctx, tenantID))
+	}
 }
 
 func (h *Handler) tenantNew(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {

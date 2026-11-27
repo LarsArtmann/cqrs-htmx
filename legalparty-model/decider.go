@@ -118,20 +118,12 @@ func DecideCloseLegalParty(
 	aggID id.StreamID, reason string, closedBy identitymodel.ActorID, closedAt time.Time,
 ) func(LegalPartyState, event.Version) ([]event.Event, error) {
 	return func(state LegalPartyState, version event.Version) ([]event.Event, error) {
-		if !state.Opened {
-			return nil, ErrLegalPartyNotFound
-		}
-		if state.Closed {
-			return nil, ErrLegalPartyClosed
-		}
-		if err := rejectIllegalMaintainer(closedBy); err != nil {
+		if err := requireCloseable(
+			state.Opened, state.Closed, ErrLegalPartyNotFound, ErrLegalPartyClosed, closedBy, reason,
+			"legalparty.legal_party.close_reason_required",
+			"closing a legal party names a reason (e.g. ceased trading, merged, registry dissolved)",
+		); err != nil {
 			return nil, err
-		}
-		if strings.TrimSpace(reason) == "" {
-			return nil, errorfamily.NewRejection(
-				"legalparty.legal_party.close_reason_required",
-				"closing a legal party names a reason (e.g. ceased trading, merged, registry dissolved)",
-			)
 		}
 
 		evt, err := event.New(
@@ -153,6 +145,33 @@ func DecideCloseLegalParty(
 
 		return []event.Event{evt}, nil
 	}
+}
+
+// requireCloseable runs the refusal ladder the two close deciders share
+// (DecideCloseLegalParty and DecideCloseBillTo), in this order: the aggregate
+// must exist (notFound), must not be closed already — closure is terminal
+// (alreadyClosed) — the actor must be a legal maintainer (see
+// rejectIllegalMaintainer), and the close must name a reason (a fresh
+// rejection built from reasonCode and reasonMsg). It returns nil once every
+// rung passes; which event the close emits stays each aggregate's decision.
+func requireCloseable(
+	opened, closed bool, notFound, alreadyClosed error, actor identitymodel.ActorID,
+	reason, reasonCode, reasonMsg string,
+) error {
+	if !opened {
+		return notFound
+	}
+	if closed {
+		return alreadyClosed
+	}
+	if err := rejectIllegalMaintainer(actor); err != nil {
+		return err
+	}
+	if strings.TrimSpace(reason) == "" {
+		return errorfamily.NewRejection(reasonCode, reasonMsg)
+	}
+
+	return nil
 }
 
 // rejectIllegalMaintainer enforces the actor axis: a legal party is opened,

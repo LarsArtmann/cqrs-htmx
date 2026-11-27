@@ -103,7 +103,8 @@ func (p LegalPartyProfile) validateIdentifiers() error {
 	}
 	if p.Register != nil {
 		if err := p.Register.Validate(); err != nil {
-			return err
+			return errorfamily.WrapRejection(err, "legalparty.profile.register_invalid",
+				"the register reference on a legal party profile does not validate")
 		}
 	}
 

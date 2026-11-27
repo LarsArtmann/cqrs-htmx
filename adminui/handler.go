@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	"context"
 	"net/http"
 	"slices"
 	"strings"
@@ -41,6 +42,9 @@ type Handler struct {
 	lastSeenBuilt time.Time
 	// clock is the time seam for the TTL check; tests inject a fixed clock.
 	clock func() time.Time
+	// memberCount is the read seam behind the tenants list's member counts:
+	// one call is one TenantMembers query. Tests wrap it to count reads.
+	memberCount func(ctx context.Context, tenantID identitymodel.TenantID) int
 }
 
 // New builds an admin panel from config, applying defaults to empty fields and
@@ -77,6 +81,7 @@ func New(config Config) (*Handler, error) {
 		adminJS:      adminJS,
 		adminFavicon: adminFavicon,
 		clock:        time.Now,
+		memberCount:  countTenantMembers(config.Service),
 	}
 	h.nav = buildNav(config, h.labels)
 	h.table = h.buildRouteTable()
