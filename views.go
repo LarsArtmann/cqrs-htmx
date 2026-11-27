@@ -11,11 +11,13 @@ import (
 )
 
 // viewKind classifies a [View]: the full page, a swappable region, or an
-// out-of-band fragment.
+// out-of-band fragment. The zero value is invalid on purpose, so a zero-value
+// View can never pass declaration as a page with a nil component.
 type viewKind int
 
 const (
-	viewKindPage viewKind = iota
+	viewKindInvalid viewKind = iota
+	viewKindPage
 	viewKindRegion
 	viewKindOOB
 )
@@ -29,12 +31,12 @@ func (k viewKind) String() string {
 	case viewKindOOB:
 		return "oob"
 	default:
-		return "unknown"
+		return "invalid"
 	}
 }
 
 // View is one renderable shape over a props struct T. Construct views with
-// [Page], [Region] and [OOB]; the zero value is not usable.
+// [Page], [Region] and [OOB]; the zero value is rejected at declaration.
 //
 // A view is pure presentation: it never dispatches a query and never loads
 // data. That is the invariant the whole seam rests on — data arrives in the
@@ -46,6 +48,22 @@ type View[T any] struct {
 	id        string
 	swap      string
 	component func(T) TemplComponent
+}
+
+// String names the view for diagnostics and test failure messages: its kind
+// and, for a region or an out-of-band view, the selector or element id it is
+// addressed by.
+func (v View[T]) String() string {
+	switch v.kind {
+	case viewKindRegion:
+		return v.kind.String() + " " + v.selector
+	case viewKindOOB:
+		return v.kind.String() + " " + v.id
+	case viewKindPage:
+		return v.kind.String()
+	default:
+		return v.kind.String() + " view"
+	}
 }
 
 // Page declares the full-document view: the shape a direct browser visit, a
@@ -66,7 +84,9 @@ func Region[T any](selector string, component func(T) TemplComponent) View[T] {
 }
 
 // Default marks a region as the fallback for HTMX partial requests whose
-// target matches no declared region. At most one region may be the default.
+// target matches no declared region. At most one region may be the default,
+// and only a region can be: marking a Page or an OOB view is a declaration
+// error.
 func (v View[T]) Default() View[T] {
 	v.isDefault = true
 
@@ -109,14 +129,19 @@ func OOB[T any](id string, component func(T) TemplComponent, swapStrategy ...Swa
 //     never a silent full-page fallback;
 //   - every other request renders the Page.
 //
-// Exactly one Page is required and at most one region may be Default; both are
-// validated when the option is built, so a misdeclaration panics at
-// registration instead of surprising a caller per request.
+// Exactly one Page is required, at most one region may be Default, and every
+// view needs a component. All of it is validated when the option is built, so
+// a misdeclaration panics at registration instead of surprising a caller per
+// request.
+//
+// Inside a QuerySet handler the selection also runs BEFORE the loaders: an
+// unroutable request is refused without paying for a single read.
 func Views[T any](views ...View[T]) HandlerOption {
 	set := newViewSet(views)
 
 	return func(config *handlerConfig) {
 		config.render = set.render
+		config.beforeLoad = set.requireRoutable
 	}
 }
 
@@ -148,47 +173,108 @@ func declareViews[T any](views []View[T], set *viewSet[T]) []string {
 	pages := 0
 
 	for _, view := range views {
-		switch view.kind {
-		case viewKindPage:
-			pages++
-			if pages == 1 {
-				page := view
-				set.page = &page
-			}
-		case viewKindRegion:
-			if view.selector == "" {
-				problems = append(problems, "Region requires a non-empty selector")
-			}
-
-			if view.isDefault {
-				if set.defaultIndex >= 0 {
-					problems = append(problems, "at most one Region may be Default")
-				} else {
-					set.defaultIndex = len(set.regions)
-				}
-			}
-
-			set.regions = append(set.regions, view)
-		case viewKindOOB:
-			if view.id == "" {
-				problems = append(problems, "OOB requires a non-empty element id")
-			}
-
-			set.oobs = append(set.oobs, view)
-		default:
-			problems = append(problems, "zero-value View (use Page, Region or OOB)")
-		}
+		problems = append(problems, declareView(view, set, &pages)...)
 	}
 
-	switch pages {
-	case 0:
-		problems = append(problems, "exactly one Page is required, found none")
-	case 1:
-	default:
-		problems = append(problems, "exactly one Page is required, found more than one")
+	if problem := pageCountProblem(pages); problem != "" {
+		problems = append(problems, problem)
 	}
 
 	return problems
+}
+
+// declareView validates one view and files it into the set. pages counts the
+// Page declarations so the "exactly one Page" verdict is reported once.
+func declareView[T any](view View[T], set *viewSet[T], pages *int) []string {
+	if view.kind <= viewKindInvalid || view.kind > viewKindOOB {
+		return []string{"zero-value View (use Page, Region or OOB)"}
+	}
+
+	problems := set.admit(view, pages)
+
+	if view.component == nil {
+		problems = append(problems, view.String()+" requires a component")
+	}
+
+	return problems
+}
+
+// admit files one valid-kind view into its partition and returns its
+// declaration problems.
+func (s *viewSet[T]) admit(view View[T], pages *int) []string {
+	switch view.kind {
+	case viewKindPage:
+		*pages++
+
+		return s.admitPage(view)
+	case viewKindRegion:
+		return s.admitRegion(view)
+	case viewKindOOB:
+		return s.admitOOB(view)
+	default:
+		return []string{"zero-value View (use Page, Region or OOB)"}
+	}
+}
+
+func (s *viewSet[T]) admitPage(view View[T]) []string {
+	if s.page == nil {
+		page := view
+		s.page = &page
+	}
+
+	if view.isDefault {
+		return []string{"Page cannot be Default; mark a Region instead"}
+	}
+
+	return nil
+}
+
+func (s *viewSet[T]) admitRegion(view View[T]) []string {
+	var problems []string
+
+	if view.selector == "" {
+		problems = append(problems, "Region requires a non-empty selector")
+	}
+
+	if view.isDefault {
+		if s.defaultIndex >= 0 {
+			problems = append(problems, "at most one Region may be Default")
+		} else {
+			s.defaultIndex = len(s.regions)
+		}
+	}
+
+	s.regions = append(s.regions, view)
+
+	return problems
+}
+
+func (s *viewSet[T]) admitOOB(view View[T]) []string {
+	var problems []string
+
+	if view.id == "" {
+		problems = append(problems, "OOB requires a non-empty element id")
+	}
+
+	if view.isDefault {
+		problems = append(problems, "OOB cannot be Default; mark a Region instead")
+	}
+
+	s.oobs = append(s.oobs, view)
+
+	return problems
+}
+
+// pageCountProblem states the "exactly one Page" rule once per declaration.
+func pageCountProblem(pages int) string {
+	switch pages {
+	case 0:
+		return "exactly one Page is required, found none"
+	case 1:
+		return ""
+	default:
+		return "exactly one Page is required, found more than one"
+	}
 }
 
 func (s *viewSet[T]) render(w http.ResponseWriter, r *http.Request, result any) error {
@@ -223,6 +309,15 @@ func (s *viewSet[T]) render(w http.ResponseWriter, r *http.Request, result any) 
 	return nil
 }
 
+// requireRoutable is the pre-load half of the selection: a QuerySet handler
+// runs it before any loader starts, so a request whose shape the set cannot
+// render is refused without paying for the reads.
+func (s *viewSet[T]) requireRoutable(r *http.Request) error {
+	_, err := s.selectView(r)
+
+	return err
+}
+
 func (s *viewSet[T]) selectView(r *http.Request) (View[T], error) {
 	if LoadScopeFor(r) == ScopePage {
 		return *s.page, nil
@@ -238,8 +333,22 @@ func (s *viewSet[T]) selectView(r *http.Request) (View[T], error) {
 	}
 
 	return View[T]{}, errorfamily.NewRejection("unroutable_view",
-		fmt.Sprintf("no view matches target %q and no Default region is declared", target)).
+		fmt.Sprintf("no view matches target %q and no Default region is declared (routable: %s)",
+			target, s.describe())).
 		WithContext("target", target)
+}
+
+// describe lists the shapes a request can be routed to, for the
+// unroutable-view rejection: the error names what WOULD have matched.
+func (s *viewSet[T]) describe() string {
+	names := make([]string, 0, len(s.regions)+1)
+	names = append(names, s.page.String())
+
+	for _, region := range s.regions {
+		names = append(names, region.String())
+	}
+
+	return strings.Join(names, ", ")
 }
 
 func (s *viewSet[T]) regionFor(target string) (View[T], bool) {
@@ -278,6 +387,7 @@ const (
 	ScopeFragment
 )
 
+// String names the scope for logs and test failure messages.
 func (s LoadScope) String() string {
 	if s == ScopeFragment {
 		return "fragment"
@@ -295,6 +405,12 @@ func (s LoadScope) String() string {
 //
 // It is exported so a consumer can reason about (and test) the cost model of
 // page-only loaders without going through the handler.
+//
+// The scope is the page-or-fragment half of the selection only. WHICH fragment
+// renders is decided by the view set: a partial request whose HX-Target is
+// empty or matches no region renders the Default region, and is refused when
+// none exists — in a QuerySet handler that refusal happens before any loader
+// runs, so an unroutable request never pays for reads.
 func LoadScopeFor(r *http.Request) LoadScope {
 	if htmx.IsBoosted(r) || htmx.IsHistoryRestore(r) {
 		return ScopePage

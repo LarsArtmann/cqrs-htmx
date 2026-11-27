@@ -85,9 +85,16 @@ type handlerConfig struct {
 	// handler actually decodes; AcceptQuery appends consumer types.
 	acceptQuery []string
 	onError     func(*http.Request, error)
+	// onLoad receives the account of every QuerySet load that did not abort
+	// (which loaders ran, which PageOnly skipped).
+	onLoad func(*http.Request, LoadReport)
 	// onLoadError receives the report of one QuerySet run when optional
 	// loaders failed. Without it those failures are logged at WARN.
-	onLoadError  func(*http.Request, LoadReport)
+	onLoadError func(*http.Request, LoadReport)
+	// beforeLoad runs after the pre-dispatch checks and before any QuerySet
+	// loader starts. Views installs its routability check here, so an
+	// unroutable request is refused before its reads are paid for.
+	beforeLoad   func(*http.Request) error
 	requestGuard RequestGuardFunc
 	openapiMeta  *openapi.Operation
 }
@@ -118,6 +125,15 @@ func (c *handlerConfig) allowedMethodsHeader() string {
 	}
 
 	return strings.Join(c.requireMethods, ", ")
+}
+
+// runBeforeLoad applies the renderer's pre-load check, if it installed one.
+func (c *handlerConfig) runBeforeLoad(r *http.Request) error {
+	if c.beforeLoad == nil {
+		return nil
+	}
+
+	return c.beforeLoad(r)
 }
 
 // hasNoExplicitBody returns true if the handler has no render function and

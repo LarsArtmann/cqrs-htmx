@@ -29,7 +29,7 @@ type Loader[T any] struct {
 	optional bool
 	pageOnly bool
 	run      func(ctx context.Context) (any, error)
-	apply    func(*T, any)
+	apply    func(*T, any) error
 }
 
 // Load declares a loader named name whose function produces V and whose apply
@@ -48,16 +48,7 @@ func Load[T any, V any](name string, fn LoadFunc[V], apply func(*T, V)) Loader[T
 		}
 	}
 
-	if apply != nil {
-		loader.apply = func(dst *T, value any) {
-			typed, ok := value.(V)
-			if !ok {
-				return
-			}
-
-			apply(dst, typed)
-		}
-	}
+	loader.apply = applier(apply)
 
 	return loader
 }
@@ -127,16 +118,7 @@ func LoadQuery[T any, V any](
 		}
 	}
 
-	if apply != nil {
-		loader.apply = func(dst *T, value any) {
-			typed, ok := value.(V)
-			if !ok {
-				return
-			}
-
-			apply(dst, typed)
-		}
-	}
+	loader.apply = applier(apply)
 
 	return loader
 }
@@ -156,6 +138,47 @@ func FromDispatcher(dispatcher *query.Dispatcher) DispatchFunc {
 	return func(ctx context.Context, qry query.Query) (any, error) {
 		return dispatcher.Dispatch(ctx, qry)
 	}
+}
+
+// applier adapts the consumer's typed apply function to the type-erased slot a
+// heterogeneous loader set needs. A nil apply stays nil, so the load pass can
+// skip it.
+func applier[T, V any](apply func(*T, V)) func(*T, any) error {
+	if apply == nil {
+		return nil
+	}
+
+	return func(dst *T, value any) error {
+		return applyLoaded(dst, value, apply)
+	}
+}
+
+// applyLoaded hands one loader's result to the consumer's apply function.
+//
+// A nil result (a loader whose interface-typed V came back nil) applies as V's
+// zero value, exactly like a typed nil pointer would, so a pointer-typed and an
+// interface-typed loader behave the same. A value of any other type cannot be
+// produced by [Load] or [LoadQuery] — both hand the function's own V through —
+// so it is reported as a wiring fault instead of being skipped.
+func applyLoaded[T, V any](dst *T, value any, apply func(*T, V)) error {
+	if value == nil {
+		var zero V
+
+		apply(dst, zero)
+
+		return nil
+	}
+
+	typed, ok := value.(V)
+	if !ok {
+		return errorfamily.NewRejection("unexpected_loader_value",
+			fmt.Sprintf("loader produced %T, which its apply function does not accept", value)).
+			WithCause(httperr.ErrDecodeFailed)
+	}
+
+	apply(dst, typed)
+
+	return nil
 }
 
 // LoadReport is the honest account of one QuerySet run: which loaders ran,
@@ -245,7 +268,7 @@ func (s QuerySet[T]) load(
 
 	runs := make([]loaderRun[T], 0, len(s.Loaders))
 	for _, loader := range s.Loaders {
-		runs = append(runs, loaderRun[T]{loader: loader})
+		runs = append(runs, loaderRun[T]{loader: loader, slot: slotState{}})
 	}
 
 	report := LoadReport{Ran: make([]string, 0, len(runs))}
@@ -263,7 +286,10 @@ func (s QuerySet[T]) load(
 			continue
 		}
 
-		run.loader.apply(&props, run.slot.value)
+		if err := run.loader.apply(&props, run.slot.value); err != nil {
+			return props, report, errorfamily.WrapRejectionf(err,
+				"cqrshtmx.queryset.apply_failed", "loader %s", run.loader.name)
+		}
 	}
 
 	return props, report, nil
@@ -373,7 +399,9 @@ type slotState struct {
 
 // isCancellationArtifact reports whether err is the context.Canceled that our
 // own fail-fast cancellation injected into a sibling loader. The loader whose
-// error CAUSED the cancellation keeps its error: cause is that exact value.
+// error CAUSED the cancellation keeps its error: cause is that exact value —
+// so a loader that returns context.Canceled on its own, with nothing else
+// failing, is reported as the fatal error rather than swallowed.
 func isCancellationArtifact(err, cause error) bool {
 	if cause == nil || !errors.Is(err, context.Canceled) {
 		return false
@@ -391,14 +419,65 @@ func OnLoadError(fn func(r *http.Request, report LoadReport)) HandlerOption {
 	}
 }
 
+// OnLoad installs a hook that receives the account of every QuerySet load
+// that did not abort — which loaders ran, which PageOnly skipped — so a
+// consumer can export the cost model to metrics. It also fires on a degraded
+// run (optional loaders failed); [OnLoadError] remains the failure-focused
+// hook. A load that aborts never reaches it: a fatal loader error goes to the
+// error path and to [OnError].
+func OnLoad(fn func(r *http.Request, report LoadReport)) HandlerOption {
+	return func(config *handlerConfig) {
+		config.onLoad = fn
+	}
+}
+
+// reportLoad hands the run's account to the consumer hooks: OnLoadError when
+// optional loaders failed (logged at WARN instead when no hook is installed),
+// then OnLoad on every non-fatal run.
+func reportLoad(r *http.Request, config *handlerConfig, report LoadReport) {
+	if report.HasFailures() {
+		if config.onLoadError != nil {
+			config.onLoadError(r, report)
+		} else {
+			logOptionalFailures(r, report)
+		}
+	}
+
+	if config.onLoad != nil {
+		config.onLoad(r, report)
+	}
+}
+
+func logOptionalFailures(r *http.Request, report LoadReport) {
+	names := make([]string, 0, len(report.Failures))
+
+	for _, failure := range report.Failures {
+		names = append(names, failure.Name)
+		errorfamily.LogErrorContext(r.Context(), failure.Err,
+			slog.Default().With(slog.String("path", r.URL.Path), slog.String("loader", failure.Name)))
+	}
+
+	slog.Default().Warn("cqrshtmx: optional loaders degraded",
+		slog.String("path", r.URL.Path),
+		slog.String("loaders", strings.Join(names, ",")))
+}
+
 // QuerySet returns an http.HandlerFunc that loads the set, then renders the
 // props through the configured option — [Views] is the intended renderer, but
 // any render option ([RenderTemplResult], [Render], …) works.
 //
 // The pipeline is the query pipeline minus the decode step: pre-dispatch checks
-// (authorization, method guard, CSRF) run first, loaders run under the handler
-// timeout, then the renderer writes the response. Loaders that are PageOnly are
-// skipped for targeted HTMX requests, per [LoadScopeFor].
+// (authorization, method guard, CSRF) run first, then the renderer's pre-load
+// check (an unroutable [Views] request is refused here, before any read),
+// loaders run under the handler timeout, the HTMX response options apply, and
+// the renderer writes the response. Loaders that are PageOnly are skipped for
+// targeted HTMX requests, per [LoadScopeFor].
+//
+// Two App.Query behaviours deliberately do not apply, because there is no
+// request body to decode: no Accept-Query header is advertised, and
+// [RequestGuard] never runs (it needs a decoded value — gate the reads
+// instead; a [LoadQuery] loader keeps its `query/<Name>` posture through the
+// dispatcher).
 func (a *App) QuerySet[T any](set QuerySet[T], opts ...HandlerOption) http.HandlerFunc {
 	set.validate()
 
@@ -418,45 +497,70 @@ func (a *App) QuerySet[T any](set QuerySet[T], opts ...HandlerOption) http.Handl
 			return
 		}
 
-		loadCtx, cancel := a.timeoutCtx(ctx, config)
-		defer cancel()
-
-		//nolint:contextcheck // loadCtx derives from dispatchContext's ctx, which derives from r
-		props, report, err := set.load(loadCtx, LoadScopeFor(r) == ScopePage)
-		if err != nil {
-			//nolint:contextcheck // ctx is extracted from r inside dispatchContext
+		if err := config.runBeforeLoad(r); err != nil {
 			a.handleErr(w, r, ctx, config, err)
 
 			return
 		}
 
-		emitLoadReport(r, config, report)
-
-		if config.render != nil {
-			//nolint:contextcheck // loadCtx derives from dispatchContext's ctx
-			if renderErr := config.render(w, r.WithContext(loadCtx), props); renderErr != nil {
-				a.handleErr(w, r, ctx, config, renderErr)
-
-				return
-			}
-		}
-
-		writeDefaultStatus(w, config)
-		//nolint:contextcheck // loadCtx derives from dispatchContext's ctx
-		a.afterDispatchHook(loadCtx, r, nil)
+		a.loadAndRespond(w, r, ctx, config, set)
 	})
+}
+
+// loadAndRespond runs the set's loaders under the handler timeout and writes
+// the loaded props through the renderer.
+func (a *App) loadAndRespond[T any](
+	w http.ResponseWriter,
+	r *http.Request,
+	ctx context.Context,
+	config *handlerConfig,
+	set QuerySet[T],
+) {
+	//nolint:contextcheck // ctx is extracted from r inside dispatchContext
+	loadCtx, cancel := a.timeoutCtx(ctx, config)
+	defer cancel()
+
+	//nolint:contextcheck // loadCtx derives from dispatchContext's ctx, which derives from r
+	props, report, err := set.load(loadCtx, LoadScopeFor(r) == ScopePage)
+	if err != nil {
+		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
+		a.handleErr(w, r, ctx, config, err)
+
+		return
+	}
+
+	reportLoad(r, config, report)
+
+	//nolint:contextcheck // loadCtx derives from dispatchContext's ctx, which derives from r
+	if renderErr := respondLoaded(w, r.WithContext(loadCtx), config, props); renderErr != nil {
+		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
+		a.handleErr(w, r, ctx, config, renderErr)
+
+		return
+	}
+
+	//nolint:contextcheck // loadCtx derives from dispatchContext's ctx, which derives from r
+	a.afterDispatchHook(loadCtx, r, nil)
 }
 
 // QuerySetHandler is the App-less form of [App.QuerySet] for consumers that
 // mount a bare mux: there is no dispatch pipeline and no authorization gate, so
 // the consumer's own middleware owns both. Errors map through
-// [httperr.DefaultErrorHandler]; the load and render rules are identical.
+// [httperr.DefaultErrorHandler] — the App-level Config.ErrorHandler and
+// server-timing do not apply. The load and render rules are identical,
+// including the HTMX response options.
 func QuerySetHandler[T any](set QuerySet[T], opts ...HandlerOption) http.HandlerFunc {
 	set.validate()
 
 	config := buildHandlerConfig(opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := config.runBeforeLoad(r); err != nil {
+			httperr.DefaultErrorHandler(w, r, err)
+
+			return
+		}
+
 		props, report, err := set.load(r.Context(), LoadScopeFor(r) == ScopePage)
 		if err != nil {
 			httperr.DefaultErrorHandler(w, r, err)
@@ -464,41 +568,29 @@ func QuerySetHandler[T any](set QuerySet[T], opts ...HandlerOption) http.Handler
 			return
 		}
 
-		emitLoadReport(r, config, report)
+		reportLoad(r, config, report)
 
-		if config.render != nil {
-			if renderErr := config.render(w, r, props); renderErr != nil {
-				httperr.DefaultErrorHandler(w, r, renderErr)
-
-				return
-			}
+		if renderErr := respondLoaded(w, r, config, props); renderErr != nil {
+			httperr.DefaultErrorHandler(w, r, renderErr)
 		}
-
-		writeDefaultStatus(w, config)
 	})
 }
 
-// emitLoadReport routes optional-loader failures to the consumer hook, or logs
-// them when no hook is installed.
-func emitLoadReport(r *http.Request, config *handlerConfig, report LoadReport) {
-	if !report.HasFailures() {
-		return
+// respondLoaded writes a loaded props struct the way App.Query writes a query
+// result: the HTMX response options first (a non-HTMX Redirect is terminal),
+// then the renderer, then the default status.
+func respondLoaded(w http.ResponseWriter, r *http.Request, config *handlerConfig, props any) error {
+	if applyHTMXResponse(w, r, config) {
+		return nil
 	}
 
-	if config.onLoadError != nil {
-		config.onLoadError(r, report)
-
-		return
+	if config.render != nil {
+		if err := config.render(w, r, props); err != nil {
+			return err //nolint:wrapcheck // the renderer's own error is relayed verbatim, matching App.Query
+		}
 	}
 
-	names := make([]string, 0, len(report.Failures))
-	for _, failure := range report.Failures {
-		names = append(names, failure.Name)
-		errorfamily.LogErrorContext(r.Context(), failure.Err,
-			slog.Default().With(slog.String("path", r.URL.Path), slog.String("loader", failure.Name)))
-	}
+	writeDefaultStatus(w, config)
 
-	slog.Default().Warn("cqrshtmx: optional loaders degraded",
-		slog.String("path", r.URL.Path),
-		slog.String("loaders", strings.Join(names, ",")))
+	return nil
 }
