@@ -104,7 +104,8 @@ func TestRoutePostures_DisabledLayersAreAbsent(t *testing.T) {
 }
 
 // TestRoutePostures_OptInEndpointsAppear proves each opt-in endpoint adds its
-// session-gated row (and the public script rows for the feeds).
+// session-gated row (the public script rows for the feeds, and the public
+// tracking pair once signals have a durable home).
 func TestRoutePostures_OptInEndpointsAppear(t *testing.T) {
 	t.Parallel()
 
@@ -120,6 +121,7 @@ func TestRoutePostures_OptInEndpointsAppear(t *testing.T) {
 		DebugPath:            "/debug.json",
 		DocsPath:             "/docs",
 		DocsHandler:          http.NotFoundHandler(),
+		TrackingBackend:      memoryStreamLog(t),
 	})
 	if err != nil {
 		t.Fatalf("setup.New with opt-ins: %v", err)
@@ -136,6 +138,8 @@ func TestRoutePostures_OptInEndpointsAppear(t *testing.T) {
 		"/projections/status.json": "authenticated",
 		"/debug.json":              "authenticated",
 		"/docs":                    "authenticated",
+		"/-/track":                 "public",
+		"/-/tracker.js":            "public",
 	}
 
 	got := map[string]string{}

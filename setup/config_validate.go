@@ -35,6 +35,10 @@ func (c Config) validate() error {
 		return err
 	}
 
+	if err := c.validateTracking(); err != nil {
+		return err
+	}
+
 	if c.SSEMaxReplay < 0 {
 		return errorfamily.Newf(
 			errorfamily.Rejection,

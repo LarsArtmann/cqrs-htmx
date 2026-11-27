@@ -110,6 +110,10 @@ func newBundle(cfg Config) (*Bundle, error) {
 		bundle.Auth = usermgmt.NewAuthHandler(svc, authCfg)
 	}
 
+	// Client tracking holds no resource, so it attaches outside the loop
+	// below: nothing of it needs tearing down.
+	bundle.attachTracking()
+
 	// Panels, SSE, and machine endpoints mount in order; the first failure
 	// tears the bundle down so a failed New leaves nothing behind.
 	for _, attach := range []func() error{

@@ -14,6 +14,7 @@ import (
 	appkit "github.com/larsartmann/go-appkit"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -230,6 +231,35 @@ type Config struct {
 	// the bundle (e.g. you load the SDK from a CDN); the SDK script tag must
 	// then point at your own location. Ignored when DataStarPath is empty.
 	DataStarScriptPath string
+
+	// TrackingPath mounts the client-tracking endpoint that receives the
+	// signals of the embedded tracker ([cqrshtmx.TrackHandler]). Default
+	// ("") = "/-/track". Set to "-" to mount neither the endpoint nor the
+	// tracker script.
+	//
+	// Signals are stored in the engine-owned signals journal when EventStore
+	// is the go-cqrs-lite system event adapter (or TrackingBackend is set),
+	// or wherever TrackingSink stores them. With none of the three the bundle
+	// mounts nothing and says so in one log line: serving a tracker whose
+	// beacons are silently discarded is the more expensive mistake.
+	TrackingPath string
+
+	// TrackerScriptPath controls where the embedded tracker script
+	// ([cqrshtmx.TrackerScriptHandler]) is served. Default ("") =
+	// "/-/tracker.js". Set to "-" to serve the endpoint without the script
+	// (e.g. you host the script yourself). Ignored when TrackingPath is "-".
+	TrackerScriptPath string
+
+	// TrackingSink stores every validated signal. Set it to keep signals in
+	// a store of your own (a file, a queue, an analytics service). It
+	// replaces the signals journal; [Bundle.TrackingJournal] is then nil.
+	TrackingSink cqrshtmx.TrackingSink
+
+	// TrackingBackend overrides the engine the signals journal writes to. By
+	// default the journal shares the backend of the system event adapter
+	// (Config.EventStore); set this to keep signals on another engine.
+	// Mutually exclusive with TrackingSink.
+	TrackingBackend metaengine.StreamLogBackend
 
 	// UI configuration (all optional — sensible defaults).
 	Title       string // page title for all panels (default: "cqrs-htmx")
@@ -697,6 +727,14 @@ func (c Config) withDefaults() Config {
 	}
 
 	cfg = normalizeRoutePaths(cfg)
+
+	if cfg.TrackingPath == "" {
+		cfg.TrackingPath = "/-/track"
+	}
+
+	if cfg.TrackingPath != "-" && cfg.TrackerScriptPath == "" {
+		cfg.TrackerScriptPath = "/-/tracker.js"
+	}
 
 	if cfg.LoginRedirect == "" {
 		// Follow a customized AdminPath (the default post-login destination);

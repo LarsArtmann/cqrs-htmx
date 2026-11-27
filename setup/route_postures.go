@@ -73,6 +73,7 @@ func (b *Bundle) RoutePostures() []cqrshtmx.RoutePosture {
 
 	rows = append(rows, b.feedPostures()...)
 	rows = append(rows, b.machineEndpointPostures()...)
+	rows = append(rows, b.trackingPostures()...)
 	rows = append(rows, b.probePostures()...)
 
 	return rows

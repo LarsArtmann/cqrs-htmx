@@ -19,6 +19,8 @@ const (
 	fieldLivePath             = "LivePath"
 	fieldSSEScriptPath        = "SSEScriptPath"
 	fieldDataStarScriptPath   = "DataStarScriptPath"
+	fieldTrackingPath         = "TrackingPath"
+	fieldTrackerScriptPath    = "TrackerScriptPath"
 )
 
 // normalizeRoutePaths applies the route-shape rules every mount path shares:
@@ -45,6 +47,8 @@ func normalizeRoutePaths(cfg Config) Config {
 		&cfg.SSEScriptPath,
 		&cfg.DataStarPath,
 		&cfg.DataStarScriptPath,
+		&cfg.TrackingPath,
+		&cfg.TrackerScriptPath,
 	} {
 		*path = trimTrailingSlash(*path)
 	}
@@ -140,6 +144,8 @@ func (c Config) validateOptionalFeedPaths() error {
 		{fieldDataStarPath, c.DataStarPath, false},
 		{fieldDataStarScriptPath, c.DataStarScriptPath, true},
 		{fieldDocsPath, c.DocsPath, false},
+		{fieldTrackingPath, c.TrackingPath, true},
+		{fieldTrackerScriptPath, c.TrackerScriptPath, true},
 	} {
 		if opt.path == "" || (opt.allowDash && opt.path == "-") {
 			continue
@@ -178,6 +184,8 @@ func (c Config) validatePathRoots() error {
 		{fieldProjectionStatusPath, c.ProjectionStatusPath},
 		{fieldDebugPath, c.DebugPath},
 		{fieldDocsPath, c.DocsPath},
+		{fieldTrackingPath, c.TrackingPath},
+		{fieldTrackerScriptPath, c.TrackerScriptPath},
 	} {
 		if p.path == "/" {
 			return errorfamily.Newf(errorfamily.Rejection,
@@ -209,6 +217,8 @@ func requireDistinctPaths(c Config) error {
 		{fieldProjectionStatusPath, trimTrailingSlash(c.ProjectionStatusPath)},
 		{fieldDebugPath, trimTrailingSlash(c.DebugPath)},
 		{fieldDocsPath, trimTrailingSlash(c.DocsPath)},
+		{fieldTrackingPath, trimTrailingSlash(c.TrackingPath)},
+		{fieldTrackerScriptPath, trimTrailingSlash(c.TrackerScriptPath)},
 	}
 
 	for i := range paths {

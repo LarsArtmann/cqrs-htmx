@@ -104,6 +104,12 @@ type Bundle struct {
 	// event.Journal or when neither SSEPath nor DataStarPath is configured.
 	sseStore sse.EventStore
 
+	// tracking is the signals journal when the bundle built one (nil when
+	// signals go to a consumer sink or tracking is off); trackingHandler is
+	// the mounted endpoint, nil when tracking is off.
+	tracking        *SignalsJournal
+	trackingHandler http.Handler
+
 	// Machine-endpoint handlers (M6): built once at New (the event catalog
 	// serializes eagerly — fail-fast), mounted only at their opt-in Config
 	// paths, always behind the session gate.

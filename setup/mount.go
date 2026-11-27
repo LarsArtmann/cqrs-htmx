@@ -19,6 +19,8 @@ import (
 //	/ds/events      — DataStar SSE feed (behind session; only when DataStarPath is set)
 //	/datastar.js    — DataStar SDK script (only when DataStarPath is set and
 //	                  DataStarScriptPath is not "-")
+//	/-/track, /-/tracker.js: client-tracking endpoint and script (only when
+//	                  signals have a durable home; TrackingPath "-" opts out)
 //	/health         — readiness check (public)
 //	/               — login page (public)
 //
@@ -85,6 +87,9 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	}
 
 	b.mountEventFeeds(mux)
+
+	// Client tracking is public; mounted only when signals have a durable home.
+	b.mountTracking(mux)
 
 	// Machine endpoints — opt-in (Config paths), session-gated JSON surfaces
 	// for monitors and runbooks (the /sse 401 precedent).
