@@ -797,7 +797,7 @@ journal := bundle.TrackingJournal()      // nil when signals go to Config.Tracki
 signals, err := journal.ForUser(ctx, id) // also ForClient(ctx, deviceID) and All(ctx)
 ```
 
-Mounted: `GET /-/tracker.js` and `POST /-/track` (behind the session middleware, so a signed-in visitor's signals carry the user key). With `EventStore` set to the store of a go-cqrs-lite `system` (`sys.EventStore()`), `TrackingBackend` can stay unset: the journal shares that store's engine. `TrackingSink` sends signals to a store of your own instead. No home mounts nothing and logs `setup: client tracking is off` once; `TrackingPath: "-"` is the explicit opt-out.
+Mounted: `GET /-/tracker.js` and `POST /-/track` (behind the session middleware, so a signed-in visitor's signals carry the user key). With `EventStore` set to the store of a go-cqrs-lite `system` (`sys.EventStore()`), `TrackingBackend` can stay unset: the journal shares that store's engine. `TrackingSink` sends signals to a store of your own instead. No home mounts nothing and logs `setup: client tracking is off` once, at debug level; `TrackingPath: "-"` is the explicit opt-out.
 
 2. In the page: one tag, two attributes. With a moved `TrackingPath`, add `data-track-url="<path>"` to the tag (the tracker posts to `/-/track` by default).
 

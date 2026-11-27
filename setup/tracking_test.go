@@ -178,14 +178,15 @@ func (s *trackingSinkSpy) recorded() [][]cqrshtmx.TrackedEvent {
 }
 
 // trackingBundle builds a bundle whose logger discards (lines == nil) or
-// writes text lines into the buffer, and closes it when the test ends.
+// writes every line from debug level up into the buffer, and closes it when
+// the test ends.
 func trackingBundle(t *testing.T, config setup.Config, lines *bytes.Buffer) *setup.Bundle {
 	t.Helper()
 
 	if lines == nil {
 		config.Logger = slog.New(slog.DiscardHandler)
 	} else {
-		config.Logger = slog.New(slog.NewTextHandler(lines, nil))
+		config.Logger = slog.New(slog.NewTextHandler(lines, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	}
 
 	bundle, err := setup.New(config)
@@ -517,7 +518,35 @@ func TestNew_TrackingIsOffWithoutADurableHome(t *testing.T) {
 
 	if logged := lines.String(); !strings.Contains(logged, "client tracking is off") ||
 		!strings.Contains(logged, "TrackingBackend") {
-		t.Errorf("the bundle must say once why tracking is off and how to turn it on; logged:\n%s", logged)
+		t.Errorf(
+			"the bundle must say once at debug level why tracking is off and how to turn it on; logged:\n%s",
+			logged,
+		)
+	}
+}
+
+func TestNew_ABundleWithoutTrackingStaysQuietAtInfo(t *testing.T) {
+	t.Parallel()
+
+	var lines bytes.Buffer
+
+	// Tracking is opt-in: every bundle that was never offered a home would
+	// otherwise speak about a feature it does not have on every boot.
+	config := setup.Config{
+		Title:        "Quiet",
+		DisableLogin: true,
+		Logger:       slog.New(slog.NewTextHandler(&lines, nil)),
+	}
+
+	bundle, err := setup.New(config)
+	if err != nil {
+		t.Fatalf("setup.New: %v", err)
+	}
+
+	t.Cleanup(func() { _ = bundle.Close() })
+
+	if logged := lines.String(); strings.Contains(logged, "client tracking") {
+		t.Errorf("a default bundle must stay quiet about tracking at info level; logged:\n%s", logged)
 	}
 }
 

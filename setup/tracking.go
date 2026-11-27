@@ -21,8 +21,9 @@ func (b *Bundle) TrackingJournal() *SignalsJournal {
 // attachTracking resolves where signals are stored and builds what the
 // bundle mounts: the endpoint that feeds it, wrapped so a signal is
 // attributed to the session the server saw. A config that names no durable
-// home mounts nothing and says why once: serving a tracker whose beacons are
-// discarded is the more expensive silence.
+// home mounts nothing and says why once at debug level: tracking is opt-in,
+// so a bundle that was never offered a home has nothing to warn about, and
+// an app that mounted the tracker anyway sees the script answer 404.
 func (b *Bundle) attachTracking() {
 	sink, journal := b.config.resolveSignalsHome(b.Stores.EventStore)
 
@@ -30,7 +31,7 @@ func (b *Bundle) attachTracking() {
 
 	if sink == nil {
 		if b.config.TrackingPath != "-" {
-			b.trackingLogger().Info("setup: client tracking is off",
+			b.trackingLogger().Debug("setup: client tracking is off",
 				"tracking_path", b.config.TrackingPath,
 				"reason", "no durable home for signals: the event store is not the one go-cqrs-lite's system builds",
 				"fix", "set Config.TrackingBackend (any engine stream-log backend), or Config.TrackingSink, or pass system.EventStore() as EventStore",
