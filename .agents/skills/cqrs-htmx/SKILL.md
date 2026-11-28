@@ -58,7 +58,7 @@ An app typically composes some subset of these. They are **independent Go module
 | **adminui**           | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | Ready-made admin dashboard (templ + HTMX): **identity operations** (users/tenants/members/audit over a `*usermgmt.Service`; write actions, role-gated). Depends on root + usermgmt                                                                                                                                                                                                                                                |
 | **dashboardui**       | `github.com/larsartmann/cqrs-htmx/dashboardui/v4`        | Ready-made **event-store observability** dashboard (projection health, event catalog, live SSE; read-only by default). NOT user administration — see adminui. Depends on root + go-cqrs-lite only (NO usermgmt dep — verified against dashboardui/go.mod 2026-10-25)                                                                                                                                                              |
 | **loginpage**         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`          | Ready-made passwordless login page (templ-components based: `layout.Base`, Tailwind-only styling, CSP-nonce + cookie-theme hooks). Third sibling UI panel.                                                                                                                                                                                                                                                                        |
-| **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering.                                                                                                                                                                                                                                                                                   |
+| **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering; optional client tracking (`Config.TrackingBackend`, `SignalsJournal`).                                                                                                                                                                                                            |
 | **datastar**          | `github.com/larsartmann/cqrs-htmx/datastar/v4`           | Optional DataStar adapter: script serving, signal decoding, SSE response builder, EventBridge. Depends only on go-datastar + go-sse (no root dep).                                                                                                                                                                                                                                                                                |
 
 Middleware questions beyond this table (middleware ordering, CSRF behind a reverse proxy, SSE through middleware, a complete chain to copy) belong to the `httputil` skill; hand off to it instead of restating its README.
@@ -786,16 +786,20 @@ Two journals answer two halves of one question, and they share their keys (user,
 
 **The browser half, client tracking:** an embedded first-party tracker reports page views, the foreground time of each page view, clicks on `data-track` elements and impressions of `data-track-impression` elements.
 
-1. Mount the two ends of the root module around a sink that stores the signals:
+1. On the `setup` bundle, give the signals a durable home; the routes mount themselves:
 
 ```go
-mux.Handle("POST /-/track", cqrshtmx.TrackHandler(sink)) // sink implements cqrshtmx.TrackingSink
-mux.Handle("GET /-/tracker.js", cqrshtmx.TrackerScriptHandler())
+bundle, err := setup.New(setup.Config{
+    Title:           "My App",
+    TrackingBackend: backend, // any metaengine.StreamLogBackend
+})
+journal := bundle.TrackingJournal()      // nil when signals go to Config.TrackingSink, or tracking is off
+signals, err := journal.ForUser(ctx, id) // also ForClient(ctx, deviceID) and All(ctx)
 ```
 
-Put your session middleware and `cqrshtmx.ContextEnrichmentMiddleware(userID)` in front of the endpoint, or signals arrive without a user and without the `X-Client-Id` device key. `cqrshtmx.TrackerScriptTag("/-/tracker.js")` renders the script tag for the page head.
+Mounted: `GET /-/tracker.js` and `POST /-/track` (behind the session middleware, so a signed-in visitor's signals carry the user key). With `EventStore` set to the store of a go-cqrs-lite `system` (`sys.EventStore()`), `TrackingBackend` can stay unset: the journal shares that store's engine. `TrackingSink` sends signals to a store of your own instead. No home mounts nothing and logs `setup: client tracking is off` once; `TrackingPath: "-"` is the explicit opt-out.
 
-2. In the page: one tag, two attributes. The tracker posts to `/-/track`; with another mount path, add `data-track-url="<path>"` to the tag.
+2. In the page: one tag, two attributes. With a moved `TrackingPath`, add `data-track-url="<path>"` to the tag (the tracker posts to `/-/track` by default).
 
 ```html
 <script src="/-/tracker.js" defer></script>
@@ -803,14 +807,17 @@ Put your session middleware and `cqrshtmx.ContextEnrichmentMiddleware(userID)` i
 <div data-track-impression="hero">...</div>
 ```
 
+3. Without `setup`: `mux.Handle("POST /-/track", cqrshtmx.TrackHandler(sink))` and `mux.Handle("GET /-/tracker.js", cqrshtmx.TrackerScriptHandler())`; `setup.NewSignalsJournal(backend)` builds the journal for an app that is not a bundle. Put your session middleware and `cqrshtmx.ContextEnrichmentMiddleware(userID)` in front of the endpoint, or signals arrive without a user and without the `X-Client-Id` device key.
+
 Rules that bite:
 
 - The server owns identity and time; the endpoint ignores any user or time in the body. A signal without a user means no session middleware ran in front of the endpoint.
 - `TrackHandler` answers 405 (not POST), 403 (`Sec-Fetch-Site` or `Origin` prove another site) and 415 (not JSON) before it reads the body, and caps the body at 64 KiB and the batch at 50 signals. Another site embedding your pages is refused by design.
 - A well-formed envelope always answers 202 with a `TrackReceipt`, even when the sink failed: read `accepted` and `dropped`, and watch the log for the sink error.
 - Nothing is collected for an opted-out visitor (Global Privacy Control, `<html data-tracking="off">`, a persisted `cqrsTracker.disable()`), only `location.pathname` is reported, and element text, links and attribute values are never recorded.
+- The signals journal only grows: nothing trims it by default. The per-subject and by-age recipes are in `setup/README.md`, Troubleshooting.
 
-Detail: the root README, section "Client tracking: page views, clicks, impressions".
+Runnable end to end: `examples/tracking-demo` (port 8094). Detail: the root README, section "Client tracking: page views, clicks, impressions".
 
 ## Standalone module recipes (consumer-invented)
 

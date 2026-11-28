@@ -103,6 +103,12 @@ subset 10/10 under chromium, reproduced 10/10 from a fresh
 > "did not run". Establish per-test state explicitly (the posture spec's
 > self-contained register-then-logout is the pattern).
 
+> **The `request` fixture is isolated from the page.** `request` carries no
+> cookie of the browser context, so an API call made with it runs as a
+> stranger. To call the API as the page's user, use `context.request` (the
+> tracker spec's `signIn` is the pattern; hit live on 2026-11-27, when the
+> first run recorded a page view without the user key).
+
 ### Sanctioned runs and the stale-server trap
 
 `reuseExistingServer` is ON locally: a leaked server from an earlier run is

@@ -58,7 +58,7 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 - [User-mapped queries](#user-mapped-queries-the-audit-trail) — who read what: the durable query log
 - [Client tracking](#client-tracking-page-views-clicks-impressions) — what visitors did in the browser: page views, clicks, impressions
 - [Ready-made UIs & the one-call setup](#ready-made-uis--the-one-call-setup)
-- [Examples](#examples) — 13 runnable, tested demos
+- [Examples](#examples) — 14 runnable, tested demos
 - [Documentation](#documentation) — 30+ guides, ADRs, runbooks
 - [Versioning & migrations](#versioning--migrations) — v2→v3→v4→v5 + upgrade codemod
 - [Contributing](#contributing) · [License](#license) (MIT)
@@ -110,7 +110,7 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 
 **Client tracking**
 
-- **First-party usage signals** — the embedded tracker reports page views, the foreground time of each, clicks on `data-track` elements and impressions of `data-track-impression` elements to `TrackHandler` (first-party proof before the body is read, every field capped, identity and time from the server); nothing is collected for a visitor who opted out.
+- **First-party usage signals** — the embedded tracker reports page views, the foreground time of each, clicks on `data-track` elements and impressions of `data-track-impression` elements to `TrackHandler` (first-party proof before the body is read, every field capped, identity and time from the server); nothing is collected for a visitor who opted out. The [`setup`](setup/README.md) bundle stores the signals in a journal and answers them by user, by device, or all at once ([below](#client-tracking-page-views-clicks-impressions))
 
 **Production posture**
 
@@ -522,20 +522,27 @@ The audit trail records what the server was asked. Client tracking records what 
 
 The root module owns the two ends. `TrackHandler` receives the beacons: it proves the beacon is first-party before it reads the body, caps every field, cuts the query string and the fragment from a path, and takes the identity and the time from the server, never from the body. `TrackerScriptHandler` serves the embedded tracker, a dependency-free script whose only global is `window.cqrsTracker`. It reports page views on load and on every in-app navigation, one engagement signal with the foreground time of each page view, clicks on `data-track` elements and impressions of `data-track-impression` elements, batched through `fetchLater` with a `keepalive` fallback. It collects nothing for a visitor who opted out: Global Privacy Control, `<html data-tracking="off">` or `cqrsTracker.disable()`.
 
-Wire the two ends around a `TrackingSink` of your own:
+The [`setup`](setup/README.md) bundle wires both ends in one field. Give the signals a durable home and it mounts the script at `/-/tracker.js` and the endpoint at `/-/track`, behind the session middleware, so a signed-in visitor's signals carry the user key:
 
 ```go
-mux.Handle("POST /-/track", cqrshtmx.TrackHandler(sink))
-mux.Handle("GET /-/tracker.js", cqrshtmx.TrackerScriptHandler())
+bundle, err := setup.New(setup.Config{
+    Title: "My App",
+    // Any engine stream-log backend. With a store built by go-cqrs-lite's
+    // system it is sys.EventStore().(*system.EventAdapter).Backend; with
+    // that store as EventStore, the field can stay unset.
+    TrackingBackend: streamLog,
+})
 ```
 
-`cqrshtmx.TrackerScriptTag("/-/tracker.js")` renders the script tag for the page head. Mount the endpoint behind your session middleware, so a signed-in visitor's signals carry the user key. A page needs one tag and two attributes:
+`bundle.TrackingJournal()` reads the signals back: `All`, `ForUser` and `ForClient`. A signal with a signed-in user lives in the user's stream, otherwise in the device's, otherwise in the shared anonymous stream. A page needs one tag and two attributes:
 
 ```html
 <script src="/-/tracker.js" defer></script>
 <button data-track="add-to-cart">Add to cart</button>
 <div data-track-impression="hero">...</div>
 ```
+
+[`tracking-demo`](examples/tracking-demo/README.md) runs the loop end to end: the shop, a sign-in shortcut, and a page that lists the recorded signals. The four fields are in the [setup configuration table](setup/README.md#configuration).
 
 ## Ready-made UIs & the one-call setup
 
