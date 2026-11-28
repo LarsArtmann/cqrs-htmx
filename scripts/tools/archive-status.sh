@@ -30,7 +30,9 @@
 #
 # Spec: TSV, one file per line, `#` comments and blank lines ignored:
 #   <report-basename>	<successor>	<reason>
-# `<successor>` is relative to docs/status/ (live report or `archived/…`).
+# `<successor>` is relative to docs/status/ (live report or `archived/…`), or a
+# repo-root living doc such as `TODO_LIST.md` (a bare name that also exists under
+# docs/status/ resolves to the status copy).
 # `<reason>` must name what the successor covers; a generic "same series"
 # reason is the docs-health skill's #1 failure mode — do not pass one.
 #
@@ -148,6 +150,11 @@ for i in "${!reports[@]}"; do
     continue
   fi
   successor_path="$STATUS_DIR/$successor"
+  if [ ! -f "$successor_path" ] && [ -f "$ROOT/$successor" ]; then
+    # A repo-root living doc (TODO_LIST.md, ROADMAP.md, …): the successor of a
+    # report whose open items were harvested into it.
+    successor_path="$ROOT/$successor"
+  fi
   if [ ! -f "$successor_path" ]; then
     successor_path="$ARCHIVE_DIR/$(basename "$successor")"
   fi
@@ -213,6 +220,9 @@ for i in "${!reports[@]}"; do
   *)
     if [ -f "$STATUS_DIR/$successor" ]; then
       successor_rel="../$(basename "$successor")"
+    elif [ -f "$ROOT/$successor" ] && [ ! -f "$ARCHIVE_DIR/$(basename "$successor")" ]; then
+      # A repo-root living doc: three levels up from docs/status/archived/.
+      successor_rel="../../../$successor"
     else
       successor_rel="$(basename "$successor")"
     fi
@@ -230,7 +240,7 @@ for i in "${!reports[@]}"; do
     exit 1
   fi
 
-  if ! REPORT="$report" SUCCESSOR="$successor_rel" REASON="$reason" VERDICT="$verdict" WHEN="$DATE" PASSNAME="$PASS" python3 - "$new_path" <<'PY'; then
+  if ! REPORT="$report" SUCCESSOR="$successor_rel" REASON="$reason" VERDICT="$verdict" WHEN="$DATE" PASSNAME="$PASS" python3 - "$new_path" <<'PY'
 import os
 import sys
 
@@ -269,6 +279,7 @@ if text.endswith("\n"):
     out += "\n"
 open(path, "w", encoding="utf-8").write(out)
 PY
+  then
     echo "✗ archive-status: annotate failed for $report (moved; finish by hand)" >&2
     exit 1
   fi

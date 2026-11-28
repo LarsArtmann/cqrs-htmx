@@ -674,10 +674,21 @@ jobs:
         if: steps.gcl-cache.outputs.cache-hit != 'true'
         run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
-      - name: Module isolation check (GOWORK=off build+vet)
+      # Since 2026-11-28 the production-only leg also RUNS the tests of the
+      # modules on HERMETIC_TEST_MODULES (integration_test): build and vet
+      # cannot see an assertion, and that module's tests see the PUBLISHED
+      # siblings here but the local tree in a workspace run — a test that
+      # hard-codes an unreleased sibling route was green locally and red in
+      # the test job for six hours (gotcha 30, consumer-test variant).
+      - name: Module isolation check (GOWORK=off build+vet, plus tests for integration_test)
         run: bash scripts/checks/check-module-isolation.sh
         env:
           GONOSUMCHECK: "github.com/larsartmann/*"
+
+      # Offline fixture self-test for the test leg above (planted failing,
+      # passing, unlisted and disabled cases plus build/vet/usage failures).
+      - name: Module isolation self-test
+        run: bash scripts/selftests/test-check-module-isolation.sh
 
       # CI build-job parity leg: examples + e2e hermetic (the catalog-demo
       # root-tag-gap class is invisible to the production-only isolation

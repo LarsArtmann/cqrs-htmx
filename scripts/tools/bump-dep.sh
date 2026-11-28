@@ -43,6 +43,12 @@
 #   BUMP_DEP_ROOT  scan root override (fixture self-test). When set, the git
 #                  dirty-check and --commit are skipped (fixtures are not repos).
 #   BUMP_DEP_LINT  overrides the lint command (offline fixture self-test)
+#   BUMP_DEP_FIX_DATE=YYYY-MM-DD  the date of the fix this bump carries, when it
+#                  carries one: the sweep then prints the nested-retag reminder
+#                  (scripts/checks/check-nested-retag-reminder.sh) for every
+#                  bumped dependency — one line per nested module that requires
+#                  it directly and whose latest tag predates the fix. Advisory.
+#   BUMP_DEP_RETAG_REMINDER_CMD  overrides that gate (offline fixture self-test)
 #
 # Exit: 0 = all touched modules green; 1 = any failure (names the module)
 #
@@ -112,7 +118,18 @@ if [ -n "$recent_sweep_log" ]; then
 fi
 live_sweeps="$(pgrep -f 'scripts/tools/bump-dep.sh' 2>/dev/null | grep -vx "$$" || true)"
 if [ -n "$live_sweeps" ]; then
-  echo "bump-dep: WARNING — another bump-dep sweep appears LIVE (pid(s): $live_sweeps)." >&2
+  # Name the owner of each PID (2026-11-28): a bare number tells a second
+  # session nothing about WHICH sweep it is colliding with; the command line
+  # does (the fixture marker, a wave-tag cascade, another terminal's bump).
+  live_cmds=""
+  for pid in $live_sweeps; do
+    if command -v ps >/dev/null 2>&1; then
+      live_cmds+=$'\n'"    pid $pid: $(ps -o args= -p "$pid" 2>/dev/null | cut -c1-160)"
+    else
+      live_cmds+=$'\n'"    pid $pid: (ps unavailable)"
+    fi
+  done
+  echo "bump-dep: WARNING — another bump-dep sweep appears LIVE (pid(s): $live_sweeps; owning command(s):$live_cmds)." >&2
   echo "bump-dep: interleaved sweeps shred each other's go.mod writes — wait for it." >&2
 fi
 if [ -z "${BUMP_DEP_ROOT:-}" ]; then
@@ -264,6 +281,31 @@ if [ "$LINT" -eq 1 ]; then
 fi
 
 echo ""
+# Nested-retag reminder (2026-11-28): a fix that rides this bump strands every
+# nested module that requires the bumped dependency DIRECTLY, until that module
+# gets a tag of its own (the oauth2/v4.13.0 class — the go-jose DoS fix rode the
+# root train for three weeks with no nested tag carrying it). The gate needs
+# the fix's date, hence BUMP_DEP_FIX_DATE. It runs whether the sweep's own go
+# steps passed or not (the tag picture is the same either way) and is advisory:
+# its exit code never changes the sweep's verdict.
+retag_reminder() {
+  [ -n "${BUMP_DEP_FIX_DATE:-}" ] || return 0
+  if [ -n "${BUMP_DEP_ROOT:-}" ] && [ -z "${BUMP_DEP_RETAG_REMINDER_CMD:-}" ]; then
+    return 0
+  fi
+  local retag_cmd dep
+  retag_cmd="${BUMP_DEP_RETAG_REMINDER_CMD:-bash "$REPO_ROOT/scripts/checks/check-nested-retag-reminder.sh"}"
+  while IFS= read -r dep; do
+    [ -n "$dep" ] || continue
+    echo "==> nested-retag reminder $dep (fix dated $BUMP_DEP_FIX_DATE)"
+    # shellcheck disable=SC2086 # the command is meant to word-split
+    $retag_cmd "$dep" "$BUMP_DEP_FIX_DATE" 2>&1 | sed 's/^/  /'
+    # The first field containing a slash is the module path: a require line is
+    # either `\t<path> <version>` (block form) or `require <path> <version>`.
+  done < <(grep -rhE "$MATCH_RE" --include=go.mod . 2>/dev/null | grep -v '/testdata/' |
+    awk '{ for (i = 1; i <= NF; i++) if ($i ~ /\//) { print $i; break } }' | sort -u)
+}
+
 if grep -rE "$MATCH_RE" --include=go.mod . 2>/dev/null | grep -v '/testdata/' | grep -v "$VERSION" | grep -q .; then
   echo "bump-dep: ABSENCE ASSERTION FAILED — stale requires remain:"
   grep -rE "$MATCH_RE" --include=go.mod . | grep -v '/testdata/' | grep -v "$VERSION" | head -10
@@ -272,9 +314,11 @@ fi
 
 if [ "$fail" -ne 0 ]; then
   echo "bump-dep: FAILED for at least one module (see logs above)"
+  retag_reminder
   exit 1
 fi
 echo "bump-dep: OK — $PATTERN at $VERSION everywhere, all modules tidy+verify+build+vet green${LINT_LABEL}"
+retag_reminder
 if [ -n "$MSG_TEMPLATE" ]; then
   preview="${MSG_TEMPLATE//\{pattern\}/$PATTERN}"
   echo "bump-dep: commit subject will be: ${preview//\{version\}/$VERSION}"

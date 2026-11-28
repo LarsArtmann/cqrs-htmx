@@ -1227,6 +1227,7 @@
                     if [ "''${1:-}" = "--sequential" ]; then
                       bash bash scripts/checks/check-module-isolation.sh
                       bash bash scripts/checks/check-module-isolation.sh --examples
+                      bash bash scripts/selftests/test-check-module-isolation.sh
                       bash bash scripts/checks/check-dep-budgets.sh
                       bash bash scripts/selftests/test-check-dep-budgets.sh
                       bash bash scripts/checks/check-go-toolchain.sh
@@ -1302,6 +1303,7 @@
                     stages=(
                         "module-isolation:bash scripts/checks/check-module-isolation.sh"
                         "module-isolation-examples:bash scripts/checks/check-module-isolation.sh --examples"
+                        "module-isolation-self-test:bash scripts/selftests/test-check-module-isolation.sh"
                         "dep-budgets:bash scripts/checks/check-dep-budgets.sh"
                         "dep-budgets-self-test:bash scripts/selftests/test-check-dep-budgets.sh"
                         "go-toolchain:bash scripts/checks/check-go-toolchain.sh"

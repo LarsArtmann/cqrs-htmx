@@ -6,6 +6,8 @@
 #   F3  guard miss: lint rc=0 but zero markers  -> exit 1, GUARD MISS (gotcha 2)
 #   F4  train guard miss: no "internal requires" -> exit 1, GUARD MISS
 #   F5  keep-going runs every stage             -> exit 1, all six stages ran
+#   F5b --keep-going flag equals the env var    -> exit 1, all six stages ran
+#   F5c an unknown flag                         -> exit 2, no stage ran
 #   F6  usage: outside a git repository         -> exit 2
 #   F7  TRAIN_PREFLIGHT_SKIP_E2E=1              -> exit 0, e2e stage SKIPPED
 #   F8  e2e stage fails                         -> exit 1, stage named
@@ -78,8 +80,9 @@ write_stubs() { # <broken-stage-name-or-empty>
 # to <out>. env-prefix assignments (NOT export-inside-the-subshell) make the
 # per-stage env strictly per-invocation, so SC2030/SC2031 cannot fire — no
 # suppression directive needed, the pattern really is per-invocation.
-run_case() { # <repodir> <outfile> <keep-going 0|1> <ci-value-or-strip> <skip-e2e 0|1>
+run_case() { # <repodir> <outfile> <keep-going 0|1> <ci-value-or-strip> <skip-e2e 0|1> [extra args for the checker...]
   local repo="$1" out="$2" kg="$3" ci="$4" skip="$5"
+  shift 5
   local ci_args=(-u CI)
   [ "$ci" = "strip" ] || ci_args=(-u CI "CI=$ci")
   (
@@ -93,7 +96,7 @@ run_case() { # <repodir> <outfile> <keep-going 0|1> <ci-value-or-strip> <skip-e2
       TRAIN_PREFLIGHT_TEST_CMD="bash $stub_dir/tests.sh" \
       TRAIN_PREFLIGHT_TRAIN_CMD="bash $stub_dir/train.sh" \
       TRAIN_PREFLIGHT_E2E_CMD="bash $stub_dir/e2e.sh" \
-      bash "$CHECKER"
+      bash "$CHECKER" "$@"
   ) >"$out" 2>&1
 }
 
@@ -158,6 +161,31 @@ for stage in quiescence surprise lint tests train e2e; do
   grep -q "=== train-preflight: $stage ===" "$tmp/f5.out" || ok=1
 done
 report $ok "F5 keep-going reports every stage, aggregate rc 1 (got $rc)"
+
+# F5b --keep-going is the flag form of the env var (the env stays at 0 here)
+r="$tmp/f5b"
+new_repo "$r"
+write_stubs "tests"
+run_case "$r" "$tmp/f5b.out" 0 strip 0 --keep-going
+rc=$?
+ok=0
+[ "$rc" -eq 1 ] || ok=1
+for stage in quiescence surprise lint tests train e2e; do
+  grep -q "=== train-preflight: $stage ===" "$tmp/f5b.out" || ok=1
+done
+report $ok "F5b --keep-going flag reports every stage, aggregate rc 1 (got $rc)"
+
+# F5c an unknown flag is a usage error, before any stage runs
+r="$tmp/f5c"
+new_repo "$r"
+write_stubs ""
+run_case "$r" "$tmp/f5c.out" 0 strip 0 --bogus
+rc=$?
+ok=0
+[ "$rc" -eq 2 ] || ok=1
+grep -q "usage: train-preflight.sh \[--keep-going\]" "$tmp/f5c.out" || ok=1
+if grep -q "=== train-preflight: " "$tmp/f5c.out"; then ok=1; fi
+report $ok "F5c unknown flag -> exit 2 with a usage line, no stage ran (got $rc)"
 
 # F6 outside a git repository -> exit 2
 d="$tmp/f6"

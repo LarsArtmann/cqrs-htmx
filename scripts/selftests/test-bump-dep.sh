@@ -269,12 +269,70 @@ MARKER_PID=$!
 out=$(BUMP_DEP_NO_NETWORK=1 run_bump 'larsartmann/exmod' v9.9.9)
 kill "$MARKER_PID" 2>/dev/null
 rm -rf "/tmp/bump-dep-marker-$$" "$COLLIDE_LOG"
+# The owning-command half of the warning is asserted in case 13; here it is
+# only a conjunct so a missing ps cannot fail case 12.
+owner_ok=1
 if printf '%s' "$out" | grep -q "a sweep log was written within the last 15m" &&
-  printf '%s' "$out" | grep -q "another bump-dep sweep appears LIVE"; then
+  printf '%s' "$out" | grep -q "another bump-dep sweep appears LIVE" && [ "$owner_ok" -eq 1 ]; then
   echo "  ok 12: fresh-log and live-PID collision warnings both fire"
   pass=$((pass + 1))
 else
   echo "  FAIL 12: collision warnings missing; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 13 (2026-11-28): the LIVE warning names the owning command of each PID
+# (the fixture marker's own command line) whenever ps exists.
+owner_ok=1
+if command -v ps >/dev/null 2>&1; then
+  printf '%s' "$out" | grep -q "owning command(s):" &&
+    printf '%s' "$out" | grep -q "pid $MARKER_PID: .*bump-dep.sh-marker" || owner_ok=0
+fi
+if [ "$owner_ok" -eq 1 ]; then
+  echo "  ok 13: the LIVE warning prints each PID's owning command"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 13: owning command missing from the LIVE warning; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 14 (2026-11-28): BUMP_DEP_FIX_DATE runs the nested-retag reminder once per
+# bumped dependency, passing the dependency path and the fix date to the gate
+# (stubbed offline). The stub exits 1 like a real reminder would; that must not
+# turn into a second failure line.
+RETAG_STUB="$WORK/stub-retag"
+cat >"$RETAG_STUB" <<'EOF'
+#!/usr/bin/env bash
+echo "stub-retag called with: $*"
+exit 1
+EOF
+chmod +x "$RETAG_STUB"
+out=$(BUMP_DEP_NO_NETWORK=1 BUMP_DEP_FIX_DATE=2026-10-28 BUMP_DEP_RETAG_REMINDER_CMD="$RETAG_STUB" run_bump 'larsartmann/exmod' v9.9.9 --no-lint)
+rc=$?
+reminders=$(printf '%s\n' "$out" | grep -c '==> nested-retag reminder ')
+if [ "$rc" -eq 1 ] && [ "$reminders" -eq 2 ] &&
+  printf '%s' "$out" | grep -q "stub-retag called with: github.com/larsartmann/exmod 2026-10-28" &&
+  printf "%s" "$out" | grep -q "stub-retag called with: github.com/larsartmann/exmod/sub 2026-10-28" &&
+  printf '%s' "$out" | grep -q "FAILED for at least one module" &&
+  [ "$(printf '%s\n' "$out" | grep -c '^bump-dep: FAILED')" -eq 1 ]; then
+  echo "  ok 14: the fix date triggers one advisory reminder per bumped dependency"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 14: nested-retag reminder wrong (rc=$rc, reminders=$reminders); output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 15 (2026-11-28): without BUMP_DEP_FIX_DATE the reminder never runs, even
+# with a gate (stub) configured.
+out=$(BUMP_DEP_NO_NETWORK=1 BUMP_DEP_RETAG_REMINDER_CMD="$RETAG_STUB" run_bump 'larsartmann/exmod' v9.9.9 --no-lint)
+if ! printf '%s' "$out" | grep -q 'nested-retag reminder'; then
+  echo "  ok 15: no fix date, no reminder"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 15: reminder ran without a fix date; output:" >&2
   printf '%s\n' "$out" | sed 's/^/      /' >&2
   fail=$((fail + 1))
 fi

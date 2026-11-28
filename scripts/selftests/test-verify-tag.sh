@@ -179,6 +179,37 @@ else
   pass=$((pass + 1))
 fi
 
+# --- Root tag subjects name the module "root" -------------------------------
+# The real path needs a signing key, so the pin is textual: the root module's
+# directory name "." must reach neither the tag message nor the guard's
+# expectation (the `. v4.19.0` wart).
+pin_ok=1
+# shellcheck disable=SC2016 # the dollar signs are the literal text being pinned
+grep -q 'SUBJECT_MOD="root"' "$VERIFY" || pin_ok=0
+# shellcheck disable=SC2016 # the dollar signs are the literal text being pinned
+grep -q -- '-m "\$SUBJECT_MOD \$VER"' "$VERIFY" || pin_ok=0
+# shellcheck disable=SC2016 # the dollar signs are the literal text being pinned
+grep -q 'verify_tag_message "\$TAGNAME" "\$SUBJECT_MOD" "\$VER"' "$VERIFY" || pin_ok=0
+# shellcheck disable=SC2016 # the dollar signs are the literal text being pinned
+if grep -q -- '-m "\$MOD \$VER"' "$VERIFY"; then pin_ok=0; fi
+if [ "$pin_ok" -eq 1 ]; then
+  echo "  PASS: root tag subject uses the display name, not the directory"
+  pass=$((pass + 1))
+else
+  echo "  FAIL: verify-tag.sh must build the tag subject from SUBJECT_MOD (root, not .)"
+  fail=$((fail + 1))
+fi
+if verify_tag_message guard-ok "github.com/larsartmann/cqrs-htmx/v4" "v4.8.0" >/dev/null 2>&1 &&
+  git tag -a guard-root-subject -m "root v9.9.9" HEAD 2>/dev/null &&
+  verify_tag_message guard-root-subject "root" "v9.9.9" >/dev/null 2>&1 &&
+  ! verify_tag_message guard-root-subject "." "v9.9.9" >/dev/null 2>&1; then
+  echo "  PASS: a 'root <ver>' subject passes the guard and a '. <ver>' one does not"
+  pass=$((pass + 1))
+else
+  echo "  FAIL: the guard should accept 'root <ver>' and reject '. <ver>' for a root tag"
+  fail=$((fail + 1))
+fi
+
 echo ""
 echo "Results: $pass passed, $fail failed"
 echo ""

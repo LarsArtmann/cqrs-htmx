@@ -38,14 +38,27 @@
 # The self-test (scripts/selftests/test-train-preflight.sh) injects stubs to
 # exercise pass, fail, and guard-miss paths offline in seconds.
 #
-# Usage: nix run .#train-preflight  OR  bash scripts/checks/train-preflight.sh
+# Usage: nix run .#train-preflight  OR  bash scripts/checks/train-preflight.sh [--keep-going]
 # Exit: 0 = all stages green; 1 = at least one stage or guard red (first red
-#        aborts unless TRAIN_PREFLIGHT_KEEP_GOING=1, which runs every stage
-#        for a full red/green report); 2 = usage/environment
+#        aborts unless TRAIN_PREFLIGHT_KEEP_GOING=1 or --keep-going is given,
+#        either of which runs every stage for a full red/green report);
+#        2 = usage/environment (an unknown flag included)
 #
 # shellcheck disable=SC2317
 
 set -uo pipefail
+
+# --keep-going is the flag form of TRAIN_PREFLIGHT_KEEP_GOING=1 (2026-11-28):
+# the same spelling the other gates use, for hands that reach for a flag first.
+KEEP_GOING_FLAG=0
+case "${1:-}" in
+"") ;;
+--keep-going) KEEP_GOING_FLAG=1 ;;
+*)
+  echo "usage: train-preflight.sh [--keep-going]  (alias of TRAIN_PREFLIGHT_KEEP_GOING=1)" >&2
+  exit 2
+  ;;
+esac
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || {
   echo "train-preflight: not inside a git repository" >&2
@@ -61,6 +74,7 @@ TRAIN_CMD="${TRAIN_PREFLIGHT_TRAIN_CMD:-bash scripts/checks/check-release-train.
 E2E_CMD="${TRAIN_PREFLIGHT_E2E_CMD:-nix run .#e2e}"
 SKIP_E2E="${TRAIN_PREFLIGHT_SKIP_E2E:-0}"
 KEEP_GOING="${TRAIN_PREFLIGHT_KEEP_GOING:-0}"
+[ "$KEEP_GOING_FLAG" -eq 1 ] && KEEP_GOING=1
 
 LOGDIR="$(mktemp -d /tmp/cqrs-htmx-train-preflight-XXXXXX)"
 trap 'rm -rf "$LOGDIR"' EXIT

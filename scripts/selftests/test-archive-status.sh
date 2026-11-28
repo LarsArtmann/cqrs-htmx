@@ -16,6 +16,7 @@
 #   8. a reason containing '|' is refused (it would break the manifest table)
 #   9. a spec line without three tab-separated fields is refused
 #  10. a malformed --date is refused (exit 2)
+#  14. a repo-root living doc (TODO_LIST.md) is a valid successor: three-level link
 #
 # Usage: bash scripts/selftests/test-archive-status.sh
 set -uo pipefail
@@ -223,6 +224,21 @@ else
   bad "4b-archived-successor-sibling-link" "$(grep '00-00_old' "$R/docs/status/archived/2026-10-01_00-01_anchored.md")"
 fi
 if grep -q '(\.\./2026-10-02_00-00_new\.md)' "$R/docs/status/archived/2026-10-01_00-00_old.md"; then ok "4b-live-successor-still-parent"; else bad "4b-live-successor-still-parent" "$(grep successor "$R/docs/status/archived/2026-10-01_00-00_old.md")"; fi
+
+# 14. a repo-root living doc is a valid successor — the shape of a report whose
+# open items were harvested into TODO_LIST.md. Its link is three levels up from
+# docs/status/archived/, in the blockquote and in the manifest row alike.
+R="$WORK/case14"
+make_repo "$R"
+printf '# TODO\n\n- [ ] x\n' >"$R/TODO_LIST.md"
+printf '2026-10-01_00-00_old.md\tTODO_LIST.md\tcarries the harvested open items as rows\n' >"$WORK/spec14.tsv"
+out=$(run "$R" --apply --date 2026-10-24 "$WORK/spec14.tsv")
+rc=$?
+if [ "$rc" -eq 0 ]; then ok "14-root-successor-exit"; else bad "14-root-successor-exit" "rc=$rc $out"; fi
+NEW="$R/docs/status/archived/2026-10-01_00-00_old.md"
+if grep -q '(\.\./\.\./\.\./TODO_LIST\.md)' "$NEW"; then ok "14-root-successor-blockquote-link"; else bad "14-root-successor-blockquote-link" "$(grep SUPERSEDED "$NEW")"; fi
+if grep -q '(\.\./\.\./\.\./TODO_LIST\.md)' "$R/docs/status/archived/README.md"; then ok "14-root-successor-manifest-link"; else bad "14-root-successor-manifest-link" "$(tail -2 "$R/docs/status/archived/README.md")"; fi
+if [ -f "$R/docs/status/archived/2026-10-01_00-00_old.md" ] && [ ! -f "$R/docs/status/2026-10-01_00-00_old.md" ]; then ok "14-root-successor-moved"; else bad "14-root-successor-moved" "not moved"; fi
 
 echo "archive-status self-test: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

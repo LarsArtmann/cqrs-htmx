@@ -70,6 +70,41 @@ auth posture themselves — no external middleware required:
 Full route table: the `RegisterRoutes` godoc and the root README. Decision
 record: `docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
 
+### Gating your own routes behind a session
+
+The exported gates live in `setup`, not here: `setup.RequireSession` (401, the
+JSON/API convention) and `setup.RequireSessionRedirect(loginURL)` (303, the HTML
+convention), each mounted after the session middleware. That is their decided
+home (2026-11-28): usermgmt does not re-export them, because a second copy would
+be a split brain, a cross-package alias is a dated bridge at best
+(`docs/adr/0062-direct-imports-only.md`), and `setup` builds on usermgmt, never
+the reverse. A consumer that mounts usermgmt without `setup` already holds every
+part the gates are made of: `UserFromContext` is exported, so the gate is three
+lines,
+
+```go
+package yourapp
+
+import (
+	"net/http"
+
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+)
+
+func requireSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := usermgmt.UserFromContext(r.Context()); !ok {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+```
+
+mounted after `NewSessionMiddleware`, which enriches the context and never
+blocks.
+
 ## Projection readiness (health checks)
 
 `*Service` implements `ProjectionStatuses()` — the worker state of every

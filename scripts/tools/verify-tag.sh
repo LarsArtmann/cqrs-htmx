@@ -62,9 +62,12 @@ fail() {
 [ -f "$MOD/go.mod" ] || fail "$MOD/go.mod does not exist (is the module dir correct?)"
 
 TAGNAME="$MOD/$VER"
-# Root-module tags have no directory prefix (cqrs-htmx/v4@v4.8.0 -> v4.8.0).
+# Root-module tags have no directory prefix (cqrs-htmx/v4@v4.8.0 -> v4.8.0),
+# and their subject names the module as a reader would: "root", not the
+# directory name "." (the `. v4.19.0` wart on every root tag, 2026-11-28).
+SUBJECT_MOD="$MOD"
 case "$MOD" in
-. | ./) TAGNAME="$VER" ;;
+. | ./) TAGNAME="$VER" SUBJECT_MOD="root" ;;
 esac
 
 if [ -n "$(git status --porcelain --untracked-files=no -- "$MOD")" ]; then
@@ -162,13 +165,13 @@ if [ "$DRY" = 1 ]; then
   exit 0
 fi
 
-git tag -s "$TAGNAME" -m "$MOD $VER" || fail "git tag -s failed (signing key unavailable?); NOT tagging unsigned"
+git tag -s "$TAGNAME" -m "$SUBJECT_MOD $VER" || fail "git tag -s failed (signing key unavailable?); NOT tagging unsigned"
 
 # Tag-message guard: annotated object + "<mod> <ver>" subject (lib is
 # fixture-tested in scripts/selftests/test-verify-tag.sh).
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/tag-message-guard.sh"
-verify_tag_message "$TAGNAME" "$MOD" "$VER" || fail "tag-message guard rejected $TAGNAME — delete it (git tag -d) and investigate"
+verify_tag_message "$TAGNAME" "$SUBJECT_MOD" "$VER" || fail "tag-message guard rejected $TAGNAME — delete it (git tag -d) and investigate"
 
 if [ "$PUSH" = 1 ]; then
   git push origin "$TAGNAME" || fail "push failed"
