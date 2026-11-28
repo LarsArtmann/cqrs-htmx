@@ -23,3 +23,15 @@ pre-existing `TestSnapshotShape_SQLStoreDropsStampToday` red (fails at
 Residue for the owning wave: the snapshot-shape red + the K2 guard's
 release-train story (the fix rides local HEAD; release tags will pick it up
 at the next usermgmt train cut).
+
+---
+
+## f) Next steps
+
+_Heading added 2026-11-28 so the harvest can see them: the two rows below transcribe the
+"Residue" paragraph above word for word; nothing else in this report changed._
+
+| # | Item |
+| --- | --- |
+| ~~1~~ | ~~the snapshot-shape red (`TestSnapshotShape_SQLStoreDropsStampToday`)~~ done — fixed at `65078274`, on `master` and in no usermgmt tag at 2026-11-28 — the sentinel test became `TestSnapshotShape_SQLStorePersistsStamp` and asserts the preservation that storage/v4 v4.11.2 now guarantees |
+| ~~2~~ | ~~the K2 guard's release-train story (the fix rides local HEAD; release tags will pick it up at the next usermgmt train cut)~~ done — shipped in `usermgmt/v4.21.0`, which contains `40209db0`; its CHANGELOG line was added on 2026-11-28 |
