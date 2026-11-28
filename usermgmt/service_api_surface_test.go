@@ -30,14 +30,18 @@ func TestService_ExportedAPISurface(t *testing.T) {
 		}
 	}
 
-	raw, err := os.ReadFile(path)
+	pinned, err := t.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read %s: %v", path, err)
 	}
 
-	if string(raw) != got {
-		t.Errorf("*Service exported API surface drifted from %s; review the diff, then regenerate with -update\n--- pinned\n%s--- got\n%s",
-			path, raw, got)
+	if string(pinned) != got {
+		t.Errorf(
+			"*Service exported API surface drifted from %s; review the diff, then regenerate with -update\n--- pinned\n%s--- got\n%s",
+			path,
+			pinned,
+			got,
+		)
 	}
 }
 

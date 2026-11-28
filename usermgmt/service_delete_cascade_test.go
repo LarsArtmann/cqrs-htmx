@@ -105,7 +105,7 @@ func TestService_DeleteUser_CascadeBots(t *testing.T) {
 		t.Fatalf("RegisterBot 2: %v", err)
 	}
 
-	if got := len(svc.BotService.botReadModel.FindByOwner(userID)); got != 2 {
+	if got := len(svc.botReadModel.FindByOwner(userID)); got != 2 {
 		t.Fatalf("expected 2 bots before delete, got %d", got)
 	}
 
@@ -113,11 +113,11 @@ func TestService_DeleteUser_CascadeBots(t *testing.T) {
 		t.Fatalf("DeleteUser: %v", err)
 	}
 
-	if got := len(svc.BotService.botReadModel.FindByOwner(userID)); got != 0 {
+	if got := len(svc.botReadModel.FindByOwner(userID)); got != 0 {
 		t.Fatalf("expected 0 bots after delete, got %d", got)
 	}
 
-	if _, ok := svc.BotService.botReadModel.FindByTokenHash(result1.Bot.TokenHash); ok {
+	if _, ok := svc.botReadModel.FindByTokenHash(result1.Bot.TokenHash); ok {
 		t.Fatal("deleted user's bot token should no longer authenticate")
 	}
 }
