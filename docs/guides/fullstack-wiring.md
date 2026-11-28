@@ -258,6 +258,37 @@ Non-negotiable rules:
 2. **CSRF on mutations only** — GET (SSE, views) skips CSRF.
 3. **Security OUTERMOST** — recovery catches panics from everything.
 
+### HTML pages over several reads: the props seam (ADR-0068)
+
+A page that needs more than one read (rows for the table, counts for the
+badges, the navigation for the shell) is not a bigger query and not a second
+query for the sidebar. It is one query set feeding one props struct, rendered
+by a view set the request selects from:
+
+```go
+mux.Handle("GET /tenants", app.QuerySet(tenantsSet,
+    cqrshtmx.Views(
+        cqrshtmx.Region("#tenant-rows", tenantsRows),       // hx-get hx-target="#tenant-rows"
+        cqrshtmx.Region("#tenant-search", tenantsSearch).Default(),
+        cqrshtmx.Page(tenantsPage),                         // visit, hx-boost, history restore
+        cqrshtmx.OOB("tenant-count", tenantCount),          // rides fragment responses
+    ),
+    cqrshtmx.OnLoadError(func(r *http.Request, rep cqrshtmx.LoadReport) {
+        slog.Warn("tenants page degraded", "failures", len(rep.Failures))
+    }),
+))
+```
+
+The loaders run in parallel: `cqrshtmx.Load` takes any plain function (a
+`svc.AllTenants()` call is one), `cqrshtmx.LoadQuery` adapts a dispatched
+query, and `.PageOnly()` marks what a fragment swap cannot use. An `HX-Target`
+that no region matches is refused before a single loader runs. Two invariants
+carry the whole seam: a query never returns a templ component, and a component
+never dispatches. The full contract, the cost table and the migration recipe
+are in [`query-set-to-templ.md`](query-set-to-templ.md). The seam lands with
+the next root tag (`v4.20.0`); until that tag exists only in-repo code can
+call it.
+
 ### Route-split coexistence: HTMX and DataStar on one hub (ADR-0050)
 
 HTMX and DataStar clients can consume the SAME domain events from separate
@@ -427,4 +458,5 @@ mux.Handle("/auditlog/", setup.Viewer) // live dashboard + JSON/SSE API
 - [Middleware ordering rules](dispatch-middleware-ordering.md)
 - [samber/do integration guide](leveraging-samber-do.md)
 - [Huma v2 adapter README](../../huma/README.md)
+- [Query set → props → view set (ADR-0068)](query-set-to-templ.md): one props struct behind a page, a region and its out-of-band fragments
 - Examples: [admin-demo](../../examples/admin-demo/), [dashboard-demo](../../examples/dashboard-demo/)
