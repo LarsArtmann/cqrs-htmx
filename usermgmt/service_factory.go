@@ -148,14 +148,20 @@ func NewService(config ServiceConfig) (*Service, error) {
 			dispatcher:   dispatcher,
 			logger:       logger,
 		},
+		TenantService: TenantService{
+			tenantReadModel:     setup.TenantReadModel,
+			tenantRepo:          setup.TenantRepository,
+			uniqueTenantNames:   config.UniqueTenantNames,
+			membershipReadModel: setup.MembershipReadModel,
+			dispatcher:          dispatcher,
+			logger:              logger,
+		},
 		stopCommandIdemSweeper: stopCommandIdemSweeper,
 		repository:             setup.Repository,
 		membershipRepo:         setup.MembershipRepository,
-		tenantRepo:             setup.TenantRepository,
 		dispatcher:             dispatcher,
 		readModel:              setup.ReadModel,
 		membershipReadModel:    setup.MembershipReadModel,
-		tenantReadModel:        setup.TenantReadModel,
 		casbinProjection:       casbinProjection,
 		authz:                  authz,
 		sessions:               config.SessionStore,
@@ -245,7 +251,6 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	svc.wireLockoutEviction()
 
-	svc.uniqueTenantNames = config.UniqueTenantNames
 	svc.maxUsers = config.MaxUsers
 
 	return svc, nil

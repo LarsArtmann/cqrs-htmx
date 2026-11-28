@@ -2,10 +2,27 @@ package usermgmt
 
 import (
 	"context"
+	"log/slog"
 
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
+
+// TenantService owns the tenant aggregate: create, suspend, reactivate,
+// delete, rename, duplicate detection and merge, plus the tenant-scoped
+// reads of its roster. It is one of the focused sub-services ADR-0038
+// splits out of [Service], which embeds it by value, so every method stays
+// reachable as svc.CreateTenant(...) through promotion while new code may
+// take the focused service directly (svc.TenantService).
+type TenantService struct {
+	tenantReadModel     *TenantReadModel
+	tenantRepo          *decider.Repository[TenantState]
+	uniqueTenantNames   bool
+	membershipReadModel *MembershipReadModel
+	dispatcher          dispatcher
+	logger              *slog.Logger
+}
 
 // CreateTenantRequest holds the parameters for creating a new tenant.
 type CreateTenantRequest struct {
@@ -15,7 +32,7 @@ type CreateTenantRequest struct {
 }
 
 // CreateTenant creates a new tenant and dispatches the TenantCreated event.
-func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*Tenant, error) {
+func (s *TenantService) CreateTenant(ctx context.Context, req CreateTenantRequest) (*Tenant, error) {
 	if req.ID.IsZero() {
 		return nil, errorfamily.NewRejection("usermgmt.tenant.id_required", "tenant ID is required")
 	}
@@ -58,7 +75,7 @@ func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*T
 }
 
 // SuspendTenant suspends a tenant by dispatching the TenantSuspended event.
-func (s *Service) SuspendTenant(ctx context.Context, tenantID TenantID, reason string) error {
+func (s *TenantService) SuspendTenant(ctx context.Context, tenantID TenantID, reason string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID").
@@ -71,7 +88,7 @@ func (s *Service) SuspendTenant(ctx context.Context, tenantID TenantID, reason s
 }
 
 // ReactivateTenant restores a suspended tenant.
-func (s *Service) ReactivateTenant(ctx context.Context, tenantID TenantID) error {
+func (s *TenantService) ReactivateTenant(ctx context.Context, tenantID TenantID) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID").
@@ -86,7 +103,7 @@ func (s *Service) ReactivateTenant(ctx context.Context, tenantID TenantID) error
 // DeleteTenant permanently deletes a tenant and cleans up all memberships
 // associated with it. The CasbinProjection handles policy removal automatically
 // via the TenantDeleted event.
-func (s *Service) DeleteTenant(ctx context.Context, tenantID TenantID, reason string) error {
+func (s *TenantService) DeleteTenant(ctx context.Context, tenantID TenantID, reason string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID").
@@ -108,7 +125,7 @@ func (s *Service) DeleteTenant(ctx context.Context, tenantID TenantID, reason st
 // Per-member dispatch failures are logged and counted — never returned, the
 // tenant is already deleted — and the loop ends with one summary warning so
 // a partial cleanup is visible as a single line, not N lost ones.
-func (s *Service) revokeMembershipsForTenantBestEffort(ctx context.Context, tenantID TenantID) {
+func (s *TenantService) revokeMembershipsForTenantBestEffort(ctx context.Context, tenantID TenantID) {
 	memberships := s.membershipReadModel.FindByTenant(tenantID.Get())
 	failed := 0
 	for _, mem := range memberships {
@@ -134,7 +151,7 @@ func (s *Service) revokeMembershipsForTenantBestEffort(ctx context.Context, tena
 }
 
 // GetTenant retrieves a tenant by ID from the read model.
-func (s *Service) GetTenant(_ context.Context, id TenantID) (*Tenant, error) {
+func (s *TenantService) GetTenant(_ context.Context, id TenantID) (*Tenant, error) {
 	aggID, err := aggIDFromTenant(id)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
@@ -147,14 +164,14 @@ func (s *Service) GetTenant(_ context.Context, id TenantID) (*Tenant, error) {
 }
 
 // AllTenants returns all active tenants.
-func (s *Service) AllTenants() []*Tenant {
+func (s *TenantService) AllTenants() []*Tenant {
 	return s.tenantReadModel.All()
 }
 
 // TenantMembers returns all memberships within a tenant. Each entry links an
 // actor (user or bot) to the roles they hold in the tenant. Useful for tenant
 // admin UIs and auditing.
-func (s *Service) TenantMembers(_ context.Context, tenantID TenantID) []*Membership {
+func (s *TenantService) TenantMembers(_ context.Context, tenantID TenantID) []*Membership {
 	return s.membershipReadModel.FindByTenant(tenantID.Get())
 }
 

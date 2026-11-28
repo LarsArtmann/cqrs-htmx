@@ -79,7 +79,7 @@ func TestService_MergeTenants_Issue47Scenario(t *testing.T) {
 		t.Fatalf("MergeTenants: %v", err)
 	}
 
-	if got := len(svc.tenantReadModel.All()); got != 1 {
+	if got := len(svc.TenantService.tenantReadModel.All()); got != 1 {
 		t.Fatalf("live tenant count = %d, want 1", got)
 	}
 	got, err := svc.GetTenant(ctx, loser.ID)
@@ -110,14 +110,14 @@ func TestService_MergeTenants_Issue47Scenario(t *testing.T) {
 	if err != nil {
 		t.Fatalf("aggIDFromTenant: %v", err)
 	}
-	_, versionBefore, err := svc.tenantRepo.LoadRef(ctx, id.NewStreamRef(aggregateTypeTenant, survivorAgg))
+	_, versionBefore, err := svc.TenantService.tenantRepo.LoadRef(ctx, id.NewStreamRef(aggregateTypeTenant, survivorAgg))
 	if err != nil {
 		t.Fatalf("LoadRef: %v", err)
 	}
 	if err := svc.MergeTenants(ctx, survivor.ID, []TenantID{loser.ID}, "again"); err != nil {
 		t.Fatalf("re-run MergeTenants: %v", err)
 	}
-	_, versionAfter, err := svc.tenantRepo.LoadRef(ctx, id.NewStreamRef(aggregateTypeTenant, survivorAgg))
+	_, versionAfter, err := svc.TenantService.tenantRepo.LoadRef(ctx, id.NewStreamRef(aggregateTypeTenant, survivorAgg))
 	if err != nil {
 		t.Fatalf("LoadRef after: %v", err)
 	}

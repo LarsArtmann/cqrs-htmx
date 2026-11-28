@@ -33,7 +33,7 @@ func withDispatchContext(err error, kv ...string) error {
 // it is the stream identity, the Casbin domain and the key of every
 // tenant-scoped row, which is exactly why a typo is fixed by rename and not
 // by delete-and-recreate (issue #47).
-func (s *Service) RenameTenant(ctx context.Context, tenantID TenantID, displayName string) error {
+func (s *TenantService) RenameTenant(ctx context.Context, tenantID TenantID, displayName string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func (s *Service) RenameTenant(ctx context.Context, tenantID TenantID, displayNa
 // loser tombstones land LAST — until they do, a failed merge is retried, never
 // left half-dead. Re-runs are idempotent: absorbed losers are recognised and
 // skipped.
-func (s *Service) MergeTenants(
+func (s *TenantService) MergeTenants(
 	ctx context.Context, survivorID TenantID, loserIDs []TenantID, reason string,
 ) error {
 	if err := validateMergeTenantsInput(survivorID, loserIDs); err != nil {
@@ -116,7 +116,7 @@ func validateMergeTenantsInput(survivorID TenantID, loserIDs []TenantID) error {
 // collectLiveTenantLosers loads every loser's fold state, answers the typed
 // rejections and conflicts up front, skips losers this survivor already
 // absorbed, and returns the losers that still need merging.
-func (s *Service) collectLiveTenantLosers(
+func (s *TenantService) collectLiveTenantLosers(
 	ctx context.Context, survivorID TenantID, loserIDs []TenantID,
 ) ([]TenantID, error) {
 	liveLosers := make([]TenantID, 0, len(loserIDs))
@@ -159,7 +159,7 @@ func (s *Service) collectLiveTenantLosers(
 // moveTenantRoster gives the survivor every membership the loser tenant
 // holds: the UNION of both role sets per actor, the survivor's add or update
 // first, the loser's removal after. Re-runs dispatch nothing.
-func (s *Service) moveTenantRoster(ctx context.Context, survivorID, loserID TenantID) error {
+func (s *TenantService) moveTenantRoster(ctx context.Context, survivorID, loserID TenantID) error {
 	for _, mem := range s.membershipReadModel.FindByTenant(loserID.Get()) {
 		var union []Role
 		found := false
@@ -198,7 +198,7 @@ func (s *Service) moveTenantRoster(ctx context.Context, survivorID, loserID Tena
 
 // retireMergeTenantLosers tombstones every live loser — the LAST step of a
 // tenant merge (mirrors retireMergeLosers).
-func (s *Service) retireMergeTenantLosers(
+func (s *TenantService) retireMergeTenantLosers(
 	ctx context.Context, survivorID TenantID, liveLosers []TenantID, reason string,
 ) error {
 	for _, loserID := range liveLosers {
@@ -221,7 +221,7 @@ func (s *Service) retireMergeTenantLosers(
 // tenantChainResolvesTo walks the MergedInto pointers from a merged-away
 // tenant and reports whether the chain ends at the target (the tenant
 // spelling of mergeChainResolvesTo).
-func (s *Service) tenantChainResolvesTo(ctx context.Context, from, target TenantID) bool {
+func (s *TenantService) tenantChainResolvesTo(ctx context.Context, from, target TenantID) bool {
 	current := from
 	for range mergeChainHopLimit {
 		if current.IsZero() {
@@ -254,7 +254,7 @@ type DuplicateTenantGroup struct {
 // the same tenant: identical names after trimming and lowercasing. Each group
 // carries the normalized name and the candidate rows; the admin picks the
 // survivor and calls [Service.MergeTenants].
-func (s *Service) DuplicateTenants(_ context.Context) []DuplicateTenantGroup {
+func (s *TenantService) DuplicateTenants(_ context.Context) []DuplicateTenantGroup {
 	byName := make(map[string][]*Tenant)
 	for _, tenant := range s.tenantReadModel.All() {
 		key := identitymodel.NormalizeTenantName(tenant.Name)
