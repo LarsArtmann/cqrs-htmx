@@ -56,6 +56,7 @@ One endpoint, five concerns, in declarative order. The same shape works for quer
 - [Realtime: SSE and offline sync](#realtime-sse-and-offline-sync)
 - [Error handling](#error-handling) — domain errors → HTTP status mapping
 - [User-mapped queries](#user-mapped-queries-the-audit-trail) — who read what: the durable query log
+- [Client tracking](#client-tracking-page-views-clicks-impressions) — what visitors did in the browser: page views, clicks, impressions
 - [Ready-made UIs & the one-call setup](#ready-made-uis--the-one-call-setup)
 - [Examples](#examples) — 13 runnable, tested demos
 - [Documentation](#documentation) — 30+ guides, ADRs, runbooks
@@ -106,6 +107,10 @@ This library handles all of it — and if your endpoint doesn't need all of it, 
 - **Offline sync protocol** — cursor-based, permission-filtered event pull (`SyncPullHandler`) + batched command push (`App.SyncPushHandler`) with per-command outcomes, plus an embedded JS client (IndexedDB queue + event cache, `window.cqrsSync`). The server keeps all authority: clients sync commands up, cache events down ([guide](docs/guides/frontend-sync.md))
 - **DataStar adapter** — optional [`datastar`](datastar/README.md) module: script serving, signal decoding, SSE response builder ([guide](docs/guides/datastar-integration.md))
 - **Huma v2 adapter** — optional [`huma`](huma/README.md) module: the same authorize → validate → guard → dispatch pipeline inside typed OpenAPI operations, with the same RFC 9457 error document; Huma still owns decode, status codes and the generated schema ([guide](docs/guides/fullstack-wiring.md#openapi-first-apis-huma-v2-on-the-same-pipeline-the-humav4-module))
+
+**Client tracking**
+
+- **First-party usage signals** — the embedded tracker reports page views, the foreground time of each, clicks on `data-track` elements and impressions of `data-track-impression` elements to `TrackHandler` (first-party proof before the body is read, every field capped, identity and time from the server); nothing is collected for a visitor who opted out.
 
 **Production posture**
 
@@ -510,6 +515,27 @@ func printUserQueries(ctx context.Context, store query.QueryStore, userID id.Use
 A recommendation pipeline reads the same journal: filter by `UserID` for signed-in users and by the `client.id` custom key for anonymous devices; a record carries both once the visitor is signed in, so the two views join on the device key.
 
 Two readers already render the trail. The `dashboardui` query audit panel (`/queries`) lists every record and names the user and the device on its detail page; hand `setup` the stores (`setup.Config.QueryStore`, `setup.Config.CommandStore`) and the two audit panels mount. go-appkit's `EventService` records every command and query by default, so its users only wire those two fields.
+
+## Client tracking: page views, clicks, impressions
+
+The audit trail records what the server was asked. Client tracking records what the visitor did in the browser: which page they viewed, how long it stayed visible, and which tracked element they used. Every signal names its sender the way a query record does (the user, the actor, the device key, a request ID), so one recommendation pipeline reads both and joins them on the device key.
+
+The root module owns the two ends. `TrackHandler` receives the beacons: it proves the beacon is first-party before it reads the body, caps every field, cuts the query string and the fragment from a path, and takes the identity and the time from the server, never from the body. `TrackerScriptHandler` serves the embedded tracker, a dependency-free script whose only global is `window.cqrsTracker`. It reports page views on load and on every in-app navigation, one engagement signal with the foreground time of each page view, clicks on `data-track` elements and impressions of `data-track-impression` elements, batched through `fetchLater` with a `keepalive` fallback. It collects nothing for a visitor who opted out: Global Privacy Control, `<html data-tracking="off">` or `cqrsTracker.disable()`.
+
+Wire the two ends around a `TrackingSink` of your own:
+
+```go
+mux.Handle("POST /-/track", cqrshtmx.TrackHandler(sink))
+mux.Handle("GET /-/tracker.js", cqrshtmx.TrackerScriptHandler())
+```
+
+`cqrshtmx.TrackerScriptTag("/-/tracker.js")` renders the script tag for the page head. Mount the endpoint behind your session middleware, so a signed-in visitor's signals carry the user key. A page needs one tag and two attributes:
+
+```html
+<script src="/-/tracker.js" defer></script>
+<button data-track="add-to-cart">Add to cart</button>
+<div data-track-impression="hero">...</div>
+```
 
 ## Ready-made UIs & the one-call setup
 
