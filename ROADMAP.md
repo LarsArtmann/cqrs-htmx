@@ -314,7 +314,9 @@ _Trigger/idea rows routed from §f of the 2026-11-17 fleet presentation audit ([
 - **§f48 — render-receipt Chromium path into the runbook.** The PNG receipt recipe (which chromium, which nix store path) lives in temp scripts today; codify it in `docs/runbooks/` (derive the path from the e2e browser provisioning, never a hard-coded store hash — it changes on bump) when the next HTML report needs a re-render.
 
 ### Fleet-libs refresh low items (2026-11-22 status report §f)
+
 _Trigger-gated and low items from §f of the 2026-11-22 fleet-libs refresh status report. Each needs its trigger or decision before becoming a task._
+
 - **§f21 — idemtest companion rule across the fleet.** Check other go-idempotency consumers against the library-policy rule; if hand-rolled guard tests recur, ship the drills inside usermgmt so every consumer inherits compliance.
 - **§f23 — legalparty-model tag decision.** Tag legalparty-model, or record why it stays unreleased while its value layer ships as go-legalparty v0.1.0. Owner-gated.
 - **§f24 — go-health-dashboard bump check.** At the next pin bump, verify the bridge forwards the upstream OIDC and ops options (`WithOIDC`, per-IP rate limit, request logging) and decide what setup exposes.

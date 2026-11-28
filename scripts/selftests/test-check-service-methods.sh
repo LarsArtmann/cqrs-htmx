@@ -120,8 +120,8 @@ fi
 # it (receiver discovery), so the case holds as sub-services are added.
 run_checker
 SUBSERVICE_ROWS=$(echo "$OUTPUT" | grep -cP '^    \w+Service: \d+ methods \(limit \d+\)$' || true)
-EXPECTED_TYPES=$(grep -rhoP 'func \(\w+ \*\w+Service\) \w+' --include='*.go' --exclude='*_test.go' "$REPO_ROOT/usermgmt" \
-  | grep -oP '(?<=\*)\w+Service(?=\))' | sort -u | wc -l)
+EXPECTED_TYPES=$(grep -rhoP 'func \(\w+ \*\w+Service\) \w+' --include='*.go' --exclude='*_test.go' "$REPO_ROOT/usermgmt" |
+  grep -oP '(?<=\*)\w+Service(?=\))' | sort -u | wc -l)
 if [ "$SUBSERVICE_ROWS" -ge 2 ] && [ "$SUBSERVICE_ROWS" -eq "$EXPECTED_TYPES" ] &&
   echo "$OUTPUT" | grep -qP '^    BotService: \d+ methods ' &&
   echo "$OUTPUT" | grep -qP '^    TenantService: \d+ methods '; then
