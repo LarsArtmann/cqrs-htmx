@@ -71,6 +71,33 @@ else
   bad "quiet box" "rc=$rc out=$out"
 fi
 
+# --- 5. a foreign process NAMED server survives the sweep ----------------------
+# The battery ports define what a stray IS. A name-wide `pkill -x server`
+# used to match every process of that name the user can signal: another
+# worktree's mid-battery server, a dev server. A copy of bash named "server"
+# on no battery port stands in for them (papdashboard's local .../bin/server
+# survived only because it runs as another user; found 2026-11-27).
+tmp="$(mktemp -d)"
+trap 'pkill -TERM -P "$foreign" 2>/dev/null; kill "$foreign" 2>/dev/null; rm -rf "$tmp"' EXIT
+cp "$(command -v bash)" "$tmp/server"
+"$tmp/server" -c 'sleep 60 & wait' &
+foreign=$!
+sleep 0.5
+out="$(bash "$TOOL" 2>&1)"
+rc=$?
+alive=no
+kill -0 "$foreign" 2>/dev/null && alive=yes
+if [ "$rc" -eq 0 ] && [ "$alive" = yes ]; then
+  ok "a foreign process named server survives the sweep"
+else
+  bad "foreign server" "rc=$rc alive=$alive out=$out"
+fi
+pkill -TERM -P "$foreign" 2>/dev/null
+kill "$foreign" 2>/dev/null
+wait "$foreign" 2>/dev/null
+rm -rf "$tmp"
+trap - EXIT
+
 echo ""
 echo "passed: $pass  failed: $fail"
 [ "$fail" -eq 0 ] || exit 1

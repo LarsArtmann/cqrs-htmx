@@ -106,14 +106,16 @@ subset 10/10 under chromium, reproduced 10/10 from a fresh
 
 `reuseExistingServer` is ON locally: a leaked server from an earlier run is
 silently reused, and you test **yesterday's binary**. Kill before every spec
-run:
+run, with the tool that targets exactly what holds a battery port:
 
 ```bash
-pkill -x server; pkill -f '/tmp/e2e-server'; ss -tlnp | grep 18923
+bash scripts/tools/e2e-kill-strays.sh
 ```
 
-(The mvdan/sh shell has no `kill` builtin and `/bin/kill` does not exist on
-this host — use pkill patterns.)
+(Never `pkill -x server`: the bare name matches every process of that name
+you can signal, and a stray is defined by the battery ports, not by its name.
+The tool refuses while another session's battery is live; coordinate first,
+then pass `--force`.)
 
 ### NixOS browser notes
 

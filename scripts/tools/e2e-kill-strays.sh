@@ -42,12 +42,17 @@ echo "==> e2e-kill-strays: clearing battery ports: $PORTS"
 
 # mvdan/sh has no kill builtin and /bin/kill does not exist on this host —
 # pkill patterns are the portable shape here.
-pkill -x server 2>/dev/null || true
+#
+# NEVER kill by the bare name "server": it matches every process of that
+# name the user can signal (another worktree's mid-battery server, a dev
+# server), and the sweep below already targets exactly what holds a battery
+# port. A copied bash named server on no battery port is the stand-in the
+# self-test uses (scripts/selftests/test-e2e-kill-strays.sh, case 5).
 pkill -f '/tmp/e2e-server' 2>/dev/null || true
 pkill -f 'cqrs-htmx-e2e-server' 2>/dev/null || true
 
-# Anything still holding a battery port after the name-based kills: target
-# via ss + pkill on the pid (skip the ss header line and the script itself).
+# Anything holding a battery port: target via ss + the pid (skip the ss
+# header line and the script itself).
 sleep 0.5
 STILL=""
 for port in $PORTS; do
