@@ -130,7 +130,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 	}
 	s.revokeSessionsBestEffort(ctx, userID, "failed to revoke sessions on delete")
 	s.removeMembershipsForUserBestEffort(ctx, userID)
-	s.BotService.deleteBotsForUserBestEffort(ctx, userID, reason)
+	s.deleteBotsForUserBestEffort(ctx, userID, reason)
 	return nil
 }
 

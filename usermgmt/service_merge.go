@@ -72,7 +72,7 @@ func (s *Service) MergeUsers(ctx context.Context, survivorID UserID, loserIDs []
 		if err := s.moveMembershipsToSurvivor(ctx, survivorID, loserID); err != nil {
 			return err
 		}
-		if err := s.BotService.transferBotsToSurvivor(ctx, survivorID, loserID, reason); err != nil {
+		if err := s.transferBotsToSurvivor(ctx, survivorID, loserID, reason); err != nil {
 			return err
 		}
 		s.revokeSessionsBestEffort(ctx, loserID, "failed to revoke sessions on merge")
