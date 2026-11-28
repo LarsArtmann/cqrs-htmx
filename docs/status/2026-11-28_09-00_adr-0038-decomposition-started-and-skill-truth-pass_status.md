@@ -205,3 +205,82 @@ commits mix both sessions' files, so commits cannot be attributed — only paths
 - **A sibling-session probe in the session-start runbook:** `git log --since
   <session start> --name-only` grouped by directory, before attributing
   anything.
+
+## f) Up to 50 things we should get done next
+
+Ordered by impact per unit of effort. `[P0]` = before building further;
+`[P1]` = next session; `[P2]` = soon; `[P3]` = backlog. Items carried from the
+23-08 report keep their sense; new ones are marked `new`.
+
+| # | Task | Why / done-when |
+| --- | --- | --- |
+| f1 | `[P0]` HARVEST the three reports (16-39, 23-08, this one) into TODO_LIST / ROADMAP; retire rows 52, 63, the F40/F50 halves of 89 with evidence; decide 187 | `check-todo-hygiene` green; no stale row left |
+| f2 | `[P0]` Bump `docs/CORPUS_BASELINE` with the ledger sentence (CI `checks` step 20, +156 lines) | `check-docs-corpus-budget --ratchet` green; done with this report for its own lines — re-run after any further growth |
+| f3 | `[P0]` Read CI after the sibling session's wave lands: `TestSSE_CrossModuleWireFormatContract` and `TestDashboard_TelemetryFromSystem` were red at `9f83de54` | Name the owner of that red; this session's `checks` steps up to 19 are green |
+| f4 | `[P0]` Archive round: 32 live reports against a threshold of 15 | `nix run .#archive-status -- <spec.tsv>` dry run first, `TAIL_BASELINE` down in the same change, manifest rows, `cadence` PASS |
+| f5 | `[P0]` audit-all: drain or re-pin the unharvested count against 263 | Owner decision recorded either way |
+| f6 | `[P0]` Annotate the 16-39 report's §f items the last two sessions closed | Inline `done at` markers; audit-all shrinks by about 25 |
+| f7 | `[P1]` `new` Widen `check-skill-claims` to `event.`, `errorfamily.`, `httputil.`, `htmx.`, `httperr.`, `usermgmt.` prefixes (advisory, with a self-test) | The gate passes 252 symbols and missed every wrong one |
+| f8 | `[P1]` `new` Truth-pass `references/usermgmt.md`, `references/realtime.md` and the module READMEs the way `core-api.md` was (hermetic `go doc`) | The same class is almost certainly there |
+| f9 | `[P1]` `new` FEATURES.md full VERIFY pass + a row-symbol gate | Eleven rows trued; the file is dated 2026-11-05 |
+| f10 | `[P1]` `new` `usermgmt/README.md` and `references/usermgmt.md`: list `BotService` / `TenantService` where the service API is | Consumers read those two, not SKILL.md |
+| f11 | `[P1]` `new` Gotcha: the daemon commits non-compiling intermediates within two minutes — make each edit sequence build | Written nowhere; recurred twice today |
+| f12 | `[P1]` Verify the appkit-hold claim at the current HEAD (after the httputil bump), true AGENTS.md, rewrite `CURRENT_FOCUS.md` | Every session starts there |
+| f13 | `[P1]` ROADMAP rows: the seam's deferred tail, the two rejected seam ideas, ADR-0068 amendment 3 | The reasoning survives |
+| f14 | `[P1]` ROADMAP rows: the email probe's five decision items | Each becomes a visible owner decision |
+| f15 | `[P1]` `new` Decide the remaining ADR-0038 increments (question 3) | Four increments specified, none forced |
+| f16 | `[P1]` Composite `nix run .#check-modules` at a quiet HEAD — it now carries `service-methods`, `service-methods-self-test`, `large-files` | One composite receipt instead of per-leg claims |
+| f17 | `[P1]` Full chromium battery | 127 tests, one verdict |
+| f18 | `[P1]` `.#coverage-gate` and `.#check-erraudit-strict` (21 methods that build errors moved) | Two standing receipts |
+| f19 | `[P1]` Root tag `v4.20.0`, then the `examples/basic` conversion and its three browser specs (owner-gated) | Browser-level proof of the seam |
+| f20 | `[P1]` TODO rows 104 + 105: the CSP-knob guide section and skill recipe | Two doc rows, read twice, not executed |
+| f21 | `[P1]` TODO row 107: the five gate micro-items | One-liner class, batchable |
+| f22 | `[P1]` TODO row 186: `RequireSession` decision | ADR-0062 forbids the re-export; document `setup` as the home |
+| f23 | `[P1]` `new` Give the 2026-11-20 idempotency report a `## f)` heading or route its next steps | `docs-routing` WARNs that they are invisible to the harvest |
+| f24 | `[P1]` `new` Add the sibling-session probe to `docs/runbooks/session-start.md` | One line; would have saved d7 |
+| f25 | `[P1]` `new` Re-verify the httputil claims in `references/core-api.md` against v1.9.1 | They were resolved at v1.9.0 |
+| f26 | `[P2]` Idle-machine benchmark re-measure with benchstat; true the guide's cost table | `-benchtime=2s -count=5`, load under 6 |
+| f27 | `[P2]` adminui under `-race`, whole module | Ran without it again |
+| f28 | `[P2]` Close the per-function coverage gaps in the seam files | `QuerySetHandler` refusal and render-error branches; `LoadQuery` nil guards |
+| f29 | `[P2]` TODO rows 53, 54, 84: the fast e2e slice script, the sync flake posture, the e2e stale-port guard | The e2e tooling tail |
+| f30 | `[P2]` TODO rows 143 + 149: `nolint-audit` CI wiring, the templ formatter-to-generator chain | Two tooling rows |
+| f31 | `[P2]` adminui: pass the loaded tenants into the page shell | One `AllTenants()` scan per request instead of two |
+| f32 | `[P2]` legalparty: the stale `country.go` lint exclusion and `run.go 1.27.2` in its lint config | Config hygiene |
+| f33 | `[P2]` legalparty: the LEI path returns canonical errors unwrapped while the register path wraps | One rule for both identifier paths |
+| f34 | `[P2]` usermgmt: `ValidateCommand` for the external-account link when an email is present | Product decision first |
+| f35 | `[P2]` Audit fixed-sleep timing tests for the heartbeat shape | A list of candidates, then harden or leave |
+| f36 | `[P2]` identity-model: `TOTPDisabled` payload decoding, the append aliasing | Two recorded decisions |
+| f37 | `[P2]` `new` Extend the API-surface pin to `adminui`/`setup` public types before any further extraction | The pin is what made this refactor cheap; it exists for one type |
+| f38 | `[P2]` `new` adminui adoption of the seam once root `v4.20.0` exists (blocked on a batched read) | Carried |
+| f39 | `[P3]` bench-spike baseline re-pin on an idle machine, with the new benchmarks added deliberately | Standing row |
+| f40 | `[P3]` Owner eyeball of the re-encoded `index.render.png` | One look |
+| f41 | `[P3]` `new` `references/gotchas.md:184`: verify the "`storage/v3` has no MySQL dialect" claim against the pinned v4 | An unverified external claim left standing |
+| f42 | `[P3]` `new` Session-start runbook: "verify docs with `GOWORK=off go doc`" | One line; workspace mode shows unreplaced trees |
+| f43 | `[P3]` `new` Single-source the guard's ceilings (85, 30) between the script and ADR-0038's table | Two places, one number |
+| f44 | `[P3]` `new` `EventSourcedSetup` and the SQL setups: confirm nothing else mirrors `Service`'s field layout | Not checked; nothing broke, so probably nothing does |
+| f45 | `[P3]` `new` `docs/DOMAIN_LANGUAGE.md`: rows for `BotService`, `TenantService` and the sub-service composition | The glossary has no term for the two new public types |
+
+## g) Questions I cannot answer myself
+
+1. **Commit policy, again — now with broken states in the history.** The 24
+   commits of this session are on `master` and pushed as
+   `chore: auto-commit N changed file(s) (heuristic)`; two of them do not build
+   (d4), and the daemon's commits mix this session's files with a sibling
+   session's, so no commit can be described in one message. Do you want
+   phase-boundary commits with real messages authorized for sessions like this
+   one, and should heuristic commits get a per-module `go build` guard first?
+2. **Is another session running the httputil v1.9.1 / dashboardui route wave in
+   this working tree, and who reports it?** About 75 of the 107 changed files
+   are not mine, including the two integration tests that are red in CI at
+   `9f83de54`. I did not touch them. Should I keep treating them as off-limits,
+   or is that session finished and its red mine to take?
+3. **Does the ADR-0038 decomposition continue in v4?** Two increments are in
+   and the guard is green with ten headroom. The remaining four (the three
+   OAuth2 delegates, `SessionService`, `UserService`, `MembershipService`) are
+   each non-breaking and about one to two hours, but nothing forces them. My
+   default, if you say nothing: no dedicated wave; each increment lands when a
+   change touches that aggregate anyway.
+
+Carried, unanswered, with the default I am running on: `Service.ChangeEmail`
+ships as changed (refuses invalid and taken addresses, stores lower-cased —
+documented in the usermgmt CHANGELOG); root `v4.20.0` is not tagged.
