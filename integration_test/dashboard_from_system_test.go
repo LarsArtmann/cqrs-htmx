@@ -102,7 +102,8 @@ func TestDashboard_TelemetryFromSystem(t *testing.T) {
 	}
 
 	healthRec := httptest.NewRecorder()
-	mux.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/cqrs/healthz", nil))
+	healthPath := strings.TrimPrefix(dashboardRoutePattern(t, dash, "/healthz"), "/")
+	mux.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/cqrs/"+healthPath, nil))
 
 	if healthRec.Code != http.StatusOK {
 		t.Fatalf("healthz: status %d, want 200", healthRec.Code)
