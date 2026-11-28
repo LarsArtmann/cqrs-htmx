@@ -59,7 +59,7 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/events/stream", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/events/stream", nil)
 	req = req.WithContext(ctx)
 	req.Header.Set("Last-Event-ID", events[0].ID().String())
 
@@ -122,7 +122,7 @@ func TestDashboard_SSEInitialBackfill(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/events/stream", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/events/stream", nil)
 	req = req.WithContext(ctx)
 
 	rec := httptest.NewRecorder()
@@ -162,7 +162,7 @@ func TestDashboard_SSEHeartbeatEmission(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/events/stream", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/events/stream", nil)
 	req = req.WithContext(ctx)
 
 	rec := httptest.NewRecorder()

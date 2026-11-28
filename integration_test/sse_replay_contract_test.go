@@ -219,7 +219,7 @@ func TestSSE_CrossModuleWireFormatContract(t *testing.T) {
 	require.NoError(t, err)
 
 	setupBody := streamOnce(t, setupShaped, "/events", "")
-	dashBody := streamOnce(t, dash.Handler().ServeHTTP, "/-/events/stream", "")
+	dashBody := streamOnce(t, dash.Handler().ServeHTTP, "/events/stream", "")
 
 	eventID := firstDomainEventID(t, setupBody)
 

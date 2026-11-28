@@ -71,7 +71,7 @@ type Config struct {
 	// go-cqrs-lite *system.System onto them (see systemadapter).
 	Topology core.TopologyProvider
 
-	// EngineHealths composes per-engine health into /-/healthz and /-/readyz:
+	// EngineHealths composes per-engine health into /healthz and /readyz:
 	// unhealthy engines are listed on healthz and fail readyz.
 	EngineHealths core.EngineHealthProvider
 
@@ -152,7 +152,7 @@ type Config struct {
 	// precedence over Authorizer; the denial path is identical (403).
 	ActorAuthorizer func(*http.Request) (Actor, error)
 
-	// VersionzRequireAuth routes the /-/versionz endpoint through Authorizer
+	// VersionzRequireAuth routes the /versionz endpoint through Authorizer
 	// (403 on denial). Default false: versionz follows the public-probe
 	// convention (like healthz/readyz) so load balancers can read build
 	// stamps without credentials — but it reveals Title, BasePath,

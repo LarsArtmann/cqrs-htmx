@@ -55,7 +55,7 @@ func TestRenderError_StyledFamilyPage(t *testing.T) {
 	body := rec.Body.String()
 	for _, want := range []string{
 		"<!doctype html>",
-		"/-/dashboard-tw.css",
+		"/assets/dashboard-tw.css",
 		"error-shell",
 		"failed to load events",
 		"Internal Server Error",

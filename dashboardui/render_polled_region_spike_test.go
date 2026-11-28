@@ -27,7 +27,7 @@ func TestSpikePolledRegionWithChildrenInHybridPath(t *testing.T) {
 
 	props := htmx.PolledRegionProps{
 		ID:    "projection-health",
-		URL:   "/-/partials/projection-health",
+		URL:   "/partials/projection-health",
 		Every: "10s",
 		Swap:  htmx.SwapOuterHTML,
 	}
@@ -39,7 +39,7 @@ func TestSpikePolledRegionWithChildrenInHybridPath(t *testing.T) {
 
 	for _, want := range []string{
 		`id="projection-health"`,
-		`hx-get="/-/partials/projection-health"`,
+		`hx-get="/partials/projection-health"`,
 		`hx-trigger="every 10s"`,
 		`hx-swap="outerHTML"`,
 		`aria-live="polite"`,

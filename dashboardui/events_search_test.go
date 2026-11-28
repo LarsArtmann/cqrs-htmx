@@ -142,7 +142,7 @@ func TestCQRSQueryExtAssetServed(t *testing.T) {
 	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/ext/cqrs-query.js", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/assets/ext/cqrs-query.js", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {

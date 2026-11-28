@@ -144,7 +144,7 @@ For full-stack wiring with both transports, see the [Full-Stack Wiring Guide](fu
 
 ## CORS and Cross-Origin SSE
 
-SSE endpoints (`/sse` from setup, `/-/events/stream` from dashboardui) are
+SSE endpoints (`/sse` from setup, `/events/stream` from dashboardui) are
 **same-origin by default**. No CORS headers are sent — the library principle
 of "never enforce defaults consumers might disagree with" applies.
 

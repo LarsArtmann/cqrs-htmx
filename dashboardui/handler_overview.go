@@ -28,7 +28,7 @@ func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // projectionHealthPartialHandler returns just the projection health panel
-// for HTMX polling. Registered at GET /-/partials/projection-health.
+// for HTMX polling. Registered at GET /partials/projection-health.
 func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {
 	projs := buildProjectionStats(d.config.ProjectionHost)
 	writeHTML(w, r, projectionHealthPanel(d.config.BasePath, projs), "projection health partial")

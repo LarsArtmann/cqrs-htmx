@@ -243,7 +243,7 @@ type Config struct {
     ReadOnly         bool                   // disable write ops (default: true)
     PageSize         int                    // rows per page (default: 50, max: 200)
     Authorizer       func(*http.Request) error
-    VersionzRequireAuth bool               // guard /-/versionz behind Authorizer (default: false)
+    VersionzRequireAuth bool               // guard /versionz behind Authorizer (default: false)
     LogoutURL        string                 // logout link at the sidebar bottom
     ExtraNav         []NavEntry             // consumer nav entries appended to the sidebar
     AdminURL         string                 // cross-link to the sibling adminui panel ("Identity admin" entry, verbatim)
@@ -443,7 +443,7 @@ When `EventBus` is configured, the dashboard:
 
 1. Subscribes to all events via `event.Bus.SubscribeAll`
 2. Forwards each event to an internal `cqrshtmx.Broadcaster`
-3. Serves an SSE endpoint at `/-/events/stream`
+3. Serves an SSE endpoint at `/events/stream`
 
 The browser auto-connects and dispatches `dashboard:event` custom events. Listen
 to these events to trigger HTMX swaps or other UI updates.
@@ -591,8 +591,8 @@ composition — dashboard-owned view structs, so no system/metaengine types leak
 into the rendering layer:
 
 - `Topology` — instances, buses, and the projection-host shape as a table.
-- `EngineHealths` — per-engine health rides on `/-/healthz` (`engines` key)
-  and gates `/-/readyz` (an unhealthy engine is a 503: keep the pod out of
+- `EngineHealths` — per-engine health rides on `/healthz` (`engines` key)
+  and gates `/readyz` (an unhealthy engine is a 503: keep the pod out of
   rotation until it recovers or is quarantined).
 - `Placements` — the metaengine planner's query→engine/ADT assignments with
   volume and latency estimates.
@@ -610,9 +610,9 @@ Three unauthenticated endpoints for load balancers and Kubernetes probes:
 
 | Endpoint      | Purpose         | 200 Response                                                 | 503 Response                                |
 | ------------- | --------------- | ------------------------------------------------------------ | ------------------------------------------- |
-| `/-/healthz`  | Liveness probe  | `{"status":"ok"}`                                            | `{"status":"shutting_down"}`                |
-| `/-/readyz`   | Readiness probe | `{"status":"ready","ready":true}`                            | `{"status":"no_data_source","ready":false}` |
-| `/-/versionz` | Build metadata  | Module, version, Go version, VCS stamp, capabilities, config | —                                           |
+| `/healthz`  | Liveness probe  | `{"status":"ok"}`                                            | `{"status":"shutting_down"}`                |
+| `/readyz`   | Readiness probe | `{"status":"ready","ready":true}`                            | `{"status":"no_data_source","ready":false}` |
+| `/versionz` | Build metadata  | Module, version, Go version, VCS stamp, capabilities, config | —                                           |
 
 All return `application/json` with `Cache-Control: no-store`.
 
@@ -627,7 +627,7 @@ The `vcsRevision` / `vcsTime` / `vcsModified` fields are the **binary's** VCS
 stamp (the build an operator is talking to) and are omitted when the binary
 was built without VCS metadata.
 
-By default `/-/versionz` is public like the other probes, so load balancers
+By default `/versionz` is public like the other probes, so load balancers
 can read build stamps without credentials. Note that it reveals `Title`,
 `BasePath`, capabilities, module version, and the VCS revision. When an
 `Authorizer` is configured and that surface should not be public, opt in:
@@ -636,7 +636,7 @@ can read build stamps without credentials. Note that it reveals `Title`,
 dashboardui.Config{
     // ...
     Authorizer:          myAuthCheck,
-    VersionzRequireAuth: true, // /-/versionz now returns 403 on denial
+    VersionzRequireAuth: true, // /versionz now returns 403 on denial
 }
 ```
 
@@ -740,7 +740,7 @@ directly inside the page templates (`@display.Table(...)`, `@forms.Input`,
 ...); templ auto-escapes every interpolation (`templ.EscapeString` is
 `html.EscapeString`, matching the former manual `esc()` byte-for-byte).
 Styling ships as a compiled Tailwind bundle (`assets/dashboard-tw.css`,
-served at `/-/dashboard-tw.css` with ETag/304).
+served at `/assets/dashboard-tw.css` with ETag/304).
 
 Adopted capabilities: `display.StatusBadge`/`Badge` (all status/encoding
 badges), `display.StatCard` with `ValueID` DOM hooks, `display.Table` with

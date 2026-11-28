@@ -82,7 +82,7 @@ templ projectionHealthPanel(basePath string, projs []projectionStat) {
 				"hx-select": "unset",
 			},
 		},
-		URL:     basePath + "/-/partials/projection-health",
+		URL:     basePath + "/partials/projection-health",
 		Trigger: "every 10s, refresh",
 	}) {
 		<div class="panel-title">Projection Health</div>

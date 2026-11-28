@@ -39,7 +39,7 @@
 
 <a id="gotcha-9"></a>
 
-9. **`adminui/styles.css` + `dashboardui/styles.css` are ORPHAN buildflow outputs** — never served (the modules embed `assets/*-tw.css` served at `/-/admin-tw.css` / `/-/dashboard-tw.css`), never hand-revert them, never consume them; verify visual changes against the embedded artifacts.
+9. **`adminui/styles.css` + `dashboardui/styles.css` are ORPHAN buildflow outputs** — never served (the modules embed `assets/*-tw.css` served at `/admin-tw.css` / `/assets/dashboard-tw.css`), never hand-revert them, never consume them; verify visual changes against the embedded artifacts.
 
 <a id="gotcha-10"></a>
 

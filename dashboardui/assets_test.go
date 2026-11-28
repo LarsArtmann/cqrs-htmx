@@ -30,7 +30,7 @@ func TestDashboard_TailwindCSSRoute(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard-tw.css", nil))
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard-tw.css", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
@@ -79,14 +79,14 @@ func TestDashboard_304OnETag(t *testing.T) {
 
 	// Round-trip: take the ETag the server actually served, not a constant.
 	first := httptest.NewRecorder()
-	mux.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard-tw.css", nil))
+	mux.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard-tw.css", nil))
 
 	etag := first.Header().Get("ETag")
 	if etag == "" {
 		t.Fatal("first response carried no ETag")
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard-tw.css", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard-tw.css", nil)
 	req.Header.Set("If-None-Match", etag)
 
 	rec := httptest.NewRecorder()
@@ -97,7 +97,7 @@ func TestDashboard_304OnETag(t *testing.T) {
 	}
 
 	// A stale ETag must re-serve the full body, not 304.
-	stale := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard-tw.css", nil)
+	stale := httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard-tw.css", nil)
 	stale.Header.Set("If-None-Match", `"dashboard-tw.css-deadbeefdeadbeef"`)
 
 	recStale := httptest.NewRecorder()
@@ -130,7 +130,7 @@ func TestDashboard_JSAssetImmutableAnd304(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	first := httptest.NewRecorder()
-	mux.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil))
+	mux.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard.js", nil))
 
 	if first.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", first.Code)
@@ -144,7 +144,7 @@ func TestDashboard_JSAssetImmutableAnd304(t *testing.T) {
 		t.Errorf("ETag = %q, want content-derived %q", first.Header().Get("ETag"), want)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard.js", nil)
 	req.Header.Set("If-None-Match", first.Header().Get("ETag"))
 
 	rec := httptest.NewRecorder()
@@ -176,7 +176,7 @@ func TestDashboard_LayoutLinksTailwindCSS(t *testing.T) {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
 
-	if body := rec.Body.String(); !strings.Contains(body, "/-/dashboard-tw.css") {
+	if body := rec.Body.String(); !strings.Contains(body, "/assets/dashboard-tw.css") {
 		t.Error("layout head missing dashboard-tw.css link")
 	}
 }

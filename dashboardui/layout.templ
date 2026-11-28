@@ -45,9 +45,9 @@ templ layout(p pageData, content templ.Component) {
 				// localStorage['theme'], falls back to the system preference,
 				// and applies .dark + color-scheme before first paint.
 				@dashboardStylesheets(p.Nonce, p.BasePath)
-				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
-				<script src={ p.BasePath + "/-/ext/cqrs-query.js" } defer></script>
-				<script src={ p.BasePath + "/-/dashboard.js" } data-base-path={ p.BasePath } defer></script>
+				<script src={ p.BasePath + "/assets/htmx.js" } defer></script>
+				<script src={ p.BasePath + "/assets/ext/cqrs-query.js" } defer></script>
+				<script src={ p.BasePath + "/assets/dashboard.js" } data-base-path={ p.BasePath } defer></script>
 			</head>
 			<body>
 				<a href="#main-content" class="skip-link">Skip to content</a>
@@ -163,8 +163,8 @@ templ navIcon(name icons.Name) {
 templ dashboardStylesheets(nonce, basePath string) {
 	@tclayout.ThemeScript(nonce)
 	@display.CopyButtonScript(nonce)
-	<link rel="stylesheet" href={ basePath + "/-/dashboard.css" }/>
-	<link rel="stylesheet" href={ basePath + "/-/dashboard-tw.css" }/>
+	<link rel="stylesheet" href={ basePath + "/assets/dashboard.css" }/>
+	<link rel="stylesheet" href={ basePath + "/assets/dashboard-tw.css" }/>
 }
 
 // errorShell wraps library error-page markup in a minimal HTML document that

@@ -200,7 +200,7 @@ func TestCSS_ServedWithCorrectHeaders(t *testing.T) {
 	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.css", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard.css", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -224,7 +224,7 @@ func TestJS_ServedWithCorrectHeaders(t *testing.T) {
 	mux := newTestDashboardMux(t)
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard.js", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {

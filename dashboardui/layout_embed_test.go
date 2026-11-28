@@ -154,7 +154,7 @@ func TestEmbed_MetaCarriesPageAndNavData(t *testing.T) {
 		t.Errorf("events nav icon = %q, want the templ-components queue icon", eventsNav.Icon)
 	}
 
-	wantCSS := []string{"/obs/-/dashboard.css", "/obs/-/dashboard-tw.css"}
+	wantCSS := []string{"/obs/assets/dashboard.css", "/obs/assets/dashboard-tw.css"}
 	if len(meta.CSSURLs) != len(wantCSS) {
 		t.Fatalf("meta.CSSURLs = %v, want %v", meta.CSSURLs, wantCSS)
 	}
@@ -165,7 +165,7 @@ func TestEmbed_MetaCarriesPageAndNavData(t *testing.T) {
 		}
 	}
 
-	wantScripts := []string{"/obs/-/htmx.js", "/obs/-/dashboard.js"}
+	wantScripts := []string{"/obs/assets/htmx.js", "/obs/assets/dashboard.js"}
 	if len(meta.ScriptURLs) != len(wantScripts) {
 		t.Fatalf("meta.ScriptURLs = %v, want %v", meta.ScriptURLs, wantScripts)
 	}

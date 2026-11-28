@@ -134,7 +134,7 @@ func TestDashboardJSInjectionSmoke(t *testing.T) {
 }
 
 // TestServedDashboardJSMatchesXSSContract verifies the wire surface: the JS
-// actually served at /-/dashboard.js must be the hardened script (no
+// actually served at /assets/dashboard.js must be the hardened script (no
 // innerHTML, textContent builder present), not just the in-memory constant.
 func TestServedDashboardJSMatchesXSSContract(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
@@ -151,7 +151,7 @@ func TestServedDashboardJSMatchesXSSContract(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard.js", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {

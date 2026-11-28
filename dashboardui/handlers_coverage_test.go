@@ -105,7 +105,7 @@ func TestProjectionHealthPartialHandler_NilHost(t *testing.T) {
 	d := mustTestDashboard(t)
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/-/partials/projection-health", nil)
+	r := httptest.NewRequest(http.MethodGet, "/partials/projection-health", nil)
 	d.projectionHealthPartialHandler(w, r)
 
 	if w.Code != http.StatusOK {
@@ -129,7 +129,7 @@ func TestProjectionHealthPartialHandler_EmptyHost(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/-/partials/projection-health", nil)
+	r := httptest.NewRequest(http.MethodGet, "/partials/projection-health", nil)
 	d.projectionHealthPartialHandler(w, r)
 
 	if w.Code != http.StatusOK {
@@ -787,7 +787,7 @@ func TestLayout_ToastBridge(t *testing.T) {
 
 	// The bridge listener lives in the external dashboardJS (CSP-safe).
 	rec2 := httptest.NewRecorder()
-	mux.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil))
+	mux.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/dashboard/assets/dashboard.js", nil))
 
 	js := rec2.Body.String()
 	if !strings.Contains(js, `addEventListener("dashboardui:toast"`) {

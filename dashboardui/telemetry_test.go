@@ -167,7 +167,7 @@ func TestTelemetry_HealthzListsEnginesAndReadyzGatesOnHealth(t *testing.T) {
 	handler := d.Handler()
 
 	healthRec := httptest.NewRecorder()
-	handler.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/-/healthz", nil))
+	handler.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
 
 	if healthRec.Code != http.StatusOK {
 		t.Fatalf("healthz status = %d, liveness must stay 200 with a sick engine", healthRec.Code)
@@ -181,7 +181,7 @@ func TestTelemetry_HealthzListsEnginesAndReadyzGatesOnHealth(t *testing.T) {
 	}
 
 	readyRec := httptest.NewRecorder()
-	handler.ServeHTTP(readyRec, httptest.NewRequest(http.MethodGet, "/-/readyz", nil))
+	handler.ServeHTTP(readyRec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
 
 	if readyRec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("readyz status = %d, want 503 while an engine is unhealthy", readyRec.Code)
@@ -198,14 +198,14 @@ func TestTelemetry_ProbesUnchangedWithoutProvider(t *testing.T) {
 	handler := d.Handler()
 
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/-/healthz", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
 
 	if strings.Contains(rec.Body.String(), "engines") {
 		t.Errorf("healthz must not carry an engines key without a provider: %s", rec.Body.String())
 	}
 
 	rec = httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/-/readyz", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("readyz status = %d, want 200 (provider-absent behavior unchanged)", rec.Code)

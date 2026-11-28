@@ -120,7 +120,7 @@ final-request spans still see live infrastructure. Under systemd, pair
 ## Styling
 
 The **admin panel and CQRS dashboard need nothing from you** — both serve their
-own embedded Tailwind bundles (`/-/admin-tw.css`, `/-/dashboard-tw.css`).
+own embedded Tailwind bundles (`/admin-tw.css`, `/assets/dashboard-tw.css`).
 
 The **login page** is different: it renders
 [templ-components](https://github.com/larsartmann/templ-components) Tailwind v4

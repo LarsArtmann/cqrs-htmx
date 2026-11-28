@@ -241,7 +241,7 @@ func projectionHealthPanel(basePath string, projs []projectionStat) templ.Compon
 					"hx-select": "unset",
 				},
 			},
-			URL:     basePath + "/-/partials/projection-health",
+			URL:     basePath + "/partials/projection-health",
 			Trigger: "every 10s, refresh",
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

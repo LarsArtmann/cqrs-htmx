@@ -18,7 +18,7 @@ func TestHealthz_ReturnsOK(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/healthz", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/healthz", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -46,7 +46,7 @@ func TestReadyz_ReadyWhenConfigured(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/readyz", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/readyz", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -72,7 +72,7 @@ func TestReadyz_NotReadyAfterClose(t *testing.T) {
 	d.Close()
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/readyz", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/readyz", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusServiceUnavailable {
@@ -87,7 +87,7 @@ func TestVersionz_ReturnsCapabilities(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/versionz", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/versionz", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -124,7 +124,7 @@ func TestVersionz_RequireAuthDeniesUnauthorized(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/versionz", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/versionz", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
@@ -144,7 +144,7 @@ func TestVersionz_RequireAuthAllowsAuthorized(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/versionz", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/versionz", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -163,7 +163,7 @@ func TestVersionz_DefaultStaysPublicUnderAuthorizer(t *testing.T) {
 	d.Mount(mux, "/dashboard/")
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/versionz", nil)
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/versionz", nil)
 	mux.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {

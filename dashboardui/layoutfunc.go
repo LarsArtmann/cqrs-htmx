@@ -115,12 +115,12 @@ type NavLink struct {
 // and scripts regardless of where the panel is mounted.
 func assetURLs(basePath string) ([]string, []string) {
 	css := []string{
-		basePath + "/-/dashboard.css",
-		basePath + "/-/dashboard-tw.css",
+		basePath + "/assets/dashboard.css",
+		basePath + "/assets/dashboard-tw.css",
 	}
 	js := []string{
-		basePath + "/-/htmx.js",
-		basePath + "/-/dashboard.js",
+		basePath + "/assets/htmx.js",
+		basePath + "/assets/dashboard.js",
 	}
 
 	return css, js

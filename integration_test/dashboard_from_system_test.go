@@ -102,7 +102,7 @@ func TestDashboard_TelemetryFromSystem(t *testing.T) {
 	}
 
 	healthRec := httptest.NewRecorder()
-	mux.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/cqrs/-/healthz", nil))
+	mux.ServeHTTP(healthRec, httptest.NewRequest(http.MethodGet, "/cqrs/healthz", nil))
 
 	if healthRec.Code != http.StatusOK {
 		t.Fatalf("healthz: status %d, want 200", healthRec.Code)

@@ -120,7 +120,7 @@ var _ = Describe("the overview page", func() {
 
 	It("renders the projection-health region as a library PolledRegion", func() {
 		Expect(html).To(ContainSubstring(`id="projection-health"`))
-		Expect(html).To(ContainSubstring(`hx-get="/dashboard/-/partials/projection-health"`))
+		Expect(html).To(ContainSubstring(`hx-get="/dashboard/partials/projection-health"`))
 		Expect(html).To(ContainSubstring(`hx-trigger="every 10s, refresh"`),
 			"the custom refresh event must survive alongside the poll")
 		Expect(html).To(ContainSubstring(`aria-live="polite"`),
