@@ -68,9 +68,11 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-playground/form/v4 v4.5.1 // indirect
+	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.20.3 // indirect
+	github.com/larsartmann/go-atomic-write v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
@@ -82,7 +84,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.2 // indirect
 	github.com/larsartmann/go-etag/server v0.6.2 // indirect
-	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
+	github.com/larsartmann/go-flightrecorder v0.2.2 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect

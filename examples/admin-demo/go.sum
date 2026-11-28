@@ -95,6 +95,8 @@ github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1v
 github.com/go-task/slim-sprig/v3 v3.0.0/go.mod h1:W848ghGpv3Qj3dhTPRyJypKRiqCdHZiAzKg9hl15HA8=
 github.com/goccy/go-yaml v1.19.2 h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=
 github.com/goccy/go-yaml v1.19.2/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7LkFRi1kA=
+github.com/gofrs/flock v0.13.1 h1:jjREztyBeSKBZYAC+mgc1laB+xsgy4kYMf3FbKF2UBo=
+github.com/gofrs/flock v0.13.1/go.mod h1:sf4BFiHwnvgxa25DlQoDqXQnwRMEOwqxRq37P6MzzmE=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
@@ -134,6 +136,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.1 h1:6uFGmHlnjwlh/SS4odBjShdV
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.1/go.mod h1:3DxmfqQPe13Ke81xQOWDEVU1tdcq+lqpWpjfXPS1bKY=
 github.com/larsartmann/cqrs-htmx/v4 v4.19.1 h1:u4YY6f5ac80z2AcHUEM5gSd8chiHGiBGJO9/LFPuc+4=
 github.com/larsartmann/cqrs-htmx/v4 v4.19.1/go.mod h1:RAUelVslR9FSQxi5KMmS/Di4TPC2D/2iAbaleA0eYSQ=
+github.com/larsartmann/go-atomic-write v0.7.0 h1:SSnclXDZybKrooR3WRwTSlCSajdnh1ZRpIOqIOPv3DA=
+github.com/larsartmann/go-atomic-write v0.7.0/go.mod h1:rIkglf/MmsaEMMWykVE6wFwvDHtfcYm5t2qb4m9C+VU=
 github.com/larsartmann/go-branded-id v0.8.0 h1:ih8Va3I2PNEU/+OES8GWU+P0BLhcKqeculL1jJaBqwY=
 github.com/larsartmann/go-branded-id v0.8.0/go.mod h1:7krhiG2aDC6tFPA6I0Fqbx3DlEtzJL/mOuX3Rbzd9bc=
 github.com/larsartmann/go-codec v0.3.4 h1:lnUHCVyZOvuXjiund2mNG6erB8RlX4geZ8g3hCORlPg=
@@ -202,8 +206,8 @@ github.com/larsartmann/go-etag/entitytag v0.6.2 h1:jZf2948bipd8N7fVehh9o2scq9+kA
 github.com/larsartmann/go-etag/entitytag v0.6.2/go.mod h1:e09zrSYF6RS8c0IzxZnI1HZQw15gIgwlyp3zerGv+bI=
 github.com/larsartmann/go-etag/server v0.6.2 h1:f0NsDy0Vy1/HRx0aoyj4j8aIdNueqJrhtg02EVyNlNI=
 github.com/larsartmann/go-etag/server v0.6.2/go.mod h1:8C4/ve9SY7Jmcgehy3iIWMYyVJuX0cLl0Aothgx70z0=
-github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8qn6H94AFKFMdkE8=
-github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
+github.com/larsartmann/go-flightrecorder v0.2.2 h1:YRYsRobmmnu8OqaW4oHnm1qNLPpDdEh87oew6uoyDOw=
+github.com/larsartmann/go-flightrecorder v0.2.2/go.mod h1:NxxLAmwI1yMtq89xXtS7kfKFq34+RUHjUwVVpnnMn4I=
 github.com/larsartmann/go-idempotency v0.6.0 h1:rtE05TWr1J3Joai2oZprTWZGal3WlAni1bYFBr3UciU=
 github.com/larsartmann/go-idempotency v0.6.0/go.mod h1:NdfAPx6bvxolNgNeb+yjqBoqbazupNIl3eCLbUqJOh0=
 github.com/larsartmann/go-retry v0.9.0 h1:/JXHkKjzx5io0kMvHWQuhW1pCVC0vohFAT5zqDdRKes=
