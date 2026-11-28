@@ -11,9 +11,10 @@ import (
 	"github.com/larsartmann/cqrs-htmx/v4/eventcatalog"
 )
 
-// update regenerates event-catalog.json:
-// go test ./usermgmt/ -run TestEventCatalogArtifactInSync -update
-var catalogUpdate = flag.Bool("update", false, "regenerate catalog.json") //nolint:gochecknoglobals
+// update regenerates the committed golden artifacts — event-catalog.json and
+// testdata/service_api_surface.golden:
+// go test ./usermgmt/ -run 'TestEventCatalogArtifactInSync|TestService_ExportedAPISurface' -update
+var updateGolden = flag.Bool("update", false, "regenerate golden artifacts") //nolint:gochecknoglobals
 
 // TestEventCatalogArtifactInSync pins event-catalog.json (the artifact the
 // serving path loads) byte-for-byte to the specs table's rendered catalog.
@@ -25,7 +26,7 @@ func TestEventCatalogArtifactInSync(t *testing.T) {
 		t.Fatalf("render catalog JSON: %v", err)
 	}
 
-	if *catalogUpdate {
+	if *updateGolden {
 		if err := os.WriteFile("event-catalog.json", want, 0o600); err != nil {
 			t.Fatalf("rewrite event-catalog.json: %v", err)
 		}
