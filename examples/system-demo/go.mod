@@ -78,7 +78,7 @@ require (
 	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect
-	github.com/larsartmann/httputil v1.9.0 // indirect
+	github.com/larsartmann/httputil v1.9.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

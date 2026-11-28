@@ -28,7 +28,7 @@ require (
 	github.com/larsartmann/go-datastar/broadcast v0.7.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-sse v0.7.0
-	github.com/larsartmann/httputil v1.9.0
+	github.com/larsartmann/httputil v1.9.1
 	modernc.org/sqlite v1.61.1
 )
 

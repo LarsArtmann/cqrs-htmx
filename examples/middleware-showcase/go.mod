@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.1
 	github.com/larsartmann/go-etag/server v0.6.2
-	github.com/larsartmann/httputil v1.9.0
+	github.com/larsartmann/httputil v1.9.1
 )
 
 require (

@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.21.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.19.1
 	github.com/larsartmann/go-sse v0.7.0
-	github.com/larsartmann/httputil v1.9.0
+	github.com/larsartmann/httputil v1.9.1
 )
 
 require (
