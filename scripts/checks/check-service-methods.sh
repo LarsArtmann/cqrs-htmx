@@ -9,12 +9,20 @@
 # The count includes BOTH exported and unexported methods (unexported methods
 # are part of the type's complexity too).
 #
+# The focused sub-services of the decomposition (every other *XService type
+# in the package — BotService, TenantService, OAuth2Service, ...; discovered
+# from the receivers, never listed) carry the same tripwire at a smaller
+# scale, so the god-object cannot simply be renamed. This leg exists because
+# the first crossing went unnoticed for four days: the 2026-11-24 waves took
+# the count from 81 to 95 while earlier steps of the same CI job were red.
+#
 # Usage: ./scripts/checks/check-service-methods.sh
 # Env:   SERVICE_METHOD_LIMIT  hard ceiling (default 85, per the 2026-11-02
 #        ADR-0038 amendment: raised ONCE from 80 for the ADR-0057 durable-grant
 #        surface; the next crossing starts the v5 decomposition — further
 #        raises must amend docs/adr/0038-service-decomposition-proposed.md)
-# Exit:  0 = under limit, 1 = at/over limit
+#        SUBSERVICE_METHOD_LIMIT  ceiling per focused sub-service (default 30)
+# Exit:  0 = every type under its limit, 1 = any type at/over its limit
 
 set -euo pipefail
 
@@ -42,3 +50,29 @@ fi
 
 remaining=$((LIMIT - count))
 echo "OK: ${count} methods, ${remaining} until the decomposition trigger."
+
+SUBSERVICE_LIMIT="${SUBSERVICE_METHOD_LIMIT:-30}"
+failed=0
+while read -r type; do
+  [ -n "$type" ] || continue
+  subcount=$(
+    cd "$REPO_ROOT/usermgmt"
+    grep -rhoP "func \(\w+ \*${type}\) \w+" \
+      --include='*.go' --exclude='*_test.go' . |
+      sort -u |
+      wc -l
+  )
+  if [ "$subcount" -ge "$SUBSERVICE_LIMIT" ]; then
+    echo "FAIL: *usermgmt.${type} has ${subcount} methods — the focused sub-service" >&2
+    echo "      reached its ceiling (${SUBSERVICE_LIMIT}). Split it; do not raise the limit." >&2
+    failed=1
+  else
+    echo "    ${type}: ${subcount} methods (limit ${SUBSERVICE_LIMIT})"
+  fi
+done < <(
+  cd "$REPO_ROOT/usermgmt"
+  grep -rhoP 'func \(\w+ \*\w+Service\) \w+' --include='*.go' --exclude='*_test.go' . |
+    grep -oP '(?<=\*)\w+Service(?=\))' |
+    sort -u
+)
+exit "$failed"
