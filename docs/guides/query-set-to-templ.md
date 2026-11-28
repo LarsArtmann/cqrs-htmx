@@ -134,15 +134,15 @@ fragment needed.
 
 ## Composing with the rest of the library
 
-| Composition           | How                                                                                                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ETags                 | `cqrshtmx.ETagResults()` after the render option: the tag hashes the rendered bytes, so 304 works for all three shapes.                                                          |
-| Authorization         | The `Authorize`/`AuthorizeIn`/`RequireAuth` options run before any loader. Dispatched loaders additionally answer to `query/<Name>` through the dispatcher's gate (ADR-0063).     |
+| Composition           | How                                                                                                                                                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ETags                 | `cqrshtmx.ETagResults()` after the render option: the tag hashes the rendered bytes, so 304 works for all three shapes.                                                                                        |
+| Authorization         | The `Authorize`/`AuthorizeIn`/`RequireAuth` options run before any loader. Dispatched loaders additionally answer to `query/<Name>` through the dispatcher's gate (ADR-0063).                                  |
 | HTMX response options | `Trigger`, `TriggerWithDetail`, `Notify*`, `PushURL` and `Redirect` apply exactly as on `App.Query`: headers first, then the renderer. A `Redirect` for a non-HTMX client is terminal (303, nothing rendered). |
-| Timeout               | `cqrshtmx.WithTimeout(d)` (or `Config.Timeout`) bounds the whole load phase.                                                                                                     |
-| OpenAPI               | `cqrshtmx.WithOpenAPI(op)` registers the route on the App's document like any query handler.                                                                                     |
-| Bare mux              | `cqrshtmx.QuerySetHandler(set, opts...)` — same rules, no `App`, no pipeline; your middleware owns auth. Errors map through `httperr.DefaultErrorHandler`.                       |
-| Errors                | A fatal load error flows through the normal `App` error path (family → status), and layout/flash handling stays where it is.                                                     |
+| Timeout               | `cqrshtmx.WithTimeout(d)` (or `Config.Timeout`) bounds the whole load phase.                                                                                                                                   |
+| OpenAPI               | `cqrshtmx.WithOpenAPI(op)` registers the route on the App's document like any query handler.                                                                                                                   |
+| Bare mux              | `cqrshtmx.QuerySetHandler(set, opts...)` — same rules, no `App`, no pipeline; your middleware owns auth. Errors map through `httperr.DefaultErrorHandler`.                                                     |
+| Errors                | A fatal load error flows through the normal `App` error path (family → status), and layout/flash handling stays where it is.                                                                                   |
 
 Two `App.Query` behaviours deliberately do not apply, because a QuerySet
 route has no request body to decode: no `Accept-Query` header is advertised,
@@ -157,12 +157,12 @@ seam alone. Allocations are exact; the nanoseconds were taken on a loaded
 machine (load average ≈35) and are indicative only — re-measure on an idle
 one before quoting them.
 
-| Path                                            | allocs/op | vs. the branch it replaces                                                |
-| ----------------------------------------------- | --------- | ------------------------------------------------------------------------- |
-| `Views` page / region                           | 5 / 5     | identical to `RenderPartialOrFull` (5 / 5); selection adds ≈100–150 ns   |
-| `Views` region + one out-of-band view           | 13        | +8 for the envelope and its already-tagged detection buffer               |
+| Path                                            | allocs/op | vs. the branch it replaces                                                 |
+| ----------------------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `Views` page / region                           | 5 / 5     | identical to `RenderPartialOrFull` (5 / 5); selection adds ≈100–150 ns     |
+| `Views` region + one out-of-band view           | 13        | +8 for the envelope and its already-tagged detection buffer                |
 | `QuerySet` load, 1 loader                       | 8         | the scheduler's floor: a goroutine, a WaitGroup, a cancel cause, one apply |
-| `QuerySet` load, 5 + 2 page-only, page / region | 20 / 18   | a region render of the same set skips the two page-only loaders           |
+| `QuerySet` load, 5 + 2 page-only, page / region | 20 / 18   | a region render of the same set skips the two page-only loaders            |
 
 ## Migrating a handler
 

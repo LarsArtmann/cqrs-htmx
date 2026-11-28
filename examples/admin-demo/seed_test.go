@@ -100,7 +100,7 @@ func TestSeed_CastIsVisibleAndHonest(t *testing.T) {
 
 // memberRoles collects a member's roles from the tenant members list by the
 // seed-derived user ID ("seed-" + email → SyntheticUserID → actor).
-func memberRoles(members []*usermgmt.Membership, seedEmail string) map[identitymodel.Role]bool {
+func memberRoles(members []*identitymodel.Membership, seedEmail string) map[identitymodel.Role]bool {
 	actor := identitymodel.ActorIDFromUser(identitymodel.SyntheticUserID(seedEmail))
 	roles := make(map[identitymodel.Role]bool)
 	for _, m := range members {

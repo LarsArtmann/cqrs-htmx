@@ -32,15 +32,15 @@ type Config struct {
 
 `App` methods you'll use:
 
-| Method                                                 | Purpose                                                                                        |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| `app.Command(type, opts...) http.HandlerFunc`          | Build a command-dispatch handler. `type` is `command.Type("CreateItem")`. Empty string panics. |
-| `app.Query(type, opts...) http.HandlerFunc`            | Build a query-dispatch handler.                                                                |
+| Method                                                 | Purpose                                                                                                          |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `app.Command(type, opts...) http.HandlerFunc`          | Build a command-dispatch handler. `type` is `command.Type("CreateItem")`. Empty string panics.                   |
+| `app.Query(type, opts...) http.HandlerFunc`            | Build a query-dispatch handler.                                                                                  |
 | `app.QuerySet(set, opts...) http.HandlerFunc`          | Run a query set (parallel loaders into one props struct) and render through `Views`. See the props-seam section. |
-| `app.Middleware() func(http.Handler) http.Handler`     | Context enrichment (user/correlation/request IDs + deadline propagation). Put it innermost.    |
-| `app.HealthHandler() http.HandlerFunc`                 | JSON `200`/`503` health probe.                                                                 |
-| `app.RecoverHandler() func(http.Handler) http.Handler` | Panic recovery using the App's configured error handler.                                       |
-| `app.EventOptions(ctx) []event.Option`                 | Build event options from context (user IDs, correlation/request IDs, deadline).                |
+| `app.Middleware() func(http.Handler) http.Handler`     | Context enrichment (user/correlation/request IDs + deadline propagation). Put it innermost.                      |
+| `app.HealthHandler() http.HandlerFunc`                 | JSON `200`/`503` health probe.                                                                                   |
+| `app.RecoverHandler() func(http.Handler) http.Handler` | Panic recovery using the App's configured error handler.                                                         |
+| `app.EventOptions(ctx) []event.Option`                 | Build event options from context (user IDs, correlation/request IDs, deadline).                                  |
 
 ## `HandlerOption` catalogue
 
@@ -180,18 +180,18 @@ Swap strategy constants: `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `S
 
 `cqrshtmx.Chain(mw1, mw2, ...)` composes middleware (outer first). Provided middleware:
 
-| Middleware                                                               | Purpose                                                                                                                  |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| `RecoveryMiddleware`                                                     | Package-level panic recovery (uses `DefaultErrorHandler`).                                                               |
-| `app.RecoverHandler()`                                                   | Panic recovery using the App's error handler.                                                                            |
-| `httputil.SecurityHeaders(httputil.SecurityHeadersConfig{...})` | X-Content-Type-Options, X-Frame-Options, Referrer-Policy, optional CSP/HSTS. **Never auto-applied** (library principle). The root names `SecurityHeadersMiddleware`/`SecurityHeadersMiddlewareWithConfig` are deprecated v5-removal wrappers. |
-| `HTMXMiddleware`                                                         | Detects HTMX requests, stores `htmx.Request` in context.                                                                 |
-| `ContextEnrichmentMiddleware(extractor)`                                 | Generates correlation/request IDs, injects user ID. (`app.Middleware()` wraps this.)                                     |
-| `httputil.CSRFMiddleware(httputil.CSRFConfig)`                           | justinas/nosurf integration with origin checks + proxy trust. The root alias `cqrshtmx.CSRFMiddleware` is deprecated.   |
-| `httputil.CSRFResponseHeaderMiddleware`                                  | Repeats the request's CSRF token in the `httputil.DefaultCSRFHeaderName` response header, so `hx-headers` can echo it.  |
-| `AuthorizeMiddleware(enforcer, res, act, extractor)`                     | Per-route authz.                                                                                                         |
-| `httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig)`  | Keyed token bucket (`Limit`, `Window`, `Burst`, `KeyExtractor`, `TTL`); start from `httputil.DefaultKeyedRateLimiterConfig()`. |
-| `RequestLogging(fmt, sink)` / `RequestLoggingSlog(logger)`               | Structured request logging.                                                                                              |
+| Middleware                                                             | Purpose                                                                                                                                                                                                                                       |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RecoveryMiddleware`                                                   | Package-level panic recovery (uses `DefaultErrorHandler`).                                                                                                                                                                                    |
+| `app.RecoverHandler()`                                                 | Panic recovery using the App's error handler.                                                                                                                                                                                                 |
+| `httputil.SecurityHeaders(httputil.SecurityHeadersConfig{...})`        | X-Content-Type-Options, X-Frame-Options, Referrer-Policy, optional CSP/HSTS. **Never auto-applied** (library principle). The root names `SecurityHeadersMiddleware`/`SecurityHeadersMiddlewareWithConfig` are deprecated v5-removal wrappers. |
+| `HTMXMiddleware`                                                       | Detects HTMX requests, stores `htmx.Request` in context.                                                                                                                                                                                      |
+| `ContextEnrichmentMiddleware(extractor)`                               | Generates correlation/request IDs, injects user ID. (`app.Middleware()` wraps this.)                                                                                                                                                          |
+| `httputil.CSRFMiddleware(httputil.CSRFConfig)`                         | justinas/nosurf integration with origin checks + proxy trust. The root alias `cqrshtmx.CSRFMiddleware` is deprecated.                                                                                                                         |
+| `httputil.CSRFResponseHeaderMiddleware`                                | Repeats the request's CSRF token in the `httputil.DefaultCSRFHeaderName` response header, so `hx-headers` can echo it.                                                                                                                        |
+| `AuthorizeMiddleware(enforcer, res, act, extractor)`                   | Per-route authz.                                                                                                                                                                                                                              |
+| `httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig)` | Keyed token bucket (`Limit`, `Window`, `Burst`, `KeyExtractor`, `TTL`); start from `httputil.DefaultKeyedRateLimiterConfig()`.                                                                                                                |
+| `RequestLogging(fmt, sink)` / `RequestLoggingSlog(logger)`             | Structured request logging.                                                                                                                                                                                                                   |
 
 ### Recommended order (outer → inner)
 
