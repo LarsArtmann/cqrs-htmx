@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-health-dashboard v0.13.3
 	github.com/larsartmann/go-sse v0.7.0
-	github.com/larsartmann/httputil v1.9.0
+	github.com/larsartmann/httputil v1.9.1
 	github.com/larsartmann/samber-do-auditlog v0.12.3
 	github.com/samber/do/v2 v2.1.0
 )

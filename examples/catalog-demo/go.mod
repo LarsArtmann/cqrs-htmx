@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.1
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.19.1
 	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.3.1
-	github.com/larsartmann/httputil v1.9.0
+	github.com/larsartmann/httputil v1.9.1
 )
 
 require (
