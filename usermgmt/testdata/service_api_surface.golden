@@ -1,68 +1,68 @@
-func(*usermgmt.Service)
-func(*usermgmt.Service) *eventcatalog.Catalog
-func(*usermgmt.Service) *identitymodel.Authz
-func(*usermgmt.Service) *projectionhost.Host
-func(*usermgmt.Service) *usermgmt.AuditLog
-func(*usermgmt.Service) *usermgmt.UserReadModel
-func(*usermgmt.Service) []*usermgmt.Tenant
-func(*usermgmt.Service) []cqrshtmx.ProjectionStatusEntry
-func(*usermgmt.Service) []string
-func(*usermgmt.Service) bool
-func(*usermgmt.Service) bool
-func(*usermgmt.Service) bool
-func(*usermgmt.Service) error
-func(*usermgmt.Service) event.Bus
-func(*usermgmt.Service) event.Store
-func(*usermgmt.Service, context.Context) []usermgmt.DuplicateTenantGroup
-func(*usermgmt.Service, context.Context) []usermgmt.DuplicateUserGroup
-func(*usermgmt.Service, context.Context) error
-func(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) error
-func(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) error
-func(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []identitymodel.Role) error
-func(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []identitymodel.Role) error
-func(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []identitymodel.Role) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.botBrand,string]) (*usermgmt.Bot, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.botBrand,string], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) (*usermgmt.Tenant, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) []*identitymodel.Membership
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (*identitymodel.User, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (*usermgmt.TOTPSetupResponse, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (*usermgmt.webauthnBeginResponse, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (string, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], *http.Request) (*usermgmt.AuthResult, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], *http.Request, string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], []id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], []uint8) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) (*identitymodel.Session, error)
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], identitymodel.WebAuthnCredential) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
-func(*usermgmt.Service, context.Context, io.Reader) (*usermgmt.ImportResult, error)
-func(*usermgmt.Service, context.Context, io.Reader) (*usermgmt.ImportResult, error)
-func(*usermgmt.Service, context.Context, io.Writer) error
-func(*usermgmt.Service, context.Context, io.Writer) error
-func(*usermgmt.Service, context.Context, string) (*identitymodel.User, error)
-func(*usermgmt.Service, context.Context, string) (*usermgmt.BeginOAuthLoginResponse, error)
-func(*usermgmt.Service, context.Context, string) (*usermgmt.webauthnBeginResponse, error)
-func(*usermgmt.Service, context.Context, string) error
-func(*usermgmt.Service, context.Context, string) error
-func(*usermgmt.Service, context.Context, string) error
-func(*usermgmt.Service, context.Context, string) error
-func(*usermgmt.Service, context.Context, string) string
-func(*usermgmt.Service, context.Context, string, string, string) (*usermgmt.AuthResult, error)
-func(*usermgmt.Service, context.Context, string, string, string, identitymodel.Action) error
-func(*usermgmt.Service, context.Context, usermgmt.CreateTenantRequest) (*usermgmt.Tenant, error)
-func(*usermgmt.Service, context.Context, usermgmt.RegisterBotRequest) (*usermgmt.RegisterBotResult, error)
-func(*usermgmt.Service, context.Context, usermgmt.RegisterRequest) (*usermgmt.AuthResult, error)
-func(*usermgmt.Service, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) (bool, error)
-func(*usermgmt.Service, string) (*usermgmt.Bot, bool)
+AddCredential(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], identitymodel.WebAuthnCredential) error
+AddMember(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []identitymodel.Role) error
+AllTenants(*usermgmt.Service) []*usermgmt.Tenant
+AuditLog(*usermgmt.Service) *usermgmt.AuditLog
+Authenticate(*usermgmt.Service, context.Context, string) (*identitymodel.User, error)
+Authorize(*usermgmt.Service, context.Context, string, string, string, identitymodel.Action) error
+Authz(*usermgmt.Service) *identitymodel.Authz
+BeginImpersonation(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) (*identitymodel.Session, error)
+BeginLogin(*usermgmt.Service, context.Context, string) (*usermgmt.webauthnBeginResponse, error)
+BeginOAuthLogin(*usermgmt.Service, context.Context, string) (*usermgmt.BeginOAuthLoginResponse, error)
+BeginRegistration(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (*usermgmt.webauthnBeginResponse, error)
+ChangeDisplayName(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
+ChangeEmail(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
+Close(*usermgmt.Service) error
+ConfiguredOAuth2Providers(*usermgmt.Service) []string
+CreateTenant(*usermgmt.Service, context.Context, usermgmt.CreateTenantRequest) (*usermgmt.Tenant, error)
+DeleteBot(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.botBrand,string], string) error
+DeleteTenant(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
+DeleteUser(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
+DisableTOTP(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
+DisplayName(*usermgmt.Service, context.Context, string) string
+DuplicateTenants(*usermgmt.Service, context.Context) []usermgmt.DuplicateTenantGroup
+DuplicateUsers(*usermgmt.Service, context.Context) []usermgmt.DuplicateUserGroup
+EnableTOTP(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (*usermgmt.TOTPSetupResponse, error)
+EndImpersonation(*usermgmt.Service, context.Context, string) error
+EventBus(*usermgmt.Service) event.Bus
+EventCatalog(*usermgmt.Service) *eventcatalog.Catalog
+ExportUsersToCSV(*usermgmt.Service, context.Context, io.Writer) error
+ExportUsersToJSON(*usermgmt.Service, context.Context, io.Writer) error
+FinishLogin(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], *http.Request) (*usermgmt.AuthResult, error)
+FinishOAuthLogin(*usermgmt.Service, context.Context, string, string, string) (*usermgmt.AuthResult, error)
+FinishRegistration(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], *http.Request, string) error
+GetBot(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.botBrand,string]) (*usermgmt.Bot, error)
+GetTenant(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) (*usermgmt.Tenant, error)
+GetUser(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (*identitymodel.User, error)
+GracefulClose(*usermgmt.Service, context.Context) error
+GrantRoles(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []identitymodel.Role) error
+HasAdminGrant(*usermgmt.Service, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) (bool, error)
+HasOAuth2(*usermgmt.Service) bool
+HasTOTP(*usermgmt.Service) bool
+HasWebAuthn(*usermgmt.Service) bool
+ImportUsersFromCSV(*usermgmt.Service, context.Context, io.Reader) (*usermgmt.ImportResult, error)
+ImportUsersFromJSON(*usermgmt.Service, context.Context, io.Reader) (*usermgmt.ImportResult, error)
+Journal(*usermgmt.Service) event.Store
+Logout(*usermgmt.Service, context.Context, string) error
+MergeTenants(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
+MergeUsers(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], []id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
+ProjectionHost(*usermgmt.Service) *projectionhost.Host
+ProjectionStatuses(*usermgmt.Service) []cqrshtmx.ProjectionStatusEntry
+ReactivateTenant(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) error
+ReadModel(*usermgmt.Service) *usermgmt.UserReadModel
+RebuildProjection(*usermgmt.Service, context.Context, string) error
+Register(*usermgmt.Service, context.Context, usermgmt.RegisterRequest) (*usermgmt.AuthResult, error)
+RegisterBot(*usermgmt.Service, context.Context, usermgmt.RegisterBotRequest) (*usermgmt.RegisterBotResult, error)
+RemoveCredential(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], []uint8) error
+RemoveMember(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) error
+RenameTenant(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
+ResolveBotByToken(*usermgmt.Service, string) (*usermgmt.Bot, bool)
+RevokeRoles(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) error
+SendVerificationEmail(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID]) (string, error)
+Stop(*usermgmt.Service)
+SuspendTenant(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], string) error
+TenantMembers(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string]) []*identitymodel.Membership
+UnlinkExternalAccount(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
+UpdateMemberRoles(*usermgmt.Service, context.Context, id.ActorID, id.ID[github.com/larsartmann/cqrs-htmx/identity-model/v4.tenantBrand,string], []identitymodel.Role) error
+VerifyEmail(*usermgmt.Service, context.Context, string) error
+VerifyTOTP(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error
+VerifyTOTPSetup(*usermgmt.Service, context.Context, id.ID[github.com/larsartmann/go-cqrs-lite/id/v4.UserMarker,github.com/oklog/ulid/v2.ULID], string) error

@@ -44,7 +44,8 @@ func TestService_ExportedAPISurface(t *testing.T) {
 func exportedAPISurface(typ reflect.Type) string {
 	lines := make([]string, 0, typ.NumMethod())
 	for i := range typ.NumMethod() {
-		lines = append(lines, typ.Method(i).Type.String())
+		method := typ.Method(i)
+		lines = append(lines, method.Name+strings.TrimPrefix(method.Type.String(), "func"))
 	}
 	slices.Sort(lines)
 	return strings.Join(lines, "\n") + "\n"
