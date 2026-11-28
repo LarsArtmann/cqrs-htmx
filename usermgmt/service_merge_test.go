@@ -187,10 +187,10 @@ func assertIssue46AssetsMoved(t *testing.T, svc *Service, ctx context.Context, s
 		t.Errorf("loser memberships = %d rows, want 0", len(rows))
 	}
 
-	if bots := svc.botReadModel.FindByOwner(seed.dups[3]); len(bots) != 0 {
+	if bots := svc.BotService.botReadModel.FindByOwner(seed.dups[3]); len(bots) != 0 {
 		t.Errorf("loser still owns %d bots", len(bots))
 	}
-	owned := svc.botReadModel.FindByOwner(seed.survivor)
+	owned := svc.BotService.botReadModel.FindByOwner(seed.survivor)
 	if len(owned) != 1 || owned[0].ID.Get() != seed.botID.Get() {
 		t.Fatalf("survivor owns %v, want the transferred bot", owned)
 	}

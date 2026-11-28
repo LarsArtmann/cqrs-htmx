@@ -23,15 +23,19 @@ const (
 // Service orchestrates user registration, authentication, authorization, and session management
 // using event-sourced CQRS under the hood.
 type Service struct {
+	// The focused sub-services of the ADR-0038 decomposition, embedded by
+	// value so a Service can never hold a nil one: their methods are
+	// promoted onto *Service (the v4 API is unchanged), and new code may
+	// take a focused service directly (svc.BotService, svc.TenantService).
+	BotService
+
 	repository               *decider.Repository[UserState]
 	membershipRepo           *decider.Repository[MembershipState]
 	tenantRepo               *decider.Repository[TenantState]
-	botRepo                  *decider.Repository[BotState]
 	dispatcher               *command.Dispatcher
 	readModel                *UserReadModel
 	membershipReadModel      *MembershipReadModel
 	tenantReadModel          *TenantReadModel
-	botReadModel             *BotReadModel
 	casbinProjection         *CasbinProjection
 	authz                    *Authz
 	sessions                 SessionStore
@@ -60,7 +64,6 @@ type Service struct {
 	oauth2StateTTL           time.Duration
 	stopLockoutEviction      func()
 	stopCommandIdemSweeper   func()
-	tokenPepper              TokenPepper
 	uniqueTenantNames        bool
 	projectionHost           *projectionhost.Host
 	checkpointStore          event.CheckpointStore

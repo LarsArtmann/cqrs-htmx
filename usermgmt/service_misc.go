@@ -130,7 +130,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 	}
 	s.revokeSessionsBestEffort(ctx, userID, "failed to revoke sessions on delete")
 	s.removeMembershipsForUserBestEffort(ctx, userID)
-	s.deleteBotsForUserBestEffort(ctx, userID, reason)
+	s.BotService.deleteBotsForUserBestEffort(ctx, userID, reason)
 	return nil
 }
 
@@ -145,32 +145,6 @@ func (s *Service) removeMembershipsForUserBestEffort(ctx context.Context, userID
 				"usermgmt: failed to remove membership on user deletion",
 				"user_id", userID.Get(),
 				"tenant_id", mem.TenantID.Get(),
-				"error", err,
-			)
-		}
-	}
-}
-
-// deleteBotsForUserBestEffort deletes all bots owned by a user.
-// Errors are logged but not returned — the user is already deleted.
-func (s *Service) deleteBotsForUserBestEffort(ctx context.Context, userID UserID, reason string) {
-	bots := s.botReadModel.FindByOwner(userID)
-	for _, bot := range bots {
-		aggID, err := aggIDFromBot(bot.ID)
-		if err != nil {
-			s.logger.Warn(
-				"usermgmt: failed to convert bot ID on user deletion",
-				"user_id", userID.Get(),
-				"bot_id", bot.ID.Get(),
-				"error", err,
-			)
-			continue
-		}
-		if err := s.dispatcher.Dispatch(ctx, NewDeleteBotCmd(aggID, reason)); err != nil {
-			s.logger.Warn(
-				"usermgmt: failed to delete bot on user deletion",
-				"user_id", userID.Get(),
-				"bot_id", bot.ID.Get(),
 				"error", err,
 			)
 		}

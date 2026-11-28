@@ -142,16 +142,20 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	//nolint:exhaustruct // fields set conditionally below
 	svc := &Service{
+		BotService: BotService{
+			botReadModel: setup.BotReadModel,
+			tokenPepper:  config.TokenPepper,
+			dispatcher:   dispatcher,
+			logger:       logger,
+		},
 		stopCommandIdemSweeper: stopCommandIdemSweeper,
 		repository:             setup.Repository,
 		membershipRepo:         setup.MembershipRepository,
 		tenantRepo:             setup.TenantRepository,
-		botRepo:                setup.BotRepository,
 		dispatcher:             dispatcher,
 		readModel:              setup.ReadModel,
 		membershipReadModel:    setup.MembershipReadModel,
 		tenantReadModel:        setup.TenantReadModel,
-		botReadModel:           setup.BotReadModel,
 		casbinProjection:       casbinProjection,
 		authz:                  authz,
 		sessions:               config.SessionStore,
@@ -241,7 +245,6 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	svc.wireLockoutEviction()
 
-	svc.tokenPepper = config.TokenPepper
 	svc.uniqueTenantNames = config.UniqueTenantNames
 	svc.maxUsers = config.MaxUsers
 

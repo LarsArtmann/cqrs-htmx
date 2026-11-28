@@ -72,7 +72,7 @@ func (s *Service) MergeUsers(ctx context.Context, survivorID UserID, loserIDs []
 		if err := s.moveMembershipsToSurvivor(ctx, survivorID, loserID); err != nil {
 			return err
 		}
-		if err := s.transferBotsToSurvivor(ctx, survivorID, loserID, reason); err != nil {
+		if err := s.BotService.transferBotsToSurvivor(ctx, survivorID, loserID, reason); err != nil {
 			return err
 		}
 		s.revokeSessionsBestEffort(ctx, loserID, "failed to revoke sessions on merge")
@@ -275,25 +275,6 @@ func (s *Service) moveMembershipsToSurvivor(ctx context.Context, survivorID, los
 		if err := s.dispatcher.Dispatch(ctx, NewRemoveMemberCmd(loserActor, mem.TenantID)); err != nil {
 			return classifyDispatchError(err, loserID,
 				"tenant_id", mem.TenantID.Get(),
-				"survivor_id", survivorID.Get().String(),
-			)
-		}
-	}
-	return nil
-}
-
-// transferBotsToSurvivor re-owns every bot the loser owns. An unknown
-// owner on the bot side answers the decider's own typed error; a bot already
-// owned by the survivor is a decider no-op.
-func (s *Service) transferBotsToSurvivor(ctx context.Context, survivorID, loserID UserID, reason string) error {
-	for _, bot := range s.botReadModel.FindByOwner(loserID) {
-		aggID, err := aggIDFromBot(bot.ID)
-		if err != nil {
-			return err
-		}
-		if err := s.dispatcher.Dispatch(ctx, identitymodel.NewTransferBotCmd(aggID, survivorID, reason)); err != nil {
-			return classifyDispatchError(err, loserID,
-				"bot_id", bot.ID.Get(),
 				"survivor_id", survivorID.Get().String(),
 			)
 		}
