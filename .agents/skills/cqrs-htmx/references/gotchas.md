@@ -13,7 +13,7 @@ Go modules at v2+ require the major-version suffix in the import path. Forgettin
 cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 "github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 "github.com/larsartmann/cqrs-htmx/adminui/v4"
-"github.com/larsartmann/go-cqrs-lite/command/v3"
+"github.com/larsartmann/go-cqrs-lite/command/v4"
 
 // WRONG (won't resolve, or resolves to an ancient v1)
 "github.com/larsartmann/cqrs-htmx"
@@ -106,23 +106,23 @@ Library principle: never enforce defaults consumers might disagree with. You mus
 
 ### Banned: `errors.New` / `fmt.Errorf` (as error) / `errors.Join`
 
-Enforced by `branching-flow errorfamily .` (must report 0). Inside this codebase, use `event.New*`/`event.Wrap*`/`event.Wrapf`/`event.Newf` from `go-cqrs-lite/event/v3`:
+Enforced by `branching-flow errorfamily .` (must report 0). Inside this codebase, every error is built with the constructors of `github.com/larsartmann/go-error-family` (imported as `errorfamily`); `go-cqrs-lite/event/v4` re-exposes only the family constants (`event.Rejection`, `event.Conflict`, ...):
 
 ```go
-return event.NewRejection("app.bad_input", "email is required")     // → HTTP 400
-return event.NewConflict("app.duplicate", "email exists")           // → HTTP 409
-return event.Wrapf(err, event.Classify(err), code, msg)            // preserve inner family
+return errorfamily.NewRejection("app.bad_input", "email is required")     // → HTTP 400
+return errorfamily.NewConflict("app.duplicate", "email exists")           // → HTTP 409
+return errorfamily.Wrapf(err, errorfamily.Classify(err), code, msg)       // preserve inner family
 ```
 
 `fmt.Sprintf` is fine **when building a message string** (not an error object), e.g. formatting a 400 response body.
 
 ### Never force a family on dispatch errors
 
-A dispatch error may carry a domain Rejection/Conflict. Forcing it to Transient would change the HTTP status and break clients. Use `event.Wrapf(err, event.Classify(err), code, msg)` to preserve the inner family.
+A dispatch error may carry a domain Rejection/Conflict. Forcing it to Transient would change the HTTP status and break clients. Use `errorfamily.Wrapf(err, errorfamily.Classify(err), code, msg)` to preserve the inner family.
 
 ### Preserve sentinel identity where `errors.Is` is relied upon
 
-`errors.Is(err, ErrValidation)` is used in places (`ParseEmail`, `ImportUser.Validate`). Wrap `ErrValidation` as the cause with `event.WrapRejection(ErrValidation, ...)` — don't replace it.
+`errors.Is(err, ErrValidation)` is used in places (`ParseEmail`, `ImportUser.Validate`). Wrap `ErrValidation` as the cause with `errorfamily.WrapRejection(ErrValidation, ...)` — don't replace it.
 
 ## 6. CSRF specifics
 

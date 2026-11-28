@@ -408,12 +408,17 @@ mux.Handle("GET /tenants", app.QuerySet(tenantsSet,
         cqrshtmx.OOB("tenant-count", tenantCount),                     // rides fragment responses
     ),
     cqrshtmx.OnLoadError(func(r *http.Request, rep cqrshtmx.LoadReport) {
-        slog.Warn("degraded", "failures", len(rep.Failures))
+        slog.Warn("degraded", "failures", len(rep.Failures)) // replaces the default WARN line
+    }),
+    cqrshtmx.OnLoad(func(r *http.Request, rep cqrshtmx.LoadReport) {
+        metrics.ObserveLoad(r.URL.Path, len(rep.Ran), len(rep.Skipped)) // every load that did not abort
     }),
 ))
 ```
 
-Selection is request-derived: boosted navigation or history restore → `Page`; `HX-Target` matching a region (leading `#` optional on both sides) → that region; unmatched partial → the `Default` region, else a mapped `unroutable_view` rejection — never a silent full-page fallback. Exactly one `Page` and at most one `Default` are validated at registration. `OOB` views render only on fragment responses.
+Selection is request-derived: boosted navigation or history restore → `Page`; `HX-Target` matching a region (leading `#` optional on both sides) → that region; unmatched partial → the `Default` region, else a mapped `unroutable_view` rejection (400) — never a silent full-page fallback. Exactly one `Page` and at most one `Default` are validated at registration (a zero-value view or a view without a component panics there too). `OOB` views render only on fragment responses.
+
+**The refusal is free:** inside a QuerySet handler the selection runs BEFORE the loaders, so an unroutable request is answered without a single read — and the rejection names the target and lists the shapes that would have matched (`routable: page, region #tenant-rows`), which makes a miswired `hx-target` a one-look fix.
 
 The props come from a query set — named loaders, run in parallel, applied by one goroutine after the join:
 
@@ -432,6 +437,8 @@ tenantsSet := cqrshtmx.NewQuerySet(
 - `Load` takes any plain function, so a consumer without a dispatcher (adminui is one) uses the same API; `LoadQuery`/`FromDispatcher` adapt a dispatched query and keep its `query/<Name>` posture.
 - `Optional()` is the ONLY degradation path and it is visible (`LoadReport`/`OnLoadError`); a non-optional failure aborts with the first failing loader in declaration order (never completion order).
 - `PageOnly()` loaders are skipped for targeted HTMX requests — the rule is exported as `cqrshtmx.LoadScopeFor(r)`.
+- `OnLoad` receives the account of every load that did not abort (which loaders ran, which `PageOnly` skipped) — a degraded run included, after `OnLoadError`. An aborted load never reaches it: a fatal loader error goes to `OnError` and the error path.
+- HTMX response options apply exactly as on `App.Query`: `Trigger`, `Notify*`, `PushURL` and `Redirect` are written as headers first, then the renderer runs; a `Redirect` for a non-HTMX client is terminal (303, nothing rendered). Two `App.Query` behaviours deliberately do not apply (there is no request body): no `Accept-Query` header, and `RequestGuard` never runs.
 - `cqrshtmx.QuerySetHandler(set, opts...)` is the App-less form for a bare mux.
 - `ETagResults()` composes after `Views` (the tag hashes rendered bytes, so 304 works for all three shapes).
 - Guide: `docs/guides/query-set-to-templ.md`; decision: ADR-0068.
@@ -638,6 +645,8 @@ Read `references/usermgmt.md` for: the full setup matrix (in-memory / SQLite / P
 - **usermgmt**: `NewService` owns the dispatcher and ALREADY wires the audit chain (actor + causation + correlation on every event, zero config). Your seam is `ServiceConfig.CommandMiddleware` (retry, breaker, idempotency, validation via the shipped `usermgmt.ValidateCommand`, metrics). Do NOT reach for the dispatcher — it is deliberately not exposed.
 - **setup**: same seam via `setup.Config.CommandMiddleware` (flattens to the service).
   Full recipes + measured chain cost: `docs/guides/leveraging-go-cqrs-lite.md` §1.
+
+**Focused sub-services (ADR-0038, unreleased until the next usermgmt tag):** `Service` embeds `BotService` and `TenantService`, so `svc.MergeTenants(...)` and `svc.TenantService.MergeTenants(...)` are the same call. Every existing call site keeps compiling; name the focused service when a handler is about one aggregate.
 
 ## Path C -- add the ready-made admin dashboard (adminui)
 
@@ -868,7 +877,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 2. **One `UserID` type everywhere — construct it strictly.** Root `cqrshtmx.UserID`, `identitymodel.UserID`, and `usermgmt.UserID` all alias the same `go-cqrs-lite/id` ULID type (interoperable by design; no bridging needed). The trap is the deprecated `NewUserID(string)`: it silently SHA-256-hashes non-ULID input. Use `ParseUserID` (strict), `GenerateUserID` (fresh ULID), or `SyntheticUserID` (explicit stable hash).
 3. **Validation comes AFTER the decoder** in the `HandlerOption` list. The validator reads the decoded value off the context -- reversing the order silently skips validation (logs a `slog.Warn`).
 4. **Middleware trio order is `CSRF -> HTMX -> enrichment`.** Put your session middleware _outside_ (before) CSRF.
-5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use `event.New*/Wrap*/Wrapf/Newf` from `go-cqrs-lite/event/v4`.
+5. **No stdlib error constructors** (root + usermgmt + adminui). `errors.New`/`fmt.Errorf`/`errors.Join` are banned (enforced by `branching-flow errorfamily`). Use the constructors of `github.com/larsartmann/go-error-family`: `errorfamily.NewRejection`, `errorfamily.WrapInfrastructure`, `errorfamily.Wrapf(err, event.Conflict, code, msg)`; wrap a dispatch error with `errorfamily.Classify(err)` so its family survives. `go-cqrs-lite/event/v4` re-exposes only the family constants (`event.Rejection`, ...).
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration.
 7. **Serve htmx.js yourself on Path A/B.** Register `htmx.ScriptHandler()` on your mux. **Exception:** on Path C (adminui) the panel serves htmx.js internally -- do NOT register it yourself.
 8. **Register your command/query handlers BEFORE building endpoints.** `cmdDisp.Register("CreateItem", handler)` must happen before `app.Command("CreateItem", ...)`.
