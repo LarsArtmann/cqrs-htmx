@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"os"
-	"path/filepath"
 	"reflect"
 	"slices"
 	"strings"
@@ -18,27 +17,28 @@ import (
 // package says. Adding or changing API is deliberate: review the diff, then
 // regenerate with -update.
 func TestService_ExportedAPISurface(t *testing.T) {
+	const golden = "testdata/service_api_surface.golden"
+
 	got := exportedAPISurface(reflect.TypeOf(&Service{}))
-	path := filepath.Join("testdata", "service_api_surface.golden")
 
 	if *updateGolden {
-		if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
+		if err := os.MkdirAll("testdata", 0o750); err != nil {
 			t.Fatalf("create testdata directory: %v", err)
 		}
-		if err := os.WriteFile(path, []byte(got), 0o600); err != nil {
-			t.Fatalf("rewrite %s: %v", path, err)
+		if err := os.WriteFile(golden, []byte(got), 0o600); err != nil {
+			t.Fatalf("rewrite %s: %v", golden, err)
 		}
 	}
 
-	pinned, err := t.ReadFile(path)
+	pinned, err := os.ReadFile(golden)
 	if err != nil {
-		t.Fatalf("read %s: %v", path, err)
+		t.Fatalf("read %s: %v", golden, err)
 	}
 
 	if string(pinned) != got {
 		t.Errorf(
 			"*Service exported API surface drifted from %s; review the diff, then regenerate with -update\n--- pinned\n%s--- got\n%s",
-			path,
+			golden,
 			pinned,
 			got,
 		)
