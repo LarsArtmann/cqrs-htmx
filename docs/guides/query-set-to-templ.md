@@ -200,6 +200,8 @@ deprecating them for no gain).
   (`testdata/views/`).
 - `benchmark_views_test.go` — the seam's own cost, component- and
   loader-free.
-- `e2e/tests/root-htmx.spec.ts` — the browser proof (region shape,
-  `PageOnly` scoping, history restore, boosted navigation), which lands with
-  the `examples/basic` conversion at the next root tag.
+- `e2e/tests/root-htmx.spec.ts` — the browser gate of the root response
+  helpers on `examples/basic` (`RenderPartialOrFull`, `OOBHTML`, `RenderIf`).
+  The seam's own three specs (region shape, `PageOnly` scoping, history
+  restore and boosted navigation) join it with the `examples/basic`
+  conversion at the next root tag; they do not exist yet.

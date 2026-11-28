@@ -14,7 +14,8 @@
 # from the receivers, never listed) carry the same tripwire at a smaller
 # scale, so the god-object cannot simply be renamed. This leg exists because
 # the first crossing went unnoticed for four days: the 2026-11-24 waves took
-# the count from 81 to 95 while earlier steps of the same CI job were red.
+# the count from 80 to 95 while earlier steps of the same CI job were red,
+# and this checker's own self-test was wired into no gate.
 #
 # Usage: ./scripts/checks/check-service-methods.sh
 # Env:   SERVICE_METHOD_LIMIT  hard ceiling (default 85, per the 2026-11-02
