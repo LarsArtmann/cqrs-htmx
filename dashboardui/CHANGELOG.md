@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING: the `/-/` route prefix is gone (2026-11-28).** Every non-page route now reads as a plain path under the mount point. Static files live under `/assets/` (`/assets/dashboard.css`, `/assets/dashboard-tw.css`, `/assets/dashboard.js`, `/assets/htmx.js`, `/assets/ext/cqrs-query.js`); the probes and the internal endpoints drop the segment (`/healthz`, `/readyz`, `/versionz`, `/events/stream`, `/partials/projection-health`). No aliases and no redirects: a consumer that hard-coded an old URL (probe config, firewall allow-list, cached script URL) must move to the new one in the same upgrade; layout-rendered links and the SSE base derivation follow automatically. `Routes()` reports the new patterns.
+
 ### Added
 
 - **Command and query audit details name who the record is attributed to (2026-11-26).** The audit detail pages showed correlation, causation, actor and request IDs but not the user a record was issued under, which is the first question a "who read what" audit asks. Both pages now lead their identity tail with **User ID** (the record's `UserID`) and **Device ID** (the browser's device key under the event convention `event.MetadataKeyClientID`, present only when the transport stamped one), each with a copy button; an anonymous record shows neither. The event detail page is unchanged. Pinned by `detail_items_attribution_test.go` (query: both present, device omitted, anonymous; command: both present).

@@ -226,8 +226,7 @@ tr.step-row { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 const dashboardJS = `
 (function() {
   var scriptSrc = document.currentScript.src;
-  var path = scriptSrc.replace(/\/dashboard\.js$/, "");
-  var base = path.replace(/\/-$/, "");
+  var base = scriptSrc.replace(/\/assets\/dashboard\.js$/, "");
   var streamUrl = base + "/events/stream";
   var indicator = document.querySelector("[data-live-indicator]");
   var statusEl = document.querySelector("[data-sse-status]");
@@ -329,7 +328,7 @@ document.addEventListener("dashboard:event", function(e) {
   if (script && script.dataset.basePath) {
     basePath = script.dataset.basePath;
   } else if (script) {
-    basePath = script.src.replace(/\/-\/dashboard\.js$/, "");
+    basePath = script.src.replace(/\/assets\/dashboard\.js$/, "");
   }
   var now = data.occurredAt ? new Date(data.occurredAt) : new Date();
   var row = document.createElement("tr");

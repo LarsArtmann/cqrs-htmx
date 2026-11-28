@@ -8,38 +8,23 @@ import (
 
 // TestDashboardJSSSEBaseURL pins the client-side base-URL derivation in
 // dashboardJS. The served script derives its mount base from its own src
-// ("<base>/assets/dashboard.js"), strips the "/dashboard.js" suffix, then strips
-// the trailing "/-" segment before appending "/events/stream".
-//
-// Regression: the strip pattern was /\/-\/$/, which requires a slash AFTER
-// the dash. The stripped src ends in "/-" (no trailing slash), so the strip
-// never matched and every client requested "<base>/-/events/stream" —
-// a guaranteed 404 on every deployment (found live on a consumer's
-// https://host/cqrs/queries page, 2026-09-18).
+// ("<base>/assets/dashboard.js") by stripping the "/assets/dashboard.js"
+// suffix, then appends "/events/stream".
 func TestDashboardJSSSEBaseURL(t *testing.T) {
-	// The broken and fixed patterns, extracted from the served script.
-	brokenPattern := `var base = path.replace(/\/-\/$/, "");`
-	if strings.Contains(dashboardJS, brokenPattern) {
-		t.Fatalf(
-			"dashboardJS still contains the broken base-strip pattern %q (matches nothing; base keeps the trailing /- and the SSE URL gains a spurious /)",
-			brokenPattern,
-		)
+	const basePattern = `var base = scriptSrc.replace(/\/assets\/dashboard\.js$/, "");`
+	if !strings.Contains(dashboardJS, basePattern) {
+		t.Fatalf("dashboardJS must derive base with %q", basePattern)
 	}
 
-	fixedPattern := `var base = path.replace(/\/-$/, "");`
-	if !strings.Contains(dashboardJS, fixedPattern) {
-		t.Fatalf("dashboardJS must derive base by stripping the trailing /- with %q", fixedPattern)
+	if strings.Contains(dashboardJS, "/-/") {
+		t.Fatalf("dashboardJS must not reference the retired /-/ route prefix")
 	}
 
-	// Port the exact JS computation (the two replaces above, then the
-	// stream URL suffix) to Go regexp and assert the wire outcome for the
-	// URL shapes every deployment produces.
-	scriptSuffix := regexp.MustCompile(`/dashboard\.js$`)
-	baseStrip := regexp.MustCompile(`/-$`)
+	// Port the exact JS computation to Go regexp and assert the wire
+	// outcome for the URL shapes every deployment produces.
+	scriptSuffix := regexp.MustCompile(`/assets/dashboard\.js$`)
 	streamURL := func(scriptSrc string) string {
-		path := scriptSuffix.ReplaceAllString(scriptSrc, "")
-
-		return baseStrip.ReplaceAllString(path, "") + "/events/stream"
+		return scriptSuffix.ReplaceAllString(scriptSrc, "") + "/events/stream"
 	}
 
 	tests := []struct {
@@ -58,9 +43,9 @@ func TestDashboardJSSSEBaseURL(t *testing.T) {
 			want:      "https://host/dashboard/events/stream",
 		},
 		{
-			name:      "root mount without /- degrades unchanged",
-			scriptSrc: "https://host/dash/dashboard.js",
-			want:      "https://host/dash/events/stream",
+			name:      "root mount",
+			scriptSrc: "https://host/assets/dashboard.js",
+			want:      "https://host/events/stream",
 		},
 	}
 	for _, tt := range tests {
