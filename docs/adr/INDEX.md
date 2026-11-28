@@ -72,3 +72,4 @@
 | [0066](0066-billing-domain-design.md)                     | Billing Domain Design — D-Set by Reference Plus Deltas D14–D19 (PlanKey/PriceRef, Entitlement→Roles, Tax Facts, Chain of Custody, Named Limits, One-Time as renewal=none) | Accepted                                                        |
 | [0067](0067-identity-merge-as-ordinary-events.md) | Identity merge as ordinary events — adopted assets are lifecycle events, losers tombstone with pointers, every step idempotent | Accepted |
 | [0068](0068-props-seam-query-set-to-view-set.md) | The Props Seam — Query Set In (parallel named loaders, PageOnly/Optional), View Set Out (one Page, Regions, OOB), fail-loud selection | Accepted |
+| [0069](0069-search-page-decoded-request-and-rendered-region.md) | A search page is one decoded request (`DecodeSearch`) and one rendered region (`RenderSearch`); the library never matches text itself | Accepted |
