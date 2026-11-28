@@ -22,7 +22,15 @@ bash scripts/checks/check-docs-tail-budget.sh --ratchet && bash scripts/checks/c
 > configs — before your run. `nix run` consumes the WORKING TREE's flake.lock, so a green
 > local run under modified flake inputs is NOT a CI-parity receipt (20-25 report §f25/§f26);
 > diff those inputs before trusting a verdict you did not produce.
-> origin/master`) — after the fetch above.
+> Sync check: `git rev-list --left-right --count origin/master...HEAD` reads how far the branch is
+> ahead of and behind `origin/master` — after the fetch above.
+> **Sibling-session probe, before attributing any change:** `git worktree list` plus
+> `git log --since='<session start>' --name-only --format='%h %s'` grouped by directory show
+> which files are another session's — a branch they fast-forwarded into `master` is not your
+> diff; leave those paths to them (gotcha 73).
+> **Verify documentation against the PUBLISHED API:** `GOWORK=off GOEXPERIMENT=jsonv2 go doc -short
+<pkg> <Sym>` from the module directory — workspace mode resolves `go.work` replaces to
+> unreleased trees and shows symbols no consumer can call.
 
 ## What is loaded automatically (and what is not)
 

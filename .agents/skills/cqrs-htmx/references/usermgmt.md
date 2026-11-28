@@ -194,6 +194,8 @@ These are intentionally **service-level, not HTTP routes** — the routing schem
 | **Bots** (API tokens) | `RegisterBot`, `DeleteBot`, `GetBot`, `ResolveBotByToken`. Requires `ServiceConfig.TokenPepper`. Use `NewAPITokenMiddleware(svc)` + `RequireBot` for bot auth. Tokens are HMAC-hashed, never stored plaintext. |
 | **Impersonation**     | `BeginImpersonation(ctx, adminID, targetID, reason)`, `EndImpersonation`. Guards: super-admin only, reason required, self-impersonation blocked.                                                               |
 
+**Composition (ADR-0038, unreleased until the next usermgmt tag):** `Service` embeds `BotService` and `TenantService` by value. The tenant and bot methods above are declared there and promoted onto `*Service` — `svc.CreateTenant(...)` and `svc.TenantService.CreateTenant(...)` are the same call. Name the sub-service when a handler is about that aggregate; a new bot or tenant method is added on the sub-service, never on `*Service`.
+
 Identity types: `usermgmt.ActorID` is a kind-discriminated struct (`{kind, raw}`) — bridging to root uses `.PrefixedString()` → `cqrshtmx.ParseActorID(s)` (or `cqrshtmx.ActorIDFromUser(uid)` straight from a `UserID`). `TenantID`/`BotID` are branded string types.
 
 ## SQL persistence details

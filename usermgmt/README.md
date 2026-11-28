@@ -100,7 +100,7 @@ serves every schema — see `docs/guides/event-catalog-guide.md`):
 | User credential | `CredentialAdded`, `CredentialRemoved`, **`CredentialUsed`** (assertion state after each login: signature counter + UP/UV/backup flags — the clone-detection high-water mark, identity-model v4.14.0+)   |
 | Auth audit      | `LoginSucceeded`, `LoginFailed`, `RegistrationClosed`, `SessionStarted`, `SessionEnded` (own Auth-typed streams, best-effort append — the session pair closes the impersonation-forensics gap, ADR 0060) |
 | Membership      | `MemberAdded`, `MemberRolesChanged`, `MemberRemoved`                                                                                                                                                     |
-| User merge      | **`UserMerged`** (survivor side: adopted assets + recorded losers), **`UserMergedInto`** (loser tombstone, terminal) — the #46 identity-merge vocabulary                                                        |
+| User merge      | **`UserMerged`** (survivor side: adopted assets + recorded losers), **`UserMergedInto`** (loser tombstone, terminal) — the #46 identity-merge vocabulary                                                 |
 | Tenant          | `TenantCreated`, `TenantSuspended`, `TenantReactivated`, `TenantDeleted`, **`TenantRenamed`**, **`TenantMerged`**, **`TenantMergedInto`** (the #47 rename/merge vocabulary)                              |
 | Bot             | `BotRegistered`, `BotDeleted`, **`BotTransferred`** (owner moves, ID + token hash unchanged)                                                                                                             |
 
@@ -121,6 +121,13 @@ resumable and idempotent) and `Service.RenameTenant`/`MergeTenants`
 (the tenant twins), with `Service.DuplicateUsers`/`DuplicateTenants` feeding
 the admin panel's duplicates pages and `ServiceConfig.UniqueTenantNames`
 as the opt-in creation guard.
+
+**Composition (ADR-0038, unreleased until the next tag).** `Service` embeds the focused
+`BotService` and `TenantService` by value. Every method they declare is promoted, so
+`svc.RegisterBot(...)` is unchanged and `svc.TenantService.MergeTenants(...)` names the
+owner of the aggregate. The split follows the aggregate: a method lives on the sub-service
+that owns its read model and repository, and `*Service` keeps the shared infrastructure.
+A new bot or tenant method goes on its sub-service, never back on `*Service`.
 
 ## Consuming domain events
 
