@@ -155,6 +155,7 @@ else
 fi
 
 # --- Test 10: The sub-service ceiling is inclusive like the facade's (-ge) ---
+run_checker
 BOT_COUNT=$(grep -oP '(?<=^    BotService: )\d+' <<<"$OUTPUT" | head -1)
 if [ -n "${BOT_COUNT:-}" ]; then
   run_checker_subservice "$BOT_COUNT"
